@@ -1,0 +1,25 @@
+{
+  "name": "apt-rental-platform",
+  "version": "1.0.0",
+  "description": "APT is a modern rental platform designed for students, renters, and property owners. It simplifies the entire renting process—from searching for listings to managing properties—through a clean and user-friendly interface.",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "web": "pnpm --filter web dev",
+    "mobile": "pnpm --filter mobile start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aurickwilliam/apt-rental-platform.git"
+  },
+  "keywords": [],
+  "author": "Aurick William Lorenzo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aurickwilliam/apt-rental-platform/issues"
+  },
+  "homepage": "https://github.com/aurickwilliam/apt-rental-platform#readme"
+}
