@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     "./App.{js,jsx,ts,tsx}",
@@ -15,6 +16,32 @@ module.exports = {
         dmserif: ['DMSerifText-Regular'],
         inter: ['Inter_24pt-Regular'],
         interMedium: ['Inter_24pt-Medium'],
+      },
+      colors: {
+        primary: '#376BF5',
+        secondary: '#FFA500',
+        darkerWhite: '#F8F9FA',
+        text: '#333333',
+        grey: {
+          100: '#E5E7EB',
+          200: '#D1D5DB',
+          300: '#BDBDBD',
+          400: '#9CA3AF',
+          500: '#6C757D',
+        },
+        greenHulk: {
+          100: '#E6F4EA',
+          200: '#22C55E',
+
+        },
+        redHead: {
+          100: '#FF4B4B',
+          200: '#E50914',
+        },
+        yellowish: {
+          100: '#FFF8E1',
+          200: '#FACC15',
+        }
       }
     },
   },
