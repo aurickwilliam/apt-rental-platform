@@ -1,18 +1,22 @@
-import { Pressable, Image, View, ImageSourcePropType } from 'react-native'
+import { Image, View, ImageSourcePropType, TouchableOpacity } from 'react-native'
 
 interface LogoButtonProps {
-  image: ImageSourcePropType 
+  image: ImageSourcePropType,
+  onPress?: () => void, 
 }
 
-export default function LogoButton({image}: LogoButtonProps) {
+export default function LogoButton({image, onPress}: LogoButtonProps) {
   return (
-    <Pressable className='p-4 bg-white border border-grey-200 rounded-full self-center'>
+    <TouchableOpacity className='p-4 bg-white border border-grey-200 
+      rounded-full self-center'
+      onPress={onPress}
+    >
       <View className='h-9 w-9'>
         <Image 
           source={image}
           style={{ width: '100%', height: '100%' }}
         />
       </View>
-    </Pressable>
+    </TouchableOpacity>
   )
 }

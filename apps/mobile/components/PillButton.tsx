@@ -13,10 +13,10 @@ interface PillButtonProps {
 }
 
 const TYPE_STYLES = {
-  primary: 'bg-primary',
-  secondary: 'bg-secondary',
-  danger: 'bg-redHead-200',
-  outline: 'bg-white border-2 border-grey-500',
+  primary: 'bg-primary active:bg-[#2551C7]',
+  secondary: 'bg-secondary active:bg-[#CC8400]',
+  danger: 'bg-redHead-200 active:bg-[#B7070F]',
+  outline: 'bg-white border-2 border-grey-500 active:bg-[#E5E5E5]',
 }
 
 export default function PillButton({
