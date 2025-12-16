@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 
 import { IMAGES } from "@/constants/images";
 import TextField from "@/components/TextField";
+import PillButton from "@/components/PillButton";
 
 import { useState } from "react";
 
@@ -47,6 +48,27 @@ export default function SignIn() {
           required={true}
         />
       </View>
+
+      {/* Sign In Button */}
+      <View className="mt-5">
+        <PillButton 
+          label="Continue"
+          onPress={() => console.log("Shibal")}
+        />
+      </View>
+
+      {/* Divider */}
+      <View className="flex-row justify-center items-center mt-7 mb-7">
+        <View className="flex-1 h-1 bg-grey-400 rounded-full mt-1" />
+        
+        <Text className="mx-3 text-mediumGrey font-inter">
+          or sign up with
+        </Text>
+        
+        <View className="flex-1 h-1 bg-grey-400 rounded-full mt-1" />
+      </View>
+
+      
     </View>
   );
 }
