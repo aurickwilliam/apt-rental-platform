@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
+
 import TextField from "@/components/TextField";
 import PillButton from "@/components/PillButton";
 import LogoButton from "@/components/LogoButton";
