@@ -1,6 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
-import { FontAwesome6 } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 
 import { COLORS } from '@/constants/colors'
 
@@ -73,8 +73,8 @@ export default function TextField({
               onPress={() => setIsPasswordVisible(!isPasswordVisible)}
               className='ml-2'
             >
-              <FontAwesome6 
-                name={isPasswordVisible ? 'eye-slash' : 'eye'} 
+              <Ionicons 
+                name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'} 
                 size={24} 
                 color={COLORS.mediumGrey}
               />
