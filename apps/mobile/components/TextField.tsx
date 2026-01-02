@@ -52,7 +52,16 @@ export default function TextField({
 
             onChangeText={onChangeText}
 
-            className='flex-1 text-text font-inter text-lg'
+            style={{
+              flex: 1,
+              height: '100%',
+              paddingVertical: 0,
+              color: COLORS.text,
+
+              fontFamily: 'Inter_24pt-Regular',
+              fontSize: 16,
+              lineHeight: 20,
+            }}
             placeholder={placeholder}
             placeholderTextColor={COLORS.mediumGrey}
 
