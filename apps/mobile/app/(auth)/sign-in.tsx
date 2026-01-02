@@ -86,8 +86,8 @@ export default function SignIn() {
         />
       </View>
 
-      <Link href={'/'} className='mt-3'>
-        <Text className="text-left text-secondary font-interMedium underline">
+      <Link href={'/'} asChild>
+        <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
           Forgot Password?
         </Text>
       </Link>
