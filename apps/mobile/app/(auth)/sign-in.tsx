@@ -136,7 +136,11 @@ export default function SignIn() {
           <Text className="text-text font-inter">
             New here?
           </Text>
-          <Link href={"/sign-up"} className="text-primary font-interMedium underline">
+          <Link 
+            href={"/sign-up"} 
+            className="text-primary font-interMedium underline"
+            replace={true}
+          >
             Sign Up
           </Link>
         </View>
