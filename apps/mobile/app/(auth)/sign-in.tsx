@@ -96,6 +96,7 @@ export default function SignIn() {
       <View className="mt-5">
         <PillButton 
           label="Sign In"
+          isFullWidth={true}
           onPress={() => handleSignIn()}
         />
       </View>
@@ -135,7 +136,7 @@ export default function SignIn() {
           <Text className="text-text font-inter">
             New here?
           </Text>
-          <Link href={"/sign-in"} className="text-primary font-interMedium underline">
+          <Link href={"/sign-up"} className="text-primary font-interMedium underline">
             Sign Up
           </Link>
         </View>

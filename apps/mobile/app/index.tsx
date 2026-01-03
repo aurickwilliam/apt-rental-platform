@@ -15,6 +15,10 @@ export default function Index() {
           <Text>Sign Up</Text>
         </Link>
       </View>
+
+      <Link href="/onboarding">
+        <Text>Onboarding</Text>
+      </Link>
     </View>
   );
 }

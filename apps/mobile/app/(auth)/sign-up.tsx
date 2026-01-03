@@ -69,6 +69,7 @@ export default function SignUp() {
       <View className="mt-5">
         <PillButton 
           label="Continue"
+          isFullWidth={true}
           onPress={() => console.log("Shibal")}
         />
       </View>
