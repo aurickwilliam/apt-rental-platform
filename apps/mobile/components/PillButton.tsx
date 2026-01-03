@@ -6,7 +6,9 @@ import { COLORS } from '@/constants/colors';
 interface PillButtonProps {
   label: string,
   type?: 'primary' | 'secondary' | 'outline' | 'danger',
+  width?: number,
   isDisabled?: boolean,
+  isFullWidth?: boolean,
   leftIconName?: React.ComponentProps<typeof Ionicons>['name'],
   rightIconName?: React.ComponentProps<typeof Ionicons>['name'],
   onPress?: () => void,
@@ -22,15 +24,20 @@ const TYPE_STYLES = {
 export default function PillButton({
   label = 'Pill Button',
   type = 'primary',
+  width,
   isDisabled = false,
+  isFullWidth = false,
   leftIconName,
   rightIconName,
   onPress,
   }: PillButtonProps) {
 
   return (
-    <Pressable className={`${TYPE_STYLES[type]} h-14 w-full rounded-full flex-row 
+    <Pressable className={`${TYPE_STYLES[type]} 
+      ${isFullWidth ? 'w-full self-stretch' : 'self-start'} 
+      h-14 min-w-[120px] rounded-full flex-row 
       justify-center items-center gap-2`}
+      style={{ width: width ? width : undefined }}
       onPress={onPress}
       disabled={isDisabled}
     >
