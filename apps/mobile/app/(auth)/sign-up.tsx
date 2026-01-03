@@ -1,6 +1,6 @@
 import { View, Text, Image, Platform, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
 
@@ -8,11 +8,21 @@ import TextField from "@/components/TextField";
 import PillButton from "@/components/PillButton";
 import LogoButton from "@/components/LogoButton";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SignUp() {
-  const [email, setEmail] = useState('');
-  const [userSide, setUserSide] = useState('tenant'); // tenant | landlord
+  const { userType } = useLocalSearchParams();
+
+  const [email, setEmail] = useState<string>('');
+  const [userSide, setUserSide] = useState<'tenant' | 'landlord'>('tenant');
+
+  // Set the user side based on the userType param
+  // When the component mounts or when userType changes
+  useEffect(() => {
+    if (userType === 'tenant' || userType === 'landlord') {
+      setUserSide(userType);
+    }
+  }, [userType]);
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
@@ -109,7 +119,11 @@ export default function SignUp() {
           <Text className="text-text font-inter">
             Already have an account?
           </Text>
-          <Link href={"/sign-in"} className="text-primary font-interMedium underline">
+          <Link 
+            href={"/sign-in"} 
+            className="text-primary font-interMedium underline"
+            replace={true}
+          >
             Sign In
           </Link>
         </View>

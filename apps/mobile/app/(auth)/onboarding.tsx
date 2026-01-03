@@ -7,7 +7,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 
 import { SLIDES } from "@/constants/onboarding-data";
 import OnBoardingSlide from '@/components/OnBoardingSlide';
@@ -21,8 +21,6 @@ export default function OnboardingScreen() {
 
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
-
-  const router = useRouter();
 
   // First: Updates the scrollX every move of the scroll
   // Second: Every scroll, it runs the listener function, sets the currentIndex
@@ -55,17 +53,25 @@ export default function OnboardingScreen() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   };
 
-  const handleLandlordBtn = () => {
-    // Navigate to sign-in or main app
-    router.replace('/(auth)/sign-in');
-  };
+  // User Role Buttons Data
+  interface UserRole {
+    label: string,
+    type: 'primary' | 'secondary',
+    userType: 'landlord' | 'tenant',
+  }
 
-  const handleTenantBtn = () => {
-    // Navigate to sign-in or main app
-    router.replace('/(auth)/sign-in');
-  };
-
-
+  const userRoles: UserRole[] = [
+    {
+      label: "I'm a Landlord", 
+      type: 'secondary', 
+      userType: 'landlord'
+    },
+    {
+      label: "I'm a Tenant", 
+      type: 'primary', 
+      userType: 'tenant'
+    },
+  ]
 
   return (
     <View className='flex-1 bg-white'>
@@ -129,45 +135,49 @@ export default function OnboardingScreen() {
 
       {/* Bottom Buttons */}
       <View className='flex-row items-center justify-between gap-8 px-10 mb-10'>
-        {currentIndex < SLIDES.length - 1 ? (
-          <>
-            <View className='flex-1'>
-              <PillButton 
-                label="Skip"
-                type="outline"
-                isFullWidth={true}
-                onPress={skip}
-              />
-            </View>
-            
-            <View className='flex-1'>
-              <PillButton 
-                label="Next"
-                isFullWidth={true}
-                onPress={goToNext}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            <View className='flex-1'>
-              <PillButton 
-                label="I'm a Landlord"
-                type='secondary'
-                isFullWidth={true}
-                onPress={handleLandlordBtn}
-              />
-            </View>
+        {
+          currentIndex < SLIDES.length - 1 ? (
+            <>
+              <View className='flex-1'>
+                <PillButton 
+                  label="Skip"
+                  type="outline"
+                  isFullWidth={true}
+                  onPress={skip}
+                />
+              </View>
+              
+              <View className='flex-1'>
+                <PillButton 
+                  label="Next"
+                  isFullWidth={true}
+                  onPress={goToNext}
+                />
+              </View>
+            </>
+          ) : (
 
-            <View className='flex-1'>
-              <PillButton 
-                label="I'm a Tenant"
-                isFullWidth={true}
-                onPress={handleTenantBtn}
-              />
-            </View>
-          </>
-        )}
+            // Generate User Role Buttons
+            userRoles.map((role) => (
+              <View key={role.userType} className='flex-1'>
+                <Link 
+                  href={`/sign-up?userType=${role.userType}`} 
+                  asChild
+                  replace={true}
+                >
+
+                  <PillButton 
+                    label={role.label}
+                    type={role.type}
+                    isFullWidth={true}
+                  />
+
+                </Link>
+              </View>
+            ))
+
+          )
+        }
       </View>
     </View>
   );
