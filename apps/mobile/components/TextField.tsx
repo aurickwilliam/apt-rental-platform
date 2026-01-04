@@ -56,7 +56,7 @@ export default function TextField({
             flex: 1,
             height: '100%',
             paddingVertical: 0,
-            color: COLORS.text,
+            color: disabled ? COLORS.mediumGrey : COLORS.text,
 
             fontFamily: 'Inter_24pt-Regular',
             fontSize: 16,

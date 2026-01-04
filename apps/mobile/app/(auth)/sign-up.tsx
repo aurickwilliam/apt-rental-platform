@@ -1,57 +1,47 @@
 import { View, Text, Image, Platform, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
 
-import { IMAGES } from "@/constants/images";
-
+import ScreenWrapper from "@/components/ScreenWrapper";
 import TextField from "@/components/TextField";
 import PillButton from "@/components/PillButton";
 import LogoButton from "@/components/LogoButton";
-
-import { useState, useEffect } from "react";
+import { IMAGES } from "@/constants/images";
 
 export default function SignUp() {
-  const { userType } = useLocalSearchParams();
+  const [email, setEmail] = useState<string>("");
+  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+  const router = useRouter();
 
-  const [email, setEmail] = useState<string>('');
-  const [userSide, setUserSide] = useState<'tenant' | 'landlord'>('tenant');
+  const handleEmailTextChange = (text: string) => setEmail(text);
+  const toggleUserSide = () => setUserSide(prev => prev === "tenant" ? "landlord" : "tenant");
 
-  // Set the user side based on the userType param
-  // When the component mounts or when userType changes
-  useEffect(() => {
-    if (userType === 'tenant' || userType === 'landlord') {
-      setUserSide(userType);
-    }
-  }, [userType]);
+  const handleSignUp = () => {
+    console.log("Sign Up pressed:");
+    console.log(email);
+    console.log(userSide);
 
-  const handleEmailTextChange = (text: string) => {
-    setEmail(text);
-  }
-
-  const toggleUserSide = () => {
-    if (userSide === 'tenant') {
-      setUserSide('landlord');
-    }
-    else {
-      setUserSide('tenant');
-    }
+    router.push({
+      pathname: "/(auth)/complete-profile",
+      params: { email, userSide }
+    });
   }
 
   return (
-    <View className="bg-white h-full pt-5 px-5 flex-1">
+    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
       {/* Logo at the top */}
-      <SafeAreaView className="mx-auto">
-        <View className="w-32 h-32">
-          <Image
-            source={IMAGES.logo}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </View>
-      </SafeAreaView>
+      <View className="w-32 h-32 mx-auto">
+        <Image
+          source={IMAGES.logo}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="contain"
+        />
+      </View>
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`${userSide === 'landlord' ? 'text-3xl' : 'text-4xl'} text-text font-dmserif`}>
+        <Text className={`${userSide === 'landlord' ? 'text-3xl' : 'text-4xl'} 
+          text-text font-dmserif`}>
           Create Your {userSide === 'landlord' ? "Landlord " : ""}Account
         </Text>
         <Text className="text-md text-text font-poppins">
@@ -80,7 +70,7 @@ export default function SignUp() {
         <PillButton 
           label="Continue"
           isFullWidth={true}
-          onPress={() => console.log("Shibal")}
+          onPress={handleSignUp}
         />
       </View>
 
@@ -97,30 +87,25 @@ export default function SignUp() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-10">
-        <LogoButton 
-          image={IMAGES.googleLogo}
-        />
-        <LogoButton 
-          image={IMAGES.facebookLogo}
-        />
+        <LogoButton image={IMAGES.googleLogo} />
+        <LogoButton image={IMAGES.facebookLogo} />
 
         {/* Show Apple sign in when using iOS */}
-        {
-          Platform.OS === 'ios' && 
-          <LogoButton 
-            image={IMAGES.appleLogo}
-          />
-        }
+        {Platform.OS === 'ios' && (
+          <LogoButton image={IMAGES.appleLogo} />
+        )}
       </View>
 
-      {/* Footer links */}
-      <SafeAreaView className="mt-auto mb-8 flex items-center gap-2">
+      {/* Footer links - Push to bottom with flex-1 spacer */}
+      <View className="flex-1" />
+      
+      <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
             Already have an account?
           </Text>
           <Link 
-            href={"/sign-in"} 
+            href="/sign-in" 
             className="text-primary font-interMedium underline"
             replace={true}
           >
@@ -135,7 +120,6 @@ export default function SignUp() {
               'Want to rent out your space?' :
               'Here to find a place?'
             }
-            
           </Text>
           <Pressable onPress={toggleUserSide}>
             <Text className="text-primary font-interMedium underline">
@@ -147,7 +131,7 @@ export default function SignUp() {
             </Text>
           </Pressable>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+    </ScreenWrapper>
   );
 }

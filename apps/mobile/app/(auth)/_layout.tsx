@@ -38,6 +38,31 @@ export default function _Layout() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="complete-profile"
+        options={{
+          title: "Complete Profile",
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="verify-mobile"
+        options={{
+          title: "Verify Email",
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="otp-verification"
+        options={{
+          title: "OTP Verification",
+          headerShown: false,
+        }}
+      />
+
     </Stack>
   );
 }
