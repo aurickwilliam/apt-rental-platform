@@ -1,35 +1,24 @@
-import {View, Text, Image, Platform, Pressable} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { View, Text, Image, Platform, Pressable } from 'react-native';
 import { useState } from "react";
 import { Link } from 'expo-router';
 
-import { IMAGES } from '@/constants/images'
+import { IMAGES } from '@/constants/images';
 
+import ScreenWrapper from "@/components/ScreenWrapper";
 import TextField from "@/components/TextField";
 import PillButton from "@/components/PillButton";
 import LogoButton from "@/components/LogoButton";
 
 export default function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [userSide, setUserSide] = useState('tenant'); // tenant | landlord
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [userSide, setUserSide] = useState<'tenant' | 'landlord'>('tenant');
 
-  const handleEmailTextChange = (text: string) => {
-    setEmail(text);
-  }
+  const handleEmailTextChange = (text: string) => setEmail(text);
 
-  const handlePasswordTextChange = (text: string) => {
-    setPassword(text);
-  }
+  const handlePasswordTextChange = (text: string) => setPassword(text);
 
-  const toggleUserSide = () => {
-    if (userSide === 'tenant') {
-      setUserSide('landlord');
-    }
-    else {
-      setUserSide('tenant');
-    }
-  }
+  const toggleUserSide = () => setUserSide(prev => prev === 'tenant' ? 'landlord' : 'tenant');
 
   const handleSignIn = () => {
     // TODO: Implement sign-in logic here
@@ -38,21 +27,19 @@ export default function SignIn() {
   }
 
   return (
-    <View className='bg-white h-full pt-5 px-5 flex-1'>
-      
+    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
       {/* Logo at the top */}
-      <SafeAreaView className="mx-auto">
-        <View className="w-32 h-32">
-          <Image
-            source={IMAGES.logo}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </View>
-      </SafeAreaView>
+      <View className="w-32 h-32 mx-auto">
+        <Image
+          source={IMAGES.logo}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="contain"
+        />
+      </View>
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`text-4xl text-text font-dmserif`}>
+        <Text className="text-4xl text-text font-dmserif">
           Welcome Back!
         </Text>
         <Text className="text-md text-text font-poppins">
@@ -86,7 +73,7 @@ export default function SignIn() {
         />
       </View>
 
-      <Link href={'/'} asChild>
+      <Link href="/forgot-password" asChild>
         <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
           Forgot Password?
         </Text>
@@ -97,7 +84,7 @@ export default function SignIn() {
         <PillButton 
           label="Sign In"
           isFullWidth={true}
-          onPress={() => handleSignIn()}
+          onPress={handleSignIn}
         />
       </View>
 
@@ -114,30 +101,25 @@ export default function SignIn() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-10">
-        <LogoButton 
-          image={IMAGES.googleLogo}
-        />
-        <LogoButton 
-          image={IMAGES.facebookLogo}
-        />
+        <LogoButton image={IMAGES.googleLogo} />
+        <LogoButton image={IMAGES.facebookLogo} />
 
         {/* Show Apple sign in when using iOS */}
-        {
-          Platform.OS === 'ios' && 
-          <LogoButton 
-            image={IMAGES.appleLogo}
-          />
-        }
+        {Platform.OS === 'ios' && (
+          <LogoButton image={IMAGES.appleLogo} />
+        )}
       </View>
 
-      {/* Footer links */}
-      <SafeAreaView className="mt-auto mb-8 flex items-center gap-2">
+      {/* Footer links - Push to bottom with flex-1 spacer */}
+      <View className="flex-1" />
+      
+      <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
             New here?
           </Text>
           <Link 
-            href={"/sign-up"} 
+            href="/sign-up" 
             className="text-primary font-interMedium underline"
             replace={true}
           >
@@ -152,7 +134,6 @@ export default function SignIn() {
               'Want to list your apartment?' :
               'Here to find a place?'
             }
-            
           </Text>
           <Pressable onPress={toggleUserSide}>
             <Text className="text-primary font-interMedium underline">
@@ -164,7 +145,7 @@ export default function SignIn() {
             </Text>
           </Pressable>
         </View>
-      </SafeAreaView>
-    </View>
-  )
+      </View>
+    </ScreenWrapper>
+  );
 }
