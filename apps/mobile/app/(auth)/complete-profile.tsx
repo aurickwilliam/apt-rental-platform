@@ -1,15 +1,17 @@
 import { View, Text, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 
 import { COLORS } from '@/constants/colors';
+import { PROVINCES } from '@/constants/provinces';
 
 import ScreenWrapper from '@/components/ScreenWrapper'
 import TextField from '@/components/TextField';
 import PillButton from '@/components/PillButton';
 import NumberField from '@/components/NumberField';
 import DateTimeField from '@/components/DateTimeField';
-import { useState } from 'react';
+import BottomSheetDropdown from '@/components/BottomSheetDropdown';
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function CompleteProfile() {
     city: string;
     province: string;
     postalCode: string;
-    birthDate: Date | null;
+    birthDate: string;
     password: string;
     confirmPassword: string;
   }
@@ -44,7 +46,7 @@ export default function CompleteProfile() {
     city: "",
     province: "",
     postalCode: "",
-    birthDate: null,
+    birthDate: "",
     password: "",
     confirmPassword: ""
   });
@@ -131,9 +133,14 @@ export default function CompleteProfile() {
         />
 
         {/* Province Field */}
-        {/* 
-          // TODO: Dropdown Field
-        */}
+        <BottomSheetDropdown
+          label="Province:"
+          bottomSheetLabel="Select your province"
+          placeholder="Select your province"
+          options={PROVINCES}
+          value={profileForm.province}
+          onSelect={(value) => updateField('province', value)}
+        />
 
         {/* Postal Code Field */}
         {/*     
@@ -152,8 +159,11 @@ export default function CompleteProfile() {
           label='Date of Birth:'
           placeholder='Select your date of birth'
           required
-          value={profileForm.birthDate}
-          onChange={(date) => updateField('birthDate', date)}
+          value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
+          onChange={(date) => {
+            const formattedDate = date.toISOString().split("T")[0];
+            updateField('birthDate', formattedDate);
+          }}
         />
 
         {/* Password Field */}
