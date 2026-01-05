@@ -2,11 +2,14 @@ import { View, Text, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 
-import ScreenWrapper from '@/components/ScreenWrapper'
-
 import { COLORS } from '@/constants/colors';
+
+import ScreenWrapper from '@/components/ScreenWrapper'
 import TextField from '@/components/TextField';
 import PillButton from '@/components/PillButton';
+import NumberField from '@/components/NumberField';
+import DateTimeField from '@/components/DateTimeField';
+import { useState } from 'react';
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -15,6 +18,47 @@ export default function CompleteProfile() {
 
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
+
+  type ProfileForm = {
+    email: string;
+    firstName: string;
+    lastName: string;
+    middleName: string;
+    currentAddress: string;
+    barangay: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    birthDate: Date | null;
+    password: string;
+    confirmPassword: string;
+  }
+
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
+    email: emailValue || "",
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    currentAddress: "",
+    barangay: "",
+    city: "",
+    province: "",
+    postalCode: "",
+    birthDate: null,
+    password: "",
+    confirmPassword: ""
+  });
+
+  // Update individual field in profile form
+  const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
+    setProfileForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = () => {
+    Object.entries(profileForm).forEach(([key, value]) => {
+      console.log(`${key}: ${value}`);
+    });
+  }
 
   return (
     <ScreenWrapper hasInput scrollable className="px-5 pt-5">
@@ -44,6 +88,7 @@ export default function CompleteProfile() {
           label="First Name:"
           placeholder="Enter your first name"
           required
+          onChangeText={(value) => updateField('firstName', value)}
         />
 
         {/* Last Name Field */}
@@ -51,12 +96,14 @@ export default function CompleteProfile() {
           label="Last Name:"
           placeholder="Enter your last name"
           required
+          onChangeText={(value) => updateField('lastName', value)}
         />
 
         {/* Middle Name Field */}
         <TextField 
           label="Middle Name:"
           placeholder="Enter your middle name"
+          onChangeText={(value) => updateField('middleName', value)}
         />
 
         {/* Current Address Field */}
@@ -64,6 +111,7 @@ export default function CompleteProfile() {
           label="Current Address:"
           placeholder="Enter your current address"
           required
+          onChangeText={(value) => updateField('currentAddress', value)}
         />
 
         {/* Barangay Field */}
@@ -71,6 +119,7 @@ export default function CompleteProfile() {
           label="Barangay:"
           placeholder="Enter your barangay"
           required
+          onChangeText={(value) => updateField('barangay', value)}
         />
 
         {/* City Field  */}
@@ -78,16 +127,34 @@ export default function CompleteProfile() {
           label="City:"
           placeholder="Enter your city"
           required
+          onChangeText={(value) => updateField('city', value)}
         />
 
         {/* Province Field */}
-        {/* TODO: Dropdown Field*/}
+        {/* 
+          // TODO: Dropdown Field
+        */}
 
         {/* Postal Code Field */}
-        {/* TODO: Number Field */}
+        {/*     
+          // TODO: Validate postal code. Enable Error when display more than 4 digits 
+        */}
+        <NumberField
+          label="Postal Code:"
+          placeholder="Enter your postal code"
+          required
+          maxLength={4}
+          onChange={(value) => updateField('postalCode', value)}
+        />
 
         {/* Date of Birth Field */}
-        {/* TODO: Date Picker Field */}
+        <DateTimeField 
+          label='Date of Birth:'
+          placeholder='Select your date of birth'
+          required
+          value={profileForm.birthDate}
+          onChange={(date) => updateField('birthDate', date)}
+        />
 
         {/* Password Field */}
         <TextField 
@@ -95,6 +162,7 @@ export default function CompleteProfile() {
           placeholder="Create a password"
           isPassword
           required
+          onChangeText={(value) => updateField('password', value)}
         />
 
         {/* Confirm Password Field */}
@@ -103,6 +171,7 @@ export default function CompleteProfile() {
           placeholder="Confirm your password"
           isPassword
           required
+          onChangeText={(value) => updateField('confirmPassword', value)}
         />
       </View>
 
@@ -111,7 +180,7 @@ export default function CompleteProfile() {
         <PillButton 
           label="Submit"
           isFullWidth
-          onPress={() => console.log("Complete Profile Submitted")}
+          onPress={handleSubmit}
         />
       </View>
 

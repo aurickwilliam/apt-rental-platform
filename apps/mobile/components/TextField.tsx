@@ -26,9 +26,9 @@ export default function TextField({
     required = false
   }: TextFieldProps) {
 
-  const [isFocused, setIsFocused] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isPasswordToggleVisible, setIsPasswordToggleVisible] = useState(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const [isPasswordToggleVisible, setIsPasswordToggleVisible] = useState<boolean>(false);
 
   return (
     <View className='w-full flex-col gap-2'>
@@ -94,7 +94,7 @@ export default function TextField({
 
       {/* Error Message */}
       {error && (
-        <Text className='text-redHead-200 text-md font-inter -mt-1'>
+        <Text className='text-redHead-200 text-md font-inter mt-1'>
           {error}
         </Text>
       )}

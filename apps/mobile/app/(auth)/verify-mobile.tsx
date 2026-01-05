@@ -1,9 +1,10 @@
+import ScreenWrapper from '@/components/ScreenWrapper'
 import { View, Text } from 'react-native'
 
 export default function VerifyMobile() {
   return (
-    <View>
-      <Text>VerifyMobile</Text>
-    </View>
+    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+      <Text>Verify Mobile Screen</Text>
+    </ScreenWrapper>
   )
 }
