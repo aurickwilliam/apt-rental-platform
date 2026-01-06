@@ -140,6 +140,8 @@ export default function CompleteProfile() {
           options={PROVINCES}
           value={profileForm.province}
           onSelect={(value) => updateField('province', value)}
+          enableSearch
+          searchPlaceholder="Search provinces..."
         />
 
         {/* Postal Code Field */}
