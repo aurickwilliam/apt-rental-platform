@@ -1,8 +1,10 @@
 // BottomSheetDropdownFormField.tsx
-import React, { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useCallback, useState } from 'react';
 import { View, Text, Pressable, TouchableOpacity } from 'react-native';
-import { BottomSheetModal, BottomSheetBackdrop, BottomSheetFlatList } from '@gorhom/bottom-sheet';
+
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetFlatList, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+
 import { Ionicons } from '@expo/vector-icons';
 
 import { COLORS } from '@/constants/colors';
@@ -16,6 +18,8 @@ interface BottomSheetDropdownProps {
   placeholder?: string;
   required?: boolean;
   error?: string;
+  enableSearch?: boolean;
+  searchPlaceholder?: string;
 }
 
 export default function BottomSheetDropdown({
@@ -27,11 +31,25 @@ export default function BottomSheetDropdown({
   placeholder = 'Select a value',
   required = false,
   error,
+  enableSearch = false,
+  searchPlaceholder = 'Search...'
 }: BottomSheetDropdownProps) {
-  const [isFocused, setIsFocused] = React.useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['50%', '75%'], []);
+
+  // Filter options based on search query
+  const filteredOptions = useMemo(() => {
+    if (!enableSearch || searchQuery.trim() === '') {
+      return options;
+    }
+
+    return options.filter((option: string) =>
+      option.toLowerCase().startsWith(searchQuery.toLowerCase())
+    );
+  }, [options, searchQuery, enableSearch]);
 
   const openSheet = useCallback(() => {
     setIsFocused(true);
@@ -45,6 +63,7 @@ export default function BottomSheetDropdown({
 
   const handleOnDismiss = useCallback(() => {
     setIsFocused(false);
+    setSearchQuery('');
   }, []);
 
   const renderBackdrop = useCallback(
@@ -93,6 +112,10 @@ export default function BottomSheetDropdown({
         index={0} 
         enablePanDownToClose={true}
         enableDynamicSizing={false}
+        keyboardBehavior='extend'
+        keyboardBlurBehavior='restore'
+        android_keyboardInputMode='adjustResize'
+
         backdropComponent={renderBackdrop}
         backgroundStyle={{
           backgroundColor: 'white',
@@ -107,7 +130,7 @@ export default function BottomSheetDropdown({
         onDismiss={handleOnDismiss}
       >
         <BottomSheetFlatList
-          data={options}
+          data={filteredOptions}
           keyExtractor={(item: string) => item}
           renderItem={({ item }: { item: string }) => (
             <Pressable
@@ -120,12 +143,35 @@ export default function BottomSheetDropdown({
               <Text className='text-lg text-text text-left font-inter'>{item}</Text>
             </Pressable>
           )}
+
           ListHeaderComponent={
-            <Text className='text-lg text-center text-text font-interMedium border-b
-              border-grey-200 pb-3 mb-4'>
-              {bottomSheetLabel}
-            </Text>
+            <View>
+              <Text className='text-lg text-center text-text font-interMedium border-b
+                border-grey-200 pb-3 mb-4'>
+                {bottomSheetLabel}
+              </Text>
+
+              {
+                enableSearch && 
+                <BottomSheetTextInput
+                  className='w-full p-4 mb-2 text-lg text-text border-2 border-grey-200 rounded-2xl font-inter'
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              }
+
+            </View>
           }
+
+          ListEmptyComponent={
+            <View className='h-full py-8 items-center justify-center'>
+              <Text className='text-lg text-gray-500 font-inter'>
+                {searchQuery.trim() ? 'No results found' : 'No options available'}
+              </Text>
+            </View>
+          }
+
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 16,
