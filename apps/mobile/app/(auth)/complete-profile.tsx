@@ -51,6 +51,18 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
+  // TODO: The Keyboard in Android does not adjust to the text fields properly
+
+  // TODO: Password Validation Logic
+  // TODO: Update password requirements based on user input
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: true,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+
   // Update individual field in profile form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
     setProfileForm(prev => ({ ...prev, [key]: value }));
@@ -185,6 +197,72 @@ export default function CompleteProfile() {
           required
           onChangeText={(value) => updateField('confirmPassword', value)}
         />
+
+        {/* Password Checker */}
+        <View className="flex-col gap-1">
+          <Text className='text-base text-text font-interMedium mb-2'>
+            Your password must contain:
+          </Text>
+          
+          {/* Minimum Length of 8 Char */}
+          <View className="flex-row items-center gap-2">
+            <Ionicons 
+              name={passwordRequirements.minLength ? "checkmark-circle" : "remove"} 
+              size={24} 
+              color={passwordRequirements.minLength ? COLORS.greenHulk : COLORS.lightGrey} 
+            />
+            <Text className='text-text font-inter'>At least 8 characters</Text>
+          </View>
+
+          {/* At least one lowercase letter (a–z) */}
+          <View className="flex-row items-center gap-2">
+            <Ionicons 
+              name={passwordRequirements.hasLowercase ? "checkmark-circle" : "remove"} 
+              size={24} 
+              color={passwordRequirements.hasLowercase ? COLORS.greenHulk : COLORS.lightGrey} 
+            />
+            <Text className='text-text font-inter'>
+              At least one lowercase letter (a–z)
+            </Text>
+          </View>
+          
+          {/* At least one uppercase letter (A–Z) */}
+          <View className="flex-row items-center gap-2">
+            <Ionicons 
+              name={passwordRequirements.hasUppercase ? "checkmark-circle" : "remove"} 
+              size={24} 
+              color={passwordRequirements.hasUppercase ? COLORS.greenHulk : COLORS.lightGrey} 
+            />
+            <Text className='text-text font-inter'>
+              At least one uppercase letter (A–Z)
+            </Text>
+          </View>
+
+          {/* At least one number (0–9) */}
+          <View className="flex-row items-center gap-2">
+            <Ionicons 
+              name={passwordRequirements.hasNumber ? "checkmark-circle" : "remove"} 
+              size={24} 
+              color={passwordRequirements.hasNumber ? COLORS.greenHulk : COLORS.lightGrey} 
+            />
+            <Text className='text-text font-inter'>
+              At least one number (0–9)
+            </Text>
+          </View>
+
+          {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
+          <View className="flex-row items-center gap-2">
+            <Ionicons 
+              name={passwordRequirements.hasSpecialChar ? "checkmark-circle" : "remove"} 
+              size={24} 
+              color={passwordRequirements.hasSpecialChar ? COLORS.greenHulk : COLORS.lightGrey} 
+            />
+            <Text className='text-text font-inter'>
+              at least one special character (e.g. ! @ # $ % ^ & *)
+            </Text>
+          </View>
+
+        </View>
       </View>
 
       {/* Submit Button */}
