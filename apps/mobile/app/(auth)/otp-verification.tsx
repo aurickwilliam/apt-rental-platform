@@ -20,10 +20,6 @@ export default function OTPVerification() {
   // Get the last 4 digit of mobile number
   const lastFourDigits = String(mobileNum).slice(-4);
 
-  const handleVerify = () => {
-    console.log("OTP Verified");
-  }
-
   // Countdown timer
   useEffect(() => {
     if (countdown > 0) {
@@ -67,8 +63,13 @@ export default function OTPVerification() {
     // TODO: Implement resend OTP to Email functionality
   }
 
+  const handleVerify = () => {
+    console.log("OTP Verified");
+    router.replace("/personalization/step-one");
+  }
+
   return (
-    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+    <ScreenWrapper hasInput scrollable>
       {/* Back button */}
       <Pressable className="mb-3" onPress={router.back}>
         <Ionicons name="arrow-back" size={30} color={COLORS.text} />

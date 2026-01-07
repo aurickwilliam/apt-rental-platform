@@ -76,7 +76,7 @@ export default function CompleteProfile() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+    <ScreenWrapper hasInput scrollable>
 
       {/* Back button */}
       <Pressable className="mb-3" onPress={router.back}>
@@ -84,7 +84,7 @@ export default function CompleteProfile() {
       </Pressable>
 
       {/* Title */}
-      <Text className="text-2xl text-text font-poppinsSemiBold mb-5">
+      <Text className="text-2xl text-text font-poppinsSemiBold my-5">
         Complete Your {userSide === 'landlord' ? "Landlord " : "Tenant"} Profile
       </Text>
 
@@ -267,7 +267,7 @@ export default function CompleteProfile() {
       </View>
 
       {/* Submit Button */}
-      <View className="mt-16 mb-10">
+      <View className="mt-16 mb-5">
         <PillButton
           label="Submit"
           isFullWidth

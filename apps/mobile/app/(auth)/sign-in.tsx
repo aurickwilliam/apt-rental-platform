@@ -27,7 +27,7 @@ export default function SignIn() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+    <ScreenWrapper hasInput scrollable>
       {/* Logo at the top */}
       <View className="w-32 h-32 mx-auto">
         <Image

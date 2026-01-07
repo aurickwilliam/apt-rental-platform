@@ -34,7 +34,7 @@ export default function SignUp() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+    <ScreenWrapper hasInput scrollable>
       {/* Logo at the top */}
       <View className="w-32 h-32 mx-auto">
         <Image
@@ -46,14 +46,14 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`${userSide === 'landlord' ? 'text-3xl' : 'text-4xl'} 
+        <Text className={`${userSide === 'landlord' ? 'text-3xl' : 'text-4xl'}
           text-text font-dmserif`}>
           Create Your {userSide === 'landlord' ? "Landlord " : ""}Account
         </Text>
         <Text className="text-md text-text font-poppins">
           {
-            userSide === 'tenant' ? 
-            'Join as tenant to start renting.' : 
+            userSide === 'tenant' ?
+            'Join as tenant to start renting.' :
             'Join us and start listing your properties in minutes.'
           }
         </Text>
@@ -61,7 +61,7 @@ export default function SignUp() {
 
       {/* Form inputs */}
       <View className="mt-8">
-        <TextField 
+        <TextField
           label="Email Address:"
           placeholder="Enter your email"
           value={email}
@@ -73,7 +73,7 @@ export default function SignUp() {
 
       {/* Sign In Button */}
       <View className="mt-5">
-        <PillButton 
+        <PillButton
           label="Continue"
           isFullWidth={true}
           onPress={handleSignUp}
@@ -83,11 +83,11 @@ export default function SignUp() {
       {/* Divider */}
       <View className="flex-row justify-center items-center mt-7 mb-7">
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
-        
+
         <Text className="mx-3 text-grey-400 font-inter">
           or sign up with
         </Text>
-        
+
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
       </View>
 
@@ -104,14 +104,14 @@ export default function SignUp() {
 
       {/* Footer links - Push to bottom with flex-1 spacer */}
       <View className="flex-1" />
-      
+
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
             Already have an account?
           </Text>
-          <Link 
-            href="/sign-in" 
+          <Link
+            href="/sign-in"
             className="text-primary font-interMedium underline"
             replace={true}
           >
