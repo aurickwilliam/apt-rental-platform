@@ -12,21 +12,19 @@ interface ScreenWrapperProps {
   hasInput?: boolean;
   className?: string;
   scrollable?: boolean;
-  backgroundColor?: string;
   header?: ReactNode;
   headerBackgroundColor?: string;
 }
 
-export default function ScreenWrapper({ 
+export default function ScreenWrapper({
     children,
     hasInput = false,
     className = "",
     scrollable,
-    backgroundColor = "bg-white",
     header,
     headerBackgroundColor = "bg-primary",
   }: ScreenWrapperProps) {
-  
+
   // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
   const useScroll = scrollable ?? hasInput;
@@ -35,7 +33,7 @@ export default function ScreenWrapper({
   const content = useScroll ? (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
-      className={`p-5 ${className}`}
+      className={`${className}`}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -59,11 +57,11 @@ export default function ScreenWrapper({
   );
 
   return (
-    <View className={`flex-1 ${backgroundColor}`}>
+    <View className={`flex-1 bg-white`}>
 
       {/* Insert the header if it has */}
       {header && (
-        <View 
+        <View
           className={`px-4 pb-4 ${headerBackgroundColor}`}
           style={{ paddingTop: insets.top }}
         >
@@ -71,8 +69,8 @@ export default function ScreenWrapper({
         </View>
       )}
 
-      <SafeAreaView 
-        className="flex-1"
+      <SafeAreaView
+        className={`flex-1 px-4 py-5 bg-white ${className}`}
         edges={header ? ['left', 'right', 'bottom'] : undefined}
       >
         {mainContent}

@@ -20,9 +20,9 @@ export default function VerifyMobile() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className="px-5 pt-5">
+    <ScreenWrapper hasInput scrollable>
       {/* Back button */}
-      <Pressable className="mb-3" onPress={router.back}>
+      <Pressable className="mb-3" onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={30} color={COLORS.text} />
       </Pressable>
 
