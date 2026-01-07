@@ -1,17 +1,23 @@
 import { View, Text, Image, Platform, Pressable } from "react-native";
-import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 
-import ScreenWrapper from "@/components/ScreenWrapper";
-import TextField from "@/components/TextField";
-import PillButton from "@/components/PillButton";
-import LogoButton from "@/components/LogoButton";
-import { IMAGES } from "@/constants/images";
+import ScreenWrapper from "../../components/ScreenWrapper";
+import TextField from "../../components/TextField";
+import PillButton from "../../components/PillButton";
+import LogoButton from "../../components/LogoButton";
+import { IMAGES } from "../../constants/images";
 
 export default function SignUp() {
   const [email, setEmail] = useState<string>("");
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+
   const router = useRouter();
+  const { userType } = useLocalSearchParams<{ userType: string }>();
+
+  useEffect(() => {
+    setUserSide(userType === "landlord" ? "landlord" : "tenant");
+  }, [userType]);
 
   const handleEmailTextChange = (text: string) => setEmail(text);
   const toggleUserSide = () => setUserSide(prev => prev === "tenant" ? "landlord" : "tenant");

@@ -1,25 +1,37 @@
-import { Text, View } from "react-native";
-import { Link } from "expo-router";
-
+import { View, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+
+        if (hasLaunched === null) {
+          // First time opening the app
+
+          // Store the value of hasLaunched to true
+          await AsyncStorage.setItem("hasLaunched", "true");
+          router.replace("/onboarding");
+        } else {
+          // Not first time
+          router.replace("/sign-up");
+        }
+      } catch (error) {
+        console.error("Launch check failed:", error);
+        router.replace("/sign-up");
+      }
+    };
+
+    checkFirstLaunch();
+  }, []);
+
+  // Simple loading screen while redirecting
   return (
     <View className="flex-1 justify-center items-center">
-      <Text className="text-amber-500 text-5xl font-inter">Shibaloma!</Text>
-
-      <View className="flex-row justify-center items-center gap-10 mt-10">
-        <Link href="/sign-in">
-          <Text>Sign In</Text>
-        </Link>
-
-        <Link href="/sign-up">
-          <Text>Sign Up</Text>
-        </Link>
-      </View>
-
-      <Link href="/onboarding">
-        <Text>Onboarding</Text>
-      </Link>
+      <ActivityIndicator size="large" />
     </View>
   );
 }

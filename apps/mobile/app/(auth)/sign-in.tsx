@@ -2,12 +2,12 @@ import { View, Text, Image, Platform, Pressable } from 'react-native';
 import { useState } from "react";
 import { Link } from 'expo-router';
 
-import { IMAGES } from '@/constants/images';
+import { IMAGES } from '../../constants/images';
 
-import ScreenWrapper from "@/components/ScreenWrapper";
-import TextField from "@/components/TextField";
-import PillButton from "@/components/PillButton";
-import LogoButton from "@/components/LogoButton";
+import ScreenWrapper from '../../components/ScreenWrapper';
+import TextField from '../../components/TextField';
+import PillButton from '../../components/PillButton';
+import LogoButton from '../../components/LogoButton';
 
 export default function SignIn() {
   const [email, setEmail] = useState<string>('');
@@ -44,8 +44,8 @@ export default function SignIn() {
         </Text>
         <Text className="text-md text-text font-poppins">
           {
-            userSide === 'tenant' ? 
-            'Log in to continue your apartment journey.' : 
+            userSide === 'tenant' ?
+            'Log in to continue your apartment journey.' :
             'Access your listings and manage your tenants easily.'
           }
         </Text>
@@ -53,7 +53,7 @@ export default function SignIn() {
 
       {/* Form inputs */}
       <View className="mt-8 flex gap-4">
-        <TextField 
+        <TextField
           label="Email Address:"
           placeholder="Enter your email"
           value={email}
@@ -62,7 +62,7 @@ export default function SignIn() {
           required={true}
         />
 
-        <TextField 
+        <TextField
           label="Password:"
           placeholder="Enter your password"
           value={password}
@@ -81,7 +81,7 @@ export default function SignIn() {
 
       {/* Sign In Button */}
       <View className="mt-5">
-        <PillButton 
+        <PillButton
           label="Sign In"
           isFullWidth={true}
           onPress={handleSignIn}
@@ -91,11 +91,11 @@ export default function SignIn() {
       {/* Divider */}
       <View className="flex-row justify-center items-center mt-7 mb-7">
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
-        
+
         <Text className="mx-3 text-grey-400 font-inter">
           or sign in with
         </Text>
-        
+
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
       </View>
 
@@ -112,14 +112,14 @@ export default function SignIn() {
 
       {/* Footer links - Push to bottom with flex-1 spacer */}
       <View className="flex-1" />
-      
+
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
             New here?
           </Text>
-          <Link 
-            href="/sign-up" 
+          <Link
+            href="/sign-up"
             className="text-primary font-interMedium underline"
             replace={true}
           >
