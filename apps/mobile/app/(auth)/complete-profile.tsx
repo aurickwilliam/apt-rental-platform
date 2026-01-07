@@ -3,19 +3,18 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS } from '@/constants/colors';
-import { PROVINCES } from '@/constants/provinces';
+import { COLORS } from '../../constants/colors';
+import { PROVINCES } from '../../constants/provinces';
 
-import ScreenWrapper from '@/components/ScreenWrapper'
-import TextField from '@/components/TextField';
-import PillButton from '@/components/PillButton';
-import NumberField from '@/components/NumberField';
-import DateTimeField from '@/components/DateTimeField';
-import BottomSheetDropdown from '@/components/BottomSheetDropdown';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import TextField from '../../components/TextField';
+import PillButton from '../../components/PillButton';
+import NumberField from '../../components/NumberField';
+import DateTimeField from '../../components/DateTimeField';
+import BottomSheetDropdown from '../../components/BottomSheetDropdown';
 
 export default function CompleteProfile() {
   const router = useRouter();
-
   const { email, userSide } = useLocalSearchParams();
 
   // Handle case where email might be an array
@@ -72,11 +71,13 @@ export default function CompleteProfile() {
     Object.entries(profileForm).forEach(([key, value]) => {
       console.log(`${key}: ${value}`);
     });
+
+    router.push('/(auth)/verify-mobile');
   }
 
   return (
     <ScreenWrapper hasInput scrollable className="px-5 pt-5">
-      
+
       {/* Back button */}
       <Pressable className="mb-3" onPress={router.back}>
         <Ionicons name="close" size={30} color={COLORS.text} />
@@ -91,14 +92,14 @@ export default function CompleteProfile() {
 
       <View className="flex gap-4">
         {/* Email Address Field */}
-        <TextField 
+        <TextField
           label="Email Address:"
           value={emailValue}
           disabled
         />
 
         {/* First Name Field */}
-        <TextField 
+        <TextField
           label="First Name:"
           placeholder="Enter your first name"
           required
@@ -106,7 +107,7 @@ export default function CompleteProfile() {
         />
 
         {/* Last Name Field */}
-        <TextField 
+        <TextField
           label="Last Name:"
           placeholder="Enter your last name"
           required
@@ -114,14 +115,14 @@ export default function CompleteProfile() {
         />
 
         {/* Middle Name Field */}
-        <TextField 
+        <TextField
           label="Middle Name:"
           placeholder="Enter your middle name"
           onChangeText={(value) => updateField('middleName', value)}
         />
 
         {/* Current Address Field */}
-        <TextField 
+        <TextField
           label="Current Address:"
           placeholder="Enter your current address"
           required
@@ -129,7 +130,7 @@ export default function CompleteProfile() {
         />
 
         {/* Barangay Field */}
-        <TextField 
+        <TextField
           label="Barangay:"
           placeholder="Enter your barangay"
           required
@@ -137,7 +138,7 @@ export default function CompleteProfile() {
         />
 
         {/* City Field  */}
-        <TextField 
+        <TextField
           label="City:"
           placeholder="Enter your city"
           required
@@ -157,8 +158,8 @@ export default function CompleteProfile() {
         />
 
         {/* Postal Code Field */}
-        {/*     
-          // TODO: Validate postal code. Enable Error when display more than 4 digits 
+        {/*
+          // TODO: Validate postal code. Enable Error when display more than 4 digits
         */}
         <NumberField
           label="Postal Code:"
@@ -169,7 +170,7 @@ export default function CompleteProfile() {
         />
 
         {/* Date of Birth Field */}
-        <DateTimeField 
+        <DateTimeField
           label='Date of Birth:'
           placeholder='Select your date of birth'
           required
@@ -181,7 +182,7 @@ export default function CompleteProfile() {
         />
 
         {/* Password Field */}
-        <TextField 
+        <TextField
           label="Password:"
           placeholder="Create a password"
           isPassword
@@ -190,7 +191,7 @@ export default function CompleteProfile() {
         />
 
         {/* Confirm Password Field */}
-        <TextField 
+        <TextField
           label="Confirm Password:"
           placeholder="Confirm your password"
           isPassword
@@ -203,35 +204,35 @@ export default function CompleteProfile() {
           <Text className='text-base text-text font-interMedium mb-2'>
             Your password must contain:
           </Text>
-          
+
           {/* Minimum Length of 8 Char */}
           <View className="flex-row items-center gap-2">
-            <Ionicons 
-              name={passwordRequirements.minLength ? "checkmark-circle" : "remove"} 
-              size={24} 
-              color={passwordRequirements.minLength ? COLORS.greenHulk : COLORS.lightGrey} 
+            <Ionicons
+              name={passwordRequirements.minLength ? "checkmark-circle" : "remove"}
+              size={24}
+              color={passwordRequirements.minLength ? COLORS.greenHulk : COLORS.lightGrey}
             />
             <Text className='text-text font-inter'>At least 8 characters</Text>
           </View>
 
           {/* At least one lowercase letter (a–z) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons 
-              name={passwordRequirements.hasLowercase ? "checkmark-circle" : "remove"} 
-              size={24} 
-              color={passwordRequirements.hasLowercase ? COLORS.greenHulk : COLORS.lightGrey} 
+            <Ionicons
+              name={passwordRequirements.hasLowercase ? "checkmark-circle" : "remove"}
+              size={24}
+              color={passwordRequirements.hasLowercase ? COLORS.greenHulk : COLORS.lightGrey}
             />
             <Text className='text-text font-inter'>
               At least one lowercase letter (a–z)
             </Text>
           </View>
-          
+
           {/* At least one uppercase letter (A–Z) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons 
-              name={passwordRequirements.hasUppercase ? "checkmark-circle" : "remove"} 
-              size={24} 
-              color={passwordRequirements.hasUppercase ? COLORS.greenHulk : COLORS.lightGrey} 
+            <Ionicons
+              name={passwordRequirements.hasUppercase ? "checkmark-circle" : "remove"}
+              size={24}
+              color={passwordRequirements.hasUppercase ? COLORS.greenHulk : COLORS.lightGrey}
             />
             <Text className='text-text font-inter'>
               At least one uppercase letter (A–Z)
@@ -240,10 +241,10 @@ export default function CompleteProfile() {
 
           {/* At least one number (0–9) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons 
-              name={passwordRequirements.hasNumber ? "checkmark-circle" : "remove"} 
-              size={24} 
-              color={passwordRequirements.hasNumber ? COLORS.greenHulk : COLORS.lightGrey} 
+            <Ionicons
+              name={passwordRequirements.hasNumber ? "checkmark-circle" : "remove"}
+              size={24}
+              color={passwordRequirements.hasNumber ? COLORS.greenHulk : COLORS.lightGrey}
             />
             <Text className='text-text font-inter'>
               At least one number (0–9)
@@ -252,10 +253,10 @@ export default function CompleteProfile() {
 
           {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons 
-              name={passwordRequirements.hasSpecialChar ? "checkmark-circle" : "remove"} 
-              size={24} 
-              color={passwordRequirements.hasSpecialChar ? COLORS.greenHulk : COLORS.lightGrey} 
+            <Ionicons
+              name={passwordRequirements.hasSpecialChar ? "checkmark-circle" : "remove"}
+              size={24}
+              color={passwordRequirements.hasSpecialChar ? COLORS.greenHulk : COLORS.lightGrey}
             />
             <Text className='text-text font-inter'>
               at least one special character (e.g. ! @ # $ % ^ & *)
@@ -266,8 +267,8 @@ export default function CompleteProfile() {
       </View>
 
       {/* Submit Button */}
-      <View className="mt-16 mb-5">
-        <PillButton 
+      <View className="mt-16 mb-10">
+        <PillButton
           label="Submit"
           isFullWidth
           onPress={handleSubmit}

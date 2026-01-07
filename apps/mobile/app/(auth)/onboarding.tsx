@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import { Link } from 'expo-router';
 
-import { SLIDES } from "@/constants/onboarding-data";
-import OnBoardingSlide from '@/components/OnBoardingSlide';
-import PillButton from '@/components/PillButton';
+import { SLIDES } from '../../constants/onboarding-data';
+import OnBoardingSlide from '../../components/OnBoardingSlide';
+import PillButton from '../../components/PillButton';
 
 // Get the device width
 const { width } = Dimensions.get('window');
@@ -62,13 +62,13 @@ export default function OnboardingScreen() {
 
   const userRoles: UserRole[] = [
     {
-      label: "I'm a Landlord", 
-      type: 'secondary', 
+      label: "I'm a Landlord",
+      type: 'secondary',
       userType: 'landlord'
     },
     {
-      label: "I'm a Tenant", 
-      type: 'primary', 
+      label: "I'm a Tenant",
+      type: 'primary',
       userType: 'tenant'
     },
   ]
@@ -85,12 +85,12 @@ export default function OnboardingScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        
+
         {/* Generate all the slides */}
         {SLIDES.map((slide) => (
-          <OnBoardingSlide 
-            key={slide.id} 
-            slide={slide} 
+          <OnBoardingSlide
+            key={slide.id}
+            slide={slide}
             width={width}
           />
         ))}
@@ -139,16 +139,16 @@ export default function OnboardingScreen() {
           currentIndex < SLIDES.length - 1 ? (
             <>
               <View className='flex-1'>
-                <PillButton 
+                <PillButton
                   label="Skip"
                   type="outline"
                   isFullWidth={true}
                   onPress={skip}
                 />
               </View>
-              
+
               <View className='flex-1'>
-                <PillButton 
+                <PillButton
                   label="Next"
                   isFullWidth={true}
                   onPress={goToNext}
@@ -160,13 +160,13 @@ export default function OnboardingScreen() {
             // Generate User Role Buttons
             userRoles.map((role) => (
               <View key={role.userType} className='flex-1'>
-                <Link 
-                  href={`/sign-up?userType=${role.userType}`} 
+                <Link
+                  href={`/sign-up?userType=${role.userType}`}
                   asChild
                   replace={true}
                 >
 
-                  <PillButton 
+                  <PillButton
                     label={role.label}
                     type={role.type}
                     isFullWidth={true}
