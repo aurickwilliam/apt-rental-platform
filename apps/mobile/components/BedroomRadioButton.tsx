@@ -1,19 +1,22 @@
-import { COLORS } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
-import { View, Text, Pressable } from "react-native";
+import { Ionicons } from '@expo/vector-icons'
+import { View, Text, Pressable } from 'react-native'
 
-interface CityCheckBoxProps {
-  cityName: string,
+import { COLORS } from '@/constants/colors'
+
+interface BedroomRadioButtonProps{
+  bedRoomLabel: string,
   onPress: () => void,
   selected: boolean,
 }
 
-export default function CityCheckBox({
-  cityName,
+export default function BedroomRadioButton({
+  bedRoomLabel,
   onPress,
   selected = false,
-}: CityCheckBoxProps) {
+}: BedroomRadioButtonProps) {
 
+
+  
   return (
     <Pressable
       onPress={onPress}
@@ -26,14 +29,18 @@ export default function CityCheckBox({
           ${selected ? "border-primary" : "border-grey-300"}`}
       >
         {selected && (
-          <Ionicons name="checkmark" size={22} color={ COLORS.primary } />
+          <Ionicons 
+            name="ellipse" 
+            size={22} 
+            color={ COLORS.primary } 
+          />
         )}
       </View>
 
       {/* Label */}
       <Text className="text-xl font-interMedium text-text">
-        {cityName}
+        {bedRoomLabel}
       </Text>
     </Pressable>
-  );
+  )
 }

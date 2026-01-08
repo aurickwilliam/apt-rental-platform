@@ -13,7 +13,7 @@ export default function StepOne() {
     cityName: string;
     isSelected: boolean;
   }
-  
+
   const [selectedCities, setselectedCities] = useState<cityType[]>([
     { cityName: "Caloocan", isSelected: false },
     { cityName: "Malabon", isSelected: false },
@@ -32,18 +32,16 @@ export default function StepOne() {
   };
 
   const handleNext = () => {
-    router.push("/personalization/step-two");
+    router.replace("/personalization/step-two");
   };
 
   const handleSkip = () => {
     console.log("Skipping step one");
-    router.push("/personalization/step-two");
+    router.replace("/personalization/step-two");
   };
 
   return (
-    <ScreenWrapper
-      className="py-5 px-5"
-    >
+    <ScreenWrapper>
       {/* Skip Button*/}
       <Pressable onPress={handleSkip}>
         <Text className="text-grey-300 text-base font-inter">
