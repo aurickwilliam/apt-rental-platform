@@ -1,6 +1,6 @@
 import { View, Text, Image, Platform, Pressable } from 'react-native';
 import { useState } from "react";
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 
 import { IMAGES } from '../../constants/images';
 
@@ -14,6 +14,8 @@ export default function SignIn() {
   const [password, setPassword] = useState<string>('');
   const [userSide, setUserSide] = useState<'tenant' | 'landlord'>('tenant');
 
+  const router = useRouter();
+
   const handleEmailTextChange = (text: string) => setEmail(text);
 
   const handlePasswordTextChange = (text: string) => setPassword(text);
@@ -22,8 +24,11 @@ export default function SignIn() {
 
   const handleSignIn = () => {
     // TODO: Implement sign-in logic here
-    console.log("Sign In pressed:");
-    console.log(email, password);
+    router.replace(
+      userSide === 'tenant' 
+      ? '../(tabs)/(tenant)/home' 
+      : '../(tabs)/(landlord)/dashboard'
+    );
   }
 
   return (

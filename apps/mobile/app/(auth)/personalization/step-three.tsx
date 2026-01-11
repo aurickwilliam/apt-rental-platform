@@ -2,9 +2,9 @@ import { Text, Pressable, View } from "react-native";
 import { useRouter } from 'expo-router';
 
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import PillButton from "@/components/PillButton";
+import PillButton from "../../../components/PillButton";
 import { useState } from "react";
-import BedroomRadioButton from "@/components/BedroomRadioButton";
+import BedroomRadioButton from "../../../components/BedroomRadioButton";
 
 export default function StepThree() {
   const router = useRouter();
