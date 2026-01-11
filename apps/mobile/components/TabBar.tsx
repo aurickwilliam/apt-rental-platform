@@ -2,9 +2,17 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 
 import { COLORS } from '@/constants/colors';
+import { TENANTICONS, LANDLORDICONS } from '@/constants/tab-icons';
 import TabBarIcon from './TabBarIcon';
 
-export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function TabBar({
+  state,
+  descriptors,
+  navigation,
+  userType = 'tenant'
+}: BottomTabBarProps & { userType?: 'tenant' | 'landlord' }) {
+
+  const icons = userType === 'tenant' ? TENANTICONS : LANDLORDICONS;
 
   return (
     <View className='flex-row absolute bottom-12 justify-between items-center
@@ -49,6 +57,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             routeName={route.name}
             color={isFocused ? 'white' : COLORS.mediumGrey}
             label={label}
+            icon={icons}
           />
         );
       })}
