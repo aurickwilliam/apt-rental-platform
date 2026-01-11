@@ -1,7 +1,5 @@
-import { TENANTICONS } from '@/constants/tab-icons'
-
 import { PlatformPressable } from '@react-navigation/elements'
-import { useEffect } from 'react';
+import { JSX, useEffect } from 'react';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -16,6 +14,7 @@ interface TabBarIconProps {
   routeName: string;
   color: string;
   label: string;
+  icon: Record<string, (props: any) => JSX.Element>
 }
 
 export default function TabBarIcon({
@@ -25,6 +24,7 @@ export default function TabBarIcon({
   routeName,
   color,
   label,
+  icon
 }: TabBarIconProps) {
   // Animation
   const scale = useSharedValue(0);
@@ -70,7 +70,7 @@ export default function TabBarIcon({
     >
       <Animated.View style={iconAnimationStyle}>
         {
-          TENANTICONS[routeName]({
+          icon[routeName]({
             color: color
           })
         }

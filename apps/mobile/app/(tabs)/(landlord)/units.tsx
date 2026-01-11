@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function Message() {
+export default function Units() {
   return (
     <View>
-      <Text>Message</Text>
+      <Text>Units</Text>
     </View>
   )
 }
