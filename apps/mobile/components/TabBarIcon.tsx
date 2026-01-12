@@ -65,13 +65,15 @@ export default function TabBarIcon({
     <PlatformPressable
       onPress={onPress}
       onLongPress={onLongPress}
-      className={`flex-1 justify-center items-center rounded-full
+      className={`flex-1 justify-center items-center rounded-full gap-[2px]
         ${isFocused ? 'bg-primary' : 'bg-transparent'}`}
     >
       <Animated.View style={iconAnimationStyle}>
         {
           icon[routeName]({
-            color: color
+            color: color,
+            size: 30,
+            isFocused
           })
         }
       </Animated.View>

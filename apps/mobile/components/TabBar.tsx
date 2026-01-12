@@ -16,7 +16,7 @@ export function TabBar({
 
   return (
     <View className='flex-row absolute bottom-12 justify-between items-center
-      bg-white mx-3 px-2 py-2 rounded-full shadow-md gap-1'>
+      bg-white mx-10 px-1 py-1 rounded-full shadow-md gap-1'>
 
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
