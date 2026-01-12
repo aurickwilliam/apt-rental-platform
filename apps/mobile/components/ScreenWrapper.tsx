@@ -17,17 +17,19 @@ interface ScreenWrapperProps {
 }
 
 export default function ScreenWrapper({
-    children,
-    hasInput = false,
-    className = "",
-    scrollable,
-    header,
-    headerBackgroundColor = "bg-primary",
-  }: ScreenWrapperProps) {
-
+  children,
+  hasInput = false,
+  className = "",
+  scrollable,
+  header,
+  headerBackgroundColor = "bg-primary",
+}: ScreenWrapperProps) {
   // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
   const useScroll = scrollable ?? hasInput;
+
+  // Calculate keyboard offset for header
+  const keyboardOffset = header ? insets.top : 0;
 
   // Decide if content can be scrollable or static
   const content = useScroll ? (
@@ -47,8 +49,8 @@ export default function ScreenWrapper({
   const mainContent = hasInput ? (
     <KeyboardAvoidingView
       className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
+      behavior={"padding"}
+      keyboardVerticalOffset={keyboardOffset}
     >
       {content}
     </KeyboardAvoidingView>
@@ -57,8 +59,7 @@ export default function ScreenWrapper({
   );
 
   return (
-    <View className={`flex-1 bg-white`}>
-
+    <View className="flex-1 bg-white">
       {/* Insert the header if it has */}
       {header && (
         <View
@@ -68,14 +69,12 @@ export default function ScreenWrapper({
           {header}
         </View>
       )}
-
       <SafeAreaView
         className={`flex-1 ${!useScroll ? className : ""}`}
         edges={header ? ['left', 'right', 'bottom'] : undefined}
       >
         {mainContent}
       </SafeAreaView>
-
     </View>
   );
 }
