@@ -21,6 +21,7 @@
     "@react-navigation/bottom-tabs": "^7.8.12",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@tabler/icons-react-native": "^3.36.1",
     "expo": "~54.0.31",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.10",
