@@ -25,14 +25,14 @@ export default function SignIn() {
   const handleSignIn = () => {
     // TODO: Implement sign-in logic here
     router.replace(
-      userSide === 'tenant' 
-      ? '../(tabs)/(tenant)/home' 
+      userSide === 'tenant'
+      ? '../(tabs)/(tenant)/home'
       : '../(tabs)/(landlord)/dashboard'
     );
   }
 
   return (
-    <ScreenWrapper hasInput scrollable>
+    <ScreenWrapper hasInput scrollable className='p-5'>
       {/* Logo at the top */}
       <View className="w-32 h-32 mx-auto">
         <Image

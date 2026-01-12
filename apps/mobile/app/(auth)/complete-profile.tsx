@@ -76,7 +76,7 @@ export default function CompleteProfile() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable>
+    <ScreenWrapper hasInput scrollable className='p-5'>
 
       {/* Back button */}
       <Pressable className="mb-3" onPress={router.back}>
@@ -267,7 +267,7 @@ export default function CompleteProfile() {
       </View>
 
       {/* Submit Button */}
-      <View className="mt-16 mb-5">
+      <View className="mt-16 mb-10">
         <PillButton
           label="Submit"
           isFullWidth

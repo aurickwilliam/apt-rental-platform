@@ -22,7 +22,7 @@ export default function StepTwo() {
   };
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper className="p-5">
       {/* Skip Button*/}
       <Pressable onPress={handleSkip}>
         <Text className="text-grey-300 text-base font-inter">
@@ -42,7 +42,7 @@ export default function StepTwo() {
           Select your preferred price range to see listings that fit your budget.
         </Text>
       </View>
-      
+
       <View className="flex-1 items-center justify-center gap-10">
         {/* Rent Amount */}
         <Text className="text-primary text-6xl font-dmserif">
