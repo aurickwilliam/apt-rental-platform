@@ -30,17 +30,15 @@ export default function StepThree() {
   };
 
   const handleSkip = () => {
-    // router.replace("/personalization/step-three");
-    // TODO: Navigate to the tabs page
+    router.replace("/home");
   };
 
   const handleNext = () => {
-    // router.replace("/personalization/step-three");
-    // TODO: Navigate to the tabs page
+    router.replace("/home");
   };
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper className="p-5">
       {/* Skip Button*/}
       <Pressable onPress={handleSkip}>
         <Text className="text-grey-300 text-base font-inter">
@@ -57,7 +55,7 @@ export default function StepThree() {
 
         {/* Description */}
         <Text className="text-text text-lg font-inter">
-          Select the number of bedrooms you prefer so we can filter properties 
+          Select the number of bedrooms you prefer so we can filter properties
           that fit your needs.
         </Text>
       </View>

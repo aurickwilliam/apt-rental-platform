@@ -41,7 +41,7 @@ export default function StepOne() {
   };
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper className="p-5">
       {/* Skip Button*/}
       <Pressable onPress={handleSkip}>
         <Text className="text-grey-300 text-base font-inter">

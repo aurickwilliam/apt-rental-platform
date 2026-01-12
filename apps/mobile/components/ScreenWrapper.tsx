@@ -70,7 +70,7 @@ export default function ScreenWrapper({
       )}
 
       <SafeAreaView
-        className={`flex-1 px-4 py-5 bg-white ${className}`}
+        className={`flex-1 ${!useScroll ? className : ""}`}
         edges={header ? ['left', 'right', 'bottom'] : undefined}
       >
         {mainContent}
