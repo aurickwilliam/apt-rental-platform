@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import {
   KeyboardAvoidingView,
   ScrollView,
-  Platform,
   View,
 } from "react-native";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";

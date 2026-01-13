@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { COLORS } from '@/constants/colors';
 import { TENANTICONS, LANDLORDICONS } from '@/constants/tab-icons';
+
 import TabBarIcon from './TabBarIcon';
 
 export function TabBar({

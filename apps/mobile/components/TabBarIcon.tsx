@@ -72,7 +72,7 @@ export default function TabBarIcon({
         {
           icon[routeName]({
             color: color,
-            size: 30,
+            size: 26,
             isFocused
           })
         }
