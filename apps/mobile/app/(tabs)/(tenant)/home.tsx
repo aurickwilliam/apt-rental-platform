@@ -3,6 +3,7 @@ import { View, Text, Image } from 'react-native'
 import ScreenWrapper from '../../../components/ScreenWrapper'
 import PaymentSummaryCard from '../../../components/PaymentSummaryCard'
 import QuickActionButton from '../../../components/QuickActionButton'
+import PaymentHistoryCard from '../../../components/PaymentHistoryCard'
 
 import { IMAGES } from '../../../constants/images'
 import { COLORS } from '../../../constants/colors'
@@ -24,6 +25,7 @@ import {
 
 export default function Home() {
 
+  // Date for Quick Actions
   type actionsTypes = {
     id: number;
     label: string;
@@ -39,6 +41,23 @@ export default function Home() {
     { id: 6, label: 'Property Details', icon: IconHome2 },
     { id: 7, label: 'Settings', icon: IconSettings },
     { id: 8, label: 'FAQ', icon: IconHelp },
+  ]
+
+  // Data for Rent Payment History
+  type paymentHistoryTypes = {
+    id: number;
+    month: string;
+    year: string;
+    amount: number;
+    paidDate: string;
+    status: 'paid' | 'partial'
+  }
+
+  const paymentHistory: paymentHistoryTypes[] = [
+    {id: 1, month: 'January', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'paid'},
+    {id: 2, month: 'Febuary', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'partial'},
+    {id: 3, month: 'March', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'paid'},
+    {id: 4, month: 'April', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'partial'},
   ]
 
   return (
@@ -104,6 +123,33 @@ export default function Home() {
         </View>
       </View>
 
+      {/* Divider */}
+      <View
+      className='w-full h-[2px] rounded-full bg-grey-100 my-5'
+      />
+
+      {/* Rent Payment History */}
+      <View>
+        <Text className='text-text text-xl font-poppinsSemiBold'>
+          Rent Payment History
+        </Text>
+
+        {/* List of Payments */}
+        <View className='mt-5 flex gap-2'>
+          {
+            paymentHistory.map((payment) => (
+              <PaymentHistoryCard
+                key={payment.id}
+                month={payment.month}
+                year={payment.year}
+                amount={payment.amount}
+                paidDate={payment.paidDate}
+                status={payment.status}
+              />
+            ))
+          }
+        </View>
+      </View>
     </ScreenWrapper>
   )
 }

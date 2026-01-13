@@ -33,7 +33,10 @@ export default function ScreenWrapper({
   // Decide if content can be scrollable or static
   const content = useScroll ? (
     <ScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingBottom: insets.bottom + 80
+      }}
       className={`${className}`}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
