@@ -1,4 +1,5 @@
 export const COLORS: { [key: string]: string } = {
+  white: '#FFFFFF',
   primary: '#376BF5',
   lightBlue: '#EFF6FF',
   secondary: '#FFA500',
