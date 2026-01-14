@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { useState } from 'react';
 
 import {
@@ -10,6 +10,7 @@ import ScreenWrapper from "@/components/ScreenWrapper";
 import StandardHeader from '@/components/StandardHeader';
 
 import { COLORS } from "../constants/colors"
+import ApartmentCard from '@/components/ApartmentCard';
 
 export default function TenantFavorites() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -54,9 +55,10 @@ export default function TenantFavorites() {
       }
       headerBackgroundColor={COLORS.primary}
     >
-      <Text>
-        Favorites
-      </Text>
+      <View className='flex-row flex-wrap'>
+        <ApartmentCard />
+        <ApartmentCard />
+      </View>
     </ScreenWrapper>
   );
 }

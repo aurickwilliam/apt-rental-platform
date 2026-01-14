@@ -16,6 +16,7 @@ module.exports = {
         dmserif: ['DMSerifText-Regular'],
         inter: ['Inter_24pt-Regular'],
         interMedium: ['Inter_24pt-Medium'],
+        interSemiBold: ['Inter_24pt-SemiBold'],
       },
       colors: {
         primary: '#376BF5',
