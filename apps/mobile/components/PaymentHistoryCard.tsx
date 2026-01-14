@@ -19,7 +19,7 @@ export default function PaymentHistoryCard({
   status = 'paid'
 }: PaymentHistoryCardProps) {
   return (
-    <TouchableOpacity className="bg-darkerWhite p-[10px] rounded-xl">
+    <TouchableOpacity className="bg-darkerWhite p-[10px] rounded-xl" activeOpacity={0.7}>
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           {/* Calendar Icon */}
