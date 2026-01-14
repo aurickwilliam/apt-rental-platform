@@ -18,6 +18,7 @@ export default function RootLayout() {
     "DMSerifText-Regular": require("../assets/fonts/DMSerifText-Regular.ttf"),
     "Inter_24pt-Regular": require("../assets/fonts/Inter_24pt-Regular.ttf"),
     "Inter_24pt-Medium": require("../assets/fonts/Inter_24pt-Medium.ttf"),
+    "Inter_24pt-SemiBold": require("../assets/fonts/Inter_24pt-SemiBold.ttf"),
   });
 
   // Check if the fonts have loaded or if there was an error

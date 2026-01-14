@@ -7,4 +7,5 @@ export const IMAGES = {
   onboardingImage2: require("@/assets/images/splash-image/explore-rentals.png"),
   onboardingImage3: require("@/assets/images/splash-image/secure-transactions.png"),
   onboardingImage4: require("@/assets/images/splash-image/verified-listing.png"),
+  defaultThumbnail: require("@/assets/images/default-thumbnail.jpeg"),
 };
