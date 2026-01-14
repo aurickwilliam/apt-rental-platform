@@ -1,4 +1,5 @@
 import { View, Text, Image } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '../../../components/ScreenWrapper'
 import PaymentSummaryCard from '../../../components/PaymentSummaryCard'
@@ -24,6 +25,7 @@ import {
 } from "@tabler/icons-react-native"
 
 export default function Home() {
+  const router = useRouter();
 
   // Date for Quick Actions
   type actionsTypes = {
@@ -60,6 +62,10 @@ export default function Home() {
     {id: 4, month: 'April', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'partial'},
   ]
 
+  const handleFavoritesNavigation = () => {
+    router.push('/tenant-favorites');
+  }
+
   return (
     <ScreenWrapper scrollable className='p-5'>
 
@@ -92,7 +98,7 @@ export default function Home() {
           <IconHeart
             size={26}
             color={COLORS.grey}
-            onPress={() => console.log('Favorites pressed')}
+            onPress={handleFavoritesNavigation}
           />
         </View>
       </View>

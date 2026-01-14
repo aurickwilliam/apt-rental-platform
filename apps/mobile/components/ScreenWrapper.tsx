@@ -65,8 +65,11 @@ export default function ScreenWrapper({
       {/* Insert the header if it has */}
       {header && (
         <View
-          className={`px-4 pb-4 ${headerBackgroundColor}`}
-          style={{ paddingTop: insets.top }}
+          className={`px-4 pb-4`}
+          style={{ 
+            paddingTop: insets.top,
+            backgroundColor: headerBackgroundColor
+          }}
         >
           {header}
         </View>
