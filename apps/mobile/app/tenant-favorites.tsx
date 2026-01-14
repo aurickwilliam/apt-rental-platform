@@ -1,5 +1,5 @@
-import { Text, TouchableOpacity, View } from 'react-native'
-import { useState } from 'react';
+import { TouchableOpacity, View } from 'react-native'
+import { useEffect, useState } from 'react';
 
 import {
   IconLayoutGrid,
@@ -8,12 +8,16 @@ import {
 
 import ScreenWrapper from "@/components/ScreenWrapper";
 import StandardHeader from '@/components/StandardHeader';
+import ApartmentCard from '@/components/ApartmentCard';
 
 import { COLORS } from "../constants/colors"
-import ApartmentCard from '@/components/ApartmentCard';
 
 export default function TenantFavorites() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  useEffect(() => {
+    setViewMode('grid');
+  }, [])
 
   const toggleViewMode = () => {
     setViewMode(viewMode === 'grid' ? 'list' : 'grid');
@@ -56,8 +60,20 @@ export default function TenantFavorites() {
       headerBackgroundColor={COLORS.primary}
     >
       <View className='flex-row flex-wrap'>
-        <ApartmentCard />
-        <ApartmentCard />
+        <ApartmentCard 
+          name="Apartment Name"
+          location="Barangay, City"
+          ratings='0.0'
+          isFavorite={false}
+          monthlyRent={0}
+          noBedroom={0}
+          noBathroom={0}
+          areaSqm={0}
+          isGrid={viewMode === 'grid'}
+        />
+        <ApartmentCard 
+          isGrid={viewMode === 'grid'}
+        />
       </View>
     </ScreenWrapper>
   );
