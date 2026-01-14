@@ -28,115 +28,126 @@ interface ApartmentCardProps {
 export default function ApartmentCard({
   thumbnail,
   name = "Apartment Name",
-  location,
-  ratings = '0/5',
+  location = "Barangay, City",
+  ratings = '0.0',
   isFavorite = false,
   monthlyRent = 0,
   noBedroom = 0,
   noBathroom = 0,
   areaSqm = 0,
-  isGrid = true
+  isGrid
 }: ApartmentCardProps) {
 
   return (
-    <View className='w-1/2 p-2'>
+    <View className={`${isGrid ? 'w-1/2' : 'w-full'} p-2`}>
       <TouchableOpacity 
-        className='h-80 bg-white rounded-2xl shadow-sm relative'
+        className='bg-white rounded-2xl relative shadow-sm'
         activeOpacity={0.7}
       >
         {/* Thumbnail Image */}
-        <View className='w-full h-[50%] overflow-hidden rounded-t-2xl'>
+        <View className='aspect-square overflow-hidden rounded-2xl'>
           <Image 
-            source={IMAGES.defaultThumbnail}
+            source={thumbnail ? thumbnail : IMAGES.defaultThumbnail}
             style={{height: '100%', width: '100%'}}
           />
         </View>
 
         {/* Description Container */}
-        <View className='flex-1 p-2 items-start justify-between'>
+        <View className={`${isGrid ? 'p-2 gap-2' : 'p-3 gap-3'}`}>
           {/* Apartment Name and Address */}
           <View>
-            <Text className='text-text text-base font-interMedium'>
-              Apartment Name
+            <Text className={`text-text font-interMedium ${isGrid ? 'text-base' : 'text-xl'}`}>
+              {name}
             </Text>
 
-            <Text className='text-grey-500 text-[12px] font-inter'>
-              Barangay, City
+            <Text className={`text-grey-500 font-inter ${isGrid ? 'text-[12px]' : 'text-base'}`}>
+              {location}
             </Text>
           </View>
 
           {/* Utilities */}
-          <View className='flex-row flex-wrap gap-y-1'>
-            {/* Bedroom */}
-            <View className='flex-row w-1/2 gap-1 items-center justify-start'>
-              <IconBed 
-                size={18}
-                color={COLORS.grey}
+          {
+            !isGrid && (
+              <View className='flex-row flex-wrap'>
+                {/* Bedroom */}
+                <View className='flex-row w-2/6 gap-1 items-center justify-start'>
+                  <IconBed 
+                    size={18}
+                    color={COLORS.grey}
+                  />
+
+                  <Text className='text-grey-500 text-[12px]'>
+                    {noBedroom} Bedroom
+                  </Text>
+                </View>
+
+                {/* Bathroom */}
+                <View className='flex-row w-2/6 gap-1 items-center justify-start'>
+                  <IconBath 
+                    size={18}
+                    color={COLORS.grey}
+                  />
+
+                  <Text className='text-grey-500 text-[12px]'>
+                    {noBathroom} Bathroom
+                  </Text>
+                </View>
+
+                {/* Square Meters */}
+                <View className='flex-row w-2/6 gap-1 items-center justify-start'>
+                  <IconMaximize 
+                    size={18}
+                    color={COLORS.grey}
+                  />
+
+                  <Text className='text-grey-500 text-[12px]'>
+                    {areaSqm} Sqm
+                  </Text>
+                </View>
+              </View>
+            )
+          }
+
+          <View className='flex-row items-center justify-between'>
+            <Text className={`text-primary font-interSemiBold ${isGrid ? 'text-xl' : 'text-2xl'}`}>
+              ₱ {monthlyRent}
+            </Text>
+
+            {/* Ratings */}
+            <View 
+              className='flex-row items-center justify-center gap-1'>
+              <IconStarFilled 
+                size={isGrid ? 16 : 18}
+                color={COLORS.secondary}
               />
 
-              <Text className='text-grey-500 text-[12px]'>
-                1 Bedroom
-              </Text>
-            </View>
-
-            {/* Bathroom */}
-            <View className='flex-row w-1/2 gap-1 items-center justify-start'>
-              <IconBath 
-                size={18}
-                color={COLORS.grey}
-              />
-
-              <Text className='text-grey-500 text-[12px]'>
-                1 Bathroom
-              </Text>
-            </View>
-
-            {/* Square Meters */}
-            <View className='flex-row w-1/2 gap-1 items-center justify-start'>
-              <IconMaximize 
-                size={18}
-                color={COLORS.grey}
-              />
-
-              <Text className='text-grey-500 text-[12px]'>
-                1 Sqm
+              <Text className={`mr-1 text-text font-inter ${isGrid ? 'text-[12px]' : 'text-base'}`}>
+                {ratings}
               </Text>
             </View>
           </View>
-
-          <Text className='text-primary text-2xl font-interSemiBold'>
-            ₱ 1000.00
-          </Text>
         </View>
 
         {/* Floating Elements */}
 
-        {/* Ratings */}
-        <View 
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.90)' }}
-          className='absolute top-2 left-2 bg-white p-2 rounded-full
-            flex-row items-center justify-center gap-1'>
-          <IconStarFilled 
-            size={16}
-            color={COLORS.yellowish}
-          />
-
-          <Text className='mr-1 text-text text-[12px] font-inter'>
-            4.5
-          </Text>
-        </View>
-
         {/* Favorite Icon */}
-        <View 
+        <TouchableOpacity 
+          activeOpacity={0.7}
           className='absolute top-2 right-2 rounded-full p-2 flex items-center justify-center'
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', elevation: 3 }} // White bg
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', elevation: 3 }}
         >
           {isFavorite ? (
-            <IconHeartFilled size={18} color="#FF385C" /> // Vibrant Rose/Red
+            <IconHeartFilled 
+              size={isGrid ? 18 : 24} 
+              color={COLORS.lightRedHead} 
+            /> 
           ) : (
-            <IconHeart size={18} color={COLORS.grey} /> // Dark Grey/Black for contrast
+            <IconHeart 
+              size={isGrid ? 18 : 24} 
+              color={COLORS.grey} 
+            />
           )}
-        </View>
+        </TouchableOpacity>
       </TouchableOpacity>
     </View>
   )
