@@ -66,6 +66,10 @@ export default function Home() {
     router.push('/tenant-favorites');
   }
 
+  const handleNotificationNavigation = () => {
+    router.push('/tenant-notif');
+  }
+
   return (
     <ScreenWrapper scrollable className='p-5'>
 
@@ -91,7 +95,7 @@ export default function Home() {
           <IconBell
             size={26}
             color={COLORS.grey}
-            onPress={() => console.log('Notification pressed')}
+            onPress={handleNotificationNavigation}
           />
 
           {/* Favorites Icon */}

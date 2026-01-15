@@ -11,7 +11,7 @@ import TextField from '../../components/TextField';
 import PillButton from '../../components/PillButton';
 import NumberField from '../../components/NumberField';
 import DateTimeField from '../../components/DateTimeField';
-import BottomSheetDropdown from '../../components/BottomSheetDropdown';
+import DropdownField from '../../components/DropdownField';
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -146,7 +146,7 @@ export default function CompleteProfile() {
         />
 
         {/* Province Field */}
-        <BottomSheetDropdown
+        <DropdownField
           label="Province:"
           bottomSheetLabel="Select your province"
           placeholder="Select your province"
