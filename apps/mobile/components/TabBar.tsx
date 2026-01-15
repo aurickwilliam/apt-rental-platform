@@ -16,8 +16,7 @@ export function TabBar({
   const icons = userType === 'tenant' ? TENANTICONS : LANDLORDICONS;
 
   return (
-    <View className='flex-row absolute bottom-12 justify-between items-center
-      bg-white mx-10 px-1 py-1 rounded-full shadow-md gap-1'>
+    <View className='flex-row pb-10 bg-white border-t-[1px] border-grey-100'>
 
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -56,7 +55,7 @@ export function TabBar({
             onLongPress={onLongPress}
             isFocused={isFocused}
             routeName={route.name}
-            color={isFocused ? 'white' : COLORS.mediumGrey}
+            color={isFocused ? COLORS.primary : COLORS.mediumGrey}
             label={label}
             icon={icons}
           />
