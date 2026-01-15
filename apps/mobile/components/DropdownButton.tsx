@@ -1,55 +1,35 @@
-// BottomSheetDropdownFormField.tsx
 import { useRef, useMemo, useCallback, useState } from 'react';
 import { View, Text, Pressable, TouchableOpacity } from 'react-native';
 
-import { BottomSheetModal, BottomSheetBackdrop, BottomSheetFlatList, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 
-import { Ionicons } from '@expo/vector-icons';
+import {
+  IconCaretDownFilled,
+  IconCaretUpFilled,
+} from "@tabler/icons-react-native";
 
 import { COLORS } from '@/constants/colors';
 
-interface BottomSheetDropdownProps {
-  label: string;
+interface DropdownButtonProps {
   bottomSheetLabel: string;
   options: string[];
   value?: string | null;
-  onSelect: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  error?: string;
-  enableSearch?: boolean;
-  searchPlaceholder?: string;
+  onSelect: (value: any) => void;
 }
 
-export default function BottomSheetDropdown({
-  label,
+export default function DropdownButton({
   bottomSheetLabel,
   options,
   value,
   onSelect,
-  placeholder = 'Select a value',
-  required = false,
-  error,
-  enableSearch = false,
-  searchPlaceholder = 'Search...'
-}: BottomSheetDropdownProps) {
+}: DropdownButtonProps) {
+  
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['50%', '75%'], []);
-
-  // Filter options based on search query
-  const filteredOptions = useMemo(() => {
-    if (!enableSearch || searchQuery.trim() === '') {
-      return options;
-    }
-
-    return options.filter((option: string) =>
-      option.toLowerCase().startsWith(searchQuery.toLowerCase())
-    );
-  }, [options, searchQuery, enableSearch]);
 
   const openSheet = useCallback(() => {
     setIsFocused(true);
@@ -79,28 +59,21 @@ export default function BottomSheetDropdown({
     []
   );
 
+  const Icon = isFocused ? IconCaretUpFilled : IconCaretDownFilled;
+
   return (
-    <View className='w-full flex-col gap-2'>
-
-      {/* Label Text */}
-      <Text className='text-md text-text font-interMedium'>
-        {label} {required && <Text className='text-redHead-200'>*</Text>}
-      </Text>
-
-      {/* Trigger Field */}
+    <>
+      {/* Button */}
       <TouchableOpacity
-        className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-16 flex-row items-center 
-          justify-between ${error ? 'border-redHead-200' : 
-          isFocused ? 'border-primary' : 'border-gray-200'}`}
+        className={`bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1`}
         onPress={openSheet}
       >
-        <Text className={`text-lg font-inter ${value ? 'text-text' : 'text-gray-400'}`}>
-          {value || placeholder}
+        <Text className={`text-text text-base font-interMedium `}>
+          {value}
         </Text>
 
-        <Ionicons 
-          name={`${isFocused ? 'caret-up' : 'caret-down'}`}
-          size={24}
+        <Icon 
+          size={26}
           color={COLORS.text}
         />
       </TouchableOpacity>
@@ -130,7 +103,7 @@ export default function BottomSheetDropdown({
         onDismiss={handleOnDismiss}
       >
         <BottomSheetFlatList
-          data={filteredOptions}
+          data={options}
           keyExtractor={(item: string) => item}
           renderItem={({ item }: { item: string }) => (
             <Pressable
@@ -150,17 +123,6 @@ export default function BottomSheetDropdown({
                 border-grey-200 pb-3 mb-4'>
                 {bottomSheetLabel}
               </Text>
-
-              {
-                enableSearch && 
-                <BottomSheetTextInput
-                  className='w-full p-4 mb-2 text-lg text-text border-2 border-grey-200 rounded-2xl font-inter'
-                  placeholder={searchPlaceholder}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              }
-
             </View>
           }
 
@@ -179,6 +141,6 @@ export default function BottomSheetDropdown({
           }}
         />
       </BottomSheetModal>
-    </View>
+    </>
   );
 }
