@@ -107,7 +107,7 @@ export default function Home() {
       <PaymentSummaryCard
         monthDue={'January'}
         amountDue={1_200.00}
-        address='123 Main St, Apt 4B'
+        apartmentName='Apartment Name'
         daysRemaining={10}
       />
 

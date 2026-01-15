@@ -41,7 +41,7 @@ export default function ApartmentCard({
   return (
     <View className={`${isGrid ? 'w-1/2' : 'w-full'} p-2`}>
       <TouchableOpacity 
-        className='bg-white rounded-2xl relative shadow-sm'
+        className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
       >
         {/* Thumbnail Image */}

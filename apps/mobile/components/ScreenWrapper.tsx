@@ -6,6 +6,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 
+import { COLORS } from "@/constants/colors";
+
 interface ScreenWrapperProps {
   children: ReactNode;
   hasInput?: boolean;
@@ -13,6 +15,7 @@ interface ScreenWrapperProps {
   scrollable?: boolean;
   header?: ReactNode;
   headerBackgroundColor?: string;
+  backgroundColor?: string;
 }
 
 export default function ScreenWrapper({
@@ -22,6 +25,7 @@ export default function ScreenWrapper({
   scrollable,
   header,
   headerBackgroundColor = "bg-primary",
+  backgroundColor = COLORS.white
 }: ScreenWrapperProps) {
   // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
@@ -61,7 +65,12 @@ export default function ScreenWrapper({
   );
 
   return (
-    <View className="flex-1 bg-white">
+    <View 
+      className="flex-1"
+      style={{
+        backgroundColor: backgroundColor
+      }}
+    >
       {/* Insert the header if it has */}
       {header && (
         <View

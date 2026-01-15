@@ -58,6 +58,7 @@ export default function TenantFavorites() {
         />
       }
       headerBackgroundColor={COLORS.primary}
+      backgroundColor={COLORS.darkerWhite}
     >
       <View className='flex-row flex-wrap'>
         <ApartmentCard 
