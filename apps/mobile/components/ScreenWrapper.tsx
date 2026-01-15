@@ -65,11 +65,12 @@ export default function ScreenWrapper({
   );
 
   return (
-    <View 
+    <SafeAreaView 
       className="flex-1"
       style={{
         backgroundColor: backgroundColor
       }}
+      edges={header ? ['left', 'right', 'bottom'] : ['left', 'right', 'top']}
     >
       {/* Insert the header if it has */}
       {header && (
@@ -83,12 +84,11 @@ export default function ScreenWrapper({
           {header}
         </View>
       )}
-      <SafeAreaView
+      <View
         className={`flex-1 ${!useScroll ? className : ""}`}
-        edges={header ? ['left', 'right', 'bottom'] : undefined}
       >
         {mainContent}
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
