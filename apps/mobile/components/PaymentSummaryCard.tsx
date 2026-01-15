@@ -35,45 +35,44 @@ export default function PaymentSummaryCard({
   // TODO: Add commas to amountDue and add .00 at the end
 
   return (
-    <View className='w-full bg-primary mt-8 p-5 rounded-3xl'>
+    <View className='w-full bg-primary mt-8 p-4 rounded-3xl'>
       {/* Currently Renting */}
-      <View className='flex gap-2'>
-        <View className='flex-row items-center gap-1'>
-          {/* Pin Icon*/}
-          <IconMapPinFilled
-            size={24}
-            color={COLORS.white}
-          />
+      <View className='flex-row items-center gap-1'>
+        {/* Pin Icon*/}
+        <IconMapPinFilled
+          size={24}
+          color={COLORS.white}
+        />
 
-          <Text className='text-white text-xl font-poppinsSemiBold'>
-            Currently Renting in:
-          </Text>
-        </View>
-
-        {/* Address */}
-        <Text className='text-white text-sm font-inter'>
-          {address}
+        {/* Apartment Name */}
+        <Text className='text-white text-xl font-poppinsSemiBold'>
+          Apartment Name
         </Text>
       </View>
 
       {/* Payment Summary */}
-      <View className='flex mt-5'>
-        {/* Month Due */}
-        <Text className='text-white text-xl font-poppinsMedium'>
-          Month {monthDue} Due:
-        </Text>
+      <View className='flex mt-4 gap-2'>
+        <View className="flex-row items-center justify-start gap-2">
+          {/* Month Due */}
+          <Text className='text-white text-base font-inter'>
+            {monthDue} Due
+          </Text>
+
+          {/* Days remaining */}
+          <Text className='text-white text-base font-inter'>
+            ({daysRemaining} days left)
+          </Text>
+        </View>
+
         {/* Amount */}
-        <Text className='text-white text-3xl font-poppinsSemiBold'>
+        <Text className='text-white text-4xl font-poppinsSemiBold'>
           ₱ {amountDue}
         </Text>
-        {/* Days remaining */}
-        <Text className='text-white text-sm font-inter'>
-          {daysRemaining} days remaining
-        </Text>
+        
       </View>
 
       {/* Payment Buttons */}
-      <View className="flex-row items-center justify-between mt-5 gap-3">
+      <View className="flex-row items-center justify-between mt-2 gap-3">
         <View className='flex-1'>
           <PillButton
             label="Pay Now"
