@@ -11,14 +11,14 @@ import PillButton from "./PillButton";
 interface PaymentSummaryCardProps {
   monthDue: string;
   amountDue: number;
-  address: string;
+  apartmentName: string;
   daysRemaining: number;
 }
 
 export default function PaymentSummaryCard({
   monthDue,
   amountDue,
-  address,
+  apartmentName,
   daysRemaining
 }: PaymentSummaryCardProps) {
 
@@ -35,7 +35,7 @@ export default function PaymentSummaryCard({
   // TODO: Add commas to amountDue and add .00 at the end
 
   return (
-    <View className='w-full bg-primary mt-8 p-4 rounded-3xl'>
+    <View className='w-full bg-primary mt-5 p-4 rounded-3xl'>
       {/* Currently Renting */}
       <View className='flex-row items-center gap-1'>
         {/* Pin Icon*/}
@@ -46,7 +46,7 @@ export default function PaymentSummaryCard({
 
         {/* Apartment Name */}
         <Text className='text-white text-xl font-poppinsSemiBold'>
-          Apartment Name
+          {apartmentName}
         </Text>
       </View>
 
@@ -72,12 +72,13 @@ export default function PaymentSummaryCard({
       </View>
 
       {/* Payment Buttons */}
-      <View className="flex-row items-center justify-between mt-2 gap-3">
+      <View className="flex-1 flex-row items-center justify-between mt-2 gap-3">
         <View className='flex-1'>
           <PillButton
             label="Pay Now"
             type='secondary'
             isFullWidth
+            size="sm"
             onPress={() => handlePayNow()}
           />
         </View>
@@ -86,6 +87,7 @@ export default function PaymentSummaryCard({
             label="View Details"
             type='outline'
             isFullWidth
+            size="sm"
             onPress={() => handleViewDetails()}
           />
         </View>

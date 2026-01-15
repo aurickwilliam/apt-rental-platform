@@ -6,12 +6,12 @@ import { COLORS } from '@/constants/colors';
 interface PillButtonProps {
   label: string,
   type?: 'primary' | 'secondary' | 'outline' | 'danger',
-  width?: number,
   isDisabled?: boolean,
   isFullWidth?: boolean,
   leftIconName?: React.ComponentProps<typeof Ionicons>['name'],
   rightIconName?: React.ComponentProps<typeof Ionicons>['name'],
   onPress?: () => void,
+  size?: 'md' | 'sm'
 }
 
 const TYPE_STYLES = {
@@ -24,49 +24,68 @@ const TYPE_STYLES = {
 export default function PillButton({
   label = 'Pill Button',
   type = 'primary',
-  width,
   isDisabled = false,
   isFullWidth = false,
   leftIconName,
   rightIconName,
   onPress,
-  }: PillButtonProps) {
+  size = 'md'
+}: PillButtonProps) {
+
+  // TODO: Extract the ternary operator to a variable
+  const widthClass = isFullWidth ? 'w-full' : undefined;
+  const iconColor = type !== 'outline' ? 'white' : COLORS.grey;
+  const textColor = type !== 'outline' ? 'text-white' : 'text-grey-500';
+
+  // Size of Button Styles
+  const sizeStyles = {
+    sm: {
+      height: 'h-12',
+      padding: 'px-3',
+      iconSize: 18,
+      textSize: 'text-base',
+    },
+    md: {
+      height: 'h-14',
+      padding: 'px-4',
+      iconSize: 26,
+      textSize: 'text-xl',
+    },
+  };
+
+  const currentSize = sizeStyles[size];
 
   return (
-    <Pressable className={`${TYPE_STYLES[type]} 
-      ${isFullWidth ? 'w-full self-stretch' : 'self-start'} 
-      h-14 min-w-[120px] rounded-full flex-row 
-      justify-center items-center gap-2`}
-      style={{ width: width ? width : undefined }}
+    <Pressable
+      className={`${TYPE_STYLES[type]} 
+        ${widthClass} 
+        ${currentSize.height} ${currentSize.padding} rounded-full 
+        flex-row justify-center items-center gap-2`}
       onPress={onPress}
       disabled={isDisabled}
     >
-
-      {/* Left Icon */}
-      {
-        leftIconName &&
+      {leftIconName && (
         <Ionicons 
           name={leftIconName}
-          size={26}
-          color={`${type !== "outline" ? 'white' : COLORS.grey}`}
+          size={currentSize.iconSize}
+          color={iconColor}
         />
-      }
+      )}
 
-      <Text className={`${type !== "outline" ? 'text-white' : 'text-grey-500'} 
-        text-xl font-interMedium`}
+      <Text 
+        className={`${textColor} ${currentSize.textSize} font-interMedium`}
+        numberOfLines={1}
       >
         {label}
       </Text>
 
-      {/* Right Icon */}
-      {
-        rightIconName &&
+      {rightIconName && (
         <Ionicons 
           name={rightIconName}
-          size={26}
-          color={`${type !== "outline" ? 'white' : COLORS.grey}`}
+          size={currentSize.iconSize}
+          color={iconColor}
         />
-      }
+      )}
     </Pressable>
-  )
+  );
 }
