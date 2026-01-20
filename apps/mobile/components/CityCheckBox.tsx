@@ -1,6 +1,7 @@
-import { COLORS } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, Pressable } from "react-native";
+
+import { COLORS } from "../constants/colors";
 
 interface CityCheckBoxProps {
   cityName: string,

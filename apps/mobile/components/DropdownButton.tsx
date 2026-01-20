@@ -7,15 +7,21 @@ import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import {
   IconCaretDownFilled,
   IconCaretUpFilled,
+  IconProps,
 } from "@tabler/icons-react-native";
 
-import { COLORS } from '@/constants/colors';
+import { COLORS } from '../constants/colors';
 
 interface DropdownButtonProps {
   bottomSheetLabel: string;
   options: string[];
   value?: string | null;
   onSelect: (value: any) => void;
+  buttonClassName?: string;
+  textClassName?: string;
+  iconProps?: IconProps;
+  openIcon?: React.ComponentType<IconProps>;
+  closeIcon?: React.ComponentType<IconProps>;
 }
 
 export default function DropdownButton({
@@ -23,6 +29,11 @@ export default function DropdownButton({
   options,
   value,
   onSelect,
+  buttonClassName,
+  textClassName,
+  iconProps = {size: 26, color: COLORS.text},
+  openIcon = IconCaretUpFilled,
+  closeIcon = IconCaretDownFilled,
 }: DropdownButtonProps) {
   
   const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -59,22 +70,25 @@ export default function DropdownButton({
     []
   );
 
-  const Icon = isFocused ? IconCaretUpFilled : IconCaretDownFilled;
+  const Icon = isFocused ? openIcon : closeIcon;
+
+  // Default style for button and text
+  const defaultButtonClassName = 'bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1';
+  const defaultTextClassName = 'text-text text-base font-interMedium';
 
   return (
     <>
       {/* Button */}
       <TouchableOpacity
-        className={`bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1`}
+        className={buttonClassName || defaultButtonClassName}
         onPress={openSheet}
       >
-        <Text className={`text-text text-base font-interMedium `}>
+        <Text className={textClassName || defaultTextClassName}>
           {value}
         </Text>
 
         <Icon 
-          size={26}
-          color={COLORS.text}
+          {...iconProps}
         />
       </TouchableOpacity>
 
@@ -107,7 +121,7 @@ export default function DropdownButton({
           keyExtractor={(item: string) => item}
           renderItem={({ item }: { item: string }) => (
             <Pressable
-              className='p-4 rounded-lg border-b border-grey-100'
+              className='p-4 rounded-lg bg-darkerWhite mb-2'
               onPress={() => {
                 onSelect(item);
                 closeSheet();

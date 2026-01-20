@@ -1,12 +1,12 @@
 import { View } from 'react-native'
 import { useState } from 'react';
 
-import ScreenWrapper from '@/components/ScreenWrapper'
-import StandardHeader from '@/components/StandardHeader'
-import NotificationCard from '@/components/NotificationCard';
-import DropdownButton from '@/components/DropdownButton';
+import ScreenWrapper from '../../components/ScreenWrapper'
+import StandardHeader from '../../components/StandardHeader'
+import NotificationCard from '../../components/NotificationCard';
+import DropdownButton from '../../components/DropdownButton';
 
-import { COLORS } from "@/constants/colors";
+import { COLORS } from "../../constants/colors";
 
 export default function TenantNotification() {
 

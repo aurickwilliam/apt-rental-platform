@@ -1,4 +1,4 @@
-import {IMAGES} from "@/constants/images";
+import { IMAGES } from "../constants/images";
 import { ImageSourcePropType } from "react-native";
 
 interface Slide {

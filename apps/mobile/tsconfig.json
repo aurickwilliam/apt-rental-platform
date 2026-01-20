@@ -4,11 +4,11 @@
     "strict": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
+    // "paths": {
+    //   "@/*": [
+    //     "./*"
+    //   ]
+    // }
   },
   "include": [
     "**/*.ts",
