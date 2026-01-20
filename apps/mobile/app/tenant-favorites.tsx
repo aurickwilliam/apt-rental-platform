@@ -6,9 +6,9 @@ import {
   IconLayoutList
 } from "@tabler/icons-react-native";
 
-import ScreenWrapper from "@/components/ScreenWrapper";
-import StandardHeader from '@/components/StandardHeader';
-import ApartmentCard from '@/components/ApartmentCard';
+import ScreenWrapper from "../components/ScreenWrapper";
+import StandardHeader from '../components/StandardHeader';
+import ApartmentCard from '../components/ApartmentCard';
 
 import { COLORS } from "../constants/colors"
 

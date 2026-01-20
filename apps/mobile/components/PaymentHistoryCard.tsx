@@ -1,7 +1,7 @@
 import { TouchableOpacity, View, Text } from "react-native";
 import { IconCalendarWeekFilled } from "@tabler/icons-react-native";
 
-import { COLORS } from "@/constants/colors";
+import { COLORS } from "../constants/colors";
 
 interface PaymentHistoryCardProps {
   month: string;

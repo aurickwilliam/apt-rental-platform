@@ -6,7 +6,7 @@ import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { COLORS } from '@/constants/colors';
+import { COLORS } from '../constants/colors';
 
 interface DropdownFieldProps {
   label: string;
