@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { View, Text, Pressable } from 'react-native'
 
-import { COLORS } from '../constants/colors'
+import { COLORS } from '../../constants/colors'
 
 interface BedroomRadioButtonProps{
   bedRoomLabel: string,

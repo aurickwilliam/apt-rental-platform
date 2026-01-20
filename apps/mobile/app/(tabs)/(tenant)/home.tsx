@@ -1,10 +1,10 @@
 import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../components/ScreenWrapper'
-import PaymentSummaryCard from '../../../components/PaymentSummaryCard'
-import QuickActionButton from '../../../components/QuickActionButton'
-import PaymentHistoryCard from '../../../components/PaymentHistoryCard'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import PaymentSummaryCard from '../../../components/display/PaymentSummaryCard'
+import QuickActionButton from '../../../components/buttons/QuickActionButton'
+import PaymentHistoryCard from '../../../components/display/PaymentHistoryCard'
 
 import { IMAGES } from '../../../constants/images'
 import { COLORS } from '../../../constants/colors'

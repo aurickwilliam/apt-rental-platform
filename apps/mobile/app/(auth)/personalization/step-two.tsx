@@ -5,8 +5,8 @@ import { Slider } from '@miblanchard/react-native-slider';
 
 import { COLORS } from "../../../constants/colors";
 
-import ScreenWrapper from "../../../components/ScreenWrapper";
-import PillButton from "../../../components/PillButton";
+import ScreenWrapper from "../../../components/layout/ScreenWrapper";
+import PillButton from "../../../components/buttons/PillButton";
 
 export default function StepTwo() {
   const router = useRouter();

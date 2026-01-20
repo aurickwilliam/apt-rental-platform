@@ -6,7 +6,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 interface ScreenWrapperProps {
   children: ReactNode;

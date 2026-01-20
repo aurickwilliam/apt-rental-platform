@@ -5,9 +5,9 @@ import Ionicons from '@expo/vector-icons/build/Ionicons'
 import { useRouter } from 'expo-router'
 
 import { COLORS } from '../../constants/colors'
-import ScreenWrapper from '../../components/ScreenWrapper'
-import NumberField from '../../components/NumberField';
-import PillButton from '../../components/PillButton'
+import ScreenWrapper from '../../components/layout/ScreenWrapper'
+import NumberField from '../../components/inputs/NumberField';
+import PillButton from '../../components/buttons/PillButton'
 
 export default function VerifyMobile() {
   const router = useRouter();

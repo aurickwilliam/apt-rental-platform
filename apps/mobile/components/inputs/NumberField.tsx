@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Platform } from 'react-native'
 import { useState } from 'react'
 
-import { COLORS } from '../constants/colors';
+import { COLORS } from '../../constants/colors';
 
 interface NumberFieldProps {
   label?: string;

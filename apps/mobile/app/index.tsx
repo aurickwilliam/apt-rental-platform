@@ -2,6 +2,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StatusBar } from 'expo-status-bar';
 
 export default function Index() {
   useEffect(() => {
@@ -30,8 +31,11 @@ export default function Index() {
 
   // Simple loading screen while redirecting
   return (
-    <View className="flex-1 justify-center items-center">
-      <ActivityIndicator size="large" />
-    </View>
+    <>
+      <StatusBar style="dark" />
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" />
+      </View>
+    </>
   );
 }

@@ -4,9 +4,9 @@ import {
   IconMapPinFilled
 } from "@tabler/icons-react-native"
 
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../../constants/colors";
 
-import PillButton from "./PillButton";
+import PillButton from "../buttons/PillButton";
 
 interface PaymentSummaryCardProps {
   monthDue: string;

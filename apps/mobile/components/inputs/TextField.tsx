@@ -2,7 +2,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 
-import { COLORS } from '../constants/colors';
+import { COLORS } from '../../constants/colors';
 
 interface TextFieldProps {
   label?: string,

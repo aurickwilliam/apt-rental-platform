@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Ionicons from '@expo/vector-icons/build/Ionicons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from '../../components/ScreenWrapper'
-import PillButton from '../../components/PillButton'
+import ScreenWrapper from '../../components/layout/ScreenWrapper'
+import PillButton from '../../components/buttons/PillButton'
 import { COLORS } from '../../constants/colors'
 import { TextInput } from 'react-native-gesture-handler'
 
