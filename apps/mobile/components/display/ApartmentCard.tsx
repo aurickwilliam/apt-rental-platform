@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 
-import { IMAGES } from "../constants/images";
-import { COLORS } from "../constants/colors";
+import { IMAGES } from "../../constants/images";
+import { COLORS } from "../../constants/colors";
 
 import {
   IconBed,

@@ -4,10 +4,10 @@ import { Link, useRouter } from 'expo-router';
 
 import { IMAGES } from '../../constants/images';
 
-import ScreenWrapper from '../../components/ScreenWrapper';
-import TextField from '../../components/TextField';
-import PillButton from '../../components/PillButton';
-import LogoButton from '../../components/LogoButton';
+import ScreenWrapper from '../../components/layout/ScreenWrapper';
+import TextField from '../../components/inputs/TextField';
+import PillButton from '../../components/buttons/PillButton';
+import LogoButton from '../../components/buttons/LogoButton';
 
 export default function SignIn() {
   const [email, setEmail] = useState<string>('');

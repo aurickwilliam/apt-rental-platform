@@ -6,12 +6,12 @@ import { useState } from 'react';
 import { COLORS } from '../../constants/colors';
 import { PROVINCES } from '../../constants/provinces';
 
-import ScreenWrapper from '../../components/ScreenWrapper';
-import TextField from '../../components/TextField';
-import PillButton from '../../components/PillButton';
-import NumberField from '../../components/NumberField';
-import DateTimeField from '../../components/DateTimeField';
-import DropdownField from '../../components/DropdownField';
+import ScreenWrapper from '../../components/layout/ScreenWrapper';
+import TextField from '../../components/inputs/TextField';
+import PillButton from '../../components/buttons/PillButton';
+import NumberField from '../../components/inputs/NumberField';
+import DateTimeField from '../../components/inputs/DateTimeField';
+import DropdownField from '../../components/inputs/DropdownField';
 
 export default function CompleteProfile() {
   const router = useRouter();

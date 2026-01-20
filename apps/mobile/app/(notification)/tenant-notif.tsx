@@ -1,10 +1,10 @@
 import { View } from 'react-native'
 import { useState } from 'react';
 
-import ScreenWrapper from '../../components/ScreenWrapper'
-import StandardHeader from '../../components/StandardHeader'
-import NotificationCard from '../../components/NotificationCard';
-import DropdownButton from '../../components/DropdownButton';
+import ScreenWrapper from '../../components/layout/ScreenWrapper'
+import StandardHeader from '../../components/layout/StandardHeader'
+import NotificationCard from '../../components/display/NotificationCard';
+import DropdownButton from '../../components/buttons/DropdownButton';
 
 import { COLORS } from "../../constants/colors";
 

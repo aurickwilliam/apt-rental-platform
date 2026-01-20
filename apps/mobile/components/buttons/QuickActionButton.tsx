@@ -1,7 +1,7 @@
 import { TouchableOpacity, Text, View } from "react-native";
 import { IconProps } from "@tabler/icons-react-native";
 
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 interface QuickActionButtonProps {
   label: string;
