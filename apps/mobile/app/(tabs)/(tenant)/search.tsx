@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import {View, Text, TouchableOpacity} from 'react-native'
 import { useState } from 'react';
 
 import {
@@ -11,6 +11,7 @@ import {
 import ScreenWrapper from '../../../components/layout/ScreenWrapper'
 import DropdownButton from '../../../components/buttons/DropdownButton';
 import SearchField from '../../../components/inputs/SearchField';
+import ApartmentHorizontalListCard from "../../../components/display/ApartmentHorizontalListCard";
 
 import { COLORS } from '../../../constants/colors';
 
@@ -23,12 +24,26 @@ export default function Search() {
     'Valenzuela',
   ];
 
+  // Dummy Data for apartment card
+  const apartmentData: {id: number, name: string}[] = [
+    {id: 1, name: 'Apartment 1'},
+    {id: 2, name: 'Apartment 2'},
+    {id: 3, name: 'Apartment 3'},
+    {id: 4, name: 'Apartment 4'},
+    {id: 5, name: 'Apartment 5'},
+  ]
+
   const [selectedCity, setSelectedCity] = useState<string>(cities[0]);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   return (
-    <ScreenWrapper scrollable hasInput className='p-5'>
-      <View className='flex-row items-center justify-between mb-6'>
+    <ScreenWrapper
+      scrollable
+      hasInput
+      className='py-5'
+      backgroundColor={COLORS.darkerWhite}
+    >
+      <View className='flex-row items-center justify-between mb-6 px-5'>
         <View className='flex-row gap-2'>
           <IconMapPinFilled
             size={30}
@@ -57,7 +72,28 @@ export default function Search() {
         </TouchableOpacity>
       </View>
 
-      <SearchField />
+      <View className='px-5'>
+        <SearchField
+          searchValue={searchQuery}
+          onChangeSearch={setSearchQuery}
+        />
+      </View>
+
+      {/* Rendered recommended apartments */}
+
+      <View className='gap-5'>
+        <ApartmentHorizontalListCard
+          apartmentData={apartmentData}
+        />
+
+        <ApartmentHorizontalListCard
+          apartmentData={apartmentData}
+        />
+
+        <ApartmentHorizontalListCard
+          apartmentData={apartmentData}
+        />
+      </View>
 
     </ScreenWrapper>
   )

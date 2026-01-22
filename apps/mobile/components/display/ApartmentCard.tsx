@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import {View, Text, Image, TouchableOpacity, useWindowDimensions} from 'react-native'
 
 import { IMAGES } from "../../constants/images";
 import { COLORS } from "../../constants/colors";
@@ -35,11 +35,15 @@ export default function ApartmentCard({
   noBedroom = 0,
   noBathroom = 0,
   areaSqm = 0,
-  isGrid
+  isGrid = true
 }: ApartmentCardProps) {
+  const { width } =  useWindowDimensions();
+
+  const cardWidth = isGrid ? width / 2 - 18 : width - 24;
+  const padding = isGrid ? 6 : 12;
 
   return (
-    <View className={`${isGrid ? 'w-1/2' : 'w-full'} p-2`}>
+    <View style={{width: cardWidth, paddingHorizontal: padding}}>
       <TouchableOpacity 
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
