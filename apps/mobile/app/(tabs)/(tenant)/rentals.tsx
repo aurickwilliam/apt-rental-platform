@@ -2,13 +2,14 @@ import { View, Text } from 'react-native'
 
 import ScreenWrapper from '../../../components/layout/ScreenWrapper'
 import PaymentSummaryCard from '../../../components/display/PaymentSummaryCard'
+import LandlordCard from '../../../components/display/LandlordCard';
 
 import {
-  IconMapPinFilled
+  IconMapPinFilled,
+  IconUserCircle,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '../../../constants/colors';
-import LandlordCard from 'components/display/LandlordCard';
 
 export default function Rentals() {
   return (
@@ -37,11 +38,23 @@ export default function Rentals() {
       </View>
 
       {/* Landlord Information*/}
-      <LandlordCard
-        fullName={''}
-        email={''}
-        phoneNumber={''}
-      />
+      <View className='mt-5 flex gap-3'>
+        <View className='flex-row items-center justify-start gap-2'>
+          <IconUserCircle
+            size={32}
+            color={COLORS.primary}
+          />
+          <Text className='text-text text-lg font-poppinsMedium'>
+            Landlord Information
+          </Text>
+        </View>
+
+        <LandlordCard
+          fullName={'Landlord Full Name'}
+          email={'landlord@example.com'}
+          phoneNumber={'123-456-7890'}
+        />
+      </View>
     </ScreenWrapper>
   )
 }
