@@ -2,7 +2,7 @@ import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import PaymentSummaryCard from '../../../components/display/PaymentSummaryCard'
+import PaymentHomeCard from '../../../components/display/PaymentHomeCard'
 import QuickActionButton from '../../../components/buttons/QuickActionButton'
 import PaymentHistoryCard from '../../../components/display/PaymentHistoryCard'
 
@@ -108,7 +108,7 @@ export default function Home() {
       </View>
 
       {/* Payment Summary Card */}
-      <PaymentSummaryCard
+      <PaymentHomeCard
         monthDue={'January'}
         amountDue={1_200.00}
         apartmentName='Apartment Name'
