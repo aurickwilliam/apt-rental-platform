@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { IconProps } from '@tabler/icons-react-native';
 import { Text, Pressable } from 'react-native';
 
 import { COLORS } from '../../constants/colors';
@@ -8,8 +8,8 @@ interface PillButtonProps {
   type?: 'primary' | 'secondary' | 'outline' | 'danger',
   isDisabled?: boolean,
   isFullWidth?: boolean,
-  leftIconName?: React.ComponentProps<typeof Ionicons>['name'],
-  rightIconName?: React.ComponentProps<typeof Ionicons>['name'],
+  leftIconName?: React.ComponentType<IconProps>,
+  rightIconName?: React.ComponentType<IconProps>,
   onPress?: () => void,
   size?: 'md' | 'sm'
 }
@@ -31,18 +31,15 @@ export default function PillButton({
   onPress,
   size = 'md'
 }: PillButtonProps) {
-
-  // TODO: Extract the ternary operator to a variable
   const widthClass = isFullWidth ? 'w-full' : undefined;
   const iconColor = type !== 'outline' ? 'white' : COLORS.grey;
   const textColor = type !== 'outline' ? 'text-white' : 'text-grey-500';
 
-  // Size of Button Styles
   const sizeStyles = {
     sm: {
       height: 'h-12',
       padding: 'px-3',
-      iconSize: 18,
+      iconSize: 20,
       textSize: 'text-base',
     },
     md: {
@@ -54,34 +51,32 @@ export default function PillButton({
   };
 
   const currentSize = sizeStyles[size];
+  const LeftIcon = leftIconName;
+  const RightIcon = rightIconName;
 
   return (
     <Pressable
-      className={`${TYPE_STYLES[type]} 
-        ${widthClass} 
-        ${currentSize.height} ${currentSize.padding} rounded-full 
+      className={`${TYPE_STYLES[type]}
+        ${widthClass}
+        ${currentSize.height} ${currentSize.padding} rounded-full
         flex-row justify-center items-center gap-2`}
       onPress={onPress}
       disabled={isDisabled}
     >
-      {leftIconName && (
-        <Ionicons 
-          name={leftIconName}
+      {LeftIcon && (
+        <LeftIcon
           size={currentSize.iconSize}
           color={iconColor}
         />
       )}
-
-      <Text 
+      <Text
         className={`${textColor} ${currentSize.textSize} font-interMedium`}
         numberOfLines={1}
       >
         {label}
       </Text>
-
-      {rightIconName && (
-        <Ionicons 
-          name={rightIconName}
+      {RightIcon && (
+        <RightIcon
           size={currentSize.iconSize}
           color={iconColor}
         />
