@@ -1,4 +1,4 @@
-import {View, Text, TextInput, TouchableOpacity} from 'react-native'
+import {View, TextInput, TouchableOpacity} from 'react-native'
 import { useState } from 'react'
 
 import {
