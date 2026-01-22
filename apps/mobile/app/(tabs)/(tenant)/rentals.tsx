@@ -6,7 +6,7 @@ import LandlordCard from '../../../components/display/LandlordCard';
 
 import {
   IconMapPinFilled,
-  IconUserCircle,
+  IconUser,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '../../../constants/colors';
@@ -40,11 +40,11 @@ export default function Rentals() {
       {/* Landlord Information*/}
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
-          <IconUserCircle
-            size={32}
-            color={COLORS.primary}
+          <IconUser
+            size={30}
+            color={COLORS.text}
           />
-          <Text className='text-text text-lg font-poppinsMedium'>
+          <Text className='text-text text-xl font-poppinsMedium'>
             Landlord Information
           </Text>
         </View>

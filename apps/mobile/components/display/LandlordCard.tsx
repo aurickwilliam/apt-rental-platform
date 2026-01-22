@@ -5,6 +5,7 @@ import { IMAGES } from "../../constants/images";
 import {
   IconMail,
   IconPhone,
+  IconMessage2,
 } from '@tabler/icons-react-native';
 import PillButton from "components/buttons/PillButton";
 
@@ -24,7 +25,7 @@ export default function LandlordCard({
   return (
     <View className="border-2 border-grey-300 p-4 rounded-2xl flex-row items-start gap-4">
       {/* Profile Picture */}
-      <View className="w-36 h-36 rounded-xl overflow-hidden border-2 border-grey-300">
+      <View className="w-36 h-36 rounded-xl overflow-hidden border border-grey-300">
         <Image
           source={IMAGES.defaultProfilePicture || profilePictureUrl}
           style={{ width: '100%', height: '100%' }}
@@ -57,6 +58,7 @@ export default function LandlordCard({
           label={"Message"}
           size="sm"
           type="outline"
+          leftIconName={IconMessage2}
         />
       </View>
     </View>
