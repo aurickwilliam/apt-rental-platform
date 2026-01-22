@@ -1,94 +1,116 @@
-import { View, Text } from "react-native";
+import { View, Text } from 'react-native';
 
-import {
-  IconMapPinFilled
-} from "@tabler/icons-react-native"
+import { COLORS } from '../../constants/colors';
 
-import { COLORS } from "../../constants/colors";
-
-import PillButton from "../buttons/PillButton";
+import StatusPill from './StatusPill';
+import PillButton from 'components/buttons/PillButton';
 
 interface PaymentSummaryCardProps {
-  monthDue: string;
-  amountDue: number;
-  apartmentName: string;
-  daysRemaining: number;
+  periodMonth?: string;
+  periodYear?: string;
+  status?: 'Pending' | 'Paid';
+  totalRent?: number;
+  balanceLeft?: number;
+  balancePaid?: number;
+  onPayNowPress?: () => void;
+  onViewHistoryPress?: () => void;
 }
 
 export default function PaymentSummaryCard({
-  monthDue,
-  amountDue,
-  apartmentName,
-  daysRemaining
+  periodMonth = 'Month',
+  periodYear = 'Year',
+  status = 'Pending',
+  totalRent = 0,
+  balanceLeft = 0,
+  balancePaid = 0,
+  onPayNowPress,
+  onViewHistoryPress,
 }: PaymentSummaryCardProps) {
 
-  const handlePayNow = () => {
-    // TODO: Implement pay now functionality here
-    console.log("PAY NOW!");
-  };
-
-  const handleViewDetails = () => {
-    // TODO: Implement view details functionality here
-    console.log("VIEW DETAILS!");
-  };
-
-  // TODO: Add commas to amountDue and add .00 at the end
+  const statusColor = status === 'Pending' ? COLORS.yellowish : COLORS.greenHulk;
 
   return (
-    <View className='w-full bg-primary mt-5 p-4 rounded-3xl'>
-      {/* Currently Renting */}
-      <View className='flex-row items-center gap-1'>
-        {/* Pin Icon*/}
-        <IconMapPinFilled
-          size={24}
-          color={COLORS.white}
-        />
-
-        {/* Apartment Name */}
-        <Text className='text-white text-xl font-poppinsSemiBold'>
-          {apartmentName}
+    <View className='bg-primary rounded-3xl p-4'>
+      {/* Title Header */}
+      <View className='flex-row items-center justify-between'>
+        <Text className='text-white text-2xl font-poppinsSemiBold'>
+          Payment Summary
         </Text>
+
+        {/* Status */}
+        <StatusPill
+          status={status}
+          color={statusColor}
+        />
       </View>
 
-      {/* Payment Summary */}
-      <View className='flex mt-4 gap-2'>
-        <View className="flex-row items-center justify-start gap-2">
-          {/* Month Due */}
-          <Text className='text-white text-base font-inter'>
-            {monthDue} Due
+      {/* Payment Detaisl */}
+      <View className='flex-1 flex-row items-center mt-5'>
+        {/* Month Period */}
+        <View className='flex w-1/2'>
+          <Text className='text-darkerWhite text-base font-inter'>
+            Period
           </Text>
 
-          {/* Days remaining */}
-          <Text className='text-white text-base font-inter'>
-            ({daysRemaining} days left)
+          <Text className='text-white text-xl font-interMedium'>
+            {periodMonth} {periodYear}
           </Text>
         </View>
 
-        {/* Amount */}
-        <Text className='text-white text-4xl font-poppinsSemiBold'>
-          ₱ {amountDue}
-        </Text>
-        
+        {/* Total Rent */}
+        <View className='flex w-1/2'>
+          <Text className='text-darkerWhite text-base font-inter'>
+            Total Rent
+          </Text>
+
+          <Text className='text-white text-xl font-interMedium'>
+            ₱ {totalRent}
+          </Text>
+        </View>
       </View>
 
-      {/* Payment Buttons */}
-      <View className="flex-1 flex-row items-center justify-between mt-2 gap-3">
+      <View className='flex-1 flex-row items-center mt-5'>
+        {/* Balance Left */}
+        <View className='flex w-1/2'>
+          <Text className='text-darkerWhite text-base font-inter'>
+            Balance Left
+          </Text>
+
+          <Text className='text-white text-xl font-interMedium'>
+            ₱ {balanceLeft}
+          </Text>
+        </View>
+
+        {/* Balance Paid */}
+        <View className='flex w-1/2'>
+          <Text className='text-darkerWhite text-base font-inter'>
+            Paid
+          </Text>
+
+          <Text className='text-white text-xl font-interMedium'>
+            ₱ {balancePaid}
+          </Text>
+        </View>
+      </View>
+
+      {/* Action Buttons */}
+      <View className='flex-row flex-1 mt-5 gap-5'>
         <View className='flex-1'>
           <PillButton
-            label="Pay Now"
+            label={'Pay Now'}
             type='secondary'
+            size='sm'
             isFullWidth
-            size="sm"
-            onPress={() => handlePayNow()}
+            onPress={onPayNowPress}
           />
         </View>
-        <View className="flex-1">
+        <View className='flex-1'>
           <PillButton
-            label="View Details"
+            label={'View History'}
             type='outline'
+            size='sm'
             isFullWidth
-            size="sm"
-            onPress={() => handleViewDetails()}
+            onPress={onViewHistoryPress}
           />
         </View>
       </View>
