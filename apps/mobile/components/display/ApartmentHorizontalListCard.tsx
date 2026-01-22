@@ -1,10 +1,12 @@
-import {View, Text, TouchableOpacity, FlatList} from 'react-native'
+import { View, Text, TouchableOpacity, FlatList } from 'react-native'
+
+import { ApartmentCardProps } from '../../types';
 
 import ApartmentCard from "./ApartmentCard";
 
 interface ApartmentListProps {
   label?: string;
-  apartmentData?: {id: number, name: string}[];
+  apartmentData: ApartmentCardProps[];
   onSeeAllPress?: () => void;
 }
 
@@ -13,7 +15,7 @@ export default function ApartmentHorizontalListCard({
   apartmentData = [],
   onSeeAllPress,
 }: ApartmentListProps) {
-  
+
   return (
     <View className='mt-8'>
       {/* Title */}
@@ -41,7 +43,13 @@ export default function ApartmentHorizontalListCard({
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ApartmentCard
+            id={item.id}
             name={item.name}
+            monthlyRent={item.monthlyRent}
+            areaSqm={item.areaSqm}
+            noBathroom={item.noBathroom}
+            noBedroom={item.noBedroom}
+            location={item.location}
           />
         )}
       />

@@ -1,4 +1,4 @@
-import {View, Text, TouchableOpacity} from 'react-native'
+import {View, TouchableOpacity} from 'react-native'
 import { useState } from 'react';
 
 import {
@@ -15,6 +15,8 @@ import ApartmentHorizontalListCard from "../../../components/display/ApartmentHo
 
 import { COLORS } from '../../../constants/colors';
 
+import { ApartmentCardProps } from '../../../types';
+
 export default function Search() {
   // List of City Location
   const cities = [
@@ -25,13 +27,53 @@ export default function Search() {
   ];
 
   // Dummy Data for apartment card
-  const apartmentData: {id: number, name: string}[] = [
-    {id: 1, name: 'Apartment 1'},
-    {id: 2, name: 'Apartment 2'},
-    {id: 3, name: 'Apartment 3'},
-    {id: 4, name: 'Apartment 4'},
-    {id: 5, name: 'Apartment 5'},
-  ]
+  const apartmentData: ApartmentCardProps[] = [
+    {
+      id: 1,
+      name: 'Apartment 1',
+      monthlyRent: 1000,
+      location: 'Caloocan',
+      noBedroom: 2,
+      noBathroom: 1,
+      areaSqm: 100,
+    },
+    {
+      id: 2,
+      name: 'Apartment 2',
+      monthlyRent: 1200,
+      location: 'Malabon',
+      noBedroom: 3,
+      noBathroom: 2,
+      areaSqm: 120,
+    },
+    {
+      id: 3,
+      name: 'Apartment 3',
+      monthlyRent: 1500,
+      location: 'Navotas',
+      noBedroom: 4,
+      noBathroom: 3,
+      areaSqm: 150,
+    },
+    {
+      id: 4,
+      name: 'Apartment 4',
+      monthlyRent: 1800,
+      location: 'Valenzuela',
+      noBedroom: 5,
+      noBathroom: 4,
+      areaSqm: 180,
+    },
+    {
+      id: 5,
+      name: 'Apartment 5',
+      monthlyRent: 2000,
+      location: 'Caloocan',
+      noBedroom: 6,
+      noBathroom: 5,
+      areaSqm: 200,
+    },
+  ];
 
   const [selectedCity, setSelectedCity] = useState<string>(cities[0]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -80,17 +122,18 @@ export default function Search() {
       </View>
 
       {/* Rendered recommended apartments */}
-
       <View className='gap-5'>
         <ApartmentHorizontalListCard
           apartmentData={apartmentData}
         />
 
         <ApartmentHorizontalListCard
+          label="Good For 2"
           apartmentData={apartmentData}
         />
 
         <ApartmentHorizontalListCard
+          label='Family Friendly'
           apartmentData={apartmentData}
         />
       </View>

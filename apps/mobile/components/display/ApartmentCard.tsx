@@ -3,6 +3,8 @@ import {View, Text, Image, TouchableOpacity, useWindowDimensions} from 'react-na
 import { IMAGES } from "../../constants/images";
 import { COLORS } from "../../constants/colors";
 
+import { ApartmentCardProps } from '../../types';
+
 import {
   IconBed,
   IconBath,
@@ -11,19 +13,6 @@ import {
   IconHeart,
   IconHeartFilled,
 } from "@tabler/icons-react-native";
-
-interface ApartmentCardProps {
-  thumbnail?: string;
-  name?: string;
-  location?: string;
-  ratings?: string;
-  isFavorite?: boolean;
-  monthlyRent?: number;
-  noBedroom?: number;
-  noBathroom?: number;
-  areaSqm?: number;
-  isGrid?: boolean;
-}
 
 export default function ApartmentCard({
   thumbnail,
@@ -44,13 +33,13 @@ export default function ApartmentCard({
 
   return (
     <View style={{width: cardWidth, paddingHorizontal: padding}}>
-      <TouchableOpacity 
+      <TouchableOpacity
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
       >
         {/* Thumbnail Image */}
         <View className='aspect-square overflow-hidden rounded-2xl'>
-          <Image 
+          <Image
             source={thumbnail ? thumbnail : IMAGES.defaultThumbnail}
             style={{height: '100%', width: '100%'}}
           />
@@ -75,7 +64,7 @@ export default function ApartmentCard({
               <View className='flex-row flex-wrap'>
                 {/* Bedroom */}
                 <View className='flex-row w-2/6 gap-1 items-center justify-start'>
-                  <IconBed 
+                  <IconBed
                     size={18}
                     color={COLORS.grey}
                   />
@@ -87,7 +76,7 @@ export default function ApartmentCard({
 
                 {/* Bathroom */}
                 <View className='flex-row w-2/6 gap-1 items-center justify-start'>
-                  <IconBath 
+                  <IconBath
                     size={18}
                     color={COLORS.grey}
                   />
@@ -99,7 +88,7 @@ export default function ApartmentCard({
 
                 {/* Square Meters */}
                 <View className='flex-row w-2/6 gap-1 items-center justify-start'>
-                  <IconMaximize 
+                  <IconMaximize
                     size={18}
                     color={COLORS.grey}
                   />
@@ -118,9 +107,9 @@ export default function ApartmentCard({
             </Text>
 
             {/* Ratings */}
-            <View 
+            <View
               className='flex-row items-center justify-center gap-1'>
-              <IconStarFilled 
+              <IconStarFilled
                 size={isGrid ? 16 : 18}
                 color={COLORS.secondary}
               />
@@ -135,20 +124,20 @@ export default function ApartmentCard({
         {/* Floating Elements */}
 
         {/* Favorite Icon */}
-        <TouchableOpacity 
+        <TouchableOpacity
           activeOpacity={0.7}
           className='absolute top-2 right-2 rounded-full p-2 flex items-center justify-center'
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', elevation: 3 }}
         >
           {isFavorite ? (
-            <IconHeartFilled 
-              size={isGrid ? 18 : 24} 
-              color={COLORS.lightRedHead} 
-            /> 
+            <IconHeartFilled
+              size={isGrid ? 18 : 24}
+              color={COLORS.lightRedHead}
+            />
           ) : (
-            <IconHeart 
-              size={isGrid ? 18 : 24} 
-              color={COLORS.grey} 
+            <IconHeart
+              size={isGrid ? 18 : 24}
+              color={COLORS.grey}
             />
           )}
         </TouchableOpacity>
