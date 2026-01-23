@@ -23,6 +23,7 @@ import {
   IconHelp,
   IconProps,
 } from "@tabler/icons-react-native"
+import Divider from 'components/display/Divider'
 
 export default function Home() {
   const router = useRouter();
@@ -134,9 +135,7 @@ export default function Home() {
       </View>
 
       {/* Divider */}
-      <View
-      className='w-full h-[2px] rounded-full bg-grey-100 my-5'
-      />
+      <Divider />
 
       {/* Rent Payment History */}
       <View>

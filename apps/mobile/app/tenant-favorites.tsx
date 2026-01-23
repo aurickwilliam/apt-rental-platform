@@ -61,7 +61,8 @@ export default function TenantFavorites() {
       backgroundColor={COLORS.darkerWhite}
     >
       <View className='flex-row flex-wrap'>
-        <ApartmentCard 
+        <ApartmentCard
+          id={1} 
           name="Apartment Name"
           location="Barangay, City"
           ratings='0.0'
@@ -73,6 +74,7 @@ export default function TenantFavorites() {
           isGrid={viewMode === 'grid'}
         />
         <ApartmentCard 
+          id={2}
           isGrid={viewMode === 'grid'}
         />
       </View>

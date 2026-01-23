@@ -42,6 +42,7 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="tenant-favorites"/>
+      <Stack.Screen name="apartment-details"/>
     </Stack>
   );
 }
