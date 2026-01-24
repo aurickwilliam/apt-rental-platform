@@ -10,8 +10,14 @@ import {
   IconXboxXFilled,
   IconProps,
   IconCamera,
+  IconUser,
+  IconFileText,
+  IconHeart,
+  IconClock,
+  IconCreditCard,
 } from '@tabler/icons-react-native';
 import PillButton from 'components/buttons/PillButton';
+import SettingOptionButton from 'components/buttons/SettingOptionButton';
 
 export default function Profile() {
 
@@ -173,7 +179,28 @@ export default function Profile() {
       </View>
       
       {/* Profile Options */}
-      
+      <View className='mt-5 px-5 flex gap-3 mb-20'>
+        <SettingOptionButton 
+          label='Edit Profile'
+          iconName={IconUser}
+        />
+        <SettingOptionButton 
+          label='Document & IDs'
+          iconName={IconFileText}
+        />
+        <SettingOptionButton 
+          label='Favorites'
+          iconName={IconHeart}
+        />
+        <SettingOptionButton
+          label='Payment History'
+          iconName={IconClock}
+        />
+        <SettingOptionButton
+          label='Payment Methods'
+          iconName={IconCreditCard}
+        />
+      </View>
 
     </ScrollView>
   )
