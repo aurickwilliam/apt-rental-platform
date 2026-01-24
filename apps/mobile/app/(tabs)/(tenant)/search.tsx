@@ -118,6 +118,7 @@ export default function Search() {
         <SearchField
           searchValue={searchQuery}
           onChangeSearch={setSearchQuery}
+          showFilterButton
         />
       </View>
 

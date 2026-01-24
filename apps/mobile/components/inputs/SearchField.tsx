@@ -13,6 +13,9 @@ interface SearchFieldProps {
   onChangeSearch: (text: string) => void,
   searchValue: string,
   isDisabled?: boolean,
+  backgroundColor?: string,
+  showFilterButton?: boolean,
+  onFilterPress?: () => void,
 }
 
 export default function SearchField({
@@ -20,14 +23,20 @@ export default function SearchField({
   onChangeSearch,
   searchValue,
   isDisabled = false,
+  backgroundColor = COLORS.white,
+  showFilterButton = false,
+  onFilterPress,
 }: SearchFieldProps) {
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
   return (
     <View
-      className={`w-full h-16 py-2 px-3 bg-white rounded-2xl
-        flex-row items-center justify-center gap-1`}
+      className={`w-full h-16 py-2 px-3 rounded-2xl
+        flex-row items-center justify-center gap-2`}
+      style={{
+        backgroundColor: backgroundColor,
+      }}
     >
       <IconSearch
         size={26}
@@ -62,15 +71,17 @@ export default function SearchField({
         }}
       />
 
-      <TouchableOpacity
-        onPress={() => console.log('Filter button pressed')}
-        activeOpacity={0.7}
-      >
-        <IconAdjustmentsHorizontal
-          size={26}
-          color={COLORS.grey}
-        />
-      </TouchableOpacity>
+      {showFilterButton && (
+        <TouchableOpacity
+          onPress={onFilterPress}
+          activeOpacity={0.7}
+        >
+          <IconAdjustmentsHorizontal
+            size={26}
+            color={COLORS.grey}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
