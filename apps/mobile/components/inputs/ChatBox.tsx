@@ -27,6 +27,7 @@ export default function ChatBox({
 
   const borderColor = isFocused ? 'border-primary' : 'border-grey-300';
 
+  // TODO: Multiple lines for the Text Input
 
   return (
     <View className={`px-5 flex-row items-center justify-between gap-3`}>
