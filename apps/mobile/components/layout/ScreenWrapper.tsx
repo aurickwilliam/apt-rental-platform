@@ -16,6 +16,7 @@ interface ScreenWrapperProps {
   header?: ReactNode;
   headerBackgroundColor?: string;
   backgroundColor?: string;
+  hasBottomPadding?: boolean;
 }
 
 export default function ScreenWrapper({
@@ -25,7 +26,8 @@ export default function ScreenWrapper({
   scrollable,
   header,
   headerBackgroundColor = "bg-primary",
-  backgroundColor = COLORS.white
+  backgroundColor = COLORS.white,
+  hasBottomPadding = true,
 }: ScreenWrapperProps) {
   // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
@@ -39,7 +41,7 @@ export default function ScreenWrapper({
     <ScrollView
       contentContainerStyle={{
         flexGrow: 1,
-        paddingBottom: insets.bottom + 80
+        paddingBottom: insets.bottom + (hasBottomPadding ? 80 : 50),
       }}
       className={`${className}`}
       keyboardShouldPersistTaps="handled"

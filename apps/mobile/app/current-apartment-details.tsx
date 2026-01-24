@@ -24,7 +24,7 @@ import {
 import IconDetail from 'components/display/IconDetail'
 import PillButton from 'components/buttons/PillButton'
 
-export default function ApartmentDetails() {
+export default function CurrentApartmentDetails() {
 
   // Dummy data for illustration; replace with actual data fetching logic
   const apartmentDetails = {
