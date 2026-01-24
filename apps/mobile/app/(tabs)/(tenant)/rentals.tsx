@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import { router, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '../../../components/layout/ScreenWrapper'
 import PaymentSummaryCard from '../../../components/display/PaymentSummaryCard'
