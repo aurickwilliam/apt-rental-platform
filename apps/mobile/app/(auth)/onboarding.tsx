@@ -10,6 +10,7 @@ import {
 import { Link } from 'expo-router';
 
 import { SLIDES } from '../../constants/onboarding-data';
+
 import OnBoardingSlide from '../../components/layout/OnBoardingSlide';
 import PillButton from '../../components/buttons/PillButton';
 
