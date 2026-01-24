@@ -8,6 +8,8 @@ import { COLORS } from "../../constants/colors";
 
 import PillButton from "../buttons/PillButton";
 
+import {formatCurrency} from "../../utils/formatCurrency";
+
 interface PaymentHomeCardProps {
   monthDue: string;
   amountDue: number;
@@ -32,7 +34,7 @@ export default function PaymentHomeCard({
     console.log("VIEW DETAILS!");
   };
 
-  // TODO: Add commas to amountDue and add .00 at the end
+  const formattedAmountDue:string = formatCurrency(amountDue);
 
   return (
     <View className='w-full bg-primary mt-5 p-4 rounded-3xl'>
@@ -66,7 +68,7 @@ export default function PaymentHomeCard({
 
         {/* Amount */}
         <Text className='text-white text-4xl font-poppinsSemiBold'>
-          ₱ {amountDue}
+          ₱ {formattedAmountDue}
         </Text>
 
       </View>
