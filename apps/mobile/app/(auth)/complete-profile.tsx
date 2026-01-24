@@ -50,7 +50,6 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
-  // TODO: The Keyboard in Android does not adjust to the text fields properly
   // TODO: Add gender field to the complete profile form
 
   // TODO: Password Validation Logic

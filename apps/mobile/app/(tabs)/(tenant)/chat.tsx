@@ -1,5 +1,6 @@
 import { View, Text, Image } from 'react-native'
 import { useState } from 'react'
+import { useRouter } from 'expo-router'
 
 import SearchField from 'components/inputs/SearchField'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -10,6 +11,8 @@ import { COLORS } from 'constants/colors';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
 
 export default function Chat() {
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const hasCurrentOwner: boolean = false;
@@ -18,24 +21,31 @@ export default function Chat() {
   // Dummy data for messages can be added here later
   const messages = [
     {
+      id: '1',
       name: 'Shohei Ohtani',
       apartmentName: 'Charles Apartments - Apt 203',
       lastMessage: 'Shibal',
       timestamp: 'Yesterday',
     },
     {
+      id: '2',
       name: 'Jane Doe',
       apartmentName: 'Maple Residency - Apt 101',
       lastMessage: 'See you tomorrow!',
       timestamp: '2 hours ago',
     },
     {
+      id: '3',
       name: 'John Smith',
       apartmentName: 'Oakwood Villas - Apt 305',
       lastMessage: 'Thanks for the update.',
       timestamp: '10 minutes ago',
     }
   ]
+
+  const handleChatPress = (conversationId: string) => {
+    router.push(`/chat/${conversationId}`);
+  }
 
   return (
     <ScreenWrapper 
@@ -120,6 +130,7 @@ export default function Chat() {
                   apartmentName={message.apartmentName}
                   lastMessage={message.lastMessage}
                   timestamp={message.timestamp}
+                  onPress={() => handleChatPress(message.id)}
                 />
               ))}
             </View>

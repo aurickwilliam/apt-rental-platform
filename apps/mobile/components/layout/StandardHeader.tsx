@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ReactNode } from "react";
 
 interface StandardHeaderProps {
-  title?: string;
+  title: string;
   showBack?: boolean;
   onBackPress?: () => void;
   rightComponent?: ReactNode;
@@ -12,7 +12,7 @@ interface StandardHeaderProps {
 }
 
 export default function StandardHeader({
-  title = "",
+  title,
   showBack = true,
   onBackPress,
   rightComponent,

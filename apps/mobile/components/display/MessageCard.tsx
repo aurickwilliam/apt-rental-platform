@@ -9,6 +9,7 @@ interface MessageCardProps {
   timestamp: string;
   profilePictureUrl?: string;
   isUserLastSender?: boolean;
+  onPress?: () => void;
 }
 
 export default function MessageCard({
@@ -18,6 +19,7 @@ export default function MessageCard({
   timestamp,
   profilePictureUrl,
   isUserLastSender = false,
+  onPress
 }: MessageCardProps) {
 
   const profilePicture = profilePictureUrl ? { uri: profilePictureUrl } : IMAGES.defaultProfilePicture;
@@ -27,6 +29,7 @@ export default function MessageCard({
 
   return (
     <TouchableOpacity 
+      onPress={onPress}
       activeOpacity={0.7}
       className='bg-white p-4 rounded-2xl flex-row gap-4'
     >
