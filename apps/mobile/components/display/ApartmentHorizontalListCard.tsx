@@ -8,12 +8,16 @@ interface ApartmentListProps {
   label?: string;
   apartmentData: ApartmentCardProps[];
   onSeeAllPress?: () => void;
+  onToggleFavorite: (id: number) => void;
+  onApartmentPress: (id: number) => void;
 }
 
 export default function ApartmentHorizontalListCard({
   label = 'Recommended Apartments',
   apartmentData = [],
   onSeeAllPress,
+  onToggleFavorite,
+  onApartmentPress
 }: ApartmentListProps) {
 
   return (
@@ -50,6 +54,9 @@ export default function ApartmentHorizontalListCard({
             noBathroom={item.noBathroom}
             noBedroom={item.noBedroom}
             location={item.location}
+            isFavorite={item.isFavorite}
+            onPress={() => onApartmentPress(item.id)}
+            onPressFavorite={() => onToggleFavorite(item.id)}
           />
         )}
       />

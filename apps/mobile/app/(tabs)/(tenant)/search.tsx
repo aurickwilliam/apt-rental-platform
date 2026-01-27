@@ -1,5 +1,6 @@
 import {View, TouchableOpacity} from 'react-native'
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 
 import {
   IconMapPinFilled,
@@ -18,6 +19,8 @@ import { COLORS } from '../../../constants/colors';
 import { ApartmentCardProps } from '../../../types';
 
 export default function Search() {
+  const router = useRouter();
+
   // List of City Location
   const cities = [
     'Caloocan',
@@ -27,7 +30,7 @@ export default function Search() {
   ];
 
   // Dummy Data for apartment card
-  const apartmentData: ApartmentCardProps[] = [
+  const [apartmentData, setApartmentData] = useState<ApartmentCardProps[]>([
     {
       id: 1,
       name: 'Apartment 1',
@@ -36,6 +39,7 @@ export default function Search() {
       noBedroom: 2,
       noBathroom: 1,
       areaSqm: 100,
+      isFavorite: true,
     },
     {
       id: 2,
@@ -45,6 +49,7 @@ export default function Search() {
       noBedroom: 3,
       noBathroom: 2,
       areaSqm: 120,
+      isFavorite: true,
     },
     {
       id: 3,
@@ -54,6 +59,7 @@ export default function Search() {
       noBedroom: 4,
       noBathroom: 3,
       areaSqm: 150,
+      isFavorite: false,
     },
     {
       id: 4,
@@ -63,6 +69,7 @@ export default function Search() {
       noBedroom: 5,
       noBathroom: 4,
       areaSqm: 180,
+      isFavorite: false,
     },
     {
       id: 5,
@@ -72,11 +79,30 @@ export default function Search() {
       noBedroom: 6,
       noBathroom: 5,
       areaSqm: 200,
+      isFavorite: false,
     },
-  ];
+  ]);
 
   const [selectedCity, setSelectedCity] = useState<string>(cities[0]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // toggle favorite status of an apartment
+  const toggleFavorite = (id: number) => {
+    console.log('Toggling favorite for apartment ID:', id);
+
+    setApartmentData(prevData =>
+      prevData.map(apartment =>
+        apartment.id === id
+          ? { ...apartment, isFavorite: !apartment.isFavorite }
+          : apartment
+      )
+    );
+  };
+
+  // Handle navigation to apartment details
+  const handleApartmentPress = (apartmentId: number) => {
+    router.push(`/apartment/${apartmentId}`);
+  }
 
   return (
     <ScreenWrapper
@@ -126,16 +152,22 @@ export default function Search() {
       <View className='gap-5'>
         <ApartmentHorizontalListCard
           apartmentData={apartmentData}
+          onToggleFavorite={toggleFavorite}
+          onApartmentPress={handleApartmentPress}
         />
 
         <ApartmentHorizontalListCard
           label="Good For 2"
           apartmentData={apartmentData}
+          onToggleFavorite={toggleFavorite}
+          onApartmentPress={handleApartmentPress}
         />
 
         <ApartmentHorizontalListCard
           label='Family Friendly'
           apartmentData={apartmentData}
+          onToggleFavorite={toggleFavorite}
+          onApartmentPress={handleApartmentPress}
         />
       </View>
 
