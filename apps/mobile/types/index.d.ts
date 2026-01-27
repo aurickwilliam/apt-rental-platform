@@ -1,4 +1,4 @@
-export interface ApartmentCardProps {
+interface ApartmentCardProps {
   id: number;
   thumbnail?: string;
   name?: string;

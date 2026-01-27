@@ -16,8 +16,6 @@ import ApartmentHorizontalListCard from "../../../components/display/ApartmentHo
 
 import { COLORS } from '../../../constants/colors';
 
-import { ApartmentCardProps } from '../../../types';
-
 export default function Search() {
   const router = useRouter();
 
