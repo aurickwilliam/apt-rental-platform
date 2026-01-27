@@ -3,8 +3,6 @@ import {View, Text, Image, TouchableOpacity, useWindowDimensions} from 'react-na
 import { IMAGES } from "../../constants/images";
 import { COLORS } from "../../constants/colors";
 
-import { ApartmentCardProps } from '../../types';
-
 import {
   IconBed,
   IconBath,

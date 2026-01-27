@@ -1,7 +1,5 @@
 import { View, Text, TouchableOpacity, FlatList } from 'react-native'
 
-import { ApartmentCardProps } from '../../types';
-
 import ApartmentCard from "./ApartmentCard";
 
 interface ApartmentListProps {
