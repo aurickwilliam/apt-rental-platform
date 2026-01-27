@@ -10,4 +10,6 @@ export interface ApartmentCardProps {
   noBathroom?: number;
   areaSqm?: number;
   isGrid?: boolean;
+  onPress?: () => void;
+  onPressFavorite?: () => void;
 }

@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react-native";
 
 export default function ApartmentCard({
+  id,
   thumbnail,
   name = "Apartment Name",
   location = "Barangay, City",
@@ -24,7 +25,9 @@ export default function ApartmentCard({
   noBedroom = 0,
   noBathroom = 0,
   areaSqm = 0,
-  isGrid = true
+  isGrid = true,
+  onPress,
+  onPressFavorite,
 }: ApartmentCardProps) {
   const { width } =  useWindowDimensions();
 
@@ -36,6 +39,7 @@ export default function ApartmentCard({
       <TouchableOpacity
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
+        onPress={onPress}
       >
         {/* Thumbnail Image */}
         <View className='aspect-square overflow-hidden rounded-2xl'>
@@ -121,11 +125,12 @@ export default function ApartmentCard({
           </View>
         </View>
 
-        {/* Floating Elements */}
+        {/* Floating Element */}
 
         {/* Favorite Icon */}
         <TouchableOpacity
           activeOpacity={0.7}
+          onPress={onPressFavorite}
           className='absolute top-2 right-2 rounded-full p-2 flex items-center justify-center'
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', elevation: 3 }}
         >
