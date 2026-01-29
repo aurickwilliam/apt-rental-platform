@@ -8,13 +8,16 @@ import {
   TouchableOpacity
 } from 'react-native'
 import { useRef, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
 import IconDetail from 'components/display/IconDetail';
+import SmallRatingCard from 'components/display/SmallRatingCard';
+import LandlordCard from 'components/display/LandlordCard';
 
 import { COLORS } from 'constants/colors';
 import { IMAGES } from 'constants/images';
@@ -36,10 +39,17 @@ import {
   IconBarbellFilled,
   IconParking,
   IconMap,
+  IconStar,
+  IconUser,
+  IconFileDescription,
+  IconCalendarEvent,
 } from "@tabler/icons-react-native";
+
+import { formatCurrency } from 'utils/formatCurrency';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const router = useRouter();
 
   const { width } = Dimensions.get('window');
 
@@ -94,223 +104,298 @@ No pets / No smoking inside the unit
 Serious tenants only. Please message me for viewing and inquiries.`
   };
 
-  const toogleReadMoreDescription = () => {
+  const toggleReadMoreDescription = () => {
     setIsReadMore(!isReadMore);
   }
 
+  // TODO: Implement this Functions
+  const handleFavoriteToggle = () => {
+    console.log("Favorite Button Pressed!");
+  }
+
+  const handleRequestVisit = () => {
+    console.log("Request a Visit Button Pressed!");
+  }
+
+  const handleApplyNow = () => {
+    console.log("Apply Now Button Pressed!");
+  }
+
   return (
-    <ScreenWrapper
-      scrollable
-      backgroundColor={COLORS.white}
-      safeAreaEdges={['left', 'right']}
-    >
-      <View className='h-[42rem] bg-white relative'>
-        {/* Image Carousel */}
-        <ScrollView
-          ref={imageScrollViewRef}
-          horizontal
-          pagingEnabled
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          showsHorizontalScrollIndicator={false}
-        >
-          {/* Render Individual Images */}
+    <View className='flex-1'>
+      <ScreenWrapper
+        scrollable
+        backgroundColor={COLORS.white}
+        safeAreaEdges={['left', 'right']}
+      >
+        <View className='h-[42rem] bg-white relative'>
+          {/* Image Carousel */}
+          <ScrollView
+            ref={imageScrollViewRef}
+            horizontal
+            pagingEnabled
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            showsHorizontalScrollIndicator={false}
+          >
+            {/* Render Individual Images */}
+            {
+              apartmentImages.map((item) => (
+                <View
+                  className='w-screen h-full'
+                  key={item.id}
+                >
+                  <Image
+                    source={item.image}
+                    style={{height: '100%', width:  '100%'}}
+                  />
+                </View>
+              ))
+            }
+          </ScrollView>
+
+          {/* Text Details on top of the Carousel*/}
+          {/* Linear Gradient Overlay*/}
+          <LinearGradient
+            colors={['transparent', '#000000']}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: 'flex-end',
+              padding: 20,
+            }}
+            pointerEvents='none'
+          >
+
+            {/* Apartment Details*/}
+            <View>
+              <Text className='text-white font-poppinsSemiBold text-2xl'>
+                {apartmentDetails.name}
+              </Text>
+
+              <View className='flex-row items-center mt-2 gap-2'>
+                <IconMapPin
+                  size={24}
+                  color={COLORS.lightLightLightGrey}
+                />
+                <Text className='text-grey-100 font-interMedium text-base'>
+                  {apartmentDetails.location}
+                </Text>
+              </View>
+
+              <View className='flex-row items-center justify-between mt-8 gap-6'>
+                <View className='flex-row items-center gap-2'>
+                  <IconHome2
+                    size={24}
+                    color={COLORS.lightLightLightGrey}
+                  />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartmentDetails.type}
+                  </Text>
+                </View>
+
+                <View className='flex-row items-center gap-2'>
+                  <IconStarFilled
+                    size={20}
+                    color={COLORS.yellowish}
+                  />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartmentDetails.ratings}  (70)
+                  </Text>
+                </View>
+              </View>
+
+              <View className='flex-row items-center justify-between my-5 gap-6'>
+                <View className='flex-row items-center gap-2'>
+                  <IconBed
+                    size={24}
+                    color={COLORS.lightLightLightGrey}
+                  />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartmentDetails.noBedroom} Bedrooms
+                  </Text>
+                </View>
+
+                <View className='flex-row items-center gap-2'>
+                  <IconBath
+                    size={24}
+                    color={COLORS.lightLightLightGrey}
+                  />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartmentDetails.noBathroom} Bathrooms
+                  </Text>
+                </View>
+
+                <View className='flex-row items-center gap-2'>
+                  <IconMaximize
+                    size={24}
+                    color={COLORS.lightLightLightGrey}
+                  />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartmentDetails.areaSqm} Sqm
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Pagination Dots */}
+            <View className='flex-row justify-center items-center'>
+              {apartmentImages.map((_, index) => {
+                const inputRange = [
+                  (index - 1) * width,
+                  index * width,
+                  (index + 1) * width,
+                ];
+
+                const dotWidth = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 24, 8],
+                  extrapolate: 'clamp',
+                });
+
+                const opacity = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [0.3, 1, 0.3],
+                  extrapolate: 'clamp',
+                });
+
+                return (
+                  <Animated.View
+                    key={index}
+                    className='h-2 bg-darkerWhite rounded mx-1'
+                    style={[
+                      {
+                        width: dotWidth,
+                        opacity,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>            
+          </LinearGradient>
+        </View>
+
+        {/* Apartment Description */}
+        <View className='mt-5 px-5 flex-row items-center gap-2'>
+          <IconBuildingCommunity
+            size={26}
+            color={COLORS.text}
+          />
+          <Text className='font-poppinsSemiBold text-xl text-text'>
+            Everything About Your Apartment
+          </Text>
+        </View>
+
+        <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
+          <Text>
+            {
+              isReadMore 
+              ? apartmentDetails.description
+              : `${apartmentDetails.description.slice(0, 500)}...`
+            }
+          </Text>
+
+          <View className='mt-5'>
+            <PillButton 
+              label='Read More'
+              type='outline'
+              size='sm'
+              onPress={toggleReadMoreDescription}
+            />
+          </View>
+        </View>
+
+        {/* Included Perks */}
+        <View className='mt-10 px-5 flex gap-2'>
+          <View className='flex-row items-center justify-between'>
+            {/* Title */}
+            <View className='flex-row items-center gap-2'>
+              <IconSquareCheck 
+                size={26}
+                color={COLORS.text}
+              />
+              <Text className='font-poppinsSemiBold text-xl text-text'>
+                Included Perks
+              </Text>
+            </View>
+
+            {/* See All Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                console.log("Included Perks See All was Pressed!");
+              }}
+            >
+              <Text className='font-interMedium text-base text-primary'>
+                See All
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text>
+            These are already included in your rent.
+          </Text>
+        </View>
+
+        {/* List of Perks */}
+        <View className='flex-row flex-wrap px-5 mt-5'>
           {
-            apartmentImages.map((item) => (
+            apartmentDetails.perks.map((perk, index) => (
               <View
-                className='w-screen h-full'
-                key={item.id}
+                key={index}
+                className='w-1/2 mb-4'
               >
-                <Image
-                  source={item.image}
-                  style={{height: '100%', width:  '100%'}}
+                <IconDetail 
+                  detailText={perk.text} 
+                  icon={perk.icon}
+                  iconColor={COLORS.primary}
                 />
               </View>
             ))
           }
-        </ScrollView>
-
-        {/* Text Details on top of the Carousel*/}
-        {/* Linear Gradient Overlay*/}
-        <LinearGradient
-          colors={['transparent', '#000000']}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            justifyContent: 'flex-end',
-            padding: 20,
-          }}
-          pointerEvents='none'
-        >
-
-          {/* Apartment Details*/}
-          <View>
-            <Text className='text-white font-poppinsSemiBold text-2xl'>
-              {apartmentDetails.name}
-            </Text>
-
-            <View className='flex-row items-center mt-2 gap-2'>
-              <IconMapPin
-                size={24}
-                color={COLORS.lightLightLightGrey}
-              />
-              <Text className='text-grey-100 font-interMedium text-base'>
-                {apartmentDetails.location}
-              </Text>
-            </View>
-
-            <View className='flex-row items-center justify-between mt-8 gap-6'>
-              <View className='flex-row items-center gap-2'>
-                <IconHome2
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.type}
-                </Text>
-              </View>
-
-              <View className='flex-row items-center gap-2'>
-                <IconStarFilled
-                  size={20}
-                  color={COLORS.yellowish}
-                />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.ratings}  (70)
-                </Text>
-              </View>
-            </View>
-
-            <View className='flex-row items-center justify-between my-5 gap-6'>
-              <View className='flex-row items-center gap-2'>
-                <IconBed
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.noBedroom} Bedrooms
-                </Text>
-              </View>
-
-              <View className='flex-row items-center gap-2'>
-                <IconBath
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.noBathroom} Bathrooms
-                </Text>
-              </View>
-
-              <View className='flex-row items-center gap-2'>
-                <IconMaximize
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.areaSqm} Sqm
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Pagination Dots */}
-          <View className='flex-row justify-center items-center'>
-            {apartmentImages.map((_, index) => {
-              const inputRange = [
-                (index - 1) * width,
-                index * width,
-                (index + 1) * width,
-              ];
-
-              const dotWidth = scrollX.interpolate({
-                inputRange,
-                outputRange: [8, 24, 8],
-                extrapolate: 'clamp',
-              });
-
-              const opacity = scrollX.interpolate({
-                inputRange,
-                outputRange: [0.3, 1, 0.3],
-                extrapolate: 'clamp',
-              });
-
-              return (
-                <Animated.View
-                  key={index}
-                  className='h-2 bg-darkerWhite rounded mx-1'
-                  style={[
-                    {
-                      width: dotWidth,
-                      opacity,
-                    },
-                  ]}
-                />
-              );
-            })}
-          </View>
-
-          {/* Floating Elements*/}
-          {/* Back Button*/}
-          <View className='absolute top-16 left-4'>
-            <IconButton
-              iconName={IconChevronLeft}
-            />
-          </View>
-
-          {/* Favorite Button */}
-          <View className='absolute top-16 right-4'>
-            <IconButton
-              iconName={IconHeart}
-            />
-          </View>
-        </LinearGradient>
-      </View>
-
-      {/* Apartment Description */}
-      <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <IconBuildingCommunity
-          size={26}
-          color={COLORS.text}
-        />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
-          Everything about the Apartment
-        </Text>
-      </View>
-
-      <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
-        <Text>
-          {
-            isReadMore 
-            ? apartmentDetails.description
-            : `${apartmentDetails.description.slice(0, 500)}...`
-          }
-        </Text>
-
-        <View className='mt-5'>
-          <PillButton 
-            label='Read More'
-            type='outline'
-            size='sm'
-            onPress={toogleReadMoreDescription}
-          />
         </View>
-      </View>
 
-      {/* Included Perks */}
-      <View className='mt-10 px-5 flex gap-2'>
-        <View className='flex-row items-center justify-between'>
-          {/* Title */}
+        {/* Map View */}
+        <View className='flex-row items-center gap-2 mt-10 px-5'>
+          <IconMap 
+            size={26}
+            color={COLORS.text}
+          />
+          <Text className='font-poppinsSemiBold text-xl text-text'>
+            View on Map
+          </Text>
+        </View>
+
+        {/* Map */}
+        <View className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'>
+          {/* TODO: Implement Google Maps API here */}
+
+          <TouchableOpacity
+          activeOpacity={0.7}
+          className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
+          onPress={() => {
+            console.log("Open in Maps was Pressed!");
+          }}
+          >
+            <Text className='font-interMedium text-base text-primary'>
+              Open in Maps
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Ratings */}
+        <View className='px-5 mt-10 flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
-            <IconSquareCheck 
+            <IconStar
               size={26}
               color={COLORS.text}
             />
             <Text className='font-poppinsSemiBold text-xl text-text'>
-              Included Perks
+              Ratings
             </Text>
           </View>
 
@@ -318,7 +403,7 @@ Serious tenants only. Please message me for viewing and inquiries.`
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
-              console.log("Included Perks See All was Pressed!");
+              console.log("Ratings See All was Pressed!");
             }}
           >
             <Text className='font-interMedium text-base text-primary'>
@@ -327,44 +412,132 @@ Serious tenants only. Please message me for viewing and inquiries.`
           </TouchableOpacity>
         </View>
 
-        <Text>
-          These are already included in your rent.
-        </Text>
-      </View>
+        {/* Render List of Top 2/3 Ratings */}
+        <View className='mt-5 px-5 flex gap-3'>
+            <SmallRatingCard 
+              accountName='John Doe'
+              rating={4.5}
+              comment='Great place to stay! Very clean and well-maintained.'
+              date='March 15, 2023'
+            />
+            <SmallRatingCard 
+              accountName='Jane Smith'
+              rating={4.0}
+              comment='Good location and friendly staff. Would recommend!'
+              date='April 2, 2023'
+            />
+        </View>
 
-      {/* List of Perks */}
-      <View className='flex-row flex-wrap px-5 mt-5'>
-        {
-          apartmentDetails.perks.map((perk, index) => (
-            <View
-              key={index}
-              className='w-1/2 mb-4'
-            >
-              <IconDetail 
-                detailText={perk.text} 
-                icon={perk.icon}
-                iconColor={COLORS.primary}
+        {/* Landlord Card */}
+        <View className='flex-row items-center gap-2 mt-10 px-5'>
+          <IconUser 
+            size={26}
+            color={COLORS.text}
+          />
+          <Text className='font-poppinsSemiBold text-xl text-text'>
+            Meet Your Rental Owner
+          </Text>
+        </View>
+
+        <View className='px-5 mt-3'>
+          <LandlordCard 
+            fullName={'John Doe'} 
+            email={'johndoe@yahoo.com'} 
+            phoneNumber={'09123456789'} 
+            withRentalInfo
+            averageRating={4.5}
+            totalRentals={25}
+          />
+        </View>
+
+        {/* Lease Agreement */}
+        <View className=' mt-10 px-5 flex gap-2'>
+          <View className='flex-row items-center gap-2'>
+            <IconFileDescription 
+              size={26}
+              color={COLORS.text}
+            />
+            <Text className='font-poppinsSemiBold text-xl text-text'>
+              Lease Agreement & Rules
+            </Text>
+          </View>
+
+          <Text className='text-text text-base font-inter'>
+            Please review the rental owner’s property rules before applying.
+          </Text>
+
+          <PillButton 
+            label='View Full Lease Agreement'
+            type='outline'
+            size='sm'
+          />
+        </View>
+
+        {/* Spacer */}
+        <View className='h-20' />
+
+      </ScreenWrapper>
+
+      {/* Fixed Footer */}
+      <View className='absolute bottom-0 left-0 right-0 bg-white z-10 px-5 py-4 border-t border-grey-200'>
+        <SafeAreaView 
+          className='flex items-start justify-between gap-3'
+          edges={['bottom']}
+        >
+          <View className='flex-row items-center'>
+            <Text className='text-3xl font-poppinsSemiBold text-primary'>
+              ₱ {formatCurrency(apartmentDetails.monthlyRent)}
+            </Text>
+            <Text className='text-base font-interMedium text-grey-500'>
+              /month
+            </Text>
+          </View>
+
+          <View className='flex-1 flex-row gap-5'>
+            <View className='flex-1'>
+              <PillButton 
+                label='Request a Visit'
+                size='md'
+                type='outline'
+                leftIconName={IconCalendarEvent}
+                onPress={handleRequestVisit}
               />
             </View>
-          ))
-        }
+
+            <View className='flex-1'>
+              <PillButton 
+                label='Apply Now'
+                size='md'
+                onPress={handleApplyNow}
+              />
+            </View>
+          </View>
+        </SafeAreaView>
       </View>
 
-      {/* Map View */}
-      <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap 
-          size={26}
-          color={COLORS.text}
+      {/* Fixed Icon Buttons */}
+      <SafeAreaView 
+        className='absolute left-4'
+        edges={['top']}
+      >
+        <IconButton
+          iconName={IconChevronLeft}
+          onPress={() => {
+            router.back();
+          }}
         />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
-          View on Map
-        </Text>
-      </View>
+      </SafeAreaView>
 
-      {/* Map */}
-      <View className='h-56 mx-5 mt-3 bg-darkerWhite rounded-2xl'>
-
-      </View>
-    </ScreenWrapper>
+      {/* Favorite Button */}
+      <SafeAreaView
+        className='absolute right-4'
+        edges={['top']}
+      >
+        <IconButton
+          iconName={IconHeart}
+          onPress={handleFavoriteToggle}
+        />
+      </SafeAreaView>
+    </View>
   )
 }
