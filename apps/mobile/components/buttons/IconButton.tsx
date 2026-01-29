@@ -7,15 +7,18 @@ interface IconButtonProps {
   iconName: React.ComponentType<IconProps>;
   buttonColor?: string;
   iconColor?: string;
+  onPress?: () => void;
 }
 
 export default function IconButton({
   iconName: IconName,
   buttonColor = COLORS.white,
   iconColor = COLORS.text,
+  onPress
 }: IconButtonProps) {
   return (
     <TouchableOpacity
+      onPress={onPress}
       activeOpacity={0.7}
       className={`p-4 rounded-full`}
       style={{
