@@ -17,6 +17,7 @@ interface ScreenWrapperProps {
   headerBackgroundColor?: string;
   backgroundColor?: string;
   hasBottomPadding?: boolean;
+  safeAreaEdges?: ('top' | 'bottom' | 'left' | 'right')[];
 }
 
 export default function ScreenWrapper({
@@ -28,6 +29,7 @@ export default function ScreenWrapper({
   headerBackgroundColor = "bg-primary",
   backgroundColor = COLORS.white,
   hasBottomPadding = true,
+  safeAreaEdges = ['left', 'right', 'top'],
 }: ScreenWrapperProps) {
   // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
@@ -67,18 +69,18 @@ export default function ScreenWrapper({
   );
 
   return (
-    <SafeAreaView 
+    <SafeAreaView
       className="flex-1"
       style={{
         backgroundColor: backgroundColor
       }}
-      edges={header ? ['left', 'right', 'bottom'] : ['left', 'right', 'top']}
+      edges={header ? ['left', 'right', 'bottom'] : safeAreaEdges}
     >
       {/* Insert the header if it has */}
       {header && (
         <View
           className={`px-4 pb-4`}
-          style={{ 
+          style={{
             paddingTop: insets.top,
             backgroundColor: headerBackgroundColor
           }}
