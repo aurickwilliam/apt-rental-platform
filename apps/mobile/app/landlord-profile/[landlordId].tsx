@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, } from 'react-native'
+import { View, Text, Image, TouchableOpacity } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -68,6 +68,11 @@ export default function LandlordProfile() {
   // Function to get the first name from full name
   const getFirstName = (fullName: string) => {
     return fullName.split(' ')[0];
+  }
+
+  // TODO: Implement function to handle report landlord
+  const handleReportLandlord = () => {
+    console.log("Report Landlord Pressed");
   }
   
   const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.primary;
@@ -211,6 +216,10 @@ export default function LandlordProfile() {
             type='outline'
             size='sm'
             leftIconName={IconMessage}
+            onPress={() => {
+              // TODO: Implement route navigation to chatting page
+              console.log("Message was Pressed");
+            }}
           />
         </View>
       </View>
@@ -248,6 +257,7 @@ export default function LandlordProfile() {
         <TouchableOpacity
           activeOpacity={0.7}
           className='flex-row items-center justify-center gap-2'
+          onPress={handleReportLandlord}
         >
           <IconFlag 
             size={26}
