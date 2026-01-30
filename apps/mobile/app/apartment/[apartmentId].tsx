@@ -101,7 +101,8 @@ Terms: 1 month advance + 2 months deposit
 Minimum stay: 6 months
 No pets / No smoking inside the unit
 
-Serious tenants only. Please message me for viewing and inquiries.`
+Serious tenants only. Please message me for viewing and inquiries.`,
+    landlordId: 1,
   };
 
   const toggleReadMoreDescription = () => {
@@ -119,6 +120,14 @@ Serious tenants only. Please message me for viewing and inquiries.`
 
   const handleApplyNow = () => {
     console.log("Apply Now Button Pressed!");
+  }
+
+  const handleMessageLandlord = () => {
+    console.log("Message Landlord Button Pressed!");
+  }
+
+  const handleLandlordProfileNavigation = () => {
+    router.push(`/landlord-profile/${apartmentDetails.landlordId}`);
   }
 
   return (
@@ -301,7 +310,7 @@ Serious tenants only. Please message me for viewing and inquiries.`
 
           <View className='mt-5'>
             <PillButton 
-              label='Read More'
+              label={isReadMore ? 'Read Less' : 'Read More'}
               type='outline'
               size='sm'
               onPress={toggleReadMoreDescription}
@@ -372,7 +381,7 @@ Serious tenants only. Please message me for viewing and inquiries.`
 
         {/* Map */}
         <View className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'>
-          {/* TODO: Implement Google Maps API here */}
+          {/* // TODO: Implement Google Maps API here */}
 
           <TouchableOpacity
           activeOpacity={0.7}
@@ -447,6 +456,8 @@ Serious tenants only. Please message me for viewing and inquiries.`
             withRentalInfo
             averageRating={4.5}
             totalRentals={25}
+            onPress={handleLandlordProfileNavigation}
+            onMessagePress={handleMessageLandlord}
           />
         </View>
 

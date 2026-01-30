@@ -1,4 +1,4 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 
 import { IMAGES } from "../../constants/images";
 
@@ -20,6 +20,8 @@ interface LandlordCardProps {
   withRentalInfo?: boolean;
   averageRating?: number;
   totalRentals?: number;
+  onPress?: () => void;
+  onMessagePress?: () => void;
 }
 
 export default function LandlordCard({
@@ -30,14 +32,20 @@ export default function LandlordCard({
   withRentalInfo = false,
   averageRating = 0.0,
   totalRentals = 0,
+  onPress,
+  onMessagePress,
 }: LandlordCardProps) {
   return (
-    <View className="border-2 border-grey-300 p-2 rounded-2xl flex gap-3">
+    <TouchableOpacity 
+      activeOpacity={0.7}
+      onPress={onPress}
+      className="border-2 border-grey-300 p-2 rounded-2xl flex gap-3"
+    >
       <View className="flex-row items-start gap-4">
         {/* Profile Picture */}
         <View className="w-36 h-36 rounded-xl overflow-hidden border border-grey-300">
           <Image
-            source={IMAGES.defaultProfilePicture || profilePictureUrl}
+            source={profilePictureUrl ? { uri: profilePictureUrl } : IMAGES.defaultProfilePicture}
             style={{ width: '100%', height: '100%' }}
           />
         </View>
@@ -96,6 +104,7 @@ export default function LandlordCard({
                 size="sm"
                 type="outline"
                 leftIconName={IconMessage2}
+                onPress={onMessagePress}
               />
             )
           }
@@ -109,9 +118,10 @@ export default function LandlordCard({
             size="sm"
             type="outline"
             leftIconName={IconMessage2}
+            onPress={onMessagePress}
           />
         )
       }
-    </View>
+    </TouchableOpacity>
   );
 }
