@@ -25,7 +25,7 @@ export default function LandlordProfile() {
     email: 'jonathan.ma@example.com',
     noProperties: 12,
     averageRating: 4.7,
-    isVerifed: true,
+    isVerified: true,
     location: 'San Francisco, CA',
     contactNumber: '(123) 456-7890',
     memberSince: 'March 2020',
