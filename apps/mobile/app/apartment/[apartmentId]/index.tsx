@@ -130,6 +130,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/landlord-profile/${apartmentDetails.landlordId}`);
   }
 
+  const handleSeeAllRatings = () => {
+    router.push(`/apartment/${apartmentId}/ratings`);
+  }
+
   return (
     <View className='flex-1'>
       <ScreenWrapper
@@ -411,9 +415,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           {/* See All Button */}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => {
-              console.log("Ratings See All was Pressed!");
-            }}
+            onPress={handleSeeAllRatings}
           >
             <Text className='font-interMedium text-base text-primary'>
               See All

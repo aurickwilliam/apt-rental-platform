@@ -64,7 +64,7 @@ export default function Home() {
   ]
 
   const handleFavoritesNavigation = () => {
-    router.push('/tenant-favorites');
+    router.push('/tenant/favorites');
   }
 
   const handleNotificationNavigation = () => {
