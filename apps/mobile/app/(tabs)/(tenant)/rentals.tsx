@@ -25,7 +25,7 @@ export default function Rentals() {
   }
 
   const handleViewMoreDetails = () => {
-    router.push('/current-apartment-details');
+    router.push('/tenant/current-apartment');
   }
 
   return (
