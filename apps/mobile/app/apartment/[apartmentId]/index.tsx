@@ -130,6 +130,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/landlord-profile/${apartmentDetails.landlordId}`);
   }
 
+  const handleSeeAllRatings = () => {
+    router.push(`/apartment/${apartmentId}/ratings`);
+  }
+
   return (
     <View className='flex-1'>
       <ScreenWrapper
@@ -209,7 +213,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
                 <View className='flex-row items-center gap-2'>
                   <IconStarFilled
                     size={20}
-                    color={COLORS.yellowish}
+                    color={COLORS.secondary}
                   />
                   <Text className='text-grey-100 font-interMedium text-base'>
                     {apartmentDetails.ratings}  (70)
@@ -387,11 +391,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           activeOpacity={0.7}
           className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
           onPress={() => {
-            console.log("Open in Maps was Pressed!");
+            console.log("Get Directions was Pressed!");
           }}
           >
             <Text className='font-interMedium text-base text-primary'>
-              Open in Maps
+              Get Directions
             </Text>
           </TouchableOpacity>
         </View>
@@ -411,9 +415,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           {/* See All Button */}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => {
-              console.log("Ratings See All was Pressed!");
-            }}
+            onPress={handleSeeAllRatings}
           >
             <Text className='font-interMedium text-base text-primary'>
               See All
