@@ -80,7 +80,7 @@ export default function LandlordCard({
                 <View className="flex-row items-center gap-2">
                   <IconStarFilled 
                     size={16} 
-                    color={COLORS.yellowish} 
+                    color={COLORS.secondary} 
                   />
                   <Text className="text-text text-sm font-inter">
                     {averageRating}
@@ -91,7 +91,7 @@ export default function LandlordCard({
                 <View className="flex-row items-center gap-2">
                   <IconHomeFilled 
                     size={16} 
-                    color={COLORS.text} 
+                    color={COLORS.primary} 
                   />
                   <Text className="text-text text-sm font-inter">
                     {totalRentals}

@@ -85,7 +85,7 @@ export default function RateApartment() {
             i <= rating ? (
               <IconStarFilled 
                 size={45}
-                color={COLORS.yellowish}
+                color={COLORS.secondary}
               />
             ) : (
               <IconStar

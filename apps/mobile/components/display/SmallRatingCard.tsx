@@ -53,7 +53,7 @@ export default function SmallRatingCard({
 
           <IconStarFilled 
             size={20}
-            color={COLORS.yellowish}
+            color={COLORS.secondary}
           />
         </View>
       </View>
