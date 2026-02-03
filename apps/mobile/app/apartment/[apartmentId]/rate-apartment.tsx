@@ -14,6 +14,7 @@ import {
   IconStarFilled,
 } from '@tabler/icons-react-native';
 import PillButton from 'components/buttons/PillButton'
+import TextBox from 'components/inputs/TextBox'
 
 
 export default function RateApartment() {
@@ -25,6 +26,8 @@ export default function RateApartment() {
   const [fromYear, setFromYear] = useState<string>('2023');
   const [toMonth, setToMonth] = useState<Month>('January');
   const [toYear, setToYear] = useState<string>('2023');
+
+  const [reviewText, setReviewText] = useState<string>('');
 
   const monthOptions: Month[] = [
     'January', 
@@ -149,17 +152,21 @@ export default function RateApartment() {
         </View>
 
         {/* Review Text Box */}
-        <View className='flex gap-1 mt-3'>
-          <Text className='text-text text-lg font-interMedium mt-5'>
-            Review Box to be implemented Here
-          </Text>
+        <View className='flex mt-3'>
+          <TextBox 
+            label='Review:'
+            placeholder="Type your experience and review about the apartment.."
+            value={reviewText}
+            onChangeText={setReviewText}
+            required
+          />
         </View>
 
         <Divider />      
         
         {/* Duration of Stay */}
         <View>
-          <Text className='text-text text-base font-interMedium mt-5'>
+          <Text className='text-text text-base font-interMedium'>
             Duration of Stay:
           </Text>
 
@@ -174,14 +181,16 @@ export default function RateApartment() {
                 options={monthOptions} 
                 value={fromMonth}
                 onSelect={setFromMonth}    
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite px-2 py-1 rounded-xl'              
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
+                  px-2 py-1 rounded-xl'              
               />
               <DropdownButton 
                 bottomSheetLabel={'Select Year'} 
                 options={yearOptions} 
                 value={fromYear}
                 onSelect={setFromYear}                  
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite px-2 py-1 rounded-xl'              
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
+                  px-2 py-1 rounded-xl'              
               />
             </View>
           </View>
@@ -197,14 +206,16 @@ export default function RateApartment() {
                 options={monthOptions} 
                 value={toMonth}
                 onSelect={setToMonth}    
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite px-2 py-1 rounded-xl'              
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
+                  px-2 py-1 rounded-xl'              
               />
               <DropdownButton 
                 bottomSheetLabel={'Select Year'} 
                 options={yearOptions} 
                 value={toYear}
                 onSelect={setToYear}                  
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite px-2 py-1 rounded-xl'              
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
+                  px-2 py-1 rounded-xl'              
               />
             </View>
           </View>
