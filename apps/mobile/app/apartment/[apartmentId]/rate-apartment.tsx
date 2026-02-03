@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 
@@ -6,15 +6,16 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import Divider from 'components/display/Divider'
 import DropdownButton from 'components/buttons/DropdownButton'
+import PillButton from 'components/buttons/PillButton'
+import TextBox from 'components/inputs/TextBox'
 
 import { COLORS } from '../../../constants/colors'
 import { IMAGES } from '../../../constants/images'
 
 import {
+  IconStar,
   IconStarFilled,
 } from '@tabler/icons-react-native';
-import PillButton from 'components/buttons/PillButton'
-import TextBox from 'components/inputs/TextBox'
 
 
 export default function RateApartment() {
@@ -28,6 +29,7 @@ export default function RateApartment() {
   const [toYear, setToYear] = useState<string>('2023');
 
   const [reviewText, setReviewText] = useState<string>('');
+  const [rating, setRating] = useState<number>(0);
 
   const monthOptions: Month[] = [
     'January', 
@@ -68,6 +70,36 @@ export default function RateApartment() {
     ratings: 4.5,
     noRatings: 120,
   }
+
+  // Render Stars for Rating
+  const renderStars = () => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <TouchableOpacity
+          key={i}
+          onPress={() => setRating(i)}
+          activeOpacity={0.7}
+        >
+          {
+            i <= rating ? (
+              <IconStarFilled 
+                size={45}
+                color={COLORS.yellowish}
+              />
+            ) : (
+              <IconStar
+                size={45}
+                color={COLORS.lightLightGrey}
+              />
+            )
+          }
+        </TouchableOpacity>
+      );
+    }
+
+    return stars;
+  };
 
   return (
     <ScreenWrapper
@@ -136,8 +168,8 @@ export default function RateApartment() {
           </Text>
 
           {/* Star Rating Input */}
-          <View className='bg-amber-200 h-20'>
-            <Text>Star Rating Input Component Here</Text>
+          <View className='flex-row items-center justify-center gap-3 my-5'>
+            {renderStars()}
           </View>
 
           <View className='flex-row items-center gap-5'>
