@@ -18,7 +18,7 @@ export default function Index() {
           router.replace("/onboarding");
         } else {
           // Not first time
-          router.replace("/home");
+          router.replace("/sign-in");
         }
       } catch (error) {
         console.error("Launch check failed:", error);

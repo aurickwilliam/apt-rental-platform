@@ -78,11 +78,13 @@ export default function StepThree() {
       <View className="flex-1" />
 
       {/* Next Button*/}
-      <PillButton
-        label={"Let's find your place!"}
-        onPress={handleNext}
-        isFullWidth
-      />
+      <View className="mb-8">
+        <PillButton
+          label={"Let's find your place!"}
+          onPress={handleNext}
+          isFullWidth
+        />
+      </View>
     </ScreenWrapper>
   );
 }
