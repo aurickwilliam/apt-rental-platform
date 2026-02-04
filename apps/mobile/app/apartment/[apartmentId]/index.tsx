@@ -134,6 +134,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/apartment/${apartmentId}/ratings`);
   }
 
+  const handleMapViewNavigation = () => {
+    router.push(`/apartment/${apartmentId}/map-view`);
+  }
+
   return (
     <View className='flex-1'>
       <ScreenWrapper
@@ -384,7 +388,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         </View>
 
         {/* Map */}
-        <View className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'>
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'
+          onPress={handleMapViewNavigation}
+        >
           {/* // TODO: Implement Google Maps API here */}
 
           <TouchableOpacity
@@ -398,7 +406,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
               Get Directions
             </Text>
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
         {/* Ratings */}
         <View className='px-5 mt-10 flex-row items-center justify-between'>
