@@ -115,7 +115,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   }
 
   const handleRequestVisit = () => {
-    console.log("Request a Visit Button Pressed!");
+    router.push(`/apartment/${apartmentId}/request-visit`);
   }
 
   const handleApplyNow = () => {
