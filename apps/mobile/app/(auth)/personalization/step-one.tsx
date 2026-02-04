@@ -81,11 +81,13 @@ export default function StepOne() {
       <View className="flex-1" />
 
       {/* Next Button*/}
-      <PillButton
-        label={"Next"}
-        onPress={handleNext}
-        isFullWidth
-      />
+      <View className="mb-8">
+        <PillButton
+          label={"Next"}
+          onPress={handleNext}
+          isFullWidth
+        />
+      </View>
     </ScreenWrapper>
   );
 }

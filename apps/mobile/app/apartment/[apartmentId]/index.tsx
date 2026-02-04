@@ -144,6 +144,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         scrollable
         backgroundColor={COLORS.white}
         safeAreaEdges={['left', 'right']}
+        hasBottomPadding
       >
         <View className='h-[42rem] bg-white relative'>
           {/* Image Carousel */}

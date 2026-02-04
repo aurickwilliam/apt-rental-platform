@@ -73,11 +73,13 @@ export default function StepTwo() {
       </View>
 
       {/* Next Button*/}
-      <PillButton
-        label={"Next"}
-        onPress={handleNext}
-        isFullWidth
-      />
+      <View className="mb-8">
+        <PillButton
+          label={"Next"}
+          onPress={handleNext}
+          isFullWidth
+        />
+      </View>
 
     </ScreenWrapper>
   );
