@@ -59,8 +59,9 @@ export default function TenantFavorites() {
       }
       headerBackgroundColor={COLORS.primary}
       backgroundColor={COLORS.darkerWhite}
+      hasBottomPadding
     >
-      <View className='flex-row flex-wrap'>
+      <View className='flex-row flex-wrap gap-y-3'>
         <ApartmentCard
           id={1} 
           name="Apartment Name"
@@ -71,6 +72,14 @@ export default function TenantFavorites() {
           noBedroom={0}
           noBathroom={0}
           areaSqm={0}
+          isGrid={viewMode === 'grid'}
+        />
+        <ApartmentCard 
+          id={2}
+          isGrid={viewMode === 'grid'}
+        />
+        <ApartmentCard 
+          id={2}
           isGrid={viewMode === 'grid'}
         />
         <ApartmentCard 
