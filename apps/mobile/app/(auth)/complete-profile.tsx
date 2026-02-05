@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { COLORS } from '../../constants/colors';
 import { PROVINCES } from '../../constants/provinces';
+import { GENDER } from '../../constants/gender';
 
 import ScreenWrapper from '../../components/layout/ScreenWrapper';
 import TextField from '../../components/inputs/TextField';
@@ -25,6 +26,7 @@ export default function CompleteProfile() {
     firstName: string;
     lastName: string;
     middleName: string;
+    gender: string;
     currentAddress: string;
     barangay: string;
     city: string;
@@ -40,6 +42,7 @@ export default function CompleteProfile() {
     firstName: "",
     lastName: "",
     middleName: "",
+    gender: "",
     currentAddress: "",
     barangay: "",
     city: "",
@@ -119,6 +122,16 @@ export default function CompleteProfile() {
           label="Middle Name:"
           placeholder="Enter your middle name"
           onChangeText={(value) => updateField('middleName', value)}
+        />
+
+        {/* Gender Field */}
+        <DropdownField
+          label="Gender:"
+          bottomSheetLabel="Select your gender"
+          placeholder="Select your gender"
+          options={GENDER}
+          value={profileForm.gender}
+          onSelect={(value) => updateField('gender', value)}
         />
 
         {/* Current Address Field */}

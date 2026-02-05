@@ -28,7 +28,7 @@ export default function ScreenWrapper({
   header,
   headerBackgroundColor = "bg-primary",
   backgroundColor = COLORS.white,
-  hasBottomPadding = true,
+  hasBottomPadding = false,
   safeAreaEdges = ['left', 'right', 'top'],
 }: ScreenWrapperProps) {
   // Get safe area insets (for notch/dynamic island and status bar)
@@ -43,7 +43,7 @@ export default function ScreenWrapper({
     <ScrollView
       contentContainerStyle={{
         flexGrow: 1,
-        paddingBottom: insets.bottom + (hasBottomPadding ? 80 : 50),
+        paddingBottom: insets.bottom + (hasBottomPadding ? 80 : 0),
       }}
       className={`${className}`}
       keyboardShouldPersistTaps="handled"

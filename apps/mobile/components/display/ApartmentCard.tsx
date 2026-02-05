@@ -29,8 +29,8 @@ export default function ApartmentCard({
 }: ApartmentCardProps) {
   const { width } =  useWindowDimensions();
 
-  const cardWidth = isGrid ? width / 2 - 18 : width - 24;
-  const padding = isGrid ? 6 : 12;
+  const cardWidth = isGrid ? width / 2 - 18 : width - 32;
+  const padding = 6;
 
   return (
     <View style={{width: cardWidth, paddingHorizontal: padding}}>
