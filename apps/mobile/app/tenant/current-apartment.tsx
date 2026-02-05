@@ -3,6 +3,8 @@ import { View, Text } from 'react-native'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import Divider from 'components/display/Divider'
+import PillButton from 'components/buttons/PillButton'
+import PerkItem from 'components/display/PerkItem'
 
 import { formatCurrency } from 'utils/formatCurrency'
 
@@ -14,15 +16,8 @@ import {
   IconBed,
   IconMaximize,
   IconCar,
-  IconScanEye,
-  IconSwimming,
-  IconBarbell,
-  IconWifi,
-  IconDeviceDesktop,
   IconFileText,
 } from '@tabler/icons-react-native';
-import IconDetail from 'components/display/IconDetail'
-import PillButton from 'components/buttons/PillButton'
 
 export default function CurrentApartmentDetails() {
 
@@ -59,11 +54,13 @@ No pets / No smoking inside the unit`
   }
 
   const includedPerks = [
-    { icon: IconScanEye, detailText: '24/7 Security' },
-    { icon: IconSwimming, detailText: 'Swimming Pool' },
-    { icon: IconBarbell, detailText: 'Gym Access' },
-    { icon: IconWifi, detailText: 'Wi-Fi' },
-    { icon: IconDeviceDesktop, detailText: 'TV/Smart TV' },
+    'wifi',
+    'ac',
+    'tv',
+    'kitchen',
+    'parking',
+    'hotwater',
+    'bath'
   ]
 
   const formattedMonthlyRent = formatCurrency(apartmentDetails.monthlyRent);
@@ -158,37 +155,47 @@ No pets / No smoking inside the unit`
 
       <View className='flex-row flex-wrap justify-between mt-5'>
         <View className='w-1/2 mb-5'>
-          <IconDetail 
-            icon={IconHome} 
-            detailText={unitDetails.type}            
+          <PerkItem 
+            perkId={''}
+            customIcon={IconHome} 
+            customText={unitDetails.type}   
+            iconColor={COLORS.mediumGrey}         
           />
         </View>
 
         <View className='w-1/2 mb-5'>
-          <IconDetail 
-            icon={IconBath} 
-            detailText={`${unitDetails.bathrooms} Bathrooms`}            
+          <PerkItem 
+            perkId=''
+            customIcon={IconBath} 
+            customText={`${unitDetails.bathrooms} Bathrooms`}            
+            iconColor={COLORS.mediumGrey}
           />
         </View>       
 
         <View className='w-1/2 mb-5'>
-          <IconDetail 
-            icon={IconBed} 
-            detailText={`${unitDetails.bedrooms} Bedrooms`}            
+          <PerkItem 
+            perkId=''
+            customIcon={IconBed} 
+            customText={`${unitDetails.bedrooms} Bedrooms`}            
+            iconColor={COLORS.mediumGrey}
           />
         </View>
 
         <View className='w-1/2 mb-5'>
-          <IconDetail 
-            icon={IconMaximize} 
-            detailText={`${unitDetails.floorAreaSQM} sqm`}            
+          <PerkItem 
+            perkId=''
+            customIcon={IconMaximize} 
+            customText={`${unitDetails.floorAreaSQM} sqm`}            
+            iconColor={COLORS.mediumGrey}
           />
         </View>     
 
         <View className='w-1/2 mb-5'>
-          <IconDetail 
-            icon={IconCar} 
-            detailText={unitDetails.parking}            
+          <PerkItem 
+            perkId=''
+            customIcon={IconCar} 
+            customText={unitDetails.parking}    
+            iconColor={COLORS.mediumGrey}        
           />
         </View>     
       </View>
@@ -202,10 +209,9 @@ No pets / No smoking inside the unit`
         {
           includedPerks.map((perk, index) => (
             <View className='w-1/2 mb-5' key={index}>
-              <IconDetail 
-                icon={perk.icon} 
+              <PerkItem 
                 iconColor={COLORS.primary}
-                detailText={perk.detailText}            
+                perkId={perk}
               />
             </View> 
           ))
