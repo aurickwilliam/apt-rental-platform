@@ -15,9 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
-import IconDetail from 'components/display/IconDetail';
 import SmallRatingCard from 'components/display/SmallRatingCard';
 import LandlordCard from 'components/display/LandlordCard';
+import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from 'constants/colors';
 import { IMAGES } from 'constants/images';
@@ -33,11 +33,6 @@ import {
   IconHeart,
   IconBuildingCommunity,
   IconSquareCheck,
-  IconWifi,
-  IconScanEye,
-  IconSwimming,
-  IconBarbellFilled,
-  IconParking,
   IconMap,
   IconStar,
   IconUser,
@@ -82,11 +77,13 @@ export default function ApartmentScreen() {
     noBathroom: 1,
     areaSqm: 85,
     perks: [
-      {text: 'Free Wi-Fi', icon: IconWifi},
-      {text: '24/7 Security', icon: IconScanEye},
-      {text: 'Swimming Pool Access', icon: IconSwimming},
-      {text: 'Gym Membership', icon: IconBarbellFilled},
-      {text: 'Parking Space', icon: IconParking},
+      'wifi',
+      'ac',
+      'tv',
+      'kitchen',
+      'parking',
+      'hotwater',
+      'bath'
     ],
     description: `Good day! I am renting out my 2-bedroom fully furnished apartment located in a safe and accessible area. The unit is on the 5th floor of a well-maintained building with 24/7 security and CCTV.
 
@@ -363,20 +360,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         {/* List of Perks */}
         <View className='flex-row flex-wrap px-5 mt-5'>
-          {
-            apartmentDetails.perks.map((perk, index) => (
-              <View
-                key={index}
-                className='w-1/2 mb-4'
-              >
-                <IconDetail 
-                  detailText={perk.text} 
-                  icon={perk.icon}
-                  iconColor={COLORS.primary}
-                />
-              </View>
-            ))
-          }
+          {apartmentDetails.perks.map(perkId => (
+            <View key={perkId} className='w-1/2 mb-4'>
+              <PerkItem perkId={perkId} />
+            </View>
+          ))}
         </View>
 
         {/* Map View */}
