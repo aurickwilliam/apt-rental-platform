@@ -138,6 +138,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/apartment/${apartmentId}/map-view`);
   }
 
+  const handleIncludedPerksNavigation = () => {
+    router.push(`/apartment/${apartmentId}/included-perks`);
+  }
+
   return (
     <View className='flex-1'>
       <ScreenWrapper
@@ -344,9 +348,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             {/* See All Button */}
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => {
-                console.log("Included Perks See All was Pressed!");
-              }}
+              onPress={handleIncludedPerksNavigation}
             >
               <Text className='font-interMedium text-base text-primary'>
                 See All
