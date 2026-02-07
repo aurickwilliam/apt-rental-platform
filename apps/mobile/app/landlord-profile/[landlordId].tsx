@@ -56,7 +56,7 @@ export default function LandlordProfile() {
     {
       id: 3,
       name: 'Apartment 3',
-      monthlyRent: 1500,
+      monthlyRent: 1500, 
       location: 'Navotas',
       noBedroom: 4,
       noBathroom: 3,
@@ -83,7 +83,6 @@ export default function LandlordProfile() {
       header={
         <StandardHeader title="Landlord Profile" />
       }
-      headerBackgroundColor={COLORS.primary}
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header Information */}

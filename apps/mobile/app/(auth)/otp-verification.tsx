@@ -69,71 +69,73 @@ export default function OTPVerification() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className='p-5'>
-      {/* Back button */}
-      <Pressable className="mb-3" onPress={router.back}>
-        <Ionicons name="arrow-back" size={30} color={COLORS.text} />
-      </Pressable>
-
-      {/* Title */}
-      <Text className="text-3xl text-text font-poppinsSemiBold my-5">
-        OTP was Sent!
-      </Text>
-
-      {/* Description */}
-      <Text className="text-lg text-text font-poppinsRegular mb-5">
-        We’ve sent a 4-digit code to your phone number.
-        Please enter the code sent to your number ending in ****-***-{lastFourDigits}.
-      </Text>
-
-      {/* OTP Input Fields*/}
-      <View className="flex-row items-center justify-between mb-6">
-        {otp.map((digit, index) => (
-          <TextInput
-            key={index}
-            ref={(ref) => {
-              if (ref) inputRefs.current[index] = ref as TextInput;
-            }}
-            className="w-24 h-24 border-2 border-gray-300 rounded-2xl text-center text-4xl
-             text-text font-interMedium"
-            value={digit}
-            onChangeText={(text) => handleChange(index, text)}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-            keyboardType="number-pad"
-            maxLength={1}
-            selectTextOnFocus
-          />
-        ))}
-      </View>
-
-      {/* Resend Link and Countdown */}
-      <View className="flex-row items-center">
-        <Text className="text-gray-600 text-base">
-          Didn&apos;t get the code?{' '}
-        </Text>
-        {countdown > 0 ? (
-          <Text className="text-blue-500 text-base font-medium">
-            Resend in {countdown}s
-          </Text>
-        ) : (
-          <Pressable onPress={handleResend}>
-            <Text className="text-blue-500 text-base font-medium">
-              Resend
-            </Text>
+    <ScreenWrapper
+      className='p-5'
+    >
+      <View className='flex-1 justify-between'>
+        <View>
+          {/* Back button */}
+          <Pressable className="mb-3" onPress={router.back}>
+            <Ionicons name="arrow-back" size={30} color={COLORS.text} />
           </Pressable>
-        )}
+
+          {/* Title */}
+          <Text className="text-3xl text-text font-poppinsSemiBold my-5">
+            OTP was Sent!
+          </Text>
+
+          {/* Description */}
+          <Text className="text-lg text-text font-poppinsRegular mb-5">
+            We’ve sent a 4-digit code to your phone number.
+            Please enter the code sent to your number ending in ****-***-{lastFourDigits}.
+          </Text>
+
+          {/* OTP Input Fields*/}
+          <View className="flex-row items-center justify-between mb-6">
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => {
+                  if (ref) inputRefs.current[index] = ref as TextInput;
+                }}
+                className="w-24 h-24 border-2 border-gray-300 rounded-2xl text-center text-4xl
+                 text-text font-interMedium"
+                value={digit}
+                onChangeText={(text) => handleChange(index, text)}
+                onKeyPress={(e) => handleKeyPress(e, index)}
+                keyboardType="number-pad"
+                maxLength={1}
+                selectTextOnFocus
+              />
+            ))}
+          </View>
+
+          {/* Resend Link and Countdown */}
+          <View className="flex-row items-center">
+            <Text className="text-gray-600 text-base">
+              Didn&apos;t get the code?{' '}
+            </Text>
+            {countdown > 0 ? (
+              <Text className="text-blue-500 text-base font-medium">
+                Resend in {countdown}s
+              </Text>
+            ) : (
+              <Pressable onPress={handleResend}>
+                <Text className="text-blue-500 text-base font-medium">
+                  Resend
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Create Account Button */}
+        <PillButton
+          label='Create Account'
+          onPress={handleVerify}
+          isFullWidth
+        />
       </View>
-
-
-      {/* Spacer */}
-      <View className="flex-1" />
-
-      {/* Create Account Button */}
-      <PillButton
-        label='Create Account'
-        onPress={handleVerify}
-        isFullWidth
-      />
     </ScreenWrapper>
   )
 }

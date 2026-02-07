@@ -1,98 +1,85 @@
 import { ReactNode } from "react";
 import {
-  KeyboardAvoidingView,
-  ScrollView,
   View,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
-import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { COLORS } from "../../constants/colors";
 
 interface ScreenWrapperProps {
   children: ReactNode;
-  hasInput?: boolean;
   className?: string;
-  scrollable?: boolean;
-  header?: ReactNode;
-  headerBackgroundColor?: string;
   backgroundColor?: string;
-  hasBottomPadding?: boolean;
-  safeAreaEdges?: ('top' | 'bottom' | 'left' | 'right')[];
+  header?: ReactNode;
+  scrollable?: boolean;
+  bottomPadding?: number;
 }
 
 export default function ScreenWrapper({
   children,
-  hasInput = false,
   className = "",
-  scrollable,
-  header,
-  headerBackgroundColor = "bg-primary",
   backgroundColor = COLORS.white,
-  hasBottomPadding = false,
-  safeAreaEdges = ['left', 'right', 'top'],
+  header,
+  scrollable = false,
+  bottomPadding = 0,
 }: ScreenWrapperProps) {
-  // Get safe area insets (for notch/dynamic island and status bar)
   const insets = useSafeAreaInsets();
-  const useScroll = scrollable ?? hasInput;
 
-  // Calculate keyboard offset for header
-  const keyboardOffset = header ? insets.top : 0;
+  const paddingTop = header ? 0 : insets.top;
 
-  // Decide if content can be scrollable or static
-  const content = useScroll ? (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        paddingBottom: insets.bottom + (hasBottomPadding ? 80 : 0),
-      }}
-      className={`${className}`}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
+  // This wraps the content so tapping empty space closes the keyboard
+  const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       {children}
-    </ScrollView>
-  ) : (
-    children
-  );
-
-  // Wrap with KeyboardAvoidingView if hasInput is true
-  const mainContent = hasInput ? (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={"padding"}
-      keyboardVerticalOffset={keyboardOffset}
-    >
-      {content}
-    </KeyboardAvoidingView>
-  ) : (
-    content
+    </TouchableWithoutFeedback>
   );
 
   return (
-    <SafeAreaView
-      className="flex-1"
-      style={{
-        backgroundColor: backgroundColor
-      }}
-      edges={header ? ['left', 'right', 'bottom'] : safeAreaEdges}
-    >
-      {/* Insert the header if it has */}
+    <View style={{ flex: 1, backgroundColor }}>
       {header && (
-        <View
-          className={`px-4 pb-4`}
-          style={{
-            paddingTop: insets.top,
-            backgroundColor: headerBackgroundColor
-          }}
-        >
+        <View style={{ paddingTop: insets.top }} className="px-4 pb-4">
           {header}
         </View>
       )}
-      <View
-        className={`flex-1 ${!useScroll ? className : ""}`}
-      >
-        {mainContent}
-      </View>
-    </SafeAreaView>
+
+      {scrollable ? (
+        <KeyboardAwareScrollView
+          extraHeight={Platform.OS === 'ios' ? 50 : 200}
+          enableOnAndroid={true}
+          enableAutomaticScroll={true}
+          extraScrollHeight={Platform.OS === "ios" ? 50 : 80}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingTop: paddingTop,
+            paddingBottom: bottomPadding + (insets.bottom || 20),
+          }}
+        >
+          <WrapWithDismiss>
+            <View className={`flex-1 ${className}`}>
+              {children}
+            </View>
+          </WrapWithDismiss>
+        </KeyboardAwareScrollView>
+      ) : (
+        <WrapWithDismiss>
+          <View
+            className={`flex-1 ${className}`}
+            style={{
+              paddingTop: paddingTop,
+              paddingBottom: insets.bottom
+            }}
+          >
+            {children}
+          </View>
+        </WrapWithDismiss>
+      )}
+    </View>
   );
 }
