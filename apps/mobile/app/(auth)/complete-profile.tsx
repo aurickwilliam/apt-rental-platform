@@ -58,7 +58,7 @@ export default function CompleteProfile() {
   // TODO: Password Validation Logic
   // TODO: Update password requirements based on user input
   const [passwordRequirements, setPasswordRequirements] = useState({
-    minLength: true,
+    minLength: false,
     hasUppercase: false,
     hasLowercase: false,
     hasNumber: false,
@@ -79,7 +79,10 @@ export default function CompleteProfile() {
   }
 
   return (
-    <ScreenWrapper hasInput scrollable className='p-5'>
+    <ScreenWrapper
+      scrollable
+      className='p-5'
+    >
 
       {/* Back button */}
       <Pressable className="mb-3" onPress={router.back}>
@@ -280,7 +283,7 @@ export default function CompleteProfile() {
       </View>
 
       {/* Submit Button */}
-      <View className="mt-16 mb-10">
+      <View className="mt-16 mb-0">
         <PillButton
           label="Submit"
           isFullWidth
