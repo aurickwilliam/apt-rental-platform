@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Image } from 'react-native'
 
 import { COLORS } from "../../../constants/colors";
-import { IMAGES } from '../../../constants/images';
+import { SAMPLE_IMAGES } from '../../../constants/images';
 
 import {
   IconId,
@@ -22,8 +22,8 @@ import SettingOptionButton from 'components/buttons/SettingOptionButton';
 export default function Profile() {
 
   // Change this to fetch user's photo
-  const backgroundPhotoUri = IMAGES.sampleBackgroundPhoto;
-  const profilePhotoUri = IMAGES.sampleProfilePicture;
+  const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
+  const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
 
   // Change of Status
   const accountStatus = 'verified' as 'verified' | 'pending' | 'rejected'; 

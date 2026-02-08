@@ -1,7 +1,7 @@
 import { View, Text, Image } from 'react-native'
 
 import { COLORS } from 'constants/colors';
-import { IMAGES } from 'constants/images';
+import { DEFAULT_IMAGES } from 'constants/images';
 
 import { IconStar, IconStarFilled } from '@tabler/icons-react-native';
 
@@ -25,7 +25,7 @@ export default function RatingCard({
 
   // TODO: Format date to relative time (e.g., "2 weeks ago")
 
-  const profileImage = profilePictureUrl ? { uri: profilePictureUrl } : IMAGES.defaultProfilePicture;
+  const profileImage = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
 
   return (
     <View className='w-full'>
