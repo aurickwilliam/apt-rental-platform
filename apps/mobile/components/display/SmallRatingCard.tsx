@@ -2,7 +2,8 @@ import { View, Image, ImageSourcePropType, Text } from 'react-native'
 
 import { IconStarFilled } from '@tabler/icons-react-native';
 
-import { IMAGES } from '../../constants/images'
+import { DEFAULT_IMAGES } from '../../constants/images'
+
 import { COLORS } from 'constants/colors';
 
 interface SmallRatingCardProps {
@@ -15,7 +16,7 @@ interface SmallRatingCardProps {
 
 export default function SmallRatingCard({
   accountName,
-  profilePictureUrl = IMAGES.defaultProfilePicture,
+  profilePictureUrl = DEFAULT_IMAGES.defaultProfilePicture,
   rating,
   comment,
   date

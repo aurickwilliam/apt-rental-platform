@@ -11,6 +11,7 @@ import { useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import ImageViewing from 'react-native-image-viewing';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
@@ -20,7 +21,7 @@ import LandlordCard from 'components/display/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from 'constants/colors';
-import { IMAGES } from 'constants/images';
+import { DEFAULT_IMAGES } from 'constants/images';
 
 import {
   IconMapPin,
@@ -49,6 +50,8 @@ export default function ApartmentScreen() {
   const { width } = Dimensions.get('window');
 
   const [isReadMore, setIsReadMore] = useState<boolean>(false);
+  const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
+  const [imageIndex, setImageIndex] = useState<number>(0);
 
   // Refs for ScrollView
   const imageScrollViewRef = useRef<ScrollView>(null);
@@ -61,9 +64,9 @@ export default function ApartmentScreen() {
 
   // Dummy Data for apartment images
   const apartmentImages = [
-    {id: 1, image: IMAGES.defaultThumbnail},
-    {id: 2, image: IMAGES.defaultThumbnail},
-    {id: 3, image: IMAGES.defaultThumbnail},
+    {id: 1, image: DEFAULT_IMAGES.defaultThumbnail},
+    {id: 2, image: DEFAULT_IMAGES.defaultProfilePicture},
+    // {id: 3, image: DEFAULT_IMAGES.defaultThumbnail},
   ]
 
   // Dummy Data for Apartment Details
@@ -140,7 +143,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   }
 
   const handleViewFullImage = (index: number) => {
-    console.log(`View Full Image at index ${index} Pressed!`);
+    setImageIndex(index);
+    setIsImageViewVisible(true);
+    console.log('====================================');
+    console.log(imageIndex);
+    console.log('====================================');
   }
 
   return (
@@ -161,12 +168,12 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           >
             {/* Render Individual Images */}
             {
-              apartmentImages.map((item) => (
+              apartmentImages.map((item, index) => (
                 <TouchableOpacity
                   activeOpacity={0.9}
                   className='w-screen h-full'
                   key={item.id}
-                  onPress={() => handleViewFullImage(item.id)}
+                  onPress={() => handleViewFullImage(index)}
                 >
                   <Image
                     source={item.image}
@@ -554,6 +561,22 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           onPress={handleFavoriteToggle}
         />
       </SafeAreaView>
+
+      {/* Image Viewer */}
+      <ImageViewing
+        key={imageIndex}
+        images={apartmentImages.map(img => (img.image))}
+        imageIndex={imageIndex}
+        visible={isImageViewVisible}
+        onRequestClose={() => setIsImageViewVisible(false)}
+        FooterComponent={({ imageIndex }) => (
+        <View className='p-10 items-center'> 
+          <Text className='text-white font-interMedium'>
+            {imageIndex + 1} / {apartmentImages.length}
+          </Text>
+        </View>
+      )}
+      />
     </View>
   )
 }
