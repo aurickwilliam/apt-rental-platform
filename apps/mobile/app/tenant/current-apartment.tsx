@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -20,6 +21,8 @@ import {
 } from '@tabler/icons-react-native';
 
 export default function CurrentApartmentDetails() {
+  const router = useRouter();
+
 
   // Dummy data for illustration; replace with actual data fetching logic
   const apartmentDetails = {
@@ -66,7 +69,7 @@ No pets / No smoking inside the unit`
   const formattedMonthlyRent = formatCurrency(apartmentDetails.monthlyRent);
 
   const handleViewLeaseAgreement = () => {
-    // Navigate to or display the lease agreement
+    router.push('/tenant/current-lease');
   }
 
   return (
@@ -74,12 +77,9 @@ No pets / No smoking inside the unit`
       scrollable 
       className='p-5'
       header={
-        <StandardHeader 
-          title="Apartment Details" 
-          showBack 
-        />
+        <StandardHeader title="Apartment Details"/>
       }
-      headerBackgroundColor={COLORS.primary}
+      bottomPadding={50}
     >
       {/* Name and Address */}
       <View>
@@ -156,7 +156,6 @@ No pets / No smoking inside the unit`
       <View className='flex-row flex-wrap justify-between mt-5'>
         <View className='w-1/2 mb-5'>
           <PerkItem 
-            perkId={''}
             customIcon={IconHome} 
             customText={unitDetails.type}   
             iconColor={COLORS.mediumGrey}         
@@ -165,7 +164,6 @@ No pets / No smoking inside the unit`
 
         <View className='w-1/2 mb-5'>
           <PerkItem 
-            perkId=''
             customIcon={IconBath} 
             customText={`${unitDetails.bathrooms} Bathrooms`}            
             iconColor={COLORS.mediumGrey}
@@ -174,7 +172,6 @@ No pets / No smoking inside the unit`
 
         <View className='w-1/2 mb-5'>
           <PerkItem 
-            perkId=''
             customIcon={IconBed} 
             customText={`${unitDetails.bedrooms} Bedrooms`}            
             iconColor={COLORS.mediumGrey}
@@ -183,7 +180,6 @@ No pets / No smoking inside the unit`
 
         <View className='w-1/2 mb-5'>
           <PerkItem 
-            perkId=''
             customIcon={IconMaximize} 
             customText={`${unitDetails.floorAreaSQM} sqm`}            
             iconColor={COLORS.mediumGrey}
@@ -192,7 +188,6 @@ No pets / No smoking inside the unit`
 
         <View className='w-1/2 mb-5'>
           <PerkItem 
-            perkId=''
             customIcon={IconCar} 
             customText={unitDetails.parking}    
             iconColor={COLORS.mediumGrey}        

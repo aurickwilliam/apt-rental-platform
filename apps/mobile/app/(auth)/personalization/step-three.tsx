@@ -1,9 +1,9 @@
-import { Text, Pressable, View } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from 'expo-router';
+import { useState } from "react";
 
 import ScreenWrapper from "../../../components/layout/ScreenWrapper";
 import PillButton from "../../../components/buttons/PillButton";
-import { useState } from "react";
 import BedroomRadioButton from "../../../components/buttons/BedroomRadioButton";
 
 export default function StepThree() {
@@ -39,46 +39,48 @@ export default function StepThree() {
 
   return (
     <ScreenWrapper className="p-5">
-      {/* Skip Button*/}
-      <Pressable onPress={handleSkip}>
-        <Text className="text-grey-300 text-base font-inter">
-          Skip
-        </Text>
-      </Pressable>
+      <View className="flex-1 justify-between">
+        <View>
+          {/* Skip Button*/}
+          <TouchableOpacity 
+            onPress={handleSkip}
+            activeOpacity={0.7}
+          >
+            <Text className="text-grey-300 text-base font-inter">
+              Skip
+            </Text>
+          </TouchableOpacity>
 
-      {/* Question and Descriptio */}
-      <View className="flex gap-3 my-5">
-        {/* Question */}
-        <Text className="text-secondary text-3xl font-dmserif">
-          How many bedrooms are you looking for?
-        </Text>
+          {/* Question and Description */}
+          <View className="flex gap-3 my-5">
+            {/* Question */}
+            <Text className="text-secondary text-3xl font-dmserif">
+              How many bedrooms are you looking for?
+            </Text>
 
-        {/* Description */}
-        <Text className="text-text text-lg font-inter">
-          Select the number of bedrooms you prefer so we can filter properties
-          that fit your needs.
-        </Text>
-      </View>
+            {/* Description */}
+            <Text className="text-text text-lg font-inter">
+              Select the number of bedrooms you prefer so we can filter properties
+              that fit your needs.
+            </Text>
+          </View>
 
-      {/* Bedroom Radio Buttons */}
-      <View className="flex-row flex-wrap justify-between">
-        {
-          selectedBedroomCount.map((bedroom, index) => (
-            <BedroomRadioButton
-              key={index}
-              bedRoomLabel={bedroom.bedRoomLabel}
-              selected={bedroom.isSelected}
-              onPress={() => toggleBedroomByIndex(index)}
-            />
-          ))
-        }
-      </View>
+          {/* Bedroom Radio Buttons */}
+          <View className="flex-row flex-wrap justify-between">
+            {
+              selectedBedroomCount.map((bedroom, index) => (
+                <BedroomRadioButton
+                  key={index}
+                  bedRoomLabel={bedroom.bedRoomLabel}
+                  selected={bedroom.isSelected}
+                  onPress={() => toggleBedroomByIndex(index)}
+                />
+              ))
+            }
+          </View>
+        </View>
 
-      {/* Spacer */}
-      <View className="flex-1" />
-
-      {/* Next Button*/}
-      <View className="mb-8">
+        {/* Next Button*/}
         <PillButton
           label={"Let's find your place!"}
           onPress={handleNext}

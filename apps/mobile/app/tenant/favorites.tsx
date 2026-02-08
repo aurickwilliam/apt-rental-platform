@@ -33,12 +33,12 @@ export default function TenantFavorites() {
       {
         viewMode === 'grid'
         ? (
-          <IconLayoutGrid 
+          <IconLayoutList 
             size={24}
             color={COLORS.white}
           />
         ) : (
-          <IconLayoutList 
+          <IconLayoutGrid
             size={24}
             color={COLORS.white}
           />
@@ -57,9 +57,8 @@ export default function TenantFavorites() {
           rightComponent={ToggleFavoritesView}
         />
       }
-      headerBackgroundColor={COLORS.primary}
       backgroundColor={COLORS.darkerWhite}
-      hasBottomPadding
+      bottomPadding={50}
     >
       <View className='flex-row flex-wrap gap-y-3'>
         <ApartmentCard
@@ -79,11 +78,11 @@ export default function TenantFavorites() {
           isGrid={viewMode === 'grid'}
         />
         <ApartmentCard 
-          id={2}
+          id={3}
           isGrid={viewMode === 'grid'}
         />
         <ApartmentCard 
-          id={2}
+          id={4}
           isGrid={viewMode === 'grid'}
         />
       </View>

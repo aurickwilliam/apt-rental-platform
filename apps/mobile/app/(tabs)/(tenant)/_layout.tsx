@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import { Gesture, GestureHandlerRootView } from 'react-native-gesture-handler'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { TabBar } from '../../../components/layout/TabBar'
 
@@ -21,6 +21,5 @@ export default function TenantTabLayout() {
         </Tabs>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
-    
   )
 }

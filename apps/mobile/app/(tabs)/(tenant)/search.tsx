@@ -105,9 +105,9 @@ export default function Search() {
   return (
     <ScreenWrapper
       scrollable
-      hasInput
       className='py-5'
       backgroundColor={COLORS.darkerWhite}
+      bottomPadding={50}
     >
       <View className='flex-row items-center justify-between mb-6 px-5'>
         <View className='flex-row gap-2'>

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, useWindowDimensions } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -15,14 +15,23 @@ import {
 import TextBox from 'components/inputs/TextBox'
 import PillButton from 'components/buttons/PillButton'
 
-export default function RequestVisit() {
-  const { height, width } = useWindowDimensions();
+type VisitDetails = {
+  date: Date | null;
+  time: string;
+  dayPeriod: string;
+  noVisitors: number;
+  notes: string;
+}
 
-  const [date, setDate] = useState<Date | null>(null);
-  const [time, setTime] = useState('12:00');
-  const [dayPeriod, setDayPeriod] = useState('AM');
-  const [noVisitors, setNoVisitors] = useState<number>(1);
-  const [notes, setNotes] = useState<string>('');
+export default function RequestVisit() {
+
+  const [visitDetails, setVisitDetails] = useState<VisitDetails>({
+    date: null,
+    time: '',
+    dayPeriod: 'AM',
+    noVisitors: 1,
+    notes: '',
+  });
 
   // Dropdown Options
   const timeOptions = [
@@ -44,12 +53,12 @@ export default function RequestVisit() {
 
   // Handlers for incrementing/decrementing number of visitors
   const incrementVisitors = () => {
-    setNoVisitors(prev => prev + 1);
+    setVisitDetails(prev => ({ ...prev, noVisitors: prev.noVisitors + 1 }));
   }
 
   const decrementVisitors = () => {
     // Minimum of 1 visitor allowed
-    setNoVisitors(prev => (prev > 1 ? prev - 1 : 1));
+    setVisitDetails(prev => ({ ...prev, noVisitors: prev.noVisitors > 1 ? prev.noVisitors - 1 : 1 }));
   }
 
   // Handle Submit Request Visit Form
@@ -61,107 +70,103 @@ export default function RequestVisit() {
   return (
     <ScreenWrapper
       scrollable
-      hasInput
       header={
         <StandardHeader title='Request a Visit'/>
       }
-      headerBackgroundColor={COLORS.primary}
       className='p-5'
     >
-      <View
-        style={{ minHeight: height - 175}}
-      >
-        {/* Description */}
-        <View>
-          <Text className='text-text text-base font-inter'>
-            Choose your preferred date and time to schedule a visit. 
-            The landlord will confirm your request as soon as possible.
-          </Text>
-        </View>
-
-        {/* Form Input */}
-        <View className='flex-1 gap-5 mt-8'>
-          {/* Date */}
-          <DateTimeField
-            label='Preferred Visit Date:'
-            value={date}
-            onChange={setDate}
-            placeholder='Select date...'
-            required
-          />
-
-          {/* Time */}
-          <View className='flex-row items-center gap-3'>
-            <Text className='text-text text-base font-interMedium'>
-              Preferred Visit Time:
+      <View className='flex-1 justify-between'>
+        <View className='flex-1'>
+          {/* Description */}
+          <View>
+            <Text className='text-text text-base font-inter'>
+              Choose your preferred date and time to schedule a visit. 
+              The landlord will confirm your request as soon as possible.
             </Text>
-
-            <DropdownButton 
-              bottomSheetLabel={'Select Time'} 
-              options={timeOptions} 
-              onSelect={(value) => setTime(value)}         
-              value={time}   
-            />
-
-            <DropdownButton
-              bottomSheetLabel={'Select AM/PM'}
-              options={dayPeriodOptions}
-              onSelect={(value) => setDayPeriod(value)}
-              value={dayPeriod}
-            />
           </View>
 
-          {/* Number of Visitors */}
-          <View className='flex-row items-center gap-5'>
-            <Text className='text-text text-base font-interMedium'>
-              Number of Visitors:
-            </Text>
+          {/* Form Input */}
+          <View className='flex-1 gap-5 mt-8'>
+            {/* Date */}
+            <DateTimeField
+              label='Preferred Visit Date:'
+              value={visitDetails.date}
+              onChange={(date) => setVisitDetails(prev => ({ ...prev, date }))}
+              placeholder='Select date...'
+              required
+            />
 
-            <View className='flex-row items-center gap-5'>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={incrementVisitors}
-              >   
-                <IconCirclePlus 
-                  size={30} 
-                  color={COLORS.grey} 
-                />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>
-                {noVisitors}
+            {/* Time */}
+            <View className='flex-row items-center gap-3'>
+              <Text className='text-text text-base font-interMedium'>
+                Preferred Visit Time:
               </Text>
 
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={decrementVisitors}
-              >
-                <IconCircleMinus 
-                  size={30} 
-                  color={COLORS.grey} 
-                />
-              </TouchableOpacity>
+              <DropdownButton 
+                bottomSheetLabel={'Select Time'} 
+                options={timeOptions} 
+                onSelect={(value) => setVisitDetails(prev => ({ ...prev, time: value }))}          
+                value={visitDetails.time}   
+              />
 
+              <DropdownButton
+                bottomSheetLabel={'Select AM/PM'}
+                options={dayPeriodOptions}
+                onSelect={(value) => setVisitDetails(prev => ({ ...prev, dayPeriod: value }))}
+                value={visitDetails.dayPeriod}
+              />
+            </View>
+
+            {/* Number of Visitors */}
+            <View className='flex-row items-center gap-5'>
+              <Text className='text-text text-base font-interMedium'>
+                Number of Visitors:
+              </Text>
+
+              <View className='flex-row items-center gap-5'>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={incrementVisitors}
+                >   
+                  <IconCirclePlus 
+                    size={30} 
+                    color={COLORS.grey} 
+                  />
+                </TouchableOpacity>
+
+                <Text className='text-text text-xl font-interMedium'>
+                  {visitDetails.noVisitors}
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={decrementVisitors}
+                >
+                  <IconCircleMinus 
+                    size={30} 
+                    color={COLORS.grey} 
+                  />
+                </TouchableOpacity>
+
+              </View>
+            </View>
+
+            {/* Notes Text Box */}
+            <View className='pb-24'>
+              <TextBox 
+                label='Additional Notes (Optional):'
+                placeholder='Any specific questions or requests for the landlord?'
+                value={visitDetails.notes}
+                onChangeText={(notes) => setVisitDetails(prev => ({ ...prev, notes }))}
+              />
             </View>
           </View>
-
-          {/* Notes Text Box */}
-          <View className='pb-24'>
-            <TextBox 
-              label='Additional Notes (Optional):'
-              placeholder='Any specific questions or requests for the landlord?'
-              value={notes}
-              onChangeText={setNotes}
-            />
-          </View>
         </View>
 
-        <View className='mt-20'>
-          <PillButton 
-            label={'Request Visit'}  
-            onPress={handleSubmitRequestVisit}        
-          />
-        </View>
+        <PillButton 
+          label={'Request Visit'}  
+          onPress={handleSubmitRequestVisit}        
+        />
       </View>
     </ScreenWrapper>
   )

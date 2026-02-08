@@ -1,6 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 
-import { IMAGES } from "../../constants/images";
+import { DEFAULT_IMAGES } from "../../constants/images";
+import { COLORS } from "constants/colors";
 
 import {
   IconMail,
@@ -9,8 +10,8 @@ import {
   IconStarFilled,
   IconHomeFilled,
 } from '@tabler/icons-react-native';
+
 import PillButton from "components/buttons/PillButton";
-import { COLORS } from "constants/colors";
 
 interface LandlordCardProps {
   fullName: string;
@@ -45,7 +46,7 @@ export default function LandlordCard({
         {/* Profile Picture */}
         <View className="w-36 h-36 rounded-xl overflow-hidden border border-grey-300">
           <Image
-            source={profilePictureUrl ? { uri: profilePictureUrl } : IMAGES.defaultProfilePicture}
+            source={profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture}
             style={{ width: '100%', height: '100%' }}
           />
         </View>

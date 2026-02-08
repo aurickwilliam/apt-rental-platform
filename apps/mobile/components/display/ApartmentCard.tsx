@@ -1,6 +1,6 @@
 import {View, Text, Image, TouchableOpacity, useWindowDimensions} from 'react-native'
 
-import { IMAGES } from "../../constants/images";
+import { DEFAULT_IMAGES } from "../../constants/images";
 import { COLORS } from "../../constants/colors";
 
 import {
@@ -42,7 +42,7 @@ export default function ApartmentCard({
         {/* Thumbnail Image */}
         <View className='aspect-square overflow-hidden rounded-2xl'>
           <Image
-            source={thumbnail ? thumbnail : IMAGES.defaultThumbnail}
+            source={thumbnail ? thumbnail : DEFAULT_IMAGES.defaultThumbnail}
             style={{height: '100%', width: '100%'}}
           />
         </View>
