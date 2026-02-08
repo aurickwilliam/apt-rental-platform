@@ -25,7 +25,7 @@ export default function ViewLease() {
     >
       <TouchableOpacity 
         activeOpacity={0.7}
-        className='w-full h-[70%] border border-grey-300 rounded-2xl'
+        className='w-full h-[80%] border border-grey-300 rounded-2xl'
         onPress={() => setIsVisible(true)}
       >
         <Image 
