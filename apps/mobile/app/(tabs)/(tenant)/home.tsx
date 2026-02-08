@@ -72,7 +72,11 @@ export default function Home() {
   }
 
   return (
-    <ScreenWrapper scrollable className='p-5'>
+    <ScreenWrapper 
+      scrollable 
+      className='p-5'
+      bottomPadding={50}
+    >
 
       {/* Header */}
       <View className='flex-row items-center justify-between'>
