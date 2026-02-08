@@ -142,6 +142,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/apartment/${apartmentId}/included-perks`);
   }
 
+  const handleLeaseAgreementNavigation = () => {
+    router.push(`/apartment/${apartmentId}/view-lease`);
+  }
+
   const handleViewFullImage = (index: number) => {
     setImageIndex(index);
     setIsImageViewVisible(true);
@@ -493,6 +497,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             label='View Full Lease Agreement'
             type='outline'
             size='sm'
+            onPress={handleLeaseAgreementNavigation}
           />
         </View>
 
