@@ -69,10 +69,10 @@ export default function Profile() {
       showsVerticalScrollIndicator={false}
       className='bg-darkerWhite flex-1'
     >
-      <View className='relative h-[28rem]'>
+      <View className='relative h-[24rem]'>
         {/* Background Photo */}
         <View 
-          className='w-full h-72' 
+          className='w-full h-60' 
           style={{ backgroundColor: backgroundColor }}
         >
           {
@@ -88,7 +88,7 @@ export default function Profile() {
         {/* Profile Picture */}
         <View 
           className='absolute bottom-0 
-            left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2'
+            left-1/2 top-[50%] -translate-x-1/2 -translate-y-1/2'
         >
           <View 
             className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5'

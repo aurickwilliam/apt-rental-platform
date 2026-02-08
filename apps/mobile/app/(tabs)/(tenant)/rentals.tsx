@@ -29,7 +29,11 @@ export default function Rentals() {
   }
 
   return (
-    <ScreenWrapper scrollable className='p-5'>
+    <ScreenWrapper 
+      scrollable 
+      className='p-5'
+      bottomPadding={50}
+    >
       <View className='flex-row items-center justify-start gap-2'>
         <IconMapPinFilled
           size={34}
