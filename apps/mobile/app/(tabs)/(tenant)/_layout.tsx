@@ -21,6 +21,5 @@ export default function TenantTabLayout() {
         </Tabs>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
-    
   )
 }

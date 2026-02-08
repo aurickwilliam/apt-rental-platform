@@ -1,11 +1,9 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import PerkItem from 'components/display/PerkItem'
-
-import { COLORS } from '../../../constants/colors'
 
 export default function IncludedPerks() {
   const { apartmentId } = useLocalSearchParams();
@@ -30,8 +28,8 @@ export default function IncludedPerks() {
       header={
         <StandardHeader title='Included Perks' />
       }
-      headerBackgroundColor={COLORS.primary}
       className='p-5'
+      bottomPadding={50}
     >
       <View className='flex items-start gap-3'>
         {includedPerks.map(perkId => (

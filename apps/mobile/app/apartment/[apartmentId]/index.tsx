@@ -139,13 +139,15 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/apartment/${apartmentId}/included-perks`);
   }
 
+  const handleViewFullImage = (index: number) => {
+    console.log(`View Full Image at index ${index} Pressed!`);
+  }
+
   return (
     <View className='flex-1'>
-      <ScreenWrapper
+      <ScreenWrapper 
         scrollable
-        backgroundColor={COLORS.white}
-        safeAreaEdges={['left', 'right']}
-        hasBottomPadding
+        bottomPadding={100}
       >
         <View className='h-[42rem] bg-white relative'>
           {/* Image Carousel */}
@@ -160,15 +162,17 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             {/* Render Individual Images */}
             {
               apartmentImages.map((item) => (
-                <View
+                <TouchableOpacity
+                  activeOpacity={0.9}
                   className='w-screen h-full'
                   key={item.id}
+                  onPress={() => handleViewFullImage(item.id)}
                 >
                   <Image
                     source={item.image}
                     style={{height: '100%', width:  '100%'}}
                   />
-                </View>
+                </TouchableOpacity>
               ))
             }
           </ScrollView>
@@ -529,7 +533,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
       {/* Fixed Icon Buttons */}
       <SafeAreaView 
-        className='absolute left-4'
+        className='absolute left-4 top-5'
         edges={['top']}
       >
         <IconButton
@@ -542,7 +546,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
       {/* Favorite Button */}
       <SafeAreaView
-        className='absolute right-4'
+        className='absolute right-4 top-5'
         edges={['top']}
       >
         <IconButton

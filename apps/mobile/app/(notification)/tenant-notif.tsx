@@ -6,8 +6,6 @@ import StandardHeader from '../../components/layout/StandardHeader'
 import NotificationCard from '../../components/display/NotificationCard';
 import DropdownButton from '../../components/buttons/DropdownButton';
 
-import { COLORS } from "../../constants/colors";
-
 export default function TenantNotification() {
 
   type FilterType = 'All' | 'Payment' | 'Message' | 'Maintenance' | 'Apartment' | 'System';
@@ -18,11 +16,8 @@ export default function TenantNotification() {
       scrollable
       className='p-5'
       header={
-        <StandardHeader 
-          title='Notification'
-        />
+        <StandardHeader title='Notification'/>
       }
-      headerBackgroundColor={COLORS.primary}
     >
       {/* Filter Type Button */}
       <DropdownButton 

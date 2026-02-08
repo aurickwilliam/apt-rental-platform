@@ -15,6 +15,7 @@ interface ScreenWrapperProps {
   className?: string;
   backgroundColor?: string;
   header?: ReactNode;
+  footer?: ReactNode;
   scrollable?: boolean;
   bottomPadding?: number;
 }
@@ -24,6 +25,7 @@ export default function ScreenWrapper({
   className = "",
   backgroundColor = COLORS.white,
   header,
+  footer,
   scrollable = false,
   bottomPadding = 0,
 }: ScreenWrapperProps) {
@@ -41,14 +43,14 @@ export default function ScreenWrapper({
   return (
     <View style={{ flex: 1, backgroundColor }}>
       {header && (
-        <View style={{ paddingTop: insets.top }} className="px-4 pb-4">
+        <View style={{ paddingTop: insets.top }}>
           {header}
         </View>
       )}
 
       {scrollable ? (
         <KeyboardAwareScrollView
-          extraHeight={Platform.OS === 'ios' ? 50 : 200}
+          extraHeight={Platform.OS === 'ios' ? 50 : 100}
           enableOnAndroid={true}
           enableAutomaticScroll={true}
           extraScrollHeight={Platform.OS === "ios" ? 50 : 80}
@@ -58,11 +60,11 @@ export default function ScreenWrapper({
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: paddingTop,
-            paddingBottom: bottomPadding + (insets.bottom || 20),
+            paddingBottom: footer ? 0 : bottomPadding + (insets.bottom || 20),
           }}
         >
           <WrapWithDismiss>
-            <View className={`flex-1 ${className}`}>
+            <View className={`flex-1 relative ${className}`}>
               {children}
             </View>
           </WrapWithDismiss>
@@ -76,11 +78,17 @@ export default function ScreenWrapper({
               paddingBottom: insets.bottom,
             }}
           >
-            <View className={`flex-1 ${className}`}>
+            <View className={`flex-1 relative ${className}`}>
               {children}
             </View>
           </View>
         </WrapWithDismiss>
+      )}
+
+      {footer && (
+        <View style={{ paddingBottom: insets.bottom }}>
+          {footer}
+        </View>
       )}
     </View>
   );
