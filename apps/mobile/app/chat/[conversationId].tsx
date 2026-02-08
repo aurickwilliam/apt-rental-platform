@@ -112,7 +112,7 @@ export default function ChatScreen() {
         behavior={'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 100}
       >
-        <View className='bg-red-200 flex items-center justify-center py-3'>
+        <View className='bg-white flex items-center justify-center py-3'>
           <ChatBox 
             chatValue={chatMessage}
             onChatValueChange={setChatMessage}

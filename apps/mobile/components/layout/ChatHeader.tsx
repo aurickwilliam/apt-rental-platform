@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from "expo-router";
 
 import { COLORS } from "constants/colors";
-import { IMAGES } from "constants/images";
+import { DEFAULT_IMAGES } from "constants/images";
 
 import {
   IconChevronLeft,
@@ -52,7 +52,7 @@ export default function ChatHeader({
       <View className="flex-1 flex-row items-center justify-start ml-2">
         <View className="size-12 overflow-hidden rounded-full mr-3 border border-secondary">
           <Image 
-            source={profilePicture ? { uri: profilePicture } : IMAGES.defaultProfilePicture}
+            source={profilePicture ? { uri: profilePicture } : DEFAULT_IMAGES.defaultProfilePicture}
             style={{
               width: '100%',
               height: '100%',

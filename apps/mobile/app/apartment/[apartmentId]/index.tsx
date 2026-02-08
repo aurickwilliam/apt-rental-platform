@@ -149,9 +149,6 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   const handleViewFullImage = (index: number) => {
     setImageIndex(index);
     setIsImageViewVisible(true);
-    console.log('====================================');
-    console.log(imageIndex);
-    console.log('====================================');
   }
 
   return (
