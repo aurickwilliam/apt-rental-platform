@@ -4,7 +4,8 @@ import { COLORS } from 'constants/colors'
 import { PERKS } from 'constants/perks';
 
 import {
-  IconProps
+  IconProps,
+  IconQuestionMark
 } from '@tabler/icons-react-native';
 
 type BasePerkItemProps = {
@@ -26,9 +27,9 @@ export default function PerkItem({
 }: PerkItemProps) {
   const perk = 'perkId' in props && props.perkId ? PERKS[props.perkId] : undefined;
 
-  // Icon
-  const Icon = ('customIcon' in props ? props.customIcon : undefined) || perk?.icon;
-  const text = ('customText' in props ? props.customText : undefined) || perk?.name;
+  // Icon and text with fallbacks
+  const Icon = ('customIcon' in props ? props.customIcon : undefined) || perk?.icon || IconQuestionMark;
+  const text = ('customText' in props ? props.customText : undefined) || perk?.name || 'Unknown perk';
 
   return (
     <View className='flex-row items-center gap-3'>
