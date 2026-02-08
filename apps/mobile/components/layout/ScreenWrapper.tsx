@@ -70,13 +70,15 @@ export default function ScreenWrapper({
       ) : (
         <WrapWithDismiss>
           <View
-            className={`flex-1 ${className}`}
             style={{
+              flex: 1,
               paddingTop: paddingTop,
-              paddingBottom: insets.bottom
+              paddingBottom: insets.bottom,
             }}
           >
-            {children}
+            <View className={`flex-1 ${className}`}>
+              {children}
+            </View>
           </View>
         </WrapWithDismiss>
       )}
