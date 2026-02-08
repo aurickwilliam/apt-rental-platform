@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 
-import { IMAGES } from '../../constants/images'
+import { DEFAULT_IMAGES } from '../../constants/images'
 
 interface MessageCardProps {
   name: string;
@@ -22,7 +22,7 @@ export default function MessageCard({
   onPress
 }: MessageCardProps) {
 
-  const profilePicture = profilePictureUrl ? { uri: profilePictureUrl } : IMAGES.defaultProfilePicture;
+  const profilePicture = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
 
   // TODO: Implement a function to return a timestamp relative to the current time
   // e.g., "2 hours ago", "Yesterday", etc.

@@ -74,8 +74,8 @@ export default function RatingsPage() {
       header={
         <StandardHeader title="Ratings & Reviews" />
       }
-      headerBackgroundColor={COLORS.primary}
       className='p-5'
+      bottomPadding={50}
     >
       {/* Overall Rating */}
       <View className='flex items-center justify-center'>

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Image } from 'react-native'
 
 import { COLORS } from "../../../constants/colors";
-import { IMAGES } from '../../../constants/images';
+import { SAMPLE_IMAGES } from '../../../constants/images';
 
 import {
   IconId,
@@ -22,8 +22,8 @@ import SettingOptionButton from 'components/buttons/SettingOptionButton';
 export default function Profile() {
 
   // Change this to fetch user's photo
-  const backgroundPhotoUri = IMAGES.sampleBackgroundPhoto;
-  const profilePhotoUri = IMAGES.sampleProfilePicture;
+  const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
+  const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
 
   // Change of Status
   const accountStatus = 'verified' as 'verified' | 'pending' | 'rejected'; 
@@ -69,10 +69,10 @@ export default function Profile() {
       showsVerticalScrollIndicator={false}
       className='bg-darkerWhite flex-1'
     >
-      <View className='relative h-[28rem]'>
+      <View className='relative h-[24rem]'>
         {/* Background Photo */}
         <View 
-          className='w-full h-72' 
+          className='w-full h-60' 
           style={{ backgroundColor: backgroundColor }}
         >
           {
@@ -88,7 +88,7 @@ export default function Profile() {
         {/* Profile Picture */}
         <View 
           className='absolute bottom-0 
-            left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2'
+            left-1/2 top-[50%] -translate-x-1/2 -translate-y-1/2'
         >
           <View 
             className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5'

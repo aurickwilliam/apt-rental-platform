@@ -40,7 +40,6 @@ export default function MapView() {
       header={
         <StandardHeader title="Apartment Map View"/>
       }
-      headerBackgroundColor={COLORS.primary}
     >
       {/* Apartment Name and Address */}
       <View className='flex-row items-center justify-between bg-white p-5 gap-1'>

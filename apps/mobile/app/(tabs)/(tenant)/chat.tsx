@@ -50,9 +50,9 @@ export default function Chat() {
   return (
     <ScreenWrapper 
       scrollable 
-      hasInput
       className='p-5'
       backgroundColor={COLORS.darkerWhite}
+      bottomPadding={50}
     >
       {/* Title Messages */}
       <Text className='text-primary text-5xl font-dmserif leading-[54px]'>

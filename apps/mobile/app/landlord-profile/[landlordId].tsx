@@ -4,7 +4,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
 import { COLORS } from '../../constants/colors'
-import { IMAGES } from '../../constants/images'
+import { SAMPLE_IMAGES } from '../../constants/images'
 
 import {
   IconRosetteDiscountCheckFilled,
@@ -16,8 +16,8 @@ import ApartmentCard from 'components/display/ApartmentCard'
 
 export default function LandlordProfile() {
   // Change this to fetch user's photo
-  const backgroundPhotoUri = IMAGES.sampleBackgroundPhoto;
-  const profilePhotoUri = IMAGES.sampleProfilePicture;
+  const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
+  const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
   
   // Dummy data for now of Landlord
   const landlordData = {
@@ -56,7 +56,7 @@ export default function LandlordProfile() {
     {
       id: 3,
       name: 'Apartment 3',
-      monthlyRent: 1500,
+      monthlyRent: 1500, 
       location: 'Navotas',
       noBedroom: 4,
       noBathroom: 3,
@@ -83,7 +83,6 @@ export default function LandlordProfile() {
       header={
         <StandardHeader title="Landlord Profile" />
       }
-      headerBackgroundColor={COLORS.primary}
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header Information */}

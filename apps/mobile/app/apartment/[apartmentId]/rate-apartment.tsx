@@ -104,11 +104,9 @@ export default function RateApartment() {
   return (
     <ScreenWrapper
       scrollable
-      hasInput
       header={
         <StandardHeader title="Rate Apartment" />
       }
-      headerBackgroundColor={COLORS.primary}
     >
       {/* Apartment Thumbnail */}
       <View className='w-full h-[15rem]'>
