@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -20,6 +21,8 @@ import {
 } from '@tabler/icons-react-native';
 
 export default function CurrentApartmentDetails() {
+  const router = useRouter();
+
 
   // Dummy data for illustration; replace with actual data fetching logic
   const apartmentDetails = {
@@ -66,7 +69,7 @@ No pets / No smoking inside the unit`
   const formattedMonthlyRent = formatCurrency(apartmentDetails.monthlyRent);
 
   const handleViewLeaseAgreement = () => {
-    // Navigate to or display the lease agreement
+    router.push('/tenant/current-lease');
   }
 
   return (
