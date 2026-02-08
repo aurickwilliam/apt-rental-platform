@@ -60,7 +60,7 @@ export default function ScreenWrapper({
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: paddingTop,
-            paddingBottom: footer ? 0 : bottomPadding + (insets.bottom || 20),
+            paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
           }}
         >
           <WrapWithDismiss>
@@ -75,7 +75,7 @@ export default function ScreenWrapper({
             style={{
               flex: 1,
               paddingTop: paddingTop,
-              paddingBottom: insets.bottom,
+              paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
             }}
           >
             <View className={`flex-1 relative ${className}`}>
