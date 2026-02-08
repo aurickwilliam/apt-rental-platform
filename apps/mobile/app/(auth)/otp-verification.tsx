@@ -1,13 +1,15 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, TouchableOpacity } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
+import { TextInput } from 'react-native-gesture-handler'
 
-import Ionicons from '@expo/vector-icons/build/Ionicons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from '../../components/layout/ScreenWrapper'
 import PillButton from '../../components/buttons/PillButton'
+
 import { COLORS } from '../../constants/colors'
-import { TextInput } from 'react-native-gesture-handler'
+
+import { IconChevronLeft } from '@tabler/icons-react-native'
 
 export default function OTPVerification() {
   const router = useRouter();
@@ -60,24 +62,27 @@ export default function OTPVerification() {
     setOtp(['', '', '', '']);
     inputRefs.current[0].focus();
 
-    // TODO: Implement resend OTP to Email functionality
+    // TODO: Implement resend OTP to Mobile Number functionality
   }
 
   const handleVerify = () => {
+    // TODO: Verify the OTP with backend API
     console.log("OTP Verified");
     router.replace("/personalization/step-one");
   }
 
   return (
-    <ScreenWrapper
-      className='p-5'
-    >
+    <ScreenWrapper className='p-5'>
       <View className='flex-1 justify-between'>
         <View>
           {/* Back button */}
-          <Pressable className="mb-3" onPress={router.back}>
-            <Ionicons name="arrow-back" size={30} color={COLORS.text} />
-          </Pressable>
+          <TouchableOpacity 
+            activeOpacity={0.7}
+            className="mb-3" 
+            onPress={router.back}
+          >
+            <IconChevronLeft size={30} color={COLORS.text} />
+          </TouchableOpacity>
 
           {/* Title */}
           <Text className="text-3xl text-text font-poppinsSemiBold my-5">
@@ -86,7 +91,7 @@ export default function OTPVerification() {
 
           {/* Description */}
           <Text className="text-lg text-text font-poppinsRegular mb-5">
-            We’ve sent a 4-digit code to your phone number.
+            We&apos;ve sent a 4-digit code to your phone number.
             Please enter the code sent to your number ending in ****-***-{lastFourDigits}.
           </Text>
 
