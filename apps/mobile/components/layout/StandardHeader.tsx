@@ -29,7 +29,7 @@ export default function StandardHeader({
   };
 
   return (
-    <View className="flex-row items-center justify-between mt-4">
+    <View className="flex-row items-center justify-between bg-primary px-4 py-5">
 
       {/* Left Side (Back Button or Empty Spacer) */}
       <View className="w-10 items-start justify-center">

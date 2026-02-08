@@ -74,12 +74,9 @@ No pets / No smoking inside the unit`
       scrollable 
       className='p-5'
       header={
-        <StandardHeader 
-          title="Apartment Details" 
-          showBack 
-        />
+        <StandardHeader title="Apartment Details"/>
       }
-      headerBackgroundColor={COLORS.primary}
+      bottomPadding={50}
     >
       {/* Name and Address */}
       <View>
