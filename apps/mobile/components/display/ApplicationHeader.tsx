@@ -16,9 +16,9 @@ export default function ApplicationHeader({
 }: ApplicationHeaderProps) {
 
   return (
-    <View className='w-full bg-white p-5 flex-row items-center justify-between'>
+    <View className='w-screen bg-white p-5 flex-row items-center justify-between'>
       {/* Title and Next Title */}
-      <View className='flex gap-1'>
+      <View className='flex-1 gap-1'>
         <Text className='text-2xl font-poppinsSemiBold text-text'>
           {currentTitle}
         </Text>
