@@ -10,6 +10,21 @@ import { COLORS } from '../../../../constants/colors'
 import Divider from 'components/display/Divider'
 import DropdownField from 'components/inputs/DropdownField'
 import PillButton from 'components/buttons/PillButton'
+import NumberField from 'components/inputs/NumberField'
+
+type TenantInformation = {
+  fullName: string;
+  contactNumber: string;
+  email: string;
+  dateOfBirth: string;
+  currentAddress: string;
+  occupation: string;
+  companyName: string;
+  monthlyIncome: number;
+  employmentType: string;
+  previousLandlordName: string;
+  previousLandlordContact: string;
+}
 
 export default function FirstProcess() {
   const router = useRouter();
@@ -25,7 +40,7 @@ export default function FirstProcess() {
     currentAddress: '123 Main St, Cityville',
   }
 
-  const [tenantInformation, setTenantInformation] = useState({
+  const [tenantInformation, setTenantInformation] = useState<TenantInformation>({
     fullName: tenantInfo.fullName,
     contactNumber: tenantInfo.contactNumber,
     email: tenantInfo.email,
@@ -34,7 +49,7 @@ export default function FirstProcess() {
 
     occupation: '',
     companyName: '',
-    monthlyIncome: '',
+    monthlyIncome: 0,
     employmentType: '',
 
     previousLandlordName: '',
@@ -42,7 +57,7 @@ export default function FirstProcess() {
   })
 
   // Function to update tenant information
-  const updateTenantInformation = (field: string, value: string) => {
+  const updateTenantInformation = (field: keyof TenantInformation, value: string | number) => {
     setTenantInformation(prev => ({
       ...prev,
       [field]: value,
@@ -131,11 +146,11 @@ export default function FirstProcess() {
             onChangeText={(text) => updateTenantInformation('companyName', text)}
           />
           {/* Monthly Income */}
-          <TextField
+          <NumberField
             label="Monthly Income"
             placeholder='Enter your monthly income'
-            value={tenantInformation.monthlyIncome}
-            onChangeText={(text) => updateTenantInformation('monthlyIncome', text)}
+            value={tenantInformation.monthlyIncome.toString()}
+            onChange={(value) => updateTenantInformation('monthlyIncome', parseInt(value))}
             required
           />
           {/* Employment Type */}
