@@ -64,7 +64,7 @@ export default function NumberField({
       {/* Label Text */}
       {
         label &&
-        <Text className='text-md text-text font-interMedium'>
+        <Text className='text-base text-text font-interMedium'>
           {label} {required && <Text className='text-redHead-200'>*</Text>}
         </Text>
       }
@@ -101,7 +101,7 @@ export default function NumberField({
       {/* Error Message */}
       {
         error &&
-        <Text className='text-md text-redHead-200 font-inter mt-1'>
+        <Text className='text-base text-redHead-200 font-inter mt-1'>
           {error}
         </Text>
       }
