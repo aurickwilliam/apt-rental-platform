@@ -7,11 +7,15 @@ import {
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '../../constants/colors';
+import CustomSwitch from './CustomSwitch';
 
 interface SettingOptionButtonProps {
   label: string;
   iconName?: React.ComponentType<IconProps>; 
   onPress?: () => void;
+  hasToggle?: boolean; 
+  toggleValue?: boolean;
+  onToggleChange?: (value: boolean) => void;
 }
 
 // TODO: Add option for a toggle switch or arrow icon
@@ -19,10 +23,19 @@ interface SettingOptionButtonProps {
 export default function SettingOptionButton({
   label,  
   iconName,
-  onPress
+  onPress,
+  hasToggle = false,
+  toggleValue = false,
+  onToggleChange,
 }: SettingOptionButtonProps) {
 
   const Icon = iconName || IconPlus;
+
+  const handleToggle = () => {
+    if (onToggleChange) {
+      onToggleChange(!toggleValue);
+    }
+  };
 
   return (
     <TouchableOpacity 
@@ -37,10 +50,21 @@ export default function SettingOptionButton({
       <Text className='text-text text-lg font-interMedium flex-1'>
         {label}
       </Text>
-      <IconChevronRight 
-        size={24}
-        color={COLORS.mediumGrey}
-      />
+      {
+        hasToggle ? (
+          <CustomSwitch 
+            value={toggleValue} 
+            onValueChange={handleToggle}
+            activeColor={COLORS.secondary}
+            inactiveColor={COLORS.lightLightLightGrey}
+          />
+        ) : (
+          <IconChevronRight 
+            size={24}
+            color={COLORS.mediumGrey}
+          />
+        )
+      }
     </TouchableOpacity>
   )
 }

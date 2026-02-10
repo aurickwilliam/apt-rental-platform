@@ -11,11 +11,7 @@ export default function _layout() {
             headerShown: false,
           }}
         >
-          <Stack.Screen name="current-apartment"/>
-          <Stack.Screen name="edit-profile"/>
-          <Stack.Screen name="current-lease"/>
-          <Stack.Screen name="favorites"/>
-          <Stack.Screen name="settings"/>
+         <Stack.Screen name="index"/>
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
