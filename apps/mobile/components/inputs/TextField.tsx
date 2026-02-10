@@ -35,7 +35,7 @@ export default function TextField({
       {/* Label Text */}
       {
         label &&
-        <Text className='text-md text-text font-interMedium'>
+        <Text className='text-base text-text font-interMedium'>
           {label} {required && <Text className='text-redHead-200'>*</Text>}
         </Text>
       }
@@ -94,7 +94,7 @@ export default function TextField({
 
       {/* Error Message */}
       {error && (
-        <Text className='text-redHead-200 text-md font-inter mt-1'>
+        <Text className='text-redHead-200 text-base font-inter mt-1'>
           {error}
         </Text>
       )}

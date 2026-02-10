@@ -119,7 +119,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   }
 
   const handleApplyNow = () => {
-    console.log("Apply Now Button Pressed!");
+    router.push(`/apartment/${apartmentId}/apply/apartment-summary`);
   }
 
   const handleMessageLandlord = () => {
