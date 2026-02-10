@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Image } from 'react-native'
+import { useRouter } from 'expo-router';
 
 import { COLORS } from "../../../constants/colors";
 import { SAMPLE_IMAGES } from '../../../constants/images';
@@ -16,10 +17,12 @@ import {
   IconClock,
   IconCreditCard,
 } from '@tabler/icons-react-native';
+
 import PillButton from 'components/buttons/PillButton';
 import SettingOptionButton from 'components/buttons/SettingOptionButton';
 
 export default function Profile() {
+  const router = useRouter();
 
   // Change this to fetch user's photo
   const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
@@ -183,6 +186,7 @@ export default function Profile() {
         <SettingOptionButton 
           label='Edit Profile'
           iconName={IconUser}
+          onPress={() => router.push('/tenant/edit-profile')}
         />
         <SettingOptionButton 
           label='Document & IDs'

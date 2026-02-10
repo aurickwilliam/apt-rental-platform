@@ -11,6 +11,7 @@ import { COLORS } from '../../constants/colors';
 interface SettingOptionButtonProps {
   label: string;
   iconName?: React.ComponentType<IconProps>; 
+  onPress?: () => void;
 }
 
 // TODO: Add option for a toggle switch or arrow icon
@@ -18,6 +19,7 @@ interface SettingOptionButtonProps {
 export default function SettingOptionButton({
   label,  
   iconName,
+  onPress
 }: SettingOptionButtonProps) {
 
   const Icon = iconName || IconPlus;
@@ -26,6 +28,7 @@ export default function SettingOptionButton({
     <TouchableOpacity 
       activeOpacity={0.7}
       className='bg-white p-4 rounded-xl flex-row items-center justify-between gap-3'
+      onPress={onPress}
     >
       <Icon 
         size={24}
