@@ -19,13 +19,13 @@ import { COLORS } from 'constants/colors';
 interface AccordionItemProps {
   title: string;
   children: React.ReactNode;
-  isFirst?: boolean;
+  isLast?: boolean;
 }
 
 export default function AccordionItem({
   title,
   children,
-  isFirst = false,
+  isLast = false,
 }: AccordionItemProps) {
   const [expanded, setExpanded] = useState(false);
   const rotation = useSharedValue(0);
@@ -59,7 +59,7 @@ export default function AccordionItem({
   });
 
   return (
-    <View className={`border-b border-secondary ${isFirst && 'border-t-0'}`}>
+    <View className={`border-b-2 border-secondary ${isLast && 'border-b-0'}`}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={toggleExpand}
@@ -75,7 +75,7 @@ export default function AccordionItem({
 
       <Animated.View 
         style={[{ 
-          height: 1, 
+          height: 2, 
           backgroundColor: COLORS.secondary, 
           borderRadius: 2 
         }, animatedUnderlineStyle]} 
