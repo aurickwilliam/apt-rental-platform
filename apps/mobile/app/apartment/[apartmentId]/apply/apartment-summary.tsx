@@ -35,7 +35,7 @@ export default function ApartmentSummary() {
   );
 
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   
   // TODO: Fetch apartment details using the apartmentId from the params and replace the dummy data below
   // Dummy Data for apartment images

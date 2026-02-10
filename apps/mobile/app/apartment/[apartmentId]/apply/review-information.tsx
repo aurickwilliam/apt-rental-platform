@@ -12,7 +12,7 @@ import { formatCurrency } from 'utils/formatCurrency'
 
 export default function ReviewInformation() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   // Dummy data of Apartment Information
   const apartmentInfo = {

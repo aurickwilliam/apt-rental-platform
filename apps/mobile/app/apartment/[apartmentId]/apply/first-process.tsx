@@ -28,7 +28,7 @@ type TenantInformation = {
 
 export default function FirstProcess() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   // TODO: Fetch tenant information from API and pre-fill the form if data exists. For now, using dummy data.
   // Dummy Tenant Information
@@ -150,7 +150,7 @@ export default function FirstProcess() {
             label="Monthly Income"
             placeholder='Enter your monthly income'
             value={tenantInformation.monthlyIncome.toString()}
-            onChange={(value) => updateTenantInformation('monthlyIncome', parseInt(value))}
+            onChange={(value) => updateTenantInformation('monthlyIncome', value === '' ? 0 : parseInt(value))}
             required
           />
           {/* Employment Type */}
