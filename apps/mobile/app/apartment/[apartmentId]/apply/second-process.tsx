@@ -24,7 +24,7 @@ type RentalPreferences = {
 
 export default function SecondProcess() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   // Duration options for dropdown
   const durationOptions = [

@@ -59,7 +59,7 @@ export default function AccordionItem({
   });
 
   return (
-    <View className={`border-b-2 border-secondary ${isLast && 'border-b-0'}`}>
+    <View className={`border-b-2 border-secondary ${isLast ? 'border-b-0' : ''}`}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={toggleExpand}

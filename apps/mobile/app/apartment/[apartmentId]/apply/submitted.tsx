@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 
@@ -8,7 +8,6 @@ import PillButton from 'components/buttons/PillButton';
 
 export default function Submitted() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
 
   // Dummy data for now, will be replaced with real data from backend
   const apartmentName = 'The Grand Apartments';

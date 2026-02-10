@@ -11,7 +11,7 @@ import { COLORS } from '../../../../constants/colors'
 
 export default function ThirdProcess() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   return (
     <ScreenWrapper
