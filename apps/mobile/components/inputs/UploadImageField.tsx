@@ -29,6 +29,9 @@ export default function UploadImageField({
   error,
   required,
 }: UploadImageFieldProps) {
+
+  // TODO: implement image upload functionality using expo-image-picker or similar library
+  
   return (
     <View className='w-full flex-col gap-2'>
       {/* Label Text */}

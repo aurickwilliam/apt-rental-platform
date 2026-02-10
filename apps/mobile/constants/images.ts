@@ -3,6 +3,7 @@ export const IMAGES = {
   googleLogo: require("../assets/images/third-party-logos/google.png"),
   facebookLogo: require("../assets/images/third-party-logos/facebook.png"),
   appleLogo: require("../assets/images/third-party-logos/apple.png"),
+  houseCheck: require("../assets/images/house-check.png"),
 };
 
 export const EMPTY_STATE_IMAGES = {

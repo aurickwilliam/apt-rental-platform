@@ -25,6 +25,9 @@ export default function UploadGeneralFileField({
   error,
   required,
 }: UploadGeneralFileFieldProps) {
+
+  // TODO: implement file upload functionality using expo-document-picker or similar library
+
   return (
     <View className='w-full flex-col gap-2'>
       {/* Label Text */}
