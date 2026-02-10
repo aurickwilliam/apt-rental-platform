@@ -5,12 +5,24 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import SettingOptionButton from 'components/buttons/SettingOptionButton'
 
-import { IconChevronRight } from '@tabler/icons-react-native'
+import { 
+  IconChevronRight ,
+  IconKey,
+  IconMail,
+  IconBell,
+  IconMoonStars,
+  IconWorld,
+  IconExclamationCircle,
+  IconQuestionMark,
+  IconFileDescription,
+  IconShieldCheck,
+} from '@tabler/icons-react-native'
 
 import { COLORS } from 'constants/colors'
 
 export default function Index() {
   const [hasNotification, setHasNotification] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
   return (
     <ScreenWrapper
@@ -30,12 +42,70 @@ export default function Index() {
         
         <SettingOptionButton 
           label="Change Password" 
-          iconName={IconChevronRight} 
+          iconName={IconKey} 
+        />
+
+        <SettingOptionButton 
+          label="Change Email" 
+          iconName={IconMail} 
+        />
+      </View>
+      
+      {/* Preferences */}
+      <View className='flex gap-3 mt-5'>
+        <Text className='text-text text-base font-inter'>
+          Preferences
+        </Text>
+        
+        <SettingOptionButton 
+          label="Language & Region" 
+          iconName={IconWorld} 
+        />
+
+        <SettingOptionButton 
+          label="Notifications" 
+          iconName={IconBell} 
           hasToggle
           toggleValue={hasNotification}
           onToggleChange={setHasNotification}
         />
+
+        <SettingOptionButton 
+          label="Dark Mode" 
+          iconName={IconMoonStars} 
+          hasToggle
+          toggleValue={isDarkMode}
+          onToggleChange={setIsDarkMode}
+        />
       </View>
+
+      {/* Help & Support */}
+      <View className='flex gap-3 mt-5'>
+        <Text className='text-text text-base font-inter'>
+          Help & Support
+        </Text>
+        
+        <SettingOptionButton 
+          label="Report a Problem" 
+          iconName={IconExclamationCircle} 
+        />
+
+        <SettingOptionButton 
+          label="FAQs" 
+          iconName={IconQuestionMark} 
+        />
+
+        <SettingOptionButton 
+          label="Terms of Conditions" 
+          iconName={IconFileDescription} 
+        />
+
+        <SettingOptionButton 
+          label="Privacy Policy" 
+          iconName={IconShieldCheck} 
+        />
+      </View>
+
     </ScreenWrapper>
   )
 }
