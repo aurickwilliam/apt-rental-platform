@@ -16,6 +16,7 @@ import {
   IconHeart,
   IconClock,
   IconCreditCard,
+  IconSettings,
 } from '@tabler/icons-react-native';
 
 import PillButton from 'components/buttons/PillButton';
@@ -203,6 +204,11 @@ export default function Profile() {
         <SettingOptionButton
           label='Payment Methods'
           iconName={IconCreditCard}
+        />
+        <SettingOptionButton
+          label='Settings'
+          iconName={IconSettings}
+          onPress={() => router.push('/tenant/settings')}
         />
       </View>
 
