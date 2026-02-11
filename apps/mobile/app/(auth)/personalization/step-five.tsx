@@ -34,7 +34,7 @@ export default function StepFive() {
     hasDisability: false,
   });
 
-  // Numbe of Vehicles options for parking can be generated from 1 to 10
+  // Number of Vehicles options for parking can be generated from 1 to 10
   const parkingOptions = Array.from({ length: 10 }, (_, i) => `${i + 1}`);
   parkingOptions.push("More than 10");
 

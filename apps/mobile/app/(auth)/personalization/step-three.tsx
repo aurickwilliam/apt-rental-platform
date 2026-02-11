@@ -30,7 +30,7 @@ export default function StepThree() {
   };
 
   const handleSkip = () => {
-    router.replace("/personalization/step-five");
+    router.replace("/personalization/step-four");
   };
 
   const handleNext = () => {
