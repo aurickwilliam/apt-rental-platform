@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import { useState } from 'react'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import SettingOptionButton from 'components/buttons/SettingOptionButton'
 
 import { 
-  IconChevronRight ,
   IconKey,
   IconMail,
   IconBell,
@@ -21,6 +21,8 @@ import {
 import { COLORS } from 'constants/colors'
 
 export default function Index() {
+  const router = useRouter();
+
   const [hasNotification, setHasNotification] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
@@ -60,6 +62,7 @@ export default function Index() {
         <SettingOptionButton 
           label="Language & Region" 
           iconName={IconWorld} 
+          onPress={() => router.push('/tenant/settings/language-region')}
         />
 
         <SettingOptionButton 
@@ -105,7 +108,6 @@ export default function Index() {
           iconName={IconShieldCheck} 
         />
       </View>
-
     </ScreenWrapper>
   )
 }
