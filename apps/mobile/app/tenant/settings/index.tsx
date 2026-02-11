@@ -99,7 +99,7 @@ export default function Index() {
         />
 
         <SettingOptionButton 
-          label="Terms of Conditions" 
+          label="Terms and Conditions" 
           iconName={IconFileDescription} 
         />
 
