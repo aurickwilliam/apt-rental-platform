@@ -6,24 +6,26 @@ import ScreenWrapper from "../../../components/layout/ScreenWrapper";
 import PillButton from "../../../components/buttons/PillButton";
 import PersonalizationRadioButton from "../../../components/buttons/PersonalizationRadioButton";
 
-export default function StepThree() {
+export default function StepFour() {
   const router = useRouter();
 
-  type bedroomType = {
-    bedRoomLabel: string;
+  type familyType = {
+    label: string;
     isSelected: boolean;
   }
 
-  const [selectedBedroomCount, setSelectedBedroomCount] = useState<bedroomType[]>([
-    { bedRoomLabel: "1-2 Bedrooms", isSelected: false },
-    { bedRoomLabel: "2-4 Bedrooms", isSelected: false },
-    { bedRoomLabel: "4+ Bedrooms", isSelected: false },
+  const [selectedNoFamily, setSelectedNoFamily] = useState<familyType[]>([
+    { label: "Single", isSelected: false },
+    { label: "Family of 2", isSelected: false },
+    { label: "3 - 4 Persons", isSelected: false },
+    { label: "5 - 6 Persons", isSelected: false },
+    { label: "7+ Persons", isSelected: false },
   ]);
 
-  const toggleBedroomByIndex = (index: number) => {
-    setSelectedBedroomCount(prev =>
-      prev.map((bedroom, i) => ({
-        ...bedroom,
+  const toggleNoFamily = (index: number) => {
+    setSelectedNoFamily(prev =>
+      prev.map((family, i) => ({
+        ...family,
         isSelected: i === index
       }))
     );
@@ -34,7 +36,7 @@ export default function StepThree() {
   };
 
   const handleNext = () => {
-    router.replace("/personalization/step-four");
+    router.replace("/personalization/step-five");
   };
 
   return (
@@ -55,25 +57,24 @@ export default function StepThree() {
           <View className="flex gap-3 my-5">
             {/* Question */}
             <Text className="text-secondary text-3xl font-dmserif">
-              How many bedrooms are you looking for?
+              Can you share with us your family information?
             </Text>
 
             {/* Description */}
             <Text className="text-text text-lg font-inter">
-              Select the number of bedrooms you prefer so we can filter properties
-              that fit your needs.
+              Help us personalize listings that fit your household.
             </Text>
           </View>
 
-          {/* Bedroom Radio Buttons */}
+          {/* Radio Buttons */}
           <View className="flex-row flex-wrap justify-between">
             {
-              selectedBedroomCount.map((bedroom, index) => (
+              selectedNoFamily.map((family, index) => (
                 <PersonalizationRadioButton
                   key={index}
-                  label={bedroom.bedRoomLabel}
-                  selected={bedroom.isSelected}
-                  onPress={() => toggleBedroomByIndex(index)}
+                  label={family.label}
+                  selected={family.isSelected}
+                  onPress={() => toggleNoFamily(index)}
                 />
               ))
             }
@@ -82,7 +83,7 @@ export default function StepThree() {
 
         {/* Next Button*/}
         <PillButton
-          label={"Next"}
+          label={"Continue"}
           onPress={handleNext}
           isFullWidth
         />
