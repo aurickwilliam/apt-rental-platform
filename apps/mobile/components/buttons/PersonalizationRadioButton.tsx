@@ -3,20 +3,18 @@ import { View, Text, Pressable } from 'react-native'
 
 import { COLORS } from '../../constants/colors'
 
-interface BedroomRadioButtonProps{
-  bedRoomLabel: string,
+interface PersonalizationRadioButtonProps{
+  label: string,
   onPress: () => void,
   selected: boolean,
 }
 
-export default function BedroomRadioButton({
-  bedRoomLabel,
+export default function PersonalizationRadioButton({
+  label,
   onPress,
   selected = false,
-}: BedroomRadioButtonProps) {
+}: PersonalizationRadioButtonProps) {
 
-
-  
   return (
     <Pressable
       onPress={onPress}
@@ -39,7 +37,7 @@ export default function BedroomRadioButton({
 
       {/* Label */}
       <Text className="text-xl font-interMedium text-text">
-        {bedRoomLabel}
+        {label}
       </Text>
     </Pressable>
   )
