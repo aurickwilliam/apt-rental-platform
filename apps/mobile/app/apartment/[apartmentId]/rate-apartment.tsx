@@ -2,15 +2,15 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
-import Divider from 'components/display/Divider'
-import DropdownButton from 'components/buttons/DropdownButton'
-import PillButton from 'components/buttons/PillButton'
-import TextBox from 'components/inputs/TextBox'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
+import Divider from '../../../components/display/Divider'
+import DropdownButton from '../../../components/buttons/DropdownButton'
+import PillButton from '../../../components/buttons/PillButton'
+import TextBox from '../../../components/inputs/TextBox'
 
 import { COLORS } from '../../../constants/colors'
-import { IMAGES } from '../../../constants/images'
+import { DEFAULT_IMAGES } from '../../../constants/images'
 
 import {
   IconStar,
@@ -32,29 +32,29 @@ export default function RateApartment() {
   const [rating, setRating] = useState<number>(0);
 
   const monthOptions: Month[] = [
-    'January', 
-    'February', 
-    'March', 
-    'April', 
+    'January',
+    'February',
+    'March',
+    'April',
     'May',
-    'June', 
-    'July', 
-    'August', 
-    'September', 
-    'October', 
-    'November', 
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
     'December'
   ];
-  
+
   const yearOptions: string[] = [
     '2015',
     '2018',
     '2019',
-    '2020', 
+    '2020',
     '2021',
-    '2022', 
-    '2023', 
-    '2024', 
+    '2022',
+    '2023',
+    '2024',
     '2025',
     '2026',
   ];
@@ -64,7 +64,7 @@ export default function RateApartment() {
     id: apartmentId,
     name: 'Modern Apartment in City Center',
     address: '123 Main St, Metropolis',
-    thumbnailUrl: IMAGES.defaultThumbnail,
+    thumbnailUrl: DEFAULT_IMAGES.defaultThumbnail,
     landlordName: 'Alice Johnson',
     apartmentType: '2 Bedroom Apartment',
     ratings: 4.5,
@@ -83,7 +83,7 @@ export default function RateApartment() {
         >
           {
             i <= rating ? (
-              <IconStarFilled 
+              <IconStarFilled
                 size={45}
                 color={COLORS.secondary}
               />
@@ -110,7 +110,7 @@ export default function RateApartment() {
     >
       {/* Apartment Thumbnail */}
       <View className='w-full h-[15rem]'>
-        <Image 
+        <Image
           source={apartment.thumbnailUrl}
           style={{ width: '100%', height: '100%' }}
         />
@@ -147,7 +147,7 @@ export default function RateApartment() {
           </Text>
 
           <View className='flex-row gap-2'>
-            <IconStarFilled 
+            <IconStarFilled
               size={20}
               color={COLORS.secondary}
             />
@@ -183,7 +183,7 @@ export default function RateApartment() {
 
         {/* Review Text Box */}
         <View className='flex mt-3'>
-          <TextBox 
+          <TextBox
             label='Review:'
             placeholder="Type your experience and review about the apartment.."
             value={reviewText}
@@ -192,8 +192,8 @@ export default function RateApartment() {
           />
         </View>
 
-        <Divider />      
-        
+        <Divider />
+
         {/* Duration of Stay */}
         <View>
           <Text className='text-text text-base font-interMedium'>
@@ -206,21 +206,21 @@ export default function RateApartment() {
             </Text>
 
             <View className='flex-1 flex-row items-center gap-3'>
-              <DropdownButton 
-                bottomSheetLabel={'Select Month'} 
-                options={monthOptions} 
+              <DropdownButton
+                bottomSheetLabel={'Select Month'}
+                options={monthOptions}
                 value={fromMonth}
-                onSelect={setFromMonth}    
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
-                  px-2 py-1 rounded-xl'              
+                onSelect={setFromMonth}
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
+                  px-2 py-1 rounded-xl'
               />
-              <DropdownButton 
-                bottomSheetLabel={'Select Year'} 
-                options={yearOptions} 
+              <DropdownButton
+                bottomSheetLabel={'Select Year'}
+                options={yearOptions}
                 value={fromYear}
-                onSelect={setFromYear}                  
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
-                  px-2 py-1 rounded-xl'              
+                onSelect={setFromYear}
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
+                  px-2 py-1 rounded-xl'
               />
             </View>
           </View>
@@ -231,29 +231,29 @@ export default function RateApartment() {
             </Text>
 
             <View className='flex-1 flex-row items-center gap-3'>
-              <DropdownButton 
-                bottomSheetLabel={'Select Month'} 
-                options={monthOptions} 
+              <DropdownButton
+                bottomSheetLabel={'Select Month'}
+                options={monthOptions}
                 value={toMonth}
-                onSelect={setToMonth}    
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
-                  px-2 py-1 rounded-xl'              
+                onSelect={setToMonth}
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
+                  px-2 py-1 rounded-xl'
               />
-              <DropdownButton 
-                bottomSheetLabel={'Select Year'} 
-                options={yearOptions} 
+              <DropdownButton
+                bottomSheetLabel={'Select Year'}
+                options={yearOptions}
                 value={toYear}
-                onSelect={setToYear}                  
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite 
-                  px-2 py-1 rounded-xl'              
+                onSelect={setToYear}
+                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
+                  px-2 py-1 rounded-xl'
               />
             </View>
           </View>
         </View>
 
         <View className='mt-20'>
-          <PillButton 
-            label='Submit Review'          
+          <PillButton
+            label='Submit Review'
             onPress={() => {
               console.log('Submit Review Pressed');
             }}

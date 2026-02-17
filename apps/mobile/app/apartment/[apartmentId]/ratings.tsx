@@ -2,13 +2,13 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
-import RatingBarCount from 'components/display/RatingBarCount'
-import DropdownButton from 'components/buttons/DropdownButton'
-import Divider from 'components/display/Divider'
-import RatingCard from 'components/display/RatingCard'
-import PillButton from 'components/buttons/PillButton'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
+import RatingBarCount from '../../../components/display/RatingBarCount'
+import DropdownButton from '../../../components/buttons/DropdownButton'
+import Divider from '../../../components/display/Divider'
+import RatingCard from '../../../components/display/RatingCard'
+import PillButton from '../../../components/buttons/PillButton'
 
 import { COLORS } from '../../../constants/colors'
 
@@ -91,16 +91,16 @@ export default function RatingsPage() {
         <View className='flex-row gap-2'>
           {[1, 2, 3, 4, 5].map((star) => (
             star <= Math.round(ratings.overallRating) ? (
-              <IconStarFilled 
-                key={star} 
-                size={35} 
-                color={COLORS.secondary} 
+              <IconStarFilled
+                key={star}
+                size={35}
+                color={COLORS.secondary}
               />
             ) : (
-              <IconStar 
-                key={star} 
-                size={35} 
-                color={COLORS.secondary} 
+              <IconStar
+                key={star}
+                size={35}
+                color={COLORS.secondary}
               />
             )
           ))}
@@ -115,7 +115,7 @@ export default function RatingsPage() {
       <View className='flex gap-2 mt-5'>
         {
           ratings.ratingsCount.map(({ rating, ratingCount, totalCount }) => (
-            <RatingBarCount 
+            <RatingBarCount
               key={rating}
               rating={rating}
               ratingCount={ratingCount}
@@ -126,18 +126,18 @@ export default function RatingsPage() {
       </View>
 
       {/* List of Tenants Reviews */}
-      
+
       {/* Title */}
       <View className='mt-10 flex-row items-center justify-between'>
         <Text className='text-text text-base font-poppinsMedium'>
           Tenant Reviews
         </Text>
 
-        <DropdownButton 
-          bottomSheetLabel={'Sort Reviews By'} 
+        <DropdownButton
+          bottomSheetLabel={'Sort Reviews By'}
           options={['Most Recent', 'Highest Rating', 'Lowest Rating']}
           value={selectedFilter}
-          onSelect={(value) => setSelectedFilter(value)}        
+          onSelect={(value) => setSelectedFilter(value)}
         />
       </View>
 
@@ -147,7 +147,7 @@ export default function RatingsPage() {
       <View className='flex gap-5'>
         {
           ratings.reviews.map(({ id, name, date, rating, review, durationOfStay }) => (
-            <RatingCard 
+            <RatingCard
               key={id}
               name={name}
               date={date}
@@ -161,8 +161,8 @@ export default function RatingsPage() {
 
       {/* Review Button */}
       <View className='mt-10'>
-        <PillButton 
-          label='Write a Review'          
+        <PillButton
+          label='Write a Review'
           onPress={handleWriteReview}
           leftIconName={IconCirclePlus}
         />

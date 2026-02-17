@@ -53,8 +53,6 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
-  // TODO: Add gender field to the complete profile form
-
   // TODO: Password Validation Logic
   // TODO: Update password requirements based on user input
   const [passwordRequirements, setPasswordRequirements] = useState({
