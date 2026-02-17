@@ -201,6 +201,7 @@ export default function CompleteProfile() {
           placeholder="Create a password"
           isPassword
           required
+          value={profileForm.password}
           onChangeText={(value) => updateField('password', value)}
         />
 
@@ -210,6 +211,7 @@ export default function CompleteProfile() {
           placeholder="Confirm your password"
           isPassword
           required
+          value={profileForm.confirmPassword}
           onChangeText={(value) => updateField('confirmPassword', value)}
         />
 
@@ -276,7 +278,6 @@ export default function CompleteProfile() {
               at least one special character (e.g. ! @ # $ % ^ & *)
             </Text>
           </View>
-
         </View>
       </View>
 
