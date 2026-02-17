@@ -2,15 +2,15 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
-import ApplicationHeader from '../../../../components/display/ApplicationHeader'
-import TextField from '../../../../components/inputs/TextField'
-import Divider from '../../../../components/display/Divider'
-import DropdownField from '../../../../components/inputs/DropdownField'
-import PillButton from '../../../../components/buttons/PillButton'
-import NumberField from '../../../../components/inputs/NumberField'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from 'components/display/ApplicationHeader'
+import TextField from 'components/inputs/TextField'
+import Divider from 'components/display/Divider'
+import DropdownField from 'components/inputs/DropdownField'
+import PillButton from 'components/buttons/PillButton'
+import NumberField from 'components/inputs/NumberField'
 
-import { COLORS } from '../../../../constants/colors'
+import { COLORS } from 'constants/colors'
 
 type TenantInformation = {
   fullName: string;

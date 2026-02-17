@@ -2,9 +2,9 @@ import { Text, View, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "../../../components/layout/ScreenWrapper";
-import PillButton from "../../../components/buttons/PillButton";
-import CityCheckBox from "../../../components/inputs/CityCheckBox";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import PillButton from "components/buttons/PillButton";
+import CityCheckBox from "components/inputs/CityCheckBox";
 
 export default function StepOne() {
   const router = useRouter();

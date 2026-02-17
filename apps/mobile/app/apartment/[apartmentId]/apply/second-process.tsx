@@ -2,15 +2,15 @@ import { View } from 'react-native'
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
-import ApplicationHeader from '../../../../components/display/ApplicationHeader'
-import DateTimeField from '../../../../components/inputs/DateTimeField'
-import DropdownField from '../../../../components/inputs/DropdownField'
-import NumberField from '../../../../components/inputs/NumberField'
-import TextBox from '../../../../components/inputs/TextBox'
-import PillButton from '../../../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from 'components/display/ApplicationHeader'
+import DateTimeField from 'components/inputs/DateTimeField'
+import DropdownField from 'components/inputs/DropdownField'
+import NumberField from 'components/inputs/NumberField'
+import TextBox from 'components/inputs/TextBox'
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../../../constants/colors'
+import { COLORS } from 'constants/colors'
 
 type RentalPreferences = {
   moveInDate: Date | null;

@@ -3,10 +3,10 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Slider } from '@miblanchard/react-native-slider';
 
-import { COLORS } from "../../../constants/colors";
+import { COLORS } from "constants/colors";
 
-import ScreenWrapper from "../../../components/layout/ScreenWrapper";
-import PillButton from "../../../components/buttons/PillButton";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import PillButton from "components/buttons/PillButton";
 
 export default function StepTwo() {
   const router = useRouter();
