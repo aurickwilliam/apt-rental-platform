@@ -1,14 +1,15 @@
 import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from 'components/display/ApplicationHeader'
+import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
+import ApplicationHeader from '../../../../components/display/ApplicationHeader'
+import Divider from '../../../../components/display/Divider'
+import PillButton from '../../../../components/buttons/PillButton'
+import AccordionItem from '../../../../components/display/AccordionItem'
 
 import { COLORS } from '../../../../constants/colors'
-import Divider from 'components/display/Divider'
-import PillButton from 'components/buttons/PillButton'
-import AccordionItem from 'components/display/AccordionItem'
-import { formatCurrency } from 'utils/formatCurrency'
+
+import { formatCurrency } from '../../../../utils/formatCurrency'
 
 export default function ReviewInformation() {
   const router = useRouter();
@@ -54,10 +55,10 @@ export default function ReviewInformation() {
       bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
-      <ApplicationHeader 
+      <ApplicationHeader
         currentTitle="Review Application"
         nextTitle="Submit Application"
-        step={4}      
+        step={4}
       />
 
       <View className='p-5 flex-1'>
@@ -102,7 +103,7 @@ export default function ReviewInformation() {
             Summary of Application
           </Text>
           <Text className='text-sm font-inter text-text mt-1'>
-            Please review the information you have provided before submitting your application. 
+            Please review the information you have provided before submitting your application.
             Make sure all details are accurate and all required documents are uploaded.
           </Text>
 
@@ -305,16 +306,16 @@ export default function ReviewInformation() {
         {/* Back or Submit Button */}
         <View className='flex-row mt-16 gap-4'>
           <View className='flex-1'>
-            <PillButton 
-              label={'Back'}            
+            <PillButton
+              label={'Back'}
               type='outline'
               isFullWidth
               onPress={() => router.back()}
             />
           </View>
           <View className='flex-1'>
-            <PillButton 
-              label={'Submit Application'}            
+            <PillButton
+              label={'Submit Application'}
               isFullWidth
               onPress={() => {
                 router.replace(`/apartment/${apartmentId}/apply/submitted`);

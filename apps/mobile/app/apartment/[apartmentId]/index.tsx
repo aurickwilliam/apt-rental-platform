@@ -13,15 +13,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import IconButton from 'components/buttons/IconButton';
-import PillButton from 'components/buttons/PillButton';
-import SmallRatingCard from 'components/display/SmallRatingCard';
-import LandlordCard from 'components/display/LandlordCard';
-import PerkItem from 'components/display/PerkItem';
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import IconButton from '../../../components/buttons/IconButton';
+import PillButton from '../../../components/buttons/PillButton';
+import SmallRatingCard from '../../../components/display/SmallRatingCard';
+import LandlordCard from '../../../components/display/LandlordCard';
+import PerkItem from '../../../components/display/PerkItem';
 
-import { COLORS } from 'constants/colors';
-import { DEFAULT_IMAGES } from 'constants/images';
+import { COLORS } from '../../../constants/colors';
+import { DEFAULT_IMAGES } from '../../../constants/images';
 
 import {
   IconMapPin,
@@ -41,7 +41,7 @@ import {
   IconCalendarEvent,
 } from "@tabler/icons-react-native";
 
-import { formatCurrency } from 'utils/formatCurrency';
+import { formatCurrency } from '../../../utils/formatCurrency';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -153,7 +153,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
   return (
     <View className='flex-1'>
-      <ScreenWrapper 
+      <ScreenWrapper
         scrollable
         bottomPadding={100}
       >
@@ -306,7 +306,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
                   />
                 );
               })}
-            </View>            
+            </View>
           </LinearGradient>
         </View>
 
@@ -324,14 +324,14 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
           <Text>
             {
-              isReadMore 
+              isReadMore
               ? apartmentDetails.description
               : `${apartmentDetails.description.slice(0, 500)}...`
             }
           </Text>
 
           <View className='mt-5'>
-            <PillButton 
+            <PillButton
               label={isReadMore ? 'Read Less' : 'Read More'}
               type='outline'
               size='sm'
@@ -345,7 +345,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           <View className='flex-row items-center justify-between'>
             {/* Title */}
             <View className='flex-row items-center gap-2'>
-              <IconSquareCheck 
+              <IconSquareCheck
                 size={26}
                 color={COLORS.text}
               />
@@ -381,7 +381,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         {/* Map View */}
         <View className='flex-row items-center gap-2 mt-10 px-5'>
-          <IconMap 
+          <IconMap
             size={26}
             color={COLORS.text}
           />
@@ -391,7 +391,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         </View>
 
         {/* Map */}
-        <TouchableOpacity 
+        <TouchableOpacity
           activeOpacity={0.7}
           className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'
           onPress={handleMapViewNavigation}
@@ -436,13 +436,13 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         {/* Render List of Top 2/3 Ratings */}
         <View className='mt-5 px-5 flex gap-3'>
-            <SmallRatingCard 
+            <SmallRatingCard
               accountName='John Doe'
               rating={4.5}
               comment='Great place to stay! Very clean and well-maintained.'
               date='March 15, 2023'
             />
-            <SmallRatingCard 
+            <SmallRatingCard
               accountName='Jane Smith'
               rating={4.0}
               comment='Good location and friendly staff. Would recommend!'
@@ -452,7 +452,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         {/* Landlord Card */}
         <View className='flex-row items-center gap-2 mt-10 px-5'>
-          <IconUser 
+          <IconUser
             size={26}
             color={COLORS.text}
           />
@@ -462,10 +462,10 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         </View>
 
         <View className='px-5 mt-3'>
-          <LandlordCard 
-            fullName={'John Doe'} 
-            email={'johndoe@yahoo.com'} 
-            phoneNumber={'09123456789'} 
+          <LandlordCard
+            fullName={'John Doe'}
+            email={'johndoe@yahoo.com'}
+            phoneNumber={'09123456789'}
             withRentalInfo
             averageRating={4.5}
             totalRentals={25}
@@ -477,7 +477,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         {/* Lease Agreement */}
         <View className=' mt-10 px-5 flex gap-2'>
           <View className='flex-row items-center gap-2'>
-            <IconFileDescription 
+            <IconFileDescription
               size={26}
               color={COLORS.text}
             />
@@ -490,7 +490,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             Please review the rental owner’s property rules before applying.
           </Text>
 
-          <PillButton 
+          <PillButton
             label='View Full Lease Agreement'
             type='outline'
             size='sm'
@@ -505,7 +505,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
       {/* Fixed Footer */}
       <View className='absolute bottom-0 left-0 right-0 bg-white z-10 px-5 py-4 border-t border-grey-200'>
-        <SafeAreaView 
+        <SafeAreaView
           className='flex items-start justify-between gap-3'
           edges={['bottom']}
         >
@@ -520,7 +520,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
           <View className='flex-1 flex-row gap-5'>
             <View className='flex-1'>
-              <PillButton 
+              <PillButton
                 label='Request a Visit'
                 size='md'
                 type='outline'
@@ -530,7 +530,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             </View>
 
             <View className='flex-1'>
-              <PillButton 
+              <PillButton
                 label='Apply Now'
                 size='md'
                 onPress={handleApplyNow}
@@ -541,7 +541,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
       </View>
 
       {/* Fixed Icon Buttons */}
-      <SafeAreaView 
+      <SafeAreaView
         className='absolute left-4 top-5'
         edges={['top']}
       >
@@ -572,7 +572,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         visible={isImageViewVisible}
         onRequestClose={() => setIsImageViewVisible(false)}
         FooterComponent={({ imageIndex }) => (
-        <View className='p-10 items-center'> 
+        <View className='p-10 items-center'>
           <Text className='text-white font-interMedium'>
             {imageIndex + 1} / {apartmentImages.length}
           </Text>

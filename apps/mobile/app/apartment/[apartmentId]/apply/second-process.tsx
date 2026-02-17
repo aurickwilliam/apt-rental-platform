@@ -2,15 +2,15 @@ import { View } from 'react-native'
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from 'components/display/ApplicationHeader'
+import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
+import ApplicationHeader from '../../../../components/display/ApplicationHeader'
+import DateTimeField from '../../../../components/inputs/DateTimeField'
+import DropdownField from '../../../../components/inputs/DropdownField'
+import NumberField from '../../../../components/inputs/NumberField'
+import TextBox from '../../../../components/inputs/TextBox'
+import PillButton from '../../../../components/buttons/PillButton'
 
 import { COLORS } from '../../../../constants/colors'
-import DateTimeField from 'components/inputs/DateTimeField'
-import DropdownField from 'components/inputs/DropdownField'
-import NumberField from 'components/inputs/NumberField'
-import TextBox from 'components/inputs/TextBox'
-import PillButton from 'components/buttons/PillButton'
 
 type RentalPreferences = {
   moveInDate: Date | null;
@@ -58,16 +58,16 @@ export default function SecondProcess() {
       bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
-      <ApplicationHeader 
+      <ApplicationHeader
         currentTitle="Rental Preferences"
-        nextTitle="Upload Required Documents" 
-        step={2} 
+        nextTitle="Upload Required Documents"
+        step={2}
       />
-      
+
       <View className='p-5'>
         <View className='flex gap-3'>
           {/* Move-In Date */}
-          <DateTimeField 
+          <DateTimeField
             label="Preferred Move-In Date"
             placeholder='Select your preferred move-in date'
             required
@@ -85,7 +85,7 @@ export default function SecondProcess() {
           />
 
           {/* Number of Occupants */}
-          <NumberField 
+          <NumberField
             label="Number of Occupants"
             placeholder='Enter the number of occupants'
             value={rentalPreferences.noOccupants.toString()}
@@ -121,7 +121,7 @@ export default function SecondProcess() {
           />
 
           {/* Additional Notes */}
-          <TextBox 
+          <TextBox
             label="Additional Notes"
             placeholder='Enter any additional information or preferences'
             value={rentalPreferences.additionalNotes}
@@ -132,16 +132,16 @@ export default function SecondProcess() {
         {/* Back or Next Button */}
         <View className='flex-1 flex-row mt-16 gap-4'>
           <View className='flex-1'>
-            <PillButton 
-              label={'Back'}            
+            <PillButton
+              label={'Back'}
               type='outline'
               isFullWidth
               onPress={() => router.back()}
             />
           </View>
           <View className='flex-1'>
-            <PillButton 
-              label={'Next'}            
+            <PillButton
+              label={'Next'}
               isFullWidth
               onPress={() => {
                 router.push(`/apartment/${apartmentId}/apply/third-process`);
