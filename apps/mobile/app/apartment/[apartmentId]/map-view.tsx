@@ -1,7 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
+import IconButton from '../../../components/buttons/IconButton';
 
 import { COLORS } from '../../../constants/colors'
 
@@ -11,7 +12,6 @@ import {
   IconCompass,
   IconNavigation,
 } from '@tabler/icons-react-native';
-import IconButton from 'components/buttons/IconButton';
 
 export default function MapView() {
 
@@ -58,8 +58,8 @@ export default function MapView() {
             className='bg-darkerWhite p-2 rounded-xl'
             onPress={handleOpenInMaps}
           >
-            <IconMap2 
-              size={24} 
+            <IconMap2
+              size={24}
               color={COLORS.text}
             />
           </TouchableOpacity>
@@ -69,8 +69,8 @@ export default function MapView() {
             className='bg-darkerWhite p-2 rounded-xl'
             onPress={handleGetDirections}
           >
-            <IconSTurnUp 
-              size={24} 
+            <IconSTurnUp
+              size={24}
               color={COLORS.text}
             />
           </TouchableOpacity>
@@ -79,19 +79,19 @@ export default function MapView() {
       </View>
 
       <View className='flex-1 bg-amber-200 relative'>
-        {/* 
+        {/*
           // TODO: Implement Google Maps API here
         */}
 
         {/* Floating Action Buttons */}
         <View className='flex items-center gap-5 absolute bottom-5 right-5'>
-          <IconButton 
-            iconName={IconNavigation}            
+          <IconButton
+            iconName={IconNavigation}
             onPress={handleNavigationPress}
           />
 
-          <IconButton 
-            iconName={IconCompass}            
+          <IconButton
+            iconName={IconCompass}
             onPress={handleCompassPress}
           />
         </View>

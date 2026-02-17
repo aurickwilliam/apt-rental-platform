@@ -2,6 +2,8 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import PillButton from 'components/buttons/PillButton'
+import ApartmentCard from 'components/display/ApartmentCard'
 
 import { COLORS } from '../../constants/colors'
 import { SAMPLE_IMAGES } from '../../constants/images'
@@ -11,14 +13,12 @@ import {
   IconMessage,
   IconFlag,
 } from '@tabler/icons-react-native';
-import PillButton from 'components/buttons/PillButton'
-import ApartmentCard from 'components/display/ApartmentCard'
 
 export default function LandlordProfile() {
   // Change this to fetch user's photo
   const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
   const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
-  
+
   // Dummy data for now of Landlord
   const landlordData = {
     fullName: 'Jonathan Ma',
@@ -56,7 +56,7 @@ export default function LandlordProfile() {
     {
       id: 3,
       name: 'Apartment 3',
-      monthlyRent: 1500, 
+      monthlyRent: 1500,
       location: 'Navotas',
       noBedroom: 4,
       noBathroom: 3,
@@ -74,7 +74,7 @@ export default function LandlordProfile() {
   const handleReportLandlord = () => {
     console.log("Report Landlord Pressed");
   }
-  
+
   const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.primary;
 
   return (
@@ -88,13 +88,13 @@ export default function LandlordProfile() {
       {/* Header Information */}
       <View className='relative h-[20rem]'>
         {/* Background Photo */}
-        <View 
-          className='w-full h-[10rem]' 
+        <View
+          className='w-full h-[10rem]'
           style={{ backgroundColor: backgroundColor }}
         >
           {
             backgroundPhotoUri && (
-              <Image 
+              <Image
                 source={backgroundPhotoUri}
                 style={{ width: '100%', height: '100%' }}
               />
@@ -103,14 +103,14 @@ export default function LandlordProfile() {
         </View>
 
         {/* Profile Picture */}
-        <View 
-          className='absolute bottom-0 
+        <View
+          className='absolute bottom-0
             left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center'
         >
-          <View 
+          <View
             className='size-44 rounded-full overflow-hidden border-[6px] border-primary mb-5'
           >
-            <Image 
+            <Image
               source={profilePhotoUri}
               style={{ width: '100%', height: '100%'}}
             />
@@ -127,7 +127,7 @@ export default function LandlordProfile() {
           </View>
         </View>
       </View>
-      
+
       {/* Landlord Stats */}
       <View className='mx-5 mt-5 p-4 border-t border-b border-grey-300 flex-row items-center justify-between'>
         {/* No. of Properties */}
@@ -143,7 +143,7 @@ export default function LandlordProfile() {
           </Text>
         </View>
 
-        <View 
+        <View
           className='w-[1px] h-full bg-grey-300'
         />
 
@@ -159,7 +159,7 @@ export default function LandlordProfile() {
           </Text>
         </View>
 
-        <View 
+        <View
           className='w-[1px] h-full bg-grey-300'
         />
 
@@ -171,13 +171,13 @@ export default function LandlordProfile() {
             size={32}
             color={COLORS.primary}
           />
-          
+
           <Text className='text-base text-grey-500 font-interMedium'>
             Verified
           </Text>
         </View>
       </View>
-      
+
       {/* Personal Information */}
       <View className='mt-8 mx-5'>
         <View className='flex'>
@@ -210,7 +210,7 @@ export default function LandlordProfile() {
         </View>
 
         <View className='mt-5'>
-          <PillButton 
+          <PillButton
             label='Message'
             type='outline'
             size='sm'
@@ -222,18 +222,18 @@ export default function LandlordProfile() {
           />
         </View>
       </View>
-      
+
       {/* Listings */}
       <View className='mt-8 mx-5'>
         <Text className='text-text text-xl font-poppinsMedium'>
           {getFirstName(landlordData.fullName)}&apos;s Listings
         </Text>
-        
+
         <View className='flex-row flex-wrap mt-3 gap-y-3'>
           {/* Render all the listings */}
           {
             landlordListings.map((listing) => (
-              <ApartmentCard 
+              <ApartmentCard
                 key={listing.id}
                 id={listing.id}
                 name={listing.name}
@@ -258,7 +258,7 @@ export default function LandlordProfile() {
           className='flex-row items-center justify-center gap-2'
           onPress={handleReportLandlord}
         >
-          <IconFlag 
+          <IconFlag
             size={26}
             color={COLORS.lightRedHead}
           />

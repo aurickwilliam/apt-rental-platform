@@ -4,16 +4,16 @@ import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
 
-import { SAMPLE_IMAGES } from 'constants/images'
+import { SAMPLE_IMAGES } from '../../../constants/images'
 
 export default function ViewLease() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  
+
   const leaseAgreementImage = SAMPLE_IMAGES.sampleLeaseAgreement || {uri: ''};
 
   return (
@@ -23,12 +23,12 @@ export default function ViewLease() {
       }
       className='p-5 items-center justify-center'
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         activeOpacity={0.7}
         className='w-full h-[80%] border border-grey-300 rounded-2xl'
         onPress={() => setIsVisible(true)}
       >
-        <Image 
+        <Image
           source={leaseAgreementImage}
           style={{ width: '100%', height: '100%' }}
           resizeMode='contain'
@@ -36,10 +36,10 @@ export default function ViewLease() {
       </TouchableOpacity>
 
       <ImageViewing
-        images={[leaseAgreementImage]} 
-        imageIndex={0} 
-        visible={isVisible} 
-        onRequestClose={() => setIsVisible(false)}      
+        images={[leaseAgreementImage]}
+        imageIndex={0}
+        visible={isVisible}
+        onRequestClose={() => setIsVisible(false)}
       />
     </ScreenWrapper>
   )
