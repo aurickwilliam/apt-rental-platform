@@ -2,11 +2,12 @@ import { View, Text, Image, Platform, Pressable } from "react-native";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
-import ScreenWrapper from "../../components/layout/ScreenWrapper";
-import TextField from "../../components/inputs/TextField";
-import PillButton from "../../components/buttons/PillButton";
-import LogoButton from "../../components/buttons/LogoButton";
-import { IMAGES } from "../../constants/images";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import TextField from "components/inputs/TextField";
+import PillButton from "components/buttons/PillButton";
+import LogoButton from "components/buttons/LogoButton";
+
+import { IMAGES } from "constants/images";
 
 export default function SignUp() {
   const [email, setEmail] = useState<string>("");

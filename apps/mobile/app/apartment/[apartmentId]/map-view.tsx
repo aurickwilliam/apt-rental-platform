@@ -1,10 +1,10 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import StandardHeader from '../../../components/layout/StandardHeader'
-import IconButton from '../../../components/buttons/IconButton';
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import IconButton from 'components/buttons/IconButton';
 
-import { COLORS } from '../../../constants/colors'
+import { COLORS } from 'constants/colors'
 
 import {
   IconSTurnUp,

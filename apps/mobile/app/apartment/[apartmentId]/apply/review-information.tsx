@@ -1,15 +1,15 @@
 import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
-import ApplicationHeader from '../../../../components/display/ApplicationHeader'
-import Divider from '../../../../components/display/Divider'
-import PillButton from '../../../../components/buttons/PillButton'
-import AccordionItem from '../../../../components/display/AccordionItem'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from 'components/display/ApplicationHeader'
+import Divider from 'components/display/Divider'
+import PillButton from 'components/buttons/PillButton'
+import AccordionItem from 'components/display/AccordionItem'
 
-import { COLORS } from '../../../../constants/colors'
+import { COLORS } from 'constants/colors'
 
-import { formatCurrency } from '../../../../utils/formatCurrency'
+import { formatCurrency } from 'utils/formatCurrency'
 
 export default function ReviewInformation() {
   const router = useRouter();

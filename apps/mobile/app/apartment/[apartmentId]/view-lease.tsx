@@ -4,10 +4,10 @@ import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import StandardHeader from '../../../components/layout/StandardHeader'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
 
-import { SAMPLE_IMAGES } from '../../../constants/images'
+import { SAMPLE_IMAGES } from 'constants/images'
 
 export default function ViewLease() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();

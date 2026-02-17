@@ -2,8 +2,8 @@ import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 
-import ScreenWrapper from "../../../components/layout/ScreenWrapper";
-import PillButton from "../../../components/buttons/PillButton";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import PillButton from "components/buttons/PillButton";
 import RadioButton from "components/buttons/RadioButton";
 import DropdownField from "components/inputs/DropdownField";
 import Divider from "components/display/Divider";
@@ -13,7 +13,7 @@ import { PETS } from "constants/pets";
 
 type rentalPreferenceType = {
   hasPets: boolean;
-  kindofPets: string;
+  kindOfPets: string;
   nameOfPets: string | null;
   hasParking: boolean;
   noOfParkingSpots: string | null;
@@ -26,7 +26,7 @@ export default function StepFive() {
 
   const [rentalPreference, setRentalPreference] = useState<rentalPreferenceType>({
     hasPets: false,
-    kindofPets: "",
+    kindOfPets: "",
     nameOfPets: null,
     hasParking: false,
     noOfParkingSpots: null,
@@ -104,15 +104,15 @@ export default function StepFive() {
                   bottomSheetLabel="Select your Pet"
                   placeholder="Select the kind of pets you have"
                   options={PETS}
-                  onSelect={(value) => updateRentalPreference("kindofPets", value)}
-                  value={rentalPreference.kindofPets}
+                  onSelect={(value) => updateRentalPreference("kindOfPets", value)}
+                  value={rentalPreference.kindOfPets}
                   required
                 />
               )
             }
 
             {
-              rentalPreference.hasPets && rentalPreference.kindofPets === "Other" && (
+              rentalPreference.hasPets && rentalPreference.kindOfPets === "Other" && (
                 <TextField 
                   label="Please specify the kind of pet you have"
                   placeholder="Type the kind of pet you have"

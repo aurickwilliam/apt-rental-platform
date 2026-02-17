@@ -73,8 +73,8 @@ No pets / No smoking inside the unit`
   }
 
   return (
-    <ScreenWrapper 
-      scrollable 
+    <ScreenWrapper
+      scrollable
       className='p-5'
       header={
         <StandardHeader title="Apartment Details"/>
@@ -155,44 +155,44 @@ No pets / No smoking inside the unit`
 
       <View className='flex-row flex-wrap justify-between mt-5'>
         <View className='w-1/2 mb-5'>
-          <PerkItem 
-            customIcon={IconHome} 
-            customText={unitDetails.type}   
-            iconColor={COLORS.mediumGrey}         
-          />
-        </View>
-
-        <View className='w-1/2 mb-5'>
-          <PerkItem 
-            customIcon={IconBath} 
-            customText={`${unitDetails.bathrooms} Bathrooms`}            
-            iconColor={COLORS.mediumGrey}
-          />
-        </View>       
-
-        <View className='w-1/2 mb-5'>
-          <PerkItem 
-            customIcon={IconBed} 
-            customText={`${unitDetails.bedrooms} Bedrooms`}            
+          <PerkItem
+            customIcon={IconHome}
+            customText={unitDetails.type}
             iconColor={COLORS.mediumGrey}
           />
         </View>
 
         <View className='w-1/2 mb-5'>
-          <PerkItem 
-            customIcon={IconMaximize} 
-            customText={`${unitDetails.floorAreaSQM} sqm`}            
+          <PerkItem
+            customIcon={IconBath}
+            customText={`${unitDetails.bathrooms} Bathrooms`}
             iconColor={COLORS.mediumGrey}
           />
-        </View>     
+        </View>
 
         <View className='w-1/2 mb-5'>
-          <PerkItem 
-            customIcon={IconCar} 
-            customText={unitDetails.parking}    
-            iconColor={COLORS.mediumGrey}        
+          <PerkItem
+            customIcon={IconBed}
+            customText={`${unitDetails.bedrooms} Bedrooms`}
+            iconColor={COLORS.mediumGrey}
           />
-        </View>     
+        </View>
+
+        <View className='w-1/2 mb-5'>
+          <PerkItem
+            customIcon={IconMaximize}
+            customText={`${unitDetails.floorAreaSQM} sqm`}
+            iconColor={COLORS.mediumGrey}
+          />
+        </View>
+
+        <View className='w-1/2 mb-5'>
+          <PerkItem
+            customIcon={IconCar}
+            customText={unitDetails.parking}
+            iconColor={COLORS.mediumGrey}
+          />
+        </View>
       </View>
 
       {/* Included Perks */}
@@ -204,11 +204,11 @@ No pets / No smoking inside the unit`
         {
           includedPerks.map((perk, index) => (
             <View className='w-1/2 mb-5' key={index}>
-              <PerkItem 
+              <PerkItem
                 iconColor={COLORS.primary}
                 perkId={perk}
               />
-            </View> 
+            </View>
           ))
         }
       </View>
@@ -218,7 +218,7 @@ No pets / No smoking inside the unit`
 
       {/* Button for View Lease Agreement */}
       <View className='mt-5'>
-        <PillButton 
+        <PillButton
           label='View Lease Agreement'
           isFullWidth
           type='outline'

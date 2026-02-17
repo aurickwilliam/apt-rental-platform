@@ -3,16 +3,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS } from '../../constants/colors';
-import { PROVINCES } from '../../constants/provinces';
-import { GENDER } from '../../constants/gender';
+import { COLORS } from 'constants/colors';
+import { PROVINCES } from 'constants/provinces';
+import { GENDER } from 'constants/gender';
 
-import ScreenWrapper from '../../components/layout/ScreenWrapper';
-import TextField from '../../components/inputs/TextField';
-import PillButton from '../../components/buttons/PillButton';
-import NumberField from '../../components/inputs/NumberField';
-import DateTimeField from '../../components/inputs/DateTimeField';
-import DropdownField from '../../components/inputs/DropdownField';
+import ScreenWrapper from 'components/layout/ScreenWrapper';
+import TextField from 'components/inputs/TextField';
+import PillButton from 'components/buttons/PillButton';
+import NumberField from 'components/inputs/NumberField';
+import DateTimeField from 'components/inputs/DateTimeField';
+import DropdownField from 'components/inputs/DropdownField';
 
 export default function CompleteProfile() {
   const router = useRouter();

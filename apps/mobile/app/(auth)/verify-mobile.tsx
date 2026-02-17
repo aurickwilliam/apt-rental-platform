@@ -2,11 +2,11 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../components/layout/ScreenWrapper'
-import NumberField from '../../components/inputs/NumberField';
-import PillButton from '../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import NumberField from 'components/inputs/NumberField';
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../constants/colors'
+import { COLORS } from 'constants/colors'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
@@ -25,14 +25,14 @@ export default function VerifyMobile() {
       <View className='flex-1 justify-between'>
         <View>
           {/* Back button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.7}
-            className="mb-3" 
+            className="mb-3"
             onPress={() => router.back()}
           >
-            <IconChevronLeft 
-              size={30} 
-              color={COLORS.text} 
+            <IconChevronLeft
+              size={30}
+              color={COLORS.text}
             />
           </TouchableOpacity>
 
@@ -41,8 +41,8 @@ export default function VerifyMobile() {
             Verify Your Mobile Number
           </Text>
 
-          {/* 
-            // TODO: Validate Mobile Number length and format 
+          {/*
+            // TODO: Validate Mobile Number length and format
           */}
 
           {/* Mobile Number Field */}

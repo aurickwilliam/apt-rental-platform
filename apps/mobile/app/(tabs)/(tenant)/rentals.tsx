@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import PaymentSummaryCard from '../../../components/display/PaymentSummaryCard'
-import LandlordCard from '../../../components/display/LandlordCard';
-import ApartmentDescriptionCard from "../../../components/display/ApartmentDescriptionCard";
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import PaymentSummaryCard from 'components/display/PaymentSummaryCard'
+import LandlordCard from 'components/display/LandlordCard';
+import ApartmentDescriptionCard from "components/display/ApartmentDescriptionCard";
 import PillButton from 'components/buttons/PillButton';
 import Divider from 'components/display/Divider';
 
@@ -15,7 +15,7 @@ import {
   IconTool,
 } from '@tabler/icons-react-native';
 
-import { COLORS } from '../../../constants/colors';
+import { COLORS } from 'constants/colors';
 
 export default function Rentals() {
   const router = useRouter();
