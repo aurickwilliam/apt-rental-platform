@@ -1,5 +1,1 @@
-export const GENDER: string[] = [
-  "Male",
-  "Female",
-  "Other",
-]
+export { GENDER } from '@repo/constants';
