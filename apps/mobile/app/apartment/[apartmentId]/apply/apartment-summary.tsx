@@ -3,11 +3,14 @@ import { useRef } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import IconButton from 'components/buttons/IconButton';
+import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
+import IconButton from '../../../../components/buttons/IconButton';
+import PillButton from '../../../../components/buttons/PillButton';
 
-import { DEFAULT_IMAGES } from 'constants/images';
-import { COLORS } from 'constants/colors';
+import { DEFAULT_IMAGES } from '../../../../constants/images';
+import { COLORS } from '../../../../constants/colors';
+
+import { formatCurrency } from '../../../../utils/formatCurrency';
 
 import { 
   IconBath, 
@@ -18,8 +21,6 @@ import {
   IconMaximize, 
   IconStarFilled 
 } from '@tabler/icons-react-native';
-import { formatCurrency } from 'utils/formatCurrency';
-import PillButton from 'components/buttons/PillButton';
 
 export default function ApartmentSummary() {
   // Variable and Functions for the carousel

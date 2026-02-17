@@ -2,15 +2,15 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from 'components/display/ApplicationHeader'
-import TextField from 'components/inputs/TextField'
+import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
+import ApplicationHeader from '../../../../components/display/ApplicationHeader'
+import TextField from '../../../../components/inputs/TextField'
+import Divider from '../../../../components/display/Divider'
+import DropdownField from '../../../../components/inputs/DropdownField'
+import PillButton from '../../../../components/buttons/PillButton'
+import NumberField from '../../../../components/inputs/NumberField'
 
 import { COLORS } from '../../../../constants/colors'
-import Divider from 'components/display/Divider'
-import DropdownField from 'components/inputs/DropdownField'
-import PillButton from 'components/buttons/PillButton'
-import NumberField from 'components/inputs/NumberField'
 
 type TenantInformation = {
   fullName: string;
@@ -71,7 +71,7 @@ export default function FirstProcess() {
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header with Progress Bar */}
-      <ApplicationHeader 
+      <ApplicationHeader
         currentTitle="Tenant Information"
         nextTitle="Rental Preferences"
         step={1}
@@ -81,7 +81,7 @@ export default function FirstProcess() {
         {/* Personal Information */}
         <View className='flex gap-3'>
           {/* Full Name */}
-          <TextField 
+          <TextField
             label="Full Name"
             placeholder='Enter your full name'
             value={tenantInformation.fullName}
@@ -89,7 +89,7 @@ export default function FirstProcess() {
             required
           />
           {/* Contact Number */}
-          <TextField 
+          <TextField
             label="Contact Number"
             placeholder='Enter your contact number'
             value={tenantInformation.contactNumber}
@@ -97,7 +97,7 @@ export default function FirstProcess() {
             required
           />
           {/* Email */}
-          <TextField 
+          <TextField
             label="Email"
             placeholder='Enter your email'
             value={tenantInformation.email}
@@ -105,7 +105,7 @@ export default function FirstProcess() {
             required
           />
           {/* Date of Birth */}
-          <TextField 
+          <TextField
             label="Date of Birth"
             placeholder='Enter your date of birth'
             value={tenantInformation.dateOfBirth}
@@ -113,7 +113,7 @@ export default function FirstProcess() {
             required
           />
           {/* Current Address */}
-          <TextField 
+          <TextField
             label="Current Address"
             placeholder='Enter your current address'
             value={tenantInformation.currentAddress}
@@ -131,7 +131,7 @@ export default function FirstProcess() {
 
         <View className='flex gap-3'>
           {/* Occupation */}
-          <TextField 
+          <TextField
             label="Occupation/Job Title"
             placeholder='Enter your occupation'
             value={tenantInformation.occupation}
@@ -154,7 +154,7 @@ export default function FirstProcess() {
             required
           />
           {/* Employment Type */}
-          <DropdownField 
+          <DropdownField
             label="Employment Type"
             bottomSheetLabel='Select Employment Type'
             placeholder='Select your employment type'
@@ -192,16 +192,16 @@ export default function FirstProcess() {
         {/* Cancel or Next Button */}
         <View className='flex-1 flex-row mt-16 gap-4'>
           <View className='flex-1'>
-            <PillButton 
-              label={'Cancel'}            
+            <PillButton
+              label={'Cancel'}
               type='outline'
               isFullWidth
               onPress={() => router.back()}
             />
           </View>
           <View className='flex-1'>
-            <PillButton 
-              label={'Next'}            
+            <PillButton
+              label={'Next'}
               isFullWidth
               onPress={() => {
                 router.push(`/apartment/${apartmentId}/apply/second-process`);

@@ -1,10 +1,12 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
-import DateTimeField from 'components/inputs/DateTimeField'
-import DropdownButton from 'components/buttons/DropdownButton'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
+import DateTimeField from '../../../components/inputs/DateTimeField'
+import DropdownButton from '../../../components/buttons/DropdownButton'
+import TextBox from '../../../components/inputs/TextBox'
+import PillButton from '../../../components/buttons/PillButton'
 
 import { COLORS } from '../../../constants/colors'
 
@@ -12,8 +14,6 @@ import {
   IconCirclePlus,
   IconCircleMinus
 } from '@tabler/icons-react-native';
-import TextBox from 'components/inputs/TextBox'
-import PillButton from 'components/buttons/PillButton'
 
 type VisitDetails = {
   date: Date | null;
@@ -80,7 +80,7 @@ export default function RequestVisit() {
           {/* Description */}
           <View>
             <Text className='text-text text-base font-inter'>
-              Choose your preferred date and time to schedule a visit. 
+              Choose your preferred date and time to schedule a visit.
               The landlord will confirm your request as soon as possible.
             </Text>
           </View>
@@ -102,11 +102,11 @@ export default function RequestVisit() {
                 Preferred Visit Time:
               </Text>
 
-              <DropdownButton 
-                bottomSheetLabel={'Select Time'} 
-                options={timeOptions} 
-                onSelect={(value) => setVisitDetails(prev => ({ ...prev, time: value }))}          
-                value={visitDetails.time}   
+              <DropdownButton
+                bottomSheetLabel={'Select Time'}
+                options={timeOptions}
+                onSelect={(value) => setVisitDetails(prev => ({ ...prev, time: value }))}
+                value={visitDetails.time}
               />
 
               <DropdownButton
@@ -127,10 +127,10 @@ export default function RequestVisit() {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={incrementVisitors}
-                >   
-                  <IconCirclePlus 
-                    size={30} 
-                    color={COLORS.grey} 
+                >
+                  <IconCirclePlus
+                    size={30}
+                    color={COLORS.grey}
                   />
                 </TouchableOpacity>
 
@@ -142,9 +142,9 @@ export default function RequestVisit() {
                   activeOpacity={0.7}
                   onPress={decrementVisitors}
                 >
-                  <IconCircleMinus 
-                    size={30} 
-                    color={COLORS.grey} 
+                  <IconCircleMinus
+                    size={30}
+                    color={COLORS.grey}
                   />
                 </TouchableOpacity>
 
@@ -153,7 +153,7 @@ export default function RequestVisit() {
 
             {/* Notes Text Box */}
             <View className='pb-24'>
-              <TextBox 
+              <TextBox
                 label='Additional Notes (Optional):'
                 placeholder='Any specific questions or requests for the landlord?'
                 value={visitDetails.notes}
@@ -163,9 +163,9 @@ export default function RequestVisit() {
           </View>
         </View>
 
-        <PillButton 
-          label={'Request Visit'}  
-          onPress={handleSubmitRequestVisit}        
+        <PillButton
+          label={'Request Visit'}
+          onPress={handleSubmitRequestVisit}
         />
       </View>
     </ScreenWrapper>

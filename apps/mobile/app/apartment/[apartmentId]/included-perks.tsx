@@ -1,9 +1,9 @@
 import { View } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
-import StandardHeader from 'components/layout/StandardHeader'
-import PerkItem from 'components/display/PerkItem'
+import ScreenWrapper from '../../../components/layout/ScreenWrapper'
+import StandardHeader from '../../../components/layout/StandardHeader'
+import PerkItem from '../../../components/display/PerkItem'
 
 export default function IncludedPerks() {
   const { apartmentId } = useLocalSearchParams();
