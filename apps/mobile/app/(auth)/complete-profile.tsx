@@ -14,6 +14,8 @@ import NumberField from 'components/inputs/NumberField';
 import DateTimeField from 'components/inputs/DateTimeField';
 import DropdownField from 'components/inputs/DropdownField';
 
+import { usePasswordValidation } from '@repo/hooks';
+
 export default function CompleteProfile() {
   const router = useRouter();
   const { email, userSide } = useLocalSearchParams();
@@ -55,13 +57,14 @@ export default function CompleteProfile() {
 
   // TODO: Password Validation Logic
   // TODO: Update password requirements based on user input
-  const [passwordRequirements, setPasswordRequirements] = useState({
-    minLength: false,
-    hasUppercase: false,
-    hasLowercase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-  });
+  const {
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    passwordRequirements,
+    isPasswordValid,
+  } = usePasswordValidation();
 
   // Update individual field in profile form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
@@ -201,8 +204,11 @@ export default function CompleteProfile() {
           placeholder="Create a password"
           isPassword
           required
-          value={profileForm.password}
-          onChangeText={(value) => updateField('password', value)}
+          value={password}
+          onChangeText={(value) => {
+            updateField('password', value)
+            setPassword(value);
+          }}
         />
 
         {/* Confirm Password Field */}
@@ -211,8 +217,11 @@ export default function CompleteProfile() {
           placeholder="Confirm your password"
           isPassword
           required
-          value={profileForm.confirmPassword}
-          onChangeText={(value) => updateField('confirmPassword', value)}
+          value={confirmPassword}
+          onChangeText={(value) => {
+            updateField('confirmPassword', value)
+            setConfirmPassword(value);
+          }}
         />
 
         {/* Password Checker */}
@@ -286,6 +295,10 @@ export default function CompleteProfile() {
         <PillButton
           label="Submit"
           isFullWidth
+          isDisabled={
+            !isPasswordValid
+            // TODO: Enable submit button only when all required fields are filled out and password is valid
+          }
           onPress={handleSubmit}
         />
       </View>
