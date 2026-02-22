@@ -70,24 +70,6 @@ function runValidation(input: string): ValidationResult {
   };
 }
 
-/**
- * usePhilippineMobileValidation
- *
- * A custom hook for validating Philippine mobile numbers.
- *
- * Accepted formats:
- *  - 09XXXXXXXXX
- *  - +639XXXXXXXXX
- *  - 639XXXXXXXXX
- *  - 9XXXXXXXXX
- *  - With separators: 0917-123-4567, 0917 123 4567
- *
- * @example
- * const { value, validation, onChange } = usePHMobileValidation();
- *
- * <input value={value} onChange={(e) => onChange(e.target.value)} />
- * {!validation.isValid && <span>{validation.errorMessage}</span>}
- */
 export function usePHMobileValidation(
   initialValue: string = ""
 ): UsePhilippineMobileValidationReturn {
