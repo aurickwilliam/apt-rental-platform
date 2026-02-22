@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { formatCurrency } from 'utils/formatCurrency';
+import { formatCurrency } from '@repo/utils';
 
 import PillButton from 'components/buttons/PillButton';
 

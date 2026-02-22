@@ -8,7 +8,7 @@ import { COLORS } from "@repo/constants";
 
 import PillButton from "../buttons/PillButton";
 
-import {formatCurrency} from "../../utils/formatCurrency";
+import {formatCurrency} from "@repo/utils";
 
 interface PaymentHomeCardProps {
   monthDue: string;

@@ -10,7 +10,7 @@ import PillButton from 'components/buttons/PillButton';
 import { DEFAULT_IMAGES } from 'constants/images';
 import { COLORS } from '@repo/constants';
 
-import { formatCurrency } from 'utils/formatCurrency';
+import { formatCurrency } from '@repo/utils';
 
 import { 
   IconBath, 

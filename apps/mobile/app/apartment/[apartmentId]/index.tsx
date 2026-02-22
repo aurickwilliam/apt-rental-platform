@@ -41,7 +41,7 @@ import {
   IconCalendarEvent,
 } from "@tabler/icons-react-native";
 
-import { formatCurrency } from 'utils/formatCurrency';
+import { formatCurrency } from '@repo/utils';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
