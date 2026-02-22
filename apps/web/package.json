@@ -11,7 +11,9 @@
   "dependencies": {
     "next": "16.0.8",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "@repo/hooks": "workspace:*",
+    "@repo/constants": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

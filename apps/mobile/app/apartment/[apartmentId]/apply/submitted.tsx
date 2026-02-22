@@ -1,10 +1,10 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
-import PillButton from '../../../../components/buttons/PillButton';
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import PillButton from 'components/buttons/PillButton';
 
-import { IMAGES } from '../../../../constants/images'
+import { IMAGES } from 'constants/images'
 
 export default function Submitted() {
   const router = useRouter();

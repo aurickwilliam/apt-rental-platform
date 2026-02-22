@@ -1,7 +1,7 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 import { TENANTICONS, LANDLORDICONS } from '../../constants/tab-icons';
 
 import TabBarIcon from './TabBarIcon';

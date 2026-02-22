@@ -2,15 +2,15 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import StandardHeader from '../../../components/layout/StandardHeader'
-import RatingBarCount from '../../../components/display/RatingBarCount'
-import DropdownButton from '../../../components/buttons/DropdownButton'
-import Divider from '../../../components/display/Divider'
-import RatingCard from '../../../components/display/RatingCard'
-import PillButton from '../../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import RatingBarCount from 'components/display/RatingBarCount'
+import DropdownButton from 'components/buttons/DropdownButton'
+import Divider from 'components/display/Divider'
+import RatingCard from 'components/display/RatingCard'
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../../constants/colors'
+import { COLORS } from '@repo/constants'
 
 import {
   IconStarFilled,

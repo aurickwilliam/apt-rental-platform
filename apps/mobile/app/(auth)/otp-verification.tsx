@@ -4,10 +4,10 @@ import { TextInput } from 'react-native-gesture-handler'
 
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from '../../components/layout/ScreenWrapper'
-import PillButton from '../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../constants/colors'
+import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
@@ -76,9 +76,9 @@ export default function OTPVerification() {
       <View className='flex-1 justify-between'>
         <View>
           {/* Back button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.7}
-            className="mb-3" 
+            className="mb-3"
             onPress={router.back}
           >
             <IconChevronLeft size={30} color={COLORS.text} />

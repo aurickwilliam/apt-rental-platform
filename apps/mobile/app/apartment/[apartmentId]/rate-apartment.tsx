@@ -2,15 +2,15 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import StandardHeader from '../../../components/layout/StandardHeader'
-import Divider from '../../../components/display/Divider'
-import DropdownButton from '../../../components/buttons/DropdownButton'
-import PillButton from '../../../components/buttons/PillButton'
-import TextBox from '../../../components/inputs/TextBox'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import Divider from 'components/display/Divider'
+import DropdownButton from 'components/buttons/DropdownButton'
+import PillButton from 'components/buttons/PillButton'
+import TextBox from 'components/inputs/TextBox'
 
-import { COLORS } from '../../../constants/colors'
-import { DEFAULT_IMAGES } from '../../../constants/images'
+import { COLORS } from '@repo/constants'
+import { DEFAULT_IMAGES } from 'constants/images'
 
 import {
   IconStar,

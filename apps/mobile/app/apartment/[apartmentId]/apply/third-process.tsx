@@ -1,13 +1,13 @@
 import { View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../../components/layout/ScreenWrapper'
-import ApplicationHeader from '../../../../components/display/ApplicationHeader'
-import UploadImageField from '../../../../components/inputs/UploadImageField'
-import UploadGeneralFile from '../../../../components/inputs/UploadGeneralFileField'
-import PillButton from '../../../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from 'components/display/ApplicationHeader'
+import UploadImageField from 'components/inputs/UploadImageField'
+import UploadGeneralFile from 'components/inputs/UploadGeneralFileField'
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../../../constants/colors'
+import { COLORS } from '@repo/constants'
 
 export default function ThirdProcess() {
   const router = useRouter();

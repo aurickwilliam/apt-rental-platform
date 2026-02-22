@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface CustomSwitchProps {
   value: boolean;

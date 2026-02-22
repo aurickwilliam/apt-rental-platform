@@ -13,15 +13,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import IconButton from '../../../components/buttons/IconButton';
-import PillButton from '../../../components/buttons/PillButton';
-import SmallRatingCard from '../../../components/display/SmallRatingCard';
-import LandlordCard from '../../../components/display/LandlordCard';
-import PerkItem from '../../../components/display/PerkItem';
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import IconButton from 'components/buttons/IconButton';
+import PillButton from 'components/buttons/PillButton';
+import SmallRatingCard from 'components/display/SmallRatingCard';
+import LandlordCard from 'components/display/LandlordCard';
+import PerkItem from 'components/display/PerkItem';
 
-import { COLORS } from '../../../constants/colors';
-import { DEFAULT_IMAGES } from '../../../constants/images';
+import { COLORS } from '@repo/constants';
+import { DEFAULT_IMAGES } from 'constants/images';
 
 import {
   IconMapPin,
@@ -41,7 +41,7 @@ import {
   IconCalendarEvent,
 } from "@tabler/icons-react-native";
 
-import { formatCurrency } from '../../../utils/formatCurrency';
+import { formatCurrency } from 'utils/formatCurrency';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();

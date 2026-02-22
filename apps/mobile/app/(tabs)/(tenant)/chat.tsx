@@ -7,7 +7,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import MessageCard from 'components/display/MessageCard';
 import Divider from 'components/display/Divider';
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
 
 export default function Chat() {
