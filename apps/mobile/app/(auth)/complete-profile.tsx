@@ -119,21 +119,22 @@ export default function CompleteProfile() {
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
     if (!isPasswordValid || emptyFields.length > 0) {
-      // router.push('/(auth)/verify-mobile');
       return;
     }
-
+    
     const formData = {
       ...profileForm,
       postalCode, 
       password, 
       confirmPassword,
     }
-
+    
     // Print form data to console (for testing purposes)
     Object.entries(formData).forEach(([key, value]) => {
       console.log(`${key}: ${value}`);
     });
+
+    router.push('/(auth)/verify-mobile');
   }
 
   return (

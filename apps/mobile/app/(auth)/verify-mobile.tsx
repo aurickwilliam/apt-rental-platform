@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity } from 'react-native'
-import { useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -10,12 +9,22 @@ import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
+import { usePHMobileValidation } from '@repo/hooks';
+
 export default function VerifyMobile() {
   const router = useRouter();
 
-  const [mobileNumber, setMobileNumber] = useState<string>('');
+  const { 
+    value: mobileNumber, 
+    validation, 
+    onChange, 
+    validate 
+  } = usePHMobileValidation();
 
   const handleAndVerifyMobile = () => {
+    const result = validate();
+    if (!result.isValid) return;
+
     console.log("Verifying Mobile Number:", mobileNumber);
     router.push(`/(auth)/otp-verification?mobileNum=${mobileNumber}`);
   }
@@ -41,17 +50,14 @@ export default function VerifyMobile() {
             Verify Your Mobile Number
           </Text>
 
-          {/*
-            // TODO: Validate Mobile Number length and format
-          */}
-
           {/* Mobile Number Field */}
           <NumberField
             label='Mobile Number:'
             placeholder='09XXXXXXXXX'
             value={mobileNumber}
-            onChange={setMobileNumber}
+            onChange={onChange}
             maxLength={11}
+            error={validation.errorMessage ?? undefined}
           />
         </View>
 
