@@ -23,7 +23,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.aurickwilliam.apt"
     },
     "web": {
       "bundler": "metro",
@@ -50,6 +51,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb"
+      }
     }
   }
 }

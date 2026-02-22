@@ -26,5 +26,6 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "metro-minify-terser": "^0.83.3"
-  }
+  },
+  "packageManager": "pnpm@10.25.0"
 }
