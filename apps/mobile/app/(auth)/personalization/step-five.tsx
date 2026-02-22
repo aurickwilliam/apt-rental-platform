@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 
@@ -46,10 +46,6 @@ export default function StepFive() {
     }));
   }
 
-  const handleSkip = () => {
-    router.replace("/home");
-  };
-
   const handleNext = () => {
     router.replace("/home");
   };
@@ -58,18 +54,8 @@ export default function StepFive() {
     <ScreenWrapper scrollable className="p-5">
       <View className="flex-1 justify-between">
         <View className="mb-20">
-          {/* Skip Button*/}
-          <TouchableOpacity 
-            onPress={handleSkip}
-            activeOpacity={0.7}
-          >
-            <Text className="text-grey-300 text-base font-inter">
-              Skip
-            </Text>
-          </TouchableOpacity>
-
           {/* Question and Description */}
-          <View className="flex gap-3 my-5">
+          <View className="flex gap-3 mb-5">
             {/* Question */}
             <Text className="text-secondary text-3xl font-dmserif">
               What is your rental preferences?

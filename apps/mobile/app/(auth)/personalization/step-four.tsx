@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 
@@ -31,10 +31,6 @@ export default function StepFour() {
     );
   };
 
-  const handleSkip = () => {
-    router.replace("/personalization/step-five");
-  };
-
   const handleNext = () => {
     router.replace("/personalization/step-five");
   };
@@ -43,18 +39,8 @@ export default function StepFour() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
-          {/* Skip Button*/}
-          <TouchableOpacity 
-            onPress={handleSkip}
-            activeOpacity={0.7}
-          >
-            <Text className="text-grey-300 text-base font-inter">
-              Skip
-            </Text>
-          </TouchableOpacity>
-
           {/* Question and Description */}
-          <View className="flex gap-3 my-5">
+          <View className="flex gap-3 mb-5">
             {/* Question */}
             <Text className="text-secondary text-3xl font-dmserif">
               Can you share with us your family information?
