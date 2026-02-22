@@ -12,7 +12,7 @@ import NumberField from 'components/inputs/NumberField';
 import DateTimeField from 'components/inputs/DateTimeField';
 import DropdownField from 'components/inputs/DropdownField';
 
-import { usePasswordValidation } from '@repo/hooks';
+import { usePasswordValidation, usePHPostalCode } from '@repo/hooks';
 
 type ProfileForm = {
   email: string;
@@ -38,6 +38,7 @@ const requiredFields: (keyof ProfileForm)[] = [
   'barangay',
   'city',
   'province',
+  'postalCode',
   'birthDate',
   'password',
   'confirmPassword',
@@ -68,6 +69,7 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
+  // Password validation hook
   const {
     password,
     setPassword,
@@ -76,6 +78,14 @@ export default function CompleteProfile() {
     passwordRequirements,
     isPasswordValid,
   } = usePasswordValidation();
+
+  // Postal code hook
+  const { 
+    value: postalCode,
+    error: postalCodeError,
+    handleChange: handlePostalCodeChange,
+    handleBlur: handlePostalCodeBlur,
+  } = usePHPostalCode();
 
   // Update individual field in profile form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
@@ -96,6 +106,10 @@ export default function CompleteProfile() {
       return 'Passwords do not match';
     }
 
+    if (field === 'postalCode' && postalCode && postalCodeError) {
+      return postalCodeError;
+    }
+
     return undefined;
   };
 
@@ -109,8 +123,15 @@ export default function CompleteProfile() {
       return;
     }
 
+    const formData = {
+      ...profileForm,
+      postalCode, 
+      password, 
+      confirmPassword,
+    }
+
     // Print form data to console (for testing purposes)
-    Object.entries(profileForm).forEach(([key, value]) => {
+    Object.entries(formData).forEach(([key, value]) => {
       console.log(`${key}: ${value}`);
     });
   }
@@ -220,14 +241,18 @@ export default function CompleteProfile() {
         />
 
         {/* Postal Code Field */}
-        {/*
-          // TODO: Validate postal code. Enable Error when display more than 4 digits
-        */}
         <NumberField
           label="Postal Code:"
           placeholder="Enter your postal code"
           maxLength={4}
-          onChange={(value) => updateField('postalCode', value)}
+          value={postalCode}
+          onChange={(value) => {
+            handlePostalCodeChange(value);
+            updateField('postalCode', value);
+          }}
+          onBlur={handlePostalCodeBlur}
+          required
+          error={getError('postalCode')} 
         />
 
         {/* Date of Birth Field */}
@@ -251,8 +276,8 @@ export default function CompleteProfile() {
           required
           value={password}
           onChangeText={(value) => {
-            updateField('password', value)
-            setPassword(value);
+            setPassword(value); 
+            updateField('password', value);
           }}
           error={getError('password')}
         />
@@ -265,8 +290,8 @@ export default function CompleteProfile() {
           required
           value={confirmPassword}
           onChangeText={(value) => {
-            updateField('confirmPassword', value)
             setConfirmPassword(value);
+            updateField('confirmPassword', value);
           }}
           error={getError('confirmPassword')}
         />
