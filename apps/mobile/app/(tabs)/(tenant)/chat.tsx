@@ -10,6 +10,8 @@ import Divider from 'components/display/Divider';
 import { COLORS } from '@repo/constants';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
 
+import { getRelativeTime } from '@repo/utils';
+
 export default function Chat() {
   const router = useRouter();
 
@@ -25,21 +27,21 @@ export default function Chat() {
       name: 'Shohei Ohtani',
       apartmentName: 'Charles Apartments - Apt 203',
       lastMessage: 'Shibal',
-      timestamp: 'Yesterday',
+      timestamp: getRelativeTime(new Date(Date.now() - 24 * 60 * 60 * 1000)), // Yesterday
     },
     {
       id: '2',
       name: 'Jane Doe',
       apartmentName: 'Maple Residency - Apt 101',
       lastMessage: 'See you tomorrow!',
-      timestamp: '2 hours ago',
+      timestamp: getRelativeTime(new Date(Date.now() - 2 * 60 * 60 * 1000)), // 2 hours ago
     },
     {
       id: '3',
       name: 'John Smith',
       apartmentName: 'Oakwood Villas - Apt 305',
       lastMessage: 'Thanks for the update.',
-      timestamp: '10 minutes ago',
+      timestamp: getRelativeTime(new Date(Date.now() - 10 * 60 * 1000)), // 10 minutes ago
     }
   ]
 
@@ -83,7 +85,7 @@ export default function Chat() {
               name='Jonathan Ma'
               apartmentName='Pinecrest Towers - Apt 404'
               lastMessage='Contact your property manager for any inquiries.'
-              timestamp='10 mins ago'
+              timestamp={getRelativeTime(new Date(Date.now() - 10 * 60 * 1000))}
               />
           </View>
         )
