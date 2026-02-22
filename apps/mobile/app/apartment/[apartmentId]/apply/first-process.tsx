@@ -10,7 +10,7 @@ import DropdownField from 'components/inputs/DropdownField'
 import PillButton from 'components/buttons/PillButton'
 import NumberField from 'components/inputs/NumberField'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 type TenantInformation = {
   fullName: string;

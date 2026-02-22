@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 
-import { DEFAULT_IMAGES } from "../../constants/images";
-import { COLORS } from "constants/colors";
+import { DEFAULT_IMAGES } from "constants/images";
+import { COLORS } from "@repo/constants";
 
 import {
   IconMail,

@@ -10,7 +10,7 @@ import {
   IconProps,
 } from "@tabler/icons-react-native";
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface DropdownButtonProps {
   bottomSheetLabel: string;

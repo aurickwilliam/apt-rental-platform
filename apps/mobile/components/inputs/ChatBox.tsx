@@ -1,7 +1,7 @@
 import { View, TextInput, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 import {
   IconArrowUp

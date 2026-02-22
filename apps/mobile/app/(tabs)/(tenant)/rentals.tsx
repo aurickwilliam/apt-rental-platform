@@ -15,7 +15,7 @@ import {
   IconTool,
 } from '@tabler/icons-react-native';
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 export default function Rentals() {
   const router = useRouter();

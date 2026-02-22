@@ -8,7 +8,7 @@ import DropdownButton from 'components/buttons/DropdownButton'
 import TextBox from 'components/inputs/TextBox'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 import {
   IconCirclePlus,

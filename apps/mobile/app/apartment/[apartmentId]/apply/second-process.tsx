@@ -10,7 +10,7 @@ import NumberField from 'components/inputs/NumberField'
 import TextBox from 'components/inputs/TextBox'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 type RentalPreferences = {
   moveInDate: Date | null;

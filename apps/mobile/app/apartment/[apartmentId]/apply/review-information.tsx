@@ -7,7 +7,7 @@ import Divider from 'components/display/Divider'
 import PillButton from 'components/buttons/PillButton'
 import AccordionItem from 'components/display/AccordionItem'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 import { formatCurrency } from 'utils/formatCurrency'
 

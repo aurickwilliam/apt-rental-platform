@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from "expo-router";
 
-import { COLORS } from "constants/colors";
+import { COLORS } from "@repo/constants";
 import { DEFAULT_IMAGES } from "constants/images";
 
 import {

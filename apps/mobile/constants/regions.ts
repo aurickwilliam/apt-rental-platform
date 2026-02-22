@@ -1,1 +1,0 @@
-export { REGIONS } from '@repo/constants';

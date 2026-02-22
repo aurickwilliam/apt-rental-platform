@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface RadioButtonProps {
  label: string;

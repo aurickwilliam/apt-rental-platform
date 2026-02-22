@@ -1,1 +1,0 @@
-export { PETS } from '@repo/constants';

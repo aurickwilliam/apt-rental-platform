@@ -7,7 +7,7 @@ import UploadImageField from 'components/inputs/UploadImageField'
 import UploadGeneralFile from 'components/inputs/UploadGeneralFileField'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 export default function ThirdProcess() {
   const router = useRouter();

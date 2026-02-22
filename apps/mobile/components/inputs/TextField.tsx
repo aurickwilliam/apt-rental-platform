@@ -2,7 +2,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface TextFieldProps {
   label?: string,
@@ -94,7 +94,7 @@ export default function TextField({
 
       {/* Error Message */}
       {error && (
-        <Text className='text-redHead-200 text-base font-inter mt-1'>
+        <Text className='text-redHead-200 text-base font-inter mt-[1px]'>
           {error}
         </Text>
       )}

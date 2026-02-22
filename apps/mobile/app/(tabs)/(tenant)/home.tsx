@@ -6,7 +6,7 @@ import PaymentHomeCard from 'components/display/PaymentHomeCard'
 import QuickActionButton from 'components/buttons/QuickActionButton'
 import PaymentHistoryCard from 'components/display/PaymentHistoryCard'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 import { IMAGES } from 'constants/images'
 
 // Icons

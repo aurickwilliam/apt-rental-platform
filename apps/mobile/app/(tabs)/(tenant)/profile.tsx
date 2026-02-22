@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Image } from 'react-native'
 import { useRouter } from 'expo-router';
 
-import { COLORS } from "constants/colors";
+import { COLORS } from "@repo/constants";
 import { SAMPLE_IMAGES } from 'constants/images';
 
 import {

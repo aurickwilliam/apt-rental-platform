@@ -20,7 +20,7 @@ import SmallRatingCard from 'components/display/SmallRatingCard';
 import LandlordCard from 'components/display/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 import { DEFAULT_IMAGES } from 'constants/images';
 
 import {

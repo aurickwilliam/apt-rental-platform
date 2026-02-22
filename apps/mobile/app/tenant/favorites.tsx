@@ -10,7 +10,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from 'components/layout/StandardHeader';
 import ApartmentCard from 'components/display/ApartmentCard';
 
-import { COLORS } from "constants/colors"
+import { COLORS } from "@repo/constants"
 
 export default function TenantFavorites() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
