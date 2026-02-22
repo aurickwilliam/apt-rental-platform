@@ -7,7 +7,7 @@ import Divider from 'components/display/Divider'
 import PillButton from 'components/buttons/PillButton'
 import PerkItem from 'components/display/PerkItem'
 
-import { formatCurrency } from 'utils/formatCurrency'
+import { formatCurrency } from '@repo/utils'
 
 import { COLORS } from '@repo/constants'
 

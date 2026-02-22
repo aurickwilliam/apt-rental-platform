@@ -9,7 +9,7 @@ import AccordionItem from 'components/display/AccordionItem'
 
 import { COLORS } from '@repo/constants'
 
-import { formatCurrency } from 'utils/formatCurrency'
+import { formatCurrency } from '@repo/utils'
 
 export default function ReviewInformation() {
   const router = useRouter();
