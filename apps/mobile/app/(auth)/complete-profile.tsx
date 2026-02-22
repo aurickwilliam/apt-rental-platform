@@ -85,6 +85,7 @@ export default function CompleteProfile() {
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
+    validate: validatePostalCode,
   } = usePHPostalCode();
 
   // Update individual field in profile form
@@ -115,10 +116,11 @@ export default function CompleteProfile() {
 
   const handleSubmit = () => {
     setSubmitted(true);
+    const isPostalCodeValidOnSubmit = validatePostalCode();
 
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
-    if (!isPasswordValid || emptyFields.length > 0) {
+    if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) {
       return;
     }
     
