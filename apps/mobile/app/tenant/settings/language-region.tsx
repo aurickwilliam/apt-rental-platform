@@ -5,9 +5,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import SettingOptionButton from 'components/buttons/SettingOptionButton'
 
-import { COLORS } from 'constants/colors'
-import { LANGUAGES } from 'constants/languages'
-import { REGIONS } from 'constants/regions'
+import { COLORS, LANGUAGES, REGIONS } from '@repo/constants'
 
 export default function LanguageAndRegion() {
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].label);

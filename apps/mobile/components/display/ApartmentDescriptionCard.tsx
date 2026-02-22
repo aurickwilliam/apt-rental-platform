@@ -1,6 +1,7 @@
-import PillButton from 'components/buttons/PillButton';
 import { View, Text } from 'react-native';
 import { formatCurrency } from 'utils/formatCurrency';
+
+import PillButton from 'components/buttons/PillButton';
 
 interface ApartmentDescriptionCardProps {
   apartmentName?: string;

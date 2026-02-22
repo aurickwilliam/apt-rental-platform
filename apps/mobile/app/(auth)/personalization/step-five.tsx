@@ -9,7 +9,7 @@ import DropdownField from "components/inputs/DropdownField";
 import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
 
-import { PETS } from "constants/pets";
+import { PETS } from "@repo/constants";
 
 type rentalPreferenceType = {
   hasPets: boolean;

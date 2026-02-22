@@ -14,7 +14,7 @@ import Animated, {
 
 import { IconChevronDown } from '@tabler/icons-react-native';
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface AccordionItemProps {
   title: string;

@@ -5,7 +5,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 import PillButton from 'components/buttons/PillButton'
 import ApartmentCard from 'components/display/ApartmentCard'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 import { SAMPLE_IMAGES } from 'constants/images'
 
 import {

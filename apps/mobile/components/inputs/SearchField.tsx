@@ -6,7 +6,7 @@ import {
   IconAdjustmentsHorizontal,
 } from '@tabler/icons-react-native'
 
-import { COLORS } from '../../constants/colors'
+import { COLORS } from '@repo/constants'
 
 interface SearchFieldProps {
   searchPlaceholder?: string,

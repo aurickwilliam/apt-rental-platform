@@ -8,7 +8,7 @@ import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
 
 import { DEFAULT_IMAGES } from 'constants/images';
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 import { formatCurrency } from 'utils/formatCurrency';
 

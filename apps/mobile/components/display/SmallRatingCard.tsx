@@ -4,7 +4,7 @@ import { IconStarFilled } from '@tabler/icons-react-native';
 
 import { DEFAULT_IMAGES } from '../../constants/images'
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface SmallRatingCardProps {
   accountName: string;

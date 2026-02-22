@@ -9,7 +9,7 @@ import DropdownButton from 'components/buttons/DropdownButton'
 import PillButton from 'components/buttons/PillButton'
 import TextBox from 'components/inputs/TextBox'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 import { DEFAULT_IMAGES } from 'constants/images'
 
 import {

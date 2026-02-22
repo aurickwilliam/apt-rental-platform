@@ -6,7 +6,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import NumberField from 'components/inputs/NumberField';
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 

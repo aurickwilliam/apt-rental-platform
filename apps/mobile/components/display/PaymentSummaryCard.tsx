@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 import StatusPill from './StatusPill';
 import PillButton from 'components/buttons/PillButton';

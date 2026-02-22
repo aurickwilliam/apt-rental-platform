@@ -14,7 +14,7 @@ import DropdownButton from 'components/buttons/DropdownButton';
 import SearchField from 'components/inputs/SearchField';
 import ApartmentHorizontalListCard from "components/display/ApartmentHorizontalListCard";
 
-import { COLORS } from '../../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 export default function Search() {
   const router = useRouter();

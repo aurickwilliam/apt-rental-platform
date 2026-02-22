@@ -1,7 +1,7 @@
 import { IconProps } from '@tabler/icons-react-native';
 import { Text, Pressable } from 'react-native';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface PillButtonProps {
   label: string,
@@ -19,6 +19,7 @@ const TYPE_STYLES = {
   secondary: 'bg-secondary active:bg-[#CC8400]',
   danger: 'bg-redHead-200 active:bg-[#B7070F]',
   outline: 'bg-white border-2 border-grey-500 active:bg-[#E5E5E5]',
+  disabled: 'bg-grey-300',
 }
 
 export default function PillButton({
@@ -56,7 +57,7 @@ export default function PillButton({
 
   return (
     <Pressable
-      className={`${TYPE_STYLES[type]}
+      className={` ${isDisabled ? TYPE_STYLES.disabled : TYPE_STYLES[type]}
         ${widthClass}
         ${currentSize.height} ${currentSize.padding} rounded-full
         flex-row justify-center items-center gap-2`}

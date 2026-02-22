@@ -9,7 +9,7 @@ import PerkItem from 'components/display/PerkItem'
 
 import { formatCurrency } from 'utils/formatCurrency'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 import {
   IconHome,

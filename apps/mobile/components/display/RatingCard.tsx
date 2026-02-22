@@ -1,6 +1,6 @@
 import { View, Text, Image } from 'react-native'
 
-import { COLORS } from 'constants/colors';
+import { COLORS } from '@repo/constants';
 import { DEFAULT_IMAGES } from 'constants/images';
 
 import { IconStar, IconStarFilled } from '@tabler/icons-react-native';

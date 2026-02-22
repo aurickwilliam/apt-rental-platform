@@ -7,7 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
