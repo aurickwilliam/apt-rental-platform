@@ -1,10 +1,10 @@
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "../../../components/layout/ScreenWrapper";
-import PillButton from "../../../components/buttons/PillButton";
-import CityCheckBox from "../../../components/inputs/CityCheckBox";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import PillButton from "components/buttons/PillButton";
+import CityCheckBox from "components/inputs/CityCheckBox";
 
 export default function StepOne() {
   const router = useRouter();
@@ -35,27 +35,12 @@ export default function StepOne() {
     router.replace("/personalization/step-two");
   };
 
-  const handleSkip = () => {
-    console.log("Skipping step one");
-    router.replace("/personalization/step-two");
-  };
-
   return (
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
-          {/* Skip Button*/}
-          <TouchableOpacity 
-            activeOpacity={0.7}
-            onPress={handleSkip}
-          >
-            <Text className="text-grey-300 text-base font-inter">
-              Skip
-            </Text>
-          </TouchableOpacity>
-
           {/* Question and Descriptio */}
-          <View className="flex gap-3 my-5">
+          <View className="flex gap-3 mb-5">
             {/* Question */}
             <Text className="text-secondary text-3xl font-dmserif">
               Which city or area would you like to explore?

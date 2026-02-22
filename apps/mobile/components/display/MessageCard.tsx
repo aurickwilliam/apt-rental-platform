@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 
-import { DEFAULT_IMAGES } from '../../constants/images'
+import { DEFAULT_IMAGES } from 'constants/images'
 
 interface MessageCardProps {
   name: string;

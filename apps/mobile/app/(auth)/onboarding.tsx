@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { Link } from 'expo-router';
 
-import { SLIDES } from '../../constants/onboarding-data';
+import { SLIDES } from 'constants/onboarding-data';
 
-import OnBoardingSlide from '../../components/layout/OnBoardingSlide';
-import PillButton from '../../components/buttons/PillButton';
+import OnBoardingSlide from 'components/layout/OnBoardingSlide';
+import PillButton from 'components/buttons/PillButton';
 
 // Get the device width
 const { width } = Dimensions.get('window');

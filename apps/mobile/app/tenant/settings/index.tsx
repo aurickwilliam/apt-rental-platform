@@ -18,7 +18,7 @@ import {
   IconShieldCheck,
 } from '@tabler/icons-react-native'
 
-import { COLORS } from 'constants/colors'
+import { COLORS } from '@repo/constants'
 
 export default function Index() {
   const router = useRouter();

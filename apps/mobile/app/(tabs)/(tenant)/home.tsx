@@ -1,13 +1,13 @@
 import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import PaymentHomeCard from '../../../components/display/PaymentHomeCard'
-import QuickActionButton from '../../../components/buttons/QuickActionButton'
-import PaymentHistoryCard from '../../../components/display/PaymentHistoryCard'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import PaymentHomeCard from 'components/display/PaymentHomeCard'
+import QuickActionButton from 'components/buttons/QuickActionButton'
+import PaymentHistoryCard from 'components/display/PaymentHistoryCard'
 
-import { IMAGES } from '../../../constants/images'
-import { COLORS } from '../../../constants/colors'
+import { COLORS } from '@repo/constants'
+import { IMAGES } from 'constants/images'
 
 // Icons
 import {

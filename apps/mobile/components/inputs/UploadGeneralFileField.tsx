@@ -2,7 +2,7 @@ import { View, Text } from 'react-native'
 
 import PillButton from 'components/buttons/PillButton';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 import { IconFileUpload } from '@tabler/icons-react-native'
 

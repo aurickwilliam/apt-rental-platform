@@ -1,7 +1,7 @@
 import { TouchableOpacity } from 'react-native';
 import { IconProps } from '@tabler/icons-react-native';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface IconButtonProps {
   iconName: React.ComponentType<IconProps>;

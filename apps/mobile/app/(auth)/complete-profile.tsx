@@ -3,16 +3,46 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS } from '../../constants/colors';
-import { PROVINCES } from '../../constants/provinces';
-import { GENDER } from '../../constants/gender';
+import { COLORS , PROVINCES , GENDER } from '@repo/constants';
 
-import ScreenWrapper from '../../components/layout/ScreenWrapper';
-import TextField from '../../components/inputs/TextField';
-import PillButton from '../../components/buttons/PillButton';
-import NumberField from '../../components/inputs/NumberField';
-import DateTimeField from '../../components/inputs/DateTimeField';
-import DropdownField from '../../components/inputs/DropdownField';
+import ScreenWrapper from 'components/layout/ScreenWrapper';
+import TextField from 'components/inputs/TextField';
+import PillButton from 'components/buttons/PillButton';
+import NumberField from 'components/inputs/NumberField';
+import DateTimeField from 'components/inputs/DateTimeField';
+import DropdownField from 'components/inputs/DropdownField';
+
+import { usePasswordValidation, usePHPostalCode } from '@repo/hooks';
+
+type ProfileForm = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  gender: string;
+  currentAddress: string;
+  barangay: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  birthDate: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const requiredFields: (keyof ProfileForm)[] = [
+  'firstName',
+  'lastName',
+  'gender',
+  'currentAddress',
+  'barangay',
+  'city',
+  'province',
+  'postalCode',
+  'birthDate',
+  'password',
+  'confirmPassword',
+]
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -21,21 +51,7 @@ export default function CompleteProfile() {
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
 
-  type ProfileForm = {
-    email: string;
-    firstName: string;
-    lastName: string;
-    middleName: string;
-    gender: string;
-    currentAddress: string;
-    barangay: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    birthDate: string;
-    password: string;
-    confirmPassword: string;
-  }
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
   const [profileForm, setProfileForm] = useState<ProfileForm>({
     email: emailValue || "",
@@ -53,23 +69,68 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
-  // TODO: Password Validation Logic
-  // TODO: Update password requirements based on user input
-  const [passwordRequirements, setPasswordRequirements] = useState({
-    minLength: false,
-    hasUppercase: false,
-    hasLowercase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-  });
+  // Password validation hook
+  const {
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    passwordRequirements,
+    isPasswordValid,
+  } = usePasswordValidation();
+
+  // Postal code hook
+  const { 
+    value: postalCode,
+    error: postalCodeError,
+    handleChange: handlePostalCodeChange,
+    handleBlur: handlePostalCodeBlur,
+  } = usePHPostalCode();
 
   // Update individual field in profile form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
     setProfileForm(prev => ({ ...prev, [key]: value }));
   };
 
+  // Return error message if field is required and not filled out after form submission
+  const getError = (field: keyof ProfileForm) => {
+    if (submitted && requiredFields.includes(field) && !profileForm[field]?.trim()) {
+      return 'This field is required';
+    }
+
+    if (submitted && field === 'password' && profileForm.password && !isPasswordValid) {
+      return 'Password does not meet the requirements or password does not match';
+    }
+
+    if (submitted && field === 'confirmPassword' && profileForm.confirmPassword && password !== confirmPassword) {
+      return 'Passwords do not match';
+    }
+
+    if (field === 'postalCode' && postalCode && postalCodeError) {
+      return postalCodeError;
+    }
+
+    return undefined;
+  };
+
   const handleSubmit = () => {
-    Object.entries(profileForm).forEach(([key, value]) => {
+    setSubmitted(true);
+
+    const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
+
+    if (!isPasswordValid || emptyFields.length > 0) {
+      return;
+    }
+    
+    const formData = {
+      ...profileForm,
+      postalCode, 
+      password, 
+      confirmPassword,
+    }
+    
+    // Print form data to console (for testing purposes)
+    Object.entries(formData).forEach(([key, value]) => {
       console.log(`${key}: ${value}`);
     });
 
@@ -108,6 +169,7 @@ export default function CompleteProfile() {
           placeholder="Enter your first name"
           required
           onChangeText={(value) => updateField('firstName', value)}
+          error={getError('firstName')}
         />
 
         {/* Last Name Field */}
@@ -116,6 +178,7 @@ export default function CompleteProfile() {
           placeholder="Enter your last name"
           required
           onChangeText={(value) => updateField('lastName', value)}
+          error={getError('lastName')}
         />
 
         {/* Middle Name Field */}
@@ -133,6 +196,8 @@ export default function CompleteProfile() {
           options={GENDER}
           value={profileForm.gender}
           onSelect={(value) => updateField('gender', value)}
+          required
+          error={getError('gender')}
         />
 
         {/* Current Address Field */}
@@ -141,6 +206,7 @@ export default function CompleteProfile() {
           placeholder="Enter your current address"
           required
           onChangeText={(value) => updateField('currentAddress', value)}
+          error={getError('currentAddress')}
         />
 
         {/* Barangay Field */}
@@ -149,6 +215,7 @@ export default function CompleteProfile() {
           placeholder="Enter your barangay"
           required
           onChangeText={(value) => updateField('barangay', value)}
+          error={getError('barangay')}
         />
 
         {/* City Field  */}
@@ -157,6 +224,7 @@ export default function CompleteProfile() {
           placeholder="Enter your city"
           required
           onChangeText={(value) => updateField('city', value)}
+          error={getError('city')}
         />
 
         {/* Province Field */}
@@ -169,18 +237,23 @@ export default function CompleteProfile() {
           onSelect={(value) => updateField('province', value)}
           enableSearch
           searchPlaceholder="Search provinces..."
+          required
+          error={getError('province')}
         />
 
         {/* Postal Code Field */}
-        {/*
-          // TODO: Validate postal code. Enable Error when display more than 4 digits
-        */}
         <NumberField
           label="Postal Code:"
           placeholder="Enter your postal code"
-          required
           maxLength={4}
-          onChange={(value) => updateField('postalCode', value)}
+          value={postalCode}
+          onChange={(value) => {
+            handlePostalCodeChange(value);
+            updateField('postalCode', value);
+          }}
+          onBlur={handlePostalCodeBlur}
+          required
+          error={getError('postalCode')} 
         />
 
         {/* Date of Birth Field */}
@@ -193,6 +266,7 @@ export default function CompleteProfile() {
             const formattedDate = date.toISOString().split("T")[0];
             updateField('birthDate', formattedDate);
           }}
+          error={getError('birthDate')}
         />
 
         {/* Password Field */}
@@ -201,7 +275,12 @@ export default function CompleteProfile() {
           placeholder="Create a password"
           isPassword
           required
-          onChangeText={(value) => updateField('password', value)}
+          value={password}
+          onChangeText={(value) => {
+            setPassword(value); 
+            updateField('password', value);
+          }}
+          error={getError('password')}
         />
 
         {/* Confirm Password Field */}
@@ -210,7 +289,12 @@ export default function CompleteProfile() {
           placeholder="Confirm your password"
           isPassword
           required
-          onChangeText={(value) => updateField('confirmPassword', value)}
+          value={confirmPassword}
+          onChangeText={(value) => {
+            setConfirmPassword(value);
+            updateField('confirmPassword', value);
+          }}
+          error={getError('confirmPassword')}
         />
 
         {/* Password Checker */}
@@ -276,7 +360,6 @@ export default function CompleteProfile() {
               at least one special character (e.g. ! @ # $ % ^ & *)
             </Text>
           </View>
-
         </View>
       </View>
 

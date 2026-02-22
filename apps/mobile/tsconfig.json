@@ -4,17 +4,20 @@
     "strict": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    // "paths": {
-    //   "@/*": [
-    //     "./*"
-    //   ]
-    // }
+    "paths": {
+      "@/*": ["./*"],
+      "components/*": ["./components/*"],
+      "hooks/*": ["./hooks/*"],
+      "constants/*": ["./constants/*"],
+      "assets/*": ["./assets/*"],
+      "@repo/ui/*": ["../../packages/ui/*"]
+    }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
+    "nativewind-env.d.ts",
   ]
 }

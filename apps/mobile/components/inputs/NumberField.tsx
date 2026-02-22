@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Platform } from 'react-native'
 import { useState } from 'react'
 
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@repo/constants';
 
 interface NumberFieldProps {
   label?: string;
@@ -13,6 +13,7 @@ interface NumberFieldProps {
   required?: boolean;
   maxLength?: number;    
   allowDecimal?: boolean;
+  onBlur?: () => void;
 }
 
 
@@ -25,7 +26,8 @@ export default function NumberField({
     error,
     required = false,
     maxLength,
-    allowDecimal = false
+    allowDecimal = false,
+    onBlur,
   }: NumberFieldProps) {
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -94,7 +96,10 @@ export default function NumberField({
             lineHeight: 20,
           }}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
         />
       </View>
 

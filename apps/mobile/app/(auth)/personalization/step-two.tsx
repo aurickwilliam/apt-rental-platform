@@ -1,21 +1,17 @@
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Slider } from '@miblanchard/react-native-slider';
 
-import { COLORS } from "../../../constants/colors";
+import { COLORS } from "@repo/constants";
 
-import ScreenWrapper from "../../../components/layout/ScreenWrapper";
-import PillButton from "../../../components/buttons/PillButton";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import PillButton from "components/buttons/PillButton";
 
 export default function StepTwo() {
   const router = useRouter();
 
   const [rentAmount, setRentAmount] = useState<number>(10_000);
-
-  const handleSkip = () => {
-    router.replace("/personalization/step-three");
-  };
 
   const handleNext = () => {
     router.replace("/personalization/step-three");
@@ -25,18 +21,8 @@ export default function StepTwo() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View className="flex-1">
-          {/* Skip Button*/}
-          <TouchableOpacity 
-            activeOpacity={0.7}
-            onPress={handleSkip}
-          >
-            <Text className="text-grey-300 text-base font-inter">
-              Skip
-            </Text>
-          </TouchableOpacity>
-
           {/* Question and Description */}
-          <View className="flex gap-3 mt-5">
+          <View className="flex gap-3">
             {/* Question */}
             <Text className="text-secondary text-3xl font-dmserif">
               Got a budget in mind for your place?

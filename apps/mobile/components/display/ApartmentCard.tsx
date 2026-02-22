@@ -1,7 +1,7 @@
 import {View, Text, Image, TouchableOpacity, useWindowDimensions} from 'react-native'
 
-import { DEFAULT_IMAGES } from "../../constants/images";
-import { COLORS } from "../../constants/colors";
+import { DEFAULT_IMAGES } from "constants/images";
+import { COLORS } from "@repo/constants";
 
 import {
   IconBed,

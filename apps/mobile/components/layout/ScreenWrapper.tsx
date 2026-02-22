@@ -8,7 +8,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { COLORS } from "../../constants/colors";
+import { COLORS } from "@repo/constants";
 
 interface ScreenWrapperProps {
   children: ReactNode;

@@ -1,14 +1,14 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 
-import ScreenWrapper from '../../../components/layout/ScreenWrapper'
-import StandardHeader from '../../../components/layout/StandardHeader'
-import DateTimeField from '../../../components/inputs/DateTimeField'
-import DropdownButton from '../../../components/buttons/DropdownButton'
-import TextBox from '../../../components/inputs/TextBox'
-import PillButton from '../../../components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import DateTimeField from 'components/inputs/DateTimeField'
+import DropdownButton from 'components/buttons/DropdownButton'
+import TextBox from 'components/inputs/TextBox'
+import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '../../../constants/colors'
+import { COLORS } from '@repo/constants'
 
 import {
   IconCirclePlus,
