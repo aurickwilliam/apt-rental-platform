@@ -6,7 +6,6 @@ jspm_packages/
 .pnp
 .pnp.js
 .pnpm-debug.log*
-pnpm-lock.yaml
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
