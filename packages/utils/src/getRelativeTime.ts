@@ -3,7 +3,11 @@ import { formatDate } from "./formatDate";
 export function getRelativeTime(timestamp: Date | number | string): string {
   const now = new Date();
   const date = new Date(timestamp);
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const dateTime = date.getTime();
+  if (Number.isNaN(dateTime)) {
+    throw new Error("Invalid timestamp passed to getRelativeTime");
+  }
+  const seconds = Math.floor((now.getTime() - dateTime) / 1000);
   const absSeconds = Math.abs(seconds);
   const isFuture = seconds < 0;
 
