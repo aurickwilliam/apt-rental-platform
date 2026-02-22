@@ -2,6 +2,10 @@ type DateFormat = "short" | "medium" | "long";
 
 export function formatDate(timestamp: Date | number | string, format: DateFormat = "short"): string {
   const date = new Date(timestamp);
+  // Guard against invalid dates (e.g., unparsable timestamp values)
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
 
   switch (format) {
     case "short": {
