@@ -36,7 +36,7 @@ export default function MaintenanceIssue() {
   const apartmentDetails = {
     name: "Charles Apartments",
     address: "123 Main St, Apt 4B",
-    Landlord: "John Doe",
+    landlord: "John Doe",
   }
 
   return (
@@ -70,7 +70,7 @@ export default function MaintenanceIssue() {
             Landlord
           </Text>
           <Text className='text-text text-lg font-interMedium'>
-            {apartmentDetails.Landlord}
+            {apartmentDetails.landlord}
           </Text>
         </View>
       </View>
@@ -120,7 +120,7 @@ export default function MaintenanceIssue() {
           </Text>
 
           <RadioButton 
-            label={'Urgency Level'} 
+            label={'Urgent'} 
             onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Urgent'})} 
             selected={maintenanceDetails.urgency === 'Urgent'}        
           />
