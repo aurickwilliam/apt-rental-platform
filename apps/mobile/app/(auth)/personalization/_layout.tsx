@@ -25,6 +25,18 @@ export default function _Layout() {
           title: 'Personalization'
         }}
       />
+      <Stack.Screen
+        name="step-four"
+        options={{
+          title: 'Personalization'
+        }}
+      />
+      <Stack.Screen
+        name="step-five"
+        options={{
+          title: 'Personalization'
+        }}
+      />
     </Stack>
   );
 }

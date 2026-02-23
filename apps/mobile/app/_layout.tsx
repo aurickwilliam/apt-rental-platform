@@ -5,6 +5,8 @@ import "./global.css";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -33,18 +35,23 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="chat/[conversationId]" />
-      <Stack.Screen name="tenant"/>
-      <Stack.Screen name="landlord-profile/[landlordId]"/>
-      <Stack.Screen name="apartment/[apartmentId]"/>
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="chat/[conversationId]" />
+          <Stack.Screen name="tenant"/>
+          <Stack.Screen name="landlord-profile/[landlordId]"/>
+          <Stack.Screen name="apartment/[apartmentId]"/>
+          <Stack.Screen name="(notification)"/>
+        </Stack>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
