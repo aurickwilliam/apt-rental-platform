@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNode } from "react";
 
@@ -19,6 +20,7 @@ export default function StandardHeader({
   textColor = "text-white",
 }: StandardHeaderProps) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBackPress) {
@@ -29,7 +31,7 @@ export default function StandardHeader({
   };
 
   return (
-    <View className="flex-row items-center justify-between bg-primary px-4 py-5">
+    <View className="flex-row items-center justify-between bg-primary px-4 pb-5" style={{ paddingTop: insets.top + 20 }}>
 
       {/* Left Side (Back Button or Empty Spacer) */}
       <View className="w-10 items-start justify-center">

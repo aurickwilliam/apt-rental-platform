@@ -18,6 +18,7 @@ interface ScreenWrapperProps {
   footer?: ReactNode;
   scrollable?: boolean;
   bottomPadding?: number;
+  noTopPadding?: boolean;
 }
 
 export default function ScreenWrapper({
@@ -28,10 +29,11 @@ export default function ScreenWrapper({
   footer,
   scrollable = false,
   bottomPadding = 0,
+  noTopPadding = false,
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
 
-  const paddingTop = header ? 0 : insets.top;
+  const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 
   // This wraps the content so tapping empty space closes the keyboard
   const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
@@ -42,11 +44,7 @@ export default function ScreenWrapper({
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
-      {header && (
-        <View style={{ paddingTop: insets.top }}>
-          {header}
-        </View>
-      )}
+      {header && header}
 
       {scrollable ? (
         <KeyboardAwareScrollView

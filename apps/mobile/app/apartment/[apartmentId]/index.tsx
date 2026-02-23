@@ -156,6 +156,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
       <ScreenWrapper
         scrollable
         bottomPadding={100}
+        noTopPadding
       >
         <View className='h-[42rem] bg-white relative'>
           {/* Image Carousel */}
