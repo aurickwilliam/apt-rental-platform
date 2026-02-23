@@ -40,9 +40,12 @@ export default function UploadImageField({
           {label}
         </Text>
 
-        <Text className='text-base font-inter text-redHead-200'>
-          *Required
-        </Text>
+        {
+          required &&
+          <Text className='text-sm font-interMedium text-redHead-200'>
+            *Required
+          </Text>
+        }
       </View>
 
       {/* Uploaded Image Area */}
