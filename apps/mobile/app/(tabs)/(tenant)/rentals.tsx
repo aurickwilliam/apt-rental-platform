@@ -21,7 +21,7 @@ export default function Rentals() {
   const router = useRouter();
 
   const handleRequestMaintenance = () => {
-    // Navigate to the maintenance request screen
+    router.push('/tenant/maintenance-issue');
   }
 
   const handleViewMoreDetails = () => {
