@@ -39,7 +39,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" backgroundColor={COLORS.primary} />
+      <StatusBar style="light" backgroundColor={COLORS.primary} />
       <BottomSheetModalProvider>
         <Stack
           screenOptions={{
