@@ -1,9 +1,13 @@
 import { View } from 'react-native'
 
-export default function Divider() {
+interface DividerProps {
+  marginVertical?: number;
+}
+
+export default function Divider({ marginVertical = 5 }: DividerProps  ) {
   return (
     <View
-      className={`w-full h-[2px] rounded-full bg-grey-100 my-5`}
+      className={`w-full h-[2px] rounded-full bg-grey-100 my-${marginVertical}`}
     />
   )
 }
