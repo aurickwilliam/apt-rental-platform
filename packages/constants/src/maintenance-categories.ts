@@ -3,7 +3,7 @@ export const MAINTENANCE_CATEGORIES = [
   'Appliances',
   'HVAC (Climate Control)',
   'Electrical & Lighting',
-  'General "Wear and Tear"',
+  'General Wear and Tear',
   'Pest Control',
   'Structural Issues',
   'Safety & Security',
