@@ -28,6 +28,16 @@ export default function Rentals() {
     router.push('/tenant/current-apartment');
   }
 
+  // Handle Pay Now button press
+  const handlePayNow = () => {
+    router.push('/tenant/payment');
+  }
+
+  // Handle View Payment History button press
+  const handleViewPaymentHistory = () => {
+    // TODO: Implement navigation to payment history screen
+  }
+
   return (
     <ScreenWrapper 
       scrollable 
@@ -54,6 +64,8 @@ export default function Rentals() {
           totalRent={1000}
           balanceLeft={500}
           balancePaid={500}
+          onPayNowPress={handlePayNow}
+          onViewHistoryPress={handleViewPaymentHistory}
         />
       </View>
 

@@ -32,6 +32,8 @@ export default function Methods() {
   const router = useRouter();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+
+  // TODO: Fetch saved payment methods from backend and set hasSavedPaymentMethod to true if there are any saved payment methods available for the user.
   const [hasSavedPaymentMethod, setHasSavedPaymentMethod] = useState(false);
 
   const [cardInformation, setCardInformation] = useState<CardInformation>({
