@@ -48,7 +48,10 @@ export default function Index() {
   return (
     <ScreenWrapper
       header={
-        <StandardHeader title='Document & IDs' />
+        <StandardHeader 
+          title='Document & IDs' 
+          onBackPress={() => router.replace('/(tabs)/(tenant)/profile')}
+        />
       }
       className='p-5'
       scrollable
