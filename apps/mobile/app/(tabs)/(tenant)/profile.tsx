@@ -192,10 +192,12 @@ export default function Profile() {
         <SettingOptionButton 
           label='Document & IDs'
           iconName={IconFileText}
+          onPress={() => router.push('/document-id')}
         />
         <SettingOptionButton 
           label='Favorites'
           iconName={IconHeart}
+          onPress={() => router.push('/tenant/favorites')}
         />
         <SettingOptionButton
           label='Payment History'
@@ -208,7 +210,7 @@ export default function Profile() {
         <SettingOptionButton
           label='Settings'
           iconName={IconSettings}
-          onPress={() => router.push('/tenant/settings')}
+          onPress={() => router.push('/settings')}
         />
       </View>
 

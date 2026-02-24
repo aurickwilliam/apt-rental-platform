@@ -29,11 +29,14 @@ export default function ApartmentCard({
 }: ApartmentCardProps) {
   const { width } =  useWindowDimensions();
 
-  const cardWidth = isGrid ? width / 2 - 18 : width - 32;
-  const padding = 6;
+  const HORIZONTAL_PADDING = 16;
+  const GRID_GAP = 16;
+  const cardWidth = isGrid
+    ? (width - HORIZONTAL_PADDING * 2 - GRID_GAP) / 2
+    : width - HORIZONTAL_PADDING * 2;
 
   return (
-    <View style={{width: cardWidth, paddingHorizontal: padding}}>
+    <View style={{width: cardWidth}} className='px-2'>
       <TouchableOpacity
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
