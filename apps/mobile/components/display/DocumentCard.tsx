@@ -1,7 +1,7 @@
-import { Text, TouchableOpacity, Image, View, ImageSourcePropType } from 'react-native'
+import { Text, TouchableOpacity, Image, View } from 'react-native'
 
 interface DocumentCardProps {
-  image: ImageSourcePropType;
+  image: string;
   label: string;
   onPress: () => void;
 }
@@ -15,7 +15,7 @@ export default function DocumentCard({ image, label, onPress }: DocumentCardProp
     >
       <View className='w-full h-72 border-2 border-grey-200 rounded-2xl overflow-hidden'>
         <Image 
-          source={image} 
+          source={{ uri: image }} 
           style={{
             width: '100%',
             height: '100%',

@@ -1,5 +1,7 @@
-import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
+import { View, Text, Image, TouchableOpacity } from 'react-native'
+import ImageViewing from 'react-native-image-viewing'
 import { useRouter } from 'expo-router'
+import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -14,11 +16,13 @@ import { IconHomeQuestion } from '@tabler/icons-react-native'
 type UploadedDocument = {
   id: number;
   type: string;
-  image: ImageSourcePropType; // Replace with the appropriate type for your image source
+  image: string; 
 }
 
 export default function Index() {
   const router = useRouter();
+
+  const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
 
   // TODO: Fetch and display user's uploaded documents and IDs here. This may include government-issued IDs, proof of income, or any other relevant documents required for the rental application process. Each document can be displayed with its name, type, and upload date, along with options to view or delete the document.
 
@@ -27,24 +31,24 @@ export default function Index() {
     {
       id: 1,
       type: 'Proof of Income',
-      image: SAMPLE_IMAGES.sampleProofOfIncome,
+      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
     },
     {
       id: 2,
       type: 'Proof of Residency',
-      image: SAMPLE_IMAGES.sampleProofOfResidency,
+      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
     },
     {
       id: 3,
       type: 'Birth Certificate',
-      image: SAMPLE_IMAGES.sampleBirthCertificate,
+      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
     }
   ]
 
   const mainValidId = {
     id: 67,
     type: 'National ID',
-    image: SAMPLE_IMAGES.sampleNationalID,
+    image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleNationalID).uri,
   }
 
   // uploadedDocuments.pop();
@@ -76,9 +80,10 @@ export default function Index() {
         <TouchableOpacity
           className='w-full h-72 mt-3 border-2 border-primary rounded-2xl'
           activeOpacity={0.7}
+          onPress={() => setIsIdVisible(!isIdVisible)}
         >
           <Image 
-            source={mainValidId.image}
+            source={{ uri: mainValidId.image }}
             style={{
               width: '100%',
               height: '100%',
@@ -142,7 +147,7 @@ export default function Index() {
                     key={doc.id}
                     image={doc.image}
                     label={doc.type}
-                    onPress={() => router.push(`/document-id/details?docId=${doc.id}&docImage=${doc.image}&docType=${doc.type}`)}
+                    onPress={() => router.push(`/document-id/details?docImage=${doc.image}&docType=${doc.type}`)}
                   />
                 ))
               }
@@ -173,6 +178,15 @@ export default function Index() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <ImageViewing
+        images={[{ uri: mainValidId.image }]}
+        imageIndex={0}
+        visible={isIdVisible}
+        onRequestClose={() => setIsIdVisible(false)}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.8)'
+      />
     </ScreenWrapper>
   )
 }
