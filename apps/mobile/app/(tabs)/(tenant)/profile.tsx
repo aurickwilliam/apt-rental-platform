@@ -202,6 +202,7 @@ export default function Profile() {
         <SettingOptionButton
           label='Payment History'
           iconName={IconClock}
+          onPress={() => router.push('/tenant/payment/history')}
         />
         <SettingOptionButton
           label='Payment Methods'
