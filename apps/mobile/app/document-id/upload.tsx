@@ -1,6 +1,8 @@
+import { View, Text } from 'react-native'
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import { View, Text } from 'react-native'
+
 
 export default function Upload() {
   return (
@@ -11,7 +13,9 @@ export default function Upload() {
       }
       className='p-5'
     >
-      <Text>Upload</Text>
+      <Text className='text-text text-base font-interMedium mb-5'>
+        Please select the type of document you want to upload. Make sure to take clear photos of your documents for successful verification.
+      </Text>
     </ScreenWrapper>
   )
 }

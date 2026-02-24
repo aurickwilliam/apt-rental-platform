@@ -41,6 +41,10 @@ export default function Index() {
     image: SAMPLE_IMAGES.sampleNationalID,
   }
 
+  uploadedDocuments.pop();
+  uploadedDocuments.pop();
+  uploadedDocuments.pop();
+
   return (
     <ScreenWrapper
       header={
@@ -109,7 +113,7 @@ export default function Index() {
                   label='Add a Document'
                   size='sm'
                   onPress={() => {
-                    router.push('/document-id/upload')
+                    router.push('/document-id/select-document')
                   }}
                 />
               </View>
