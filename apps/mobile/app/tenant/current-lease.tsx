@@ -36,6 +36,8 @@ export default function CurrentLease() {
         imageIndex={0}
         visible={isVisible}
         onRequestClose={() => setIsVisible(false)}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.8)'
       />
     </ScreenWrapper>
   )
