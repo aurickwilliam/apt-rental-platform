@@ -54,6 +54,8 @@ export default function RootLayout() {
           <Stack.Screen name="landlord-profile/[landlordId]"/>
           <Stack.Screen name="apartment/[apartmentId]"/>
           <Stack.Screen name="(notification)"/>
+          <Stack.Screen name="settings"/>
+          <Stack.Screen name="document-id"/>
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>

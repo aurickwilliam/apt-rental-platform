@@ -25,6 +25,10 @@ export const SAMPLE_IMAGES = {
   sampleBackgroundPhoto: require("../assets/images/sample-bg-photo.png"),
   sampleProfilePicture: require("../assets/images/sample-profile-pic.jpg"),
   sampleLeaseAgreement: require("../assets/images/sample-lease-agreement.jpg"),
+  sampleNationalID: require("../assets/images/sample-national-id.png"),
+  sampleBirthCertificate: require("../assets/images/sample-birth-certificate.jpg"),
+  sampleProofOfIncome: require("../assets/images/sample-proof-income.jpg"),
+  sampleProofOfResidency: require("../assets/images/sample-proof-residency.jpg"),
 }
 
 export const DEFAULT_IMAGES = {
