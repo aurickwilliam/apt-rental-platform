@@ -15,11 +15,31 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Divider from '@/components/display/Divider'
 import TextField from '@/components/inputs/TextField'
 import DateTimeField from '@/components/inputs/DateTimeField'
+import CheckBox from '@/components/buttons/CheckBox'
+import NumberField from '@/components/inputs/NumberField'
+
+type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash';
+
+type CardInformation = {
+  cardNumber: string;
+  expiryDate: Date;
+  cardholderName: string;
+  cvv: string;
+  isPaymentSaved: boolean;
+}
 
 export default function Methods() {
   const router = useRouter();
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash' | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+
+  const [cardInformation, setCardInformation] = useState<CardInformation>({
+    cardNumber: '',
+    expiryDate: new Date(),
+    cardholderName: '',
+    cvv: '',
+    isPaymentSaved: false,
+  })
 
   // Dummy data for total payment amount. This should be fetched from the backend based on the rent payment details.
   const totalPayment = 1200.00;
@@ -118,6 +138,8 @@ export default function Methods() {
                   label='Card Number:'
                   placeholder='**** **** **** ****'
                   required
+                  value={cardInformation.cardNumber}
+                  onChangeText={(value) => setCardInformation({...cardInformation, cardNumber: value})}
                 />
 
                 {/* Expiry Date */}
@@ -125,6 +147,8 @@ export default function Methods() {
                   label='Expiry Date:'
                   placeholder='XX/XX'
                   required
+                  value={cardInformation.expiryDate}
+                  onChange={(value) => setCardInformation({...cardInformation, expiryDate: value})}
                 />
 
                 {/* Card Name */}
@@ -132,21 +156,31 @@ export default function Methods() {
                   label='Cardholder Name:'
                   placeholder='Enter cardholder name'
                   required
+                  value={cardInformation.cardholderName}
+                  onChangeText={(value) => setCardInformation({...cardInformation, cardholderName: value})}
                 />
 
                 {/* Card Verification Value */}
                 <View>
-                  <TextField 
+                  <NumberField 
                     label='CVV:'
                     placeholder='***'
-                    isPassword
+                    maxLength={3}
                     required
+                    value={cardInformation.cvv}
+                    onChange={(value) => setCardInformation({...cardInformation, cvv: value})}
                   />
 
                   <Text className='text-grey-500 text-sm font-inter mt-1'>
                     3-digit code at the back of your card.
                   </Text>
                 </View>
+
+                <CheckBox 
+                  label={'Save this card for future use?'} 
+                  selected={cardInformation.isPaymentSaved} 
+                  onPress={() => setCardInformation({...cardInformation, isPaymentSaved: !cardInformation.isPaymentSaved})}                  
+                />
               </View>
             </>
           )
