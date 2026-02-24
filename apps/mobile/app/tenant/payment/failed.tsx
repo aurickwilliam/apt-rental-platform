@@ -13,7 +13,9 @@ export default function Failed() {
   const router = useRouter();
 
   const handleGoBackHome = () => {
-    router.back();
+    // Redirect to a stable screen instead of relying on navigation history,
+    // to avoid returning to a potentially invalid payment state.
+    router.replace('/tenant/payment/methods');
   }
 
   // TODO: Add a text for the reason of payment failure if available (e.g. insufficient funds, network error, etc.)
