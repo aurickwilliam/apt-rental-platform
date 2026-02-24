@@ -58,7 +58,7 @@ export default function Upload() {
         />
 
         <Text className='text-sm text-grey-500 font-inter'>
-          <Text className='text-redHead-200'>*</Text> By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with Republic Act No. 9653 (Anti-Fraud Law).
+          <Text className='text-redHead-200'>*</Text> By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
         </Text>
       </View>
 
