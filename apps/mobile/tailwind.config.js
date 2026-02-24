@@ -34,7 +34,6 @@ module.exports = {
         greenHulk: {
           100: '#E6F4EA',
           200: '#22C55E',
-
         },
         redHead: {
           100: '#FF4B4B',
