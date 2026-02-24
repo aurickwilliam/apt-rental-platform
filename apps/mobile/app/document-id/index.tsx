@@ -9,6 +9,7 @@ import { SAMPLE_IMAGES } from '@/constants/images'
 
 import { IconHomeQuestion } from '@tabler/icons-react-native'
 import { COLORS } from '@repo/constants'
+import DocumentCard from '@/components/display/DocumentCard'
 
 export default function Index() {
   const router = useRouter();
@@ -119,6 +120,19 @@ export default function Index() {
             <Text className='text-text text-xl font-poppinsMedium mt-8 mb-3'>
               Uploaded Documents
             </Text>
+
+            <View className='flex-row flex-wrap gap-2 gap-y-5 mb-10'>
+              {
+                uploadedDocuments.map(doc => (
+                  <DocumentCard 
+                    key={doc.id}
+                    image={doc.image}
+                    label={doc.type}
+                    onPress={() => router.push(`/document-id/details?docId=${doc.id}`)}
+                  />
+                ))
+              }
+            </View>
           </>
         )
       }
