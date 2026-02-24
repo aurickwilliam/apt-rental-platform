@@ -8,6 +8,7 @@ interface PillButtonProps {
   type?: 'primary' | 'secondary' | 'outline' | 'danger',
   isDisabled?: boolean,
   isFullWidth?: boolean,
+  width?: string,
   leftIconName?: React.ComponentType<IconProps>,
   rightIconName?: React.ComponentType<IconProps>,
   onPress?: () => void,
@@ -27,12 +28,13 @@ export default function PillButton({
   type = 'primary',
   isDisabled = false,
   isFullWidth = false,
+  width,
   leftIconName,
   rightIconName,
   onPress,
-  size = 'md'
+  size = 'md',
 }: PillButtonProps) {
-  const widthClass = isFullWidth ? 'w-full' : undefined;
+  const widthClass = width ?? (isFullWidth ? 'w-full' : 'w-auto');
   const iconColor = type !== 'outline' ? 'white' : COLORS.grey;
   const textColor = type !== 'outline' ? 'text-white' : 'text-grey-500';
 
@@ -71,7 +73,7 @@ export default function PillButton({
         />
       )}
       <Text
-        className={`${textColor} ${currentSize.textSize} font-interMedium`}
+        className={`${textColor} ${currentSize.textSize} font-interMedium text-center`}
         numberOfLines={1}
       >
         {label}

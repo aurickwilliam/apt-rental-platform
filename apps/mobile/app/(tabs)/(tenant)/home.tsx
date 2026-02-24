@@ -71,6 +71,16 @@ export default function Home() {
     router.push('/tenant-notif');
   }
 
+  // Route Pay Now Button to Payment Page
+  const handlePayNowNavigation = () => {
+    router.push('/tenant/payment');
+  }
+
+  // Route Payment View Details Button to Payment Details Page
+  const handlePaymentDetailsNavigation = () => {
+    console.log("VIEW DETAILS WAS PRESSED!");
+  }
+
   return (
     <ScreenWrapper 
       scrollable 
@@ -118,6 +128,8 @@ export default function Home() {
         amountDue={1_200.00}
         apartmentName='Apartment Name'
         daysRemaining={10}
+        onPayNow={handlePayNowNavigation}
+        onViewDetails={handlePaymentDetailsNavigation}
       />
 
       {/* Quick Actions List */}

@@ -15,24 +15,19 @@ interface PaymentHomeCardProps {
   amountDue: number;
   apartmentName: string;
   daysRemaining: number;
+  onPayNow: () => void;
+  onViewDetails: () => void;
 }
 
 export default function PaymentHomeCard({
   monthDue,
   amountDue,
   apartmentName,
-  daysRemaining
+  daysRemaining,
+  onPayNow,
+  onViewDetails
 }: PaymentHomeCardProps) {
 
-  const handlePayNow = () => {
-    // TODO: Implement pay now functionality here
-    console.log("PAY NOW!");
-  };
-
-  const handleViewDetails = () => {
-    // TODO: Implement view details functionality here
-    console.log("VIEW DETAILS!");
-  };
 
   const formattedAmountDue:string = formatCurrency(amountDue);
 
@@ -81,7 +76,7 @@ export default function PaymentHomeCard({
             type='secondary'
             isFullWidth
             size="sm"
-            onPress={() => handlePayNow()}
+            onPress={() => onPayNow()}
           />
         </View>
         <View className="flex-1">
@@ -90,7 +85,7 @@ export default function PaymentHomeCard({
             type='outline'
             isFullWidth
             size="sm"
-            onPress={() => handleViewDetails()}
+            onPress={() => onViewDetails()}
           />
         </View>
       </View>

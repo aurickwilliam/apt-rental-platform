@@ -16,7 +16,6 @@ interface NumberFieldProps {
   onBlur?: () => void;
 }
 
-
 export default function NumberField({
     label,
     placeholder,

@@ -20,13 +20,13 @@ export default function RadioButton({
       className='flex-row gap-2 items-center'
       onPress={onPress}
     >
-      <View className={`rounded-full border-2 size-8 items-center justify-center
+      <View className={`rounded-full border-2 size-7 items-center justify-center
           ${selected ? "border-primary" : "border-grey-300"}
         `}> 
         {selected && (
           <Ionicons 
             name="ellipse" 
-            size={22} 
+            size={18} 
             color={ COLORS.primary } 
           />
         )}
