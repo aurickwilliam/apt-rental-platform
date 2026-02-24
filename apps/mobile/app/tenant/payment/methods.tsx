@@ -32,6 +32,7 @@ export default function Methods() {
   const router = useRouter();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [hasSavedPaymentMethod, setHasSavedPaymentMethod] = useState(false);
 
   const [cardInformation, setCardInformation] = useState<CardInformation>({
     cardNumber: '',
@@ -46,7 +47,18 @@ export default function Methods() {
 
   // Handle Checkout button press
   const handleCheckout = () => {
-    
+    if (selectedPaymentMethod === 'GCash') {
+      router.push('/tenant/payment/e-wallet-redirect?method=gcash');
+      return;
+    }
+    else if (selectedPaymentMethod === 'Maya') {
+      router.push('/tenant/payment/e-wallet-redirect?method=maya');
+      return;
+    }
+
+    // TODO: Implement actual payment processing logic here. For now, we will just navigate to the success screen.
+    // TODO: If payment fails, navigate to the failed screen instead.
+    router.push('/tenant/payment/success');
   }
 
   return (
@@ -62,7 +74,7 @@ export default function Methods() {
         {/* Title */}
         <View className='flex'>
           <Text className='text-secondary text-lg font-poppinsMedium'>
-            Choose Payment Method``
+            Choose Payment Method
           </Text>
 
           <Text className='text-grey-500 text-base font-inter'>
@@ -71,32 +83,38 @@ export default function Methods() {
         </View>
 
         {/* Save Payment Methods */}
-        <View className='flex mt-5'>
-          <Text className='text-text text-lg font-interMedium'>
-            Saved Payment Methods
-          </Text>
+        {
+          hasSavedPaymentMethod && (
+            <>
+              <View className='flex mt-5'>
+                <Text className='text-text text-lg font-interMedium'>
+                  Saved Payment Methods
+                </Text>
 
-          <View className='flex-row flex-wrap mt-3 gap-3 items-center'>
-            <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.gcash} />
-            <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.maya} />
-            <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.visa} />
-            <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.mastercard} />
-          </View>
-        </View>
+                <View className='flex-row flex-wrap mt-3 gap-3 items-center'>
+                  <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.gcash} />
+                  <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.maya} />
+                  <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.visa} />
+                  <PaymentMethodButton imageSource={PAYMENT_METHOD_LOGOS.mastercard} />
+                </View>
+              </View>
 
-        {/* Divider */}
-        <View className="flex-row justify-center items-center mt-7 mb-7">
-          <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
+              {/* Divider */}
+              <View className="flex-row justify-center items-center mt-7 mb-7">
+                <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
 
-          <Text className="mx-3 text-grey-400 font-inter">
-            or 
-          </Text>
+                <Text className="mx-3 text-grey-400 font-inter">
+                  or 
+                </Text>
 
-          <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
-        </View>
+                <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
+              </View>
+            </>
+          )
+        }
 
         {/* Add New Payment Method */}
-        <View className='flex gap-3'>
+        <View className={`flex gap-3 ${hasSavedPaymentMethod ? '' : 'mt-5'}`}>
           <Text className='text-text text-base font-interMedium'>
             Add New Payment Method 
           </Text>
@@ -185,6 +203,44 @@ export default function Methods() {
             </>
           )
         }
+
+        {/* If the user select Cash Payment */}
+        {
+          selectedPaymentMethod === 'Cash' && (
+            <>
+              <Divider />
+
+              <View>
+                <Text className='text-text text-lg font-interMedium'>
+                  Cash Payment Instructions:
+                </Text>
+                <Text className='text-grey-500 font-inter text-sm mt-1'>
+                  Please prepare the exact amount of payment in cash and bring it to the property.
+                </Text>
+
+                <View className='mt-5 flex gap-3'>
+                  <Text className='text-text text-sm font-inter'>
+                    After you have made the cash payment, kindly fill out the Cash Payment Confirmation Form to confirm your payment.
+                  </Text>
+
+                  {/* Date of Payment */}
+                  <DateTimeField 
+                    label='Payment Date:'
+                    placeholder='Select date of payment'
+                  />
+
+                  {/* Amount */}
+                  <NumberField 
+                    label='Amount Paid:'
+                    placeholder='₱ 0.00'
+                    allowDecimal
+                  />
+
+                </View>
+              </View>
+            </>
+          )
+        }
       </ScreenWrapper>
 
       {/* Checkout Button */}
@@ -201,7 +257,7 @@ export default function Methods() {
           </View>
 
           <PillButton
-            label='Checkout'
+            label='Pay'
             width='w-48'
             onPress={handleCheckout}
           />
