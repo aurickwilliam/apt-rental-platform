@@ -11,7 +11,7 @@ import {
 } from '@tabler/icons-react-native'
 
 interface UploadImageFieldProps {
-  label: string;
+  label?: string;
   placeholder?: string;
   onChange?: (uri: string) => void;
   value?: string;
@@ -35,18 +35,22 @@ export default function UploadImageField({
   return (
     <View className='w-full flex-col gap-2'>
       {/* Label Text */}
-      <View className='flex-row items-center justify-between'>
-        <Text className='text-base font-interMedium text-text'>
-          {label}
-        </Text>
+      {
+        label && (
+          <View className='flex-row items-center justify-between'>
+            <Text className='text-base font-interMedium text-text'>
+              {label}
+            </Text>
 
-        {
-          required &&
-          <Text className='text-sm font-interMedium text-redHead-200'>
-            *Required
-          </Text>
-        }
-      </View>
+            {
+              required &&
+              <Text className='text-sm font-interMedium text-redHead-200'>
+                *Required
+              </Text>
+            }
+          </View>
+        )
+      }
 
       {/* Uploaded Image Area */}
       <View className='w-full h-52 bg-white rounded-xl border border-gray-300 items-center justify-center'>

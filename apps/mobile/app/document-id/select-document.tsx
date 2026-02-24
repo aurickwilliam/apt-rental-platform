@@ -15,9 +15,6 @@ export default function SelectDocument() {
 
   const handleDocumentTypeSelect = (docType: string) => {
     documentType.current = docType;
-    console.log('====================================');
-    console.log(documentType.current);
-    console.log('====================================');
 
     router.push(`/document-id/upload?docType=${documentType.current}`);
   }
