@@ -62,7 +62,7 @@ export default function Index() {
         <SettingOptionButton 
           label="Language & Region" 
           iconName={IconWorld} 
-          onPress={() => router.push('/tenant/settings/language-region')}
+          onPress={() => router.push('/settings/language-region')}
         />
 
         <SettingOptionButton 

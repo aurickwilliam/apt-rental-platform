@@ -573,12 +573,14 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         visible={isImageViewVisible}
         onRequestClose={() => setIsImageViewVisible(false)}
         FooterComponent={({ imageIndex }) => (
-        <View className='p-10 items-center'>
-          <Text className='text-white font-interMedium'>
-            {imageIndex + 1} / {apartmentImages.length}
-          </Text>
-        </View>
-      )}
+          <View className='p-10 items-center'>
+            <Text className='text-white font-interMedium'>
+              {imageIndex + 1} / {apartmentImages.length}
+            </Text>
+          </View>
+        )}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.9)'
       />
     </View>
   )
