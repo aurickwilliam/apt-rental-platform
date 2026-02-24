@@ -73,7 +73,7 @@ export default function PillButton({
         />
       )}
       <Text
-        className={`${textColor} ${currentSize.textSize} font-interMedium`}
+        className={`${textColor} ${currentSize.textSize} font-interMedium text-center`}
         numberOfLines={1}
       >
         {label}
