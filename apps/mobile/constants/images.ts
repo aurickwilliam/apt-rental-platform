@@ -34,7 +34,9 @@ export const DEFAULT_IMAGES = {
 
 export const PAYMENT_METHOD_LOGOS = {
   gcash: require("../assets/images/payment-logos/gcash-logo.png"),
+  gcashBig: require("../assets/images/payment-logos/gcash-big-logo.png"),
   maya: require("../assets/images/payment-logos/maya-logo.png"),
+  mayaBig: require("../assets/images/payment-logos/maya-big-logo.jpg"),
   visa: require("../assets/images/payment-logos/visa-logo.png"),
   mastercard: require("../assets/images/payment-logos/mastercard-logo.png"),
 }
