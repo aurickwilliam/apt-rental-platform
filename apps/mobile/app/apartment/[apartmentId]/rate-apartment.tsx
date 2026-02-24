@@ -9,7 +9,7 @@ import DropdownButton from 'components/buttons/DropdownButton'
 import PillButton from 'components/buttons/PillButton'
 import TextBox from 'components/inputs/TextBox'
 
-import { COLORS } from '@repo/constants'
+import { COLORS, YEARS, MONTHS } from '@repo/constants'
 import { DEFAULT_IMAGES } from 'constants/images'
 
 import {
@@ -21,7 +21,7 @@ import {
 export default function RateApartment() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  type Month = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December';
+  type Month = typeof MONTHS[number];
 
   const [fromMonth, setFromMonth] = useState<Month>('January');
   const [fromYear, setFromYear] = useState<string>('2023');
@@ -44,19 +44,6 @@ export default function RateApartment() {
     'October',
     'November',
     'December'
-  ];
-
-  const yearOptions: string[] = [
-    '2015',
-    '2018',
-    '2019',
-    '2020',
-    '2021',
-    '2022',
-    '2023',
-    '2024',
-    '2025',
-    '2026',
   ];
 
   // Dummy Data for demonstration purposes
@@ -216,7 +203,7 @@ export default function RateApartment() {
               />
               <DropdownButton
                 bottomSheetLabel={'Select Year'}
-                options={yearOptions}
+                options={YEARS}
                 value={fromYear}
                 onSelect={setFromYear}
                 buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
@@ -241,7 +228,7 @@ export default function RateApartment() {
               />
               <DropdownButton
                 bottomSheetLabel={'Select Year'}
-                options={yearOptions}
+                options={YEARS}
                 value={toYear}
                 onSelect={setToYear}
                 buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite

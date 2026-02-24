@@ -15,5 +15,5 @@ export const COLORS: { [key: string]: string } = {
   yellowish: '#FACC15',
   lightYellowish: '#FFF8E1',
   redHead: '#E50914',
-  lightRedHead: '#FF4B4B'
+  lightRedHead: '#FF4B4B',
 }
