@@ -41,9 +41,9 @@ export default function Index() {
     image: SAMPLE_IMAGES.sampleNationalID,
   }
 
-  uploadedDocuments.pop();
-  uploadedDocuments.pop();
-  uploadedDocuments.pop();
+  // uploadedDocuments.pop();
+  // uploadedDocuments.pop();
+  // uploadedDocuments.pop();
 
   return (
     <ScreenWrapper
@@ -77,6 +77,7 @@ export default function Index() {
               width: '100%',
               height: '100%',
             }}
+            resizeMode='cover'
           />
         </TouchableOpacity>
       </View>
@@ -128,7 +129,7 @@ export default function Index() {
               Uploaded Documents
             </Text>
 
-            <View className='flex-row flex-wrap gap-2 gap-y-5 mb-10'>
+            <View className='flex-row flex-wrap gap-4 gap-y-5 mb-10'>
               {
                 uploadedDocuments.map(doc => (
                   <DocumentCard 
@@ -150,7 +151,9 @@ export default function Index() {
         <Text className='text-text text-base font-interMedium'>
           Need help?
         </Text>
-
+        {
+          // TODO: Implement contact support functionality, such as opening a chat with customer support or redirecting to a help center page.
+        }
         <TouchableOpacity 
           className='flex-row gap-1 items-center justify-center'
           activeOpacity={0.7}

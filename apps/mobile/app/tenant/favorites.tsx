@@ -60,7 +60,7 @@ export default function TenantFavorites() {
       backgroundColor={COLORS.darkerWhite}
       bottomPadding={50}
     >
-      <View className='flex-row flex-wrap gap-4'>
+      <View className='flex-row flex-wrap gap-3'>
         <ApartmentCard
           id={1} 
           name="Apartment Name"

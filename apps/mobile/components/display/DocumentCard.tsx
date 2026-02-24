@@ -9,7 +9,7 @@ interface DocumentCardProps {
 export default function DocumentCard({ image, label, onPress }: DocumentCardProps) {
   return (
     <TouchableOpacity
-      className='flex w-[49%] gap-1 items-center justify-center'
+      className='flex w-[48%] gap-1 items-center justify-center'
       activeOpacity={0.7}
       onPress={onPress}
     >
@@ -20,6 +20,7 @@ export default function DocumentCard({ image, label, onPress }: DocumentCardProp
             width: '100%',
             height: '100%',
           }}
+          resizeMode='cover'
         />
       </View>
       
