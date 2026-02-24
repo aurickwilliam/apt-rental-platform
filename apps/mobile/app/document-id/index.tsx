@@ -1,15 +1,21 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import PillButton from '@/components/buttons/PillButton'
+import DocumentCard from '@/components/display/DocumentCard'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
+import { COLORS } from '@repo/constants'
 
 import { IconHomeQuestion } from '@tabler/icons-react-native'
-import { COLORS } from '@repo/constants'
-import DocumentCard from '@/components/display/DocumentCard'
+
+type UploadedDocument = {
+  id: number;
+  type: string;
+  image: ImageSourcePropType; // Replace with the appropriate type for your image source
+}
 
 export default function Index() {
   const router = useRouter();
@@ -17,7 +23,7 @@ export default function Index() {
   // TODO: Fetch and display user's uploaded documents and IDs here. This may include government-issued IDs, proof of income, or any other relevant documents required for the rental application process. Each document can be displayed with its name, type, and upload date, along with options to view or delete the document.
 
   // Dummy data for testing
-  const uploadedDocuments = [
+  const uploadedDocuments: UploadedDocument[] = [
     {
       id: 1,
       type: 'Proof of Income',
@@ -136,7 +142,7 @@ export default function Index() {
                     key={doc.id}
                     image={doc.image}
                     label={doc.type}
-                    onPress={() => router.push(`/document-id/details?docId=${doc.id}`)}
+                    onPress={() => router.push(`/document-id/details?docId=${doc.id}&docImage=${doc.image}&docType=${doc.type}`)}
                   />
                 ))
               }
