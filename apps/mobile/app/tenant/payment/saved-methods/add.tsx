@@ -21,7 +21,7 @@ export default function Add() {
       return;
     }
 
-    router.push(`/tenant/payment/saved-methods/e-wallet-redirect?cardType=${type}`);
+    router.push(`/tenant/payment/saved-methods/e-wallet-redirect?method=${type}`);
   }
 
   return (
