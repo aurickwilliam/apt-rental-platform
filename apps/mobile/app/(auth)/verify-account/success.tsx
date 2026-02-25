@@ -1,10 +1,12 @@
+import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import { View, Text } from 'react-native'
-import React from 'react'
 
 export default function Success() {
   return (
-    <View>
+    <ScreenWrapper
+      className='p-5'
+    >
       <Text>Success</Text>
-    </View>
+    </ScreenWrapper>
   )
 }
