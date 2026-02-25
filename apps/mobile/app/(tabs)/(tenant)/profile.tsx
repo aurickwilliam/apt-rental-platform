@@ -207,6 +207,7 @@ export default function Profile() {
         <SettingOptionButton
           label='Payment Methods'
           iconName={IconCreditCard}
+          onPress={() => router.push('/tenant/payment/saved-methods')}
         />
         <SettingOptionButton
           label='Settings'
