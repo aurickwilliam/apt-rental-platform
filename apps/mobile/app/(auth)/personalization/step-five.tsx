@@ -10,16 +10,25 @@ import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
 
 import { PETS } from "@repo/constants";
+import CheckBox from "@/components/buttons/CheckBox";
 
 type rentalPreferenceType = {
   hasPets: boolean;
   kindOfPets: string;
   nameOfPets: string | null;
   hasParking: boolean;
-  noOfParkingSpots: string | null;
+  noOfParkingSpots: number | 0;
   hasSmoker: boolean;
   hasDisability: boolean;
+  listOfVehicles: string[];
 }
+
+const vehicleOptions = [
+  "Car",
+  "Motorcycle",
+  "Bicycle",
+  "Other"
+]
 
 export default function StepFive() {
   const router = useRouter();
@@ -29,14 +38,14 @@ export default function StepFive() {
     kindOfPets: "",
     nameOfPets: null,
     hasParking: false,
-    noOfParkingSpots: null,
+    noOfParkingSpots: 0,
     hasSmoker: false,
     hasDisability: false,
+    listOfVehicles: [], 
   });
 
   // Number of Vehicles options for parking can be generated from 1 to 10
-  const parkingOptions = Array.from({ length: 10 }, (_, i) => `${i + 1}`);
-  parkingOptions.push("More than 10");
+  const parkingOptions = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
   // Function to update rental preferences
   const updateRentalPreference = (key: keyof rentalPreferenceType, value: any) => {
@@ -48,6 +57,18 @@ export default function StepFive() {
 
   const handleNext = () => {
     router.replace("/home");
+  };
+
+  const toggleVehicle = (vehicle: string) => {
+    setRentalPreference((prev) => {
+      const isSelected = prev.listOfVehicles.includes(vehicle);
+      return {
+        ...prev,
+        listOfVehicles: isSelected
+          ? prev.listOfVehicles.filter((v) => v !== vehicle)  // remove
+          : [...prev.listOfVehicles, vehicle],                // add
+      };
+    });
   };
 
   return (
@@ -136,9 +157,31 @@ export default function StepFive() {
                   placeholder="Select the number of parking you need"
                   options={parkingOptions}
                   onSelect={(value) => updateRentalPreference("noOfParkingSpots", value)}
-                  value={rentalPreference.noOfParkingSpots}
+                  value={String(rentalPreference.noOfParkingSpots)}
                   required
                 />
+              )
+            }
+
+            {/* Select Kinds of Vehicles */}
+            {
+              rentalPreference.hasParking && rentalPreference.noOfParkingSpots > 0 && (
+                <View className="flex gap-3">
+                  <Text className="text-text text-base font-interMedium">
+                    Select the kinds of vehicles you have:
+                  </Text>
+
+                  {
+                    vehicleOptions.map((vehicle) => (
+                      <CheckBox
+                        key={vehicle}
+                        label={vehicle}
+                        onPress={() => toggleVehicle(vehicle)} 
+                        selected={rentalPreference.listOfVehicles.includes(vehicle)}                      
+                      />
+                    ))
+                  }
+                </View>
               )
             }
           </View>
