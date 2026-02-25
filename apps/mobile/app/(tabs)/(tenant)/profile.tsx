@@ -17,6 +17,7 @@ import {
   IconClock,
   IconCreditCard,
   IconSettings,
+  IconLogout
 } from '@tabler/icons-react-native';
 
 import PillButton from 'components/buttons/PillButton';
@@ -30,7 +31,7 @@ export default function Profile() {
   const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
 
   // Change of Status
-  const accountStatus = 'verified' as 'verified' | 'pending' | 'rejected'; 
+  const accountStatus = 'rejected' as 'verified' | 'pending' | 'rejected'; 
   const rejectedReason = 'Your submitted documents were not clear. Please resubmit clear copies of your ID and proof of income for verification.';
   const dateVerified = 'June 15, 2024';
 
@@ -148,10 +149,11 @@ export default function Profile() {
               </Text>
 
               <PillButton 
-                label='Re-Upload Photos' 
+                label='Re-Apply for Verification' 
                 isFullWidth
                 size='sm'
                 leftIconName={IconCamera}
+                onPress={() => router.push('/(auth)/verify-account')}
               />
             </>
           )
@@ -213,6 +215,16 @@ export default function Profile() {
           label='Settings'
           iconName={IconSettings}
           onPress={() => router.push('/settings')}
+        />
+      </View>
+
+      <View className='p-5'>
+        <PillButton
+          label='Logout'
+          isFullWidth
+          type='danger'
+          leftIconName={IconLogout}
+          onPress={() => router.push('/(auth)/sign-in')}
         />
       </View>
 
