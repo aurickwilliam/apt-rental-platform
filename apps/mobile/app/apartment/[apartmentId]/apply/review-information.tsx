@@ -52,7 +52,6 @@ export default function ReviewInformation() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
       <ApplicationHeader
