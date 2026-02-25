@@ -57,7 +57,7 @@ export default function UploadId() {
       <View className='mt-20'>
         <PillButton 
           label='Verify ID'
-          onPress={() => router.push('/verify-account/success')}
+          onPress={() => router.push('/verify-account/upload-selfie')}
         />
       </View>
     </ScreenWrapper>
