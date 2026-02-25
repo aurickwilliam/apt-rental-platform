@@ -33,7 +33,7 @@ export default function UploadImageField({
   // TODO: implement image upload functionality using expo-image-picker or similar library
   
   return (
-    <View className='w-full flex-col gap-2'>
+    <View className='w-full flex gap-2'>
       {/* Label Text */}
       {
         label && (
