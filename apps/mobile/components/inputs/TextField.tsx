@@ -13,6 +13,7 @@ interface TextFieldProps {
   disabled?: boolean,
   error?: string,
   required?: boolean,
+  maxLength?: number,
 }
 
 export default function TextField({
@@ -23,7 +24,8 @@ export default function TextField({
     isPassword = false,
     disabled = false,
     error,
-    required = false
+    required = false,
+    maxLength
   }: TextFieldProps) {
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -49,6 +51,7 @@ export default function TextField({
           numberOfLines={1}
           secureTextEntry={isPassword && !isPasswordVisible}
           editable={!disabled}
+          maxLength={maxLength}
 
           onChangeText={onChangeText}
 

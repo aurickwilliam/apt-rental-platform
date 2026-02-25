@@ -6,10 +6,6 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import PaymentMethodButton from '@/components/buttons/PaymentMethodButton'
 import RadioButton from '@/components/buttons/RadioButton'
-
-import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
-
-import { formatCurrency } from '@repo/utils'
 import PillButton from '@/components/buttons/PillButton'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Divider from '@/components/display/Divider'
@@ -17,6 +13,10 @@ import TextField from '@/components/inputs/TextField'
 import DateTimeField from '@/components/inputs/DateTimeField'
 import CheckBox from '@/components/buttons/CheckBox'
 import NumberField from '@/components/inputs/NumberField'
+
+import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
+
+import { formatCurrency } from '@repo/utils'
 
 type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash';
 
@@ -26,6 +26,7 @@ type CardInformation = {
   cardholderName: string;
   cvv: string;
   isPaymentSaved: boolean;
+  isCardNumberValid?: boolean; // Optional field to track card number validity
 }
 
 export default function Methods() {
@@ -42,6 +43,7 @@ export default function Methods() {
     cardholderName: '',
     cvv: '',
     isPaymentSaved: false,
+    isCardNumberValid: false,
   })
 
   // Dummy data for total payment amount. This should be fetched from the backend based on the rent payment details.
@@ -61,6 +63,51 @@ export default function Methods() {
     // TODO: Implement actual payment processing logic here. For now, we will just navigate to the success screen.
     // TODO: If payment fails, navigate to the failed screen instead.
     router.push('/tenant/payment/success');
+  }
+
+  // Handle credit card number validation and formatting
+  const handleCardNumberChange = (value: string) => {
+    // Keep only digits and limit to 19 digits (typical max PAN length)
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 19);
+
+    // Format as groups of 4 digits separated by spaces (e.g., "1234 5678 9012 3456")
+    const formatted = digitsOnly.replace(/(.{4})/g, '$1 ').trim();
+
+    // Luhn algorithm check for card number validity
+    const luhnCheck = (cardNumber: string): boolean => {
+      let sum = 0;
+      let shouldDouble = false;
+
+      for (let i = cardNumber.length - 1; i >= 0; i--) {
+        let digit = parseInt(cardNumber.charAt(i), 10);
+        if (Number.isNaN(digit)) {
+          return false;
+        }
+
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) {
+            digit -= 9;
+          }
+        }
+
+        sum += digit;
+        shouldDouble = !shouldDouble;
+      }
+
+      return sum % 10 === 0;
+    };
+
+    // Perform Luhn validation when there are at least 13 digits
+    const isValidLength = digitsOnly.length >= 13 && digitsOnly.length <= 19;
+    const isLuhnValid = isValidLength ? luhnCheck(digitsOnly) : false;
+
+    // Update state with the formatted value; validity can be consumed elsewhere if needed
+    setCardInformation({
+      ...cardInformation,
+      cardNumber: formatted,
+      isCardNumberValid: isLuhnValid,
+    });
   }
 
   return (
@@ -160,48 +207,7 @@ export default function Methods() {
                   required
                   value={cardInformation.cardNumber}
                   maxLength={23}
-                  onChangeText={(value) => {
-                    // Keep only digits and limit to 19 digits (typical max PAN length)
-                    const digitsOnly = value.replace(/\D/g, '').slice(0, 19);
-
-                    // Format as groups of 4 digits separated by spaces (e.g., "1234 5678 9012 3456")
-                    const formatted = digitsOnly.replace(/(.{4})/g, '$1 ').trim();
-
-                    // Luhn algorithm check for card number validity
-                    const luhnCheck = (cardNumber: string): boolean => {
-                      let sum = 0;
-                      let shouldDouble = false;
-
-                      for (let i = cardNumber.length - 1; i >= 0; i--) {
-                        let digit = parseInt(cardNumber.charAt(i), 10);
-                        if (Number.isNaN(digit)) {
-                          return false;
-                        }
-
-                        if (shouldDouble) {
-                          digit *= 2;
-                          if (digit > 9) {
-                            digit -= 9;
-                          }
-                        }
-
-                        sum += digit;
-                        shouldDouble = !shouldDouble;
-                      }
-
-                      return sum % 10 === 0;
-                    };
-
-                    // Perform Luhn validation when there are at least 13 digits
-                    const isValidLength = digitsOnly.length >= 13 && digitsOnly.length <= 19;
-                    const isLuhnValid = isValidLength ? luhnCheck(digitsOnly) : false;
-
-                    // Update state with the formatted value; validity can be consumed elsewhere if needed
-                    setCardInformation({
-                      ...cardInformation,
-                      cardNumber: formatted,
-                    });
-                  }}
+                  onChangeText={(value) => handleCardNumberChange(value)}
                 />
 
                 {/* Expiry Date */}
