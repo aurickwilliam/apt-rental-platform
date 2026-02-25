@@ -1,14 +1,16 @@
-import { View, Text } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
 import PillButton from '@/components/buttons/PillButton'
 
 import {
   IconMessage,
   IconMail,
+  IconChevronLeft
 } from '@tabler/icons-react-native'
+
+import { COLORS } from '@repo/constants'
 
 export default function Index() {
   const router = useRouter();
@@ -25,10 +27,16 @@ export default function Index() {
   return (
     <ScreenWrapper
       className='p-5'
-      header={
-        <StandardHeader title='Forgot Password' />
-      }
     >
+      <View>
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          className='my-5'
+        >
+          <IconChevronLeft size={26} color={COLORS.text} />
+        </TouchableOpacity>
+      </View>
+      
       <View className='flex gap-3'>
         <Text className='text-secondary text-4xl font-dmserif'>
           Forgot Password

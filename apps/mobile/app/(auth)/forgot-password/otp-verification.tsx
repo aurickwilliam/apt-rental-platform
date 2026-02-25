@@ -1,10 +1,13 @@
-import { View, Text, TextInput, Pressable } from 'react-native'
+import { View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import { useEffect, useRef, useState } from 'react';
 import PillButton from '@/components/buttons/PillButton';
+
+import { IconChevronLeft } from '@tabler/icons-react-native';
+
+import { COLORS } from '@repo/constants';
 
 export default function OTPVerification() {
   const { method } = useLocalSearchParams();
@@ -77,10 +80,15 @@ export default function OTPVerification() {
   return (
     <ScreenWrapper 
       className='p-5'
-      header={
-        <StandardHeader title='OTP Verification' />
-      }
     >
+      <View>
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          className='my-5'
+        >
+          <IconChevronLeft size={26} color={COLORS.text} />
+        </TouchableOpacity>
+      </View>
       <View className='flex gap-3'>
         <Text className='text-text text-2xl font-poppinsSemiBold'>
           OTP was Sent!
