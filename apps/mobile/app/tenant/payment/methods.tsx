@@ -6,10 +6,6 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import PaymentMethodButton from '@/components/buttons/PaymentMethodButton'
 import RadioButton from '@/components/buttons/RadioButton'
-
-import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
-
-import { formatCurrency } from '@repo/utils'
 import PillButton from '@/components/buttons/PillButton'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Divider from '@/components/display/Divider'
@@ -17,6 +13,10 @@ import TextField from '@/components/inputs/TextField'
 import DateTimeField from '@/components/inputs/DateTimeField'
 import CheckBox from '@/components/buttons/CheckBox'
 import NumberField from '@/components/inputs/NumberField'
+
+import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
+
+import { formatCurrency } from '@repo/utils'
 
 type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash';
 
@@ -26,6 +26,7 @@ type CardInformation = {
   cardholderName: string;
   cvv: string;
   isPaymentSaved: boolean;
+  isCardNumberValid?: boolean; // Optional field to track card number validity
 }
 
 export default function Methods() {
@@ -42,6 +43,7 @@ export default function Methods() {
     cardholderName: '',
     cvv: '',
     isPaymentSaved: false,
+    isCardNumberValid: false,
   })
 
   // Dummy data for total payment amount. This should be fetched from the backend based on the rent payment details.
@@ -104,6 +106,7 @@ export default function Methods() {
     setCardInformation({
       ...cardInformation,
       cardNumber: formatted,
+      isCardNumberValid: isLuhnValid,
     });
   }
 
