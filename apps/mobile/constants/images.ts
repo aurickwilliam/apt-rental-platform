@@ -5,6 +5,8 @@ export const IMAGES = {
   appleLogo: require("../assets/images/third-party-logos/apple.png"),
   houseCheck: require("../assets/images/house-check.png"),
   lockReset: require("../assets/images/lock.png"),
+  shield: require("../assets/images/shield.png"),
+  userCheck: require("../assets/images/user-check.png"),
 };
 
 export const EMPTY_STATE_IMAGES = {
