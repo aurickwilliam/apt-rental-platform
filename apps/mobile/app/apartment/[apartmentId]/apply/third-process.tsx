@@ -16,7 +16,6 @@ export default function ThirdProcess() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
       <ApplicationHeader

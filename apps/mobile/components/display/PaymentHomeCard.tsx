@@ -28,7 +28,6 @@ export default function PaymentHomeCard({
   onViewDetails
 }: PaymentHomeCardProps) {
 
-
   const formattedAmountDue:string = formatCurrency(amountDue);
 
   return (
@@ -48,7 +47,7 @@ export default function PaymentHomeCard({
       </View>
 
       {/* Payment Summary */}
-      <View className='flex mt-4 gap-2'>
+      <View className='flex mt-3 gap-2'>
         <View className="flex-row items-center justify-start gap-2">
           {/* Month Due */}
           <Text className='text-white text-base font-inter'>
@@ -69,7 +68,7 @@ export default function PaymentHomeCard({
       </View>
 
       {/* Payment Buttons */}
-      <View className="flex-1 flex-row items-center justify-between mt-2 gap-3">
+      <View className="flex-1 flex-row items-center justify-between mt-3 gap-3">
         <View className='flex-1'>
           <PillButton
             label="Pay Now"

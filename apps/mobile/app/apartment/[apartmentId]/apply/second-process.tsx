@@ -55,7 +55,6 @@ export default function SecondProcess() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
       <ApplicationHeader
