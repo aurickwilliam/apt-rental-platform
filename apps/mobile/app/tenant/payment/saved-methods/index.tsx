@@ -1,4 +1,5 @@
-import { View, Text, Touchable, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -9,6 +10,7 @@ import { COLORS } from '@repo/constants'
 import PaymentMethodCard from '@/components/display/PaymentMethodCard'
 
 export default function Index() {
+  const router = useRouter();
 
   // Dummy data
   const paymentMethods = [
@@ -26,7 +28,7 @@ export default function Index() {
           rightComponent={
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => {}}
+              onPress={() => router.push('/tenant/payment/saved-methods/add')}
             >
               <IconPlus size={24} color={COLORS.white} />
             </TouchableOpacity>

@@ -1,5 +1,4 @@
 import { View, Text, Image } from 'react-native'
-import { useRouter } from 'expo-router'
 
 import PillButton from '../buttons/PillButton'
 
@@ -21,8 +20,6 @@ interface PaymentMethodCardProps {
 export default function PaymentMethodCard({
   method
 }: PaymentMethodCardProps ) {
-  const router = useRouter();
-
   let logoSource = null;
 
   switch (method.method) {
