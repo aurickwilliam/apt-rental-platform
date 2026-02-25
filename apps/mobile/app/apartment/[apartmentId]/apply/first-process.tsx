@@ -67,7 +67,6 @@ export default function FirstProcess() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={50}
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header with Progress Bar */}
@@ -168,8 +167,11 @@ export default function FirstProcess() {
         <Divider />
 
         {/* Employment Information */}
-        <Text className='text-text text-xl font-interMedium mb-5'>
+        <Text className='text-text text-xl font-interMedium'>
           References
+        </Text>
+        <Text className='text-grey-500 text-base font-inter mb-5'>
+          Preferred for Fast-Track Review
         </Text>
 
         <View className='flex gap-3'>

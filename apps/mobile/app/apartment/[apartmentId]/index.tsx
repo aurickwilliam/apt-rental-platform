@@ -510,24 +510,16 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           className='flex items-start justify-between gap-3'
           edges={['bottom']}
         >
-          <View className='flex-row items-center'>
-            <Text className='text-3xl font-poppinsSemiBold text-primary'>
-              ₱ {formatCurrency(apartmentDetails.monthlyRent)}
-            </Text>
-            <Text className='text-base font-interMedium text-grey-500'>
-              /month
-            </Text>
-          </View>
+          
 
-          <View className='flex-1 flex-row gap-5'>
-            <View className='flex-1'>
-              <PillButton
-                label='Request a Visit'
-                size='md'
-                type='outline'
-                leftIconName={IconCalendarEvent}
-                onPress={handleRequestVisit}
-              />
+          <View className='flex-1 flex-row gap-5 items-center'>
+            <View className='flex-row items-center'>
+              <Text className='text-3xl font-poppinsSemiBold text-primary'>
+                ₱ {formatCurrency(apartmentDetails.monthlyRent)}
+              </Text>
+              <Text className='text-base font-interMedium text-grey-500'>
+                /month
+              </Text>
             </View>
 
             <View className='flex-1'>

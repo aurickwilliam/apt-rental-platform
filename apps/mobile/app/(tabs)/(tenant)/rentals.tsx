@@ -35,7 +35,7 @@ export default function Rentals() {
 
   // Handle View Payment History button press
   const handleViewPaymentHistory = () => {
-    // TODO: Implement navigation to payment history screen
+    router.push('/tenant/payment/history');
   }
 
   return (
