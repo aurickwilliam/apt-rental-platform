@@ -12,3 +12,4 @@ export { DOCUMENT_TYPES } from './document-types';
 export { MONTHS } from './months';
 export { YEARS } from './years';
 export { PAYMENT_STATUS } from './payment-status';
+export { VALID_IDS, SECONDARY_IDS } from './valid-ids';
