@@ -55,7 +55,7 @@ export function TabBar({
             onLongPress={onLongPress}
             isFocused={isFocused}
             routeName={route.name}
-            color={isFocused ? COLORS.primary : COLORS.mediumGrey}
+            color={isFocused ? COLORS.primary : COLORS.text}
             label={label}
             icon={icons}
           />
