@@ -25,7 +25,7 @@ export default function QuickActionButton({
         <View className="aspect-square p-4 bg-darkerWhite justify-center items-center rounded-xl">
           <Icon
             size={30}
-            color={COLORS.mediumGrey}
+            color={COLORS.grey}
             strokeWidth={2}
           />
         </View>
