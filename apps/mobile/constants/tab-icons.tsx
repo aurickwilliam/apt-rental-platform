@@ -5,7 +5,6 @@ import {
   IconBed,
   IconBedFilled,
   IconMessageCircle,
-  IconMessageCircleFilled,
   IconUser,
   IconUserFilled,
   IconChartDonut,
@@ -40,7 +39,7 @@ export const TENANTICONS: Record<string, (props: IconProps) => JSX.Element> = {
   ),
   chat: (props) => (
     props.isFocused
-      ? <IconMessageCircleFilled size={props.size} color={props.color} />
+      ? <IconMessageCircle size={props.size} color={props.color} />
       : <IconMessageCircle size={props.size} color={props.color} />
   ),
   profile: (props) => (
@@ -63,7 +62,7 @@ export const LANDLORDICONS: Record<string, (props: IconProps) => JSX.Element> = 
   ),
   chat: (props) => (
     props.isFocused
-      ? <IconMessageCircleFilled size={props.size} color={props.color} />
+      ? <IconMessageCircle size={props.size} color={props.color} />
       : <IconMessageCircle size={props.size} color={props.color} />
   ),
   profile: (props) => (

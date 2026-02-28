@@ -41,12 +41,13 @@ export default function Units() {
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
 
-  const [searchText, setSearchText] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <ScreenWrapper
       className='p-5'
       scrollable
+      bottomPadding={50}
     >
       {/* Header */}
       <Text className='text-secondary text-4xl font-dmserif'>
@@ -133,8 +134,8 @@ export default function Units() {
         <View className='mt-3'>
           <SearchField 
             searchPlaceholder='Search a Property'
-            onChangeSearch={(text) => setSearchText(text)} 
-            searchValue={searchText}       
+            onChangeSearch={(text) => setSearchQuery(text)} 
+            searchValue={searchQuery}       
             backgroundColor={COLORS.darkerWhite}     
             showFilterButton
           />
