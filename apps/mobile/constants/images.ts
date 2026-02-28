@@ -37,6 +37,9 @@ export const SAMPLE_IMAGES = {
 export const DEFAULT_IMAGES = {
   defaultProfilePicture: require("../assets/images/default-profile.jpg"),
   defaultThumbnail: require("../assets/images/default-thumbnail.jpeg"),
+  defaultThumbnail2: require("../assets/images/default-thumbnail2.jpg"),
+  defaultThumbnail3: require("../assets/images/default-thumbnail3.jpg"),
+  defaultThumbnail4: require("../assets/images/default-thumbnail4.jpg"),
 }
 
 export const PAYMENT_METHOD_LOGOS = {

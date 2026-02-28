@@ -36,6 +36,7 @@ module.exports = {
           200: '#22C55E',
         },
         redHead: {
+          50: '#FDA4AF',
           100: '#FF4B4B',
           200: '#E50914',
         },
