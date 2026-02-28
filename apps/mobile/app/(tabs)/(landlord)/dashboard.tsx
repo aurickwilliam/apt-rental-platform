@@ -10,6 +10,8 @@ import {
   IconBell
 } from "@tabler/icons-react-native"
 import RentDueCard from '@/components/display/RentDueCard'
+import ProfitTrendCard from '@/components/charts/ProfitTrendCard'
+import ProfitByPropertyCard from '@/components/charts/ProfitByPropertyCard'
 
 export default function Dashboard() {
   const router = useRouter();
@@ -80,7 +82,7 @@ export default function Dashboard() {
       {/* Grid Stats */}
       <View className='flex gap-3'>
         <View className='flex-row gap-3'>
-          <View className='flex-1 bg-primary rounded-2xl p-4 gap-1'>
+          <View className='flex-1 bg-primary rounded-2xl p-4 gap-1 justify-center'>
             <Text className='text-sm text-darkerWhite font-interMedium'>
               Total Properties
             </Text>
@@ -89,7 +91,7 @@ export default function Dashboard() {
             </Text>
           </View>
 
-          <View className='flex-1 bg-white rounded-2xl p-4 gap-1 border border-grey-200'>
+          <View className='flex-1 bg-white rounded-2xl p-4 gap-1 border border-grey-200 justify-center'>
             <Text className='text-sm text-gray-500 font-interMedium'>
               Units Occupied
             </Text>
@@ -100,7 +102,7 @@ export default function Dashboard() {
         </View>
 
         <View className='flex-row gap-3'>
-          <View className='flex-1 bg-white rounded-2xl p-4 gap-1 border border-grey-200'>
+          <View className='flex-1 bg-white rounded-2xl p-4 gap-1 border border-grey-200 justify-center'>
             <Text className='text-sm text-gray-500 font-interMedium'>
               Pending Payments
             </Text>
@@ -109,7 +111,7 @@ export default function Dashboard() {
             </Text>
           </View>
 
-          <View className='flex-1 bg-darkerWhite rounded-2xl p-4 gap-1'>
+          <View className='flex-1 bg-darkerWhite rounded-2xl p-4 gap-1 justify-center'>
             <Text className='text-sm text-gray-500 font-interMedium'>
               Maintenance Requests
             </Text>
@@ -118,6 +120,12 @@ export default function Dashboard() {
             </Text>
           </View>
         </View>
+      </View>
+
+      {/* Charts */}
+      <View className='flex gap-5 mt-5'>
+        <ProfitTrendCard />
+        <ProfitByPropertyCard />        
       </View>
 
       {/* Upcoming Payment Due Date */}
