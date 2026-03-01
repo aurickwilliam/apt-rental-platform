@@ -11,6 +11,7 @@ interface TextBoxProps {
   disabled?: boolean,
   error?: string,
   required?: boolean,
+  boxHeight?: number,
 }
 
 export default function TextBox({
@@ -20,7 +21,8 @@ export default function TextBox({
     value,
     disabled = false,
     error,
-    required = false
+    required = false,
+    boxHeight = 52,
 }: TextBoxProps) {
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -35,9 +37,10 @@ export default function TextBox({
       }
 
       {/* Text Input Area */}
-      <View className={`bg-white border-2 rounded-2xl p-2 h-52 flex-row items-center
-        ${error ? 'border-redHead-200' : isFocused ? 'border-primary' : 'border-grey-200'}`
-      }>
+      <View 
+        className={`bg-white border-2 rounded-2xl p-2 flex-row items-center
+          ${error ? 'border-redHead-200' : isFocused ? 'border-primary' : 'border-grey-200'}`}
+        style={{ height: boxHeight }}>
         <TextInput
           value={value}
           editable={!disabled}

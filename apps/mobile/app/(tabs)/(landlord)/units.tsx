@@ -1,11 +1,13 @@
-import { View, Text } from 'react-native'
+import { View, Text, Image} from 'react-native'
 import { useState } from 'react'
+import { useRouter } from 'expo-router'
 
 import PillButton from '@/components/buttons/PillButton'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import Divider from '@/components/display/Divider'
 import QuickActionButton from '@/components/buttons/QuickActionButton'
 import SearchField from '@/components/inputs/SearchField'
+import PropertyCard from '@/components/display/PropertyCard'
 
 import {
   IconChartDonut3,
@@ -16,9 +18,11 @@ import {
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
-import PropertyCard from '@/components/display/PropertyCard'
+import { DEFAULT_IMAGES} from "constants/images";
 
 export default function Units() {
+  const router = useRouter();
+
   // Status options for filtering properties
   const statusOptions = [
     'All',
@@ -42,6 +46,49 @@ export default function Units() {
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Dummy data for properties - to be replaced with real data from the backend
+  const properties = [
+    {
+      id: '1',
+      apartmentName: 'Sunrise Apartments',
+      address: '123 Main St',
+      city: 'Caloocan',
+      status: 'Occupied',
+      thumbnailUrl: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail).uri,
+    },
+    {
+      id: '2',
+      apartmentName: 'Greenwood Residences',
+      address: '456 Elm St',
+      city: 'Malabon',
+      status: 'Available',
+      thumbnailUrl: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail2).uri,
+    },
+    {
+      id: '3',
+      apartmentName: 'Lakeside Villas',
+      address: '789 Oak St',
+      city: 'Navotas',
+      status: 'Under Maintenance',
+      thumbnailUrl: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail3).uri,
+    },
+    {
+      id: '4',
+      apartmentName: 'Cityview Condos',
+      address: '321 Pine St',
+      city: 'Valenzuela',
+      status: 'Occupied',
+      thumbnailUrl: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail4).uri,
+    }
+  ]
+
+  // Handle the navigation and passing of the selected property to the Property Details screen when a property card is pressed
+  const handlePropertyPress = (propertyId: string) => {
+    router.push(`/manage-apartment/${propertyId}`);
+
+    console.log(`Navigating to details of property with ID: ${propertyId}`);
+  }
 
   return (
     <ScreenWrapper
@@ -145,9 +192,19 @@ export default function Units() {
 
         {/* Generate the list */}
         <View className='flex gap-3'>
-          <PropertyCard />
-          <PropertyCard />
-          <PropertyCard />
+          {
+            properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                apartmentName={property.apartmentName}
+                address={property.address}
+                city={property.city}
+                status={property.status as 'Available' | 'Occupied' | 'Under Maintenance'}
+                thumbnailUrl={property.thumbnailUrl}
+                onPress={() => handlePropertyPress(property.id)}
+              />
+            ))
+          }
         </View>
       </View>
     </ScreenWrapper>

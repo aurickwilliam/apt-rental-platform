@@ -38,7 +38,6 @@ import {
   IconStar,
   IconUser,
   IconFileDescription,
-  IconCalendarEvent,
 } from "@tabler/icons-react-native";
 
 import { formatCurrency } from '@repo/utils';
@@ -65,8 +64,9 @@ export default function ApartmentScreen() {
   // Dummy Data for apartment images
   const apartmentImages = [
     {id: 1, image: DEFAULT_IMAGES.defaultThumbnail},
-    {id: 2, image: DEFAULT_IMAGES.defaultProfilePicture},
-    // {id: 3, image: DEFAULT_IMAGES.defaultThumbnail},
+    {id: 2, image: DEFAULT_IMAGES.defaultThumbnail2},
+    {id: 3, image: DEFAULT_IMAGES.defaultThumbnail3},
+    {id: 4, image: DEFAULT_IMAGES.defaultThumbnail4},
   ]
 
   // Dummy Data for Apartment Details
@@ -112,10 +112,6 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   // TODO: Implement this Functions
   const handleFavoriteToggle = () => {
     console.log("Favorite Button Pressed!");
-  }
-
-  const handleRequestVisit = () => {
-    router.push(`/apartment/${apartmentId}/request-visit`);
   }
 
   const handleApplyNow = () => {
