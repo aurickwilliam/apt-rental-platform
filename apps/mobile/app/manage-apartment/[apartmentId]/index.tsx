@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity, FlatList} from 'react-native'
 import ImageViewing from 'react-native-image-viewing'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams} from 'expo-router'
 import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
@@ -20,7 +20,7 @@ import {
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
-import { DEFAULT_IMAGES } from '@/constants/images'
+import { DEFAULT_IMAGES, IMAGES } from '@/constants/images'
 
 // Data for Rent Payment History
 type paymentHistoryTypes = {
@@ -34,9 +34,14 @@ type paymentHistoryTypes = {
 
 export default function Index() {
   const router = useRouter();
+  const { apartmentId } = useLocalSearchParams();
 
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState('');
+
+  // For Testing
+  const isOccupied = true;
+  const hasMaintenanceRequest = true;
 
   // Dummy data for payment history
   const paymentHistory: paymentHistoryTypes[] = [
@@ -223,71 +228,103 @@ export default function Index() {
         <PillButton 
           label='View Full Description'
           size='sm'
-          onPress={() => {}}
+          onPress={() => {
+            router.push(`/manage-apartment/${apartmentId}/description`)
+          }}
         />
       </View>
 
-      {/* Tenant Information */}
-      <View className='mt-5 flex gap-3'>
-        <View className='flex-row gap-2 items-center'>
-          <IconUser size={26} color={COLORS.text} />
-          <Text className='text-text text-lg font-poppinsMedium'>
-            Tenant Information
-          </Text>
-        </View>
+      {
+        isOccupied ? (
+          <>
+            {/* Tenant Information */}
+            <View className='mt-5 flex gap-3'>
+              <View className='flex-row gap-2 items-center'>
+                <IconUser size={26} color={COLORS.text} />
+                <Text className='text-text text-lg font-poppinsMedium'>
+                  Tenant Information
+                </Text>
+              </View>
 
-        <TenantCard 
-          fullName='John Doe'
-          email='john.doe@example.com' 
-          phoneNumber='09123456789' 
-          profilePictureUrl={Image.resolveAssetSource(DEFAULT_IMAGES.defaultProfilePicture).uri}
-          onPress={() => console.log('Tenant card pressed')} 
-          leaseStartMonthYear={'Jan 2023'} 
-          leaseEndMonthYear={'Jan 2024'}        
-        />
-      </View>
-      
-      {/* If has Maintenance Requests */}
-      <View className='mt-5'>
-        <MaintenanceRequestCard 
-          issueName='Leaking Faucet'
-          reportedDate='Aug 15, 2024'
-          onUpdatePress={() => console.log('Update Maintenance Pressed')}
-        />
-      </View>
-
-      {/* Rent Payment History */}
-      <View className='mt-5'>
-        <View className='flex-row items-center justify-between'>
-          <Text className='text-text text-xl font-poppinsSemiBold'>
-            Rent Payment History
-          </Text>
-
-          <TouchableOpacity
-            activeOpacity={0.7}
-          >
-            <Text className='text-primary text-base font-inter'>
-              See All
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* List of Payments */}
-        <View className='mt-5 flex gap-2'>
-          {
-            paymentHistory.map((payment) => (
-              <PaymentHistoryCard
-                key={payment.id}
-                month={payment.month}
-                year={payment.year}
-                amount={payment.amount}
-                paidDate={payment.paidDate}
-                status={payment.status}
+              <TenantCard 
+                fullName='John Doe'
+                email='john.doe@example.com' 
+                phoneNumber='09123456789' 
+                profilePictureUrl={Image.resolveAssetSource(DEFAULT_IMAGES.defaultProfilePicture).uri}
+                onPress={() => console.log('Tenant card pressed')} 
+                leaseStartMonthYear={'Jan 2023'} 
+                leaseEndMonthYear={'Jan 2024'}        
               />
-            ))
-          }
-        </View>
-      </View>
+            </View>
+            
+            {/* If has Maintenance Requests */}
+            {
+              hasMaintenanceRequest && (
+                <View className='mt-5'>
+                  <MaintenanceRequestCard 
+                    issueName='Leaking Faucet'
+                    reportedDate='Aug 15, 2024'
+                    onUpdatePress={() => console.log('Update Maintenance Pressed')}
+                  />
+                </View>
+              )
+            }
+
+            {/* Rent Payment History */}
+            <View className='mt-5'>
+              <View className='flex-row items-center justify-between'>
+                <Text className='text-text text-xl font-poppinsSemiBold'>
+                  Rent Payment History
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                >
+                  <Text className='text-primary text-base font-inter'>
+                    See All
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* List of Payments */}
+              <View className='mt-5 flex gap-2'>
+                {
+                  paymentHistory.map((payment) => (
+                    <PaymentHistoryCard
+                      key={payment.id}
+                      month={payment.month}
+                      year={payment.year}
+                      amount={payment.amount}
+                      paidDate={payment.paidDate}
+                      status={payment.status}
+                    />
+                  ))
+                }
+              </View>
+            </View>
+          </>
+        ) : (
+          <View className='bg-white border border-grey-200 flex gap-5 items-center p-4 rounded-2xl mt-5'>
+            <View className='flex items-center gap-1'>
+              <Image 
+                source={IMAGES.userError}
+                className='size-20'
+                resizeMode='contain'
+              />
+              <Text className='text-redHead-200 text-lg font-interMedium'>
+                This property is currently vacant.
+              </Text>
+            </View>
+
+            <PillButton 
+              label='View Applications'
+              size='sm'
+              type='outline'
+              isFullWidth
+            />
+          </View>
+        )
+      }
 
       <ImageViewing
         images={[{ uri: selectedImage }]}

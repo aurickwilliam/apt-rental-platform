@@ -56,6 +56,7 @@ export default function RootLayout() {
           <Stack.Screen name="(notification)"/>
           <Stack.Screen name="settings"/>
           <Stack.Screen name="document-id"/>
+          <Stack.Screen name="manage-apartment/[apartmentId]"/>
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
