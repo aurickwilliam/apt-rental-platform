@@ -7,6 +7,7 @@ export const IMAGES = {
   lockReset: require("../assets/images/lock.png"),
   shield: require("../assets/images/shield.png"),
   userCheck: require("../assets/images/user-check.png"),
+  userError: require("../assets/images/user-error.png"),
 };
 
 export const EMPTY_STATE_IMAGES = {
@@ -37,6 +38,9 @@ export const SAMPLE_IMAGES = {
 export const DEFAULT_IMAGES = {
   defaultProfilePicture: require("../assets/images/default-profile.jpg"),
   defaultThumbnail: require("../assets/images/default-thumbnail.jpeg"),
+  defaultThumbnail2: require("../assets/images/default-thumbnail2.jpg"),
+  defaultThumbnail3: require("../assets/images/default-thumbnail3.jpg"),
+  defaultThumbnail4: require("../assets/images/default-thumbnail4.jpg"),
 }
 
 export const PAYMENT_METHOD_LOGOS = {
