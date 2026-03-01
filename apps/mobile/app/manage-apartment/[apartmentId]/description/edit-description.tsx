@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import { useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
@@ -20,6 +20,8 @@ export default function EditDescription() {
   const handleSaveChanges = () => {
     // TODO: Implement save functionality here
     console.log('Save Changes button pressed');
+
+    router.push(`/manage-apartment/${apartmentId}/description`);
   }
 
   return (
