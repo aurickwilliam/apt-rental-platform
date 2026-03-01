@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity } from 'react-native'
 
 import { COLORS } from '@repo/constants'
 import { PERKS } from 'constants/perks';
@@ -6,7 +6,7 @@ import { PERKS } from 'constants/perks';
 import {
   IconProps,
   IconQuestionMark,
-  IconX,
+  IconCircleX,
 } from '@tabler/icons-react-native';
 
 type BasePerkButtonProps = {
@@ -54,8 +54,8 @@ export default function PerkButton({
       {
          props.isSelected && (
           <TouchableOpacity onPress={props.onRemovePress}>
-            <IconX
-              size={20}
+            <IconCircleX
+              size={22}
               color={COLORS.grey}
             />
           </TouchableOpacity>
