@@ -4,9 +4,9 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
+import PerkButton from '@/components/buttons/PerkButton'
 
 import { COLORS } from '@repo/constants'
-import PerkButton from '@/components/buttons/PerkButton'
 
 export default function EditPerks() {
 
