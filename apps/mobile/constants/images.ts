@@ -7,6 +7,7 @@ export const IMAGES = {
   lockReset: require("../assets/images/lock.png"),
   shield: require("../assets/images/shield.png"),
   userCheck: require("../assets/images/user-check.png"),
+  userError: require("../assets/images/user-error.png"),
 };
 
 export const EMPTY_STATE_IMAGES = {
