@@ -1,4 +1,7 @@
-import { View, Text, Image, TouchableOpacity} from 'react-native'
+import { View, Text, Image, TouchableOpacity, FlatList} from 'react-native'
+import ImageViewing from 'react-native-image-viewing'
+import { useRouter } from 'expo-router'
+import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -30,6 +33,10 @@ type paymentHistoryTypes = {
 }
 
 export default function Index() {
+  const router = useRouter();
+
+  const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
   // Dummy data for payment history
   const paymentHistory: paymentHistoryTypes[] = [
@@ -38,6 +45,32 @@ export default function Index() {
     {id: 3, month: 'March', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'paid'},
     {id: 4, month: 'April', year: '2026', amount: 10_000, paidDate: '1/1/2026', status: 'partial'},
   ]
+
+  // Dummy data for apartment Images
+  const apartmentImages = [
+    {
+      id: 1,
+      url: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail).uri
+    },
+    {
+      id: 2,
+      url: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail2).uri
+    },
+    {
+      id: 3,
+      url: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail3).uri
+    },
+    {
+      id: 4,
+      url: Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail4).uri
+    }
+  ]
+
+  // Handle Image Viewing
+  const handleImagePress = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsIdVisible(true);
+  }
 
   return (
     <ScreenWrapper
@@ -49,7 +82,29 @@ export default function Index() {
       bottomPadding={50}
     >
       {/* Image Carousel */}
-
+      <View>
+        <FlatList
+          data={apartmentImages}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerClassName="gap-3 mb-3"
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              className="rounded-2xl overflow-hidden w-48 h-60"
+              activeOpacity={0.7}
+              onPress={() => handleImagePress(item.url)}
+            >
+              <Image
+                source={{ uri: item.url }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+  
       {/* Property Details */}
       <View className='flex gap-5'>
         <View className='flex gap-1'>
@@ -233,6 +288,15 @@ export default function Index() {
           }
         </View>
       </View>
+
+      <ImageViewing
+        images={[{ uri: selectedImage }]}
+        imageIndex={0}
+        visible={isIdVisible}
+        onRequestClose={() => setIsIdVisible(false)}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.8)'
+      />
     </ScreenWrapper>
   )
 }
