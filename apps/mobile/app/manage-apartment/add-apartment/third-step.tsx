@@ -33,7 +33,7 @@ export default function ThirdStep() {
         totalSteps={5}     
       />
       
-      <View className='p-5'>
+      <View className='p-5 flex-1'>
         {/* Form */}
         <View className='flex gap-3'>
           <NumberField
@@ -63,17 +63,15 @@ export default function ThirdStep() {
 
         <Divider />
 
-        <View>
+        <View className='bg-red-200'>
           <UploadImageField 
             label='Add Lease Agreement:'
             required
           />
         </View>
 
-        <View className='flex-1' />
-
         {/* Back or Next Button */}
-        <View className='flex-1 flex-row mt-16 gap-4'>
+        <View className='flex-row mt-auto gap-4'>
           <View className='flex-1'>
             <PillButton
               label={'Back'}
