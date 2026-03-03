@@ -96,6 +96,11 @@ export default function Index() {
     setOpen(false);
   }
 
+  // Handle Tenant Profile
+  const handleTenantProfilePress = (tenantId: number) => {
+    router.push(`/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`);
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <ScreenWrapper
@@ -271,7 +276,7 @@ export default function Index() {
                   email='john.doe@example.com'
                   phoneNumber='09123456789'
                   profilePictureUrl={Image.resolveAssetSource(DEFAULT_IMAGES.defaultProfilePicture).uri}
-                  onPress={() => console.log('Tenant card pressed')}
+                  onPress={() => handleTenantProfilePress(1)}
                   leaseStartMonthYear={'Jan 2023'}
                   leaseEndMonthYear={'Jan 2024'}
                 />
