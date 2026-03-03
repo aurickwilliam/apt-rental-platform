@@ -14,6 +14,7 @@ export default function _layout() {
       <Stack.Screen name="fifth-step" />
       <Stack.Screen name="map-pin" />
       <Stack.Screen name="success" />
+      <Stack.Screen name="amenities" />
     </Stack>
   )
 }

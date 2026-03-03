@@ -44,7 +44,7 @@ export default function Index() {
         </View>
 
         {/* Cancel or Next Button */}
-        <View className='flex-1 flex-row mt-16 gap-4'>
+        <View className='flex-row mt-16 gap-4'>
           <View className='flex-1'>
             <PillButton
               label={'Cancel'}
