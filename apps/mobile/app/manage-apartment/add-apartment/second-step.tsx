@@ -84,8 +84,8 @@ export default function SecondStep() {
       backgroundColor={COLORS.darkerWhite}
     >
       <ApplicationHeader 
-        currentTitle={'Photos & Title'} 
-        nextTitle={'Basic Info'} 
+        currentTitle={'Basic Info'} 
+        nextTitle={'Pricing & Terms'} 
         step={2}   
         totalSteps={5}     
       />
@@ -292,7 +292,7 @@ export default function SecondStep() {
           </View>
         </View>
 
-        {/* Cancel or Next Button */}
+        {/* Back or Next Button */}
         <View className='flex-1 flex-row mt-16 gap-4'>
           <View className='flex-1'>
             <PillButton
