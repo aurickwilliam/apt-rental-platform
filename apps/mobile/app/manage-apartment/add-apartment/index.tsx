@@ -1,13 +1,13 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-
-import { COLORS } from '@repo/constants'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
 import UploadImageField from '@/components/inputs/UploadImageField'
 import TextField from '@/components/inputs/TextField'
 import PillButton from '@/components/buttons/PillButton'
+
+import { COLORS } from '@repo/constants'
 
 export default function Index() {
   const router = useRouter();
@@ -57,7 +57,9 @@ export default function Index() {
             <PillButton
               label={'Next'}
               isFullWidth
-              onPress={() => {}}
+              onPress={() => {
+                router.push('/manage-apartment/add-apartment/second-step');
+              }}
             />
           </View>
         </View>
