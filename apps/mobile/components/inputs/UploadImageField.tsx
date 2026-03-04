@@ -75,20 +75,10 @@ export default function UploadImageField({
       }
 
       {/* Buttons */}
-      <View className='flex-1 flex-row gap-4 mt-3'>
+      <View className='flex-row gap-4 mt-3'>        
         <View className='flex-1'>
           <PillButton 
-            label={'Use Existing Photo'}    
-            size='sm'        
-            type='secondary'
-            isFullWidth
-            leftIconName={IconPhoto}
-            onPress={() => {}}
-          />
-        </View>
-        <View className='flex-1'>
-          <PillButton 
-            label={'Take Photo'}   
+            label={'Add Photos'}   
             size='sm'         
             isFullWidth
             leftIconName={IconCamera}

@@ -151,7 +151,8 @@ export default function Units() {
         <View className='flex-row flex-wrap'>
           <QuickActionButton 
             label={'Add Property'} 
-            icon={IconCirclePlus}            
+            icon={IconCirclePlus}          
+            onPress={() => router.push('/manage-apartment/add-apartment/')}
           />
 
           <QuickActionButton 
