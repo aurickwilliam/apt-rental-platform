@@ -20,7 +20,7 @@ export default function ApartmentCarousel() {
   return (
     <Carousel setApi={setApi} className="mt-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-poppins font-semibold">
+        <h2 className="text-2xl font-poppins font-semibold md:text-3xl">
           Apartments Tenants Love
         </h2>
 
@@ -45,10 +45,10 @@ export default function ApartmentCarousel() {
         
       </div>
     
-      <CarouselContent className="mt-4">
+      <CarouselContent className="mt-4 pb-4">
         {
           [1, 2, 3, 4, 5, 6].map((num) => (
-            <CarouselItem key={num} className="w-auto basis-1/2">
+            <CarouselItem key={num} className="basis-auto">
               <ApartmentCard />
             </CarouselItem>
           ))
