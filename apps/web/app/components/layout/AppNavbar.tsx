@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import { useTheme } from "next-themes";
+
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem } from "@heroui/navbar";
 import { Link } from "@heroui/link";
 import { Button } from "@heroui/button";
+
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
@@ -14,6 +18,9 @@ const navLinks = [
 
 export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const { theme } = useTheme();
+  const logoSrc = theme === "dark" ? "/logo-name.svg" : "/logo-white-name.svg";
 
   return (
     <Navbar
@@ -28,12 +35,16 @@ export default function AppNavbar() {
           className="sm:hidden"
         />
         <NavbarBrand>
-          <p className="font-poppins font-semibold text-2xl text-primary">APT</p>
+          <Image 
+            src={logoSrc}
+            alt="Apt Rental Logo"
+            width={100}
+            height={25}
+          />
         </NavbarBrand>
       </NavbarContent>
 
-      {/* Desktop links */}
-      <NavbarContent justify="end" className="hidden sm:flex gap-5">
+      <NavbarContent justify="center" className="hidden sm:flex gap-8">
         {navLinks.map((link) => (
           <NavbarItem key={link.label}>
             <Link color="foreground" href={link.href} className="font-medium">
@@ -41,13 +52,26 @@ export default function AppNavbar() {
             </Link>
           </NavbarItem>
         ))}
+      </NavbarContent>
+
+      {/* Desktop links */}
+      <NavbarContent justify="end" className="hidden sm:flex gap-3">
+
         <NavbarItem>
-          <ThemeToggle />
+          <Button as={Link} color="primary" href="#" variant="light" radius="full">
+            Log In
+          </Button>
         </NavbarItem>
+        
         <NavbarItem>
           <Button as={Link} color="primary" href="#" variant="flat" radius="full">
             Sign Up
           </Button>
+        </NavbarItem>
+        
+        {/* Switching to Dark Mode */}
+        <NavbarItem>
+          <ThemeToggle />
         </NavbarItem>
       </NavbarContent>
 
