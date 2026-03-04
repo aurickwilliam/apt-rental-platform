@@ -3,6 +3,8 @@ import Image from "next/image";
 import AppNavbar from "../components/layout/AppNavbar";
 import StartBrowsingBtn from "./components/StartBrowsingBtn";
 import BrowsingField from "./components/BrowsingField";
+import ApartmentNavigation from "./components/ApartmentNavigation";
+import ApartmentCard from "../components/ui/ApartmentCard";
 
 import { Divider } from "@heroui/react";
 
@@ -11,7 +13,7 @@ import {
   Building2,
   ClipboardCheck
 } from "lucide-react"
-import ApartmentNavigation from "./components/ApartmentNavigation";
+import ApartmentCarousel from "./components/ApartmetnCarousel";
 
 export default function Home() {
   return (
@@ -106,16 +108,12 @@ export default function Home() {
         </section>
 
         {/* Featured Apartments */}
-        <section className="mt-10">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-poppins font-semibold">
-              Apartments Tenants Love
-            </h2>
+        <section>
+          <ApartmentCarousel />
+        </section>
 
-            <ApartmentNavigation />
-          </div>
+        <section className="h-dvh">
 
-          
         </section>
       </main>
     </>
