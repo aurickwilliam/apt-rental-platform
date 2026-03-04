@@ -1,26 +1,32 @@
 @import "tailwindcss";
+@plugin './hero.ts';
+@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-poppins: var(--font-poppins), ui-sans-serif, sans-serif;
+  --font-dm-serif: var(--font-dm-serif), ui-serif, serif;
+
+  --color-white: #FFFFFF;
+  --color-primary: #376BF5;
+  --color-light-blue: #EFF6FF;
+  --color-secondary: #FFA500;
+  --color-darker-white: #F8F9FA;
+  --color-black: #333333;
+  --color-grey-700: #6C757D;
+  --color-grey-500: #9CA3AF;
+  --color-grey-400: #BDBDBD;
+  --color-grey-300: #D1D5DB;
+  --color-grey-200: #E5E7EB;
+  --color-green-500: #22C55E;
+  --color-green-100: #E6F4EA;
+  --color-yellow-500: #FACC15;
+  --color-yellow-100: #FFF8E1;
+  --color-red-600: #E50914;
+  --color-red-400: #FF4B4B;
+  --color-red-200: #FDA4AF;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
