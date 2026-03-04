@@ -195,6 +195,9 @@ importers:
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@tabler/icons-react':
+        specifier: ^3.38.0
+        version: 3.38.0(react@19.2.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -3516,8 +3519,16 @@ packages:
     peerDependencies:
       react: '>= 16.5.1'
 
+  '@tabler/icons-react@3.38.0':
+    resolution: {integrity: sha512-kR5wv+m4+GgmnSszg3rQd6SrTFAQ/XnQC/yTwIfuRJSfqB12KoIC7fPbIijFgOHTFlBN5DARnN0IVrR7KYG6/A==}
+    peerDependencies:
+      react: '>= 16'
+
   '@tabler/icons@3.36.1':
     resolution: {integrity: sha512-f4Jg3Fof/Vru5ioix/UO4GX+sdDsF9wQo47FbtvG+utIYYVQ/QVAC0QYgcBbAjQGfbdOh2CCf0BgiFOF9Ixtjw==}
+
+  '@tabler/icons@3.38.0':
+    resolution: {integrity: sha512-FdETQSpQ3lN7BEjEUzjKhsfTDCamrvMDops4HEMphTm3DmkIFpThoODn8XXZ8Q9MhjshIvphIYVHHB7zpq167w==}
 
   '@tailwindcss/node@4.1.17':
     resolution: {integrity: sha512-csIkHIgLb3JisEFQ0vxr2Y57GUNYh447C8xzwj89U/8fdW8LhProdxvnVH6U8M2Y73QKiTIH+LWbK3V2BBZsAg==}
@@ -12696,7 +12707,14 @@ snapshots:
       '@tabler/icons': 3.36.1
       react: 19.1.0
 
+  '@tabler/icons-react@3.38.0(react@19.2.1)':
+    dependencies:
+      '@tabler/icons': 3.38.0
+      react: 19.2.1
+
   '@tabler/icons@3.36.1': {}
+
+  '@tabler/icons@3.38.0': {}
 
   '@tailwindcss/node@4.1.17':
     dependencies:
