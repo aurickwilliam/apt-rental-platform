@@ -3,17 +3,20 @@ import Image from "next/image";
 import AppNavbar from "../components/layout/AppNavbar";
 import StartBrowsingBtn from "./components/StartBrowsingBtn";
 import BrowsingField from "./components/BrowsingField";
-import ApartmentNavigation from "./components/ApartmentNavigation";
-import ApartmentCard from "../components/ui/ApartmentCard";
+import ApartmentCarousel from "./components/ApartmentCarousel";
 
 import { Divider } from "@heroui/react";
 
 import {
   KeyRound,
   Building2,
-  ClipboardCheck
+  ClipboardCheck,
+  Map,
+  SearchCheck,
+  FileCheckCorner,
+  BanknoteArrowUp
 } from "lucide-react"
-import ApartmentCarousel from "./components/ApartmetnCarousel";
+import DiscoverNowBtn from "./components/DiscoverNowBtn";
 
 export default function Home() {
   return (
@@ -51,7 +54,7 @@ export default function Home() {
 
         {/* Why Us */}
         <section className="mt-10">
-          <h2 className="text-3xl text-primary text-center font-poppins font-bold mb-4">
+          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4">
             Why Us?
           </h2>
 
@@ -112,8 +115,110 @@ export default function Home() {
           <ApartmentCarousel />
         </section>
 
-        <section className="h-dvh">
+        <Divider className="my-10" />
 
+        {/* How it Works */}
+        <section>
+          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4">
+            How it Works?
+          </h2>
+
+          <div className="flex flex-col md:flex-row gap-5 mt-5">
+            {/* Discover */}
+            <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+              <Map
+                size={48}
+                className="text-primary"
+              />
+
+              <h2 className="text-3xl text-primary font-poppins font-semibold">
+                Discover
+              </h2>
+
+              <p className="text-base">
+                Explore a wide range of verified listings and use intelligent filters to narrow down your options based on location, budget, amenities, and lifestyle preferences. Finding the right home becomes faster, easier, and stress-free.
+              </p>
+
+              <div className="flex flex-col gap-3 mt-5">
+                <div className="flex gap-2 items-center">
+                  <SearchCheck
+                    size={24}
+                    className="text-primary"
+                  />
+                  <p className="text-base font-medium">
+                    Verified Listings
+                  </p>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <SearchCheck
+                    size={24}
+                    className="text-primary"
+                  />
+                  <p className="text-base font-medium">
+                    Intelligent Filters
+                  </p>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <SearchCheck
+                    size={24}
+                    className="text-primary"
+                  />
+                  <p className="text-base font-medium">
+                    Lifestyle Preferences
+                  </p>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <SearchCheck
+                    size={24}
+                    className="text-primary"
+                  />
+                  <p className="text-base font-medium">
+                    AI Assist Search
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <DiscoverNowBtn />
+              </div>
+            </div>
+
+            {/* Apply & Pay */}
+            <div className="flex flex-col gap-5">
+              <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <FileCheckCorner
+                  size={48}
+                  className="text-primary"
+                />
+
+                <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  Apply & Sign
+                </h2>
+
+                <p className="text-base">
+                  Complete your rental application entirely online and upload required documents with ease. Review agreements clearly and sign securely using digital e-signing, eliminating paperwork and unnecessary delays.
+                </p>
+              </div>
+
+              <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <BanknoteArrowUp
+                  size={48}
+                  className="text-primary"
+                />
+
+                <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  Live & Pay
+                </h2>
+
+                <p className="text-base">
+                  Settle into your new home with full control at your fingertips. Manage rent payments, track records, receive updates, and communicate with owners or management, all conveniently from your mobile device.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
       </main>
     </>
