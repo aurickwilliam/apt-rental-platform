@@ -63,7 +63,7 @@ export default function ThirdStep() {
 
         <Divider />
 
-        <View className='bg-red-200'>
+        <View>
           <UploadImageField 
             label='Add Lease Agreement:'
             required
