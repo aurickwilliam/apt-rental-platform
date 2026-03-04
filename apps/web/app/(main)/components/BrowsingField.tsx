@@ -33,7 +33,7 @@ export default function BrowsingField() {
   ]
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-sm p-6 md:flex md:gap-5">
       {/* Location */}
       <Select 
         variant="flat"
@@ -41,6 +41,7 @@ export default function BrowsingField() {
         placeholder="Select a Location"
         size="lg"
         startContent={<MapPin className="text-primary" />}
+        className="md:flex-1"
       >
         {LOCATIONS.map((loc) => (
           <SelectItem key={loc} className="data-[hover=true]:bg-light-blue!">
@@ -52,10 +53,9 @@ export default function BrowsingField() {
       {/* Price Range */}
       <Select 
         variant="flat"
-        selectionMode="multiple"
         placeholder="Select a Price Range"
         size="lg"
-        className="mt-4"
+        className="mt-4 md:flex-1 md:mt-0"
         startContent={<PhilippinePeso className="text-primary" />}
       >
         {PRICE_RANGES.map((range) => (
@@ -71,7 +71,7 @@ export default function BrowsingField() {
         selectionMode="multiple"
         placeholder="Select an Apartment Type"
         size="lg"
-        className="mt-4"
+        className="mt-4 md:flex-1 md:mt-0"
         startContent={<House className="text-primary" />}
       >
         {APARTMENT_TYPES.map((type) => (
@@ -83,8 +83,9 @@ export default function BrowsingField() {
 
       {/* Browse Button */}
       <Button 
-        className="mt-4 w-full"
+        className="mt-4 w-full md:w-auto md:mt-0"
         color="primary"
+        size="lg"
         startContent={<Search />}
       >
         Find Now

@@ -24,9 +24,9 @@ export default function Home() {
     <>
       <AppNavbar />
 
-      <main className="max-w-7xl mx-auto p-4 flex flex-col">
+      <main className="max-w-7xl mx-auto px-4 pt-4 flex flex-col">
         {/* Intro */}
-        <section className="w-full h-[600px] bg-grey-300 rounded-xl relative mb-50">
+        <section className="w-full h-[600px] bg-grey-300 rounded-xl relative mb-50 md:mb-30">
           <Image 
             src="/building-bg.png"
             alt="Hero Image"
@@ -36,30 +36,30 @@ export default function Home() {
           />
 
           {/* Overlay Description */}
-          <div className="absolute inset-0 top-[5%] p-4">
+          <div className="absolute inset-0 top-[5%] p-4 md:w-1/2 md:left-10 md:top-20">
             <h1 className="text-4xl md:text-5xl font-poppins font-bold text-white text-left">
               Find, Rent, and Manage. All in one place.
             </h1>
 
-            <p className="text-lg font-medium text-darker-white mt-3">
+            <p className="text-lg font-medium text-darker-white mt-3 ">
               From high-res tours to automated rent payments, we’ve simplified the entire rental journey.
             </p>
 
             <StartBrowsingBtn />
           </div>
 
-          <div className="absolute -bottom-50 left-0 right-0 p-4">
+          <div className="absolute -bottom-50 left-0 right-0 p-4 md:-bottom-10 md:left-10 md:right-10">
             <BrowsingField />
           </div>
         </section>
 
         {/* Why Us */}
         <section className="mt-10">
-          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4">
+          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
             Why Us?
           </h2>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 md:flex-row mt-10 md:mt-20">
             <div className="flex flex-col gap-3">
               <KeyRound 
                 className="text-primary" 
@@ -75,7 +75,8 @@ export default function Home() {
               </p>
             </div>
 
-            <Divider className="my-3" />
+            <Divider className="my-3 md:hidden" />
+            <Divider className="mx-2 hidden md:block self-stretch h-auto" orientation="vertical" />
 
             <div className="flex flex-col gap-3">
               <Building2 
@@ -92,7 +93,8 @@ export default function Home() {
               </p>
             </div>
     
-            <Divider className="my-3" />
+            <Divider className="my-3 md:hidden" />
+            <Divider className="mx-2 hidden md:block self-stretch h-auto" orientation="vertical" />
 
             <div className="flex flex-col gap-3">
               <ClipboardCheck 
@@ -112,21 +114,21 @@ export default function Home() {
         </section>
 
         {/* Featured Apartments */}
-        <section>
+        <section className="md:mt-20">
           <ApartmentCarousel />
         </section>
 
         <Divider className="my-10" />
 
         {/* How it Works */}
-        <section>
-          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4">
+        <section className="md:mt-20 mb-10">
+          <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
             How it Works?
           </h2>
 
-          <div className="flex flex-col md:flex-row gap-5 mt-5">
+          <div className="flex flex-col md:flex-row gap-5 mt-5 md:mt-10">
             {/* Discover */}
-            <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+            <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
               <Map
                 size={48}
                 className="text-primary"
@@ -188,7 +190,7 @@ export default function Home() {
             </div>
 
             {/* Apply & Pay */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 md:w-1/2">
               <div className="bg-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                 <FileCheckCorner
                   size={48}
@@ -222,8 +224,9 @@ export default function Home() {
           </div>
         </section>
 
-        <Footer />
       </main>
+
+      <Footer />
     </>
   );
 }
