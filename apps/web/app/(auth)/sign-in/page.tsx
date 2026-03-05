@@ -1,12 +1,12 @@
 import Image from "next/image";
-import AuthWrapper from "./components/AuthWrapper";
+import AuthWrapper from "../components/AuthWrapper";
 
 export default function SignIn() {
   return (
     <main className="flex w-screen h-screen overflow-hidden">
       {/* Right Panel */}
       <div 
-        className="flex-1 bg-amber-200 relative"
+        className="flex-1 bg-amber-200 relative hidden md:flex"
         style={{backgroundImage: "url('/building-bg2.jpg')"}}
       >
         {/* Overlay */}
@@ -27,7 +27,7 @@ export default function SignIn() {
         </div>
       </div>
 
-      <AuthWrapper />
+      <AuthWrapper type="sign-in" />
     </main>
   );
 }

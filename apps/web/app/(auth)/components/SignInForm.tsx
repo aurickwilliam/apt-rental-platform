@@ -3,10 +3,13 @@
 import { useState } from 'react';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
+import { useAuth } from './AuthContext';
 
 import { Form, Input, Link, Button } from '@heroui/react'
 
 export default function SignInForm() {
+  const { type } = useAuth();
+
   const [submittedData, setSubmittedData] = useState({});
 
   const onSubmit = (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
@@ -35,17 +38,23 @@ export default function SignInForm() {
           }}
         />
 
-        <PasswordField 
-          isRequired
-          errorMessage="Please enter your password"
-          label="Password"
-          labelPlacement="inside"
-          name="password"
-        />
+        {
+          type === 'sign-in' && (
+            <>
+              <PasswordField 
+                isRequired
+                errorMessage="Please enter your password"
+                label="Password"
+                labelPlacement="inside"
+                name="password"
+              />
 
-        <Link href="/(auth)/forgot-password" className="text-sm text-right text-secondary underline">
-          Forgot Password?
-        </Link>
+              <Link href="/(auth)/forgot-password" className="text-sm text-right text-secondary underline">
+                Forgot Password?
+              </Link>
+            </>
+          )
+        }
 
         <Button
           color="primary"
@@ -54,7 +63,7 @@ export default function SignInForm() {
           radius="full"
           type='submit'
         >
-          Sign In
+          {type === 'sign-up' ? 'Sign Up' : 'Sign In'}
         </Button>
       </Form>
     </div>
