@@ -1,6 +1,12 @@
 "use client";
 
-import { Form, Button, Input, Select, SelectItem, NumberInput } from "@heroui/react";
+import { useState } from "react";
+
+import {
+  Form, Button, Input, Select, SelectItem, NumberInput, InputOtp,
+  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
+  useDisclosure,
+} from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
@@ -10,10 +16,66 @@ import { PROVINCES } from "@repo/constants";
 import {
   Minus,
   CircleCheck,
+  Phone,
 } from "lucide-react";
+
+interface SignUpFormData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  age: number | undefined;
+  gender: string;
+  mobileNumber: string;
+  streetAddress: string;
+  barangay: string;
+  city: string;
+  stateProvince: string;
+  postalCode: number | undefined;
+  password: string;
+  confirmPassword: string;
+}
 
 export default function SignUpForm() {
   const { role, email } = useAuth();
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [otp, setOtp] = useState("");
+
+  const [formData, setFormData] = useState<SignUpFormData>({
+    email: email,
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    age: undefined,
+    gender: "",
+    mobileNumber: "",
+    streetAddress: "",
+    barangay: "",
+    city: "",
+    stateProvince: "",
+    postalCode: undefined,
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleChange = (field: keyof SignUpFormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // TODO: Validate form fields and send OTP to email
+    console.log("Form data:", formData);
+    onOpen();
+  };
+
+  const handleVerifyOtp = (onClose: () => void) => {
+    // TODO: Verify OTP with backend
+    console.log("Verifying OTP:", otp);
+    console.log("Submitting form data:", formData);
+    onClose();
+  };
 
   // Gender Options
   const GENDER_OPTIONS = [
@@ -23,7 +85,8 @@ export default function SignUpForm() {
   ]
 
   return (
-    <Form className="flex flex-col gap-5 my-10">
+    <>
+    <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
 
       {/* Personal Information */}
       <h2 className="text-2xl font-semibold mb-3">
@@ -44,7 +107,7 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
-          defaultValue={email}
+          value={formData.email}
           disabled
         />
 
@@ -61,6 +124,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.firstName}
+          onValueChange={handleChange("firstName")}
         />
 
         {/* Last Name */}
@@ -76,6 +141,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.lastName}
+          onValueChange={handleChange("lastName")}
         />
 
         {/* Middle Name */}
@@ -90,6 +157,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.middleName}
+          onValueChange={handleChange("middleName")}
         />
 
         {/* Age */}
@@ -107,6 +176,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.age}
+          onValueChange={(val) => setFormData((prev) => ({ ...prev, age: val === undefined ? undefined : Number(val) }))}
         />
 
         {/* Gender */}
@@ -125,6 +196,11 @@ export default function SignUpForm() {
             classNames={{
               base: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            selectedKeys={formData.gender ? [formData.gender] : []}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              handleChange("gender")(selected ? String(selected) : "");
+            }}
           >
             {GENDER_OPTIONS.map((gender) => (
               <SelectItem key={gender} className="data-[hover=true]:bg-light-blue!">
@@ -133,7 +209,25 @@ export default function SignUpForm() {
             ))}
           </Select>
         </div>
+
+        {/* Mobile Number */}
+        <Input
+          isRequired
+          label="Mobile Number"
+          size='lg'
+          placeholder='Enter your mobile number'
+          labelPlacement="outside"
+          name="mobileNumber"
+          type="tel"
+          variant='bordered'
+          classNames={{
+            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+          }}
+          value={formData.mobileNumber}
+          onValueChange={handleChange("mobileNumber")}
+        />
       </div>
+
 
       {/* Address Information */}
       <h2 className="text-2xl font-semibold mb-3 mt-10">
@@ -154,6 +248,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.streetAddress}
+          onValueChange={handleChange("streetAddress")}
         />
 
         {/* Barangay */}
@@ -169,6 +265,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.barangay}
+          onValueChange={handleChange("barangay")}
         />
 
         {/* City */}
@@ -184,6 +282,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.city}
+          onValueChange={handleChange("city")}
         />
 
         {/* State/Province */}
@@ -201,6 +301,11 @@ export default function SignUpForm() {
               trigger: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
             className="w-full"
+            selectedKeys={formData.stateProvince ? [formData.stateProvince] : []}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              handleChange("stateProvince")(selected ? String(selected) : "");
+            }}
           >
             {PROVINCES.map((province) => (
               <SelectItem key={province} className="data-[hover=true]:bg-light-blue!">
@@ -226,6 +331,8 @@ export default function SignUpForm() {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          value={formData.postalCode}
+          onValueChange={(val) => setFormData((prev) => ({ ...prev, postalCode: val === undefined ? undefined : Number(val) }))}
         />
       </div>
 
@@ -243,6 +350,8 @@ export default function SignUpForm() {
           labelPlacement="outside"
           name="password"
           variant='bordered'
+          value={formData.password}
+          onChange={handleChange("password")}
         />
 
         <PasswordField
@@ -253,6 +362,8 @@ export default function SignUpForm() {
           labelPlacement="outside"
           name="confirmPassword"
           variant='bordered'
+          value={formData.confirmPassword}
+          onChange={handleChange("confirmPassword")}
         />
 
         {/* Requirements Password */}
@@ -305,5 +416,67 @@ export default function SignUpForm() {
         Sign Up
       </Button>
     </Form>
+
+    {/* OTP Verification Modal */}
+    <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        placement="center"
+        backdrop="blur"
+        isDismissable={false}
+        isKeyboardDismissDisabled
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Verify Your Mobile Number
+              </ModalHeader>
+              <ModalBody className="flex flex-col items-center gap-4 py-4">
+                <div className="rounded-full bg-primary/10 p-3">
+                  <Phone size={32} className="text-primary" />
+                </div>
+                <p className="text-center text-sm text-default-500">
+                  We sent a 6-digit verification code to{" "}
+                  <span className="font-semibold text-foreground">mobile number</span>.
+                  <br />
+                  Please enter it below.
+                </p>
+                <InputOtp
+                  length={4}
+                  size="lg"
+                  variant="bordered"
+                  color="primary"
+                  value={otp}
+                  onValueChange={setOtp}
+                  autoFocus
+                />
+              </ModalBody>
+              <ModalFooter className="flex flex-col gap-2">
+                <Button
+                  color="primary"
+                  radius="full"
+                  size="lg"
+                  className="w-full"
+                  isDisabled={otp.length < 4}
+                  onPress={() => handleVerifyOtp(onClose)}
+                >
+                  Verify &amp; Create Account
+                </Button>
+                <Button
+                  variant="light"
+                  radius="full"
+                  size="lg"
+                  className="w-full"
+                  onPress={onClose}
+                >
+                  Cancel
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }
