@@ -18,17 +18,23 @@ interface PasswordFieldProps {
   errorMessage?: string
   labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | undefined
   isRequired?: boolean
+  placeholder?: string
+  size?: "sm" | "md" | "lg" | undefined
+  className?: string
 }
 
-export default function PasswordField({ 
-  label, 
-  name, 
+export default function PasswordField({
+  label,
+  name,
   value,
   onChange,
   variant = "bordered",
   errorMessage = "Please enter a valid password",
   labelPlacement = "inside",
   isRequired = false,
+  placeholder = "Enter your password",
+  size = "md",
+  className,
 }: PasswordFieldProps) {
 
   const [isVisible, setIsVisible] = useState(false);
@@ -40,8 +46,10 @@ export default function PasswordField({
       errorMessage={errorMessage}
       label={label}
       labelPlacement={labelPlacement}
+      placeholder={placeholder}
       name={name}
       value={value}
+      size={size}
       onValueChange={onChange}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
@@ -50,6 +58,7 @@ export default function PasswordField({
       classNames={{
         inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
       }}
+      className={className}
       endContent={
         isFocused && (
           <Button
@@ -59,7 +68,7 @@ export default function PasswordField({
           >
             {
               isVisible ? (
-                <EyeClosed 
+                <EyeClosed
                   className="text-gray-500"
                   onMouseDown={(e) => {
                     e.preventDefault(); // Prevents input from losing focus
@@ -67,7 +76,7 @@ export default function PasswordField({
                   }}
                 />
               ) : (
-                <Eye 
+                <Eye
                   className="text-gray-500"
                   onMouseDown={(e) => {
                     e.preventDefault(); // Prevents input from losing focus

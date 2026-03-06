@@ -1,14 +1,17 @@
 "use client";
 
 import BottomLinks from "./BottomLinks";
-import SignInForm from "./SignInForm";
 import ThirdPartySignIn from "./ThirdPartySignIn";
+import AuthForm from "./AuthForm";
 import { AuthProvider, useAuth } from "./AuthContext";
 
-import { Divider } from "@heroui/react";
+import { Divider, Button, Link } from "@heroui/react";
+
+import { ArrowLeft } from "lucide-react";
 
 interface AuthWrapperProps {
   type: 'sign-in' | 'sign-up';
+  initialRole?: 'tenant' | 'landlord';
 }
 
 function AuthContent() {
@@ -20,7 +23,19 @@ function AuthContent() {
 
   return (
     <div className="w-full shrink-0 bg-white p-10 flex flex-col md:w-[600px] md:p-20">
-      <div>
+      {/* Back Button */}
+      <Button
+        isIconOnly
+        variant="light"
+        radius="full"
+        as={Link}
+        href="/"
+        className="-ml-2"
+      >
+        <ArrowLeft size={20} />
+      </Button>
+
+      <div className="mt-8">
         <h1 className="text-4xl font-poppins font-semibold">
           {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
         </h1>
@@ -29,7 +44,7 @@ function AuthContent() {
         </h3>
       </div>
 
-      <SignInForm />
+      <AuthForm />
 
       {/* Divider */}
       <div className="flex items-center gap-3 mt-5">
@@ -51,9 +66,9 @@ function AuthContent() {
   );
 }
 
-export default function AuthWrapper({ type }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole }: AuthWrapperProps) {
   return (
-    <AuthProvider type={type}>
+    <AuthProvider type={type} initialRole={initialRole}>
       <AuthContent />
     </AuthProvider>
   );
