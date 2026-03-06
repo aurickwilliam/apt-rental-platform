@@ -159,7 +159,7 @@ export default function Footer() {
 
         <div className="flex items-center justify-between">
           <Image 
-            src="/logo-name.svg"
+            src="/logo/logo-name.svg"
             alt="APT Rental Platform Logo"
             width={120}
             height={40}

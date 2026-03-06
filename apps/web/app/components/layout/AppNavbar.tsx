@@ -20,7 +20,7 @@ export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { theme } = useTheme();
-  const logoSrc = theme === "dark" ? "/logo-name.svg" : "/logo-white-name.svg";
+  const logoSrc = theme === "dark" ? "/logo/logo-name.svg" : "/logo/logo-white-name.svg";
 
   return (
     <Navbar
@@ -58,13 +58,13 @@ export default function AppNavbar() {
       <NavbarContent justify="end" className="hidden sm:flex gap-3">
 
         <NavbarItem>
-          <Button as={Link} color="primary" href="#" variant="light" radius="full">
+          <Button as={Link} color="primary" href="/sign-in" variant="light" radius="full">
             Log In
           </Button>
         </NavbarItem>
         
         <NavbarItem>
-          <Button as={Link} color="primary" href="#" variant="flat" radius="full">
+          <Button as={Link} color="primary" href="/sign-up" variant="flat" radius="full">
             Sign Up
           </Button>
         </NavbarItem>
@@ -84,14 +84,21 @@ export default function AppNavbar() {
             </Link>
           </NavbarMenuItem>
         ))}
+
+        <NavbarItem>
+          <Button as={Link} color="primary" href="/sign-in" variant="light" radius="full">
+            Log In
+          </Button>
+        </NavbarItem>
+
         <NavbarMenuItem>
-          <ThemeToggle />
+          <Button as={Link} color="primary" href="/sign-up" variant="flat" radius="full">
+            Sign Up
+          </Button>
         </NavbarMenuItem>
 
         <NavbarMenuItem>
-          <Button as={Link} color="primary" href="#" variant="flat" radius="full">
-            Sign Up
-          </Button>
+          <ThemeToggle />
         </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>
