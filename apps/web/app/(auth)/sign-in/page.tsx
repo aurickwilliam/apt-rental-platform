@@ -15,7 +15,7 @@ export default function SignIn() {
         {/* Content */}
         <div className="relative z-10 p-12 h-full flex flex-col justify-between">
           <Image 
-            src="/logo-name.svg"
+            src="/logo/logo-name.svg"
             alt="Logo"
             width={200}
             height={150}

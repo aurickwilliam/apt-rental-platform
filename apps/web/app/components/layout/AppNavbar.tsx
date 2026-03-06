@@ -20,7 +20,7 @@ export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { theme } = useTheme();
-  const logoSrc = theme === "dark" ? "/logo-name.svg" : "/logo-white-name.svg";
+  const logoSrc = theme === "dark" ? "/logo/logo-name.svg" : "/logo/logo-white-name.svg";
 
   return (
     <Navbar
