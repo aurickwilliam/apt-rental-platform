@@ -11,7 +11,7 @@ import {
 
 export default function ApartmentCard() {
   return (
-    <Card 
+    <Card
       className="bg-white rounded-xl shadow-sm overflow-hidden w-56 relative"
       isPressable
       onPress={() => {
@@ -19,7 +19,7 @@ export default function ApartmentCard() {
       }}
     >
       <CardBody className="p-0">
-        <Image 
+        <Image
           src={'/default/default-thumbnail.jpeg'}
           alt="Apartment Thumbnail"
           width={300}
@@ -46,10 +46,10 @@ export default function ApartmentCard() {
         </p>
 
         <div className="flex items-center gap-1">
-          <Star 
-            className="text-yellow-400" 
+          <Star
+            className="text-yellow-400"
             fill="currentColor"
-            size={18} 
+            size={18}
           />
           <p className="text-sm">
             4.5
@@ -58,7 +58,7 @@ export default function ApartmentCard() {
       </CardFooter>
 
       {/* Overlay */}
-      <Button 
+      <Button
         as="div"
         variant="flat"
         radius="full"
