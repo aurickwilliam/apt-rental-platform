@@ -1,9 +1,7 @@
-import Image from "next/image";
-
 import AppNavbar from "../components/layout/AppNavbar";
-import StartBrowsingBtn from "./components/StartBrowsingBtn";
-import BrowsingField from "./components/BrowsingField";
 import ApartmentCarousel from "./components/ApartmentCarousel";
+import DiscoverNowBtn from "./components/DiscoverNowBtn";
+import Footer from "../components/layout/Footer";
 
 import { Divider } from "@heroui/react";
 
@@ -16,8 +14,7 @@ import {
   FileCheckCorner,
   BanknoteArrowUp
 } from "lucide-react"
-import DiscoverNowBtn from "./components/DiscoverNowBtn";
-import Footer from "../components/layout/Footer";
+import HeroSection from "./components/HeroSection";
 
 export default function Home() {
   return (
@@ -27,32 +24,7 @@ export default function Home() {
       <div className="bg-white min-h-screen">
         <main className="max-w-7xl mx-auto px-4 pt-4 flex flex-col">
           {/* Intro */}
-          <section className="w-full h-[600px] bg-grey-300 rounded-xl relative mb-50 md:mb-20">
-            <Image
-              src="/building-bg.png"
-              alt="Hero Image"
-              width={1200}
-              height={700}
-              className="object-cover w-full h-full rounded-xl"
-            />
-
-            {/* Overlay Description */}
-            <div className="absolute inset-0 top-[5%] p-4 md:w-1/2 md:left-10 md:top-20">
-              <h1 className="text-4xl md:text-5xl font-poppins font-bold text-white text-left">
-                Find, Rent, and Manage. All in one place.
-              </h1>
-
-              <p className="text-lg font-medium text-darker-white mt-3 ">
-                From high-res tours to automated rent payments, we’ve simplified the entire rental journey.
-              </p>
-
-              <StartBrowsingBtn />
-            </div>
-
-            <div className="absolute -bottom-50 left-0 right-0 p-4 md:-bottom-10 md:left-10 md:right-10">
-              <BrowsingField />
-            </div>
-          </section>
+          <HeroSection />
 
           {/* Why Us */}
           <section className="mt-10">

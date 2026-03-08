@@ -61,12 +61,12 @@ export default function AppNavbar() {
 
         <NavbarItem>
           <Button as={Link} color="primary" href="/sign-in" variant="light" radius="full">
-            Log In
+            Sign In
           </Button>
         </NavbarItem>
 
         <NavbarItem>
-          <Button as={Link} color="primary" href="/sign-up" variant="flat" radius="full">
+          <Button as={Link} color="primary" href="/sign-up" variant="solid" radius="full">
             Sign Up
           </Button>
         </NavbarItem>
@@ -89,12 +89,12 @@ export default function AppNavbar() {
 
         <NavbarItem>
           <Button as={Link} color="primary" href="/sign-in" variant="light" radius="full">
-            Log In
+            Sign In
           </Button>
         </NavbarItem>
 
         <NavbarMenuItem>
-          <Button as={Link} color="primary" href="/sign-up" variant="flat" radius="full">
+          <Button as={Link} color="primary" href="/sign-up" variant="solid" radius="full">
             Sign Up
           </Button>
         </NavbarMenuItem>
