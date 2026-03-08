@@ -21,7 +21,7 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: "APT (A Place to Thrive)",
+  title: "APT - Apartment Rental Platform",
   description: "Apartment rental platform connecting renters and landlords for seamless housing solutions.",
 };
 

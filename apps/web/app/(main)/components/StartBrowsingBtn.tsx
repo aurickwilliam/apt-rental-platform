@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from '@heroui/react'
+import { Button, Link } from '@heroui/react'
 
 export default function StartBrowsingBtn() {
   return (
@@ -9,9 +9,8 @@ export default function StartBrowsingBtn() {
       color="primary"
       radius="full"
       className="mt-6"
-      onPress={() => {
-        console.log("Start Browsing button clicked");
-      }}
+      as={Link}
+      href="/browse"
     >
       Start Browsing
     </Button>
