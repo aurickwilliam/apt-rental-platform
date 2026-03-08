@@ -9,14 +9,31 @@ import {
   Heart,
 } from "lucide-react"
 
-export default function ApartmentCard() {
+interface ApartmentCardProps {
+  id: string;
+  name: string;
+  location: string;
+  price: number;
+  rating: number;
+  thumbnailUrl: string;
+  onPress?: () => void;
+}
+
+export default function ApartmentCard({
+  id,
+  name,
+  location,
+  price,
+  rating,
+  thumbnailUrl,
+  onPress
+}: ApartmentCardProps) {
+
   return (
     <Card
       className="bg-white rounded-xl shadow-sm overflow-hidden w-56 relative"
       isPressable
-      onPress={() => {
-        console.log("Card Pressed")
-      }}
+      onPress={onPress}
     >
       <CardBody className="p-0">
         <Image
@@ -29,12 +46,12 @@ export default function ApartmentCard() {
 
         <div className="p-2">
           <h3 className="text-base font-semibold">
-            Apartment Card
+            {name}
           </h3>
 
           <div className="flex items-center gap-1">
             <p className="text-gray-600 text-sm">
-              Barangay, City
+              {location}
             </p>
           </div>
         </div>
@@ -42,7 +59,7 @@ export default function ApartmentCard() {
 
       <CardFooter className="p-2 flex justify-between items-center">
         <p className="text-base font-medium text-primary">
-          ₱ 15,000
+          ₱ {price}
         </p>
 
         <div className="flex items-center gap-1">
@@ -52,7 +69,7 @@ export default function ApartmentCard() {
             size={18}
           />
           <p className="text-sm">
-            4.5
+            {rating}
           </p>
         </div>
       </CardFooter>

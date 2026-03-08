@@ -10,7 +10,9 @@ import {
   DateValue,
   Divider,
   CheckboxGroup,
-  Checkbox
+  Checkbox,
+  RadioGroup,
+  Radio
 } from "@heroui/react";
 
 const BEDROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
@@ -27,6 +29,12 @@ const AMENITIES = [
   "Balcony",
   "Storage",
 ];
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price: Low to High" },
+  { value: "price_desc", label: "Price: High to Low" },
+  { value: "popular", label: "Most Popular" },
+];
 
 type Filters = {
   bedroom: string;
@@ -40,6 +48,7 @@ type Filters = {
   parking: boolean;
 
   amenities: typeof AMENITIES[number][];
+  sortBy: typeof SORT_OPTIONS[number]["value"];
 }
 
 const INITIAL_FILTERS: Filters = {
@@ -54,6 +63,7 @@ const INITIAL_FILTERS: Filters = {
   parking: false,
 
   amenities: [],
+  sortBy: "newest",
 }
 
 export default function FilterContainer() {
@@ -71,6 +81,7 @@ export default function FilterContainer() {
     parking: false,
 
     amenities: [],
+    sortBy: "newest",
   });
 
   // Handle updating the filters object
@@ -103,8 +114,24 @@ export default function FilterContainer() {
         </Button>
       </div>
 
-      {/* Bedroom Filters */}
+      {/* Sort By */}
       <p className="text-sm font-medium mb-2">
+        Sort By
+      </p>
+
+      <RadioGroup
+        value={filters.sortBy}
+        onValueChange={(val) => updateFilter("sortBy", val)}
+      >
+        {SORT_OPTIONS.map((opt) => (
+          <Radio key={opt.value} value={opt.value} size="sm">
+            {opt.label}
+          </Radio>
+        ))}
+      </RadioGroup>
+
+      {/* Bedroom Filters */}
+      <p className="text-sm font-medium mb-2 mt-6">
         Bedrooms
       </p>
 
