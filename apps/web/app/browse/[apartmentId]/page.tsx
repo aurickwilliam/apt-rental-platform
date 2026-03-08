@@ -11,6 +11,8 @@ import RenderReviews from "./components/RenderReviews";
 import RelatedApartments from "./components/RelatedApartments";
 import PriceCard from "./components/PriceCard";
 import LandlordCard from "./components/LandlordCard";
+import ShareBtn from "./components/ShareBtn";
+import FavoriteBtn from "./components/FavoriteBtn";
 
 export default async function ApartmentDetailsPage({ params }: { params: Promise<{ apartmentId: string }> }) {
   const { apartmentId } = await params;
@@ -40,7 +42,14 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <BackBtn />
+      <div className="flex items-center justify-between">
+        <BackBtn />
+
+        <div className="flex items-center gap-2">
+          <ShareBtn />
+          <FavoriteBtn />
+        </div>
+      </div>
 
       {/* Image Header */}
       <div className="my-4">
