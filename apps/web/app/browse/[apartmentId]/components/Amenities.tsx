@@ -15,14 +15,15 @@ export default function Amenities({ apartmentPerks }: AmenitiesProps) {
         <h3 className="text-lg font-medium">
           Amenities
         </h3>
-        
+
         <Button
           size="sm"
           variant="light"
           radius="full"
-          color="primary"
+          color="secondary"
+          className="-mr-3"
           onPress={() => {
-            console.log("SEE ALL AMENITIES");
+            alert("SEE ALL AMENITIES");
           }}
         >
           See all amenities

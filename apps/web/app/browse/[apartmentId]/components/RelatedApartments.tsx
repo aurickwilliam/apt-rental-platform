@@ -1,27 +1,22 @@
 "use client";
 
-import React from "react";
-
-import {
-  Carousel,
-  CarouselApi,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel"
+import { useState } from "react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
+import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+
 import { Button } from "@heroui/react";
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function ApartmentCarousel() {
-  const [api, setApi] = React.useState<CarouselApi>();
+export default function RelatedApartments() {
+  const [api, setApi] = useState<CarouselApi>();
 
   return (
     <Carousel setApi={setApi} className="mt-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-poppins font-semibold md:text-3xl">
-          Apartments Tenants Love
+        <h2 className="text-2xl font-dm-serif font-medium text-secondary md:text-3xl">
+          Related Apartments
         </h2>
 
         <div className="flex items-center gap-2">
@@ -57,7 +52,7 @@ export default function ApartmentCarousel() {
                 rating={4.5}
                 thumbnailUrl={"/default/default-thumbnail.jpeg"}
               />
-            </CarouselItem> 
+            </CarouselItem>
           ))
         }
       </CarouselContent>
