@@ -9,6 +9,8 @@ import { Divider } from "@heroui/react";
 import { House, BedDouble, Bath, Expand } from "lucide-react";
 import RenderReviews from "./components/RenderReviews";
 import RelatedApartments from "./components/RelatedApartments";
+import PriceCard from "./components/PriceCard";
+import LandlordCard from "./components/LandlordCard";
 
 export default async function ApartmentDetailsPage({ params }: { params: Promise<{ apartmentId: string }> }) {
   const { apartmentId } = await params;
@@ -141,8 +143,16 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         </div>
 
         {/* Price and Application */}
-        <div className="w-1/3 bg-amber-200">
+        <div className="w-1/3 flex flex-col gap-5">
+          <PriceCard
+            price={10000}
+          />
 
+          <LandlordCard
+            name={"Jane Doe"}
+            avatarUrl={""}
+            contactInfo={"09123456789"}
+          />
         </div>
       </div>
 

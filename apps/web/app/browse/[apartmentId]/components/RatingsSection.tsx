@@ -41,7 +41,7 @@ export default function RatingSection({
           }}
           className="-mr-3"
         >
-          See all amenities
+          See all reviews
         </Button>
       </div>
 
