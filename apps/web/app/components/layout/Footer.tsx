@@ -2,7 +2,7 @@
 
 import {Accordion, AccordionItem, Button, Divider, Link} from "@heroui/react";
 
-import { 
+import {
   IconBrandX,
   IconBrandFacebook,
   IconBrandInstagram,
@@ -13,15 +13,15 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="bg-primary text-white">
-      <div className="max-w-7xl mx-auto p-5 md:py-10 md:px-20">
+      <div className="max-w-7xl mx-auto p-5 md:py-10">
       {/* Mobile: Accordion */}
       <Accordion showDivider={false} className="md:hidden">
-        <AccordionItem 
-          key={1} 
-          aria-label="Who we are" 
-          title="Who we are" 
-          classNames={{ 
-            title: "font-semibold font-poppins text-white", 
+        <AccordionItem
+          key={1}
+          aria-label="Who we are"
+          title="Who we are"
+          classNames={{
+            title: "font-semibold font-poppins text-white",
             indicator: "text-white",
             base: "border-b border-white/40"
           }}
@@ -33,12 +33,12 @@ export default function Footer() {
             <Link href="#" className="text-base font-medium text-white/80 hover:text-white">About Us</Link>
           </div>
         </AccordionItem>
-        <AccordionItem 
-          key={2} 
-          aria-label="Support" 
-          title="Support" 
-          classNames={{ 
-            title: "font-semibold font-poppins text-white", 
+        <AccordionItem
+          key={2}
+          aria-label="Support"
+          title="Support"
+          classNames={{
+            title: "font-semibold font-poppins text-white",
             indicator: "text-white",
             base: "border-b border-white/40"
           }}
@@ -50,12 +50,12 @@ export default function Footer() {
             <Link href="#" className="text-base font-medium text-white/80 hover:text-white">FAQ</Link>
           </div>
         </AccordionItem>
-        <AccordionItem 
-          key={3} 
-          aria-label="Quick Links" 
-          title="Quick Links" 
-          classNames={{ 
-            title: "font-semibold font-poppins text-white", 
+        <AccordionItem
+          key={3}
+          aria-label="Quick Links"
+          title="Quick Links"
+          classNames={{
+            title: "font-semibold font-poppins text-white",
             indicator: "text-white",
             base: "border-b border-white/40"
           }}
@@ -93,7 +93,7 @@ export default function Footer() {
           <Link href="#" className="text-base font-medium text-white/80 hover:text-white">Tenant Login</Link>
         </div>
       </div>
-      
+
       {/* Copyrights */}
       <div className="mt-5 text-center md:hidden">
         {/* Socials */}
@@ -108,7 +108,7 @@ export default function Footer() {
             <IconBrandInstagram className="text-white" size={26} />
           </Button>
         </div>
-        
+
         <div>
           <p className="text-sm text-white/80">
             109 Samson Road corner Caimito Road, Caloocan, Philippines
@@ -158,7 +158,7 @@ export default function Footer() {
         <Divider className="my-5 h-0.5 rounded-full bg-white" />
 
         <div className="flex items-center justify-between">
-          <Image 
+          <Image
             src="/logo/logo-name.svg"
             alt="APT Rental Platform Logo"
             width={120}
