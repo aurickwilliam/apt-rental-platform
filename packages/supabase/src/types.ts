@@ -1,40 +1,457 @@
-// Auto-generated types from Supabase
-// Run: npx supabase gen types typescript --project-id <your-project-id> > src/types.ts
-// Or link your project and run: npx supabase gen types typescript --linked > src/types.ts
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-// Placeholder database type - replace with generated types from Supabase CLI
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      // Example table structure - replace with your actual tables
-      // users: {
-      //   Row: {
-      //     id: string;
-      //     email: string;
-      //     created_at: string;
-      //   };
-      //   Insert: {
-      //     id?: string;
-      //     email: string;
-      //     created_at?: string;
-      //   };
-      //   Update: {
-      //     id?: string;
-      //     email?: string;
-      //     created_at?: string;
-      //   };
-      // };
-    };
-    Views: {};
-    Functions: {};
-    Enums: {};
-  };
+      apartments: {
+        Row: {
+          address: string
+          area_sqm: number
+          average_rating: number | null
+          barangay: string
+          city: string
+          created_at: string
+          description: string
+          id: string
+          monthly_rent: number
+          name: string
+          no_bathrooms: number
+          no_bedrooms: number
+          no_favorites: number | null
+          no_ratings: number | null
+          province: string
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          area_sqm: number
+          average_rating?: number | null
+          barangay: string
+          city: string
+          created_at?: string
+          description: string
+          id?: string
+          monthly_rent: number
+          name: string
+          no_bathrooms: number
+          no_bedrooms: number
+          no_favorites?: number | null
+          no_ratings?: number | null
+          province: string
+          status?: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          area_sqm?: number
+          average_rating?: number | null
+          barangay?: string
+          city?: string
+          created_at?: string
+          description?: string
+          id?: string
+          monthly_rent?: number
+          name?: string
+          no_bathrooms?: number
+          no_bedrooms?: number
+          no_favorites?: number | null
+          no_ratings?: number | null
+          province?: string
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      chat: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          time_stamp: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          time_stamp?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          time_stamp?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      maintenance_request: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          title: string
+          updated_at: string | null
+          urgency: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          title: string
+          updated_at?: string | null
+          urgency: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          title?: string
+          updated_at?: string | null
+          urgency?: string
+        }
+        Relationships: []
+      }
+      payment: {
+        Row: {
+          amount: number | null
+          created_at: string
+          date: string
+          id: string
+          method: string
+          reference_no: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          method: string
+          reference_no: number
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          method?: string
+          reference_no?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rental_application: {
+        Row: {
+          created_at: string
+          date_submitted: string
+          duration_stay: string
+          employer_name: string
+          employment_type: string
+          has_pets: boolean
+          has_smoker: boolean
+          id: string
+          message: string | null
+          monthly_income: number
+          move_in_date: string
+          need_parking: boolean
+          no_occupants: number
+          occupation: string
+          prev_landlord_contact: string | null
+          prev_landlord_name: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_submitted: string
+          duration_stay: string
+          employer_name: string
+          employment_type: string
+          has_pets: boolean
+          has_smoker: boolean
+          id?: string
+          message?: string | null
+          monthly_income: number
+          move_in_date: string
+          need_parking: boolean
+          no_occupants: number
+          occupation: string
+          prev_landlord_contact?: string | null
+          prev_landlord_name?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_submitted?: string
+          duration_stay?: string
+          employer_name?: string
+          employment_type?: string
+          has_pets?: boolean
+          has_smoker?: boolean
+          id?: string
+          message?: string | null
+          monthly_income?: number
+          move_in_date?: string
+          need_parking?: boolean
+          no_occupants?: number
+          occupation?: string
+          prev_landlord_contact?: string | null
+          prev_landlord_name?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          account_status: string
+          age: number
+          barangay: string
+          birth_date: string
+          city: string
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          middle_name: string | null
+          mobile_number: string
+          postal_code: number | null
+          province: string
+          role: string
+          street_address: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_status?: string
+          age: number
+          barangay: string
+          birth_date: string
+          city: string
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          middle_name?: string | null
+          mobile_number: string
+          postal_code?: number | null
+          province: string
+          role?: string
+          street_address: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          account_status?: string
+          age?: number
+          barangay?: string
+          birth_date?: string
+          city?: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          middle_name?: string | null
+          mobile_number?: string
+          postal_code?: number | null
+          province?: string
+          role?: string
+          street_address?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      visit_request: {
+        Row: {
+          created_at: string
+          id: string
+          no_visitors: number
+          notes: string | null
+          time: string
+          updated_at: string | null
+          visit_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          no_visitors: number
+          notes?: string | null
+          time: string
+          updated_at?: string | null
+          visit_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          no_visitors?: number
+          notes?: string | null
+          time?: string
+          updated_at?: string | null
+          visit_date?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

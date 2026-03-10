@@ -10,13 +10,16 @@ import {
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
+import { signUp } from "../../actions/sign-up";
 
 import { PROVINCES } from "@repo/constants";
 
 import {
   Minus,
   CircleCheck,
+  CircleX,
   Phone,
+  CircleAlert,
 } from "lucide-react";
 
 interface SignUpFormData {
@@ -39,8 +42,12 @@ interface SignUpFormData {
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpenChange } = useDisclosure();
   const [otp, setOtp] = useState("");
+
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<SignUpFormData>({
     email: email,
@@ -61,13 +68,59 @@ export default function SignUpForm() {
 
   const handleChange = (field: keyof SignUpFormData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (error) setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Password validation checks
+  const hasMinLength = formData.password.length >= 8;
+  const hasUpperAndLower = /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password);
+  const hasNumber = /[0-9]/.test(formData.password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(formData.password);
+  const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
+
+  const getCheckIcon = (isValid: boolean) => {
+    if (formData.password.length === 0) return <Minus size={24} className="text-gray-400" />;
+    return isValid
+      ? <CircleCheck size={24} className="text-green-500" />
+      : <CircleX size={24} className="text-red-500" />;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Validate form fields and send OTP to email
-    console.log("Form data:", formData);
-    onOpen();
+    setError(null);
+    setLoading(true);
+
+    // Build FormData to pass to the server action
+    const fd = new FormData();
+    fd.set("email", formData.email);
+    fd.set("firstName", formData.firstName);
+    fd.set("lastName", formData.lastName);
+    fd.set("middleName", formData.middleName);
+    fd.set("age", formData.age?.toString() ?? "");
+    fd.set("gender", formData.gender);
+    fd.set("mobileNumber", formData.mobileNumber);
+    fd.set("streetAddress", formData.streetAddress);
+    fd.set("barangay", formData.barangay);
+    fd.set("city", formData.city);
+    fd.set("stateProvince", formData.stateProvince);
+    fd.set("postalCode", formData.postalCode?.toString() ?? "");
+    fd.set("password", formData.password);
+    fd.set("confirmPassword", formData.confirmPassword);
+    fd.set("role", role);
+
+    try {
+      const result = await signUp({ error: null, success: false }, fd);
+
+      if (result.error) {
+        setError(result.error);
+      } else if (result.success) {
+        setSuccess(true);
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifyOtp = (onClose: () => void) => {
@@ -82,10 +135,43 @@ export default function SignUpForm() {
     "Male",
     "Female",
     "Others",
-  ]
+  ];
+
+  // If sign-up succeeded, show a success message
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 my-20 text-center">
+        <div className="rounded-full bg-green-100 p-4">
+          <CircleCheck size={48} className="text-green-600" />
+        </div>
+        <h2 className="text-2xl font-semibold font-poppins">Account Created!</h2>
+        <p className="text-default-500 max-w-md">
+          Your account has been created successfully. You can now sign in with your email and password.
+        </p>
+        <Button
+          color="primary"
+          radius="full"
+          size="lg"
+          className="mt-4"
+          as="a"
+          href="/sign-in"
+        >
+          Go to Sign In
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
+    {/* Error Message */}
+    {error && (
+      <div className="mt-6 p-4 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
+        <CircleAlert size={20} className="text-danger mt-0.5 shrink-0" />
+        <p className="text-sm text-danger">{error}</p>
+      </div>
+    )}
+
     <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
 
       {/* Personal Information */}
@@ -108,7 +194,7 @@ export default function SignUpForm() {
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
           value={formData.email}
-          disabled
+          onValueChange={handleChange("email")}
         />
 
         {/* First Name*/}
@@ -126,6 +212,7 @@ export default function SignUpForm() {
           }}
           value={formData.firstName}
           onValueChange={handleChange("firstName")}
+          isDisabled={loading}
         />
 
         {/* Last Name */}
@@ -143,6 +230,7 @@ export default function SignUpForm() {
           }}
           value={formData.lastName}
           onValueChange={handleChange("lastName")}
+          isDisabled={loading}
         />
 
         {/* Middle Name */}
@@ -159,6 +247,7 @@ export default function SignUpForm() {
           }}
           value={formData.middleName}
           onValueChange={handleChange("middleName")}
+          isDisabled={loading}
         />
 
         {/* Age */}
@@ -178,6 +267,7 @@ export default function SignUpForm() {
           }}
           value={formData.age}
           onValueChange={(val) => setFormData((prev) => ({ ...prev, age: val === undefined ? undefined : Number(val) }))}
+          isDisabled={loading}
         />
 
         {/* Gender */}
@@ -201,6 +291,7 @@ export default function SignUpForm() {
               const selected = Array.from(keys)[0];
               handleChange("gender")(selected ? String(selected) : "");
             }}
+            isDisabled={loading}
           >
             {GENDER_OPTIONS.map((gender) => (
               <SelectItem key={gender} className="data-[hover=true]:bg-light-blue!">
@@ -225,6 +316,7 @@ export default function SignUpForm() {
           }}
           value={formData.mobileNumber}
           onValueChange={handleChange("mobileNumber")}
+          isDisabled={loading}
         />
       </div>
 
@@ -250,6 +342,7 @@ export default function SignUpForm() {
           }}
           value={formData.streetAddress}
           onValueChange={handleChange("streetAddress")}
+          isDisabled={loading}
         />
 
         {/* Barangay */}
@@ -267,6 +360,7 @@ export default function SignUpForm() {
           }}
           value={formData.barangay}
           onValueChange={handleChange("barangay")}
+          isDisabled={loading}
         />
 
         {/* City */}
@@ -284,6 +378,7 @@ export default function SignUpForm() {
           }}
           value={formData.city}
           onValueChange={handleChange("city")}
+          isDisabled={loading}
         />
 
         {/* State/Province */}
@@ -306,6 +401,7 @@ export default function SignUpForm() {
               const selected = Array.from(keys)[0];
               handleChange("stateProvince")(selected ? String(selected) : "");
             }}
+            isDisabled={loading}
           >
             {PROVINCES.map((province) => (
               <SelectItem key={province} className="data-[hover=true]:bg-light-blue!">
@@ -333,6 +429,7 @@ export default function SignUpForm() {
           }}
           value={formData.postalCode}
           onValueChange={(val) => setFormData((prev) => ({ ...prev, postalCode: val === undefined ? undefined : Number(val) }))}
+          isDisabled={loading}
         />
       </div>
 
@@ -369,39 +466,44 @@ export default function SignUpForm() {
         {/* Requirements Password */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <CircleCheck size={24} className="text-green-500" />
+            {getCheckIcon(hasMinLength)}
             <p className="text-sm text-gray-600">
               At least 8 characters
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <CircleCheck size={24} className="text-green-500" />
+            {getCheckIcon(hasUpperAndLower)}
             <p className="text-sm text-gray-600">
               Contains uppercase and lowercase letters
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <CircleCheck size={24} className="text-green-500" />
+            {getCheckIcon(hasNumber)}
             <p className="text-sm text-gray-600">
               Includes at least one number
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <CircleCheck size={24} className="text-green-500" />
+            {getCheckIcon(hasSpecialChar)}
             <p className="text-sm text-gray-600">
               Contains at least one special character
             </p>
           </div>
 
-           <div className="flex items-center gap-2">
-            <Minus size={24} className="text-gray-400" />
+          <div className="flex items-center gap-2">
+            {formData.confirmPassword.length === 0
+              ? <Minus size={24} className="text-gray-400" />
+              : passwordsMatch
+                ? <CircleCheck size={24} className="text-green-500" />
+                : <CircleX size={24} className="text-red-500" />
+            }
             <p className="text-sm text-gray-600">
-              Does not contain your personal information
+              Passwords match
             </p>
-           </div>
+          </div>
         </div>
       </div>
 
@@ -412,12 +514,14 @@ export default function SignUpForm() {
         size='lg'
         radius="full"
         type='submit'
+        isLoading={loading}
+        isDisabled={loading}
       >
-        Sign Up
+        {loading ? "Creating Account..." : "Sign Up"}
       </Button>
     </Form>
 
-    {/* OTP Verification Modal */}
+    {/* OTP Verification Modal (for future use) */}
     <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -438,7 +542,7 @@ export default function SignUpForm() {
                 </div>
                 <p className="text-center text-sm text-default-500">
                   We sent a 6-digit verification code to{" "}
-                  <span className="font-semibold text-foreground">mobile number</span>.
+                  <span className="font-semibold text-foreground">{formData.mobileNumber}</span>.
                   <br />
                   Please enter it below.
                 </p>

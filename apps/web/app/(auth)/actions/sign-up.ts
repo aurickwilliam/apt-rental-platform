@@ -8,7 +8,7 @@ export interface SignUpFormState {
 }
 
 export async function signUp(
-  prevState: SignUpFormState,
+  _prevState: SignUpFormState,
   formData: FormData
 ): Promise<SignUpFormState> {
   const email = formData.get("email") as string;
@@ -21,14 +21,13 @@ export async function signUp(
   const lastName = formData.get("lastName") as string;
   const middleName = formData.get("middleName") as string | null;
   const age = formData.get("age") as string | null;
-  const gender = formData.get("gender") as string | null;
   const mobileNumber = formData.get("mobileNumber") as string | null;
 
   // Address information
   const streetAddress = formData.get("streetAddress") as string | null;
   const barangay = formData.get("barangay") as string | null;
   const city = formData.get("city") as string | null;
-  const stateProvince = formData.get("stateProvince") as string | null;
+  const province = formData.get("stateProvince") as string | null;
   const postalCode = formData.get("postalCode") as string | null;
 
   // Validation
@@ -68,7 +67,8 @@ export async function signUp(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  // Create the auth user in Authentication
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -76,34 +76,52 @@ export async function signUp(
         role: role || "tenant",
         first_name: firstName,
         last_name: lastName,
-        middle_name: middleName || "",
-        age: age ? parseInt(age, 10) : null,
-        gender: gender || "",
-        mobile_number: mobileNumber || "",
-        street_address: streetAddress || "",
-        barangay: barangay || "",
-        city: city || "",
-        state_province: stateProvince || "",
-        postal_code: postalCode || "",
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
     },
   });
 
-  if (error) {
-    if (error.message.includes("already registered") || error.message.includes("already been registered")) {
+  if (authError) {
+    if (authError.message.includes("already registered") || authError.message.includes("already been registered")) {
       return { error: "An account with this email already exists. Please sign in instead.", success: false };
     }
-    if (error.message.includes("rate limit")) {
+    if (authError.message.includes("rate limit")) {
       return { error: "Too many sign-up attempts. Please try again later.", success: false };
     }
-    if (error.message.includes("password")) {
+    if (authError.message.includes("password")) {
       return { error: "Password does not meet the security requirements. Please choose a stronger password.", success: false };
     }
-    return { error: error.message, success: false };
+    return { error: authError.message, success: false };
   }
 
-  // If email confirmation is enabled in Supabase, the user needs to verify their email.
-  // Return success so the UI can show a "check your email" message.
+  // Insert profile data into the users table
+  if (authData.user) {
+    const { error: profileError } = await supabase
+      .from("users")
+      .insert({
+        user_id: authData.user.id,
+        role: role || "tenant",
+        first_name: firstName,
+        last_name: lastName,
+        middle_name: middleName || null,
+        age: age ? parseInt(age, 10) : 0,
+        mobile_number: mobileNumber || "",
+        birth_date: new Date().toISOString().split("T")[0],
+        street_address: streetAddress || "",
+        barangay: barangay || "",
+        city: city || "",
+        province: province || "",
+        postal_code: postalCode ? parseInt(postalCode, 10) : null,
+      });
+
+    if (profileError) {
+      // If profile creation fails, we should clean up the auth user
+      // to avoid orphaned accounts
+      await supabase.auth.admin.deleteUser(authData.user.id);
+
+      console.error("Profile creation error:", profileError);
+      return { error: "Failed to create your profile. Please try again.", success: false };
+    }
+  }
+
   return { error: null, success: true };
 }

@@ -2,7 +2,7 @@ import { View, Text, Image, Platform, Pressable } from 'react-native';
 import { useState } from "react";
 import { Link, useRouter } from 'expo-router';
 
-import { IMAGES } from 'constants/images';
+import { IMAGES } from '../../constants/images';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import TextField from 'components/inputs/TextField';

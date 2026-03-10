@@ -8,7 +8,7 @@ export interface SignInFormState {
 }
 
 export async function signIn(
-  prevState: SignInFormState,
+  _prevState: SignInFormState,
   formData: FormData
 ): Promise<SignInFormState> {
   const email = formData.get("email") as string;
