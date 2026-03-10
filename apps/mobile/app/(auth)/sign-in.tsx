@@ -9,27 +9,77 @@ import TextField from 'components/inputs/TextField';
 import PillButton from 'components/buttons/PillButton';
 import LogoButton from 'components/buttons/LogoButton';
 
+import { supabase } from '@repo/supabase';
+
 export default function SignIn() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [userSide, setUserSide] = useState<'tenant' | 'landlord'>('tenant');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const router = useRouter();
 
-  const handleEmailTextChange = (text: string) => setEmail(text);
+  const handleEmailTextChange = (text: string) => {
+    setEmail(text);
+    if (error) setError('');
+  };
 
-  const handlePasswordTextChange = (text: string) => setPassword(text);
+  const handlePasswordTextChange = (text: string) => {
+    setPassword(text);
+    if (error) setError('');
+  };
 
   const toggleUserSide = () => setUserSide(prev => prev === 'tenant' ? 'landlord' : 'tenant');
 
-  const handleSignIn = () => {
-    // TODO: Implement sign-in logic here
-    router.replace(
-      userSide === 'tenant'
-      ? '../(tabs)/(tenant)/home'
-      : '../(tabs)/(landlord)/dashboard'
-    );
-  }
+  const handleSignIn = async () => {
+    // Basic validation
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter your password.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        // Map common Supabase auth errors to user-friendly messages
+        if (signInError.message === 'Invalid login credentials') {
+          setError('Invalid email or password. Please try again.');
+        } else if (signInError.message === 'Email not confirmed') {
+          setError('Please verify your email address before signing in.');
+        } else if (signInError.message.includes('rate limit')) {
+          setError('Too many sign-in attempts. Please try again later.');
+        } else {
+          setError(signInError.message);
+        }
+        return;
+      }
+
+      // Successfully signed in — navigate based on user role
+      router.replace(
+        userSide === 'tenant'
+          ? '../(tabs)/(tenant)/home'
+          : '../(tabs)/(landlord)/dashboard'
+      );
+    } catch (err) {
+      setError('An unexpected error occurred. Please check your connection and try again.');
+      console.error('Sign-in error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScreenWrapper className='p-5'>
@@ -55,6 +105,13 @@ export default function SignIn() {
           }
         </Text>
       </View>
+
+      {/* Error message */}
+      {error ? (
+        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <Text className="text-sm text-red-600 font-inter">{error}</Text>
+        </View>
+      ) : null}
 
       {/* Form inputs */}
       <View className="mt-8 flex gap-4">
@@ -87,9 +144,10 @@ export default function SignIn() {
       {/* Sign In Button */}
       <View className="mt-5">
         <PillButton
-          label="Sign In"
+          label={loading ? "Signing In..." : "Sign In"}
           isFullWidth={true}
           onPress={handleSignIn}
+          isDisabled={loading}
         />
       </View>
 

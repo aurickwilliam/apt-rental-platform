@@ -12,6 +12,7 @@
     "@heroui/react": "^2.8.9",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",
+    "@repo/supabase": "workspace:*",
     "@repo/utils": "workspace:*",
     "@tabler/icons-react": "^3.38.0",
     "class-variance-authority": "^0.7.1",
