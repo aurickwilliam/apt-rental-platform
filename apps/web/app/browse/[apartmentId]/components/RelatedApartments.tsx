@@ -15,7 +15,7 @@ export default function RelatedApartments() {
   return (
     <Carousel setApi={setApi} className="mt-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-dm-serif font-medium text-secondary md:text-3xl">
+        <h2 className="text-2xl font-noto-serif font-medium text-secondary md:text-3xl">
           Related Apartments
         </h2>
 

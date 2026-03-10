@@ -10,9 +10,10 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <LandlordSidebar />
+
       <SidebarInset>
-        <main>
-          <SidebarTrigger className="p-4"/>
+        <main className="bg-white min-h-screen rounded-xl p-4">
+          <SidebarTrigger/>
           {children}
         </main>
       </SidebarInset>

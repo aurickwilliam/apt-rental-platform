@@ -8,7 +8,7 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-poppins: var(--font-poppins), ui-sans-serif, sans-serif;
-  --font-dm-serif: var(--font-dm-serif), ui-serif, serif;
+  --font-noto-serif: var(--font-noto-serif), ui-serif, serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
@@ -73,22 +73,22 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #F8F9FA;         
-  --foreground: #333333;         
+  --background: #F8F9FA;
+  --foreground: #333333;
   --card: #FFFFFF;
   --card-foreground: #333333;
   --popover: #FFFFFF;
   --popover-foreground: #333333;
-  --primary: #376BF5;            
+  --primary: #376BF5;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFA500;          
+  --secondary: #FFA500;
   --secondary-foreground: #FFFFFF;
-  --muted: #E5E7EB;              
-  --muted-foreground: #6C757D;   
-  --accent: #EFF6FF;             
+  --muted: #E5E7EB;
+  --muted-foreground: #6C757D;
+  --accent: #EFF6FF;
   --accent-foreground: #333333;
-  --destructive: #E50914;        
-  --border: #D1D5DB;             
+  --destructive: #E50914;
+  --border: #D1D5DB;
   --input: #D1D5DB;
   --ring: #376BF5;
   --chart-1: oklch(0.646 0.222 41.116);

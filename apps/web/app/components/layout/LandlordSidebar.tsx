@@ -43,17 +43,17 @@ export default function LandlordSidebar() {
     {
       label: "Messages",
       icon: MessagesSquare,
-      href: "#"
+      href: "/messages"
     },
     {
       label: "Applications",
       icon: FileCheckCorner,
-      href: "#",
+      href: "/applications",
     },
     {
       label: "Payments",
       icon: Banknote,
-      href: "#",
+      href: "/payments",
     },
   ]
 
@@ -75,8 +75,8 @@ export default function LandlordSidebar() {
               as={NextImage}
               src="/logo/logo.svg"
               alt="Logo"
-              width={40}
-              height={40}
+              width={30}
+              height={30}
               className="object-contain"
             />
           )
@@ -86,7 +86,7 @@ export default function LandlordSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
+            <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton asChild className="gap-3">
@@ -103,42 +103,44 @@ export default function LandlordSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <Dropdown placement="right" className="hover:cursor-pointer">
-            <DropdownTrigger>
-              <Button
-                variant="light"
-                className="flex w-full items-center justify-start gap-3 h-auto px-2 py-2"
-              >
-                <Avatar
-                  src="https://i.pravatar.cc/150"
-                  name="John Doe"
-                  size="md"
-                  className="shrink-0"
-                />
-                <div className="flex flex-col text-left flex-1 min-w-0">
-                  <span className="text-sm font-medium truncate">
-                    John Doe
-                  </span>
-                  <span className="text-xs text-default-400 truncate">
-                    john@example.com
-                  </span>
-                </div>
-                <ChevronsUpDown className="size-4 text-default-400 shrink-0" />
-              </Button>
-            </DropdownTrigger>
+        <Dropdown placement="top" className="hover:cursor-pointer">
+          <DropdownTrigger>
+            <Button
+              variant="light"
+              className="flex w-full items-center justify-start gap-3 h-auto px-2 py-2"
+            >
+              <Avatar
+                src="https://i.pravatar.cc/150"
+                name="John Doe"
+                size="md"
+                className="shrink-0"
+              />
 
-            <DropdownMenu aria-label="User actions">
-              <DropdownItem key="profile" color="primary">
-                Profile
-              </DropdownItem>
-              <DropdownItem key="settings" color="primary">
-                Settings
-              </DropdownItem>
-              <DropdownItem key="logout" color="danger" className="text-danger">
-                Log out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+              <div className="flex flex-col text-left flex-1 min-w-0">
+                <span className="text-sm font-medium truncate">
+                  John Doe
+                </span>
+                <span className="text-xs text-default-400 truncate">
+                  john@example.com
+                </span>
+              </div>
+
+              <ChevronsUpDown className="w-4 h-4 ml-auto shrink-0 text-default-400" />
+            </Button>
+          </DropdownTrigger>
+
+          <DropdownMenu aria-label="User actions">
+            <DropdownItem key="profile" color="primary">
+              Profile
+            </DropdownItem>
+            <DropdownItem key="settings" color="primary">
+              Settings
+            </DropdownItem>
+            <DropdownItem key="logout" color="danger" className="text-danger">
+              Log out
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       </SidebarFooter>
     </Sidebar>
   );

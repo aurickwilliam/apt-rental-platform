@@ -61,7 +61,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         <div className="w-2/3">
           {/* Name and Address */}
           <div>
-            <h1 className="text-3xl font-medium font-dm-serif text-primary">
+            <h1 className="text-3xl font-medium font-noto-serif text-primary">
               Apartment Name - ID: {apartmentId}
             </h1>
 
