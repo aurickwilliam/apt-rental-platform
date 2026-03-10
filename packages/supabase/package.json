@@ -11,8 +11,8 @@
     "./middleware": "./src/middleware.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
-    "@supabase/ssr": "^0.5.2"
+    "@supabase/supabase-js": "^2.97.0",
+    "@supabase/ssr": "^0.9.0"
   },
   "peerDependencies": {
     "next": ">=14"

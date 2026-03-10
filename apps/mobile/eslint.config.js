@@ -11,14 +11,20 @@ module.exports = defineConfig([
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
-          project: [
-            './tsconfig.json',
-          ],
+          project: './tsconfig.json',
         },
       },
     },
     rules: {
-      'import/no-unresolved': 'error',
+      'import/no-unresolved': ['error', {
+        ignore: [
+          '^components/',
+          '^constants/',
+          '^hooks/',
+          '^assets/',
+          '^@repo/',
+        ],
+      }],
       'import/no-duplicates': 'error',
     },
   },

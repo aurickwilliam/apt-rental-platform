@@ -1,4 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
+import type { CookieOptions } from '@supabase/ssr/dist/main/types';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from './types';
 
@@ -21,13 +22,13 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-        cookiesToSet.forEach(({ name, value }: { name: string; value: string }) =>
+        cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
         supabaseResponse = NextResponse.next({
           request,
         });
-        cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: CookieOptions }) =>
+        cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
       },
@@ -41,18 +42,21 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Define protected route patterns
-  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/listings'];
+  // Pages that anyone can access without logging in
+  const publicRoutes = ['/', '/browse', '/sign-in', '/sign-up', '/sign-up-form', '/auth/callback'];
+
+  // Pages that logged-in users should be redirected away from
   const authRoutes = ['/sign-in', '/sign-up', '/sign-up-form'];
 
   const pathname = request.nextUrl.pathname;
 
-  // If the user is not signed in and trying to access a protected route,
+  const isPublicRoute = publicRoutes.some((route) =>
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  );
+
+  // If the user is not signed in and trying to access a non-public route,
   // redirect them to the sign-in page
-  if (
-    !user &&
-    protectedRoutes.some((route) => pathname.startsWith(route))
-  ) {
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/sign-in';
     return NextResponse.redirect(url);

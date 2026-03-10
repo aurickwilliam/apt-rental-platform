@@ -1,4 +1,4 @@
-import AppNavbar from "../components/layout/AppNavbar";
+import NavbarSwitcher from "../components/layout/NavbarSwitcher";
 import Footer from "../components/layout/Footer";
 
 export default function BrowseLayout({
@@ -8,7 +8,7 @@ export default function BrowseLayout({
 }) {
   return (
     <>
-      <AppNavbar />
+      <NavbarSwitcher />
       <main className="bg-white">
         {children}
       </main>
