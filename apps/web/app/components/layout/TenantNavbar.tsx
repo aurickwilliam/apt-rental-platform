@@ -5,6 +5,8 @@ import NextImage from "next/image";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 
+import { signOut } from "@/app/(auth)/actions/sign-out";
+
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem } from "@heroui/navbar";
 
 import ThemeToggle from "./ThemeToggle";
@@ -13,7 +15,7 @@ import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@
 const navLinks = [
   { label: "Browse", href: "/browse" },
   { label: "Maintenance", href: "/my-rentals" },
-  { label: "Messages", href: "/messages" },
+  { label: "Messages", href: "/my-rentals" },
 ];
 
 export default function TenantNavbar() {
@@ -70,7 +72,12 @@ export default function TenantNavbar() {
             <DropdownItem key="settings" href="/settings" color="primary">
               Settings
             </DropdownItem>
-            <DropdownItem key="logout" color="danger" className="text-danger">
+            <DropdownItem
+              key="logout"
+              color="danger"
+              className="text-danger"
+              onPress={() => signOut()}
+            >
               Log Out
             </DropdownItem>
           </DropdownMenu>
