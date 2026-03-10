@@ -99,6 +99,9 @@ export default function AppNavbar() {
               <DropdownItem key="profile" href="/profile" color="primary">
                 Profile
               </DropdownItem>
+              <DropdownItem key="dashboard" href="/my-rental" color="primary">
+                Dashboard
+              </DropdownItem>
               <DropdownItem key="settings" href="/settings" color="primary">
                 Settings
               </DropdownItem>
