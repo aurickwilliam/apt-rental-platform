@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Poppins, DM_Serif_Display } from "next/font/google";
+import { Inter, Poppins, Noto_Serif } from "next/font/google";
 import { Providers } from "./providers";
 
 const inter = Inter({
@@ -14,10 +14,10 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-const dmSerif = DM_Serif_Display({
+const notoSerif = Noto_Serif({
   subsets: ["latin"],
   weight: ["400"],
-  variable: "--font-dm-serif",
+  variable: "--font-noto-serif",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${poppins.variable} ${dmSerif.variable}`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${poppins.variable} ${notoSerif.variable}`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

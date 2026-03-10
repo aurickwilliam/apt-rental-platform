@@ -25,7 +25,7 @@ export default function PriceCard({
       }}
     >
       <CardHeader>
-        <h2 className="text-3xl font-dm-serif font-medium text-primary">
+        <h2 className="text-3xl font-noto-serif font-medium text-primary">
           ₱ {price}<span className="text-xl">/month</span>
         </h2>
       </CardHeader>
