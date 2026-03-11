@@ -144,7 +144,7 @@ export default function SignUpForm() {
         <div className="rounded-full bg-green-100 p-4">
           <CircleCheck size={48} className="text-green-600" />
         </div>
-        <h2 className="text-2xl font-semibold font-poppins">Account Created!</h2>
+        <h2 className="text-2xl font-semibold font-noto-serif">Account Created!</h2>
         <p className="text-default-500 max-w-md">
           Your account has been created successfully. You can now sign in with your email and password.
         </p>
@@ -175,7 +175,7 @@ export default function SignUpForm() {
     <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
 
       {/* Personal Information */}
-      <h2 className="text-2xl font-semibold mb-3">
+      <h2 className="text-2xl font-medium font-noto-serif mb-3">
         Personal Information
       </h2>
 
@@ -271,8 +271,8 @@ export default function SignUpForm() {
         />
 
         {/* Gender */}
-        <div className="flex flex-col gap-1.5 w-full">
-          <label className="text-sm font-medium">
+        <div className="flex flex-col gap-1 w-full">
+          <label className="text-base">
             Gender <span className="text-danger">*</span>
           </label>
 
@@ -322,7 +322,7 @@ export default function SignUpForm() {
 
 
       {/* Address Information */}
-      <h2 className="text-2xl font-semibold mb-3 mt-10">
+      <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10">
         Address Information
       </h2>
 
@@ -382,8 +382,8 @@ export default function SignUpForm() {
         />
 
         {/* State/Province */}
-        <div className="flex flex-col gap-1.5 w-full">
-          <label className="text-sm font-medium">
+        <div className="flex flex-col gap-1 w-full">
+          <label className="text-base">
             State/Province <span className="text-danger">*</span>
           </label>
           <Select
@@ -434,7 +434,7 @@ export default function SignUpForm() {
       </div>
 
       {/* Password */}
-      <h2 className="text-2xl font-semibold mb-3 mt-10">
+      <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10">
         Set Your Password
       </h2>
 
