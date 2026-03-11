@@ -36,7 +36,7 @@ function AuthContent() {
       </Button>
 
       <div className="mt-8">
-        <h1 className="text-4xl font-poppins font-semibold">
+        <h1 className="text-4xl font-noto-serif font-semibold tracking-wide">
           {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
         </h1>
         <h3 className="text-base text-black mt-3">
