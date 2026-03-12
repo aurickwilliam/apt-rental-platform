@@ -25,6 +25,8 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 
+import { signOut } from "@/app/(auth)/actions/sign-out";
+
 export default function LandlordSidebar() {
 
   const { state } = useSidebar();
@@ -136,7 +138,7 @@ export default function LandlordSidebar() {
             <DropdownItem key="settings" color="primary">
               Settings
             </DropdownItem>
-            <DropdownItem key="logout" color="danger" className="text-danger">
+            <DropdownItem key="logout" color="danger" className="text-danger" onPress={() => signOut()}>
               Log out
             </DropdownItem>
           </DropdownMenu>
