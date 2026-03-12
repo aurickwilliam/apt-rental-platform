@@ -40,6 +40,24 @@ export async function signIn(
     return { error: error.message };
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role")
+    .eq("user_id", user!.id)
+    .single();
+
+  if (!userData || userData.role !== role) {
+    await supabase.auth.signOut();
+    return {
+      error:
+        role === "landlord"
+          ? "This account is not registered as a landlord."
+          : "This account is not registered as a tenant.",
+    };
+  }
+
   // Redirect based on role
   if (role === "landlord") {
     redirect("/dashboard");
