@@ -10,7 +10,6 @@ import {
 } from "lucide-react"
 
 interface ApartmentCardProps {
-  id: string;
   name: string;
   location: string;
   price: number;
@@ -20,7 +19,6 @@ interface ApartmentCardProps {
 }
 
 export default function ApartmentCard({
-  id,
   name,
   location,
   price,
@@ -37,7 +35,7 @@ export default function ApartmentCard({
     >
       <CardBody className="p-0">
         <Image
-          src={'/default/default-thumbnail.jpeg'}
+          src={thumbnailUrl}
           alt="Apartment Thumbnail"
           width={300}
           height={200}
