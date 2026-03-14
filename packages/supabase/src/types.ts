@@ -48,6 +48,7 @@ export type Database = {
       }
       apartments: {
         Row: {
+          amenities: string[] | null
           area_sqm: number
           average_rating: number | null
           barangay: string
@@ -75,6 +76,7 @@ export type Database = {
           zip_code: number | null
         }
         Insert: {
+          amenities?: string[] | null
           area_sqm: number
           average_rating?: number | null
           barangay: string
@@ -102,6 +104,7 @@ export type Database = {
           zip_code?: number | null
         }
         Update: {
+          amenities?: string[] | null
           area_sqm?: number
           average_rating?: number | null
           barangay?: string
