@@ -14,16 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      apartment_images: {
+        Row: {
+          apartment_id: string | null
+          created_at: string | null
+          id: string
+          is_cover: boolean | null
+          url: string
+        }
+        Insert: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url: string
+        }
+        Update: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apartment_images_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apartments: {
         Row: {
-          address: string
           area_sqm: number
           average_rating: number | null
           barangay: string
           city: string
           created_at: string
+          deleted_at: string | null
           description: string
+          furnished_type: string | null
           id: string
+          landlord_id: string | null
+          latitude: number | null
+          longitude: number | null
+          max_occupants: number | null
           monthly_rent: number
           name: string
           no_bathrooms: number
@@ -32,18 +69,25 @@ export type Database = {
           no_ratings: number | null
           province: string
           status: string
+          street_address: string
           type: string
           updated_at: string | null
+          zip_code: number | null
         }
         Insert: {
-          address: string
           area_sqm: number
           average_rating?: number | null
           barangay: string
           city: string
           created_at?: string
+          deleted_at?: string | null
           description: string
+          furnished_type?: string | null
           id?: string
+          landlord_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          max_occupants?: number | null
           monthly_rent: number
           name: string
           no_bathrooms: number
@@ -52,18 +96,25 @@ export type Database = {
           no_ratings?: number | null
           province: string
           status?: string
+          street_address: string
           type: string
           updated_at?: string | null
+          zip_code?: number | null
         }
         Update: {
-          address?: string
           area_sqm?: number
           average_rating?: number | null
           barangay?: string
           city?: string
           created_at?: string
+          deleted_at?: string | null
           description?: string
+          furnished_type?: string | null
           id?: string
+          landlord_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          max_occupants?: number | null
           monthly_rent?: number
           name?: string
           no_bathrooms?: number
@@ -72,10 +123,20 @@ export type Database = {
           no_ratings?: number | null
           province?: string
           status?: string
+          street_address?: string
           type?: string
           updated_at?: string | null
+          zip_code?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "apartments_landlord_id_fkey1"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat: {
         Row: {

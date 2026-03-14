@@ -9,6 +9,7 @@ export default function BrowseLayout({
   return (
     <>
       <NavbarSwitcher />
+      
       <main className="bg-white">
         {children}
       </main>
