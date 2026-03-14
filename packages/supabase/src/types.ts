@@ -292,6 +292,7 @@ export type Database = {
         Row: {
           account_status: string
           age: number
+          avatar_url: string | null
           barangay: string
           birth_date: string
           city: string
@@ -311,6 +312,7 @@ export type Database = {
         Insert: {
           account_status?: string
           age: number
+          avatar_url?: string | null
           barangay: string
           birth_date: string
           city: string
@@ -330,6 +332,7 @@ export type Database = {
         Update: {
           account_status?: string
           age?: number
+          avatar_url?: string | null
           barangay?: string
           birth_date?: string
           city?: string
