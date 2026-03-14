@@ -58,21 +58,6 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
   const images = apartment.apartment_images?.map((img) => img.url) ?? ['/default/default-thumbnail.jpeg'];
 
-  // Replace with actual perk IDs from the apartment data
-  const apartmentPerks = [
-    "wifi",
-    "parking",
-    "gym",
-    "washer",
-    "smartlock",
-    "tv",
-    "fridge",
-    "microwave",
-
-    "kettle",
-    "kitchen"
-  ];
-
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex items-center justify-between">
@@ -135,7 +120,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
           <Divider className="my-8" />
 
-          <Amenities apartmentPerks={apartmentPerks} />
+          <Amenities apartmentPerks={apartment.amenities ?? []} />
 
           <Divider className="my-8" />
 
