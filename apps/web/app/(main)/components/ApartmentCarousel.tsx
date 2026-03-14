@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Button } from "@heroui/react";
 
 import {
   Carousel,
@@ -10,11 +11,23 @@ import {
 } from "@/components/ui/carousel"
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
-import { Button } from "@heroui/react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-export default function ApartmentCarousel() {
+interface ApartmentItem {
+  id: string;
+  name: string;
+  location: string;
+  price: number;
+  rating: number;
+  image: string;
+}
+
+interface RenderApartmentsCarouselProps {
+  apartment: ApartmentItem[];
+}
+
+export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselProps) {
   const [api, setApi] = React.useState<CarouselApi>();
 
   return (
@@ -47,17 +60,16 @@ export default function ApartmentCarousel() {
 
       <CarouselContent className="mt-4 pb-4">
         {
-          Array.from({length: 10}).map((_, index) => (
-            <CarouselItem key={index} className="basis-auto">
+          apartment.map(apt => (
+            <CarouselItem key={apt.id} className="basis-auto">
               <ApartmentCard
-                id={index.toLocaleString()}
-                name={"Apartment Name"}
-                location={"Barangay, City"}
-                price={10000}
-                rating={4.5}
-                thumbnailUrl={"/default/default-thumbnail.jpeg"}
+                name={apt.name}
+                location={apt.location}
+                price={apt.price}
+                rating={apt.rating}
+                thumbnailUrl={apt.image}
               />
-            </CarouselItem> 
+            </CarouselItem>
           ))
         }
       </CarouselContent>

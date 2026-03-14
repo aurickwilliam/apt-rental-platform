@@ -2,6 +2,7 @@ import AppNavbar from "../components/layout/AppNavbar";
 import ApartmentCarousel from "./components/ApartmentCarousel";
 import DiscoverNowBtn from "./components/DiscoverNowBtn";
 import Footer from "../components/layout/Footer";
+import HeroSection from "./components/HeroSection";
 
 import { Divider } from "@heroui/react";
 
@@ -14,9 +15,34 @@ import {
   FileCheckCorner,
   BanknoteArrowUp
 } from "lucide-react"
-import HeroSection from "./components/HeroSection";
 
-export default function Home() {
+import { createClient } from '@repo/supabase/server';
+
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data: apartments, error } = await supabase
+    .from('apartments')
+    .select(`
+      id,
+      name,
+      city,
+      monthly_rent,
+      average_rating,
+      apartment_images(url, is_cover)
+    `);
+
+  if (error) console.error(error);
+
+  const mapped = (apartments ?? []).map((apt) => ({
+    id: apt.id,
+    name: apt.name,
+    location: apt.city,
+    price: apt.monthly_rent,
+    rating: apt.average_rating ?? 0,
+    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
+  }));
+
   return (
     <>
       <AppNavbar />
@@ -92,7 +118,7 @@ export default function Home() {
 
           {/* Featured Apartments */}
           <section className="md:mt-20">
-            <ApartmentCarousel />
+            <ApartmentCarousel apartment={mapped} />
           </section>
 
           <Divider className="my-10" />

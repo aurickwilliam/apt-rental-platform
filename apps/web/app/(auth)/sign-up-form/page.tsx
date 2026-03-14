@@ -34,7 +34,9 @@ export default async function SignUpFormPage({ searchParams }: SignUpFormPagePro
 
             {/* Title Description */}
             <div className="mt-10">
-              <h1 className="text-3xl font-semibold font-poppins">Complete the {initialRole === 'landlord' ? 'Landlord' : 'Tenant'} Form</h1>
+              <h1 className="text-3xl font-medium font-noto-serif">
+                Complete the {initialRole === 'landlord' ? 'Landlord' : 'Tenant'} Form
+              </h1>
               <p className="mt-2">Join us and start your apartment rental journey today!</p>
             </div>
 

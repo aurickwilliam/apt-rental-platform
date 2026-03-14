@@ -25,7 +25,6 @@ export default function RenderApartments({apartment}: RenderApartmentsProps) {
       {apartment.map(apt => (
         <ApartmentCard
           key={apt.id}
-          id={apt.id}
           name={apt.name}
           location={apt.location}
           price={apt.price}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from 'react';
+import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
@@ -18,13 +18,6 @@ export default function AuthForm() {
   const router = useRouter();
 
   const [state, formAction, isPending] = useActionState(signIn, initialState);
-
-  // If there's an error from the server action, we can display it
-  useEffect(() => {
-    if (state.error) {
-      console.error('Sign-in error:', state.error);
-    }
-  }, [state.error]);
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (type === 'sign-up') {
