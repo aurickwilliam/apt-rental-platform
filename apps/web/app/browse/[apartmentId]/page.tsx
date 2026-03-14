@@ -22,6 +22,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
   const supabase = await createClient();
 
+  // Fetch apartment details along with images
   const { data: apartment, error } = await supabase
     .from('apartments')
     .select(`
@@ -31,6 +32,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     .eq('id', apartmentId)
     .single();
 
+  // Fetch landlord details if landlord_id exists
   const { data: landlord } = apartment?.landlord_id
     ? await supabase
         .from('users')
@@ -39,6 +41,15 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         .eq('role', 'landlord')
         .single()
     : { data: null };
+
+  // Fetch star ratings for the apartment
+  const { data: starCounts } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('apartment_id', apartmentId);
+
+  const countStars = (star: number) =>
+    starCounts?.filter((r) => r.rating === star).length ?? 0;
 
   if (error || !apartment) {
     // handle not found
@@ -138,15 +149,15 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
           <RatingSection
             overallRate={apartment.average_rating ?? 0}
             totalReviews={apartment.no_ratings ?? 0}
-            no5Star={0}
-            no4Star={0}
-            no3Star={0}
-            no2Star={0}
-            no1Star={0}
+            no5Star={countStars(5)}
+            no4Star={countStars(4)}
+            no3Star={countStars(3)}
+            no2Star={countStars(2)}
+            no1Star={countStars(1)}
           />
 
           <div className="mt-8">
-            <RenderReviews />
+            <RenderReviews apartmentId={apartment.id} />
           </div>
         </div>
 

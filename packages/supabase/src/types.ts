@@ -288,6 +288,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          apartment_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          stayed_date: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          apartment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          stayed_date?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          apartment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          stayed_date?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_status: string
