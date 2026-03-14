@@ -7,6 +7,7 @@ import MapLocation from "./components/MapLocation";
 import { Divider } from "@heroui/react";
 
 import { House, BedDouble, Bath, Expand } from "lucide-react";
+
 import RenderReviews from "./components/RenderReviews";
 import RelatedApartments from "./components/RelatedApartments";
 import PriceCard from "./components/PriceCard";
@@ -14,17 +15,37 @@ import LandlordCard from "./components/LandlordCard";
 import ShareBtn from "./components/ShareBtn";
 import FavoriteBtn from "./components/FavoriteBtn";
 
+import { createClient } from "@repo/supabase/server";
+
 export default async function ApartmentDetailsPage({ params }: { params: Promise<{ apartmentId: string }> }) {
   const { apartmentId } = await params;
 
-  // In a real application, you would fetch the apartment details using the apartmentId
-  // For this example, we'll just display the ID
-  const IMAGES = [
-    "/default/default-thumbnail.jpeg",
-    "/default/default-thumbnail2.jpg",
-    "/default/default-thumbnail3.jpg",
-    "/default/default-thumbnail4.jpg",
-  ]
+  const supabase = await createClient();
+
+  const { data: apartment, error } = await supabase
+    .from('apartments')
+    .select(`
+      *,
+      apartment_images(url, is_cover)
+    `)
+    .eq('id', apartmentId)
+    .single();
+
+  const { data: landlord } = apartment?.landlord_id
+    ? await supabase
+        .from('users')
+        .select('first_name, last_name, mobile_number, avatar_url')
+        .eq('id', apartment.landlord_id)
+        .eq('role', 'landlord')
+        .single()
+    : { data: null };
+
+  if (error || !apartment) {
+    // handle not found
+    return <div>Apartment not found.</div>;
+  }
+
+  const images = apartment.apartment_images?.map((img) => img.url) ?? ['/default/default-thumbnail.jpeg'];
 
   // Replace with actual perk IDs from the apartment data
   const apartmentPerks = [
@@ -36,6 +57,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     "tv",
     "fridge",
     "microwave",
+
     "kettle",
     "kitchen"
   ];
@@ -44,76 +66,60 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex items-center justify-between">
         <BackBtn />
-
         <div className="flex items-center gap-2">
           <ShareBtn />
           <FavoriteBtn />
         </div>
       </div>
 
-      {/* Image Header */}
       <div className="my-4">
-        <ImageHeader imageUrl={IMAGES} />
+        <ImageHeader imageUrl={images} />
       </div>
 
       <div className="w-full flex gap-5">
-        {/* Apartment Details */}
         <div className="w-2/3">
           {/* Name and Address */}
           <div>
             <h1 className="text-3xl font-medium font-noto-serif text-primary">
-              Apartment Name - ID: {apartmentId}
+              {apartment.name}
             </h1>
-
             <h3>
-              Street Name, City, State, Zip Code
+              {apartment.street_address}, {apartment.barangay}, {apartment.city}, {apartment.province}, {apartment.zip_code}
             </h3>
           </div>
 
           <div className="flex items-center justify-between gap-3 mt-4">
-            {/* Type */}
             <div className="flex gap-2 items-center">
               <House size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
-                Studio Type
+                {apartment.type}
               </h2>
             </div>
-
-            {/* No Bedrooms */}
             <div className="flex gap-2 items-center">
               <BedDouble size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
-                1 Bedroom
+                {apartment.no_bedrooms} Bedroom{apartment.no_bedrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-
-            {/* No Bathrooms*/}
             <div className="flex gap-2 items-center">
               <Bath size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
-                1 Bathroom
+                {apartment.no_bathrooms} Bathroom{apartment.no_bathrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-
-            {/* Sqm Size */}
             <div className="flex gap-2 items-center">
               <Expand size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
-                50 sqm
+                {apartment.area_sqm} sqm
               </h2>
             </div>
           </div>
 
           <Divider className="my-8" />
 
-          {/* Description */}
           <div className="max-h-64 overflow-y-auto">
-            <h3 className="text-lg font-medium mb-2">
-              Description
-            </h3>
-            <p>
-              This is a brief description of the apartment. It includes information about the amenities, location, and other details that potential tenants might be interested in.
-            </p>
+            <h3 className="text-lg font-medium mb-2">Description</h3>
+            <p>{apartment.description}</p>
           </div>
 
           <Divider className="my-8" />
@@ -123,49 +129,38 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
           <Divider className="my-8" />
 
           <div>
-            <h3 className="text-lg font-medium mb-2">
-              View on Map
-            </h3>
-            <MapLocation />
+            <h3 className="text-lg font-medium mb-2">View on Map</h3>
+            <MapLocation latitude={apartment.latitude} longitude={apartment.longitude} />
           </div>
 
           <Divider className="my-8" />
 
-          {/* Ratings */}
-          <div>
+          <RatingSection
+            overallRate={apartment.average_rating ?? 0}
+            totalReviews={apartment.no_ratings ?? 0}
+            no5Star={0}
+            no4Star={0}
+            no3Star={0}
+            no2Star={0}
+            no1Star={0}
+          />
 
-            <RatingSection
-              overallRate={4.5}
-              totalReviews={34}
-              no5Star={10}
-              no4Star={20}
-              no3Star={2}
-              no2Star={1}
-              no1Star={1}
-            />
-
-            {/* User Reviews */}
-            <div className="mt-8">
-              <RenderReviews />
-            </div>
+          <div className="mt-8">
+            <RenderReviews />
           </div>
         </div>
 
-        {/* Price and Application */}
         <div className="w-1/3 flex flex-col gap-5">
-          <PriceCard
-            price={10000}
-          />
+          <PriceCard price={apartment.monthly_rent} />
 
           <LandlordCard
-            name={"Jane Doe"}
-            avatarUrl={""}
-            contactInfo={"09123456789"}
+            name={`${landlord?.first_name} ${landlord?.last_name}`}
+            avatarUrl={landlord?.avatar_url ?? ''}
+            contactInfo={landlord?.mobile_number ?? ''}
           />
         </div>
       </div>
 
-      {/* Related Apartments */}
       <div className="w-full mt-10">
         <RelatedApartments />
       </div>
