@@ -28,7 +28,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
             height={150}
           />
 
-          <h2 className="text-5xl font-poppins font-semibold text-white">
+          <h2 className="text-5xl font-noto-serif font-semibold text-white tracking-wide">
             Your Next Home is Waiting.
           </h2>
         </div>

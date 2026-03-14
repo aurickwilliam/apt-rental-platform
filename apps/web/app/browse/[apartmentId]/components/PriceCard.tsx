@@ -10,6 +10,8 @@ import {
 
 import { Flag } from "lucide-react";
 
+import { formatCurrency } from "@repo/utils";
+
 interface PriceCardProps {
   price: number;
 }
@@ -17,6 +19,9 @@ interface PriceCardProps {
 export default function PriceCard({
   price,
 }: PriceCardProps) {
+
+  const formattedPrice = formatCurrency(price);
+
   return (
     <Card
       shadow="none"
@@ -26,7 +31,7 @@ export default function PriceCard({
     >
       <CardHeader>
         <h2 className="text-3xl font-noto-serif font-medium text-primary">
-          ₱ {price}<span className="text-xl">/month</span>
+          ₱ {formattedPrice}<span className="text-xl">/month</span>
         </h2>
       </CardHeader>
 
