@@ -65,6 +65,11 @@ export default async function BrowsePage({ searchParams }: PageProps) {
   if (params.amenities) {
     query = query.contains('amenities', params.amenities.split(','));
   }
+  
+  // Text search by name or location
+  if (params.search) {
+    query = query.or(`name.ilike.%${params.search}%,city.ilike.%${params.search}%,barangay.ilike.%${params.search}%`);
+  }
 
   // Sorting
   switch (params.sort) {
