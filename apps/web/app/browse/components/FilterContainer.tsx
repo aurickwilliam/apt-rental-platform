@@ -113,6 +113,7 @@ export default function FilterContainer({ resultCount }: Props) {
 
   const handleApply = () => {
     const current = new URLSearchParams();
+    current.delete("page");
 
     // Locations
     if (filters.locations.length > 0) current.set("locations", filters.locations.join(","));

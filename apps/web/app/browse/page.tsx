@@ -19,8 +19,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     monthly_rent,
     average_rating,
     apartment_images(url, is_cover)
-  `);
-
+  `, { count: 'exact' });
 
   // --- SearchContainer filters ---
 
@@ -75,7 +74,14 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     default:           query = query.order('created_at', { ascending: false });
   }
 
-  const { data: apartments, error } = await query;
+  const PAGE_SIZE = 25;
+
+  const page = Number(params.page ?? 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  query = query.range(from, to);
+
+  const { data: apartments, error, count } = await query;
   if (error) console.error(error);
 
   const mapped = (apartments ?? []).map((apt) => ({
@@ -99,7 +105,14 @@ export default async function BrowsePage({ searchParams }: PageProps) {
           </div>
         </Suspense>
         <div className="w-full md:w-3/4 bg-white rounded-lg p-0">
-          <RenderApartments apartment={mapped} />
+          <Suspense>
+            <RenderApartments
+              apartment={mapped}
+              page={page}
+              totalCount={count ?? 0}
+              pageSize={PAGE_SIZE}
+            />
+          </Suspense>
         </div>
       </div>
     </div>
