@@ -101,7 +101,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
       <div className="mt-4 flex flex-col md:flex-row gap-3">
         <Suspense>
           <div className="md:w-1/4 self-start">
-            <FilterContainer resultCount={mapped.length} />
+            <FilterContainer resultCount={count ?? 0} />
           </div>
         </Suspense>
         <div className="w-full md:w-3/4 bg-white rounded-lg p-0">
