@@ -31,6 +31,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { useUser } from "@/hooks/use-user";
 
 const MENU_ITEMS = [
   { label: "Dashboard",      icon: LayoutDashboard, href: "/dashboard"    },
@@ -43,6 +44,8 @@ const MENU_ITEMS = [
 export default function LandlordSidebar() {
   const { state } = useSidebar();
   const isExpanded = state === "expanded";
+
+  const { user, profile, loading } = useUser();
 
   return (
     <Sidebar className="w-64" collapsible="icon">
@@ -95,16 +98,24 @@ export default function LandlordSidebar() {
               className="flex w-full items-center justify-start gap-3 h-auto px-2 py-2"
             >
               <Avatar
-                src="https://i.pravatar.cc/150"
-                name="John Doe"
+                src={profile?.avatar_url ?? undefined}
+                name={`${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`}
                 size="md"
                 className="shrink-0"
+                classNames={{
+                  base: "bg-primary",
+                  name: "text-white font-medium",
+                }}
               />
               {isExpanded && (
                 <>
                   <div className="flex flex-col text-left flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate">John Doe</span>
-                    <span className="text-xs text-default-400 truncate">john@example.com</span>
+                    <span className="text-sm font-medium truncate">
+                      {loading ? "Loading..." : `${profile?.first_name} ${profile?.last_name}`}
+                    </span>
+                    <span className="text-xs text-default-400 truncate">
+                      {user?.email}
+                    </span>
                   </div>
                   <ChevronsUpDown className="w-4 h-4 ml-auto shrink-0 text-default-400" />
                 </>
