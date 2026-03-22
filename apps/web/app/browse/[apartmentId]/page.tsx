@@ -58,6 +58,23 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
   const images = apartment.apartment_images?.map((img) => img.url) ?? ['/default/default-thumbnail.jpeg'];
 
+  // Fetch Related Apartments same city
+  const { data: related } = await supabase
+    .from('apartments')
+    .select('id, name, city, monthly_rent, average_rating, apartment_images(url, is_cover)')
+    .eq('city', apartment.city)
+    .neq('id', apartmentId)
+    .limit(10);
+
+  const relatedMapped = (related ?? []).map((apt) => ({
+    id: apt.id,
+    name: apt.name,
+    city: apt.city,
+    monthly_rent: apt.monthly_rent,
+    average_rating: apt.average_rating ?? 0,
+    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
+  }));
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex items-center justify-between">
@@ -158,7 +175,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
       </div>
 
       <div className="w-full mt-10">
-        <RelatedApartments />
+        <RelatedApartments apartments={relatedMapped} />
       </div>
     </div>
   );

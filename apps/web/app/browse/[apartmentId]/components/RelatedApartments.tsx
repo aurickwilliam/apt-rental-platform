@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/components/ui/carousel";
@@ -9,8 +10,21 @@ import { Button } from "@heroui/react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function RelatedApartments() {
+type Props = {
+  apartments: {
+    id: string;
+    name: string;
+    city: string;
+    monthly_rent: number;
+    average_rating: number;
+    image: string;
+  }[];
+};
+
+export default function RelatedApartments({apartments} : Props) {
   const [api, setApi] = useState<CarouselApi>();
+
+  const router = useRouter();
 
   return (
     <Carousel setApi={setApi} className="mt-10">
@@ -41,20 +55,18 @@ export default function RelatedApartments() {
       </div>
 
       <CarouselContent className="mt-4 pb-4">
-        {
-          Array.from({length: 10}).map((_, index) => (
-            <CarouselItem key={index} className="basis-auto">
-              <ApartmentCard
-                id={index.toLocaleString()}
-                name={"Apartment Name"}
-                location={"Barangay, City"}
-                price={10000}
-                rating={4.5}
-                thumbnailUrl={"/default/default-thumbnail.jpeg"}
-              />
-            </CarouselItem>
-          ))
-        }
+        {apartments.map((apt) => (
+          <CarouselItem key={apt.id} className="basis-auto">
+            <ApartmentCard
+              name={apt.name}
+              location={apt.city}
+              price={apt.monthly_rent}
+              rating={apt.average_rating ?? 0}
+              thumbnailUrl={apt.image}
+              onPress={() => router.push(`/browse/${apt.id}`)}
+            />
+          </CarouselItem>
+        ))}
       </CarouselContent>
 
     </Carousel>
