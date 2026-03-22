@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.9",
+    "@internationalized/date": "^3.12.0",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",
     "@repo/supabase": "workspace:*",

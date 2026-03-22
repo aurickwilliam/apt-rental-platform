@@ -88,7 +88,7 @@ export default function ImageHeader({ imageUrl }: ImageHeaderProps) {
         }}
       >
         <ModalContent>
-          <div className="relative flex items-center justify-center px-5 pt-10 gap-5">
+          <div className="relative flex items-center justify-center px-5 pt-10 gap-5"> 
             <Button
               isIconOnly
               variant="flat"
