@@ -63,6 +63,9 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
             color="primary"
             radius="full"
             showControls
+            classNames={{
+              wrapper: "gap-3"
+            }}
           />
         </div>
       )}
