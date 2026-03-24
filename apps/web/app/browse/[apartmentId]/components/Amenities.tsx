@@ -1,6 +1,6 @@
 "use client";
 
-import { PERKS } from "../../components/perks";
+import { PERKS } from "../../../components/inputs/perks";
 
 import { Button } from "@heroui/react";
 

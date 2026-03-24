@@ -14,6 +14,7 @@ type Props = {
 
 export default function AmenitiesSelect({ amenities, selected, onChange }: Props) {
   const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const filtered = amenities.filter((a) =>
     a.name.toLowerCase().includes(search.toLowerCase())
@@ -31,19 +32,21 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
 
   return (
     <div className="flex flex-col gap-2">
-      <Popover placement="bottom-start">
-        <PopoverTrigger>
-          <Button
-            variant="bordered"
-            radius="full"
-            size="sm"
-            className="w-full justify-between"
-            endContent={<ChevronDown size={14} />}
-          >
-            {selected.length > 0 ? `${selected.length} selected` : "Select amenities"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-3 flex flex-col gap-2">
+      {/* Trigger */}
+      <Button
+        variant="bordered"
+        radius="full"
+        size="sm"
+        className="w-full justify-between"
+        endContent={<ChevronDown size={14} />}
+        onPress={() => setIsOpen((prev) => !prev)}
+      >
+        {selected.length > 0 ? `${selected.length} selected` : "Select amenities"}
+      </Button>
+
+      {/* Inline dropdown */}
+      {isOpen && (
+        <div className="border border-default-200 rounded-xl p-3 flex flex-col gap-2 bg-white">
           <Input
             placeholder="Search amenities..."
             size="sm"
@@ -52,7 +55,7 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="flex flex-col gap-1 max-h-48 overflow-y-auto overflow-x-hidden mt-1 w-full">
+          <div className="flex flex-col gap-1 max-h-48 overflow-y-auto overflow-x-hidden mt-1 w-full pr-1">
             {filtered.length === 0 ? (
               <p className="text-sm text-default-400 text-center py-2">No results</p>
             ) : (
@@ -69,8 +72,8 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
               ))
             )}
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
 
       {/* Selected chips */}
       {selected.length > 0 && (
