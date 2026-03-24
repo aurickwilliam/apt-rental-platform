@@ -18,8 +18,11 @@ export default async function Properties() {
     ? await supabase
         .from("apartments")
         .select(`
-          id, name, city, barangay, monthly_rent, status,
-          type, average_rating, no_bedrooms, no_bathrooms,
+          id, name, description, monthly_rent, type,
+          street_address, barangay, city, province, zip_code,
+          status, average_rating, no_ratings, no_bedrooms, no_bathrooms,
+          area_sqm, max_occupants, furnished_type, floor_level,
+          lease_duration, latitude, longitude, amenities,
           apartment_images(url, is_cover)
         `)
         .eq("landlord_id", profile.id)
@@ -27,25 +30,38 @@ export default async function Properties() {
     : { data: [] };
 
   const mapped = (apartments ?? []).map((apt) => ({
-    id:            apt.id,
-    name:          apt.name,
-    city:          apt.city,
-    barangay:      apt.barangay,
-    price:         apt.monthly_rent,
-    status:        apt.status,
-    type:          apt.type,
-    rating:        apt.average_rating ?? 0,
-    no_bedrooms:   apt.no_bedrooms,
-    no_bathrooms:  apt.no_bathrooms,
-    thumbnail:     apt.apartment_images?.find((img) => img.is_cover)?.url
-                   ?? "/default/default-thumbnail.jpeg",
+    id:             apt.id,
+    name:           apt.name,
+    description:    apt.description,
+    monthly_rent:   apt.monthly_rent,
+    type:           apt.type,
+    street_address: apt.street_address,
+    barangay:       apt.barangay,
+    city:           apt.city,
+    province:       apt.province,
+    zip_code:       apt.zip_code,
+    status:         apt.status,
+    average_rating: apt.average_rating ?? 0,
+    no_ratings:     apt.no_ratings ?? 0,
+    no_bedrooms:    apt.no_bedrooms,
+    no_bathrooms:   apt.no_bathrooms,
+    area_sqm:       apt.area_sqm,
+    max_occupants:  apt.max_occupants,
+    furnished_type: apt.furnished_type,
+    floor_level:    apt.floor_level,
+    lease_duration: apt.lease_duration,
+    latitude:       apt.latitude,
+    longitude:      apt.longitude,
+    amenities:      apt.amenities ?? [],
+    thumbnail:      apt.apartment_images?.find((img) => img.is_cover)?.url
+                    ?? "/default/default-thumbnail.jpeg",
   }));
 
   // Stats
   const total    = mapped.length;
   const occupied = mapped.filter((a) => a.status === "occupied").length;
   const vacant   = total - occupied;
-  const revenue  = mapped.reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const revenue = mapped.reduce((sum, a) => sum + (a.monthly_rent ?? 0), 0);
 
   const STATS = [
     { label: "Total Properties",          value: total,                              icon: House,            primary: true  },
