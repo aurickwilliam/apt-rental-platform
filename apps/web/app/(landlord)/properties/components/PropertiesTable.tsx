@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+
 import { Button, Chip, Input, Select, SelectItem, Textarea } from "@heroui/react";
+
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
@@ -15,12 +17,16 @@ import {
   DropdownMenu, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import {
   Star, MoreHorizontal, Pencil, Trash2,
   MapPin, BedDouble, Bath, Expand, Users,
 } from "lucide-react";
+
 import { createBrowserClient } from "@repo/supabase";
-import { PERKS } from "../../../browse/components/perks";
+
+import { PERKS } from "../../../components/inputs/perks";
+import AmenitiesSelect from "@/app/components/inputs/AmenitiesSelect";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -144,6 +150,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
         lease_duration: form.lease_duration ?? undefined,
         latitude:       form.latitude ?? undefined,
         longitude:      form.longitude ?? undefined,
+        amenities: form.amenities ?? undefined,
       })
       .eq("id", selected.id);
 
@@ -202,6 +209,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {properties.map((property) => (
             <TableRow
@@ -529,6 +537,13 @@ export default function PropertiesTable({ properties: initial }: Props) {
                         onChange={(e) => updateForm("longitude", Number(e.target.value))}
                       />
                     </div>
+
+                    <SectionTitle>Amenities</SectionTitle>
+                    <AmenitiesSelect
+                      amenities={Object.values(PERKS)}
+                      selected={form.amenities ?? []}
+                      onChange={(val) => updateForm("amenities", val)}
+                    />
                   </div>
                 )}
               </div>
