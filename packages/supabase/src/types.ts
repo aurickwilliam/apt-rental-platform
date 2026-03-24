@@ -56,10 +56,12 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          floor_level: string | null
           furnished_type: string | null
           id: string
           landlord_id: string | null
           latitude: number | null
+          lease_duration: string | null
           longitude: number | null
           max_occupants: number | null
           monthly_rent: number
@@ -84,10 +86,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description: string
+          floor_level?: string | null
           furnished_type?: string | null
           id?: string
           landlord_id?: string | null
           latitude?: number | null
+          lease_duration?: string | null
           longitude?: number | null
           max_occupants?: number | null
           monthly_rent: number
@@ -112,10 +116,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          floor_level?: string | null
           furnished_type?: string | null
           id?: string
           landlord_id?: string | null
           latitude?: number | null
+          lease_duration?: string | null
           longitude?: number | null
           max_occupants?: number | null
           monthly_rent?: number
