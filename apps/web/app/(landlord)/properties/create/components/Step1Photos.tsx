@@ -1,5 +1,6 @@
 "use client";
 import { useRef } from "react";
+import NextImage from "next/image";
 import { Button } from "@heroui/react";
 import { Input } from "@heroui/react";
 import { Upload, X, ImagePlus } from "lucide-react";
@@ -78,9 +79,10 @@ export default function Step1Photos({ formData, updateForm }: Props) {
 
         {thumbnailPreview ? (
           <div className="relative w-full h-72 rounded-2xl overflow-hidden group">
-            <img
+            <NextImage
               src={thumbnailPreview}
               alt="Cover"
+              fill
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
@@ -134,9 +136,10 @@ export default function Step1Photos({ formData, updateForm }: Props) {
         <div className="grid grid-cols-3 gap-3">
           {additionalPreviews.map((src, i) => (
             <div key={i} className="relative h-32 rounded-xl overflow-hidden group">
-              <img
+              <NextImage
                 src={src}
                 alt={`Photo ${i + 1}`}
+                fill
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />

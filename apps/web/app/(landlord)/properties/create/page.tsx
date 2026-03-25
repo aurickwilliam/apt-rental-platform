@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 
 import Step1Photos from "./components/Step1Photos";
 import Step2Info from "./components/Step2Info";
@@ -77,7 +77,7 @@ export default function CreateApartmentPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const router = useRouter();
 
   const updateForm = (updates: Partial<ApartmentFormData>) => {
@@ -173,6 +173,17 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <div>
+        <Button
+          onPress={router.back}
+          radius="full"
+          variant="light"
+        >
+          <ArrowLeft size={20} />
+          Back
+        </Button>
+      </div>
+
       {/* Top progress bar */}
       <div className="sticky top-0 z-50 bg-white border-b border-grey-200 px-6 py-4">
         <div className="max-w-3xl mx-auto">

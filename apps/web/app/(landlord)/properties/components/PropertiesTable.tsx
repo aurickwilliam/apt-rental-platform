@@ -305,7 +305,15 @@ export default function PropertiesTable({ properties: initial }: Props) {
 
       {/* ── Slide-over Sheet ── */}
       <Sheet open={!!selected} onOpenChange={(open) => !open && closeSheet()}>
-        <SheetContent style={{ width: "600px", maxWidth: "none" }} className="overflow-y-auto flex flex-col gap-0 p-0">
+        <SheetContent
+          style={{ width: "600px", maxWidth: "none" }}
+          className="overflow-y-auto flex flex-col gap-0 p-0"
+          onPointerDownOutside={(e) => {
+            if (imagesModalOpen) {
+              e.preventDefault();
+            }
+          }}
+        >
           {selected && (
             <>
               {/* Cover Image */}
