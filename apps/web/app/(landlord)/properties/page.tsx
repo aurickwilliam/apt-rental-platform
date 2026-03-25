@@ -1,6 +1,7 @@
 import { createClient } from "@repo/supabase/server";
 import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
 import PropertiesTable from "./components/PropertiesTable";
+import AddPropertyBtn from "./components/AddPropertyBtn";
 
 export default async function Properties() {
   const supabase = await createClient();
@@ -110,6 +111,7 @@ export default async function Properties() {
         <h3 className="text-base font-medium font-noto-serif">All Properties</h3>
 
         {/* New Button */}
+        <AddPropertyBtn />
       </div>
 
       {/* Properties Table */}

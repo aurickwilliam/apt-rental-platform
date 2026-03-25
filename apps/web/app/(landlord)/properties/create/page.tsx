@@ -1,0 +1,268 @@
+"use client";
+import { useState } from "react";
+import { Button } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@repo/supabase/browser";
+import { CheckCircle } from "lucide-react";
+
+import Step1Photos from "./components/Step1Photos";
+import Step2Info from "./components/Step2Info";
+import Step3Pricing from "./components/Step3Pricing";
+import Step4Description from "./components/Step4Description";
+import Step5Preview from "./components/Step5Preview";
+
+export type ApartmentFormData = {
+  // Step 1
+  name: string;
+  thumbnail: File | null;
+  additionalPhotos: File[];
+  // Step 2
+  type: string;
+  furnished_type: string;
+  no_bedrooms: number;
+  no_bathrooms: number;
+  area_sqm: number;
+  max_occupants: number;
+  floor_level: string;
+  lease_duration: string;
+  street_address: string;
+  barangay: string;
+  city: string;
+  province: string;
+  zip_code: string;
+  latitude: number | null;
+  longitude: number | null;
+  // Step 3
+  monthly_rent: number;
+  security_deposit: number;
+  // Step 4
+  description: string;
+  amenities: string[];
+};
+
+const INITIAL_FORM: ApartmentFormData = {
+  name: "",
+  thumbnail: null,
+  additionalPhotos: [],
+  type: "",
+  furnished_type: "",
+  no_bedrooms: 1,
+  no_bathrooms: 1,
+  area_sqm: 0,
+  max_occupants: 1,
+  floor_level: "",
+  lease_duration: "",
+  street_address: "",
+  barangay: "",
+  city: "",
+  province: "",
+  zip_code: "",
+  latitude: null,
+  longitude: null,
+  monthly_rent: 0,
+  security_deposit: 0,
+  description: "",
+  amenities: [],
+};
+
+const STEPS = [
+  { label: "Photos & Title", short: "Photos" },
+  { label: "Apartment Info", short: "Info" },
+  { label: "Pricing", short: "Pricing" },
+  { label: "Description & Amenities", short: "Details" },
+  { label: "Preview", short: "Preview" },
+];
+
+export default function CreateApartmentPage() {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const router = useRouter();
+
+  const updateForm = (updates: Partial<ApartmentFormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleNext = () => setStep((s) => Math.min(s + 1, 5));
+  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const supabase = createClient();
+
+      // 1. Insert apartment record
+      const { data: apartment, error: aptError } = await supabase
+        .from("apartments")
+        .insert({
+          name: formData.name,
+          description: formData.description,
+          monthly_rent: formData.monthly_rent,
+          // NOTE: security_deposit is not in the current schema.
+          // Add a `security_deposit numeric` column to your apartments table in Supabase to enable this.
+          // security_deposit: formData.security_deposit,
+          type: formData.type,
+          street_address: formData.street_address,
+          barangay: formData.barangay,
+          city: formData.city,
+          province: formData.province,
+          zip_code: Number(formData.zip_code),
+          no_bedrooms: formData.no_bedrooms,
+          no_bathrooms: formData.no_bathrooms,
+          area_sqm: Number(formData.area_sqm),
+          max_occupants: formData.max_occupants,
+          furnished_type: formData.furnished_type,
+          floor_level: formData.floor_level,
+          lease_duration: formData.lease_duration,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          amenities: formData.amenities,
+          status: "unverified",
+        })
+        .select()
+        .single();
+
+      if (aptError || !apartment) throw aptError;
+
+      // 2. Upload images to Supabase storage then insert apartment_images rows
+      const allImages: { file: File; isCover: boolean }[] = [
+        ...(formData.thumbnail ? [{ file: formData.thumbnail, isCover: true }] : []),
+        ...formData.additionalPhotos.map((f) => ({ file: f, isCover: false })),
+      ];
+
+      if (allImages.length > 0) {
+        const imageRows: { apartment_id: string; url: string; is_cover: boolean }[] = [];
+
+        for (const { file, isCover } of allImages) {
+          const ext = file.name.split(".").pop();
+          const path = `${apartment.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("apartment-images") // make sure this bucket exists in Supabase Storage
+            .upload(path, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from("apartment-images")
+            .getPublicUrl(path);
+
+          imageRows.push({
+            apartment_id: apartment.id,
+            url: urlData.publicUrl,
+            is_cover: isCover,
+          });
+        }
+
+        const { error: imgError } = await supabase
+          .from("apartment_images")
+          .insert(imageRows);
+
+        if (imgError) throw imgError;
+      }
+
+      router.push("/landlord/properties");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Top progress bar */}
+      <div className="sticky top-0 z-50 bg-white border-b border-grey-200 px-6 py-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            {STEPS.map((s, i) => {
+              const num = i + 1;
+              const isActive = step === num;
+              const isDone = step > num;
+              return (
+                <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
+                  <div className="flex items-center w-full">
+                    {/* line before */}
+                    <div
+                      className={`flex-1 h-0.5 transition-colors ${i === 0 ? "invisible" : isDone || isActive ? "bg-primary" : "bg-grey-200"}`}
+                    />
+                    {/* circle */}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all ${
+                        isDone
+                          ? "bg-primary text-white"
+                          : isActive
+                          ? "bg-primary text-white ring-4 ring-primary/20"
+                          : "bg-grey-100 text-grey-400"
+                      }`}
+                    >
+                      {isDone ? <CheckCircle size={16} /> : num}
+                    </div>
+                    {/* line after */}
+                    <div
+                      className={`flex-1 h-0.5 transition-colors ${i === STEPS.length - 1 ? "invisible" : isDone ? "bg-primary" : "bg-grey-200"}`}
+                    />
+                  </div>
+                  <span
+                    className={`text-xs hidden sm:block text-center transition-colors ${
+                      isActive ? "text-primary font-medium" : isDone ? "text-primary/60" : "text-grey-400"
+                    }`}
+                  >
+                    {s.short}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Step content */}
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} />}
+        {step === 2 && <Step2Info formData={formData} updateForm={updateForm} />}
+        {step === 3 && <Step3Pricing formData={formData} updateForm={updateForm} />}
+        {step === 4 && <Step4Description formData={formData} updateForm={updateForm} />}
+        {step === 5 && <Step5Preview formData={formData} />}
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-10 pt-6 border-t border-grey-200">
+          <Button
+            variant="flat"
+            radius="full"
+            onPress={handleBack}
+            isDisabled={step === 1}
+            className="px-6"
+          >
+            Back
+          </Button>
+
+          {step < 5 ? (
+            <Button
+              variant="solid"
+              color="primary"
+              radius="full"
+              onPress={handleNext}
+              className="px-8"
+            >
+              Continue
+            </Button>
+          ) : (
+            <Button
+              variant="solid"
+              color="primary"
+              radius="full"
+              onPress={handleSubmit}
+              isLoading={isSubmitting}
+              className="px-8"
+            >
+              Submit Listing
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
