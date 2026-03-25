@@ -124,18 +124,31 @@ export default function ApartmentImagesModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={(open) => !open && handleDone()} size="3xl" scrollBehavior="inside">
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && handleDone()}
+      size="3xl" scrollBehavior="inside"
+      className="pointer-events-auto shadow-2xl"
+      classNames={{
+        wrapper: "z-[100]",
+        backdrop: "z-[99]"
+      }}
+    >
       <ModalContent>
         <ModalHeader className="font-noto-serif">Edit Images</ModalHeader>
 
         <ModalBody>
           {/* Upload area */}
           <div
-            className="border-2 border-dashed border-default-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
-            onClick={() => fileInputRef.current?.click()}
+            className="relative z-60 border-2 border-dashed border-default-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
           >
             <ImagePlus size={28} className="text-default-400" />
-            <p className="text-sm text-default-500">Click to upload images</p>
+            <p className="text-sm text-default-500 font-medium">Click to upload images</p>
             <p className="text-xs text-default-400">JPEG, PNG, WEBP · Max 5MB each</p>
             <input
               ref={fileInputRef}
