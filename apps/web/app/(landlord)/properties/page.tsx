@@ -7,13 +7,13 @@ export default async function Properties() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return <div>Not authenticated.</div>;
-  
+
   const { data: profile } = await supabase
     .from("users")
     .select("id")
     .eq("user_id", user.id)
     .single();
-  
+
   const { data: apartments } = profile?.id
     ? await supabase
         .from("apartments")
@@ -105,11 +105,15 @@ export default async function Properties() {
         ))}
       </div>
 
+      {/* Table Header */}
+      <div className="flex items-center justify-between mt-6">
+        <h3 className="text-base font-medium font-noto-serif">All Properties</h3>
+
+        {/* New Button */}
+      </div>
+
       {/* Properties Table */}
-      <div className="mt-6 bg-white border border-grey-300 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-medium font-noto-serif">All Properties</h3>
-        </div>
+      <div className="mt-2 bg-white border border-grey-300 rounded-xl p-4">
         <PropertiesTable properties={mapped} />
       </div>
     </div>
