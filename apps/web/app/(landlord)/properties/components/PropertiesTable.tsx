@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { createBrowserClient } from "@repo/supabase";
+import ApartmentImagesModal from "./ApartmentImagesModal";
 
 import { PERKS } from "../../../components/inputs/perks";
 import AmenitiesSelect from "@/app/components/inputs/AmenitiesSelect";
@@ -94,6 +95,12 @@ function SectionTitle({ children }: { children: string }) {
   );
 }
 
+type ApartmentImage = {
+  id:       string;
+  url:      string;
+  is_cover: boolean;
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PropertiesTable({ properties: initial }: Props) {
@@ -103,6 +110,10 @@ export default function PropertiesTable({ properties: initial }: Props) {
   const [isEditing, setIsEditing]   = useState(false);
   const [saving, setSaving]         = useState(false);
   const [deleting, setDeleting]     = useState(false);
+
+  // For Modal in Editing Images
+  const [imagesModalOpen, setImagesModalOpen] = useState(false);
+  const [apartmentImages, setApartmentImages] = useState<ApartmentImage[]>([]);
 
   // ── Sheet handlers ──
 
@@ -421,6 +432,31 @@ export default function PropertiesTable({ properties: initial }: Props) {
                         </div>
                       </section>
                     )}
+
+                    {/* Button to trigger Modal for Editing Images*/}
+                    <Button
+                      variant="bordered"
+                      radius="full"
+                      size="sm"
+                      className="w-full"
+                      onPress={async () => {
+                        const supabase = createBrowserClient();
+                        const { data } = await supabase
+                          .from("apartment_images")
+                          .select("id, url, is_cover")
+                          .eq("apartment_id", selected.id);
+
+                        setApartmentImages(
+                          (data ?? []).map((img) => ({
+                            ...img,
+                            is_cover: img.is_cover ?? false,
+                          }))
+                        );
+                        setImagesModalOpen(true);
+                      }}
+                    >
+                      Edit Images
+                    </Button>
                   </div>
                 ) : (
                   /* ── Edit form ── */
@@ -570,6 +606,26 @@ export default function PropertiesTable({ properties: initial }: Props) {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Modal for Editing Apartment Images */}
+      {selected && (
+        <ApartmentImagesModal
+          isOpen={imagesModalOpen}
+          onClose={() => setImagesModalOpen(false)}
+          apartmentId={selected.id}
+          images={apartmentImages}
+          onImagesChange={(imgs) => {
+            setApartmentImages(imgs);
+            // Update thumbnail in table if cover changed
+            const newCover = imgs.find((img) => img.is_cover)?.url;
+            if (newCover) {
+              setProperties((prev) =>
+                prev.map((p) => p.id === selected.id ? { ...p, thumbnail: newCover } : p)
+              );
+            }
+          }}
+        />
+      )}
     </>
   );
 }
