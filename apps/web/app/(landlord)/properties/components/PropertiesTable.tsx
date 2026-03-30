@@ -191,6 +191,22 @@ export default function PropertiesTable({ properties: initial }: Props) {
     setDeleting(false);
   };
 
+  const handleEditImages = async (selectedId: string) => {
+    const supabase = createBrowserClient();
+    const { data } = await supabase
+      .from("apartment_images")
+      .select("id, url, is_cover")
+      .eq("apartment_id", selectedId);
+
+    setApartmentImages(
+      (data ?? []).map((img) => ({
+        ...img,
+        is_cover: img.is_cover ?? false,
+      }))
+    );
+    setImagesModalOpen(true);
+  }
+
   // ── Empty state ──
 
   if (properties.length === 0) {
@@ -304,10 +320,14 @@ export default function PropertiesTable({ properties: initial }: Props) {
       </Table>
 
       {/* ── Slide-over Sheet ── */}
-      <Sheet open={!!selected} onOpenChange={(open) => !open && closeSheet()}>
+
+      <Sheet
+        open={!!selected}
+        onOpenChange={(open) => !open && closeSheet()}
+      >
         <SheetContent
           style={{ width: "600px", maxWidth: "none" }}
-          className="overflow-y-auto flex flex-col gap-0 p-0"
+          className="overflow-y-auto flex flex-col gap-0 p-0 z-50"
           onPointerDownOutside={(e) => {
             if (imagesModalOpen) {
               e.preventDefault();
@@ -447,21 +467,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
                       radius="full"
                       size="sm"
                       className="w-full"
-                      onPress={async () => {
-                        const supabase = createBrowserClient();
-                        const { data } = await supabase
-                          .from("apartment_images")
-                          .select("id, url, is_cover")
-                          .eq("apartment_id", selected.id);
-
-                        setApartmentImages(
-                          (data ?? []).map((img) => ({
-                            ...img,
-                            is_cover: img.is_cover ?? false,
-                          }))
-                        );
-                        setImagesModalOpen(true);
-                      }}
+                      onPress={() => handleEditImages(selected.id)}
                     >
                       Edit Images
                     </Button>
@@ -624,12 +630,12 @@ export default function PropertiesTable({ properties: initial }: Props) {
           images={apartmentImages}
           onImagesChange={(imgs) => {
             setApartmentImages(imgs);
-            // Update thumbnail in table if cover changed
             const newCover = imgs.find((img) => img.is_cover)?.url;
             if (newCover) {
               setProperties((prev) =>
                 prev.map((p) => p.id === selected.id ? { ...p, thumbnail: newCover } : p)
               );
+              setSelected((prev) => prev ? { ...prev, thumbnail: newCover } : prev);
             }
           }}
         />

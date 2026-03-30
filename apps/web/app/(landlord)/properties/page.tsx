@@ -3,6 +3,8 @@ import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
 import PropertiesTable from "./components/PropertiesTable";
 import AddPropertyBtn from "./components/AddPropertyBtn";
 
+export const dynamic = "force-dynamic";
+
 export default async function Properties() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -28,6 +30,7 @@ export default async function Properties() {
         `)
         .eq("landlord_id", profile.id)
         .is("deleted_at", null)
+        .order("created_at", {ascending: false})
     : { data: [] };
 
   const mapped = (apartments ?? []).map((apt) => ({

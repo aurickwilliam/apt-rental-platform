@@ -90,38 +90,42 @@ export default function LandlordSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter>
+      <SidebarFooter className="overflow-visible">
         <Dropdown placement="top">
           <DropdownTrigger>
-            <Button
-              variant="light"
-              className="flex w-full items-center justify-start gap-3 h-auto px-2 py-2"
-            >
-              <Avatar
-                src={profile?.avatar_url ?? undefined}
-                name={`${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`}
-                size="md"
-                className="shrink-0"
-                classNames={{
-                  base: "bg-primary",
-                  name: "text-white font-medium",
-                }}
-              />
-              {isExpanded && (
-                <>
-                  <div className="flex flex-col text-left flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate">
-                      {loading ? "Loading..." : `${profile?.first_name} ${profile?.last_name}`}
-                    </span>
-                    <span className="text-xs text-default-400 truncate">
-                      {user?.email}
-                    </span>
-                  </div>
-                  <ChevronsUpDown className="w-4 h-4 ml-auto shrink-0 text-default-400" />
-                </>
-              )}
-            </Button>
-          </DropdownTrigger>
+                <Button
+                  variant="light"
+                  className={`flex w-full items-center h-auto ${
+                    isExpanded
+                      ? "justify-start gap-3 px-2 py-2"
+                      : "justify-center px-0 py-0 mb-2 min-w-0"
+                  }`}
+                >
+                  <Avatar
+                    src={profile?.avatar_url ?? undefined}
+                    name={`${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`}
+                    size={isExpanded ? "md" : "sm"}
+                    className="shrink-0"
+                    classNames={{
+                      base: "bg-primary",
+                      name: "text-white font-medium",
+                    }}
+                  />
+                  {isExpanded && (
+                    <>
+                      <div className="flex flex-col text-left flex-1 min-w-0">
+                        <span className="text-sm font-medium truncate">
+                          {loading ? "Loading..." : `${profile?.first_name} ${profile?.last_name}`}
+                        </span>
+                        <span className="text-xs text-default-400 truncate">
+                          {user?.email}
+                        </span>
+                      </div>
+                      <ChevronsUpDown className="w-4 h-4 ml-auto shrink-0 text-default-400" />
+                    </>
+                  )}
+                </Button>
+              </DropdownTrigger>
           <DropdownMenu aria-label="User actions">
             <DropdownItem key="profile" color="primary">Profile</DropdownItem>
             <DropdownItem key="settings" color="primary">Settings</DropdownItem>

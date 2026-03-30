@@ -1,5 +1,5 @@
 "use client";
-import { Input, Select, SelectItem } from "@heroui/react";
+import { Input, Select, SelectItem, NumberInput } from "@heroui/react";
 import type { ApartmentFormData } from "../page";
 
 interface Props {
@@ -61,9 +61,14 @@ export default function Step2Info({ formData, updateForm }: Props) {
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
+            }}
           >
             {APARTMENT_TYPES.map((t) => (
-              <SelectItem key={t}>{t}</SelectItem>
+              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
+                {t}
+              </SelectItem>
             ))}
           </Select>
 
@@ -79,50 +84,65 @@ export default function Step2Info({ formData, updateForm }: Props) {
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
+            }}
           >
             {FURNISHED_TYPES.map((t) => (
               <SelectItem key={t}>{t}</SelectItem>
             ))}
           </Select>
 
-          <Input
+          <NumberInput
             label="No. of Bedrooms"
             type="number"
             min={0}
-            value={String(formData.no_bedrooms)}
-            onValueChange={(v) => updateForm({ no_bedrooms: Number(v) })}
+            value={formData.no_bedrooms}
+            onValueChange={(value) => updateForm({ no_bedrooms: value })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
 
-          <Input
+          <NumberInput
             label="No. of Bathrooms"
             type="number"
             min={1}
-            value={String(formData.no_bathrooms)}
-            onValueChange={(v) => updateForm({ no_bathrooms: Number(v) })}
+            value={formData.no_bathrooms}
+            onValueChange={(value) => updateForm({ no_bathrooms: value })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
 
-          <Input
+          <NumberInput
             label="Floor Area (sqm)"
             type="number"
             min={0}
-            value={String(formData.area_sqm)}
-            onValueChange={(v) => updateForm({ area_sqm: Number(v) })}
+            value={formData.area_sqm}
+            onValueChange={(value) => updateForm({ area_sqm: value })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
 
-          <Input
+          <NumberInput
             label="Max Occupants"
             type="number"
             min={1}
-            value={String(formData.max_occupants)}
-            onValueChange={(v) => updateForm({ max_occupants: Number(v) })}
+            value={formData.max_occupants}
+            onValueChange={(value) => updateForm({ max_occupants: value })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
 
           <Select
@@ -135,9 +155,14 @@ export default function Step2Info({ formData, updateForm }: Props) {
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
+            }}
           >
             {FLOOR_LEVELS.map((t) => (
-              <SelectItem key={t}>{t}</SelectItem>
+              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
+                {t}
+              </SelectItem>
             ))}
           </Select>
 
@@ -153,9 +178,14 @@ export default function Step2Info({ formData, updateForm }: Props) {
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
+            }}
           >
             {LEASE_DURATIONS.map((t) => (
-              <SelectItem key={t}>{t}</SelectItem>
+              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
+                {t}
+              </SelectItem>
             ))}
           </Select>
         </div>
@@ -172,6 +202,9 @@ export default function Step2Info({ formData, updateForm }: Props) {
           onValueChange={(v) => updateForm({ street_address: v })}
           radius="lg"
           variant="bordered"
+          classNames={{
+            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+          }}
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -181,6 +214,9 @@ export default function Step2Info({ formData, updateForm }: Props) {
             onValueChange={(v) => updateForm({ barangay: v })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
           <Input
             label="City"
@@ -188,6 +224,9 @@ export default function Step2Info({ formData, updateForm }: Props) {
             onValueChange={(v) => updateForm({ city: v })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
           <Input
             label="Province"
@@ -195,6 +234,9 @@ export default function Step2Info({ formData, updateForm }: Props) {
             onValueChange={(v) => updateForm({ province: v })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
           <Input
             label="Zip Code"
@@ -202,6 +244,9 @@ export default function Step2Info({ formData, updateForm }: Props) {
             onValueChange={(v) => updateForm({ zip_code: v })}
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
           />
         </div>
       </div>
@@ -228,29 +273,35 @@ export default function Step2Info({ formData, updateForm }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Input
+          <NumberInput
             label="Latitude"
             type="number"
             placeholder="e.g. 14.5995"
-            value={formData.latitude !== null ? String(formData.latitude) : ""}
-            onValueChange={(v) =>
-              updateForm({ latitude: v ? Number(v) : null })
+            value={formData.latitude !== null ? formData.latitude : 0}
+            onValueChange={(value) =>
+              updateForm({ latitude: value ? value : null })
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
+            hideStepper
           />
-          <Input
+          <NumberInput
             label="Longitude"
             type="number"
             placeholder="e.g. 120.9842"
-            value={
-              formData.longitude !== null ? String(formData.longitude) : ""
-            }
-            onValueChange={(v) =>
-              updateForm({ longitude: v ? Number(v) : null })
+            value={formData.longitude !== null ? formData.longitude : 0}
+            onValueChange={(value) =>
+              updateForm({ longitude: value ? value : null })
             }
             radius="lg"
             variant="bordered"
+            classNames={{
+              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+            }}
+            hideStepper
           />
         </div>
       </div>
