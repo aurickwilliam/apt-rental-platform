@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
@@ -35,6 +35,10 @@ export default function ApartmentImagesModal({
   const [uploading, setUploading]     = useState(false);
   const [deleting, setDeleting]       = useState<string | null>(null);
   const fileInputRef                  = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocalImages(images);
+  }, [images]);
 
   const supabase = createBrowserClient();
 

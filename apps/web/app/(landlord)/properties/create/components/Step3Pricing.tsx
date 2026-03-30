@@ -1,5 +1,5 @@
 "use client";
-import { Input } from "@heroui/react";
+import { NumberInput } from "@heroui/react";
 import type { ApartmentFormData } from "../page";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function Step3Pricing({ formData, updateForm }: Props) {
-  const total = formData.monthly_rent + formData.security_deposit;
+  const total = formData.monthly_rent + formData.security_deposit + formData.advance_rent;
 
   return (
     <div className="flex flex-col gap-8">
@@ -22,12 +22,12 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <Input
+        <NumberInput
           label="Monthly Rent"
           type="number"
           min={0}
-          value={String(formData.monthly_rent)}
-          onValueChange={(v) => updateForm({ monthly_rent: Number(v) })}
+          value={formData.monthly_rent}
+          onValueChange={(value) => updateForm({ monthly_rent: value })}
           radius="lg"
           variant="bordered"
           startContent={
@@ -36,18 +36,32 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
           description="The base monthly rental rate tenants will see on the listing."
         />
 
-        <Input
+        <NumberInput
           label="Security Deposit"
           type="number"
           min={0}
-          value={String(formData.security_deposit)}
-          onValueChange={(v) => updateForm({ security_deposit: Number(v) })}
+          value={formData.security_deposit}
+          onValueChange={(value) => updateForm({ security_deposit: value })}
           radius="lg"
           variant="bordered"
           startContent={
             <span className="text-grey-400 text-sm pointer-events-none">₱</span>
           }
           description="Typically 1–2 months of rent. Refundable upon move-out."
+        />
+
+        <NumberInput
+          label="Advance Rent"
+          type="number"
+          min={0}
+          value={formData.advance_rent}
+          onValueChange={(value) => updateForm({ advance_rent: value })}
+          radius="lg"
+          variant="bordered"
+          startContent={
+            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
+          }
+          description="Payment made upfront, typically applied to the first or last month(s) of the lease."
         />
       </div>
 
@@ -69,6 +83,12 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
               <span className="text-grey-500">Security Deposit</span>
               <span className="font-medium">
                 ₱ {formData.security_deposit.toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-grey-500">Advance Rent</span>
+              <span className="font-medium">
+                ₱ {formData.advance_rent.toLocaleString()}
               </span>
             </div>
           </div>

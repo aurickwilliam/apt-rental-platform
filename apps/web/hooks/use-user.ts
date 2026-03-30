@@ -7,6 +7,7 @@ type UserResponse = Awaited<ReturnType<SupabaseClient["auth"]["getUser"]>>;
 type User = UserResponse["data"]["user"];
 
 type Profile = {
+  id: string | null;
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
@@ -25,7 +26,7 @@ export function useUser() {
     const fetchUserAndProfile = async (userId: string) => {
       const { data } = await supabase
         .from('users')
-        .select('first_name, last_name, avatar_url, mobile_number, role')
+        .select('id, first_name, last_name, avatar_url, mobile_number, role')
         .eq('user_id', userId)
         .single();
       setProfile(data);

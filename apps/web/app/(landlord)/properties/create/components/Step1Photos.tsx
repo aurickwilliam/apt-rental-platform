@@ -62,14 +62,17 @@ export default function Step1Photos({ formData, updateForm }: Props) {
         radius="lg"
         variant="bordered"
         description="This is the first thing tenants will see."
+        classNames={{
+          inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+        }}
       />
 
       {/* Cover / Thumbnail */}
       <div>
         <p className="text-sm font-medium mb-2">
-          Cover Photo <span className="text-danger">*</span>
+          Thumbnail Photo <span className="text-danger">*</span>
         </p>
-        <input
+        <Input
           ref={thumbnailRef}
           type="file"
           accept="image/*"
