@@ -15,8 +15,8 @@ import {
 } from "@heroui/react";
 import { Search } from "lucide-react";
 
-import AmenitiesSelect from "./AmenitiesSelect";
-import { PERKS } from "./perks"
+import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
+import { PERKS } from "../../components/inputs/perks"
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 const APARTMENT_TYPES = [
