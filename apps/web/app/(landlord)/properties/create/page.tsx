@@ -309,47 +309,49 @@ export default function CreateApartmentPage() {
       </div>
 
       {/* Step content */}
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} errors={errors} />}
-        {step === 2 && <Step2Info formData={formData} updateForm={updateForm} errors={errors} />}
-        {step === 3 && <Step3Pricing formData={formData} updateForm={updateForm} errors={errors} />}
-        {step === 4 && <Step4Description formData={formData} updateForm={updateForm} errors={errors} />}
+      <div className="px-6 py-8">
         {step === 5 && <Step5Preview formData={formData} />}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-10 pt-6 border-t border-grey-200">
-          <Button
-            variant="flat"
-            radius="full"
-            onPress={handleBack}
-            isDisabled={step === 1}
-            className="px-6"
-          >
-            Back
-          </Button>
+        <div className="max-w-3xl mx-auto">
+          {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} errors={errors} />}
+          {step === 2 && <Step2Info formData={formData} updateForm={updateForm} errors={errors} />}
+          {step === 3 && <Step3Pricing formData={formData} updateForm={updateForm} errors={errors} />}
+          {step === 4 && <Step4Description formData={formData} updateForm={updateForm} errors={errors} />}
 
-          {step < 5 ? (
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-10 pt-6 border-t border-grey-200">
             <Button
-              variant="solid"
-              color="primary"
+              variant="flat"
               radius="full"
-              onPress={handleNext}
-              className="px-8"
+              onPress={handleBack}
+              isDisabled={step === 1}
+              className="px-6"
             >
-              Continue
+              Back
             </Button>
-          ) : (
-            <Button
-              variant="solid"
-              color="primary"
-              radius="full"
-              onPress={handleSubmit}
-              isLoading={isSubmitting}
-              className="px-8"
-            >
-              Submit Listing
-            </Button>
-          )}
+            {step < 5 ? (
+              <Button
+                variant="solid"
+                color="primary"
+                radius="full"
+                onPress={handleNext}
+                className="px-8"
+              >
+                Continue
+              </Button>
+            ) : (
+              <Button
+                variant="solid"
+                color="primary"
+                radius="full"
+                onPress={handleSubmit}
+                isLoading={isSubmitting}
+                className="px-8"
+              >
+                Submit Listing
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
