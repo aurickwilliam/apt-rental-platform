@@ -1,16 +1,15 @@
 "use client";
 import { Textarea } from "@heroui/react";
-// Adjust this import path to match your project structure
-// e.g. "@/components/inputs/perks" or "../../../../components/inputs/perks"
 import { PERKS } from "../../../../components/inputs/perks";
-import type { ApartmentFormData } from "../page";
+import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
+  errors: FormErrors;
 }
 
-export default function Step4Description({ formData, updateForm }: Props) {
+export default function Step4Description({ formData, updateForm, errors }: Props) {
   const toggleAmenity = (id: string) => {
     const current = formData.amenities;
     if (current.includes(id)) {
@@ -41,12 +40,19 @@ export default function Step4Description({ formData, updateForm }: Props) {
         minRows={6}
         maxRows={12}
         description={`${formData.description.length} characters`}
+        isInvalid={!!errors.description}
+        errorMessage={errors.description}
+        classNames={{
+          inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+        }}
       />
 
       {/* Amenities picker */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-grey-700">Amenities</p>
+          <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-grey-700"}`}>
+            Amenities <span className="text-danger">*</span>
+          </p>
           {formData.amenities.length > 0 && (
             <p className="text-xs text-primary font-medium">
               {formData.amenities.length} selected
@@ -54,7 +60,11 @@ export default function Step4Description({ formData, updateForm }: Props) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div
+          className={`grid grid-cols-2 gap-2.5 p-3 rounded-2xl border-2 transition ${
+            errors.amenities ? "border-danger bg-danger/5" : "border-transparent"
+          }`}
+        >
           {Object.values(PERKS).map((perk) => {
             const Icon = perk.icon;
             const selected = formData.amenities.includes(perk.id);
@@ -73,13 +83,15 @@ export default function Step4Description({ formData, updateForm }: Props) {
                   size={18}
                   className={`shrink-0 ${selected ? "text-primary" : "text-grey-500"}`}
                 />
-                <span className="text-sm font-medium leading-tight">
-                  {perk.name}
-                </span>
+                <span className="text-sm font-medium leading-tight">{perk.name}</span>
               </button>
             );
           })}
         </div>
+
+        {errors.amenities && (
+          <p className="text-danger text-xs mt-1.5">{errors.amenities}</p>
+        )}
       </div>
     </div>
   );
