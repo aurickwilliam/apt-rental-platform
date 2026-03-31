@@ -1,10 +1,15 @@
 "use client";
+
+import { useCallback } from "react";
 import { Input, Select, SelectItem, NumberInput } from "@heroui/react";
-import type { ApartmentFormData } from "../page";
+import type { ApartmentFormData, FormErrors } from "../page";
+import dynamic from "next/dynamic";
+import { PROVINCES } from "@repo/constants";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
+  errors: FormErrors;
 }
 
 const APARTMENT_TYPES = [
@@ -37,7 +42,14 @@ const LEASE_DURATIONS = [
   "Negotiable",
 ];
 
-export default function Step2Info({ formData, updateForm }: Props) {
+export default function Step2Info({ formData, updateForm, errors }: Props) {
+  const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
+
+  const handlePick = useCallback(
+    (lat: number, lng: number) => updateForm({ latitude: lat, longitude: lng }),
+    [updateForm]
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -64,6 +76,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
             }}
+            isInvalid={!!errors.type}
+            errorMessage={errors.type}
           >
             {APARTMENT_TYPES.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -87,16 +101,20 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
             }}
+            isInvalid={!!errors.furnished_type}
+            errorMessage={errors.furnished_type}
           >
             {FURNISHED_TYPES.map((t) => (
-              <SelectItem key={t}>{t}</SelectItem>
+              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
+                {t}
+              </SelectItem>
             ))}
           </Select>
 
           <NumberInput
             label="No. of Bedrooms"
             type="number"
-            min={0}
+            minValue={1}
             value={formData.no_bedrooms}
             onValueChange={(value) => updateForm({ no_bedrooms: value })}
             radius="lg"
@@ -104,12 +122,14 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.no_bedrooms}
+            errorMessage={errors.no_bedrooms}
           />
 
           <NumberInput
             label="No. of Bathrooms"
             type="number"
-            min={1}
+            minValue={1}
             value={formData.no_bathrooms}
             onValueChange={(value) => updateForm({ no_bathrooms: value })}
             radius="lg"
@@ -117,6 +137,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.no_bathrooms}
+            errorMessage={errors.no_bathrooms}
           />
 
           <NumberInput
@@ -130,12 +152,14 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.area_sqm}
+            errorMessage={errors.area_sqm}
           />
 
           <NumberInput
             label="Max Occupants"
             type="number"
-            min={1}
+            minValue={1}
             value={formData.max_occupants}
             onValueChange={(value) => updateForm({ max_occupants: value })}
             radius="lg"
@@ -143,6 +167,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.max_occupants}
+            errorMessage={errors.max_occupants}
           />
 
           <Select
@@ -158,6 +184,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
             }}
+            isInvalid={!!errors.floor_level}
+            errorMessage={errors.floor_level}
           >
             {FLOOR_LEVELS.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -181,6 +209,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
             }}
+            isInvalid={!!errors.lease_duration}
+            errorMessage={errors.lease_duration}
           >
             {LEASE_DURATIONS.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -205,6 +235,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
+          isInvalid={!!errors.street_address}
+          errorMessage={errors.street_address}
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -217,6 +249,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.barangay}
+            errorMessage={errors.barangay}
           />
           <Input
             label="City"
@@ -227,17 +261,36 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.city}
+            errorMessage={errors.city}
+
           />
-          <Input
+
+          <Select
             label="Province"
-            value={formData.province}
-            onValueChange={(v) => updateForm({ province: v })}
+            selectedKeys={
+              formData.province
+                ? new Set([formData.province])
+                : new Set()
+            }
+            onSelectionChange={(keys) =>
+              updateForm({ province: Array.from(keys)[0] as string })
+            }
             radius="lg"
             variant="bordered"
             classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
             }}
-          />
+            isInvalid={!!errors.province}
+            errorMessage={errors.province}
+          >
+            {PROVINCES.map((t) => (
+              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
+                {t}
+              </SelectItem>
+            ))}
+          </Select>
+
           <Input
             label="Zip Code"
             value={formData.zip_code}
@@ -247,6 +300,8 @@ export default function Step2Info({ formData, updateForm }: Props) {
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
+            isInvalid={!!errors.zip_code}
+            errorMessage={errors.zip_code}
           />
         </div>
       </div>
@@ -256,19 +311,6 @@ export default function Step2Info({ formData, updateForm }: Props) {
         <div>
           <p className="text-sm font-semibold text-grey-700">
             Map Coordinates{" "}
-            <span className="text-grey-400 font-normal">(optional)</span>
-          </p>
-          <p className="text-xs text-grey-400 mt-0.5">
-            Get coordinates from{" "}
-            <a
-              href="https://www.google.com/maps"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              Google Maps
-            </a>{" "}
-            by right-clicking your location.
           </p>
         </div>
 
@@ -287,7 +329,10 @@ export default function Step2Info({ formData, updateForm }: Props) {
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
             hideStepper
+            isInvalid={!!errors.latitude}
+            errorMessage={errors.latitude}
           />
+
           <NumberInput
             label="Longitude"
             type="number"
@@ -302,8 +347,18 @@ export default function Step2Info({ formData, updateForm }: Props) {
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
             hideStepper
+            isInvalid={!!errors.latitude}
+            errorMessage={errors.latitude}
           />
         </div>
+
+        <MapPicker
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onPick={handlePick}
+          error={errors.latitude}
+        />
+
       </div>
     </div>
   );

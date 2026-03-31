@@ -2,15 +2,13 @@
 import { useMemo } from "react";
 import { Divider, Button } from "@heroui/react";
 import { House, BedDouble, Bath, Expand, Flag } from "lucide-react";
-// Adjust this import path to match your project structure
 import { PERKS } from "../../../../components/inputs/perks";
 import type { ApartmentFormData } from "../page";
-
+import NextImage from "next/image"
 interface Props {
   formData: ApartmentFormData;
 }
 
-// Mirrors the ImageHeader layout from the browse detail page (static, no lightbox needed for preview)
 function PreviewImageHeader({ files }: { files: (File | null)[] }) {
   // Memoize object URLs to avoid re-creating on every render
   const urls = useMemo(() => {
@@ -27,27 +25,30 @@ function PreviewImageHeader({ files }: { files: (File | null)[] }) {
   return (
     <div className="w-full h-96 flex gap-4 rounded-2xl overflow-hidden">
       {/* Main large image */}
-      <div className="w-2/3 overflow-hidden">
-        <img
+      <div className="w-2/3 overflow-hidden relative">
+        <NextImage
           src={img0}
           alt="Cover"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       </div>
       {/* Side thumbnails */}
       <div className="w-1/3 flex flex-col gap-4">
-        <div className="flex-1 overflow-hidden">
-          <img
+        <div className="flex-1 overflow-hidden relative">
+          <NextImage
             src={img1}
             alt="Photo 2"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         </div>
         <div className="flex-1 relative overflow-hidden">
-          <img
+          <NextImage
             src={img2}
             alt="Photo 3"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
           {urls.length > 3 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

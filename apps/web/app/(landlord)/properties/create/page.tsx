@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
@@ -77,23 +77,47 @@ const STEPS = [
   { label: "Preview", short: "Preview" },
 ];
 
+export type FormErrors = Partial<Record<keyof ApartmentFormData, string>>;
+
 export default function CreateApartmentPage() {
   const { profile } = useUser();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const router = useRouter();
 
-  const updateForm = (updates: Partial<ApartmentFormData>) => {
+  const updateForm = useCallback((updates: Partial<ApartmentFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(updates).forEach((key) => delete next[key as keyof ApartmentFormData]);
+      return next;
+    });
+  }, []);
+
+  const handleNext = () => {
+    const stepErrors = validateStep(step, formData);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+    setErrors({});
+    setStep((s) => Math.min(s + 1, 5));
   };
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 5));
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
   const handleSubmit = async () => {
+    // Check any errors before submitting
+    const stepErrors = validateStep(4, formData);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
     setIsSubmitting(true);
+
     try {
       const supabase = createClient();
 
@@ -183,6 +207,44 @@ export default function CreateApartmentPage() {
     }
   };
 
+  const validateStep = (step: number, data: ApartmentFormData): FormErrors => {
+    const errors: FormErrors = {};
+
+    if (step === 1) {
+      if (!data.name.trim()) errors.name = "Apartment name is required.";
+      if (!data.thumbnail) errors.thumbnail = "A cover photo is required.";
+      if (data.additionalPhotos.length < 2) errors.additionalPhotos = "At least 2 additional photos are required.";
+    }
+
+    if (step === 2) {
+      if (!data.type) errors.type = "Apartment type is required.";
+      if (!data.furnished_type) errors.furnished_type = "Furnished type is required.";
+      if (!data.floor_level) errors.floor_level = "Floor level is required.";
+      if (!data.lease_duration) errors.lease_duration = "Lease duration is required.";
+      if (data.area_sqm <= 0) errors.area_sqm = "Must be greater than 0.";
+      if (data.max_occupants <= 0) errors.max_occupants = "Must be greater than 0.";
+      if (!data.street_address.trim()) errors.street_address = "Street address is required.";
+      if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
+      if (!data.city.trim()) errors.city = "City is required.";
+      if (!data.province.trim()) errors.province = "Province is required.";
+      if (!data.zip_code.trim()) errors.zip_code = "Zip code is required.";
+      if (!data.latitude || !data.longitude) errors.latitude = "Please pin your property location on the map.";
+    }
+
+    if (step === 3) {
+      if (data.monthly_rent <= 0) errors.monthly_rent = "Monthly rent must be greater than 0.";
+      if (data.security_deposit < 0) errors.security_deposit = "Cannot be negative.";
+      if (data.advance_rent < 0) errors.advance_rent = "Cannot be negative.";
+    }
+
+    if (step === 4) {
+      if (!data.description.trim()) errors.description = "Description is required.";
+      if (data.amenities.length === 0) errors.amenities = "Select at least one amenity.";
+    }
+
+    return errors;
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div>
@@ -248,10 +310,10 @@ export default function CreateApartmentPage() {
 
       {/* Step content */}
       <div className="max-w-3xl mx-auto px-6 py-8">
-        {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} />}
-        {step === 2 && <Step2Info formData={formData} updateForm={updateForm} />}
-        {step === 3 && <Step3Pricing formData={formData} updateForm={updateForm} />}
-        {step === 4 && <Step4Description formData={formData} updateForm={updateForm} />}
+        {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} errors={errors} />}
+        {step === 2 && <Step2Info formData={formData} updateForm={updateForm} errors={errors} />}
+        {step === 3 && <Step3Pricing formData={formData} updateForm={updateForm} errors={errors} />}
+        {step === 4 && <Step4Description formData={formData} updateForm={updateForm} errors={errors} />}
         {step === 5 && <Step5Preview formData={formData} />}
 
         {/* Navigation Buttons */}

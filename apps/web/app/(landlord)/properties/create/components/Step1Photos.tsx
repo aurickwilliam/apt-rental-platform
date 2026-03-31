@@ -4,14 +4,15 @@ import NextImage from "next/image";
 import { Button } from "@heroui/react";
 import { Input } from "@heroui/react";
 import { Upload, X, ImagePlus } from "lucide-react";
-import type { ApartmentFormData } from "../page";
+import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
+  errors: FormErrors
 }
 
-export default function Step1Photos({ formData, updateForm }: Props) {
+export default function Step1Photos({ formData, updateForm, errors }: Props) {
   const thumbnailRef = useRef<HTMLInputElement>(null);
   const additionalRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +66,8 @@ export default function Step1Photos({ formData, updateForm }: Props) {
         classNames={{
           inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
         }}
+        errorMessage={errors.name}
+        isInvalid={!!errors.name}
       />
 
       {/* Cover / Thumbnail */}
@@ -109,7 +112,11 @@ export default function Step1Photos({ formData, updateForm }: Props) {
           </div>
         ) : (
           <div
-            className="w-full h-72 border-2 border-dashed border-grey-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition"
+            className={`w-full h-72 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition ${
+              errors.thumbnail
+                ? "border-danger bg-danger/5"
+                : "border-grey-300 hover:border-primary hover:bg-primary/5"
+            }`}
             onClick={() => thumbnailRef.current?.click()}
           >
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -119,13 +126,17 @@ export default function Step1Photos({ formData, updateForm }: Props) {
             <p className="text-grey-400 text-xs mt-1">PNG, JPG up to 10MB</p>
           </div>
         )}
+
+        {/* Error message below the upload box */}
+        {errors.thumbnail && (
+          <p className="text-danger text-xs mt-1.5">{errors.thumbnail}</p>
+        )}
       </div>
 
       {/* Additional Photos */}
       <div>
         <p className="text-sm font-medium mb-2">
-          Additional Photos{" "}
-          <span className="text-grey-400 font-normal">(optional)</span>
+          Additional Photos <span className="text-danger">*</span>
         </p>
         <input
           ref={additionalRef}
@@ -168,10 +179,21 @@ export default function Step1Photos({ formData, updateForm }: Props) {
           </div>
         </div>
 
-        {formData.additionalPhotos.length > 0 && (
-          <p className="text-xs text-grey-400 mt-2">
-            {formData.additionalPhotos.length} photo{formData.additionalPhotos.length !== 1 ? "s" : ""} added
-          </p>
+        <div className="flex items-center justify-between mt-2">
+          {formData.additionalPhotos.length > 0 ? (
+            <p className="text-xs text-grey-400">
+              {formData.additionalPhotos.length} photo{formData.additionalPhotos.length !== 1 ? "s" : ""} added
+              {formData.additionalPhotos.length < 2 && (
+                <span className="text-warning ml-1">— add {2 - formData.additionalPhotos.length} more</span>
+              )}
+            </p>
+          ) : (
+            <p className="text-xs text-grey-400">Minimum 2 additional photos required</p>
+          )}
+        </div>
+
+        {errors.additionalPhotos && (
+          <p className="text-danger text-xs mt-1.5">{errors.additionalPhotos}</p>
         )}
       </div>
     </div>

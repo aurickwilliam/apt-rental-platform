@@ -1,13 +1,14 @@
 "use client";
 import { NumberInput } from "@heroui/react";
-import type { ApartmentFormData } from "../page";
+import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
+  errors: FormErrors;
 }
 
-export default function Step3Pricing({ formData, updateForm }: Props) {
+export default function Step3Pricing({ formData, updateForm, errors }: Props) {
   const total = formData.monthly_rent + formData.security_deposit + formData.advance_rent;
 
   return (
@@ -25,7 +26,7 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
         <NumberInput
           label="Monthly Rent"
           type="number"
-          min={0}
+          minValue={0}
           value={formData.monthly_rent}
           onValueChange={(value) => updateForm({ monthly_rent: value })}
           radius="lg"
@@ -34,12 +35,18 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
             <span className="text-grey-400 text-sm pointer-events-none">₱</span>
           }
           description="The base monthly rental rate tenants will see on the listing."
+          hideStepper
+          isInvalid={!!errors.monthly_rent}
+          errorMessage={errors.monthly_rent}
+          classNames={{
+            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+          }}
         />
 
         <NumberInput
           label="Security Deposit"
           type="number"
-          min={0}
+          minValue={0}
           value={formData.security_deposit}
           onValueChange={(value) => updateForm({ security_deposit: value })}
           radius="lg"
@@ -48,12 +55,18 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
             <span className="text-grey-400 text-sm pointer-events-none">₱</span>
           }
           description="Typically 1–2 months of rent. Refundable upon move-out."
+          hideStepper
+          isInvalid={!!errors.security_deposit}
+          errorMessage={errors.security_deposit}
+          classNames={{
+            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+          }}
         />
 
         <NumberInput
           label="Advance Rent"
           type="number"
-          min={0}
+          minValue={0}
           value={formData.advance_rent}
           onValueChange={(value) => updateForm({ advance_rent: value })}
           radius="lg"
@@ -62,6 +75,12 @@ export default function Step3Pricing({ formData, updateForm }: Props) {
             <span className="text-grey-400 text-sm pointer-events-none">₱</span>
           }
           description="Payment made upfront, typically applied to the first or last month(s) of the lease."
+          hideStepper
+          isInvalid={!!errors.advance_rent}
+          errorMessage={errors.advance_rent}
+          classNames={{
+            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
+          }}
         />
       </div>
 
