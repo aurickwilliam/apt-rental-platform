@@ -37,13 +37,11 @@ export default async function Home() {
     // Redirect based on role
     switch (profile?.role) {
       case 'tenant':
-        redirect('/tenant/dashboard');
-      case 'owner':
-        redirect('/owner/dashboard');
-      case 'management':
-        redirect('/management/dashboard');
-      default:
-        redirect('/dashboard'); // fallback
+        redirect('/tenant/my-rental');
+      case 'landlord':
+        redirect('/landlord/dashboard');
+      case 'admin':
+        redirect('/admin/dashboard');
     }
   }
 
