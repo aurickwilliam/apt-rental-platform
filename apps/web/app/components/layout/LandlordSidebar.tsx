@@ -34,11 +34,11 @@ import { signOut } from "@/app/(auth)/actions/sign-out";
 import { useUser } from "@/hooks/use-user";
 
 const MENU_ITEMS = [
-  { label: "Dashboard",      icon: LayoutDashboard, href: "/dashboard"    },
-  { label: "My Properties",  icon: Building2,       href: "/properties"   },
-  { label: "Messages",       icon: MessagesSquare,  href: "/messages"     },
-  { label: "Applications",   icon: FileCheckCorner, href: "/applications" },
-  { label: "Payments",       icon: Banknote,        href: "/payments"     },
+  { label: "Dashboard",      icon: LayoutDashboard, href: "/landlord/dashboard"    },
+  { label: "My Properties",  icon: Building2,       href: "/landlord/properties"   },
+  { label: "Messages",       icon: MessagesSquare,  href: "/landlord/messages"     },
+  { label: "Applications",   icon: FileCheckCorner, href: "/landlord/applications" },
+  { label: "Payments",       icon: Banknote,        href: "/landlord/payments"     },
 ];
 
 export default function LandlordSidebar() {
