@@ -21,6 +21,13 @@ interface ScreenWrapperProps {
   noTopPadding?: boolean;
 }
 
+// This wraps the content so tapping empty space closes the keyboard
+const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    {children}
+  </TouchableWithoutFeedback>
+);
+
 export default function ScreenWrapper({
   children,
   className = "",
@@ -34,13 +41,6 @@ export default function ScreenWrapper({
   const insets = useSafeAreaInsets();
 
   const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
-
-  // This wraps the content so tapping empty space closes the keyboard
-  const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      {children}
-    </TouchableWithoutFeedback>
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
