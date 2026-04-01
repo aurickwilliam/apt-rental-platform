@@ -6,6 +6,8 @@ import HeroSection from "./components/HeroSection";
 
 import { Divider } from "@heroui/react";
 
+import { redirect } from "next/navigation";
+
 import {
   KeyRound,
   Building2,
@@ -20,6 +22,28 @@ import { createClient } from '@repo/supabase/server';
 
 export default async function Home() {
   const supabase = await createClient();
+
+  // Redirect immediately the user to their respective dashboard
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    // Fetch the user's role from your profile/users table
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    // Redirect based on role
+    switch (profile?.role) {
+      case 'tenant':
+        redirect('/tenant/my-rental');
+      case 'landlord':
+        redirect('/landlord/dashboard');
+      case 'admin':
+        redirect('/admin/dashboard');
+    }
+  }
 
   const { data: apartments, error } = await supabase
     .from('apartments')
