@@ -1,4 +1,3 @@
-// ConversationView.tsx — Server Component
 import { Avatar, ScrollShadow } from "@heroui/react";
 import MessageInput from "./MessageInput";
 import { Contact } from "./types";
