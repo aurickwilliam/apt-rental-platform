@@ -7,7 +7,7 @@ interface PropertyCardProps {
   address: string
   city: string
   status: 'Available' | 'Occupied' | 'Under Maintenance'
-  thumbnailUrl: string
+  thumbnailUrl: string | undefined
   onPress: () => void
 }
 
