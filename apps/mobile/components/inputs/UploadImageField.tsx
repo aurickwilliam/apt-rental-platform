@@ -1,91 +1,174 @@
-import { View, Text } from 'react-native'
-
-import PillButton from 'components/buttons/PillButton';
-
-import { COLORS } from '@repo/constants';
-
-import { 
-  IconFileUpload,
-  IconPhoto,
-  IconCamera,
-} from '@tabler/icons-react-native'
+import { useState } from 'react'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  StyleSheet,
+  FlatList,
+} from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
+import { Ionicons } from '@expo/vector-icons'
+import { COLORS } from '@repo/constants'
 
 interface UploadImageFieldProps {
-  label?: string;
-  placeholder?: string;
-  onChange?: (uri: string) => void;
-  value?: string;
-  disabled?: boolean;
-  error?: string;
-  required?: boolean;
+  label: string
+  required?: boolean  
+  single?: boolean
+  images: ImagePicker.ImagePickerAsset[]
+  onAdd: (image: ImagePicker.ImagePickerAsset) => void
+  onRemove: (uri: string) => void
 }
 
 export default function UploadImageField({
   label,
-  placeholder,
-  onChange,
-  value,
-  disabled,
-  error,
   required,
+  single = false,
+  images,
+  onAdd,
+  onRemove,
 }: UploadImageFieldProps) {
+  const [loading, setLoading] = useState(false)
 
-  // TODO: implement image upload functionality using expo-image-picker or similar library
-  
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) return
+
+    setLoading(true)
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: !single,
+      quality: 0.8,
+    })
+    setLoading(false)
+
+    if (result.canceled) return
+
+    // In single mode, replace; in multiple mode, append each selected asset
+    if (single) {
+      onAdd(result.assets[0])
+    } else {
+      result.assets.forEach((asset) => onAdd(asset))
+    }
+  }
+
+  const showPicker = single ? images.length === 0 : true
+
   return (
-    <View className='w-full flex gap-2'>
-      {/* Label Text */}
-      {
-        label && (
-          <View className='flex-row items-center justify-between'>
-            <Text className='text-base font-interMedium text-text'>
-              {label}
-            </Text>
+    <View className='gap-2'>
+      {/* Label */}
+      <Text className='text-base font-semibold text-gray-700'>
+        {label}
+        {required && <Text className='text-red-500'> *</Text>}
+      </Text>
 
-            {
-              required &&
-              <Text className='text-sm font-interMedium text-redHead-200'>
-                *Required
+      {/* Preview strip */}
+      {images.length > 0 && (
+        <FlatList
+          data={images}
+          horizontal
+          keyExtractor={(item) => item.uri}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 3 }}
+          renderItem={({ item }) => (
+            <View style={styles.previewWrapper}>
+              <Image
+                source={{ uri: item.uri }}
+                style={styles.previewImage}
+                resizeMode="cover"
+              />
+
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => onRemove(item.uri)}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Ionicons name="close-circle" size={20} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      )}
+
+      {/* Upload button — hidden in single mode once an image is set */}
+      {showPicker && (
+        <TouchableOpacity
+          onPress={pickImage}
+          disabled={loading}
+          style={[styles.uploadButton, loading && styles.uploadButtonDisabled]}
+        >
+          {loading ? (
+            <ActivityIndicator size='small' color={COLORS.primary} />
+          ) : (
+            <>
+              <Ionicons name='cloud-upload-outline' size={22} color={COLORS.primary} />
+              <Text style={styles.uploadText}>
+                {single ? 'Choose photo' : 'Add photos'}
               </Text>
-            }
-          </View>
-        )
-      }
+            </>
+          )}
+        </TouchableOpacity>
+      )}
 
-      {/* Uploaded Image Area */}
-      <View className='w-full h-52 bg-white rounded-xl border border-gray-300 items-center justify-center'>
-        <View className='flex gap-3 items-center justify-center'>
-          <IconFileUpload 
-            size={64} 
-            color={COLORS.mediumGrey}
-            strokeWidth={1}
-          />
-          <Text className='text-center text-grey-400 font-interMedium'>
-            No documents uploaded yet.
-          </Text>
-        </View>
-      </View> 
-
-      {/* Error Message */}
-      {
-        error &&
-        <Text className='text-base text-redHead-200 font-inter mt-1'>
-          {error}
-        </Text>
-      }
-
-      {/* Buttons */}
-      <View className='flex-row gap-4 mt-3'>        
-        <View className='flex-1'>
-          <PillButton 
-            label={'Add Photos'}   
-            size='sm'         
-            isFullWidth
-            leftIconName={IconCamera}
-            onPress={() => {}}
-          />
-        </View>
-      </View>
+      {/* Replace button shown in single mode when image is already set */}
+      {single && images.length > 0 && (
+        <TouchableOpacity onPress={pickImage} style={styles.replaceButton}>
+          <Ionicons name='refresh-outline' size={16} color={COLORS.primary} />
+          <Text style={styles.replaceText}>Replace photo</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  previewWrapper: {
+    position: 'relative',
+    marginRight: 10,
+    marginTop: 8,
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 99,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingVertical: 18,
+    backgroundColor: '#F8FAFC',
+  },
+  uploadButtonDisabled: {
+    opacity: 0.5,
+  },
+  uploadText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  replaceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
+  replaceText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
+})
