@@ -22,8 +22,6 @@ export default function OTPVerification() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('Registration Store Data in OTP Verification:', data);
-
   const [otp, setOtp] = useState<string[]>(['', '', '', '']);
   const [countdown, setCountdown] = useState<number>(30);
   const inputRefs = useRef<TextInput[]>([]);
@@ -80,6 +78,7 @@ export default function OTPVerification() {
 
     try {
       const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear();
+      const userSide = data.userSide;
 
       const { error } = await supabase.auth.signUp({
         email: data.email!,
@@ -98,15 +97,22 @@ export default function OTPVerification() {
             city: data.city,
             province: data.province,
             postal_code: data.postalCode,
-            role: data.userSide,
+            role: data.userSide, 
           }
         }
       });
 
       if (error) throw error;
 
+      console.log('Registration Store Data in OTP Verification:', data);
+
       reset();
-      router.replace('/personalization/step-one');
+
+      if (userSide === 'tenant') { 
+        router.replace('/personalization/step-one');
+      } else {
+        router.replace('/(tabs)/(landlord)/dashboard');
+      }
 
     } catch (err: any) {
       setError(err.message || 'Something went wrong');

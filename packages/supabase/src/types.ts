@@ -48,6 +48,7 @@ export type Database = {
       }
       apartments: {
         Row: {
+          advance_rent: number | null
           amenities: string[] | null
           area_sqm: number
           average_rating: number | null
@@ -71,6 +72,7 @@ export type Database = {
           no_favorites: number | null
           no_ratings: number | null
           province: string
+          security_deposit: number | null
           status: string
           street_address: string
           type: string
@@ -78,6 +80,7 @@ export type Database = {
           zip_code: number | null
         }
         Insert: {
+          advance_rent?: number | null
           amenities?: string[] | null
           area_sqm: number
           average_rating?: number | null
@@ -101,6 +104,7 @@ export type Database = {
           no_favorites?: number | null
           no_ratings?: number | null
           province: string
+          security_deposit?: number | null
           status?: string
           street_address: string
           type: string
@@ -108,6 +112,7 @@ export type Database = {
           zip_code?: number | null
         }
         Update: {
+          advance_rent?: number | null
           amenities?: string[] | null
           area_sqm?: number
           average_rating?: number | null
@@ -131,6 +136,7 @@ export type Database = {
           no_favorites?: number | null
           no_ratings?: number | null
           province?: string
+          security_deposit?: number | null
           status?: string
           street_address?: string
           type?: string
@@ -342,16 +348,89 @@ export type Database = {
           },
         ]
       }
+      tenancies: {
+        Row: {
+          advance_rent: number | null
+          apartment_id: string
+          created_at: string
+          id: string
+          landlord_id: string | null
+          monthly_rent: number | null
+          move_in_date: string
+          move_out_date: string | null
+          notes: string | null
+          security_deposit: number | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          advance_rent?: number | null
+          apartment_id: string
+          created_at?: string
+          id?: string
+          landlord_id?: string | null
+          monthly_rent?: number | null
+          move_in_date: string
+          move_out_date?: string | null
+          notes?: string | null
+          security_deposit?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          advance_rent?: number | null
+          apartment_id?: string
+          created_at?: string
+          id?: string
+          landlord_id?: string | null
+          monthly_rent?: number | null
+          move_in_date?: string
+          move_out_date?: string | null
+          notes?: string | null
+          security_deposit?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenancies_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancies_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_status: string
           age: number
           avatar_url: string | null
+          background_url: string | null
           barangay: string
           birth_date: string
           city: string
           created_at: string
+          email: string | null
           first_name: string
+          gender: string | null
           id: string
           last_name: string
           middle_name: string | null
@@ -367,11 +446,14 @@ export type Database = {
           account_status?: string
           age: number
           avatar_url?: string | null
+          background_url?: string | null
           barangay: string
           birth_date: string
           city: string
           created_at?: string
+          email?: string | null
           first_name: string
+          gender?: string | null
           id?: string
           last_name: string
           middle_name?: string | null
@@ -387,11 +469,14 @@ export type Database = {
           account_status?: string
           age?: number
           avatar_url?: string | null
+          background_url?: string | null
           barangay?: string
           birth_date?: string
           city?: string
           created_at?: string
+          email?: string | null
           first_name?: string
+          gender?: string | null
           id?: string
           last_name?: string
           middle_name?: string | null
