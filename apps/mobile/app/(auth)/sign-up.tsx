@@ -10,8 +10,14 @@ import LogoButton from "components/buttons/LogoButton";
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 export default function SignUp() {
   const [email, setEmail] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
 
   const router = useRouter();
@@ -21,12 +27,21 @@ export default function SignUp() {
     setUserSide(userType === "landlord" ? "landlord" : "tenant");
   }, [userType]);
 
-  const handleEmailTextChange = (text: string) => setEmail(text);
+  const handleEmailTextChange = (text: string) => {
+    setEmail(text);
+    if (emailError) setEmailError("");
+  };
 
   const handleSignUp = () => {
-    console.log("Sign Up pressed:");
-    console.log(email);
-    console.log(userSide);
+    if (!email.trim()) {
+      setEmailError("Email address is required.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
 
     router.push({
       pathname: "/(auth)/complete-profile",
@@ -96,7 +111,7 @@ export default function SignUp() {
           placeholder="Enter your email"
           value={email}
           onChangeText={handleEmailTextChange}
-          error=""
+          error={emailError}
           required={true}
         />
       </View>
