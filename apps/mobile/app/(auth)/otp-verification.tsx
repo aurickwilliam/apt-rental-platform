@@ -11,12 +11,16 @@ import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
+import { supabase } from '@repo/supabase';
 import { useRegistrationStore } from '@/store/useRegistrationStore'
 
 export default function OTPVerification() {
   const router = useRouter();
   const { mobileNum } = useLocalSearchParams();
-  const { data } = useRegistrationStore();
+
+  const { data, reset } = useRegistrationStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   console.log('Registration Store Data in OTP Verification:', data);
 
@@ -70,10 +74,45 @@ export default function OTPVerification() {
     // TODO: Implement resend OTP to Mobile Number functionality
   }
 
-  const handleVerify = () => {
-    // TODO: Verify the OTP with backend API
-    console.log("OTP Verified");
-    router.replace("/personalization/step-one");
+  const handleVerify = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear();
+
+      const { error } = await supabase.auth.signUp({
+        email: data.email!,
+        password: data.password!,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            middle_name: data.middleName,
+            gender: data.gender,
+            mobile_number: data.mobileNumber,
+            birth_date: data.birthDate,
+            age,
+            street_address: data.currentAddress,
+            barangay: data.barangay,
+            city: data.city,
+            province: data.province,
+            postal_code: data.postalCode,
+            role: data.userSide,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      reset();
+      router.replace('/personalization/step-one');
+
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -139,11 +178,16 @@ export default function OTPVerification() {
           </View>
         </View>
 
+        {error && (
+          <Text className="text-red-500 text-sm">{error}</Text>
+        )}
+
         {/* Create Account Button */}
         <PillButton
-          label='Create Account'
+          label={loading ? 'Creating Account...' : 'Verify & Create Account'}
           onPress={handleVerify}
           isFullWidth
+          isDisabled={loading}
         />
       </View>
     </ScreenWrapper>
