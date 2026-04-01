@@ -1,5 +1,5 @@
 "use client";
-// MessageInput.tsx — Client Component
+
 import { useState, KeyboardEvent } from "react";
 import { Input, Button } from "@heroui/react";
 
@@ -38,7 +38,7 @@ export default function MessageInput({ onSend }: MessageInputProps) {
         color="primary"
         radius="full"
         className="px-8 font-medium"
-        onClick={handleSend}
+        onPress={handleSend}
         isDisabled={!value.trim()}
       >
         Send

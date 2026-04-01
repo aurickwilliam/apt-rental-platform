@@ -25,6 +25,7 @@ export default function MessagesClient({ currentTenants, inquiries }: MessagesCl
         onTabChange={setActiveTab}
         onSelectContact={setActiveContact}
       />
+      
       <ConversationView activeContact={activeContact} />
     </div>
   );
