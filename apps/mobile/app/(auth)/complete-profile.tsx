@@ -14,6 +14,8 @@ import DropdownField from 'components/inputs/DropdownField';
 
 import { usePasswordValidation, usePHPostalCode } from '@repo/hooks';
 
+import { useRegistrationStore } from '@/store/useRegistrationStore';
+
 type ProfileForm = {
   email: string;
   firstName: string;
@@ -47,6 +49,8 @@ const requiredFields: (keyof ProfileForm)[] = [
 export default function CompleteProfile() {
   const router = useRouter();
   const { email, userSide } = useLocalSearchParams();
+
+  const { setData } = useRegistrationStore();
 
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
@@ -120,20 +124,14 @@ export default function CompleteProfile() {
 
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
-    if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) {
-      return;
-    }
+    if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) return;
+
+    const { confirmPassword, ...rest } = profileForm; // exclude confirmPassword
     
-    const formData = {
-      ...profileForm,
-      postalCode, 
-      password, 
-      confirmPassword,
-    }
-    
-    // Print form data to console (for testing purposes)
-    Object.entries(formData).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`);
+    setData({
+      ...rest,
+      postalCode,
+      password,
     });
 
     router.push('/(auth)/verify-mobile');

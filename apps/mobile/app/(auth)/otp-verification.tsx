@@ -11,9 +11,14 @@ import { COLORS } from '@repo/constants'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
+import { useRegistrationStore } from '@/store/useRegistrationStore'
+
 export default function OTPVerification() {
   const router = useRouter();
   const { mobileNum } = useLocalSearchParams();
+  const { data } = useRegistrationStore();
+
+  console.log('Registration Store Data in OTP Verification:', data);
 
   const [otp, setOtp] = useState<string[]>(['', '', '', '']);
   const [countdown, setCountdown] = useState<number>(30);

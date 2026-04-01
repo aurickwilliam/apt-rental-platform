@@ -11,8 +11,12 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import { usePHMobileValidation } from '@repo/hooks';
 
+import { useRegistrationStore } from '@/store/useRegistrationStore';
+
 export default function VerifyMobile() {
   const router = useRouter();
+
+  const { setData } = useRegistrationStore();
 
   const { 
     value: mobileNumber, 
@@ -25,8 +29,9 @@ export default function VerifyMobile() {
     const result = validate();
     if (!result.isValid) return;
 
-    console.log("Verifying Mobile Number:", mobileNumber);
-    router.push(`/(auth)/otp-verification?mobileNum=${mobileNumber}`);
+    setData({ mobileNumber });
+    
+    router.push('/(auth)/otp-verification');
   }
 
   return (
