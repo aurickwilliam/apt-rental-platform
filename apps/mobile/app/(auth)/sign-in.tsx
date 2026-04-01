@@ -97,7 +97,7 @@ export default function SignIn() {
   };
 
   return (
-    <ScreenWrapper className='p-5'>
+    <ScreenWrapper className='p-5' scrollable>
       {/* Logo at the top */}
       <View className="w-32 h-32 mx-auto">
         <Image
