@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useRouter } from 'expo-router';
 
 import { IMAGES } from '../../constants/images';
+import  { COLORS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import TextField from 'components/inputs/TextField';
@@ -29,8 +30,6 @@ export default function SignIn() {
     setPassword(text);
     if (error) setError('');
   };
-
-  const toggleUserSide = () => setUserSide(prev => prev === 'tenant' ? 'landlord' : 'tenant');
 
   const handleSignIn = async () => {
     if (!email.trim()) { setError('Please enter your email address.'); return; }
@@ -122,6 +121,35 @@ export default function SignIn() {
         </Text>
       </View>
 
+      {/* Toggle User Side */}
+      <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
+        <Pressable 
+          onPress={() => setUserSide('tenant')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'tenant' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'tenant' ? COLORS.primary : COLORS.grey }}
+          >
+            Tenant
+          </Text>
+        </Pressable>
+
+        <Pressable 
+          onPress={() => setUserSide('landlord')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'landlord' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'landlord' ? COLORS.secondary : COLORS.grey }}
+          >
+            Landlord
+          </Text>
+        </Pressable>
+      </View>
+
       {/* Error message */}
       {error ? (
         <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -152,9 +180,11 @@ export default function SignIn() {
       </View>
 
       <Link href="/forgot-password" asChild>
-        <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
-          Forgot Password?
-        </Text>
+        <Pressable>
+          <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
+            Forgot Password?
+          </Text>
+        </Pressable>
       </Link>
 
       {/* Sign In Button */}
@@ -204,25 +234,6 @@ export default function SignIn() {
           >
             Sign Up
           </Link>
-        </View>
-
-        <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
-            {
-              userSide === 'tenant' ?
-              'Want to list your apartment?' :
-              'Here to find a place?'
-            }
-          </Text>
-          <Pressable onPress={toggleUserSide}>
-            <Text className="text-primary font-interMedium underline">
-              {
-                userSide === 'tenant' ?
-                'Register as Landlord' :
-                'Continue as Tenant'
-              }
-            </Text>
-          </Pressable>
         </View>
       </View>
     </ScreenWrapper>

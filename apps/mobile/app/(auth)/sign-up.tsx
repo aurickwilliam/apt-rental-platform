@@ -8,6 +8,7 @@ import PillButton from "components/buttons/PillButton";
 import LogoButton from "components/buttons/LogoButton";
 
 import { IMAGES } from "constants/images";
+import { COLORS } from "@repo/constants";
 
 export default function SignUp() {
   const [email, setEmail] = useState<string>("");
@@ -21,7 +22,6 @@ export default function SignUp() {
   }, [userType]);
 
   const handleEmailTextChange = (text: string) => setEmail(text);
-  const toggleUserSide = () => setUserSide(prev => prev === "tenant" ? "landlord" : "tenant");
 
   const handleSignUp = () => {
     console.log("Sign Up pressed:");
@@ -58,6 +58,35 @@ export default function SignUp() {
             'Join us and start listing your properties in minutes.'
           }
         </Text>
+      </View>
+
+      {/* Toggle User Side */}
+      <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
+        <Pressable 
+          onPress={() => setUserSide('tenant')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'tenant' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'tenant' ? COLORS.primary : COLORS.grey }}
+          >
+            Tenant
+          </Text>
+        </Pressable>
+
+        <Pressable 
+          onPress={() => setUserSide('landlord')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'landlord' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'landlord' ? COLORS.secondary : COLORS.grey }}
+          >
+            Landlord
+          </Text>
+        </Pressable>
       </View>
 
       {/* Form inputs */}
@@ -118,25 +147,6 @@ export default function SignUp() {
           >
             Sign In
           </Link>
-        </View>
-
-        <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
-            {
-              userSide === 'tenant' ?
-              'Want to rent out your space?' :
-              'Here to find a place?'
-            }
-          </Text>
-          <Pressable onPress={toggleUserSide}>
-            <Text className="text-primary font-interMedium underline">
-              {
-                userSide === 'tenant' ?
-                'Register as Landlord' :
-                'Continue as Tenant'
-              }
-            </Text>
-          </Pressable>
         </View>
       </View>
     </ScreenWrapper>
