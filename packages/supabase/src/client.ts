@@ -8,4 +8,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Safely resolve AsyncStorage only in React Native environments
+const getAuthStorage = () => {
+  try {
+    const { Platform } = require('react-native');
+    if (Platform.OS !== 'web') {
+      return require('@react-native-async-storage/async-storage').default;
+    }
+  } catch {
+    // Not in a React Native environment (e.g., Next.js)
+  }
+  return undefined;
+};
+
+const storage = getAuthStorage();
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: storage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: storage === undefined,
+  },
+});

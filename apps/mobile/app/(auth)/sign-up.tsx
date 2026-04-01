@@ -8,9 +8,16 @@ import PillButton from "components/buttons/PillButton";
 import LogoButton from "components/buttons/LogoButton";
 
 import { IMAGES } from "constants/images";
+import { COLORS } from "@repo/constants";
+
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
 export default function SignUp() {
   const [email, setEmail] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
 
   const router = useRouter();
@@ -20,13 +27,21 @@ export default function SignUp() {
     setUserSide(userType === "landlord" ? "landlord" : "tenant");
   }, [userType]);
 
-  const handleEmailTextChange = (text: string) => setEmail(text);
-  const toggleUserSide = () => setUserSide(prev => prev === "tenant" ? "landlord" : "tenant");
+  const handleEmailTextChange = (text: string) => {
+    setEmail(text);
+    if (emailError) setEmailError("");
+  };
 
   const handleSignUp = () => {
-    console.log("Sign Up pressed:");
-    console.log(email);
-    console.log(userSide);
+    if (!email.trim()) {
+      setEmailError("Email address is required.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
 
     router.push({
       pathname: "/(auth)/complete-profile",
@@ -60,6 +75,35 @@ export default function SignUp() {
         </Text>
       </View>
 
+      {/* Toggle User Side */}
+      <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
+        <Pressable 
+          onPress={() => setUserSide('tenant')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'tenant' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'tenant' ? COLORS.primary : COLORS.grey }}
+          >
+            Tenant
+          </Text>
+        </Pressable>
+
+        <Pressable 
+          onPress={() => setUserSide('landlord')}
+          className="flex-1 py-3 rounded-xl"
+          style={userSide === 'landlord' ? { backgroundColor: 'white', elevation: 1 } : {}}
+        >
+          <Text 
+            className="text-center font-interMedium"
+            style={{ color: userSide === 'landlord' ? COLORS.secondary : COLORS.grey }}
+          >
+            Landlord
+          </Text>
+        </Pressable>
+      </View>
+
       {/* Form inputs */}
       <View className="mt-8">
         <TextField
@@ -67,7 +111,7 @@ export default function SignUp() {
           placeholder="Enter your email"
           value={email}
           onChangeText={handleEmailTextChange}
-          error=""
+          error={emailError}
           required={true}
         />
       </View>
@@ -118,25 +162,6 @@ export default function SignUp() {
           >
             Sign In
           </Link>
-        </View>
-
-        <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
-            {
-              userSide === 'tenant' ?
-              'Want to rent out your space?' :
-              'Here to find a place?'
-            }
-          </Text>
-          <Pressable onPress={toggleUserSide}>
-            <Text className="text-primary font-interMedium underline">
-              {
-                userSide === 'tenant' ?
-                'Register as Landlord' :
-                'Continue as Tenant'
-              }
-            </Text>
-          </Pressable>
         </View>
       </View>
     </ScreenWrapper>

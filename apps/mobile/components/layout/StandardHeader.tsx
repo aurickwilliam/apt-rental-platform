@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNode } from "react";
@@ -19,14 +19,14 @@ export default function StandardHeader({
   rightComponent,
   textColor = "text-white",
 }: StandardHeaderProps) {
-  const navigation = useNavigation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBackPress) {
       onBackPress();
     } else {
-      navigation.goBack();
+      router.back();
     }
   };
 

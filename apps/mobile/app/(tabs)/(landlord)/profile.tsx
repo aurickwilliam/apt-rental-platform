@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { COLORS } from "@repo/constants";
 import { SAMPLE_IMAGES } from 'constants/images';
 
+import { supabase } from '@repo/supabase';
+
 import {
   IconId,
   IconCircleCheckFilled,
@@ -64,6 +66,11 @@ export default function Profile() {
 
   const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.primary;
   const Icon = statusStyle[accountStatus].icon;
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace('/(auth)/sign-in');
+  };
 
   return (
     <ScrollView 
@@ -206,7 +213,7 @@ export default function Profile() {
           isFullWidth
           type='danger'
           leftIconName={IconLogout}
-          onPress={() => router.push('/(auth)/sign-in')}
+          onPress={handleLogout}
         />
       </View>
 
