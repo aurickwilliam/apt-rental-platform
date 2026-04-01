@@ -60,8 +60,8 @@ export async function signIn(
 
   // Redirect based on role
   if (role === "landlord") {
-    redirect("/dashboard");
+    redirect("/landlord/dashboard");
   } else {
-    redirect("/my-rental");
+    redirect("/tenant/my-rental");
   }
 }

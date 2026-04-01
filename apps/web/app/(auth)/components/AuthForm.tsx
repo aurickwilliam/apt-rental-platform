@@ -25,7 +25,7 @@ export default function AuthForm() {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.currentTarget));
       const emailValue = encodeURIComponent(data.email as string);
-      router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
+      router.push(`/tenant/sign-up-form?role=${role}&email=${emailValue}`);
       return;
     }
 
