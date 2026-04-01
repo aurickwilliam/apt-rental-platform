@@ -33,28 +33,19 @@ export default function SignIn() {
   const toggleUserSide = () => setUserSide(prev => prev === 'tenant' ? 'landlord' : 'tenant');
 
   const handleSignIn = async () => {
-    // Basic validation
-    if (!email.trim()) {
-      setError('Please enter your email address.');
-      return;
-    }
-
-    if (!password.trim()) {
-      setError('Please enter your password.');
-      return;
-    }
+    if (!email.trim()) { setError('Please enter your email address.'); return; }
+    if (!password.trim()) { setError('Please enter your password.'); return; }
 
     setLoading(true);
     setError('');
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
       if (signInError) {
-        // Map common Supabase auth errors to user-friendly messages
         if (signInError.message === 'Invalid login credentials') {
           setError('Invalid email or password. Please try again.');
         } else if (signInError.message === 'Email not confirmed') {
@@ -67,11 +58,36 @@ export default function SignIn() {
         return;
       }
 
-      // Successfully signed in — navigate based on user role
+      // Fetch role from public.users using the auth user id
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('user_id', authData.user!.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        setError('Could not load your profile. Please try again.');
+        return;
+      }
+
+      // Check if user is signing in on the correct portal
+      if (userSide === 'landlord' && userProfile.role !== 'landlord') {
+        setError('No landlord account found. Try signing in as a tenant instead.');
+        await supabase.auth.signOut(); // clear the session since we're blocking access
+        return;
+      }
+
+      if (userSide === 'tenant' && userProfile.role !== 'tenant') {
+        setError('No tenant account found. Try signing in as a landlord instead.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // Route based on actual role from DB
       router.replace(
-        userSide === 'tenant'
-          ? '../(tabs)/(tenant)/home'
-          : '../(tabs)/(landlord)/dashboard'
+        userProfile.role === 'landlord'
+          ? '../(tabs)/(landlord)/dashboard'
+          : '../(tabs)/(tenant)/home'
       );
     } catch (err) {
       setError('An unexpected error occurred. Please check your connection and try again.');
