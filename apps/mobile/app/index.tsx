@@ -8,46 +8,50 @@ import { supabase } from "@repo/supabase";
 
 export default function Index() {
   useEffect(() => {
-    const checkAppState = async () => {
-      try {
-        const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+    const checkOnboarding = async () => {
+      const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+      if (hasLaunched === null) {
+        await AsyncStorage.setItem("hasLaunched", "true");
+        router.replace("/onboarding");
+        return true; // signal to skip auth check
+      }
+      return false;
+    };
 
-        if (hasLaunched === null) {
-          // First time opening the app
-          await AsyncStorage.setItem("hasLaunched", "true");
-          router.replace("/onboarding");
-          return;
-        }
+    const redirectByRole = async (userId: string) => {
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
 
-        // Check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          // No session, go to sign-in
-          router.replace("/sign-in");
-          return;
-        }
-
-        // Session exists, fetch role and redirect accordingly
-        const { data: userProfile } = await supabase
-          .from("users")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single();
-
-        if (userProfile?.role === "landlord") {
-          router.replace("/(tabs)/(landlord)/dashboard");
-        } else {
-          router.replace("/(tabs)/(tenant)/home");
-        }
-
-      } catch (error) {
-        console.error("App state check failed:", error);
-        router.replace("/sign-in");
+      if (userProfile?.role === "landlord") {
+        router.replace("/(tabs)/(landlord)/dashboard");
+      } else {
+        router.replace("/(tabs)/(tenant)/home");
       }
     };
 
-    checkAppState();
+    // Listen to auth state — fires once session is restored from storage
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const wentToOnboarding = await checkOnboarding();
+        if (wentToOnboarding) {
+          subscription.unsubscribe();
+          return;
+        }
+
+        if (!session) {
+          router.replace("/sign-in");
+        } else {
+          await redirectByRole(session.user.id);
+        }
+
+        subscription.unsubscribe();
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (

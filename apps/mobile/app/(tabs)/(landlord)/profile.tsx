@@ -22,15 +22,17 @@ import {
 import PillButton from 'components/buttons/PillButton';
 import SettingOptionButton from 'components/buttons/SettingOptionButton';
 
+import { useProfile } from '@/hooks/useProfile';
+
 export default function Profile() {
   const router = useRouter();
+  const { profile, loading } = useProfile();
 
   // Change this to fetch user's photo
   const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
-  const profilePhotoUri = SAMPLE_IMAGES.sampleProfilePicture;
 
   // Change of Status
-  const accountStatus = 'rejected' as 'verified' | 'pending' | 'rejected'; 
+  const accountStatus = (profile?.account_status ?? 'unverified') as 'verified' | 'pending' | 'rejected' | 'unverified';
   const rejectedReason = 'Your submitted documents were not clear. Please resubmit clear copies of your ID and proof of income for verification.';
   const dateVerified = 'June 15, 2024';
 
@@ -61,6 +63,12 @@ export default function Profile() {
       style: 'text-redHead-200',
       icon: IconXboxXFilled,
       iconColor: COLORS.redHead
+    },
+    unverified: {                         
+      text: 'Not Verified',
+      style: 'text-grey-400',
+      icon: IconExclamationCircleFilled,
+      iconColor: COLORS.grey              
     }
   }
 
@@ -99,22 +107,28 @@ export default function Profile() {
           className='absolute bottom-0 
             left-1/2 top-[50%] -translate-x-1/2 -translate-y-1/2'
         >
-          <View 
-            className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5'
-          >
-            <Image 
-              source={profilePhotoUri}
-              style={{ width: '100%', height: '100%'}}
-            />
+          <View className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5 bg-primary'>
+            {profile?.avatar_url ? (
+              <Image 
+                source={{ uri: profile.avatar_url }}
+                style={{ width: '100%', height: '100%' }}
+              />
+            ) : (
+              <View className='flex-1 items-center justify-center'>
+                <Text className='text-white text-7xl font-poppinsSemiBold'>
+                  {profile?.first_name?.[0]?.toUpperCase()}{profile?.last_name?.[0]?.toUpperCase()}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
             <Text className='text-text text-2xl font-poppinsMedium'>
-              Jonathan Ma
+              {loading ? '...' : `${profile?.first_name} ${profile?.last_name}`}
             </Text>
             <Text className='text-grey-500 text-lg font-inter'>
-              johndoe@gmail.com
+              {loading ? '...' : profile?.email}
             </Text>
           </View>
         </View>
@@ -186,6 +200,23 @@ export default function Profile() {
             </>
           )
         }
+
+        {/* If Unverified */}
+        {accountStatus === 'unverified' && (
+          <>
+            <Text className='text-grey-400 my-3 font-inter'>
+              Your account has not been verified yet. Please submit your documents to get verified.
+            </Text>
+
+            <PillButton
+              label='Apply for Verification'
+              isFullWidth
+              size='sm'
+              leftIconName={IconCamera}
+              onPress={() => router.push('/(auth)/verify-account')}
+            />
+          </>
+        )}
       </View>
       
       {/* Profile Options */}

@@ -132,6 +132,7 @@ export default function CompleteProfile() {
       ...rest,
       postalCode,
       password,
+      userSide: userSide as 'tenant' | 'landlord',
     });
 
     router.push('/(auth)/verify-mobile');
