@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 
 import { Divider, Button, Link } from "@heroui/react";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserRoundKey, Building } from "lucide-react";
 
 interface AuthWrapperProps {
   type: 'sign-in' | 'sign-up';
@@ -23,17 +23,32 @@ function AuthContent() {
 
   return (
     <div className="w-full shrink-0 bg-white p-10 flex flex-col md:w-[600px] md:p-20">
-      {/* Back Button */}
-      <Button
-        isIconOnly
-        variant="light"
-        radius="full"
-        as={Link}
-        href="/"
-        className="-ml-2"
-      >
-        <ArrowLeft size={20} />
-      </Button>
+      <div className="flex items-center justify-between">
+        {/* Back Button */}
+        <Button
+          isIconOnly
+          variant="light"
+          radius="full"
+          as={Link}
+          href="/"
+          className="-ml-2"
+        >
+          <ArrowLeft size={20} />
+        </Button>
+
+        <div className={`flex items-center gap-2 border-2 rounded-xl px-3 py-1 
+          ${role === "tenant" ? "bg-light-blue border-primary" : "bg-yellow-100 border-secondary"}`}
+        >
+          {
+            role === "tenant" 
+            ? <UserRoundKey size={24} className="text-primary" /> 
+            : <Building size={24} className="text-secondary" />
+          }
+          <p className={`font-semibold ${role === "tenant" ? "text-primary" : "text-secondary"}`}>
+            {role === "tenant" ? "Tenant" : "Landlord"}
+          </p>
+        </div>
+      </div>
 
       <div className="mt-8">
         <h1 className="text-4xl font-noto-serif font-semibold tracking-wide">
