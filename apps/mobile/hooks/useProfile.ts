@@ -7,6 +7,7 @@ type UserProfile = {
   email: string | null;
   avatar_url: string | null;
   account_status: string;
+  background_url: string | null;
 };
 
 export function useProfile() {
@@ -20,7 +21,7 @@ export function useProfile() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('first_name, last_name, email, avatar_url, account_status')
+        .select('first_name, last_name, email, avatar_url, account_status, background_url')
         .eq('user_id', user.id)  // user_id links to auth.users
         .single();
 

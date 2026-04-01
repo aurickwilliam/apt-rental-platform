@@ -2,7 +2,6 @@ import { View, Text, ScrollView, Image } from 'react-native'
 import { useRouter } from 'expo-router';
 
 import { COLORS } from "@repo/constants";
-import { SAMPLE_IMAGES } from 'constants/images';
 
 import { supabase } from '@repo/supabase';
 
@@ -27,9 +26,9 @@ import { useProfile } from '@/hooks/useProfile';
 export default function Profile() {
   const router = useRouter();
   const { profile, loading } = useProfile();
+  const avatarInitials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`.toUpperCase();
 
-  // Change this to fetch user's photo
-  const backgroundPhotoUri = SAMPLE_IMAGES.sampleBackgroundPhoto;
+  const backgroundPhotoUri = profile?.background_url ?? null;
 
   // Change of Status
   const accountStatus = (profile?.account_status ?? 'unverified') as 'verified' | 'pending' | 'rejected' | 'unverified';
@@ -72,7 +71,7 @@ export default function Profile() {
     }
   }
 
-  const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.primary;
+  const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.grey;
   const Icon = statusStyle[accountStatus].icon;
 
   const handleLogout = async () => {
@@ -95,7 +94,7 @@ export default function Profile() {
           {
             backgroundPhotoUri && (
               <Image 
-                source={backgroundPhotoUri}
+                source={{ uri: backgroundPhotoUri }} 
                 style={{ width: '100%', height: '100%' }}
               />
             )
@@ -104,19 +103,18 @@ export default function Profile() {
 
         {/* Profile Picture */}
         <View 
-          className='absolute bottom-0 
-            left-1/2 top-[50%] -translate-x-1/2 -translate-y-1/2'
+          className='absolute top-24 left-0 right-0 items-center'
         >
-          <View className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5 bg-primary'>
+          <View className='size-56 rounded-full overflow-hidden border-[6px] border-secondary mb-5 bg-secondary items-center justify-center'>
             {profile?.avatar_url ? (
               <Image 
                 source={{ uri: profile.avatar_url }}
                 style={{ width: '100%', height: '100%' }}
               />
             ) : (
-              <View className='flex-1 items-center justify-center'>
-                <Text className='text-white text-7xl font-poppinsSemiBold'>
-                  {profile?.first_name?.[0]?.toUpperCase()}{profile?.last_name?.[0]?.toUpperCase()}
+              <View className='h-full w-full items-center justify-center'>
+                <Text className='text-white text-7xl font-poppinsSemiBold text-center leading-none'>
+                  {avatarInitials || 'U'}
                 </Text>
               </View>
             )}
