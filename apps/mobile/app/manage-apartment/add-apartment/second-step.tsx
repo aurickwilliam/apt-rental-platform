@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
+import { MapView, Camera, PointAnnotation, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
@@ -15,6 +16,8 @@ import { COLORS, APARTMENT_TYPES, PROVINCES } from '@repo/constants'
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native'
 
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+
+setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
 
 // Field-level error shape
 interface FormErrors {
@@ -49,6 +52,8 @@ export default function SecondStep() {
     maxOccupants,
     floorArea,
     setField,
+    longitude,
+    latitude,
   } = useApartmentFormStore()
 
   const maxValue = 10
@@ -215,11 +220,49 @@ export default function SecondStep() {
 
           {/* Map Button */}
           <TouchableOpacity
-            className='bg-amber-200 rounded-2xl h-52 w-full'
+            className='rounded-2xl h-52 w-full overflow-hidden'
             onPress={() => router.push('/manage-apartment/add-apartment/map-pin')}
+            activeOpacity={0.85}
           >
-            {/* Map API */}
+            {latitude && longitude ? (
+              <View style={{ flex: 1 }} pointerEvents='none'>
+                <MapView
+                  style={{ flex: 1 }}
+                  mapStyle='https://demotiles.maplibre.org/style.json'
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  rotateEnabled={false}
+                  pitchEnabled={false}
+                >
+                  <Camera
+                    centerCoordinate={[longitude, latitude]}
+                    zoomLevel={14}
+                  />
+                  <PointAnnotation
+                    id='preview-pin'
+                    coordinate={[longitude, latitude]}
+                  >
+                    <View className='w-4 h-4 bg-primary rounded-full border-2 border-white' />
+                  </PointAnnotation>
+                </MapView>
+              </View>
+            ) : (
+              <View className='flex-1 bg-amber-200 rounded-2xl items-center justify-center'>
+                <Text className='text-text font-interMedium'>Tap to pin location</Text>
+              </View>
+            )}
           </TouchableOpacity>
+
+          {latitude && longitude && (
+            <View className='flex-row justify-between px-1'>
+              <Text className='text-text text-sm font-inter'>
+                Lat: {latitude.toFixed(6)}
+              </Text>
+              <Text className='text-text text-sm font-inter'>
+                Lng: {longitude.toFixed(6)}
+              </Text>
+            </View>
+          )}
 
           <CheckBox
             label='I confirm that the pin location is correct'

@@ -22,6 +22,8 @@ export interface ApartmentFormData {
   bathrooms: number
   kitchens: number
   maxOccupants: number
+  latitude: number | null
+  longitude: number | null
 
   // Step 3
   monthlyRent: string
@@ -66,6 +68,9 @@ const initialState: ApartmentFormData = {
   bathrooms: 1,
   kitchens: 1,
   maxOccupants: 1,
+
+  latitude: null,
+  longitude: null,
 
   monthlyRent: '',
   securityDeposit: '',
