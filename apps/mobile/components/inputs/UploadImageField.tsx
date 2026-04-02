@@ -19,6 +19,7 @@ interface UploadImageFieldProps {
   images: ImagePicker.ImagePickerAsset[]
   onAdd: (image: ImagePicker.ImagePickerAsset) => void
   onRemove: (uri: string) => void
+  error?: string
 }
 
 export default function UploadImageField({
@@ -28,6 +29,7 @@ export default function UploadImageField({
   images,
   onAdd,
   onRemove,
+  error,
 }: UploadImageFieldProps) {
   const [loading, setLoading] = useState(false)
 
@@ -96,7 +98,11 @@ export default function UploadImageField({
         <TouchableOpacity
           onPress={pickImage}
           disabled={loading}
-          style={[styles.uploadButton, loading && styles.uploadButtonDisabled]}
+          style={[
+            styles.uploadButton, 
+            loading && styles.uploadButtonDisabled,
+            !!error && styles.uploadButtonError,
+          ]}
         >
           {loading ? (
             <ActivityIndicator size='small' color={COLORS.primary} />
@@ -109,6 +115,11 @@ export default function UploadImageField({
             </>
           )}
         </TouchableOpacity>
+      )}
+
+      {/* Error message */}
+      {!!error && (
+        <Text style={styles.errorText}>{error}</Text>
       )}
 
       {/* Replace button shown in single mode when image is already set */}
@@ -170,5 +181,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.primary,
     fontWeight: '500',
+  },
+  uploadButtonError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#EF4444',
+    fontWeight: '400',
   },
 })

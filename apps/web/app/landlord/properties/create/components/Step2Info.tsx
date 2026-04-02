@@ -4,23 +4,13 @@ import { useCallback } from "react";
 import { Input, Select, SelectItem, NumberInput } from "@heroui/react";
 import type { ApartmentFormData, FormErrors } from "../page";
 import dynamic from "next/dynamic";
-import { PROVINCES } from "@repo/constants";
+import { PROVINCES, APARTMENT_TYPES } from "@repo/constants";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
   errors: FormErrors;
 }
-
-const APARTMENT_TYPES = [
-  "Studio",
-  "Condo Unit",
-  "House",
-  "Apartment",
-  "Townhouse",
-  "Boarding House / Room",
-  "Bedspace",
-];
 
 const FURNISHED_TYPES = ["Fully Furnished", "Semi-Furnished", "Unfurnished"];
 

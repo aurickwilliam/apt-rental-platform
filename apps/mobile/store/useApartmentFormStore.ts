@@ -3,29 +3,32 @@ import { ImagePickerAsset } from 'expo-image-picker'
 
 // Extend each step's slice as you build them out
 export interface ApartmentFormData {
-  // Step 1 — Photos & Title
+  // Step 1
   name: string
   thumbnail: ImagePickerAsset | null
   additionalPhotos: ImagePickerAsset[]
 
-  // Step 2 — Basic Info (fill in as you build step 2)
-  description: string
-  address: string
-  city: string
+  // Step 2
+  apartmentType: string
+  streetName: string
   barangay: string
+  city: string
+  province: string
+  postalCode: string
+  mapConfirmed: boolean
+  furnishingType: string
+  floorArea: string
+  bedrooms: number
+  bathrooms: number
+  kitchens: number
+  maxOccupants: number
+
+  // Step 3
   monthlyRent: string
   securityDeposit: string
 
-  // Step 3 — Property Details
-  bedrooms: string
-  bathrooms: string
-  floorArea: string
-  furnished: boolean
-
-  // Step 4 — Amenities & Perks
+  // Step 4
   amenities: string[]
-
-  // Step 5 — Review (no extra fields needed)
 }
 
 interface ApartmentFormActions {
@@ -49,16 +52,24 @@ const initialState: ApartmentFormData = {
   name: '',
   thumbnail: null,
   additionalPhotos: [],
-  description: '',
-  address: '',
-  city: '',
+
+  apartmentType: '',
+  streetName: '',
   barangay: '',
+  city: '',
+  province: '',
+  postalCode: '',
+  mapConfirmed: false,
+  furnishingType: '',
+  floorArea: '',
+  bedrooms: 1,
+  bathrooms: 1,
+  kitchens: 1,
+  maxOccupants: 1,
+
   monthlyRent: '',
   securityDeposit: '',
-  bedrooms: '',
-  bathrooms: '',
-  floorArea: '',
-  furnished: false,
+
   amenities: [],
 }
 
