@@ -1,46 +1,87 @@
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useState } from 'react'
+import { MapView, Camera, PointAnnotation, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
 import PillButton from '@/components/buttons/PillButton'
-
-import {
-  IconMapPinFilled
-} from '@tabler/icons-react-native'
-
 import { COLORS } from '@repo/constants'
+import { useApartmentFormStore } from '@/store/useApartmentFormStore'
 
-const MAP_PIN_ICON_SIZE = 48;
+// Suppress the missing API key warning since we're using free OSM tiles
+setAccessToken(null)
+
+const DEFAULT_COORDS = {
+  latitude: 14.5995,   // Manila
+  longitude: 120.9842,
+}
 
 export default function MapPin() {
-  const router = useRouter();
+  const router = useRouter()
+  const { latitude, longitude, setField } = useApartmentFormStore()
+
+  const [markerCoords, setMarkerCoords] = useState({
+    latitude: latitude ?? DEFAULT_COORDS.latitude,
+    longitude: longitude ?? DEFAULT_COORDS.longitude,
+  })
+
+  const handleMapPress = (e: GeoJSON.Feature<GeoJSON.Geometry>) => {
+    if (e.geometry.type !== 'Point') return
+    const [lng, lat] = e.geometry.coordinates as [number, number]
+    setMarkerCoords({ latitude: lat, longitude: lng })
+  }
+
+  const handleConfirm = () => {
+    setField('latitude', markerCoords.latitude)
+    setField('longitude', markerCoords.longitude)
+    setField('mapConfirmed', true)
+    router.back()
+  }
 
   return (
-    <ScreenWrapper
-      header={
-        <StandardHeader title="Set Location" />
-      }
-
-    >
-      {/* Map API */}
-      <View className='flex-1 bg-amber-200'>
-        <View className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
-          <IconMapPinFilled 
-            size={MAP_PIN_ICON_SIZE} 
-            color={COLORS.primary} 
+    <ScreenWrapper backgroundColor={COLORS.darkerWhite}>
+      <View className='flex-1'>
+        <MapView
+          style={{ flex: 1 }}
+          mapStyle='https://demotiles.maplibre.org/style.json'
+          onPress={handleMapPress}
+        >
+          <Camera
+            centerCoordinate={[markerCoords.longitude, markerCoords.latitude]}
+            zoomLevel={14}
           />
-        </View>
-
-        <View className='absolute bottom-0 right-0 left-0 p-5'>
-          <PillButton 
-            label='Save'
-            isFullWidth
-            onPress={() => {
-              // Handle saving the location (for now, just log to the console)
-              console.log("Location Saved");
-              router.back();
+          <PointAnnotation
+            id='pin'
+            coordinate={[markerCoords.longitude, markerCoords.latitude]}
+            draggable
+            onDragEnd={(e) => {
+              const [lng, lat] = e.geometry.coordinates
+              setMarkerCoords({ latitude: lat, longitude: lng })
             }}
+          >
+            <View className='w-4 h-4 bg-primary rounded-full border-2 border-white' />
+          </PointAnnotation>
+        </MapView>
+
+        {/* Coordinates preview + confirm */}
+        <View className='p-5 gap-4'>
+          <View className='flex-row justify-between'>
+            <Text className='text-text font-interMedium'>Latitude:</Text>
+            <Text className='text-text font-inter'>
+              {markerCoords.latitude.toFixed(6)}
+            </Text>
+          </View>
+          <View className='flex-row justify-between'>
+            <Text className='text-text font-interMedium'>Longitude:</Text>
+            <Text className='text-text font-inter'>
+              {markerCoords.longitude.toFixed(6)}
+            </Text>
+          </View>
+
+          <PillButton
+            label='Confirm Location'
+            isFullWidth
+            onPress={handleConfirm}
           />
         </View>
       </View>
