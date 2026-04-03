@@ -11,7 +11,7 @@ import NumberField from '@/components/inputs/NumberField'
 import CheckBox from '@/components/buttons/CheckBox'
 import PillButton from '@/components/buttons/PillButton'
 
-import { COLORS, APARTMENT_TYPES, PROVINCES } from '@repo/constants'
+import { COLORS, APARTMENT_TYPES, PROVINCES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants'
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native'
 
@@ -30,6 +30,8 @@ interface FormErrors {
   floorArea?: string
   furnishingType?: string
   mapConfirmed?: string
+  floorLevel?: string
+  leaseDuration?: string
 }
 
 const MAP_STYLE = {
@@ -85,6 +87,8 @@ export default function SecondStep() {
     setField,
     longitude,
     latitude,
+    floorLevel,
+    leaseDuration,
   } = useApartmentFormStore()
 
   const maxValue = 10
@@ -121,6 +125,8 @@ export default function SecondStep() {
     if (!floorArea.trim()) errs.floorArea = 'Floor area is required'
     if (!furnishingType) errs.furnishingType = 'Furnishing type is required'
     if (!mapConfirmed) errs.mapConfirmed = 'Please confirm the pin location'
+    if (!floorLevel) errs.floorLevel = 'Floor level is required'
+    if (!leaseDuration) errs.leaseDuration = 'Lease duration is required'
 
     return errs;
   }
@@ -148,28 +154,171 @@ export default function SecondStep() {
 
       <View className='p-5'>
         {/* Name and Type */}
-        <View className='flex gap-3'>
-          <TextField
-            label='Apartment Name:'
-            required
-            placeholder='Enter apartment name'
-            disabled
-            value={name}
-          />
 
-          <DropdownField
-            label='Apartment Type:'
-            required
-            placeholder='Select apartment type'
-            options={APARTMENT_TYPES}
-            bottomSheetLabel={'Select Apartment Type'}
-            value={apartmentType}
-            error={errors.apartmentType}
-            onSelect={(value) => {
-              setField('apartmentType', value)
-              clearError('apartmentType')
-            }}
-          />
+        {/* Apartment Details */}
+        <View className='flex'>
+          <Text className='text-text text-xl font-poppinsMedium'>Apartment Details</Text>
+
+          <View className='flex gap-3 mt-3'>
+            <TextField
+              label='Apartment Name:'
+              required
+              placeholder='Enter apartment name'
+              disabled
+              value={name}
+            />
+
+            <DropdownField
+              label='Property Type:'
+              required
+              placeholder='Select property type'
+              options={APARTMENT_TYPES}
+              bottomSheetLabel={'Select Apartment Type'}
+              value={apartmentType}
+              error={errors.apartmentType}
+              onSelect={(value) => {
+                setField('apartmentType', value)
+                clearError('apartmentType')
+              }}
+            />
+          </View>
+
+          <View className='flex gap-3 mt-3'>
+            <NumberField
+              label='Floor Area (sqm):'
+              required
+              placeholder='Enter floor area'
+              value={floorArea}
+              error={errors.floorArea}
+              onChange={(value) => {
+                setField('floorArea', value)
+                clearError('floorArea')
+              }}
+            />
+
+            <DropdownField
+              label='Furnished Type:'
+              required
+              placeholder='Select furnishing type'
+              options={FURNISHED_TYPES}
+              bottomSheetLabel={'Select Furnishing Type'}
+              value={furnishingType}
+              error={errors.furnishingType}
+              onSelect={(value) => {
+                setField('furnishingType', value)
+                clearError('furnishingType')
+              }}
+            />
+
+            <DropdownField
+              label='Floor Level:'
+              required
+              placeholder='Select floor level'
+              options={FLOOR_LEVELS}
+              bottomSheetLabel={'Select Floor Level'}
+              value={floorLevel}
+              error={errors.floorLevel}
+              onSelect={(value) => {
+                setField('floorLevel', value)
+                clearError('floorLevel')
+              }}
+            />
+
+            <DropdownField
+              label='Lease Duration:'
+              required
+              placeholder='Select lease duration'
+              options={LEASE_DURATIONS}
+              bottomSheetLabel={'Select Lease Duration'}
+              value={leaseDuration}
+              error={errors.leaseDuration}
+              onSelect={(value) => {
+                setField('leaseDuration', value)
+                clearError('leaseDuration')
+              }}
+            />
+          </View>
+
+          {/* Bathrooms */}
+          <View className='flex-row items-center justify-between mt-5'>
+            <Text className='text-text text-lg font-interMedium'>Bathrooms:</Text>
+            <View className='flex-row items-center gap-7'>
+              <TouchableOpacity 
+                onPress={() => handleSubtract('bathrooms')}
+                disabled={bathrooms <= minValue}
+                style={{opacity: bathrooms <= minValue ? 0.3 : 1}}
+              >
+                <IconCircleMinus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+
+              <Text className='text-text text-xl font-interMedium'>{bathrooms}</Text>
+
+              <TouchableOpacity onPress={() => handleAdd('bathrooms')}>
+                <IconCirclePlus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Kitchens */}
+          <View className='flex-row items-center justify-between mt-5'>
+            <Text className='text-text text-lg font-interMedium'>Kitchens:</Text>
+            <View className='flex-row items-center gap-7'>
+              <TouchableOpacity 
+                onPress={() => handleSubtract('kitchens')}
+                disabled={kitchens <= minValue}
+                style={{opacity: kitchens <= minValue ? 0.3 : 1}}
+              >
+                <IconCircleMinus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+
+              <Text className='text-text text-xl font-interMedium'>{kitchens}</Text>
+
+              <TouchableOpacity onPress={() => handleAdd('kitchens')}>
+                <IconCirclePlus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Bedrooms */}
+          <View className='flex-row items-center justify-between mt-5'>
+            <Text className='text-text text-lg font-interMedium'>Bedrooms:</Text>
+            <View className='flex-row items-center gap-7'>
+              <TouchableOpacity 
+                onPress={() => handleSubtract('bedrooms')}
+                disabled={bedrooms <= minValue}
+                style={{opacity: bedrooms <= minValue ? 0.3 : 1}}
+              >
+                <IconCircleMinus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+
+              <Text className='text-text text-xl font-interMedium'>{bedrooms}</Text>
+
+              <TouchableOpacity onPress={() => handleAdd('bedrooms')}>
+                <IconCirclePlus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Max Occupants */}
+          <View className='flex-row items-center justify-between mt-5'>
+            <Text className='text-text text-lg font-interMedium'>Max Occupants:</Text>
+            <View className='flex-row items-center gap-7'>
+              <TouchableOpacity 
+                onPress={() => handleSubtract('maxOccupants')}
+                disabled={maxOccupants <= minValue}
+                style={{opacity: maxOccupants <= minValue ? 0.3 : 1}}
+              >
+                <IconCircleMinus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+
+              <Text className='text-text text-xl font-interMedium'>{maxOccupants}</Text>
+
+              <TouchableOpacity onPress={() => handleAdd('maxOccupants')}>
+                <IconCirclePlus size={30} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
         </View>
 
         {/* Apartment Address */}
@@ -349,120 +498,6 @@ export default function SecondStep() {
           {errors.mapConfirmed && (
             <Text className='text-red-500 text-sm font-inter'>{errors.mapConfirmed}</Text>
           )}
-        </View>
-
-        {/* Apartment Details */}
-        <View className='flex mt-10'>
-          <Text className='text-text text-xl font-poppinsMedium'>Apartment Details</Text>
-
-          <View className='flex gap-3 mt-3'>
-            <NumberField
-              label='Floor Area (sqm):'
-              required
-              placeholder='Enter floor area'
-              value={floorArea}
-              error={errors.floorArea}
-              onChange={(value) => {
-                setField('floorArea', value)
-                clearError('floorArea')
-              }}
-            />
-
-            <DropdownField
-              label='Furnishing:'
-              required
-              placeholder='Select furnishing type'
-              options={['Fully Furnished', 'Semi-Furnished', 'Unfurnished']}
-              bottomSheetLabel={'Select Furnishing Type'}
-              value={furnishingType}
-              error={errors.furnishingType}
-              onSelect={(value) => {
-                setField('furnishingType', value)
-                clearError('furnishingType')
-              }}
-            />
-          </View>
-
-          {/* Bathrooms */}
-          <View className='flex-row items-center justify-between mt-10'>
-            <Text className='text-text text-lg font-interMedium'>Bathrooms:</Text>
-            <View className='flex-row items-center gap-7'>
-              <TouchableOpacity 
-                onPress={() => handleSubtract('bathrooms')}
-                disabled={bathrooms <= minValue}
-                style={{opacity: bathrooms <= minValue ? 0.3 : 1}}
-              >
-                <IconCircleMinus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>{bathrooms}</Text>
-
-              <TouchableOpacity onPress={() => handleAdd('bathrooms')}>
-                <IconCirclePlus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Kitchens */}
-          <View className='flex-row items-center justify-between mt-5'>
-            <Text className='text-text text-lg font-interMedium'>Kitchens:</Text>
-            <View className='flex-row items-center gap-7'>
-              <TouchableOpacity 
-                onPress={() => handleSubtract('kitchens')}
-                disabled={kitchens <= minValue}
-                style={{opacity: kitchens <= minValue ? 0.3 : 1}}
-              >
-                <IconCircleMinus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>{kitchens}</Text>
-
-              <TouchableOpacity onPress={() => handleAdd('kitchens')}>
-                <IconCirclePlus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Bedrooms */}
-          <View className='flex-row items-center justify-between mt-5'>
-            <Text className='text-text text-lg font-interMedium'>Bedrooms:</Text>
-            <View className='flex-row items-center gap-7'>
-              <TouchableOpacity 
-                onPress={() => handleSubtract('bedrooms')}
-                disabled={bedrooms <= minValue}
-                style={{opacity: bedrooms <= minValue ? 0.3 : 1}}
-              >
-                <IconCircleMinus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>{bedrooms}</Text>
-
-              <TouchableOpacity onPress={() => handleAdd('bedrooms')}>
-                <IconCirclePlus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Max Occupants */}
-          <View className='flex-row items-center justify-between mt-5'>
-            <Text className='text-text text-lg font-interMedium'>Max Occupants:</Text>
-            <View className='flex-row items-center gap-7'>
-              <TouchableOpacity 
-                onPress={() => handleSubtract('maxOccupants')}
-                disabled={maxOccupants <= minValue}
-                style={{opacity: maxOccupants <= minValue ? 0.3 : 1}}
-              >
-                <IconCircleMinus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>{maxOccupants}</Text>
-
-              <TouchableOpacity onPress={() => handleAdd('maxOccupants')}>
-                <IconCirclePlus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
         </View>
 
         {/* Back or Next Button */}

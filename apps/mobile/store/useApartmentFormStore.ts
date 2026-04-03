@@ -18,12 +18,14 @@ export interface ApartmentFormData {
   mapConfirmed: boolean
   furnishingType: string
   floorArea: string
+  floorLevel: string
   bedrooms: number
   bathrooms: number
   kitchens: number
   maxOccupants: number
   latitude: number | null
   longitude: number | null
+  leaseDuration: string
 
   // Step 3
   monthlyRent: string
@@ -64,13 +66,14 @@ const initialState: ApartmentFormData = {
   mapConfirmed: false,
   furnishingType: '',
   floorArea: '',
+  floorLevel: '',
   bedrooms: 1,
   bathrooms: 1,
   kitchens: 1,
   maxOccupants: 1,
-
   latitude: null,
   longitude: null,
+  leaseDuration: '',
 
   monthlyRent: '',
   securityDeposit: '',
