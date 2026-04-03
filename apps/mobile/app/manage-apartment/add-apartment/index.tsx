@@ -96,7 +96,8 @@ export default function Index() {
             images={thumbnail ? [thumbnail] : []}
             error={errors.thumbnail}
             onAdd={(image) => {
-              setThumbnail(image)
+              const asset = Array.isArray(image) ? image[0] : image
+              setThumbnail(asset)
               clearError('thumbnail')
             }}
             onRemove={() => setThumbnail(null)}
@@ -107,26 +108,29 @@ export default function Index() {
             required
             images={additionalPhotos}
             error={errors.additionalPhotos}
-            onAdd={(image) => {
-              addAdditionalPhoto(image)
-              const newCount = additionalPhotos.length + 1
-              if (newCount >= MIN_ADDITIONAL_PHOTOS) {
-                clearError('additionalPhotos')
-              } else if (errors.additionalPhotos) {
+            onAdd={(incoming) => {
+              const batch = Array.isArray(incoming) ? incoming : [incoming]
+              batch.forEach(addAdditionalPhoto)
+              const newCount = additionalPhotos.length + batch.length
+              if (newCount < MIN_ADDITIONAL_PHOTOS) {
                 setErrors((prev) => ({
                   ...prev,
-                  additionalPhotos: `At least ${MIN_ADDITIONAL_PHOTOS} additional photos are required (${newCount}/${MIN_ADDITIONAL_PHOTOS} added)`,
+                  additionalPhotos: `At least ${MIN_ADDITIONAL_PHOTOS} photos required (${newCount}/${MIN_ADDITIONAL_PHOTOS} added)`,
                 }))
+              } else {
+                clearError('additionalPhotos')
               }
             }}
             onRemove={(uri) => {
               removeAdditionalPhoto(uri)
-              // Re-validate count after removal
-              if (additionalPhotos.length - 1 < MIN_ADDITIONAL_PHOTOS) {
+              const newCount = additionalPhotos.length - 1
+              if (newCount < MIN_ADDITIONAL_PHOTOS) {
                 setErrors((prev) => ({
                   ...prev,
-                  additionalPhotos: `At least ${MIN_ADDITIONAL_PHOTOS} additional photos are required`,
+                  additionalPhotos: `At least ${MIN_ADDITIONAL_PHOTOS} additional photos are required (${newCount}/${MIN_ADDITIONAL_PHOTOS} added)`,
                 }))
+              } else {
+                clearError('additionalPhotos')
               }
             }}
           />

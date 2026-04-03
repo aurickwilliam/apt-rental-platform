@@ -5,8 +5,6 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  StyleSheet,
-  FlatList,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,10 +12,10 @@ import { COLORS } from '@repo/constants'
 
 interface UploadImageFieldProps {
   label: string
-  required?: boolean  
+  required?: boolean
   single?: boolean
   images: ImagePicker.ImagePickerAsset[]
-  onAdd: (image: ImagePicker.ImagePickerAsset) => void
+  onAdd: (images: ImagePicker.ImagePickerAsset | ImagePicker.ImagePickerAsset[]) => void
   onRemove: (uri: string) => void
   error?: string
 }
@@ -26,7 +24,7 @@ export default function UploadImageField({
   label,
   required,
   single = false,
-  images,
+  images = [],
   onAdd,
   onRemove,
   error,
@@ -39,7 +37,7 @@ export default function UploadImageField({
 
     setLoading(true)
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       allowsMultipleSelection: !single,
       quality: 0.8,
     })
@@ -47,50 +45,45 @@ export default function UploadImageField({
 
     if (result.canceled) return
 
-    // In single mode, replace; in multiple mode, append each selected asset
     if (single) {
+      // Single mode: pass one asset
       onAdd(result.assets[0])
     } else {
-      result.assets.forEach((asset) => onAdd(asset))
+      // Multiple mode: pass the full batch so the parent can count correctly
+      onAdd(result.assets)
     }
   }
 
   const showPicker = single ? images.length === 0 : true
 
   return (
-    <View className='gap-2'>
+    <View className="gap-2">
       {/* Label */}
-      <Text className='text-base font-semibold text-gray-700'>
+      <Text className="text-base font-semibold text-gray-700">
         {label}
-        {required && <Text className='text-red-500'> *</Text>}
+        {required && <Text className="text-red-500"> *</Text>}
       </Text>
 
       {/* Preview strip */}
       {images.length > 0 && (
-        <FlatList
-          data={images}
-          horizontal
-          keyExtractor={(item) => item.uri}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 3 }}
-          renderItem={({ item }) => (
-            <View style={styles.previewWrapper}>
+        <View className="flex-row flex-wrap gap-2 mt-1">
+          {images.map((item) => (
+            <View key={item.uri} className="relative flex-1 aspect-square" style={{ minWidth: '30%' }}>
               <Image
                 source={{ uri: item.uri }}
-                style={styles.previewImage}
+                className="w-full h-full rounded-xl"
                 resizeMode="cover"
               />
-
               <TouchableOpacity
-                style={styles.removeButton}
+                className="absolute -top-1.5 -right-1.5 rounded-full bg-black/45"
                 onPress={() => onRemove(item.uri)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 <Ionicons name="close-circle" size={20} color={COLORS.white} />
               </TouchableOpacity>
             </View>
-          )}
-        />
+          ))}
+        </View>
       )}
 
       {/* Upload button — hidden in single mode once an image is set */}
@@ -98,18 +91,20 @@ export default function UploadImageField({
         <TouchableOpacity
           onPress={pickImage}
           disabled={loading}
-          style={[
-            styles.uploadButton, 
-            loading && styles.uploadButtonDisabled,
-            !!error && styles.uploadButtonError,
-          ]}
+          className={[
+            'flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-[18px]',
+            error
+              ? 'border-red-500 bg-red-50'
+              : 'border-slate-300 bg-slate-50',
+            loading ? 'opacity-50' : 'opacity-100',
+          ].join(' ')}
         >
           {loading ? (
-            <ActivityIndicator size='small' color={COLORS.primary} />
+            <ActivityIndicator size="small" color={COLORS.primary} />
           ) : (
             <>
-              <Ionicons name='cloud-upload-outline' size={22} color={COLORS.primary} />
-              <Text style={styles.uploadText}>
+              <Ionicons name="cloud-upload-outline" size={22} color={COLORS.primary} />
+              <Text className="text-sm font-medium text-slate-500">
                 {single ? 'Choose photo' : 'Add photos'}
               </Text>
             </>
@@ -119,76 +114,18 @@ export default function UploadImageField({
 
       {/* Error message */}
       {!!error && (
-        <Text style={styles.errorText}>{error}</Text>
+        <Text className="text-xs text-red-500">{error}</Text>
       )}
 
       {/* Replace button shown in single mode when image is already set */}
       {single && images.length > 0 && (
-        <TouchableOpacity onPress={pickImage} style={styles.replaceButton}>
-          <Ionicons name='refresh-outline' size={16} color={COLORS.primary} />
-          <Text style={styles.replaceText}>Replace photo</Text>
+        <TouchableOpacity onPress={pickImage} className="flex-row items-center gap-1 self-start">
+          <Ionicons name="refresh-outline" size={16} color={COLORS.primary} />
+          <Text className="text-[13px] font-medium" style={{ color: COLORS.primary }}>
+            Replace photo
+          </Text>
         </TouchableOpacity>
       )}
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  previewWrapper: {
-    position: 'relative',
-    marginRight: 10,
-    marginTop: 8,
-  },
-  previewImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 99,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#CBD5E1',
-    borderRadius: 12,
-    paddingVertical: 18,
-    backgroundColor: '#F8FAFC',
-  },
-  uploadButtonDisabled: {
-    opacity: 0.5,
-  },
-  uploadText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748B',
-  },
-  replaceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-  },
-  replaceText: {
-    fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: '500',
-  },
-  uploadButtonError: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#EF4444',
-    fontWeight: '400',
-  },
-})
