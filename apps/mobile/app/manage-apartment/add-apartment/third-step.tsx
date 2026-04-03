@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 
@@ -111,6 +111,57 @@ export default function ThirdStep() {
               clearError('advanceRent')
             }}
           />
+
+          {/* Total Move-in Cost */}
+          {!!monthlyRent && (
+            <View className='flex gap-1 bg-white rounded-xl border border-gray-200  px-4 py-3'>
+              {/* Monthly Rent */}
+              <View className='flex-row items-center justify-between'>
+                <Text className='text-base font-inter text-text'>
+                  Monthly Rent:
+                </Text>
+                <Text className='text-base font-inter text-text'>
+                  ₱ {(Number(monthlyRent) || 0).toLocaleString()}
+                </Text>
+              </View>
+
+              {/* Security Deposit */}
+              <View className='flex-row items-center justify-between'>
+                <Text className='text-base font-inter text-text'>
+                  Security Deposit:
+                </Text>
+                <Text className='text-base font-inter text-text'>
+                  ₱ {(Number(securityDeposit) || 0).toLocaleString()}
+                </Text>
+              </View>
+
+              {/* Advance Rent */}
+              <View className='flex-row items-center justify-between'>
+                <Text className='text-base font-inter text-text'>
+                  Advance Rent:
+                </Text>
+                <Text className='text-base font-inter text-text'>
+                  ₱ {(Number(advanceRent) || 0).toLocaleString()}
+                </Text>
+              </View>
+
+              <Divider marginVertical={10} />
+
+              {/* Total Move-in Cost */}
+              <View className='flex-row items-center justify-between'>
+                <Text className='text-base font-interMedium text-text'>
+                  Total Move-in Cost:
+                </Text>
+                <Text className='text-base font-interMedium text-primary'>
+                  ₱ {(
+                    (Number(monthlyRent) || 0) +
+                    (Number(securityDeposit) || 0) +
+                    (Number(advanceRent) || 0)
+                  ).toLocaleString()}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         <Divider />
