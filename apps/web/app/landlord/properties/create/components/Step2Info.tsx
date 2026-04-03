@@ -4,33 +4,13 @@ import { useCallback } from "react";
 import { Input, Select, SelectItem, NumberInput } from "@heroui/react";
 import type { ApartmentFormData, FormErrors } from "../page";
 import dynamic from "next/dynamic";
-import { PROVINCES, APARTMENT_TYPES } from "@repo/constants";
+import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
 
 interface Props {
   formData: ApartmentFormData;
   updateForm: (updates: Partial<ApartmentFormData>) => void;
   errors: FormErrors;
 }
-
-const FURNISHED_TYPES = ["Fully Furnished", "Semi-Furnished", "Unfurnished"];
-
-const FLOOR_LEVELS = [
-  "Ground Floor",
-  "Low Floor (1–5F)",
-  "Mid Floor (6–15F)",
-  "High Floor (16F+)",
-  "Penthouse",
-  "N/A",
-];
-
-const LEASE_DURATIONS = [
-  "Monthly",
-  "3 Months",
-  "6 Months",
-  "1 Year",
-  "2 Years",
-  "Negotiable",
-];
 
 export default function Step2Info({ formData, updateForm, errors }: Props) {
   const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
