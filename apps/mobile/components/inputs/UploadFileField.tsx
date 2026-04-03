@@ -6,7 +6,7 @@ import PillButton from 'components/buttons/PillButton'
 import { COLORS } from '@repo/constants'
 import { IconFileUpload, IconFile, IconX } from '@tabler/icons-react-native'
 
-interface UploadGeneralFileFieldProps {
+interface UploadFileFieldProps {
   label: string
   placeholder?: string
   onChange?: (uri: string) => void
@@ -14,9 +14,10 @@ interface UploadGeneralFileFieldProps {
   disabled?: boolean
   error?: string
   required?: boolean
+  acceptedTypes?: string[]
 }
 
-export default function UploadGeneralFileField({
+export default function UploadFileField({
   label,
   placeholder,
   onChange,
@@ -24,7 +25,12 @@ export default function UploadGeneralFileField({
   disabled,
   error,
   required,
-}: UploadGeneralFileFieldProps) {
+  acceptedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ],
+}: UploadFileFieldProps) {
   const [fileName, setFileName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -34,6 +40,7 @@ export default function UploadGeneralFileField({
     setLoading(true)
     try {
       const result = await DocumentPicker.getDocumentAsync({
+        type: acceptedTypes,
         copyToCacheDirectory: true,
         multiple: false,
       })
