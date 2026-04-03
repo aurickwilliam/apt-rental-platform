@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { MapView, Camera, PointAnnotation, setAccessToken } from '@maplibre/maplibre-react-native'
+import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
@@ -30,6 +30,37 @@ interface FormErrors {
   floorArea?: string
   furnishingType?: string
   mapConfirmed?: string
+}
+
+const MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+}
+
+const DEFAULT_COORDS = {
+  latitude: 14.6700,
+  longitude: 120.9600,
 }
 
 export default function SecondStep() {
@@ -224,33 +255,75 @@ export default function SecondStep() {
             onPress={() => router.push('/manage-apartment/add-apartment/map-pin')}
             activeOpacity={0.85}
           >
-            {latitude && longitude ? (
-              <View style={{ flex: 1 }} pointerEvents='none'>
-                <MapView
-                  style={{ flex: 1 }}
-                  mapStyle='https://demotiles.maplibre.org/style.json'
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  rotateEnabled={false}
-                  pitchEnabled={false}
-                >
-                  <Camera
-                    centerCoordinate={[longitude, latitude]}
-                    zoomLevel={14}
-                  />
-                  <PointAnnotation
-                    id='preview-pin'
-                    coordinate={[longitude, latitude]}
+            <View style={{ flex: 1 }} pointerEvents='none'>
+              <MapView
+                style={{ flex: 1 }}
+                mapStyle={MAP_STYLE}
+                scrollEnabled={false}
+                zoomEnabled={false}
+                rotateEnabled={false}
+                pitchEnabled={false}
+              >
+                <Camera
+                  centerCoordinate={[
+                    longitude ?? DEFAULT_COORDS.longitude,
+                    latitude ?? DEFAULT_COORDS.latitude,
+                  ]}
+                  zoomLevel={15}
+                  animationDuration={0}
+                  maxZoomLevel={19}
+                />
+
+                {/* Only show pin if location has been confirmed */}
+                {latitude && longitude && (
+                  <ShapeSource
+                    id='pin-source'
+                    shape={{
+                      type: 'Feature',
+                      geometry: {
+                        type: 'Point',
+                        coordinates: [longitude, latitude],
+                      },
+                      properties: {},
+                    }}
                   >
-                    <View className='w-4 h-4 bg-primary rounded-full border-2 border-white' />
-                  </PointAnnotation>
-                </MapView>
-              </View>
-            ) : (
-              <View className='flex-1 bg-amber-200 rounded-2xl items-center justify-center'>
-                <Text className='text-text font-interMedium'>Tap to pin location</Text>
-              </View>
-            )}
+                    <CircleLayer
+                      id='pin-ring'
+                      style={{
+                        circleRadius: 10,
+                        circleColor: '#ffffff',
+                      }}
+                    />
+                    <CircleLayer
+                      id='pin-dot'
+                      style={{
+                        circleRadius: 7,
+                        circleColor: COLORS.primary,
+                      }}
+                    />
+                  </ShapeSource>
+                )}
+              </MapView>
+
+              {/* Overlay hint when no location is set yet */}
+              {!latitude && !longitude && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 12,
+                    alignSelf: 'center',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    paddingHorizontal: 14,
+                    paddingVertical: 6,
+                    borderRadius: 20,
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontFamily: 'InterMedium', fontSize: 13 }}>
+                    Tap to pin location
+                  </Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
 
           {latitude && longitude && (
