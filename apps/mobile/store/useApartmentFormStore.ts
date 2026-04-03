@@ -27,9 +27,10 @@ export interface ApartmentFormData {
   longitude: number | null
   leaseDuration: string
 
-  // Step 3
   monthlyRent: string
   securityDeposit: string
+  advanceRent: string                        
+  leaseAgreement: string   
 
   // Step 4
   amenities: string[]
@@ -43,13 +44,14 @@ interface ApartmentFormActions {
   removeAdditionalPhoto: (uri: string) => void
 
   // Step 2
-  setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void
+  setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void  
 
   // Step 4
   toggleAmenity: (amenity: string) => void
 
   // Utility
   reset: () => void
+  
 }
 
 const initialState: ApartmentFormData = {
@@ -77,6 +79,8 @@ const initialState: ApartmentFormData = {
 
   monthlyRent: '',
   securityDeposit: '',
+  advanceRent: '',
+  leaseAgreement: '',
 
   amenities: [],
 }
