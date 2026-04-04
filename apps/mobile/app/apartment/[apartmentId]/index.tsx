@@ -506,8 +506,6 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           className='flex items-start justify-between gap-3'
           edges={['bottom']}
         >
-          
-
           <View className='flex-1 flex-row gap-5 items-center'>
             <View className='flex-row items-center'>
               <Text className='text-3xl font-poppinsSemiBold text-primary'>

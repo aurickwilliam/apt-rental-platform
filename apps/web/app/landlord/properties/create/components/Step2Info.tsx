@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import { Input, Select, SelectItem, NumberInput } from "@heroui/react";
+import { Input, Select, SelectItem, NumberInput, Checkbox } from "@heroui/react";
 import type { ApartmentFormData, FormErrors } from "../page";
 import dynamic from "next/dynamic";
-import { PROVINCES } from "@repo/constants";
+import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
+
 
 interface Props {
   formData: ApartmentFormData;
@@ -12,41 +13,15 @@ interface Props {
   errors: FormErrors;
 }
 
-const APARTMENT_TYPES = [
-  "Studio",
-  "Condo Unit",
-  "House",
-  "Apartment",
-  "Townhouse",
-  "Boarding House / Room",
-  "Bedspace",
-];
-
-const FURNISHED_TYPES = ["Fully Furnished", "Semi-Furnished", "Unfurnished"];
-
-const FLOOR_LEVELS = [
-  "Ground Floor",
-  "Low Floor (1–5F)",
-  "Mid Floor (6–15F)",
-  "High Floor (16F+)",
-  "Penthouse",
-  "N/A",
-];
-
-const LEASE_DURATIONS = [
-  "Monthly",
-  "3 Months",
-  "6 Months",
-  "1 Year",
-  "2 Years",
-  "Negotiable",
-];
-
 export default function Step2Info({ formData, updateForm, errors }: Props) {
   const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
   const handlePick = useCallback(
-    (lat: number, lng: number) => updateForm({ latitude: lat, longitude: lng }),
+    (lat: number, lng: number) => updateForm({ 
+      latitude: lat, 
+      longitude: lng,
+      isPinConfirmed: false,
+    }),
     [updateForm]
   );
 
@@ -320,9 +295,9 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             type="number"
             placeholder="e.g. 14.5995"
             value={formData.latitude !== null ? formData.latitude : 0}
-            onValueChange={(value) =>
-              updateForm({ latitude: value ? value : null })
-            }
+            onValueChange={(value) => {
+              updateForm({ latitude: value ? value : null, isPinConfirmed: false });
+            }}
             radius="lg"
             variant="bordered"
             classNames={{
@@ -338,17 +313,17 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             type="number"
             placeholder="e.g. 120.9842"
             value={formData.longitude !== null ? formData.longitude : 0}
-            onValueChange={(value) =>
-              updateForm({ longitude: value ? value : null })
-            }
+            onValueChange={(value) => {
+              updateForm({ longitude: value ? value : null, isPinConfirmed: false });
+            }}
             radius="lg"
             variant="bordered"
             classNames={{
               inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
             }}
             hideStepper
-            isInvalid={!!errors.latitude}
-            errorMessage={errors.latitude}
+            isInvalid={!!errors.longitude}
+            errorMessage={errors.longitude}
           />
         </div>
 
@@ -359,6 +334,22 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
           error={errors.latitude}
         />
 
+        {/* Pin Confirmation Checkbox */}
+        {formData.latitude !== null && formData.longitude !== null && (
+          <Checkbox
+            isSelected={formData.isPinConfirmed ?? false}
+            onValueChange={(checked) => updateForm({ isPinConfirmed: checked })}
+            isInvalid={!!errors.isPinConfirmed}
+            radius="sm"
+          >
+            <span className="text-sm text-grey-700">
+              I confirm that the pin location on the map is correct
+            </span>
+            {errors.isPinConfirmed && (
+              <p className="text-xs text-danger mt-0.5">{errors.isPinConfirmed}</p>
+            )}
+          </Checkbox>
+        )}
       </div>
     </div>
   );

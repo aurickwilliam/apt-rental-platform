@@ -34,6 +34,7 @@ export type ApartmentFormData = {
   zip_code: string;
   latitude: number | null;
   longitude: number | null;
+  isPinConfirmed: boolean;
   // Step 3
   monthly_rent: number;
   security_deposit: number;
@@ -62,6 +63,7 @@ const INITIAL_FORM: ApartmentFormData = {
   zip_code: "",
   latitude: null,
   longitude: null,
+  isPinConfirmed: false,
   monthly_rent: 0,
   security_deposit: 0,
   advance_rent: 0,
@@ -228,7 +230,12 @@ export default function CreateApartmentPage() {
       if (!data.city.trim()) errors.city = "City is required.";
       if (!data.province.trim()) errors.province = "Province is required.";
       if (!data.zip_code.trim()) errors.zip_code = "Zip code is required.";
-      if (!data.latitude || !data.longitude) errors.latitude = "Please pin your property location on the map.";
+      
+      if (!data.latitude || !data.longitude) {
+        errors.latitude = "Please pin your property location on the map.";
+      } else if (!data.isPinConfirmed) {
+        errors.isPinConfirmed = "Please confirm your pinned location.";
+      }
     }
 
     if (step === 3) {

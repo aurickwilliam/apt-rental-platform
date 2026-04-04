@@ -62,6 +62,7 @@ export type Database = {
           id: string
           landlord_id: string | null
           latitude: number | null
+          lease_agreement_url: string | null
           lease_duration: string | null
           longitude: number | null
           max_occupants: number | null
@@ -94,6 +95,7 @@ export type Database = {
           id?: string
           landlord_id?: string | null
           latitude?: number | null
+          lease_agreement_url?: string | null
           lease_duration?: string | null
           longitude?: number | null
           max_occupants?: number | null
@@ -126,6 +128,7 @@ export type Database = {
           id?: string
           landlord_id?: string | null
           latitude?: number | null
+          lease_agreement_url?: string | null
           lease_duration?: string | null
           longitude?: number | null
           max_occupants?: number | null
