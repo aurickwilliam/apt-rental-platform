@@ -1,7 +1,9 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, Animated, Dimensions } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Image, Animated, Dimensions, ActivityIndicator } from 'react-native'
+import ImageViewing from 'react-native-image-viewing'
 import { useRef, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
@@ -10,7 +12,6 @@ import PerkItem from '@/components/display/PerkItem'
 import LandlordCard from '@/components/display/LandlordCard'
 
 import { COLORS } from '@repo/constants'
-import { DEFAULT_IMAGES } from '@/constants/images'
 
 import {
   IconMapPin,
@@ -24,8 +25,49 @@ import {
   IconMap,
   IconUser,
   IconFileDescription,
+  IconUsers,
+  IconBuildingSkyscraper,
+  IconCalendar,
 } from '@tabler/icons-react-native'
-import ImageViewing from 'react-native-image-viewing'
+
+import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { formatCurrency } from '@repo/utils'
+import { useProfile } from '@/hooks/useProfile'
+import { useLandlordStats } from '@/hooks/useLandlordStats'
+
+setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
+
+const MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+}
+
+const DEFAULT_COORDS = {
+  latitude: 14.6700,
+  longitude: 120.9600,
+}
+
 
 export default function FifthStep() {
   const router = useRouter();
@@ -34,60 +76,55 @@ export default function FifthStep() {
   const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
   const [imageIndex, setImageIndex] = useState<number>(0);
 
+  const { profile, loading: profileLoading } = useProfile()
+  const { stats, loading: statsLoading } = useLandlordStats(profile?.id)
+
+  const isLoading = profileLoading || statsLoading;
+
   const { width } = Dimensions.get('window');
 
   // Refs for ScrollView
   const imageScrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  // Pull data from Zustand store
+  const {
+    name,
+    thumbnail,
+    additionalPhotos,
+    apartmentType,
+    streetName,
+    barangay,
+    city,
+    province,
+    bedrooms,
+    bathrooms,
+    floorArea,
+    amenities,
+    description,
+    monthlyRent,
+    latitude,
+    longitude,
+    maxOccupants,
+    floorLevel,
+    leaseDuration,
+  } = useApartmentFormStore();
+
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
     { useNativeDriver: false }
   );
-  
-  // Dummy Data for apartment images
+
+  // Build image list from thumbnail + additionalPhotos
   const apartmentImages = [
-    {id: 1, image: DEFAULT_IMAGES.defaultThumbnail},
-    {id: 2, image: DEFAULT_IMAGES.defaultThumbnail2},
-    {id: 3, image: DEFAULT_IMAGES.defaultThumbnail3},
-    {id: 4, image: DEFAULT_IMAGES.defaultThumbnail4},
-  ]
+    ...(thumbnail ? [{ id: 'thumbnail', uri: thumbnail.uri }] : []),
+    ...additionalPhotos.map((photo, index) => ({ id: `photo-${index}`, uri: photo.uri })),
+  ];
 
-  // Dummy Data for Apartment Details
-  const apartmentDetails = {
-    name: 'Sample Apartment',
-    type: 'Condominium',
-    ratings: '4.5',
-    location: 'Sample Location',
-    monthlyRent: 1200,
-    noBedroom: 2,
-    noBathroom: 1,
-    areaSqm: 85,
-    perks: [
-      'wifi',
-      'ac',
-      'tv',
-      'kitchen',
-      'parking',
-      'hotwater',
-      'bath'
-    ],
-    description: `Good day! I am renting out my 2-bedroom fully furnished apartment located in a safe and accessible area. The unit is on the 5th floor of a well-maintained building with 24/7 security and CCTV.
-
-The apartment includes a spacious living room with sofa set and TV, a dining area, and a modern kitchen equipped with a refrigerator, electric stove, microwave, and cabinets. Both bedrooms are air-conditioned and come with built-in closets. The master bedroom has its own bathroom, while there is also a separate common bathroom for guests.
-
-The unit has a balcony with good ventilation and natural lighting, and a dedicated laundry area with washing machine provision. Water and electricity are individually metered.
-
-The building is near malls, schools, hospitals, and public transportation, making it very convenient for working professionals or small families.
-
-Monthly Rent: ₱25,000
-Terms: 1 month advance + 2 months deposit
-Minimum stay: 6 months
-No pets / No smoking inside the unit
-
-Serious tenants only. Please message me for viewing and inquiries.`,
-    landlordId: 1,
-  };
+  // Build location string from address fields
+  const locationString = [streetName, barangay, city, province]
+    .filter(Boolean)
+    .join(', ');
 
   const handleViewFullImage = (index: number) => {
     setImageIndex(index);
@@ -98,17 +135,16 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     setIsReadMore(!isReadMore);
   }
 
-
   return (
     <ScreenWrapper
       scrollable
       backgroundColor={COLORS.darkerWhite}
     >
-      <ApplicationHeader 
-        currentTitle={'Preview & Publish'} 
-        nextTitle={'Publish the Apartment'} 
-        step={5}   
-        totalSteps={5}     
+      <ApplicationHeader
+        currentTitle={'Preview & Publish'}
+        nextTitle={'Publish the Apartment'}
+        step={5}
+        totalSteps={5}
       />
 
       <View className='h-[42rem] bg-white relative'>
@@ -121,26 +157,23 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           scrollEventThrottle={16}
           showsHorizontalScrollIndicator={false}
         >
-          {/* Render Individual Images */}
-          {
-            apartmentImages.map((item, index) => (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                className='w-screen h-full'
-                key={item.id}
-                onPress={() => handleViewFullImage(index)}
-              >
-                <Image
-                  source={item.image}
-                  style={{height: '100%', width:  '100%'}}
-                />
-              </TouchableOpacity>
-            ))
-          }
+          {apartmentImages.map((item, index) => (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              className='w-screen h-full'
+              key={item.id}
+              onPress={() => handleViewFullImage(index)}
+            >
+              <Image
+                source={{ uri: item.uri }}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
-        {/* Text Details on top of the Carousel*/}
-        {/* Linear Gradient Overlay*/}
+        {/* Text Details on top of the Carousel */}
+        {/* Linear Gradient Overlay */}
         <LinearGradient
           colors={['transparent', '#000000']}
           style={{
@@ -154,73 +187,77 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           }}
           pointerEvents='none'
         >
-
-          {/* Apartment Details*/}
+          {/* Apartment Details */}
           <View>
             <Text className='text-white font-poppinsSemiBold text-2xl'>
-              {apartmentDetails.name}
+              {name || 'Unnamed Apartment'}
             </Text>
 
             <View className='flex-row items-center mt-2 gap-2'>
-              <IconMapPin
-                size={24}
-                color={COLORS.lightLightLightGrey}
-              />
+              <IconMapPin size={24} color={COLORS.lightLightLightGrey} />
               <Text className='text-grey-100 font-interMedium text-base'>
-                {apartmentDetails.location}
+                {locationString || 'No location provided'}
               </Text>
             </View>
 
-            <View className='flex-row items-center justify-between mt-8 gap-6'>
+            <View className='flex-row items-center mt-5 gap-2'>
+              <IconStarFilled size={20} color={COLORS.secondary} />
+              <Text className='text-grey-100 font-interMedium text-base'>
+                No ratings yet
+              </Text>
+            </View>
+
+            <View className='flex-row items-center justify-between mt-5 gap-6'>
               <View className='flex-row items-center gap-2'>
-                <IconHome2
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
+                <IconBed size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.type}
+                  {bedrooms} {bedrooms === 1 ? 'Bed' : 'Beds'}
                 </Text>
               </View>
 
               <View className='flex-row items-center gap-2'>
-                <IconStarFilled
-                  size={20}
-                  color={COLORS.secondary}
-                />
+                <IconBath size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.ratings}  (70)
+                  {bathrooms} {bathrooms === 1 ? 'Bath' : 'Baths'}
+                </Text>
+              </View>
+
+              <View className='flex-row items-center gap-2'>
+                <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
+                <Text className='text-grey-100 font-interMedium text-base'>
+                  {floorArea ? `${floorArea} Sqm` : 'N/A'}
                 </Text>
               </View>
             </View>
 
-            <View className='flex-row items-center justify-between my-5 gap-6'>
-              <View className='flex-row items-center gap-2'>
-                <IconBed
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
+            <View className='flex-row mt-4 gap-6'>
+              <View className='flex-1 flex-row items-center gap-2'>
+                <IconUsers size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.noBedroom} Bedrooms
+                  Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
                 </Text>
               </View>
 
-              <View className='flex-row items-center gap-2'>
-                <IconBath
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
+              <View className='flex-1 flex-row items-center gap-2'>
+                <IconBuildingSkyscraper size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.noBathroom} Bathrooms
+                  {floorLevel ? `Floor ${floorLevel}` : 'N/A'}
+                </Text>
+              </View>
+            </View>
+
+            <View className='flex-row mt-4 mb-5 gap-6'>
+              <View className='flex-1 flex-row items-center gap-2'>
+                <IconHome2 size={24} color={COLORS.lightLightLightGrey} />
+                <Text className='text-grey-100 font-interMedium text-base'>
+                  {apartmentType || 'N/A'}
                 </Text>
               </View>
 
-              <View className='flex-row items-center gap-2'>
-                <IconMaximize
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
+              <View className='flex-1 flex-row items-center gap-2'>
+                <IconCalendar size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.areaSqm} Sqm
+                  {leaseDuration || 'N/A'}
                 </Text>
               </View>
             </View>
@@ -251,12 +288,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
                 <Animated.View
                   key={index}
                   className='h-2 bg-darkerWhite rounded mx-1'
-                  style={[
-                    {
-                      width: dotWidth,
-                      opacity,
-                    },
-                  ]}
+                  style={[{ width: dotWidth, opacity }]}
                 />
               );
             })}
@@ -266,10 +298,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
       {/* Apartment Description */}
       <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <IconBuildingCommunity
-          size={26}
-          color={COLORS.text}
-        />
+        <IconBuildingCommunity size={26} color={COLORS.text} />
         <Text className='font-poppinsSemiBold text-xl text-text'>
           Everything About Your Apartment
         </Text>
@@ -277,128 +306,157 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
       <View className='mt-3 mx-5 p-4 bg-white rounded-2xl'>
         <Text>
-          {
-            isReadMore
-            ? apartmentDetails.description
-            : `${apartmentDetails.description.slice(0, 500)}...`
-          }
+          {description
+            ? isReadMore
+              ? description
+              : `${description.slice(0, 500)}${description.length > 500 ? '...' : ''}`
+            : 'No description provided.'}
         </Text>
 
-        <View className='mt-5'>
-          <PillButton
-            label={isReadMore ? 'Read Less' : 'Read More'}
-            type='outline'
-            size='sm'
-            onPress={toggleReadMoreDescription}
-          />
-        </View>
+        {description.length > 500 && (
+          <View className='mt-5'>
+            <PillButton
+              label={isReadMore ? 'Read Less' : 'Read More'}
+              type='outline'
+              size='sm'
+              onPress={toggleReadMoreDescription}
+            />
+          </View>
+        )}
       </View>
 
       {/* Included Perks */}
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center justify-between'>
-          {/* Title */}
           <View className='flex-row items-center gap-2'>
-            <IconSquareCheck
-              size={26}
-              color={COLORS.text}
-            />
+            <IconSquareCheck size={26} color={COLORS.text} />
             <Text className='font-poppinsSemiBold text-xl text-text'>
               Included Perks
             </Text>
           </View>
 
-          {/* See All Button */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity activeOpacity={0.7}>
             <Text className='font-interMedium text-base text-primary'>
               See All
             </Text>
           </TouchableOpacity>
         </View>
 
-        <Text>
-          These are already included in your rent.
-        </Text>
+        <Text>These are already included in your rent.</Text>
       </View>
 
       {/* List of Perks */}
       <View className='flex-row flex-wrap px-5 mt-5'>
-        {apartmentDetails.perks.map(perkId => (
-          <View key={perkId} className='w-1/2 mb-4'>
-            <PerkItem perkId={perkId} />
-          </View>
-        ))}
+        {amenities.length > 0
+          ? amenities.map(perkId => (
+              <View key={perkId} className='w-1/2 mb-4'>
+                <PerkItem perkId={perkId} />
+              </View>
+            ))
+          : (
+            <Text className='text-text font-inter'>No amenities selected.</Text>
+          )
+        }
       </View>
 
       {/* Map View */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap
-          size={26}
-          color={COLORS.text}
-        />
+        <IconMap size={26} color={COLORS.text} />
         <Text className='font-poppinsSemiBold text-xl text-text'>
           View on Map
         </Text>
       </View>
 
       {/* Map */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'
-      >
-        {/* // TODO: Implement Google Maps API here */}
+      <View className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'>
+        <View style={{ flex: 1 }} pointerEvents='none'>
+          <MapView
+            style={{ flex: 1 }}
+            mapStyle={MAP_STYLE}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+          >
+            <Camera
+              centerCoordinate={[
+                longitude ?? DEFAULT_COORDS.longitude,
+                latitude ?? DEFAULT_COORDS.latitude
+              ]}
+              zoomLevel={15}
+              animationDuration={0}
+              maxZoomLevel={19}
+            />
 
-        <TouchableOpacity
-        activeOpacity={0.7}
-        className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
-        onPress={() => {
-          console.log("Get Directions was Pressed!");
-        }}
-        >
-          <Text className='font-interMedium text-base text-primary'>
-            Get Directions
-          </Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
+            {latitude && longitude && (
+              <ShapeSource
+                id='pin-source'
+                shape={{
+                  type: 'Feature',
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [longitude, latitude],
+                  },
+                  properties: {},
+                }}
+              >
+                <CircleLayer
+                  id='pin-ring'
+                  style={{
+                    circleRadius: 10,
+                    circleColor: '#ffffff',
+                  }}
+                />
+                <CircleLayer
+                  id='pin-dot'
+                  style={{
+                    circleRadius: 7,
+                    circleColor: COLORS.primary,
+                  }}
+                />
+              </ShapeSource>
+            )}
+          </MapView>
+        </View>
+      </View>
 
       {/* Landlord Card */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconUser
-          size={26}
-          color={COLORS.text}
-        />
+        <IconUser size={26} color={COLORS.text} />
         <Text className='font-poppinsSemiBold text-xl text-text'>
           Meet Your Rental Owner
         </Text>
       </View>
 
       <View className='px-5 mt-3'>
-        <LandlordCard
-          fullName={'John Doe'}
-          email={'johndoe@yahoo.com'}
-          phoneNumber={'09123456789'}
-          withRentalInfo
-          averageRating={4.5}
-          totalRentals={25}
-        />
+        {isLoading ? (
+          <View className='h-40 items-center justify-center'>
+            <ActivityIndicator color={COLORS.primary} />
+          </View>
+        ) : profile ? (
+          <LandlordCard
+            fullName={`${profile.first_name} ${profile.last_name}`}
+            email={profile.email ?? ''}
+            phoneNumber={profile.mobile_number}
+            profilePictureUrl={profile.avatar_url}
+            withRentalInfo
+            averageRating={stats.averageRating}
+            totalRentals={stats.totalProperties}
+          />
+        ) : null}
       </View>
 
       {/* Lease Agreement */}
-      <View className=' mt-10 px-5 flex gap-2'>
+      <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center gap-2'>
-          <IconFileDescription
-            size={26}
-            color={COLORS.text}
-          />
+          <IconFileDescription size={26} color={COLORS.text} />
           <Text className='font-poppinsSemiBold text-xl text-text'>
             Lease Agreement & Rules
           </Text>
         </View>
 
         <Text className='text-text text-base font-inter'>
-          Please review the rental owner’s property rules before applying.
+          Please review the rental owner&apos;s property rules before applying.
         </Text>
 
         <PillButton
@@ -408,11 +466,32 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         />
       </View>
 
-      {/* Back or Next Button */}
-      <View className='flex-row mt-20 gap-4 p-5'>
+      {/* Footer */}
+      <View className='bg-white mt-20 px-5 py-4 border border-grey-200'>
+        <View className='flex-row gap-5 items-center'>
+          <View className='flex-row items-center'>
+            <Text className='text-3xl font-poppinsSemiBold text-primary'>
+              ₱ {formatCurrency(Number(monthlyRent))}
+            </Text>
+            <Text className='text-base font-interMedium text-grey-500'>
+              /month
+            </Text>
+          </View>
+
+          <View className='flex-1'>
+            <PillButton
+              label='Apply Now'
+              size='md'
+              isDisabled
+            />
+          </View>
+        </View>
+      </View>
+
+      <View className='flex-row w-full gap-4 p-5'>
         <View className='flex-1'>
           <PillButton
-            label={'Back'}
+            label='Back'
             type='outline'
             isFullWidth
             onPress={() => router.back()}
@@ -420,7 +499,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         </View>
         <View className='flex-1'>
           <PillButton
-            label={'Publish'}
+            label='Publish'
             isFullWidth
             onPress={() => {
               router.push('/manage-apartment/add-apartment/success');
@@ -432,7 +511,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
       {/* Image Viewer */}
       <ImageViewing
         key={imageIndex}
-        images={apartmentImages.map(img => (img.image))}
+        images={apartmentImages.map(img => ({ uri: img.uri }))}
         imageIndex={imageIndex}
         visible={isImageViewVisible}
         onRequestClose={() => setIsImageViewVisible(false)}
