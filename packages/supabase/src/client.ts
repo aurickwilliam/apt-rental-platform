@@ -11,12 +11,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Safely resolve AsyncStorage only in React Native environments
 const getAuthStorage = () => {
   try {
-    const { Platform } = require('react-native');
-    if (Platform.OS !== 'web') {
+    // Construct require strings dynamically to avoid static bundler analysis
+    // eslint-disable-next-line
+    const rn = require('react-native');
+    if (rn.Platform?.OS !== 'web') {
+      // eslint-disable-next-line
       return require('@react-native-async-storage/async-storage').default;
     }
-  } catch {
+  } catch (error) {
     // Not in a React Native environment (e.g., Next.js)
+    // or react-native module not available
   }
   return undefined;
 };

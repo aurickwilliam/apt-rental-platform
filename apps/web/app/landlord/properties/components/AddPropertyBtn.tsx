@@ -7,7 +7,7 @@ export default function AddPropertyBtn(){
   return (
     <Button
       as={Link}
-      href="/properties/create"
+      href="/landlord/properties/create"
       variant="solid"
       color="primary"
       size="sm"
