@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 
 type UserProfile = {
+  id: string;
   first_name: string;
   last_name: string;
   email: string | null;
+  mobile_number: string;
   avatar_url: string | null;
   account_status: string;
   background_url: string | null;
@@ -21,8 +23,8 @@ export function useProfile() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('first_name, last_name, email, avatar_url, account_status, background_url')
-        .eq('user_id', user.id)  // user_id links to auth.users
+        .select('id, first_name, last_name, email, mobile_number, avatar_url, account_status, background_url')
+        .eq('user_id', user.id)
         .single();
 
       if (error) console.error(error);
