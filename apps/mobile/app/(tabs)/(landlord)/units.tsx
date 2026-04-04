@@ -22,12 +22,12 @@ import {
 import { COLORS } from '@repo/constants'
 import { supabase } from '@repo/supabase'
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance'
+type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
 
 type Apartment = {
   id: string
   name: string
-  street_address: string
+  barangay: string
   city: string
   status: ApartmentStatus
   coverUrl: string | null
@@ -77,7 +77,7 @@ export default function Units() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const statusOptions = ['All', 'Occupied', 'Available', 'Under Maintenance']
+  const statusOptions = ['All', 'Occupied', 'Available', 'Under Maintenance', 'Unverified']
   const locationOptions = ['All', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela']
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0])
@@ -102,7 +102,7 @@ export default function Units() {
         .select(`
           id,
           name,
-          street_address,
+          barangay,
           city,
           status,
           apartment_images (
@@ -119,12 +119,18 @@ export default function Units() {
       const mapped: Apartment[] = (data ?? []).map((apt) => {
         const images = apt.apartment_images ?? []
         const cover = images.find((img) => img.is_cover) ?? images[0] ?? null
+
+        const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified']
+        const status = validStatuses.includes(apt.status as ApartmentStatus)
+          ? (apt.status as ApartmentStatus)
+          : 'Unverified'
+
         return {
           id: apt.id,
           name: apt.name,
-          street_address: apt.street_address,
+          barangay: apt.barangay,
           city: apt.city,
-          status: apt.status as ApartmentStatus,
+          status,
           coverUrl: cover?.url ?? null,
         }
       })
@@ -161,7 +167,7 @@ export default function Units() {
       result = result.filter(
         (a) =>
           a.name.toLowerCase().includes(q) ||
-          a.street_address.toLowerCase().includes(q) ||
+          a.barangay.toLowerCase().includes(q) ||
           a.city.toLowerCase().includes(q)
       )
     }
@@ -267,7 +273,7 @@ export default function Units() {
               <PropertyCard
                 key={apt.id}
                 apartmentName={apt.name}          
-                address={apt.street_address}       
+                barangay={apt.barangay}       
                 city={apt.city}
                 status={apt.status}
                 thumbnailUrl={apt.coverUrl ?? undefined}

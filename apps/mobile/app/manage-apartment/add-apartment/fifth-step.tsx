@@ -31,9 +31,12 @@ import {
 } from '@tabler/icons-react-native'
 
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+
 import { formatCurrency } from '@repo/utils'
+
 import { useProfile } from '@/hooks/useProfile'
 import { useLandlordStats } from '@/hooks/useLandlordStats'
+import { usePublishApartment } from '@/hooks/usePublishApartment'
 
 setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
 
@@ -78,6 +81,11 @@ export default function FifthStep() {
 
   const { profile, loading: profileLoading } = useProfile()
   const { stats, loading: statsLoading } = useLandlordStats(profile?.id)
+  const { 
+    publish, 
+    loading: publishing, 
+    error: publishError 
+  } = usePublishApartment()
 
   const isLoading = profileLoading || statsLoading;
 
@@ -133,6 +141,13 @@ export default function FifthStep() {
 
   const toggleReadMoreDescription = () => {
     setIsReadMore(!isReadMore);
+  }
+
+  const handlePublish = async () => {
+    const success = await publish()
+    if (success) {
+      router.push('/manage-apartment/add-apartment/success')
+    }
   }
 
   return (
@@ -499,14 +514,20 @@ export default function FifthStep() {
         </View>
         <View className='flex-1'>
           <PillButton
-            label='Publish'
+            label={publishing ? 'Publishing...' : 'Publish'}
             isFullWidth
-            onPress={() => {
-              router.push('/manage-apartment/add-apartment/success');
-            }}
+            isDisabled={publishing}
+            onPress={handlePublish}
           />
         </View>
       </View>
+
+      {/* Optionally show the error */}
+      {publishError && (
+        <Text className='text-red-500 text-sm text-center mt-2'>
+          {publishError}
+        </Text>
+      )}
 
       {/* Image Viewer */}
       <ImageViewing
