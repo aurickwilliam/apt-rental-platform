@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { ImagePickerAsset } from 'expo-image-picker'
 
-// Extend each step's slice as you build them out
 export interface ApartmentFormData {
   // Step 1
   name: string
@@ -29,36 +28,29 @@ export interface ApartmentFormData {
 
   monthlyRent: string
   securityDeposit: string
-  advanceRent: string                        
-  leaseAgreement: string   
+  advanceRent: string
+  leaseAgreement: string
 
   // Step 4
+  description: string
   amenities: string[]
 }
 
 interface ApartmentFormActions {
-  // Step 1
   setName: (name: string) => void
   setThumbnail: (image: ImagePickerAsset | null) => void
   addAdditionalPhoto: (image: ImagePickerAsset) => void
   removeAdditionalPhoto: (uri: string) => void
-
-  // Step 2
-  setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void  
-
-  // Step 4
+  setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void
+  setDescription: (description: string) => void
   toggleAmenity: (amenity: string) => void
-
-  // Utility
   reset: () => void
-  
 }
 
 const initialState: ApartmentFormData = {
   name: '',
   thumbnail: null,
   additionalPhotos: [],
-
   apartmentType: '',
   streetName: '',
   barangay: '',
@@ -76,12 +68,11 @@ const initialState: ApartmentFormData = {
   latitude: null,
   longitude: null,
   leaseDuration: '',
-
   monthlyRent: '',
   securityDeposit: '',
   advanceRent: '',
   leaseAgreement: '',
-
+  description: '', 
   amenities: [],
 }
 
@@ -96,9 +87,8 @@ export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormAct
     set((state) => ({
       additionalPhotos: state.additionalPhotos.filter((p) => p.uri !== uri),
     })),
-
-  // Generic setter for simple string/bool/etc fields (handy for steps 2–3)
   setField: (key, value) => set({ [key]: value } as Pick<ApartmentFormData, typeof key>),
+  setDescription: (description) => set({ description }), 
 
   toggleAmenity: (amenity) =>
     set((state) => ({
