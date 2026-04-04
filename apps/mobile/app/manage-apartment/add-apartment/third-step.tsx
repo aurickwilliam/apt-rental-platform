@@ -178,12 +178,22 @@ export default function ThirdStep() {
           }}
         />
 
-        <View className='flex-row mt-auto gap-4'>
+        {/* Back or Next Button */}
+        <View className='flex-row mt-10 gap-4'>
           <View className='flex-1'>
-            <PillButton label='Back' type='outline' isFullWidth onPress={() => router.back()} />
+            <PillButton
+              label={'Back'}
+              type='outline'
+              isFullWidth
+              onPress={() => router.back()}
+            />
           </View>
           <View className='flex-1'>
-            <PillButton label='Next' isFullWidth onPress={handleNext} />
+            <PillButton
+              label={'Next'}
+              isFullWidth
+              onPress={handleNext}
+            />
           </View>
         </View>
       </View>
