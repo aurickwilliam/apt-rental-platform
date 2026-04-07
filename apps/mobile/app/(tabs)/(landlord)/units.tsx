@@ -193,7 +193,9 @@ export default function Units() {
           <Text className='text-white text-base font-poppinsMedium'>
             November Total Profit
           </Text>
-          <Text className='text-white text-4xl font-poppinsMedium'>₱ 12,000.00</Text>
+          <Text className='text-white text-4xl font-poppinsMedium'>
+            ₱ 12,000.00
+          </Text>
         </View>
 
         <View className='flex-row gap-3'>
