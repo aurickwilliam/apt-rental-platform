@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
@@ -21,101 +22,190 @@ import {
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
+import { supabase } from '@repo/supabase'
+
+type Apartment = {
+  id: string
+  name: string
+  description: string
+  monthly_rent: number
+  type: string
+  street_address: string
+  barangay: string
+  city: string
+  province: string
+  no_bedrooms: number
+  no_bathrooms: number
+  area_sqm: number
+  furnished_type: string | null
+  floor_level: string | null
+  max_occupants: number | null
+  lease_duration: string | null
+  amenities: string[]
+  lease_agreement_url: string | null
+  landlord: {
+    first_name: string
+    last_name: string
+  } | null
+}
+
+type ActiveTenancy = {
+  move_in_date: string
+  move_out_date: string | null
+  monthly_rent: number | null
+  tenant: {
+    first_name: string
+    last_name: string
+  } | null
+}
+
+function formatDate(dateStr: string | null | undefined) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
+function formatCurrency(amount: number | null | undefined) {
+  if (amount == null) return '—'
+  return `₱ ${Number(amount).toLocaleString('en-PH')}`
+}
 
 export default function Index() {
-  const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const router = useRouter()
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
 
+  const [apartment, setApartment] = useState<Apartment | null>(null)
+  const [tenancy, setTenancy] = useState<ActiveTenancy | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Dummy data for included perks
-  const includedPerks = [
-    'wifi',
-    'ac',
-    'tv',
-    'kitchen',
-    'parking',
-    'hotwater',
-    'bath'
-  ]
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+
+    // Fetch apartment + landlord profile
+    const { data: aptData, error: aptError } = await supabase
+      .from('apartments')
+      .select(`
+        id, name, description, monthly_rent, type,
+        street_address, barangay, city, province,
+        no_bedrooms, no_bathrooms, area_sqm,
+        furnished_type, floor_level, max_occupants,
+        lease_duration, amenities, lease_agreement_url,
+        landlord:landlord_id (
+          first_name,
+          last_name
+        )
+      `)
+      .eq('id', apartmentId)
+      .single()
+
+    if (!aptError && aptData) {
+      setApartment(aptData as Apartment)
+    }
+
+    // Fetch active tenancy + tenant profile
+    const { data: tenancyData, error: tenancyError } = await supabase
+      .from('tenancies')
+      .select(`
+        move_in_date, move_out_date, monthly_rent,
+        tenant:users!tenant_id (
+          first_name,
+          last_name
+        )
+      `)
+      .eq('apartment_id', apartmentId)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (!tenancyError && tenancyData) {
+      setTenancy(tenancyData as ActiveTenancy)
+    }
+
+    setLoading(false)
+  }, [apartmentId])
+
+  useEffect(() => {
+    if (!apartmentId) return
+    fetchData()
+  }, [apartmentId, fetchData])
+
+  if (loading) {
+    return (
+      <ScreenWrapper header={<StandardHeader title='Apartment Description' />}>
+        <View className='flex-1 items-center justify-center mt-20'>
+          <ActivityIndicator color={COLORS.primary} />
+        </View>
+      </ScreenWrapper>
+    )
+  }
+
+  // Derive display values
+  const landlordName = apartment?.landlord
+    ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`
+    : '—'
+
+  const fullAddress = apartment
+    ? `${apartment.street_address}, ${apartment.barangay}, ${apartment.city}, ${apartment.province}`
+    : '—'
+
+  const effectiveRent = tenancy?.monthly_rent ?? apartment?.monthly_rent
 
   return (
     <ScreenWrapper
       scrollable
       className='p-5'
-      header={
-        <StandardHeader title='Apartment Description' />
-      }
+      header={<StandardHeader title='Apartment Description' />}
     >
-      {/* Name and Address */}
       <View className='flex-row items-center justify-between'>
         <Text className='text-text text-lg font-poppinsMedium'>
           Main Information
         </Text>
-
         <TouchableOpacity
           onPress={() => router.push(`/manage-apartment/${apartmentId}/description/edit-main`)}
         >
-          <IconEdit 
-            size={24}
-            color={COLORS.primary}
-          />
+          <IconEdit size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
       <View className='mt-3'>
         <Text className='text-2xl font-interSemiBold text-text'>
-          Apartment Name
+          {apartment?.name ?? '—'}
         </Text>
         <Text className='text-base text-text'>
-          Apartment Address
+          {fullAddress}
         </Text>
       </View>
 
       {/* Landlord */}
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>
-          Landlord
-        </Text>
-        <Text className='text-text text-lg font-interMedium'>
-          John Doe
-        </Text>
+        <Text className='text-text text-sm font-inter'>Landlord</Text>
+        <Text className='text-text text-lg font-interMedium'>{landlordName}</Text>
       </View>
 
-      {/* Show this only if there is active tenant */}
-      {/* Lease Duration */}
-      <View className='flex-row mt-5'>
-        {/* Start */}
-        <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
-            Lease Start
-          </Text>
-          <Text className='text-text text-lg font-interMedium'>
-            June 2023
-          </Text>
+      {/* Lease Dates — only shown if there's an active tenancy */}
+      {tenancy && (
+        <View className='flex-row mt-5'>
+          <View className='flex w-1/2'>
+            <Text className='text-text text-sm font-inter'>Lease Start</Text>
+            <Text className='text-text text-lg font-interMedium'>
+              {formatDate(tenancy.move_in_date)}
+            </Text>
+          </View>
+          <View className='flex w-1/2'>
+            <Text className='text-text text-sm font-inter'>Lease End</Text>
+            <Text className='text-text text-lg font-interMedium'>
+              {formatDate(tenancy.move_out_date)}
+            </Text>
+          </View>
         </View>
-
-        {/* End */}
-        <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
-            Lease End
-          </Text>
-          <Text className='text-text text-lg font-interMedium'>
-            May 2024
-          </Text>
-        </View>
-      </View>
+      )}
 
       {/* Monthly Rent */}
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>
-          Monthly Rent
-        </Text>
+        <Text className='text-text text-sm font-inter'>Monthly Rent</Text>
         <Text className='text-text text-lg font-interMedium'>
-          ₱ 25,000
+          {formatCurrency(effectiveRent)}
         </Text>
       </View>
 
-      {/* Divider */}
       <Divider />
 
       {/* Full Description */}
@@ -123,20 +213,16 @@ export default function Index() {
         <Text className='text-text text-lg font-poppinsMedium'>
           Apartment Full Description
         </Text>
-
         <TouchableOpacity
           onPress={() => router.push(`/manage-apartment/${apartmentId}/description/edit-description`)}
         >
-          <IconEdit 
-            size={24}
-            color={COLORS.primary}
-          />
+          <IconEdit size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
       <View className='mt-3 bg-darkerWhite p-4 rounded-2xl'>
         <Text className='text-text text-base font-inter'>
-          Consectetur veniam incididunt enim occaecat qui cillum ullamco eiusmod. Dolore excepteur incididunt esse quis proident consectetur nostrud velit consequat occaecat sunt. Reprehenderit proident irure dolor labore elit ipsum dolor cupidatat minim culpa aliqua nisi dolore ad. Id cillum excepteur esse dolor sit in do ut qui aliqua elit consectetur excepteur voluptate. Adipisicing est exercitation aliqua Lorem pariatur sint ullamco consequat pariatur pariatur aliquip nisi. Pariatur magna nostrud Lorem quis ullamco nulla esse ut adipisicing reprehenderit. Voluptate ad qui labore consequat officia dolore anim ex proident in in ad nulla enim. Culpa qui in nostrud deserunt.
+          {apartment?.description ?? '—'}
         </Text>
       </View>
 
@@ -145,14 +231,10 @@ export default function Index() {
         <Text className='text-text text-lg font-poppinsMedium mt-5'>
           Room/Unit Details
         </Text>
-
         <TouchableOpacity
           onPress={() => router.push(`/manage-apartment/${apartmentId}/description/edit-specs`)}
         >
-          <IconEdit 
-            size={24}
-            color={COLORS.primary}
-          />
+          <IconEdit size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
@@ -160,7 +242,7 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconHome}
-            customText={'Apartment Type'}
+            customText={apartment?.type ?? '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -168,7 +250,7 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconCalendar}
-            customText={'Lease Duration'}
+            customText={apartment?.lease_duration ?? '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -176,7 +258,7 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconBed}
-            customText={`2 Bedrooms`}
+            customText={`${apartment?.no_bedrooms ?? '—'} Bedroom${apartment?.no_bedrooms !== 1 ? 's' : ''}`}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -184,15 +266,15 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconBath}
-            customText={`1 Bathrooms`}
+            customText={`${apartment?.no_bathrooms ?? '—'} Bathroom${apartment?.no_bathrooms !== 1 ? 's' : ''}`}
             iconColor={COLORS.mediumGrey}
           />
-        </View>        
+        </View>
 
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconArmchair}
-            customText={`Semi Furnished`}
+            customText={apartment?.furnished_type ?? '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -200,7 +282,7 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconBuildingCommunity}
-            customText={`Ground Floor`}
+            customText={apartment?.floor_level ?? '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -208,7 +290,7 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconUsers}
-            customText={`Max 2 Occupants`}
+            customText={apartment?.max_occupants ? `Max ${apartment.max_occupants} Occupants` : '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -216,52 +298,53 @@ export default function Index() {
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconMaximize}
-            customText={`50 sqm`}
+            customText={apartment?.area_sqm ? `${apartment.area_sqm} sqm` : '—'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
       </View>
 
       {/* Included Perks */}
-      <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium mt-5'>
-          Included Perks
-        </Text>
+      {(apartment?.amenities?.length ?? 0) > 0 && (
+        <>
+          <View className='flex-row items-center justify-between'>
+            <Text className='text-text text-lg font-poppinsMedium mt-5'>
+              Included Perks
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push(`/manage-apartment/${apartmentId}/description/edit-perks`)}
+            >
+              <IconEdit size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity
-          onPress={() => router.push(`/manage-apartment/${apartmentId}/description/edit-perks`)}
-        >
-          <IconEdit 
-            size={24}
-            color={COLORS.primary}
-          />
-        </TouchableOpacity>
-      </View>
+          <View className='flex-row flex-wrap justify-between mt-5'>
+            {apartment!.amenities.map((perk, index) => (
+              <View className='w-1/2 mb-5' key={index}>
+                <PerkItem
+                  iconColor={COLORS.primary}
+                  perkId={perk}
+                />
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
-      <View className='flex-row flex-wrap justify-between mt-5'>
-        {
-          includedPerks.map((perk, index) => (
-            <View className='w-1/2 mb-5' key={index}>
-              <PerkItem
-                iconColor={COLORS.primary}
-                perkId={perk}
-              />
-            </View>
-          ))
-        }
-      </View>
-
-      {/* Divider */}
       <Divider />
 
-      {/* Button for View Lease Agreement */}
+      {/* Lease Agreement */}
       <View className='mt-5'>
         <PillButton
           label='View Lease Agreement'
           isFullWidth
           type='outline'
           leftIconName={IconFileText}
-          onPress={() => {}}
+          onPress={() => {
+            if (apartment?.lease_agreement_url) {
+              // e.g. router.push to a PDF viewer, or Linking.openURL
+            }
+          }}
         />
       </View>
     </ScreenWrapper>
