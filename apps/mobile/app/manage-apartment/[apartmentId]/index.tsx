@@ -25,6 +25,7 @@ import {
   IconArmchair,
   IconCalendar,
   IconUsers,
+  IconBuildingCommunity,
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
@@ -81,6 +82,7 @@ type ApartmentDetail = {
   furnishedType: string
   floorLevel: string
   maxOccupants: number
+  leaseDuration: string
 }
 
 function formatMonthYear(isoDate: string | null): string {
@@ -155,7 +157,8 @@ export default function Index() {
           apartment_images (id, url, is_cover),
           furnished_type,
           floor_level,
-          max_occupants
+          max_occupants,
+          lease_duration
         `)
         .eq('id', apartmentId)
         .is('deleted_at', null)
@@ -186,6 +189,7 @@ export default function Index() {
         furnishedType: aptData.furnished_type ?? '—',
         floorLevel: aptData.floor_level ?? '—',
         maxOccupants: aptData.max_occupants ?? 0,
+        leaseDuration: aptData.lease_duration ?? '—',
       })
 
       // Get the images and sort by cover first
@@ -371,12 +375,19 @@ export default function Index() {
                 <Text className="text-grey-500 font-inter text-base">/month</Text>
               </Text>
 
-              {/* Apartment Type and Square Footage */}
+              {/* Apartment Type and Lease Duration */}
               <View className='flex-row flex-wrap'>
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <IconHome size={24} color={COLORS.text} />
-                  <Text className="text-text text-base">
+                  <Text className="text-grey-500 text-base">
                     {apartment.type}
+                  </Text>
+                </View>
+
+                <View className="flex-row w-1/2 gap-2 items-center justify-start">
+                  <IconCalendar size={24} color={COLORS.text} />
+                  <Text className="text-grey-500 text-base">
+                    {apartment.leaseDuration}
                   </Text>
                 </View>
               </View>
@@ -408,7 +419,7 @@ export default function Index() {
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconCalendar size={24} color={COLORS.text} />
+                  <IconBuildingCommunity size={24} color={COLORS.text} />
                   <Text className="text-grey-500 text-base">
                     {apartment.floorLevel}
                   </Text>

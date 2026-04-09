@@ -12,9 +12,12 @@ import {
   IconBath,
   IconBed,
   IconMaximize,
-  IconCar,
   IconFileText,
   IconEdit,
+  IconArmchair,
+  IconCalendar,
+  IconUsers,
+  IconBuildingCommunity,
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
@@ -78,6 +81,7 @@ export default function Index() {
         </Text>
       </View>
 
+      {/* Show this only if there is active tenant */}
       {/* Lease Duration */}
       <View className='flex-row mt-5'>
         {/* Start */}
@@ -163,8 +167,8 @@ export default function Index() {
 
         <View className='w-1/2 mb-5'>
           <PerkItem
-            customIcon={IconBath}
-            customText={`1 Bathrooms`}
+            customIcon={IconCalendar}
+            customText={'Lease Duration'}
             iconColor={COLORS.mediumGrey}
           />
         </View>
@@ -179,16 +183,40 @@ export default function Index() {
 
         <View className='w-1/2 mb-5'>
           <PerkItem
-            customIcon={IconMaximize}
-            customText={`50 sqm`}
+            customIcon={IconBath}
+            customText={`1 Bathrooms`}
+            iconColor={COLORS.mediumGrey}
+          />
+        </View>        
+
+        <View className='w-1/2 mb-5'>
+          <PerkItem
+            customIcon={IconArmchair}
+            customText={`Semi Furnished`}
             iconColor={COLORS.mediumGrey}
           />
         </View>
 
         <View className='w-1/2 mb-5'>
           <PerkItem
-            customIcon={IconCar}
-            customText={'Parking Available'}
+            customIcon={IconBuildingCommunity}
+            customText={`Ground Floor`}
+            iconColor={COLORS.mediumGrey}
+          />
+        </View>
+
+        <View className='w-1/2 mb-5'>
+          <PerkItem
+            customIcon={IconUsers}
+            customText={`Max 2 Occupants`}
+            iconColor={COLORS.mediumGrey}
+          />
+        </View>
+
+        <View className='w-1/2 mb-5'>
+          <PerkItem
+            customIcon={IconMaximize}
+            customText={`50 sqm`}
             iconColor={COLORS.mediumGrey}
           />
         </View>
