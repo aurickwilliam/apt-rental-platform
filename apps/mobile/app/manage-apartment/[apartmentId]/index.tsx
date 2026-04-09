@@ -307,10 +307,22 @@ export default function Index() {
     console.log('Vacate unit')
   }
 
-  const handleRemoveUnit = () => {
+  const handleRemoveUnit = async () => {
     setOpen(false)
-    // TODO: soft delete — set apartments.deleted_at = now()
-    console.log('Remove unit')
+    if (!apartmentId) return
+
+    try {
+      const { error } = await supabase
+        .from('apartments')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', apartmentId)
+
+      if (error) throw error
+      
+      router.back()
+    } catch (err) {
+      console.error('Error removing unit:', err)
+    }
   }
 
   const handleTenantProfilePress = (tenantId: string) => {
