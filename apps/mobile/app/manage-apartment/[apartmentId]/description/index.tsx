@@ -29,6 +29,8 @@ type Apartment = {
   name: string
   description: string
   monthly_rent: number
+  security_deposit: number
+  advance_rent: number
   type: string
   street_address: string
   barangay: string
@@ -89,6 +91,7 @@ export default function Index() {
         no_bedrooms, no_bathrooms, area_sqm,
         furnished_type, floor_level, max_occupants,
         lease_duration, amenities, lease_agreement_url,
+        security_deposit, advance_rent,
         landlord:landlord_id (
           first_name,
           last_name
@@ -199,11 +202,29 @@ export default function Index() {
       )}
 
       {/* Monthly Rent */}
-      <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>Monthly Rent</Text>
-        <Text className='text-text text-lg font-interMedium'>
-          {formatCurrency(effectiveRent)}
-        </Text>
+      <View className='flex-row flex-wrap'>
+        <View className='mt-5 flex w-1/2'>
+          <Text className='text-text text-sm font-inter'>Monthly Rent</Text>
+          <Text className='text-text text-lg font-interMedium'>
+            {formatCurrency(effectiveRent)}
+          </Text>
+        </View>
+
+        {/* Security Deposit */}
+        <View className='mt-5 flex w-1/2'>
+          <Text className='text-text text-sm font-inter'>Security Deposit</Text>
+          <Text className='text-text text-lg font-interMedium'>
+            {formatCurrency(apartment?.security_deposit ?? 0)}
+          </Text>
+        </View>
+
+        {/* Advance Rent */}
+        <View className='mt-5 flex w-1/2'>
+          <Text className='text-text text-sm font-inter'>Advance Rent</Text>
+          <Text className='text-text text-lg font-interMedium'>
+            {formatCurrency(apartment?.advance_rent ?? 0)}
+          </Text>
+        </View>
       </View>
 
       <Divider />
