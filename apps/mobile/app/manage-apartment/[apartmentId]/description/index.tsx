@@ -155,7 +155,12 @@ export default function Index() {
     <ScreenWrapper
       scrollable
       className='p-5'
-      header={<StandardHeader title='Apartment Description' />}
+      header={
+        <StandardHeader 
+          title='Apartment Description' 
+          onBackPress={() => router.replace(`/manage-apartment/${apartmentId}`)}
+        />
+      }
     >
       <View className='flex-row items-center justify-between'>
         <Text className='text-text text-lg font-poppinsMedium'>

@@ -335,7 +335,12 @@ export default function Index() {
     <View style={{ flex: 1 }}>
       <ScreenWrapper
         className="p-5"
-        header={<StandardHeader title="Property" />}
+        header={
+          <StandardHeader 
+            title="Property" 
+            onBackPress={() => router.replace('/(tabs)/(landlord)/units')}
+          />
+        }
         scrollable
         bottomPadding={50}
       >

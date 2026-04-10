@@ -20,7 +20,6 @@ import {
 } from './updateApartmentMain'
 
 import { PROVINCES } from '@repo/constants'
-
 import { supabase } from '@repo/supabase'
 
 type ApartmentInformation = {
@@ -34,13 +33,30 @@ type ApartmentInformation = {
   advance_rent: number | null
 }
 
-// Types for image state
 type DisplayImage =
   | { kind: 'existing'; record: ExistingImage; asset: never }
   | { kind: 'pending'; asset: ImagePicker.ImagePickerAsset; record: never }
 
 function existingToAsset(url: string): ImagePicker.ImagePickerAsset {
   return { uri: url } as ImagePicker.ImagePickerAsset
+}
+
+function validateForm(
+  info: ApartmentInformation,
+  coverImages: DisplayImage[],
+): string | null {
+  if (!info.name.trim()) return 'Apartment name is required.'
+  if (!info.street_address.trim()) return 'Street address is required.'
+  if (!info.barangay.trim()) return 'Barangay is required.'
+  if (!info.city.trim()) return 'City is required.'
+  if (!info.province) return 'Province is required.'
+  if (!info.monthly_rent || info.monthly_rent <= 0) return 'Monthly rent must be greater than 0.'
+  if (info.security_deposit === null || info.security_deposit < 0)
+    return 'Security deposit is required.'
+  if (info.advance_rent === null || info.advance_rent < 0)
+    return 'Advance rent is required.'
+  if (coverImages.length === 0) return 'A thumbnail photo is required.'
+  return null
 }
 
 export default function EditMain() {
@@ -58,13 +74,29 @@ export default function EditMain() {
     advance_rent: 0,
   })
 
+  const [coverImages, setCoverImages] = useState<DisplayImage[]>([])
+  const [additionalImages, setAdditionalImages] = useState<DisplayImage[]>([])
+  const [leaseUri, setLeaseUri] = useState<string>('')
+  const [saving, setSaving] = useState(false)
+
   useEffect(() => {
     if (!apartmentId) return
 
     const fetchApartment = async () => {
+      // Get apartment details
       const { data: apartment, error } = await supabase
         .from('apartments')
-        .select('*')
+        .select(`
+          name,
+          street_address,
+          barangay,
+          city,
+          province,
+          monthly_rent,
+          security_deposit,
+          advance_rent,
+          lease_agreement_url
+        `)
         .eq('id', apartmentId)
         .single()
 
@@ -84,10 +116,15 @@ export default function EditMain() {
         advance_rent: apartment.advance_rent,
       })
 
-      // Fetch images
+      // Set lease agreement URI if exists
+      if (apartment.lease_agreement_url) {
+        setLeaseUri(apartment.lease_agreement_url)
+      }
+
+      // Get apartment images
       const { data: images, error: imgError } = await supabase
         .from('apartment_images')
-        .select('*')
+        .select('id, url, is_cover')
         .eq('apartment_id', apartmentId)
 
       if (imgError) {
@@ -95,19 +132,20 @@ export default function EditMain() {
         return
       }
 
+      // Separate cover and additional images
       const cover: DisplayImage[] = images
-        .filter((img): img is typeof img & { is_cover: boolean } => img.is_cover === true)
+        .filter((img) => img.is_cover === true)
         .map((img) => ({
           kind: 'existing' as const,
-          record: img,
+          record: { ...img, is_cover: img.is_cover as boolean },
           asset: undefined as never,
         }))
 
       const additional: DisplayImage[] = images
-        .filter((img): img is typeof img & { is_cover: boolean } => img.is_cover === false)
+        .filter((img) => img.is_cover === false)
         .map((img) => ({
           kind: 'existing' as const,
-          record: img,
+          record: { ...img, is_cover: img.is_cover as boolean },
           asset: undefined as never,
         }))
 
@@ -118,17 +156,9 @@ export default function EditMain() {
     fetchApartment()
   }, [apartmentId])
 
-  const [coverImages, setCoverImages] = useState<DisplayImage[]>([])
-  const [additionalImages, setAdditionalImages] = useState<DisplayImage[]>([])
-  const [leaseUri, setLeaseUri] = useState<string>('')
-  const [saving, setSaving] = useState(false)
-
-  /** Convert DisplayImage[] → ImagePickerAsset[] for UploadImageField */
   function toAssets(images: DisplayImage[]): ImagePicker.ImagePickerAsset[] {
     return images.map((img) =>
-      img.kind === 'existing'
-        ? existingToAsset(img.record.url)
-        : img.asset,
+      img.kind === 'existing' ? existingToAsset(img.record.url) : img.asset,
     )
   }
 
@@ -138,38 +168,39 @@ export default function EditMain() {
   }
 
   function removeCover(uri: string) {
-    setCoverImages((prev) => prev.filter((img) =>
-      img.kind === 'existing' ? img.record.url !== uri : img.asset.uri !== uri,
-    ))
+    setCoverImages((prev) =>
+      prev.filter((img) => (img.kind === 'existing' ? img.record.url !== uri : img.asset.uri !== uri)),
+    )
   }
 
   function addAdditional(assetOrAssets: ImagePicker.ImagePickerAsset | ImagePicker.ImagePickerAsset[]) {
     const assets = Array.isArray(assetOrAssets) ? assetOrAssets : [assetOrAssets]
     setAdditionalImages((prev) => [
       ...prev,
-      ...assets.map((asset) => ({
-        kind: 'pending' as const,
-        asset,
-        record: undefined as never,
-      })),
+      ...assets.map((asset) => ({ kind: 'pending' as const, asset, record: undefined as never })),
     ])
   }
 
   function removeAdditional(uri: string) {
-    setAdditionalImages((prev) => prev.filter((img) =>
-      img.kind === 'existing' ? img.record.url !== uri : img.asset.uri !== uri,
-    ))
+    setAdditionalImages((prev) =>
+      prev.filter((img) => (img.kind === 'existing' ? img.record.url !== uri : img.asset.uri !== uri)),
+    )
   }
 
   const handleSaveChanges = async () => {
     if (!apartmentId) return
 
+    // Validate form before submitting
+    const validationError = validateForm(info, coverImages)
+    if (validationError) {
+      Alert.alert('Validation Error', validationError)
+      return
+    }
+
     setSaving(true)
     try {
-      // Separate kept-existing from brand-new for both cover and additional
-      const allImages = [...coverImages, ...additionalImages]
-
-      const keptExistingImages: ExistingImage[] = allImages
+      // Determine which existing images are kept vs removed, and prepare pending images for upload
+      const keptExistingImages: ExistingImage[] = [...coverImages, ...additionalImages]
         .filter((img): img is Extract<DisplayImage, { kind: 'existing' }> => img.kind === 'existing')
         .map((img) => img.record)
 
@@ -182,6 +213,7 @@ export default function EditMain() {
           .map((img) => ({ asset: img.asset, is_cover: false })),
       ]
 
+      // Update apartment main info, handle image uploads/deletions, and update lease agreement
       await updateApartmentMain({
         apartmentId,
         fields: info,
@@ -241,7 +273,6 @@ export default function EditMain() {
           onSelect={(v) => setInfo({ ...info, province: v })}
           value={info.province}
         />
-
         <NumberField
           label="Monthly Rent:"
           required
@@ -249,7 +280,6 @@ export default function EditMain() {
           value={info.monthly_rent.toString()}
           onChange={(v) => setInfo({ ...info, monthly_rent: parseInt(v) || 0 })}
         />
-
         <NumberField
           label="Security Deposit:"
           required
@@ -257,7 +287,6 @@ export default function EditMain() {
           value={info.security_deposit?.toString()}
           onChange={(v) => setInfo({ ...info, security_deposit: parseInt(v) || 0 })}
         />
-
         <NumberField
           label="Advance Rent:"
           required
@@ -269,7 +298,6 @@ export default function EditMain() {
 
       <Divider marginVertical={30} />
 
-      {/* Thumbnail */}
       <UploadImageField
         label="Thumbnail Photo:"
         required
@@ -281,7 +309,6 @@ export default function EditMain() {
 
       <Divider marginVertical={30} />
 
-      {/* Additional Photos */}
       <UploadImageField
         label="Additional Photos:"
         images={toAssets(additionalImages)}
@@ -291,7 +318,6 @@ export default function EditMain() {
 
       <Divider marginVertical={30} />
 
-      {/* Lease Agreement */}
       <View className="flex gap-3">
         <Text className="text-text text-base font-interMedium">
           Change Lease Agreement
@@ -306,15 +332,10 @@ export default function EditMain() {
 
       <View className="h-36" />
 
-      {/* Save Button */}
       {saving ? (
         <ActivityIndicator size="large" />
       ) : (
-        <PillButton
-          label="Save Changes"
-          size="md"
-          onPress={handleSaveChanges}
-        />
+        <PillButton label="Save Changes" size="md" onPress={handleSaveChanges} />
       )}
     </ScreenWrapper>
   )
