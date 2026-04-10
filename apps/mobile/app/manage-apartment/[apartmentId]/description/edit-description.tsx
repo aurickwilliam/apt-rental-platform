@@ -1,51 +1,103 @@
 import { View } from 'react-native'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import TextBox from '@/components/inputs/TextBox'
 import PillButton from '@/components/buttons/PillButton'
+import { supabase } from '@repo/supabase'
 
 export default function EditDescription() {
   const router = useRouter();
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  // TODO: Fetch the current description using the apartmentId and set it as the initial value for the TextBox
+  const [description, setDescription] = useState<string>('');
+  const [originalDescription, setOriginalDescription] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Dummy description state for testing
-  const [description, setDescription] = useState<string>('This is a sample description of the apartment. It provides details about the features, amenities, and location of the apartment.');
+  // Fetch current description on mount
+  useEffect(() => {
+    const fetchDescription = async () => {
+      const { data, error } = await supabase
+        .from('apartments')
+        .select('description')
+        .eq('id', apartmentId)
+        .single();
 
-  // Handle saving changes to the description
-  const handleSaveChanges = () => {
-    // TODO: Implement save functionality here
-    console.log('Save Changes button pressed');
+      if (error) {
+        console.error('Error fetching description:', error);
+        return;
+      }
+
+      setDescription(data.description ?? '');
+      setOriginalDescription(data.description ?? '');
+    };
+
+    fetchDescription();
+  }, [apartmentId]);
+
+  // Validation
+  const validate = (): boolean => {
+    if (!description.trim()) {
+      setError('Description is required.');
+      return false;
+    }
+    if (description.trim() === originalDescription.trim()) {
+      setError('No changes were made.');
+      return false;
+    }
+    setError('');
+    return true;
+  };
+
+  // Handle saving changes
+  const handleSaveChanges = async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+
+    const { error } = await supabase
+      .from('apartments')
+      .update({
+        description: description.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', apartmentId);
+
+    setLoading(false);
+
+    if (error) {
+      console.error('Error updating description:', error);
+      setError('Failed to save changes. Please try again.');
+      return;
+    }
 
     router.push(`/manage-apartment/${apartmentId}/description`);
-  }
+  };
 
   return (
     <ScreenWrapper
       className='p-5'
-      header={
-        <StandardHeader title='Edit Description' />
-      }
+      header={<StandardHeader title='Edit Description' />}
     >
-      <TextBox 
+      <TextBox
         label='Description:'
         placeholder='Enter apartment description'
         boxHeight={500}
         required
         value={description}
-        onChangeText={setDescription}
+        onChangeText={(text) => {
+          setDescription(text);
+          if (error) setError('');
+        }}
+        error={error}
       />
-
       <View className='flex-1' />
-
-      <PillButton 
-        label='Save Changes'
+      <PillButton
+        label={loading ? 'Saving...' : 'Save Changes'}
         onPress={handleSaveChanges}
       />
     </ScreenWrapper>
-  )
+  );
 }
