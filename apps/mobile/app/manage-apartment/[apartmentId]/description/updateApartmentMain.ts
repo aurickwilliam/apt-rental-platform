@@ -1,4 +1,4 @@
-import { supabase } from '@repo/supabase' // adjust path to your supabase client
+import { supabase } from '@repo/supabase'
 import * as ImagePicker from 'expo-image-picker'
 
 export type ApartmentMainFields = {

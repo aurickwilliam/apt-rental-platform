@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -80,9 +80,9 @@ export default function Index() {
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
+    if (!apartmentId) return
     setLoading(true)
 
-    // Fetch apartment + landlord profile
     const { data: aptData, error: aptError } = await supabase
       .from('apartments')
       .select(`
@@ -104,7 +104,6 @@ export default function Index() {
       setApartment(aptData as Apartment)
     }
 
-    // Fetch active tenancy + tenant profile
     const { data: tenancyData, error: tenancyError } = await supabase
       .from('tenancies')
       .select(`
@@ -125,10 +124,11 @@ export default function Index() {
     setLoading(false)
   }, [apartmentId])
 
-  useEffect(() => {
-    if (!apartmentId) return
-    fetchData()
-  }, [apartmentId, fetchData])
+  useFocusEffect(
+    useCallback(() => {
+      fetchData()
+    }, [fetchData])
+  )
 
   if (loading) {
     return (
@@ -140,7 +140,6 @@ export default function Index() {
     )
   }
 
-  // Derive display values
   const landlordName = apartment?.landlord
     ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`
     : '—'
@@ -156,8 +155,8 @@ export default function Index() {
       scrollable
       className='p-5'
       header={
-        <StandardHeader 
-          title='Apartment Description' 
+        <StandardHeader
+          title='Apartment Description'
           onBackPress={() => router.replace(`/manage-apartment/${apartmentId}`)}
         />
       }
@@ -182,13 +181,11 @@ export default function Index() {
         </Text>
       </View>
 
-      {/* Landlord */}
       <View className='mt-5'>
         <Text className='text-text text-sm font-inter'>Landlord</Text>
         <Text className='text-text text-lg font-interMedium'>{landlordName}</Text>
       </View>
 
-      {/* Lease Dates — only shown if there's an active tenancy */}
       {tenancy && (
         <View className='flex-row mt-5'>
           <View className='flex w-1/2'>
@@ -206,7 +203,6 @@ export default function Index() {
         </View>
       )}
 
-      {/* Monthly Rent */}
       <View className='flex-row flex-wrap'>
         <View className='mt-5 flex w-1/2'>
           <Text className='text-text text-sm font-inter'>Monthly Rent</Text>
@@ -214,16 +210,12 @@ export default function Index() {
             {formatCurrency(effectiveRent)}
           </Text>
         </View>
-
-        {/* Security Deposit */}
         <View className='mt-5 flex w-1/2'>
           <Text className='text-text text-sm font-inter'>Security Deposit</Text>
           <Text className='text-text text-lg font-interMedium'>
             {formatCurrency(apartment?.security_deposit ?? 0)}
           </Text>
         </View>
-
-        {/* Advance Rent */}
         <View className='mt-5 flex w-1/2'>
           <Text className='text-text text-sm font-inter'>Advance Rent</Text>
           <Text className='text-text text-lg font-interMedium'>
@@ -234,7 +226,6 @@ export default function Index() {
 
       <Divider />
 
-      {/* Full Description */}
       <View className='flex-row items-center justify-between'>
         <Text className='text-text text-lg font-poppinsMedium'>
           Apartment Full Description
@@ -252,7 +243,6 @@ export default function Index() {
         </Text>
       </View>
 
-      {/* Room/Unit Details */}
       <View className='flex-row items-center justify-between'>
         <Text className='text-text text-lg font-poppinsMedium mt-5'>
           Room/Unit Details
@@ -266,21 +256,11 @@ export default function Index() {
 
       <View className='flex-row flex-wrap justify-between mt-5'>
         <View className='w-1/2 mb-5'>
-          <PerkItem
-            customIcon={IconHome}
-            customText={apartment?.type ?? '—'}
-            iconColor={COLORS.mediumGrey}
-          />
+          <PerkItem customIcon={IconHome} customText={apartment?.type ?? '—'} iconColor={COLORS.mediumGrey} />
         </View>
-
         <View className='w-1/2 mb-5'>
-          <PerkItem
-            customIcon={IconCalendar}
-            customText={apartment?.lease_duration ?? '—'}
-            iconColor={COLORS.mediumGrey}
-          />
+          <PerkItem customIcon={IconCalendar} customText={apartment?.lease_duration ?? '—'} iconColor={COLORS.mediumGrey} />
         </View>
-
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconBed}
@@ -288,7 +268,6 @@ export default function Index() {
             iconColor={COLORS.mediumGrey}
           />
         </View>
-
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconBath}
@@ -296,23 +275,12 @@ export default function Index() {
             iconColor={COLORS.mediumGrey}
           />
         </View>
-
         <View className='w-1/2 mb-5'>
-          <PerkItem
-            customIcon={IconArmchair}
-            customText={apartment?.furnished_type ?? '—'}
-            iconColor={COLORS.mediumGrey}
-          />
+          <PerkItem customIcon={IconArmchair} customText={apartment?.furnished_type ?? '—'} iconColor={COLORS.mediumGrey} />
         </View>
-
         <View className='w-1/2 mb-5'>
-          <PerkItem
-            customIcon={IconBuildingCommunity}
-            customText={apartment?.floor_level ?? '—'}
-            iconColor={COLORS.mediumGrey}
-          />
+          <PerkItem customIcon={IconBuildingCommunity} customText={apartment?.floor_level ?? '—'} iconColor={COLORS.mediumGrey} />
         </View>
-
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconUsers}
@@ -320,7 +288,6 @@ export default function Index() {
             iconColor={COLORS.mediumGrey}
           />
         </View>
-
         <View className='w-1/2 mb-5'>
           <PerkItem
             customIcon={IconMaximize}
@@ -330,7 +297,6 @@ export default function Index() {
         </View>
       </View>
 
-      {/* Included Perks */}
       {(apartment?.amenities?.length ?? 0) > 0 && (
         <>
           <View className='flex-row items-center justify-between'>
@@ -347,10 +313,7 @@ export default function Index() {
           <View className='flex-row flex-wrap justify-between mt-5'>
             {apartment!.amenities.map((perk, index) => (
               <View className='w-1/2 mb-5' key={index}>
-                <PerkItem
-                  iconColor={COLORS.primary}
-                  perkId={perk}
-                />
+                <PerkItem iconColor={COLORS.primary} perkId={perk} />
               </View>
             ))}
           </View>
@@ -359,7 +322,6 @@ export default function Index() {
 
       <Divider />
 
-      {/* Lease Agreement */}
       <View className='mt-5'>
         <PillButton
           label='View Lease Agreement'
@@ -368,7 +330,7 @@ export default function Index() {
           leftIconName={IconFileText}
           onPress={() => {
             if (apartment?.lease_agreement_url) {
-              // e.g. router.push to a PDF viewer, or Linking.openURL
+              // router.push to PDF viewer or Linking.openURL
             }
           }}
         />
