@@ -80,7 +80,6 @@ export default function SecondStep() {
     mapConfirmed,
     furnishingType,
     bathrooms,
-    kitchens,
     bedrooms,
     maxOccupants,
     floorArea,
@@ -94,16 +93,14 @@ export default function SecondStep() {
   const maxValue = 10
   const minValue = 1
 
-  const handleAdd = (type: 'bathrooms' | 'kitchens' | 'bedrooms' | 'maxOccupants') => {
+  const handleAdd = (type: 'bathrooms' | 'bedrooms' | 'maxOccupants') => {
     if (type === 'bathrooms') setField('bathrooms', Math.min(bathrooms + 1, maxValue))
-    if (type === 'kitchens') setField('kitchens', Math.min(kitchens + 1, maxValue))
     if (type === 'bedrooms') setField('bedrooms', Math.min(bedrooms + 1, maxValue))
     if (type === 'maxOccupants') setField('maxOccupants', Math.min(maxOccupants + 1, maxValue))
   }
 
-  const handleSubtract = (type: 'bathrooms' | 'kitchens' | 'bedrooms' | 'maxOccupants') => {
+  const handleSubtract = (type: 'bathrooms' | 'bedrooms' | 'maxOccupants') => {
     if (type === 'bathrooms') setField('bathrooms', Math.max(bathrooms - 1, minValue))
-    if (type === 'kitchens') setField('kitchens', Math.max(kitchens - 1, minValue))
     if (type === 'bedrooms') setField('bedrooms', Math.max(bedrooms - 1, minValue))
     if (type === 'maxOccupants') setField('maxOccupants', Math.max(maxOccupants - 1, minValue))
   }
@@ -254,26 +251,6 @@ export default function SecondStep() {
               <Text className='text-text text-xl font-interMedium'>{bathrooms}</Text>
 
               <TouchableOpacity onPress={() => handleAdd('bathrooms')}>
-                <IconCirclePlus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Kitchens */}
-          <View className='flex-row items-center justify-between mt-5'>
-            <Text className='text-text text-lg font-interMedium'>Kitchens:</Text>
-            <View className='flex-row items-center gap-7'>
-              <TouchableOpacity 
-                onPress={() => handleSubtract('kitchens')}
-                disabled={kitchens <= minValue}
-                style={{opacity: kitchens <= minValue ? 0.3 : 1}}
-              >
-                <IconCircleMinus size={30} color={COLORS.text} />
-              </TouchableOpacity>
-
-              <Text className='text-text text-xl font-interMedium'>{kitchens}</Text>
-
-              <TouchableOpacity onPress={() => handleAdd('kitchens')}>
                 <IconCirclePlus size={30} color={COLORS.text} />
               </TouchableOpacity>
             </View>
