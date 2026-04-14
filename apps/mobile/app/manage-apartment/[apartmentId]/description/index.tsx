@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
+import * as DocumentPicker from 'expo-document-picker'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -19,6 +20,7 @@ import {
   IconCalendar,
   IconUsers,
   IconBuildingCommunity,
+  IconUpload,
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
@@ -79,6 +81,8 @@ export default function Index() {
   const [tenancy, setTenancy] = useState<ActiveTenancy | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const [uploading, setUploading] = useState(false)
+
   const fetchData = useCallback(async () => {
     if (!apartmentId) return
     setLoading(true)
@@ -129,6 +133,88 @@ export default function Index() {
       fetchData()
     }, [fetchData])
   )
+
+  const handleUploadLease = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        copyToCacheDirectory: true,
+      })
+
+      if (result.canceled) return
+
+      const file = result.assets[0]
+      const fileExt = file.name.split('.').pop()
+      // Store path without domain — bucket is private so we'll use signed URLs
+      const filePath = `${apartmentId}/lease_agreement.${fileExt}`
+
+      setUploading(true)
+
+      const response = await fetch(file.uri)
+      const blob = await response.blob()
+
+      const { error: uploadError } = await supabase.storage
+        .from('lease-agreements')
+        .upload(filePath, blob, {
+          upsert: true,
+          contentType: file.mimeType ?? 'application/octet-stream',
+        })
+
+      if (uploadError) throw uploadError
+
+      // Save the storage path (not a public URL) to apartments table
+      const { error: updateError } = await supabase
+        .from('apartments')
+        .update({ lease_agreement_url: filePath })
+        .eq('id', apartmentId)
+
+      if (updateError) throw updateError
+
+      Alert.alert('Success', 'Lease agreement uploaded successfully.')
+      fetchData()
+    } catch (err) {
+      Alert.alert('Error', 'Failed to upload lease agreement.')
+      console.error(err)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleViewLease = async () => {
+    if (!apartment?.lease_agreement_url) return
+
+    try {
+      // Normalize the storage path in case it's stored as a full URL 
+      let storagePath = apartment.lease_agreement_url
+      const bucketMarker = '/lease-agreements/'
+      
+      if (storagePath.startsWith('http')) {
+        const idx = storagePath.indexOf(bucketMarker)
+        if (idx !== -1) {
+          storagePath = storagePath.slice(idx + bucketMarker.length)
+          storagePath = storagePath.split('?')[0]
+        }
+      }
+
+      const { data, error } = await supabase.storage
+        .from('lease-agreements')
+        .createSignedUrl(storagePath, 3600)
+
+      if (error || !data?.signedUrl) throw error
+
+      router.push({
+        pathname: '/manage-apartment/[apartmentId]/description/lease-viewer',
+        params: { apartmentId, fileUrl: data.signedUrl },
+      })
+    } catch (err) {
+      Alert.alert('Error', 'Could not open lease agreement.')
+      console.error(err)
+    }
+  }
 
   if (loading) {
     return (
@@ -322,17 +408,23 @@ export default function Index() {
 
       <Divider />
 
-      <View className='mt-5'>
+      <View className='mt-5 gap-3'>
         <PillButton
           label='View Lease Agreement'
           isFullWidth
           type='outline'
           leftIconName={IconFileText}
-          onPress={() => {
-            if (apartment?.lease_agreement_url) {
-              // router.push to PDF viewer or Linking.openURL
-            }
-          }}
+          isDisabled={!apartment?.lease_agreement_url}
+          onPress={handleViewLease}
+        />
+
+        <PillButton
+          label={uploading ? 'Uploading...' : 'Upload Lease Agreement'}
+          isFullWidth
+          type='outline'
+          leftIconName={IconUpload}
+          isDisabled={uploading}
+          onPress={handleUploadLease}
         />
       </View>
     </ScreenWrapper>
