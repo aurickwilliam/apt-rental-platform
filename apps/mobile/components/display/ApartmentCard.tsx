@@ -13,7 +13,6 @@ import {
 } from "@tabler/icons-react-native";
 
 export default function ApartmentCard({
-  id,
   thumbnail,
   name = "Apartment Name",
   location = "Barangay, City",
