@@ -20,7 +20,6 @@ export interface ApartmentFormData {
   floorLevel: string
   bedrooms: number
   bathrooms: number
-  kitchens: number
   maxOccupants: number
   latitude: number | null
   longitude: number | null
@@ -63,7 +62,6 @@ const initialState: ApartmentFormData = {
   floorLevel: '',
   bedrooms: 1,
   bathrooms: 1,
-  kitchens: 1,
   maxOccupants: 1,
   latitude: null,
   longitude: null,

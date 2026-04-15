@@ -35,7 +35,7 @@ export default function PerkButton({
   return (
     <TouchableOpacity 
       className='flex-row items-center justify-center gap-2 bg-white border border-grey-300 py-2 px-4 rounded-full'
-      onPress={props.isSelected ? props.onRemovePress : props.onPress}
+      onPress={props.onPress}
       activeOpacity={0.7}
     >
       {Icon && (
@@ -53,7 +53,7 @@ export default function PerkButton({
 
       {
          props.isSelected && (
-          <TouchableOpacity onPress={props.onRemovePress}>
+          <TouchableOpacity onPress={props.onRemovePress ?? props.onPress}>
             <IconCircleX
               size={22}
               color={COLORS.grey}

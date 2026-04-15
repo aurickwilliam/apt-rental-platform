@@ -20,7 +20,10 @@ import {
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
+
 import { supabase } from '@repo/supabase'
+
+import { formatCurrency } from '@repo/utils'
 
 type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
 
@@ -83,7 +86,53 @@ export default function Units() {
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0])
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0])
 
-  const fetchApartments = async () => {
+  const [monthlyProfit, setMonthlyProfit] = useState<number | null>(null)
+
+  // Current Month Label (e.g. "November 2024")
+  const currentMonthLabel = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+
+  const fetchMonthlyProfit = async (landlordId: string): Promise<void> => {
+    try {
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString().split('T')[0]
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        .toISOString().split('T')[0]
+
+      // Get all apartment IDs that belong to this landlord
+      const { data: aptData, error: aptError } = await supabase
+        .from('apartments')
+        .select('id')
+        .eq('landlord_id', landlordId)
+        .is('deleted_at', null)
+
+      if (aptError) throw aptError
+
+      const apartmentIds = (aptData ?? []).map((a) => a.id)
+      if (apartmentIds.length === 0) {
+        setMonthlyProfit(0)
+        return
+      }
+
+      const { data: payments, error: payError } = await supabase
+        .from('payment')
+        .select('amount')
+        .in('apartment_id', apartmentIds)
+        .eq('status', 'paid')
+        .gte('date', startOfMonth)
+        .lte('date', endOfMonth)
+
+      if (payError) throw payError
+
+      const total = (payments ?? []).reduce((sum, p) => sum + Number(p.amount ?? 0), 0)
+      setMonthlyProfit(total)
+    } catch (err) {
+      console.error('Error fetching monthly profit:', err)
+      setMonthlyProfit(null)
+    }
+  }
+
+  const fetchApartments = useCallback(async () => {
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -97,26 +146,20 @@ export default function Units() {
 
       if (userError || !userData) throw userError
 
-      const { data, error } = await supabase
+      const [apartmentsResult] = await Promise.all([
+      supabase
         .from('apartments')
-        .select(`
-          id,
-          name,
-          barangay,
-          city,
-          status,
-          apartment_images (
-            url,
-            is_cover
-          )
-        `)
+        .select(`id, name, barangay, city, status, apartment_images (url, is_cover)`)
         .eq('landlord_id', userData.id)
         .is('deleted_at', null)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }),
 
-      if (error) throw error
+      fetchMonthlyProfit(userData.id),
+    ])
 
-      const mapped: Apartment[] = (data ?? []).map((apt) => {
+      if (apartmentsResult.error) throw apartmentsResult.error
+
+      const mapped: Apartment[] = (apartmentsResult.data ?? []).map((apt) => {
         const images = apt.apartment_images ?? []
         const cover = images.find((img) => img.is_cover) ?? images[0] ?? null
 
@@ -142,13 +185,13 @@ export default function Units() {
     } finally {
       setLoading(false)
     }
-  }
+  }, []);
 
   // Re-fetch whenever tab is focused (e.g. after adding a new apartment)
   useFocusEffect(
     useCallback(() => {
       fetchApartments()
-    }, [])
+    }, [fetchApartments])
   )
 
   useEffect(() => {
@@ -191,9 +234,16 @@ export default function Units() {
       <View className='flex gap-3 mt-5'>
         <View className='bg-primary p-4 rounded-xl flex gap-2'>
           <Text className='text-white text-base font-poppinsMedium'>
-            November Total Profit
+            {currentMonthLabel} Total Profit
           </Text>
-          <Text className='text-white text-4xl font-poppinsMedium'>₱ 12,000.00</Text>
+          <Text className='text-white text-4xl font-poppinsMedium'>
+            {loading
+              ? '—'
+              : monthlyProfit === null
+              ? 'N/A'
+              : `₱ ${formatCurrency(monthlyProfit)}`
+            }
+          </Text>
         </View>
 
         <View className='flex-row gap-3'>
