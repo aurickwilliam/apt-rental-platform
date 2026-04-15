@@ -52,7 +52,7 @@ export default function FourthStep() {
         totalSteps={5}
       />
 
-      <View className='p-5'>
+      <View className='p-5 flex-1'>
         {/* Description Field */}
         <TextBox
           label='Apartment Description:'
@@ -112,7 +112,7 @@ export default function FourthStep() {
         </View>
 
         {/* Back or Next Button */}
-        <View className='flex-row mt-10 gap-4'>
+        <View className='flex-row mt-auto pt-10 gap-4'>
           <View className='flex-1'>
             <PillButton
               label={'Back'}

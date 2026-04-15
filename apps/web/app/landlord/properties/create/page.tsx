@@ -199,7 +199,7 @@ export default function CreateApartmentPage() {
         throw imgErr;
       }
 
-      router.push("/properties");
+      router.push("/landlord/properties");
       router.refresh();
     } catch (err) {
       console.error(err);
