@@ -438,7 +438,6 @@ export default function Index() {
         <PillButton
           label={uploading ? 'Uploading...' : 'Upload Lease Agreement'}
           isFullWidth
-          type='outline'
           leftIconName={IconUpload}
           isDisabled={uploading}
           onPress={handleUploadLease}
