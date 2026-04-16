@@ -29,13 +29,13 @@ export default function ApartmentCard({
   const { width } =  useWindowDimensions();
 
   const HORIZONTAL_PADDING = 16;
-  const GRID_GAP = 16;
+  const GRID_GAP = 8;
   const cardWidth = isGrid
     ? (width - HORIZONTAL_PADDING * 2 - GRID_GAP) / 2
     : width - HORIZONTAL_PADDING * 2;
 
   return (
-    <View style={{width: cardWidth}} className='px-2'>
+    <View style={{width: cardWidth}}>
       <TouchableOpacity
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}
@@ -53,11 +53,19 @@ export default function ApartmentCard({
         <View className={`${isGrid ? 'p-2 gap-2' : 'p-3 gap-3'}`}>
           {/* Apartment Name and Address */}
           <View>
-            <Text className={`text-text font-interMedium ${isGrid ? 'text-base' : 'text-xl'}`}>
+            <Text 
+              numberOfLines={1}
+              ellipsizeMode='tail'
+              className={`text-text font-interMedium ${isGrid ? 'text-base' : 'text-xl'}`}
+            >
               {name}
             </Text>
 
-            <Text className={`text-grey-500 font-inter ${isGrid ? 'text-[12px]' : 'text-base'}`}>
+            <Text 
+              numberOfLines={1}
+              ellipsizeMode='tail'
+              className={`text-grey-500 font-inter ${isGrid ? 'text-[12px]' : 'text-base'}`}
+            >
               {location}
             </Text>
           </View>
