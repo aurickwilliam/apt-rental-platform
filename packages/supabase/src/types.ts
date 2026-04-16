@@ -158,90 +158,197 @@ export type Database = {
       }
       chat: {
         Row: {
+          apartment_id: string | null
           created_at: string
           id: string
+          is_read: boolean
           message: string
-          time_stamp: string
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
           updated_at: string | null
         }
         Insert: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
+          is_read?: boolean
           message: string
-          time_stamp?: string
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
           updated_at?: string | null
         }
         Update: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
+          is_read?: boolean
           message?: string
-          time_stamp?: string
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_request: {
         Row: {
+          apartment_id: string | null
           category: string
           created_at: string
           id: string
+          image_urls: string[] | null
           message: string
+          resolved_at: string | null
+          status: string
+          tenant_id: string | null
           title: string
           updated_at: string | null
           urgency: string
         }
         Insert: {
+          apartment_id?: string | null
           category: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           message: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string | null
           title: string
           updated_at?: string | null
           urgency: string
         }
         Update: {
+          apartment_id?: string | null
           category?: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           message?: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string | null
           title?: string
           updated_at?: string | null
           urgency?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_request_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_request_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment: {
         Row: {
           amount: number | null
+          apartment_id: string | null
           created_at: string
           date: string
+          due_date: string | null
           id: string
           method: string
+          period_end: string | null
+          period_start: string | null
+          proof_url: string | null
           reference_no: number
           status: string
+          tenancy_id: string | null
+          tenant_id: string | null
           updated_at: string | null
         }
         Insert: {
           amount?: number | null
+          apartment_id?: string | null
           created_at?: string
           date: string
+          due_date?: string | null
           id?: string
           method: string
+          period_end?: string | null
+          period_start?: string | null
+          proof_url?: string | null
           reference_no: number
           status?: string
+          tenancy_id?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Update: {
           amount?: number | null
+          apartment_id?: string | null
           created_at?: string
           date?: string
+          due_date?: string | null
           id?: string
           method?: string
+          period_end?: string | null
+          period_start?: string | null
+          proof_url?: string | null
           reference_no?: number
           status?: string
+          tenancy_id?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "tenancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rental_application: {
         Row: {
@@ -495,40 +602,78 @@ export type Database = {
       }
       visit_request: {
         Row: {
+          apartment_id: string | null
           created_at: string
           id: string
           no_visitors: number
           notes: string | null
+          status: string
+          tenant_id: string | null
           time: string
           updated_at: string | null
           visit_date: string
         }
         Insert: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
           no_visitors: number
           notes?: string | null
+          status?: string
+          tenant_id?: string | null
           time: string
           updated_at?: string | null
           visit_date: string
         }
         Update: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
           no_visitors?: number
           notes?: string | null
+          status?: string
+          tenant_id?: string | null
           time?: string
           updated_at?: string | null
           visit_date?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "visit_request_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_request_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_conversations: {
+        Args: { p_user_id: string }
+        Returns: {
+          apartment_id: string
+          apartment_name: string
+          conversation_key: string
+          conversation_type: string
+          last_message: string
+          last_message_time: string
+          other_user_avatar: string
+          other_user_id: string
+          other_user_name: string
+          unread_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

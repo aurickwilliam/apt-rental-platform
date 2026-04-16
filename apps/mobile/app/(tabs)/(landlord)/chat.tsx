@@ -1,5 +1,6 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
-import { useState } from 'react'
+import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import SearchField from '@/components/inputs/SearchField'
@@ -7,47 +8,79 @@ import Divider from '@/components/display/Divider'
 import MessageCard from '@/components/display/MessageCard'
 
 import { getRelativeTime } from '@repo/utils'
+import { supabase } from '@repo/supabase'
+import { getConversations, type Conversation } from '@/service/chatService'
 
 import { COLORS } from '@repo/constants'
 import { EMPTY_STATE_IMAGES } from 'constants/images'
 
 export default function Chat() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<'Tenant' | 'Inquiries'>('Tenant');
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: Replace with actual logic to determine the number of messages
-  const noMessages: number = 2; // Set to 0 to test empty state
+  useEffect(() => {
+    fetchConversations();
+  }, []);
 
-  // Dummy data for messages can be added here later
-  const messages = [
-    {
-      id: '1',
-      name: 'Shohei Ohtani',
-      apartmentName: 'Charles Apartments - Apt 203',
-      lastMessage: 'Shibal',
-      timestamp: getRelativeTime(new Date(Date.now() - 24 * 60 * 60 * 1000)), // Yesterday
-    },
-    {
-      id: '2',
-      name: 'Jane Doe',
-      apartmentName: 'Maple Residency - Apt 101',
-      lastMessage: 'See you tomorrow!',
-      timestamp: getRelativeTime(new Date(Date.now() - 2 * 60 * 60 * 1000)), // 2 hours ago
-    },
-    {
-      id: '3',
-      name: 'John Smith',
-      apartmentName: 'Oakwood Villas - Apt 305',
-      lastMessage: 'Thanks for the update.',
-      timestamp: getRelativeTime(new Date(Date.now() - 10 * 60 * 1000)), // 10 minutes ago
+  async function fetchConversations() {
+    try {
+      // Get the current user's row in public.users via user_id (auth uid)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      const data = await getConversations(profile.id);
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to fetch conversations:', err);
+    } finally {
+      setLoading(false);
     }
-  ]
+  }
+
+  const filteredConversations = conversations.filter((c) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      c.other_user_name.toLowerCase().includes(q) ||
+      (c.apartment_name ?? '').toLowerCase().includes(q) ||
+      c.last_message.toLowerCase().includes(q);
+      
+    const matchesType =
+      selectedFilter === 'Tenant'
+        ? c.conversation_type === 'tenant'
+        : c.conversation_type === 'inquiry';
+
+    return matchesSearch && matchesType;
+  });
 
   const handleMessageToggle = (filter: 'Tenant' | 'Inquiries') => {
     setSelectedFilter(filter);
 
     // TODO: Implement logic to filter messages based on the selected filter (Tenant or Inquiries)
   }
+
+  const handleChatPress = (conversation: Conversation) => {
+    router.push({
+      pathname: '/chat/[conversationId]',
+      params: {
+        conversationId: conversation.conversation_key,
+        otherUserId: conversation.other_user_id,
+        otherUserName: conversation.other_user_name,
+        otherUserAvatar: conversation.other_user_avatar ?? '',
+        apartmentId: conversation.apartment_id ?? 'none',
+      },
+    });
+  };
 
   return (
     <ScreenWrapper
@@ -63,7 +96,7 @@ export default function Chat() {
 
       {/* Search Box */}
       {
-        noMessages > 0 && (
+        conversations.length > 0 && (
           <View className='mt-3'>
             <SearchField 
               searchPlaceholder='Search messages'
@@ -76,7 +109,11 @@ export default function Chat() {
 
       {/* List of Messages */}
       {
-        noMessages === 0 ? (
+        loading ? (
+          <View className='flex-1 items-center justify-center mt-20'>
+            <ActivityIndicator color={COLORS.primary} />
+          </View>
+        ) : conversations.length === 0 ? (
           <View className='flex-1 items-center justify-center'>
             {/* Empty State Illustration */}
             <View className='aspect-square size-64'>
@@ -123,19 +160,30 @@ export default function Chat() {
               </TouchableOpacity>
             </View>
 
-            <View className='flex-1 gap-3 mt-3'>
-              {/* Render the list of messages */}
-              {messages.map((message, index) => (
-                <MessageCard 
-                  key={index}
-                  name={message.name}
-                  apartmentName={message.apartmentName}
-                  lastMessage={message.lastMessage}
-                  timestamp={message.timestamp}
-                  onPress={() => {}}
-                />
-              ))}
-            </View>
+            {filteredConversations.length === 0 ? (
+              <View className='flex-1 items-center justify-center mt-10'>
+                <Text className='text-lg text-primary font-poppinsMedium mb-2'>
+                  No {selectedFilter} Messages
+                </Text>
+                <Text className='text-base text-grey-500 font-poppins text-center px-10'>
+                  Try switching filters to view your other conversations.
+                </Text>
+              </View>
+            ) : (
+              <View className='flex-1 gap-3 mt-3'>
+                {/* Render the list of messages */}
+                {filteredConversations.map((message) => (
+                  <MessageCard 
+                    key={message.conversation_key}
+                    name={message.other_user_name}
+                    apartmentName={message.apartment_name ?? 'Unknown Property'}
+                    lastMessage={message.last_message}
+                    timestamp={getRelativeTime(new Date(message.last_message_time))}
+                    onPress={() => handleChatPress(message)}
+                  />
+                ))}
+              </View>
+            )}
           </>
         )
       }
