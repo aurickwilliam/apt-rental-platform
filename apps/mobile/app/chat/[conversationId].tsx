@@ -2,12 +2,13 @@ import {
   View,
   Text,
   KeyboardAvoidingView,
-  Platform,
   FlatList,
   ActivityIndicator,
+  LayoutChangeEvent,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from 'components/layout/ChatHeader';
@@ -23,9 +24,12 @@ type Message = {
   message: string;
   timestamp: string;
   isSent: boolean;
+  isPending?: boolean;
 };
 
 export default function ChatScreen() {
+  const insets = useSafeAreaInsets();
+
   const {
     conversationId: conversationIdParam,
     otherUserId: otherUserIdParam,
@@ -58,7 +62,9 @@ export default function ChatScreen() {
   );
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const apartmentId =
     routedApartmentId === 'none' || !routedApartmentId ? null : routedApartmentId;
@@ -127,8 +133,11 @@ export default function ChatScreen() {
             isSent: row.sender_id === currentUserId,
           };
 
-          // FlatList is inverted so prepend
-          setMessages((prev) => [newMsg, ...prev]);
+          // FlatList is inverted so prepend, and ignore duplicates.
+          setMessages((prev) => {
+            if (prev.some((msg) => msg.id === newMsg.id)) return prev;
+            return [newMsg, ...prev];
+          });
         }
       )
       .subscribe();
@@ -181,7 +190,8 @@ export default function ChatScreen() {
       await fetchMessages(profile.id);
 
       // 3. Subscribe to new messages in real-time
-      subscribeToMessages(profile.id);
+      unsubscribeRef.current?.();
+      unsubscribeRef.current = subscribeToMessages(profile.id);
     } catch (err) {
       console.error('Chat init error:', err);
     } finally {
@@ -191,6 +201,11 @@ export default function ChatScreen() {
 
   useEffect(() => {
     initChat();
+
+    return () => {
+      unsubscribeRef.current?.();
+      unsubscribeRef.current = null;
+    };
   }, [initChat]);
 
   function mapMessages(rows: any[], currentUserId: string): Message[] {
@@ -206,41 +221,96 @@ export default function ChatScreen() {
     if (!chatMessage.trim() || !myId || !otherUserId || sending) return;
 
     const text = chatMessage.trim();
+    const tempId = `temp-${Date.now()}`;
+
+    const pendingMsg: Message = {
+      id: tempId,
+      message: text,
+      timestamp: 'Sending...',
+      isSent: true,
+      isPending: true,
+    };
+
+    setMessages((prev) => [pendingMsg, ...prev]);
     setChatMessage('');
     setSending(true);
 
+    console.log('Sending message:', {
+      sender_id: myId,
+      receiver_id: otherUserId,
+      message: text,
+      apartment_id: apartmentId ?? null,
+    });
+
     try {
-      const { error } = await supabase.from('chat').insert({
-        sender_id: myId,
-        receiver_id: otherUserId,
-        message: text,
-        apartment_id: apartmentId ?? null,
-        is_read: false,
-      });
+      const { data: insertedRow, error } = await supabase
+        .from('chat')
+        .insert({
+          sender_id: myId,
+          receiver_id: otherUserId,
+          message: text,
+          apartment_id: apartmentId ?? null,
+          is_read: false,
+        })
+        .select('id, message, created_at, sender_id')
+        .single();
 
       if (error) throw error;
-      // Realtime subscription will pick up the new message automatically
+
+      // Ensure immediate UI update even when realtime delivery is delayed.
+      if (insertedRow) {
+        const sentMsg: Message = {
+          id: insertedRow.id,
+          message: insertedRow.message,
+          timestamp: getRelativeTime(new Date(insertedRow.created_at)),
+          isSent: insertedRow.sender_id === myId,
+        };
+
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === sentMsg.id)) {
+            return prev.filter((msg) => msg.id !== tempId);
+          }
+
+          const pendingIndex = prev.findIndex((msg) => msg.id === tempId);
+          if (pendingIndex !== -1) {
+            const next = [...prev];
+            next[pendingIndex] = sentMsg;
+            return next;
+          }
+
+          return [sentMsg, ...prev];
+        });
+      }
     } catch (err) {
       console.error('Send failed:', err);
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
       setChatMessage(text); // Restore on failure
     } finally {
       setSending(false);
     }
   }
 
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHeight = Math.round(event.nativeEvent.layout.height);
+    setHeaderHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+  }, []);
+
   return (
     <ScreenWrapper
+      dismissKeyboardOnTouch={false}
       header={
-        <ChatHeader
-          name={otherUserName}
-          profilePicture={otherUserAvatar ?? undefined}
-        />
+        <View onLayout={handleHeaderLayout}>
+          <ChatHeader
+            name={otherUserName}
+            profilePicture={otherUserAvatar ?? undefined}
+          />
+        </View>
       }
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={'padding'}
+        keyboardVerticalOffset={headerHeight}
       >
         {loading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -250,6 +320,7 @@ export default function ChatScreen() {
           <FlatList
             inverted
             ref={flatListRef}
+            style={{ flex: 1 }}
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
@@ -259,9 +330,12 @@ export default function ChatScreen() {
                 isSent={item.isSent}
               />
             )}
-            contentContainerStyle={{ padding: 16, paddingBottom: 10 }}
+            contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+            nestedScrollEnabled
             ListEmptyComponent={
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
                 <View
@@ -301,7 +375,14 @@ export default function ChatScreen() {
           />
         )}
 
-        <View className='bg-white px-3 py-2'>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            paddingHorizontal: 12,
+            paddingTop: 8,
+            paddingBottom: Math.max(insets.bottom, 8),
+          }}
+        >
           <ChatBox
             chatValue={chatMessage}
             onChatValueChange={setChatMessage}
