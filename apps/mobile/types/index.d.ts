@@ -1,6 +1,6 @@
 interface ApartmentCardProps {
-  id: number;
-  thumbnail?: string;
+  id: string;
+  thumbnail?: { uri: string };
   name?: string;
   location?: string;
   ratings?: string;

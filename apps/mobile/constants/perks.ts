@@ -117,7 +117,7 @@ export const PERKS: Record<string, Perk> = {
   // Utilities
   electricity: { id: "electricity", name: "Electricity Included", icon: IconBolt },
   water: { id: "water", name: "Water Included", icon: IconDroplet },
-  generator: { id: "generator", name: "Generator / Backup Power", icon: IconPlug },
+  generator: { id: "generator", name: "Generator", icon: IconPlug },
 
   // Lifestyle
   gym: { id: "gym", name: "Gym Access", icon: IconBarbell },
