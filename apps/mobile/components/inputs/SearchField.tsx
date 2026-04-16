@@ -4,6 +4,7 @@ import { useState } from 'react'
 import {
   IconSearch,
   IconAdjustmentsHorizontal,
+  IconX,
 } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
@@ -30,12 +31,18 @@ export default function SearchField({
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
+  const handleClear = () => {
+    onChangeSearch('');
+  };
+
   return (
     <View
       className={`w-full h-16 py-2 px-3 rounded-2xl
         flex-row items-center justify-center gap-2`}
       style={{
         backgroundColor: backgroundColor,
+        outlineWidth: isFocused ? 2 : 0,
+        outlineColor: COLORS.primary,
       }}
     >
       <IconSearch
@@ -62,14 +69,21 @@ export default function SearchField({
         placeholder={searchPlaceholder}
         placeholderTextColor={COLORS.grey}
 
-        onFocus={() => {
-          setIsFocused(true);
-        }}
-        // When the user taps out of the input field
-        onBlur={() => {
-          setIsFocused(false);
-        }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
+
+      {searchValue.length > 0 && !isDisabled && (
+        <TouchableOpacity
+          onPress={handleClear}
+          activeOpacity={0.7}
+        >
+          <IconX
+            size={26}
+            color={COLORS.grey}
+          />
+        </TouchableOpacity>
+      )}
 
       {showFilterButton && (
         <TouchableOpacity
