@@ -41,9 +41,9 @@ export default function Search() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const pageRef = useRef(0);
 
   const filterSheetRef = useRef<BottomSheet>(null) as React.RefObject<BottomSheet>;
@@ -52,7 +52,18 @@ export default function Search() {
     filterSheetRef.current?.expand();
   }, []);
 
-  const buildQuery = (from: number, to: number, city: string, activeFilters: FilterState | null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const buildQuery = (
+    from: number, 
+    to: number, 
+    city: string, 
+    activeFilters: FilterState | null,
+    search: string,
+  ) => {
     let query = supabase
       .from('apartments')
       .select(`
@@ -69,10 +80,18 @@ export default function Search() {
           url,
           is_cover,
           created_at
-        )
-      `)
+        )`,
+        { count: 'exact' }
+      )
       .is('deleted_at', null)
       .range(from, to);
+
+    // Search filter — matches name or barangay
+    if (search.trim()) {
+      query = query.or(
+        `name.ilike.%${search.trim()}%,barangay.ilike.%${search.trim()}%,city.ilike.%${search.trim()}%`
+      );
+    }
 
     // City / location filter
     if (city !== 'CAMANAVA') {
@@ -197,12 +216,14 @@ export default function Search() {
         setError(null);
         pageRef.current = 0;
 
-        const { data, error: supabaseError } = await buildQuery(0, PAGE_SIZE - 1, selectedCity, activeFilters);
+        const { data, error: supabaseError, count } = await buildQuery(
+          0, PAGE_SIZE - 1, selectedCity, activeFilters, debouncedSearch
+        );
         if (supabaseError) throw supabaseError;
 
         const transformed = transformData(data ?? []);
         setApartments(transformed);
-        setResultCount(transformed.length);
+        setResultCount(count ?? 0);
         setHasMore(transformed.length === PAGE_SIZE);
       } catch (err: any) {
         console.error('Error fetching apartments:', err);
@@ -212,7 +233,7 @@ export default function Search() {
         setRefreshing(false);
       }
     },
-    [selectedCity, filters]
+    [selectedCity, filters, debouncedSearch]
   );
 
   const loadMore = useCallback(async () => {
@@ -223,7 +244,9 @@ export default function Search() {
       const from = nextPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error: supabaseError } = await buildQuery(from, to, selectedCity, filters);
+      const { data, error: supabaseError } = await buildQuery(
+        from, to, selectedCity, filters, debouncedSearch
+      );
       if (supabaseError) throw supabaseError;
 
       const transformed = transformData(data ?? []);
@@ -239,11 +262,11 @@ export default function Search() {
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, selectedCity, filters]);
+  }, [loadingMore, hasMore, selectedCity, filters, debouncedSearch]);
 
   useEffect(() => {
     fetchApartments();
-  }, [fetchApartments]);
+  }, [fetchApartments, debouncedSearch]);
 
   const handleApplyFilters = useCallback(
     (newFilters: FilterState) => {
@@ -258,15 +281,22 @@ export default function Search() {
     fetchApartments(false, null);
   }, [fetchApartments]);
 
-  const filteredApartments = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    if (!q) return apartments;
-    return apartments.filter(
-      (apt) =>
-        apt.name?.toLowerCase().includes(q) ||
-        apt.location?.toLowerCase().includes(q)
-    );
-  }, [apartments, searchQuery]);
+  const activeFilterCount = useMemo(() => {
+    if (!filters) return 0;
+    let count = 0;
+
+    if (filters.budget[0] > MIN_BUDGET || filters.budget[1] < MAX_BUDGET) count++;
+    if (filters.unitTypes.length > 0 && filters.unitTypes.length < APARTMENT_TYPES.length) count++;
+    if (filters.bedrooms !== 'Any') count++;
+    if (filters.bathrooms !== 'Any') count++;
+    if (filters.sizeRange[0] > MIN_SIZE || filters.sizeRange[1] < MAX_SIZE) count++;
+    if (filters.furnishing.length > 0 && filters.furnishing.length < FURNISHED_TYPES.length) count++;
+    if (filters.floorLevel.length > 0 && filters.floorLevel.length < FLOOR_LEVELS.length) count++;
+    if (filters.leaseDuration.length > 0 && filters.leaseDuration.length < LEASE_DURATIONS.length) count++;
+    if (filters.sortBy !== 'newest') count++;
+
+    return count;
+  }, [filters]);
 
   const toggleFavorite = useCallback((id: string) => {
     setApartments((prev) =>
@@ -324,13 +354,44 @@ export default function Search() {
         </TouchableOpacity>
       </View>
 
-      <View className='px-5 mb-5'>
+      <View className='px-5 mb-3'>
         <SearchField
           searchValue={searchQuery}
           onChangeSearch={setSearchQuery}
           showFilterButton
           onFilterPress={openFilterSheet}
         />
+
+        {(activeFilterCount > 0 || resultCount !== undefined) && (
+          <View className='flex-row items-center justify-between mt-3'>
+
+            {/* Left: active filters chip */}
+            {activeFilterCount > 0 ? (
+              <TouchableOpacity
+                onPress={handleClearFilters}
+                activeOpacity={0.7}
+                className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
+              >
+                <Text className='text-primary text-sm font-poppinsMedium'>
+                  {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
+                </Text>
+                <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
+              </TouchableOpacity>
+            ) : (
+              <View />
+            )}
+
+            {/* Right: apartment count */}
+            {resultCount !== undefined && (
+              <Text className='text-sm text-grey-500 font-poppinsRegular'>
+                {loading
+                  ? 'Searching...'
+                  : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
+              </Text>
+            )}
+
+          </View>
+        )}
       </View>
 
       {loading && !refreshing ? (
@@ -339,7 +400,7 @@ export default function Search() {
         </View>
       ) : (
         <FlatList
-          data={filteredApartments}
+          data={apartments}
           renderItem={renderApartmentCard}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
@@ -347,7 +408,7 @@ export default function Search() {
           contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={renderFooter}
-          onEndReached={searchQuery ? undefined : loadMore}
+          onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           refreshControl={
             <RefreshControl
