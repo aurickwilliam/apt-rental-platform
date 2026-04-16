@@ -156,6 +156,11 @@ export default function Search() {
           activeFilters.leaseDuration.length < LEASE_DURATIONS.length) {
         query = query.in('lease_duration', activeFilters.leaseDuration);
       }
+      
+      // Amenities (array contains)
+      if (activeFilters.amenities.length > 0) {
+        query = query.contains('amenities', activeFilters.amenities);
+      }
 
       // Sort
       switch (activeFilters.sortBy) {
@@ -294,7 +299,8 @@ export default function Search() {
     if (filters.floorLevel.length > 0 && filters.floorLevel.length < FLOOR_LEVELS.length) count++;
     if (filters.leaseDuration.length > 0 && filters.leaseDuration.length < LEASE_DURATIONS.length) count++;
     if (filters.sortBy !== 'newest') count++;
-
+    if (filters.amenities.length > 0) count++;
+    
     return count;
   }, [filters]);
 
