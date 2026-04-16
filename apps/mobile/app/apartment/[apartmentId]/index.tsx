@@ -5,13 +5,19 @@ import {
   Image,
   Animated,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Modal,
+  Linking,
+  Platform,
+  StyleProp,
+  ViewStyle
 } from 'react-native'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
+import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
@@ -21,7 +27,6 @@ import LandlordCard from 'components/display/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from '@repo/constants';
-import { DEFAULT_IMAGES } from 'constants/images';
 
 import {
   IconMapPin,
@@ -38,9 +43,49 @@ import {
   IconStar,
   IconUser,
   IconFileDescription,
+  IconUsers,
+  IconBuildingSkyscraper,
+  IconCalendar,
 } from "@tabler/icons-react-native";
 
 import { formatCurrency } from '@repo/utils';
+
+import { useApartmentDetails } from '@/hooks/useApartmentDetails';
+
+setAccessToken(null); // Suppress the missing API key warning since we're using free OSM tiles
+
+const MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+}
+
+const DEFAULT_COORDS = {
+  latitude: 14.6700,
+  longitude: 120.9600,
+}
+
+type DirectionMode = 'driving' | 'walking' | 'transit' | 'bicycling';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -50,7 +95,34 @@ export default function ApartmentScreen() {
 
   const [isReadMore, setIsReadMore] = useState<boolean>(false);
   const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
+  const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
   const [imageIndex, setImageIndex] = useState<number>(0);
+  const skeletonOpacity = useRef(new Animated.Value(0.45)).current;
+
+  const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
+
+  useEffect(() => {
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(skeletonOpacity, {
+          toValue: 0.85,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(skeletonOpacity, {
+          toValue: 0.45,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    pulseAnimation.start();
+
+    return () => {
+      pulseAnimation.stop();
+    };
+  }, [skeletonOpacity]);
 
   // Refs for ScrollView
   const imageScrollViewRef = useRef<ScrollView>(null);
@@ -61,49 +133,18 @@ export default function ApartmentScreen() {
     { useNativeDriver: false }
   );
 
-  // Dummy Data for apartment images
-  const apartmentImages = [
-    {id: 1, image: DEFAULT_IMAGES.defaultThumbnail},
-    {id: 2, image: DEFAULT_IMAGES.defaultThumbnail2},
-    {id: 3, image: DEFAULT_IMAGES.defaultThumbnail3},
-    {id: 4, image: DEFAULT_IMAGES.defaultThumbnail4},
-  ]
+  const apartmentImages = apartment?.apartment_images.map(img => ({
+    id: img.id,
+    image: { uri: img.url },
+  })) ?? [];
 
-  // Dummy Data for Apartment Details
-  const apartmentDetails = {
-    name: 'Sample Apartment',
-    type: 'Condominium',
-    ratings: '4.5',
-    location: 'Sample Location',
-    monthlyRent: 1200,
-    noBedroom: 2,
-    noBathroom: 1,
-    areaSqm: 85,
-    perks: [
-      'wifi',
-      'ac',
-      'tv',
-      'kitchen',
-      'parking',
-      'hotwater',
-      'bath'
-    ],
-    description: `Good day! I am renting out my 2-bedroom fully furnished apartment located in a safe and accessible area. The unit is on the 5th floor of a well-maintained building with 24/7 security and CCTV.
+  const location = apartment
+    ? `${apartment.street_address}, Brgy. ${apartment.barangay}, ${apartment.city}`
+    : '';
 
-The apartment includes a spacious living room with sofa set and TV, a dining area, and a modern kitchen equipped with a refrigerator, electric stove, microwave, and cabinets. Both bedrooms are air-conditioned and come with built-in closets. The master bedroom has its own bathroom, while there is also a separate common bathroom for guests.
-
-The unit has a balcony with good ventilation and natural lighting, and a dedicated laundry area with washing machine provision. Water and electricity are individually metered.
-
-The building is near malls, schools, hospitals, and public transportation, making it very convenient for working professionals or small families.
-
-Monthly Rent: ₱25,000
-Terms: 1 month advance + 2 months deposit
-Minimum stay: 6 months
-No pets / No smoking inside the unit
-
-Serious tenants only. Please message me for viewing and inquiries.`,
-    landlordId: 1,
-  };
+  const hasPerks = (apartment?.amenities?.length ?? 0) > 0;
+  const hasReviews = reviews?.length > 0;
+  const hasApartmentCoords = apartment?.latitude != null && apartment?.longitude != null;
 
   const toggleReadMoreDescription = () => {
     setIsReadMore(!isReadMore);
@@ -123,7 +164,9 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   }
 
   const handleLandlordProfileNavigation = () => {
-    router.push(`/landlord-profile/${apartmentDetails.landlordId}`);
+    if (apartment?.landlord) {
+      router.push(`/landlord-profile/${apartment.landlord.id}`);
+    }
   }
 
   const handleSeeAllRatings = () => {
@@ -134,8 +177,59 @@ Serious tenants only. Please message me for viewing and inquiries.`,
     router.push(`/apartment/${apartmentId}/map-view`);
   }
 
-  const handleIncludedPerksNavigation = () => {
-    router.push(`/apartment/${apartmentId}/included-perks`);
+  const openDirections = async (mode: DirectionMode) => {
+    const latitude = apartment?.latitude;
+    const longitude = apartment?.longitude;
+
+    if (latitude == null || longitude == null) {
+      handleMapViewNavigation();
+      return;
+    }
+
+    const label = encodeURIComponent(apartment?.name || 'Apartment');
+    const destination = `${latitude},${longitude}`;
+
+    const googleMapsWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${mode}`;
+
+    const iosDirFlag =
+      mode === 'walking' ? 'w' :
+      mode === 'transit' ? 'r' :
+      'd';
+
+    const iosUrl =
+      mode === 'bicycling'
+        ? googleMapsWebUrl
+        : `http://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
+
+    const androidUrl =
+      mode === 'transit'
+        ? googleMapsWebUrl
+        : `google.navigation:q=${destination}&mode=${mode === 'walking' ? 'w' : mode === 'bicycling' ? 'b' : 'd'}`;
+
+    const url = Platform.select({
+      ios: iosUrl,
+      android: androidUrl,
+      default: googleMapsWebUrl,
+    });
+
+    if (!url) return;
+
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+      return;
+    }
+
+    await Linking.openURL(googleMapsWebUrl);
+  }
+
+  const handleGetDirections = () => {
+    setIsDirectionsModalVisible(true);
+  }
+
+  const handleSelectDirectionMode = (mode: DirectionMode) => {
+    setIsDirectionsModalVisible(false);
+    openDirections(mode);
   }
 
   const handleLeaseAgreementNavigation = () => {
@@ -145,6 +239,146 @@ Serious tenants only. Please message me for viewing and inquiries.`,
   const handleViewFullImage = (index: number) => {
     setImageIndex(index);
     setIsImageViewVisible(true);
+  }
+
+  const SkeletonBlock = ({
+    className,
+    style,
+  }: {
+    className?: string;
+    style?: StyleProp<ViewStyle>;
+  }) => (
+    <Animated.View
+      className={`bg-grey-200 rounded-xl ${className ?? ''}`}
+      style={[{ opacity: skeletonOpacity }, style]}
+    />
+  );
+
+  if (loading) {
+    return (
+      <View className='flex-1'>
+        <ScreenWrapper
+          scrollable
+          bottomPadding={100}
+          noTopPadding
+        >
+          <View className='h-[42rem] bg-darkerWhite p-5 justify-end'>
+            <View className='gap-3'>
+              <SkeletonBlock className='h-8 w-3/4' />
+              <SkeletonBlock className='h-5 w-11/12' />
+              <SkeletonBlock className='h-5 w-40 mt-2' />
+
+              <View className='flex-row mt-3 gap-3'>
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+              </View>
+
+              <View className='flex-row mt-3 gap-3'>
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+              </View>
+            </View>
+          </View>
+
+          <View className='px-5 mt-6 gap-4'>
+            <SkeletonBlock className='h-6 w-2/3' />
+            <View className='p-4 bg-darkerWhite rounded-2xl gap-2'>
+              <SkeletonBlock className='h-4 w-full' />
+              <SkeletonBlock className='h-4 w-full' />
+              <SkeletonBlock className='h-4 w-5/6' />
+              <SkeletonBlock className='h-9 w-32 mt-3' />
+            </View>
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <View className='flex-row flex-wrap'>
+              <View className='w-1/2 pr-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pl-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pr-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pl-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+            </View>
+
+            <SkeletonBlock className='h-56 w-full rounded-2xl mt-2' />
+
+            <SkeletonBlock className='h-6 w-1/3 mt-2' />
+            <SkeletonBlock className='h-24 w-full rounded-2xl' />
+            <SkeletonBlock className='h-24 w-full rounded-2xl' />
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <SkeletonBlock className='h-28 w-full rounded-2xl' />
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <SkeletonBlock className='h-10 w-52' />
+          </View>
+
+          <View className='h-20' />
+        </ScreenWrapper>
+
+        <View className='absolute bottom-0 left-0 right-0 bg-white z-10 px-5 py-4 border-t border-grey-200'>
+          <SafeAreaView
+            className='flex items-start justify-between gap-3'
+            edges={['bottom']}
+          >
+            <View className='flex-1 flex-row gap-5 items-center w-full'>
+              <SkeletonBlock className='h-9 w-36' />
+              <View className='flex-1'>
+                <SkeletonBlock className='h-11 w-full rounded-full' />
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        <SafeAreaView
+          className='absolute left-4 top-5'
+          edges={['top']}
+        >
+          <IconButton
+            iconName={IconChevronLeft}
+            onPress={() => {
+              router.back();
+            }}
+          />
+        </SafeAreaView>
+
+        <SafeAreaView
+          className='absolute right-4 top-5'
+          edges={['top']}
+        >
+          <IconButton
+            iconName={IconHeart}
+            onPress={handleFavoriteToggle}
+          />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (error && !apartment) {
+    return (
+      <View className='flex-1 bg-white items-center justify-center px-8'>
+        <Text className='text-text font-poppinsSemiBold text-lg text-center'>
+          Unable to load apartment details
+        </Text>
+        <Text className='text-grey-500 font-inter text-center mt-2'>
+          Please try again in a moment.
+        </Text>
+        <View className='mt-6'>
+          <PillButton
+            label='Go Back'
+            size='sm'
+            onPress={() => router.back()}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -201,69 +435,74 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             {/* Apartment Details*/}
             <View>
               <Text className='text-white font-poppinsSemiBold text-2xl'>
-                {apartmentDetails.name}
+                {apartment?.name || 'Unnamed Apartment'}
               </Text>
 
               <View className='flex-row items-center mt-2 gap-2'>
-                <IconMapPin
-                  size={24}
-                  color={COLORS.lightLightLightGrey}
-                />
+                <IconMapPin size={24} color={COLORS.lightLightLightGrey} />
                 <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentDetails.location}
+                  {location || 'No location provided'}
                 </Text>
               </View>
 
-              <View className='flex-row items-center justify-between mt-8 gap-6'>
+              <View className='flex-row items-center mt-5 gap-2'>
+                <IconStarFilled size={20} color={COLORS.secondary} />
+                <Text className='text-grey-100 font-interMedium text-base'>
+                  No ratings yet
+                </Text>
+              </View>
+
+              <View className='flex-row items-center justify-between mt-5 gap-6'>
                 <View className='flex-row items-center gap-2'>
-                  <IconHome2
-                    size={24}
-                    color={COLORS.lightLightLightGrey}
-                  />
+                  <IconBed size={24} color={COLORS.lightLightLightGrey} />
                   <Text className='text-grey-100 font-interMedium text-base'>
-                    {apartmentDetails.type}
+                    {apartment?.no_bedrooms} {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
                   </Text>
                 </View>
 
                 <View className='flex-row items-center gap-2'>
-                  <IconStarFilled
-                    size={20}
-                    color={COLORS.secondary}
-                  />
+                  <IconBath size={24} color={COLORS.lightLightLightGrey} />
                   <Text className='text-grey-100 font-interMedium text-base'>
-                    {apartmentDetails.ratings}  (70)
+                    {apartment?.no_bathrooms} {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
+                  </Text>
+                </View>
+
+                <View className='flex-row items-center gap-2'>
+                  <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
                   </Text>
                 </View>
               </View>
 
-              <View className='flex-row items-center justify-between my-5 gap-6'>
-                <View className='flex-row items-center gap-2'>
-                  <IconBed
-                    size={24}
-                    color={COLORS.lightLightLightGrey}
-                  />
+              <View className='flex-row mt-4 gap-6'>
+                <View className='flex-1 flex-row items-center gap-2'>
+                  <IconUsers size={24} color={COLORS.lightLightLightGrey} />
                   <Text className='text-grey-100 font-interMedium text-base'>
-                    {apartmentDetails.noBedroom} Bedrooms
+                    Max {apartment?.max_occupants} {apartment?.max_occupants === 1 ? 'Occupant' : 'Occupants'}
                   </Text>
                 </View>
 
-                <View className='flex-row items-center gap-2'>
-                  <IconBath
-                    size={24}
-                    color={COLORS.lightLightLightGrey}
-                  />
+                <View className='flex-1 flex-row items-center gap-2'>
+                  <IconBuildingSkyscraper size={24} color={COLORS.lightLightLightGrey} />
                   <Text className='text-grey-100 font-interMedium text-base'>
-                    {apartmentDetails.noBathroom} Bathrooms
+                    {apartment?.floor_level ? `Floor ${apartment?.floor_level}` : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+
+              <View className='flex-row mt-4 mb-5 gap-6'>
+                <View className='flex-1 flex-row items-center gap-2'>
+                  <IconHome2 size={24} color={COLORS.lightLightLightGrey} />
+                  <Text className='text-grey-100 font-interMedium text-base'>
+                    {apartment?.type || 'N/A'}
                   </Text>
                 </View>
 
-                <View className='flex-row items-center gap-2'>
-                  <IconMaximize
-                    size={24}
-                    color={COLORS.lightLightLightGrey}
-                  />
+                <View className='flex-1 flex-row items-center gap-2'>
+                  <IconCalendar size={24} color={COLORS.lightLightLightGrey} />
                   <Text className='text-grey-100 font-interMedium text-base'>
-                    {apartmentDetails.areaSqm} Sqm
+                    {apartment?.lease_duration || 'N/A'}
                   </Text>
                 </View>
               </View>
@@ -319,22 +558,22 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         </View>
 
         <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
-          <Text>
-            {
-              isReadMore
-              ? apartmentDetails.description
-              : `${apartmentDetails.description.slice(0, 500)}...`
-            }
+          <Text numberOfLines={isReadMore ? undefined : 10}>
+            {apartment?.description}
           </Text>
 
-          <View className='mt-5'>
-            <PillButton
-              label={isReadMore ? 'Read Less' : 'Read More'}
-              type='outline'
-              size='sm'
-              onPress={toggleReadMoreDescription}
-            />
-          </View>
+          {
+            apartment?.description && apartment.description.split(' ').length > 50 && (
+              <View className='mt-5'>
+                <PillButton
+                  label={isReadMore ? 'Read Less' : 'Read More'}
+                  type='outline'
+                  size='sm'
+                  onPress={toggleReadMoreDescription}
+                />
+              </View>
+            )
+          }
         </View>
 
         {/* Included Perks */}
@@ -352,14 +591,14 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             </View>
 
             {/* See All Button */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleIncludedPerksNavigation}
             >
               <Text className='font-interMedium text-base text-primary'>
                 See All
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <Text>
@@ -369,11 +608,19 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         {/* List of Perks */}
         <View className='flex-row flex-wrap px-5 mt-5'>
-          {apartmentDetails.perks.map(perkId => (
-            <View key={perkId} className='w-1/2 mb-4'>
-              <PerkItem perkId={perkId} />
+          {hasPerks ? (
+            apartment?.amenities.map((amenity, index) => (
+              <View key={index} className='w-1/2 mb-4'>
+                <PerkItem perkId={amenity} />
+              </View>
+            ))
+          ) : (
+            <View className='w-full items-center py-6'>
+              <Text className='text-grey-500 font-interMedium text-base'>
+                No perks included for this apartment.
+              </Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Map View */}
@@ -390,17 +637,69 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         {/* Map */}
         <TouchableOpacity
           activeOpacity={0.7}
-          className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'
+          className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'
           onPress={handleMapViewNavigation}
         >
-          {/* // TODO: Implement Google Maps API here */}
+          <View style={{ flex: 1 }} pointerEvents='none'>
+            <MapView
+              style={{ flex: 1 }}
+              mapStyle={MAP_STYLE}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              rotateEnabled={false}
+              pitchEnabled={false}
+            >
+              <Camera
+                centerCoordinate={[
+                  apartment?.longitude ?? DEFAULT_COORDS.longitude,
+                  apartment?.latitude ?? DEFAULT_COORDS.latitude,
+                ]}
+                zoomLevel={15}
+                animationDuration={0}
+                maxZoomLevel={19}
+              />
+
+              {hasApartmentCoords && (
+                <ShapeSource
+                  id='pin-source'
+                  shape={{
+                    type: 'Feature',
+                    geometry: {
+                      type: 'Point',
+                      coordinates: [
+                        apartment.longitude as number,
+                        apartment.latitude as number,
+                      ],
+                    },
+                    properties: {},
+                  }}
+                >
+                  <CircleLayer
+                    id='pin-ring'
+                    style={{
+                      circleRadius: 10,
+                      circleColor: '#ffffff',
+                    }}
+                  />
+                  <CircleLayer
+                    id='pin-dot'
+                    style={{
+                      circleRadius: 7,
+                      circleColor: COLORS.primary,
+                    }}
+                  />
+                </ShapeSource>
+              )}
+            </MapView>
+          </View>
 
           <TouchableOpacity
-          activeOpacity={0.7}
-          className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
-          onPress={() => {
-            console.log("Get Directions was Pressed!");
-          }}
+            activeOpacity={0.7}
+            className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
+            onPress={(event) => {
+              event.stopPropagation();
+              handleGetDirections();
+            }}
           >
             <Text className='font-interMedium text-base text-primary'>
               Get Directions
@@ -421,30 +720,40 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           </View>
 
           {/* See All Button */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleSeeAllRatings}
-          >
-            <Text className='font-interMedium text-base text-primary'>
-              See All
-            </Text>
-          </TouchableOpacity>
+          {hasReviews && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleSeeAllRatings}
+            >
+              <Text className='font-interMedium text-base text-primary'>
+                See All
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Render List of Top 2/3 Ratings */}
         <View className='mt-5 px-5 flex gap-3'>
-            <SmallRatingCard
-              accountName='John Doe'
-              rating={4.5}
-              comment='Great place to stay! Very clean and well-maintained.'
-              date='March 15, 2023'
-            />
-            <SmallRatingCard
-              accountName='Jane Smith'
-              rating={4.0}
-              comment='Good location and friendly staff. Would recommend!'
-              date='April 2, 2023'
-            />
+          {hasReviews ? (
+            reviews.map(review => (
+              <SmallRatingCard
+                key={review.id}
+                accountName={`${review.tenant?.first_name} ${review.tenant?.last_name}`}
+                rating={review.rating}
+                comment={review.comment ?? ''}
+                date={new Date(review.created_at).toLocaleDateString('en-PH', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+                })}
+              />
+            ))
+          ) : (
+            <View className='items-center py-8 opacity-70'>
+              <IconStar size={32} color={COLORS.grey} />
+              <Text className='mt-2 text-grey-500 font-interMedium'>
+                No ratings yet
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Landlord Card */}
@@ -460,12 +769,12 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
         <View className='px-5 mt-3'>
           <LandlordCard
-            fullName={'John Doe'}
-            email={'johndoe@yahoo.com'}
-            phoneNumber={'09123456789'}
-            withRentalInfo
-            averageRating={4.5}
-            totalRentals={25}
+            fullName={apartment?.landlord?.first_name + ' ' + apartment?.landlord?.last_name}
+            email={apartment?.landlord?.email ?? 'N/A'}
+            phoneNumber={apartment?.landlord?.mobile_number ?? 'N/A'}
+            // withRentalInfo
+            // averageRating={apartment?.average_rating}
+            totalRentals={apartment?.no_ratings}
             onPress={handleLandlordProfileNavigation}
             onMessagePress={handleMessageLandlord}
           />
@@ -509,7 +818,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           <View className='flex-1 flex-row gap-5 items-center'>
             <View className='flex-row items-center'>
               <Text className='text-3xl font-poppinsSemiBold text-primary'>
-                ₱ {formatCurrency(apartmentDetails.monthlyRent)}
+                ₱ {formatCurrency(apartment?.monthly_rent ?? 0)}
               </Text>
               <Text className='text-base font-interMedium text-grey-500'>
                 /month
@@ -568,6 +877,67 @@ Serious tenants only. Please message me for viewing and inquiries.`,
         presentationStyle='overFullScreen'
         backgroundColor='rgb(0, 0, 0, 0.9)'
       />
+
+      <Modal
+        visible={isDirectionsModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setIsDirectionsModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          className='flex-1 bg-black/40 justify-center px-6'
+          onPress={() => setIsDirectionsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            className='bg-white rounded-2xl p-5'
+            onPress={(event) => event.stopPropagation()}
+          >
+            <Text className='text-text font-poppinsSemiBold text-lg'>
+              Choose Route Type
+            </Text>
+            <Text className='text-grey-500 font-inter mt-1'>
+              Select how you want to get there.
+            </Text>
+
+            <View className='mt-4 gap-3'>
+              <PillButton
+                label='Drive'
+                size='sm'
+                onPress={() => handleSelectDirectionMode('driving')}
+              />
+              <PillButton
+                label='Walk'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('walking')}
+              />
+              <PillButton
+                label='Transit'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('transit')}
+              />
+              <PillButton
+                label='Bicycle'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('bicycling')}
+              />
+            </View>
+
+            <View className='mt-4'>
+              <PillButton
+                label='Cancel'
+                size='sm'
+                type='danger'
+                onPress={() => setIsDirectionsModalVisible(false)}
+              />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
