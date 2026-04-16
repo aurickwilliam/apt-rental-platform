@@ -2,13 +2,14 @@ import { View } from 'react-native'
 
 interface DividerProps {
   marginVertical?: number;
+  thickness?: number;
 }
 
-export default function Divider({ marginVertical = 15 }: DividerProps  ) {
+export default function Divider({ marginVertical = 15, thickness = 2 }: DividerProps  ) {
   return (
     <View
-      className='w-full h-[2px] rounded-full bg-grey-100'
-      style={{ marginVertical }}
+      className='w-full rounded-full bg-grey-100'
+      style={{ marginVertical, height: thickness }}
     />
   )
 }
