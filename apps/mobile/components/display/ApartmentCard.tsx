@@ -12,6 +12,8 @@ import {
   IconHeartFilled,
 } from "@tabler/icons-react-native";
 
+import { formatCurrency } from '@repo/utils';
+
 export default function ApartmentCard({
   thumbnail,
   name = "Apartment Name",
@@ -115,7 +117,7 @@ export default function ApartmentCard({
 
           <View className='flex-row items-center justify-between'>
             <Text className={`text-primary font-interSemiBold ${isGrid ? 'text-xl' : 'text-2xl'}`}>
-              ₱ {monthlyRent}
+              ₱ {formatCurrency(monthlyRent)}
             </Text>
 
             {/* Ratings */}
