@@ -5,13 +5,16 @@ import BottomSheet, {
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet';
 
-import { APARTMENT_TYPES, FURNISHED_TYPES, FLOOR_LEVELS, LEASE_DURATIONS } from '@repo/constants';
+import { APARTMENT_TYPES, FURNISHED_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, COLORS } from '@repo/constants';
+
+import { PERKS } from '@/constants/perks';
 
 import PillButton from '../buttons/PillButton';
 import Divider from './Divider';
 import SingleChipGroup from '../inputs/SingleChipGroup';
 import MultiChipGroup from '../inputs/MultiChipGroup';
 import RangeSlider from '../inputs/RangeSlider';
+import SearchField from '../inputs/SearchField';
 
 const MAX_SIZE      = 300;
 const MIN_BUDGET    = 1000;
@@ -53,11 +56,6 @@ export const DEFAULT_FILTERS: FilterState = {
   amenities: [],
 };
 
-const AMENITIES = [
-  'Parking', 'Swimming Pool', 'Gym', 'CCTV', 'Elevator',
-  'Security', 'Pet Friendly', 'Wi-Fi', 'Laundry Area', 'Balcony',
-];
-
 type Props = {
   bottomSheetRef: React.RefObject<BottomSheet>;
   resultCount?: number;
@@ -75,6 +73,7 @@ export default function FilterBottomSheet({
 }: Props) {
   const snapPoints = useMemo(() => ['85%'], []);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [amenitySearch, setAmenitySearch] = useState('');
 
   const toggleArrayItem = useCallback((key: keyof FilterState, item: string) => {
     setFilters((prev) => {
@@ -108,6 +107,13 @@ export default function FilterBottomSheet({
     ),
     []
   );
+
+  const filteredPerks = useMemo(() => {
+    const q = amenitySearch.toLowerCase().trim();
+    return Object.values(PERKS).filter((p) =>
+      q === '' || p.name.toLowerCase().includes(q)
+    );
+  }, [amenitySearch]);
 
   return (
     <BottomSheet
@@ -264,11 +270,51 @@ export default function FilterBottomSheet({
           Amenities
         </Text>
 
-        <MultiChipGroup
-          options={AMENITIES}
-          selected={filters.amenities}
-          onToggle={(item) => toggleArrayItem('amenities', item)}
+        {/* Search box */}
+        <SearchField
+          searchPlaceholder="Search amenities..."
+          searchValue={amenitySearch}
+          onChangeSearch={setAmenitySearch}
+          backgroundColor={COLORS.darkerWhite}
         />
+
+        <Divider thickness={1} />
+
+        {/* Perk chips with icons */}
+        <View className="flex-row flex-wrap gap-2">
+          {filteredPerks.map((perk) => {
+            const isSelected = filters.amenities.includes(perk.id);
+            const Icon = perk.icon;
+            return (
+              <TouchableOpacity
+                key={perk.id}
+                onPress={() => toggleArrayItem('amenities', perk.id)}
+                activeOpacity={0.7}
+                className={`flex-row items-center justify-center gap-2 px-3 py-2 rounded-full border ${
+                  isSelected
+                    ? 'bg-primary border-primary'
+                    : 'bg-white border-[#E0E0E0]'
+                }`}
+              >
+                <Icon size={14} color={isSelected ? '#FFFFFF' : '#555555'} />
+
+                <Text
+                  className={`font-poppins text-[13px] ${
+                    isSelected ? 'text-white' : 'text-[#555555]'
+                  }`}
+                >
+                  {perk.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
+          {filteredPerks.length === 0 && (
+            <Text className="text-[#9E9E9E] font-poppins text-[13px]">
+              No amenities match your search.
+            </Text>
+          )}
+        </View>
       </BottomSheetScrollView>
         
       <View className="px-5 py-3 border-b border-[#F0F0F0]">
