@@ -5,13 +5,19 @@ import {
   Image,
   Animated,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Modal,
+  Linking,
+  Platform,
+  StyleProp,
+  ViewStyle
 } from 'react-native'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
+import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
@@ -46,6 +52,41 @@ import { formatCurrency } from '@repo/utils';
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 
+setAccessToken(null); // Suppress the missing API key warning since we're using free OSM tiles
+
+const MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+}
+
+const DEFAULT_COORDS = {
+  latitude: 14.6700,
+  longitude: 120.9600,
+}
+
+type DirectionMode = 'driving' | 'walking' | 'transit' | 'bicycling';
+
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
@@ -54,9 +95,34 @@ export default function ApartmentScreen() {
 
   const [isReadMore, setIsReadMore] = useState<boolean>(false);
   const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
+  const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
   const [imageIndex, setImageIndex] = useState<number>(0);
+  const skeletonOpacity = useRef(new Animated.Value(0.45)).current;
 
   const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
+
+  useEffect(() => {
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(skeletonOpacity, {
+          toValue: 0.85,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(skeletonOpacity, {
+          toValue: 0.45,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    pulseAnimation.start();
+
+    return () => {
+      pulseAnimation.stop();
+    };
+  }, [skeletonOpacity]);
 
   // Refs for ScrollView
   const imageScrollViewRef = useRef<ScrollView>(null);
@@ -78,6 +144,7 @@ export default function ApartmentScreen() {
 
   const hasPerks = (apartment?.amenities?.length ?? 0) > 0;
   const hasReviews = reviews?.length > 0;
+  const hasApartmentCoords = apartment?.latitude != null && apartment?.longitude != null;
 
   const toggleReadMoreDescription = () => {
     setIsReadMore(!isReadMore);
@@ -110,8 +177,59 @@ export default function ApartmentScreen() {
     router.push(`/apartment/${apartmentId}/map-view`);
   }
 
-  const handleIncludedPerksNavigation = () => {
-    router.push(`/apartment/${apartmentId}/included-perks`);
+  const openDirections = async (mode: DirectionMode) => {
+    const latitude = apartment?.latitude;
+    const longitude = apartment?.longitude;
+
+    if (latitude == null || longitude == null) {
+      handleMapViewNavigation();
+      return;
+    }
+
+    const label = encodeURIComponent(apartment?.name || 'Apartment');
+    const destination = `${latitude},${longitude}`;
+
+    const googleMapsWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${mode}`;
+
+    const iosDirFlag =
+      mode === 'walking' ? 'w' :
+      mode === 'transit' ? 'r' :
+      'd';
+
+    const iosUrl =
+      mode === 'bicycling'
+        ? googleMapsWebUrl
+        : `http://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
+
+    const androidUrl =
+      mode === 'transit'
+        ? googleMapsWebUrl
+        : `google.navigation:q=${destination}&mode=${mode === 'walking' ? 'w' : mode === 'bicycling' ? 'b' : 'd'}`;
+
+    const url = Platform.select({
+      ios: iosUrl,
+      android: androidUrl,
+      default: googleMapsWebUrl,
+    });
+
+    if (!url) return;
+
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+      return;
+    }
+
+    await Linking.openURL(googleMapsWebUrl);
+  }
+
+  const handleGetDirections = () => {
+    setIsDirectionsModalVisible(true);
+  }
+
+  const handleSelectDirectionMode = (mode: DirectionMode) => {
+    setIsDirectionsModalVisible(false);
+    openDirections(mode);
   }
 
   const handleLeaseAgreementNavigation = () => {
@@ -121,6 +239,146 @@ export default function ApartmentScreen() {
   const handleViewFullImage = (index: number) => {
     setImageIndex(index);
     setIsImageViewVisible(true);
+  }
+
+  const SkeletonBlock = ({
+    className,
+    style,
+  }: {
+    className?: string;
+    style?: StyleProp<ViewStyle>;
+  }) => (
+    <Animated.View
+      className={`bg-grey-200 rounded-xl ${className ?? ''}`}
+      style={[{ opacity: skeletonOpacity }, style]}
+    />
+  );
+
+  if (loading) {
+    return (
+      <View className='flex-1'>
+        <ScreenWrapper
+          scrollable
+          bottomPadding={100}
+          noTopPadding
+        >
+          <View className='h-[42rem] bg-darkerWhite p-5 justify-end'>
+            <View className='gap-3'>
+              <SkeletonBlock className='h-8 w-3/4' />
+              <SkeletonBlock className='h-5 w-11/12' />
+              <SkeletonBlock className='h-5 w-40 mt-2' />
+
+              <View className='flex-row mt-3 gap-3'>
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+              </View>
+
+              <View className='flex-row mt-3 gap-3'>
+                <SkeletonBlock className='h-5 flex-1' />
+                <SkeletonBlock className='h-5 flex-1' />
+              </View>
+            </View>
+          </View>
+
+          <View className='px-5 mt-6 gap-4'>
+            <SkeletonBlock className='h-6 w-2/3' />
+            <View className='p-4 bg-darkerWhite rounded-2xl gap-2'>
+              <SkeletonBlock className='h-4 w-full' />
+              <SkeletonBlock className='h-4 w-full' />
+              <SkeletonBlock className='h-4 w-5/6' />
+              <SkeletonBlock className='h-9 w-32 mt-3' />
+            </View>
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <View className='flex-row flex-wrap'>
+              <View className='w-1/2 pr-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pl-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pr-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+              <View className='w-1/2 pl-2 mb-3'>
+                <SkeletonBlock className='h-10 w-full' />
+              </View>
+            </View>
+
+            <SkeletonBlock className='h-56 w-full rounded-2xl mt-2' />
+
+            <SkeletonBlock className='h-6 w-1/3 mt-2' />
+            <SkeletonBlock className='h-24 w-full rounded-2xl' />
+            <SkeletonBlock className='h-24 w-full rounded-2xl' />
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <SkeletonBlock className='h-28 w-full rounded-2xl' />
+
+            <SkeletonBlock className='h-6 w-1/2 mt-2' />
+            <SkeletonBlock className='h-10 w-52' />
+          </View>
+
+          <View className='h-20' />
+        </ScreenWrapper>
+
+        <View className='absolute bottom-0 left-0 right-0 bg-white z-10 px-5 py-4 border-t border-grey-200'>
+          <SafeAreaView
+            className='flex items-start justify-between gap-3'
+            edges={['bottom']}
+          >
+            <View className='flex-1 flex-row gap-5 items-center w-full'>
+              <SkeletonBlock className='h-9 w-36' />
+              <View className='flex-1'>
+                <SkeletonBlock className='h-11 w-full rounded-full' />
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        <SafeAreaView
+          className='absolute left-4 top-5'
+          edges={['top']}
+        >
+          <IconButton
+            iconName={IconChevronLeft}
+            onPress={() => {
+              router.back();
+            }}
+          />
+        </SafeAreaView>
+
+        <SafeAreaView
+          className='absolute right-4 top-5'
+          edges={['top']}
+        >
+          <IconButton
+            iconName={IconHeart}
+            onPress={handleFavoriteToggle}
+          />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (error && !apartment) {
+    return (
+      <View className='flex-1 bg-white items-center justify-center px-8'>
+        <Text className='text-text font-poppinsSemiBold text-lg text-center'>
+          Unable to load apartment details
+        </Text>
+        <Text className='text-grey-500 font-inter text-center mt-2'>
+          Please try again in a moment.
+        </Text>
+        <View className='mt-6'>
+          <PillButton
+            label='Go Back'
+            size='sm'
+            onPress={() => router.back()}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -379,17 +637,69 @@ export default function ApartmentScreen() {
         {/* Map */}
         <TouchableOpacity
           activeOpacity={0.7}
-          className='h-56 mx-5 mt-3 bg-amber-200 rounded-2xl relative'
+          className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'
           onPress={handleMapViewNavigation}
         >
-          {/* // TODO: Implement Google Maps API here */}
+          <View style={{ flex: 1 }} pointerEvents='none'>
+            <MapView
+              style={{ flex: 1 }}
+              mapStyle={MAP_STYLE}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              rotateEnabled={false}
+              pitchEnabled={false}
+            >
+              <Camera
+                centerCoordinate={[
+                  apartment?.longitude ?? DEFAULT_COORDS.longitude,
+                  apartment?.latitude ?? DEFAULT_COORDS.latitude,
+                ]}
+                zoomLevel={15}
+                animationDuration={0}
+                maxZoomLevel={19}
+              />
+
+              {hasApartmentCoords && (
+                <ShapeSource
+                  id='pin-source'
+                  shape={{
+                    type: 'Feature',
+                    geometry: {
+                      type: 'Point',
+                      coordinates: [
+                        apartment.longitude as number,
+                        apartment.latitude as number,
+                      ],
+                    },
+                    properties: {},
+                  }}
+                >
+                  <CircleLayer
+                    id='pin-ring'
+                    style={{
+                      circleRadius: 10,
+                      circleColor: '#ffffff',
+                    }}
+                  />
+                  <CircleLayer
+                    id='pin-dot'
+                    style={{
+                      circleRadius: 7,
+                      circleColor: COLORS.primary,
+                    }}
+                  />
+                </ShapeSource>
+              )}
+            </MapView>
+          </View>
 
           <TouchableOpacity
-          activeOpacity={0.7}
-          className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
-          onPress={() => {
-            console.log("Get Directions was Pressed!");
-          }}
+            activeOpacity={0.7}
+            className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
+            onPress={(event) => {
+              event.stopPropagation();
+              handleGetDirections();
+            }}
           >
             <Text className='font-interMedium text-base text-primary'>
               Get Directions
@@ -567,6 +877,67 @@ export default function ApartmentScreen() {
         presentationStyle='overFullScreen'
         backgroundColor='rgb(0, 0, 0, 0.9)'
       />
+
+      <Modal
+        visible={isDirectionsModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setIsDirectionsModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          className='flex-1 bg-black/40 justify-center px-6'
+          onPress={() => setIsDirectionsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            className='bg-white rounded-2xl p-5'
+            onPress={(event) => event.stopPropagation()}
+          >
+            <Text className='text-text font-poppinsSemiBold text-lg'>
+              Choose Route Type
+            </Text>
+            <Text className='text-grey-500 font-inter mt-1'>
+              Select how you want to get there.
+            </Text>
+
+            <View className='mt-4 gap-3'>
+              <PillButton
+                label='Drive'
+                size='sm'
+                onPress={() => handleSelectDirectionMode('driving')}
+              />
+              <PillButton
+                label='Walk'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('walking')}
+              />
+              <PillButton
+                label='Transit'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('transit')}
+              />
+              <PillButton
+                label='Bicycle'
+                size='sm'
+                type='outline'
+                onPress={() => handleSelectDirectionMode('bicycling')}
+              />
+            </View>
+
+            <View className='mt-4'>
+              <PillButton
+                label='Cancel'
+                size='sm'
+                type='danger'
+                onPress={() => setIsDirectionsModalVisible(false)}
+              />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
