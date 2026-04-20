@@ -25,12 +25,9 @@ export default function AuthForm() {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.currentTarget));
       const emailValue = encodeURIComponent(data.email as string);
-      router.push(`/tenant/sign-up-form?role=${role}&email=${emailValue}`);
+      router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
       return;
     }
-
-    // For sign-in, let the form action handle it (don't prevent default)
-    // The hidden role field will be included in the FormData
   };
 
   return (

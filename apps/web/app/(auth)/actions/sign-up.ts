@@ -21,6 +21,7 @@ export async function signUp(
   const lastName = formData.get("lastName") as string;
   const middleName = formData.get("middleName") as string | null;
   const age = formData.get("age") as string | null;
+  const gender = formData.get("gender") as string | null;
   const mobileNumber = formData.get("mobileNumber") as string | null;
 
   // Address information
@@ -37,6 +38,14 @@ export async function signUp(
 
   if (!firstName || !lastName) {
     return { error: "First name and last name are required.", success: false };
+  }
+
+  if (!age || !gender || !mobileNumber) {
+    return { error: "Age, gender, and mobile number are required.", success: false };
+  }
+
+  if (!streetAddress || !barangay || !city || !province || !postalCode) {
+    return { error: "Complete address information is required.", success: false };
   }
 
   if (password !== confirmPassword) {
@@ -67,8 +76,23 @@ export async function signUp(
 
   const supabase = await createClient();
 
+  const parsedAge = Number.parseInt(age, 10);
+  if (Number.isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
+    return { error: "Please enter a valid age.", success: false };
+  }
+
+  const parsedPostalCode = Number.parseInt(postalCode, 10);
+  if (Number.isNaN(parsedPostalCode)) {
+    return { error: "Please enter a valid postal code.", success: false };
+  }
+
+  // Web sign-up collects age but not birth date. Derive a stable default date
+  // so auth metadata satisfies DB profile trigger requirements.
+  const birthYear = new Date().getFullYear() - parsedAge;
+  const derivedBirthDate = `${birthYear}-01-01`;
+
   // Create the auth user in Authentication
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -76,6 +100,16 @@ export async function signUp(
         role: role || "tenant",
         first_name: firstName,
         last_name: lastName,
+        middle_name: middleName || null,
+        age: parsedAge,
+        gender,
+        mobile_number: mobileNumber,
+        birth_date: derivedBirthDate,
+        street_address: streetAddress,
+        barangay,
+        city,
+        province,
+        postal_code: parsedPostalCode,
       },
     },
   });
@@ -90,37 +124,10 @@ export async function signUp(
     if (authError.message.includes("password")) {
       return { error: "Password does not meet the security requirements. Please choose a stronger password.", success: false };
     }
-    return { error: authError.message, success: false };
-  }
-
-  // Insert profile data into the users table
-  if (authData.user) {
-    const { error: profileError } = await supabase
-      .from("users")
-      .insert({
-        user_id: authData.user.id,
-        role: role || "tenant",
-        first_name: firstName,
-        last_name: lastName,
-        middle_name: middleName || null,
-        age: age ? parseInt(age, 10) : 0,
-        mobile_number: mobileNumber || "",
-        birth_date: new Date().toISOString().split("T")[0],
-        street_address: streetAddress || "",
-        barangay: barangay || "",
-        city: city || "",
-        province: province || "",
-        postal_code: postalCode ? parseInt(postalCode, 10) : null,
-      });
-
-    if (profileError) {
-      // If profile creation fails, we should clean up the auth user
-      // to avoid orphaned accounts
-      await supabase.auth.admin.deleteUser(authData.user.id);
-
-      console.error("Profile creation error:", profileError);
-      return { error: "Failed to create your profile. Please try again.", success: false };
+    if (authError.message.toLowerCase().includes("database error saving new user")) {
+      return { error: "We could not create your account profile. Please check your details and try again.", success: false };
     }
+    return { error: authError.message, success: false };
   }
 
   return { error: null, success: true };

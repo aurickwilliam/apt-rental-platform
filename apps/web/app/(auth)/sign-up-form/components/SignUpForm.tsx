@@ -154,7 +154,7 @@ export default function SignUpForm() {
           size="lg"
           className="mt-4"
           as="a"
-          href={role === 'tenant' ? "/my-rental" : "/dashboard"}
+          href={role === 'tenant' ? "/tenant/my-rental" : "/landlord/dashboard"}
         >
           Continue to {role === 'tenant' ? "My Rental" : "Dashboard"}
         </Button>
