@@ -30,10 +30,8 @@ type Message = {
 type PresenceState = {
   userId: string;
   isTyping: boolean;
+  lastTypedAt?: number;
 };
-
-// How long after the user stops typing before we clear the "typing" state.
-const TYPING_DEBOUNCE_MS = 2000;
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -76,14 +74,16 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   // A single Supabase channel that handles both postgres_changes AND presence.
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  // Debounce timer for clearing our own "typing" broadcast.
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Keep myId accessible inside callbacks without causing re-subscriptions.
   const myIdRef = useRef<string | null>(null);
 
   const isSubscribedRef = useRef(false);
   // Add a second ref for the presence channel
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const isTypingRef = useRef(false);
+  const typingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingHeartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const apartmentId =
     routedApartmentId === 'none' || !routedApartmentId ? null : routedApartmentId;
@@ -199,30 +199,49 @@ export default function ChatScreen() {
     presenceChannel
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState<PresenceState>();
-        const otherEntry = state[otherUserId];
-        const isTyping = Array.isArray(otherEntry) && otherEntry.some((p) => p.isTyping === true);
-        setOtherUserIsTyping(isTyping);
+
+        const otherEntry = Object.entries(state).find(
+          ([key]) => key === otherUserId
+        )?.[1];
+
+        let isTyping = false;
+
+        if (Array.isArray(otherEntry)) {
+          isTyping = otherEntry.some((p) => {
+            const isFresh =
+              p.lastTypedAt && Date.now() - p.lastTypedAt < 5000; // expires after 5s
+            return p.isTyping === true && isFresh;
+          });
+        }
+
+        setOtherUserIsTyping(prev => prev === isTyping ? prev : isTyping);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         if (key === otherUserId) {
           const isTyping = newPresences.some((p: any) => p.isTyping === true);
-          setOtherUserIsTyping(isTyping);
+          setOtherUserIsTyping(prev => prev === isTyping ? prev : isTyping);
         }
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
         if (key === otherUserId) setOtherUserIsTyping(false);
       })
-      .subscribe(async (status) => {
+      .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          await presenceChannel.track({ userId: currentUserId, isTyping: false });
+          setTimeout(() => {
+            presenceChannel.track({
+              userId: currentUserId,
+              isTyping: false,
+              lastTypedAt: Date.now(),
+            });
+          }, 100);
         }
       });
 
     presenceChannelRef.current = presenceChannel;
   }, [apartmentId, conversationId, otherUserId]);
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
-
+  
+  // Initial data fetch: get my profile, the other user's profile, and the existing messages. Also sets up the channels.
   const initChat = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -250,42 +269,106 @@ export default function ChatScreen() {
     }
   }, [fetchMessages, fetchOtherUserProfile, setupChannel]);
 
+
+  const stopTyping = useCallback(() => {
+    if (!presenceChannelRef.current || !myIdRef.current) return;
+
+    if (typingStopTimeoutRef.current) {
+      clearTimeout(typingStopTimeoutRef.current);
+      typingStopTimeoutRef.current = null;
+    }
+
+    if (typingHeartbeatRef.current) {
+      clearInterval(typingHeartbeatRef.current);
+      typingHeartbeatRef.current = null;
+    }
+
+    if (isTypingRef.current) {
+      presenceChannelRef.current.track({
+        userId: myIdRef.current,
+        isTyping: false,
+        lastTypedAt: Date.now(),
+      });
+
+      isTypingRef.current = false;
+    }
+  }, []);
+
+  // Handles the typing presence
+  const TYPING_IDLE_DELAY = 2000;     // stop typing after 2s inactivity
+  const TYPING_HEARTBEAT = 4000;      // keep alive every 4s
+
+  const handleChatMessageChange = useCallback((text: string) => {
+    setChatMessage(text);
+
+    if (!presenceChannelRef.current || !myIdRef.current) return;
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+
+      presenceChannelRef.current.track({
+        userId: myIdRef.current,
+        isTyping: true,
+        lastTypedAt: Date.now(),
+      });
+
+      if (!typingHeartbeatRef.current) {
+        typingHeartbeatRef.current = setInterval(() => {
+          presenceChannelRef.current?.track({
+            userId: myIdRef.current,
+            isTyping: true,
+            lastTypedAt: Date.now(),
+          });
+        }, TYPING_HEARTBEAT);
+      }
+    }
+
+    // ⏱ Reset idle timer
+    if (typingStopTimeoutRef.current) {
+      clearTimeout(typingStopTimeoutRef.current);
+    }
+
+    typingStopTimeoutRef.current = setTimeout(() => {
+      stopTyping();
+    }, TYPING_IDLE_DELAY);
+  }, [stopTyping]);
+
+  const handleInputFocus = useCallback(() => {}, []);
+
+  const handleInputBlur = useCallback(() => {
+    stopTyping();
+  }, [stopTyping]);
+
   useEffect(() => {
     initChat();
 
     return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      stopTyping();
+
+      if (typingHeartbeatRef.current) {
+        clearInterval(typingHeartbeatRef.current);
+      }
+
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+      }
+
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
+
       if (presenceChannelRef.current) {
         supabase.removeChannel(presenceChannelRef.current);
         presenceChannelRef.current = null;
       }
     };
-  }, [initChat]);
-
-  // ─── Typing handler ───────────────────────────────────────────────────────
-
-  const handleChatMessageChange = useCallback((text: string) => {
-    setChatMessage(text);
-
-    if (!presenceChannelRef.current) return;
-
-    presenceChannelRef.current.track({ userId: myIdRef.current, isTyping: text.length > 0 });
-
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    if (text.length > 0) {
-      typingTimeoutRef.current = setTimeout(() => {
-        presenceChannelRef.current?.track({ userId: myIdRef.current, isTyping: false });
-      }, TYPING_DEBOUNCE_MS);
-    }
-  }, []);
-
-  // ─── Send ─────────────────────────────────────────────────────────────────
-
+  }, [initChat, stopTyping]);
+  
+  // Handles the sending/inserting of message
   async function handleSend() {
+    stopTyping();
+
     if (!chatMessage.trim() || !myId || !otherUserId || sending) return;
 
     const text = chatMessage.trim();
@@ -307,10 +390,6 @@ export default function ChatScreen() {
     setTimeout(() => {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }, 100);
-
-    // Clear typing indicator as soon as the message is sent.
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    presenceChannelRef.current?.track({ userId: myId, isTyping: false });
 
     try {
       const { data: insertedRow, error } = await supabase
@@ -371,8 +450,6 @@ export default function ChatScreen() {
       setSending(false);
     }
   }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   function mapMessages(rows: any[], currentUserId: string): Message[] {
     return rows.map((m) => ({
@@ -521,6 +598,8 @@ export default function ChatScreen() {
             onChatValueChange={handleChatMessageChange}
             onSendPress={handleSend}
             isDisabled={sending}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
           />
         </View>
       </KeyboardAvoidingView>
