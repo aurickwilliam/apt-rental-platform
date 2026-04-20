@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import {
   View,
   Platform,
+  RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
@@ -19,6 +20,9 @@ interface ScreenWrapperProps {
   scrollable?: boolean;
   bottomPadding?: number;
   noTopPadding?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  dismissKeyboardOnTouch?: boolean;
 }
 
 // This wraps the content so tapping empty space closes the keyboard
@@ -37,6 +41,9 @@ export default function ScreenWrapper({
   scrollable = false,
   bottomPadding = 0,
   noTopPadding = false,
+  refreshing = false,
+  onRefresh,
+  dismissKeyboardOnTouch = true,
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
 
@@ -54,6 +61,16 @@ export default function ScreenWrapper({
           extraScrollHeight={Platform.OS === "ios" ? 50 : 80}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={COLORS.primary}
+                colors={[COLORS.primary]}
+              />
+            ) : undefined
+          }
 
           contentContainerStyle={{
             flexGrow: 1,
@@ -61,13 +78,20 @@ export default function ScreenWrapper({
             paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
           }}
         >
-          <WrapWithDismiss>
+          {dismissKeyboardOnTouch ? (
+            <WrapWithDismiss>
+              <View className={`flex-1 relative ${className}`}>
+                {children}
+              </View>
+            </WrapWithDismiss>
+          ) : (
             <View className={`flex-1 relative ${className}`}>
               {children}
             </View>
-          </WrapWithDismiss>
+          )}
         </KeyboardAwareScrollView>
       ) : (
+        dismissKeyboardOnTouch ? (
         <WrapWithDismiss>
           <View
             style={{
@@ -81,6 +105,19 @@ export default function ScreenWrapper({
             </View>
           </View>
         </WrapWithDismiss>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              paddingTop: paddingTop,
+              paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+            }}
+          >
+            <View className={`flex-1 relative ${className}`}>
+              {children}
+            </View>
+          </View>
+        )
       )}
 
       {footer && (

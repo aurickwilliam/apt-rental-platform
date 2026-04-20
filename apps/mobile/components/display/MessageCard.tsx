@@ -9,6 +9,7 @@ interface MessageCardProps {
   timestamp: string;
   profilePictureUrl?: string;
   isUserLastSender?: boolean;
+  unreadCount?: number;
   onPress?: () => void;
 }
 
@@ -19,13 +20,11 @@ export default function MessageCard({
   timestamp,
   profilePictureUrl,
   isUserLastSender = false,
+  unreadCount = 0,
   onPress
 }: MessageCardProps) {
 
   const profilePicture = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
-
-  // TODO: Implement a function to return a timestamp relative to the current time
-  // e.g., "2 hours ago", "Yesterday", etc.
 
   return (
     <TouchableOpacity 
@@ -34,14 +33,24 @@ export default function MessageCard({
       className='bg-white p-4 rounded-2xl flex-row gap-4'
     >
       {/* Profile Picture */}
-      <View className='size-20 rounded-full overflow-hidden border-2 border-secondary'>
-        <Image 
-          source={profilePicture}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-        />
+      <View className='relative'>
+        <View className='size-20 rounded-full overflow-hidden border-2 border-secondary'>
+          <Image 
+            source={profilePicture}
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+        </View>
+
+        {unreadCount > 0 && (
+          <View className='absolute top-0 right-0 bg-primary rounded-full min-w-[20px] h-5 px-1 items-center justify-center'>
+            <Text className='text-white text-xs font-interMedium'>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Message Details */}
