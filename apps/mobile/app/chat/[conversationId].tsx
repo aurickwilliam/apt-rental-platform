@@ -27,6 +27,14 @@ type Message = {
   isPending?: boolean;
 };
 
+type PresenceState = {
+  userId: string;
+  isTyping: boolean;
+};
+
+// How long after the user stops typing before we clear the "typing" state.
+const TYPING_DEBOUNCE_MS = 2000;
+
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
 
@@ -63,21 +71,29 @@ export default function ChatScreen() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
+
   const flatListRef = useRef<FlatList>(null);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  // A single Supabase channel that handles both postgres_changes AND presence.
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Debounce timer for clearing our own "typing" broadcast.
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keep myId accessible inside callbacks without causing re-subscriptions.
+  const myIdRef = useRef<string | null>(null);
+
+  const isSubscribedRef = useRef(false);
+  // Add a second ref for the presence channel
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const apartmentId =
     routedApartmentId === 'none' || !routedApartmentId ? null : routedApartmentId;
 
   useEffect(() => {
-    if (routedOtherUserName) {
-      setOtherUserName(routedOtherUserName);
-    }
-    if (routedOtherUserAvatar) {
-      setOtherUserAvatar(routedOtherUserAvatar);
-    }
+    if (routedOtherUserName) setOtherUserName(routedOtherUserName);
+    if (routedOtherUserAvatar) setOtherUserAvatar(routedOtherUserAvatar);
   }, [routedOtherUserAvatar, routedOtherUserName]);
 
+  // Fetch existing messages for this conversation + apartment (if any).
   const fetchMessages = useCallback(async (currentUserId: string) => {
     if (!otherUserId) {
       setMessages([]);
@@ -92,7 +108,6 @@ export default function ChatScreen() {
       )
       .order('created_at', { ascending: false });
 
-    // Filter by apartment if linked
     if (apartmentId) {
       query = query.eq('apartment_id', apartmentId);
     } else {
@@ -105,46 +120,7 @@ export default function ChatScreen() {
     setMessages(mapMessages(data ?? [], currentUserId));
   }, [apartmentId, otherUserId]);
 
-  const subscribeToMessages = useCallback((currentUserId: string) => {
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat',
-        },
-        (payload) => {
-          const row = payload.new as any;
-          // Only process messages that belong to this thread
-          const isRelevant =
-            (row.sender_id === currentUserId && row.receiver_id === otherUserId) ||
-            (row.sender_id === otherUserId && row.receiver_id === currentUserId);
-          const matchesApartment = apartmentId
-            ? row.apartment_id === apartmentId
-            : row.apartment_id == null;
-          if (!isRelevant || !matchesApartment) return;
-
-          const newMsg: Message = {
-            id: row.id,
-            message: row.message,
-            timestamp: getRelativeTime(new Date(row.created_at)),
-            isSent: row.sender_id === currentUserId,
-          };
-
-          // FlatList is inverted so prepend, and ignore duplicates.
-          setMessages((prev) => {
-            if (prev.some((msg) => msg.id === newMsg.id)) return prev;
-            return [newMsg, ...prev];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [apartmentId, conversationId, otherUserId]);
-
+  // Fetch the other user's profile info (name + avatar) for the header.
   const fetchOtherUserProfile = useCallback(async () => {
     if (!otherUserId) return;
 
@@ -159,9 +135,7 @@ export default function ChatScreen() {
 
     if (!routedOtherUserName) {
       const fullName = `${data.first_name} ${data.last_name}`.trim();
-      if (fullName) {
-        setOtherUserName(fullName);
-      }
+      if (fullName) setOtherUserName(fullName);
     }
 
     if (!routedOtherUserAvatar && data.avatar_url) {
@@ -169,9 +143,88 @@ export default function ChatScreen() {
     }
   }, [otherUserId, routedOtherUserAvatar, routedOtherUserName]);
 
+  // Set up a single Supabase channel to handle both incoming messages (via postgres_changes)
+  const setupChannel = useCallback((currentUserId: string) => {
+    // Tear down both channels first
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    if (presenceChannelRef.current) {
+      supabase.removeChannel(presenceChannelRef.current);
+      presenceChannelRef.current = null;
+    }
+    isSubscribedRef.current = false;
+
+    // ── Channel 1: Broadcast only (messages) ─────────────────────────
+    const msgChannel = supabase.channel(`chat:msg:${conversationId}`);
+
+    msgChannel
+      .on('broadcast', { event: 'new_message' }, ({ payload }) => {
+        if (payload.sender_id === currentUserId) return;
+
+        const matchesApartment = apartmentId
+          ? payload.apartment_id === apartmentId
+          : payload.apartment_id == null;
+
+        if (!matchesApartment) return;
+
+        const newMsg: Message = {
+          id: payload.id,
+          message: payload.message,
+          timestamp: getRelativeTime(new Date(payload.created_at)),
+          isSent: false,
+        };
+
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev;
+          return [newMsg, ...prev];
+        });
+
+        setTimeout(() => {
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        }, 100);
+      })
+      .subscribe((status) => {
+        isSubscribedRef.current = status === 'SUBSCRIBED';
+      });
+
+    channelRef.current = msgChannel;
+
+    // ── Channel 2: Presence only (typing indicator) ───────────────────
+    const presenceChannel = supabase.channel(`chat:presence:${conversationId}`, {
+      config: { presence: { key: currentUserId } },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState<PresenceState>();
+        const otherEntry = state[otherUserId];
+        const isTyping = Array.isArray(otherEntry) && otherEntry.some((p) => p.isTyping === true);
+        setOtherUserIsTyping(isTyping);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        if (key === otherUserId) {
+          const isTyping = newPresences.some((p: any) => p.isTyping === true);
+          setOtherUserIsTyping(isTyping);
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        if (key === otherUserId) setOtherUserIsTyping(false);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ userId: currentUserId, isTyping: false });
+        }
+      });
+
+    presenceChannelRef.current = presenceChannel;
+  }, [apartmentId, conversationId, otherUserId]);
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+
   const initChat = useCallback(async () => {
     try {
-      // 1. Resolve current user's public.users id
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -182,40 +235,55 @@ export default function ChatScreen() {
         .single();
 
       if (!profile) return;
+
+      myIdRef.current = profile.id;
       setMyId(profile.id);
 
       await fetchOtherUserProfile();
-
-      // 2. Fetch existing messages for this thread
       await fetchMessages(profile.id);
 
-      // 3. Subscribe to new messages in real-time
-      unsubscribeRef.current?.();
-      unsubscribeRef.current = subscribeToMessages(profile.id);
+      setupChannel(profile.id);
     } catch (err) {
       console.error('Chat init error:', err);
     } finally {
       setLoading(false);
     }
-  }, [fetchMessages, fetchOtherUserProfile, subscribeToMessages]);
+  }, [fetchMessages, fetchOtherUserProfile, setupChannel]);
 
   useEffect(() => {
     initChat();
 
     return () => {
-      unsubscribeRef.current?.();
-      unsubscribeRef.current = null;
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
     };
   }, [initChat]);
 
-  function mapMessages(rows: any[], currentUserId: string): Message[] {
-    return rows.map((m) => ({
-      id: m.id,
-      message: m.message,
-      timestamp: getRelativeTime(new Date(m.created_at)),
-      isSent: m.sender_id === currentUserId,
-    }));
-  }
+  // ─── Typing handler ───────────────────────────────────────────────────────
+
+  const handleChatMessageChange = useCallback((text: string) => {
+    setChatMessage(text);
+
+    if (!presenceChannelRef.current) return;
+
+    presenceChannelRef.current.track({ userId: myIdRef.current, isTyping: text.length > 0 });
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (text.length > 0) {
+      typingTimeoutRef.current = setTimeout(() => {
+        presenceChannelRef.current?.track({ userId: myIdRef.current, isTyping: false });
+      }, TYPING_DEBOUNCE_MS);
+    }
+  }, []);
+
+  // ─── Send ─────────────────────────────────────────────────────────────────
 
   async function handleSend() {
     if (!chatMessage.trim() || !myId || !otherUserId || sending) return;
@@ -235,12 +303,14 @@ export default function ChatScreen() {
     setChatMessage('');
     setSending(true);
 
-    console.log('Sending message:', {
-      sender_id: myId,
-      receiver_id: otherUserId,
-      message: text,
-      apartment_id: apartmentId ?? null,
-    });
+    // Scroll to bottom immediately to show the pending message, instead of waiting for the DB round-trip.
+    setTimeout(() => {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, 100);
+
+    // Clear typing indicator as soon as the message is sent.
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    presenceChannelRef.current?.track({ userId: myId, isTyping: false });
 
     try {
       const { data: insertedRow, error } = await supabase
@@ -257,37 +327,60 @@ export default function ChatScreen() {
 
       if (error) throw error;
 
-      // Ensure immediate UI update even when realtime delivery is delayed.
       if (insertedRow) {
         const sentMsg: Message = {
           id: insertedRow.id,
           message: insertedRow.message,
           timestamp: getRelativeTime(new Date(insertedRow.created_at)),
-          isSent: insertedRow.sender_id === myId,
+          isSent: true,
         };
 
         setMessages((prev) => {
-          if (prev.some((msg) => msg.id === sentMsg.id)) {
-            return prev.filter((msg) => msg.id !== tempId);
+          if (prev.some((m) => m.id === sentMsg.id)) {
+            return prev.filter((m) => m.id !== tempId);
           }
-
-          const pendingIndex = prev.findIndex((msg) => msg.id === tempId);
+          const pendingIndex = prev.findIndex((m) => m.id === tempId);
           if (pendingIndex !== -1) {
             const next = [...prev];
             next[pendingIndex] = sentMsg;
             return next;
           }
-
           return [sentMsg, ...prev];
         });
+
+        // Use the already-subscribed channel — no fallback to REST, no warnings.
+        if (isSubscribedRef.current) {
+          channelRef.current?.send({
+            type: 'broadcast',
+            event: 'new_message',
+            payload: {
+              id: insertedRow.id,
+              message: insertedRow.message,
+              created_at: insertedRow.created_at,
+              sender_id: myId,
+              apartment_id: apartmentId ?? null,
+            },
+          });
+        }
       }
     } catch (err) {
       console.error('Send failed:', err);
-      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
-      setChatMessage(text); // Restore on failure
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setChatMessage(text);
     } finally {
       setSending(false);
     }
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  function mapMessages(rows: any[], currentUserId: string): Message[] {
+    return rows.map((m) => ({
+      id: m.id,
+      message: m.message,
+      timestamp: getRelativeTime(new Date(m.created_at)),
+      isSent: m.sender_id === currentUserId,
+    }));
   }
 
   const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
@@ -336,6 +429,46 @@ export default function ChatScreen() {
             keyboardDismissMode="on-drag"
             maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
             nestedScrollEnabled
+            // ── Typing indicator (shown at the bottom of the inverted list) ──
+            ListHeaderComponent={
+              otherUserIsTyping ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    paddingHorizontal: 4,
+                    paddingVertical: 6,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      gap: 4,
+                      backgroundColor: '#F3F4F6',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                    }}
+                  >
+                    {/* Three animated dots — pure layout, no Animated API needed */}
+                    {[0, 1, 2].map((i) => (
+                      <View
+                        key={i}
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: '#9CA3AF',
+                          opacity: 0.6 + i * 0.2,
+                        }}
+                      />
+                    ))}
+                  </View>
+                  <Text style={{ fontSize: 11, color: '#9CA3AF' }}>typing…</Text>
+                </View>
+              ) : null
+            }
             ListEmptyComponent={
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
                 <View
@@ -385,8 +518,8 @@ export default function ChatScreen() {
         >
           <ChatBox
             chatValue={chatMessage}
-            onChatValueChange={setChatMessage}
-            onSendPress={handleSend}       
+            onChatValueChange={handleChatMessageChange}
+            onSendPress={handleSend}
             isDisabled={sending}
           />
         </View>
