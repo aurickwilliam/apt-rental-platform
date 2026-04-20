@@ -11,10 +11,9 @@ export async function signUp(
   _prevState: SignUpFormState,
   formData: FormData
 ): Promise<SignUpFormState> {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
   const role = formData.get("role") as string;
+  const password = formData.get("password") as string | null;
+  const confirmPassword = formData.get("confirmPassword") as string | null;
 
   // Personal information
   const firstName = formData.get("firstName") as string;
@@ -32,12 +31,26 @@ export async function signUp(
   const postalCode = formData.get("postalCode") as string | null;
 
   // Validation
-  if (!email || !password || !confirmPassword) {
-    return { error: "Email, password, and password confirmation are required.", success: false };
-  }
-
   if (!firstName || !lastName) {
     return { error: "First name and last name are required.", success: false };
+  }
+
+  if (!password || !confirmPassword) {
+    return {
+      error: "Password and confirm password are required.",
+      success: false,
+    };
+  }
+
+  if (password.length < 8) {
+    return {
+      error: "Password must be at least 8 characters long.",
+      success: false,
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match.", success: false };
   }
 
   if (!age || !gender || !mobileNumber) {
@@ -47,34 +60,6 @@ export async function signUp(
   if (!streetAddress || !barangay || !city || !province || !postalCode) {
     return { error: "Complete address information is required.", success: false };
   }
-
-  if (password !== confirmPassword) {
-    return { error: "Passwords do not match.", success: false };
-  }
-
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters long.", success: false };
-  }
-
-  // Validate password strength
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasLowercase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-
-  if (!hasUppercase || !hasLowercase) {
-    return { error: "Password must contain both uppercase and lowercase letters.", success: false };
-  }
-
-  if (!hasNumber) {
-    return { error: "Password must include at least one number.", success: false };
-  }
-
-  if (!hasSpecialChar) {
-    return { error: "Password must contain at least one special character.", success: false };
-  }
-
-  const supabase = await createClient();
 
   const parsedAge = Number.parseInt(age, 10);
   if (Number.isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
@@ -86,48 +71,42 @@ export async function signUp(
     return { error: "Please enter a valid postal code.", success: false };
   }
 
-  // Web sign-up collects age but not birth date. Derive a stable default date
-  // so auth metadata satisfies DB profile trigger requirements.
+  const supabase = await createClient();
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Session not found. Please try verifying your email again.", success: false };
+  }
+
   const birthYear = new Date().getFullYear() - parsedAge;
   const derivedBirthDate = `${birthYear}-01-01`;
 
-  // Create the auth user in Authentication
-  const { error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        role: role || "tenant",
-        first_name: firstName,
-        last_name: lastName,
-        middle_name: middleName || null,
-        age: parsedAge,
-        gender,
-        mobile_number: mobileNumber,
-        birth_date: derivedBirthDate,
-        street_address: streetAddress,
-        barangay,
-        city,
-        province,
-        postal_code: parsedPostalCode,
-      },
-    },
-  });
+  // Insert the profile row into public.users
+  const { error: insertError } = await supabase
+    .from("users")
+    .insert({
+      user_id: user.id,
+      role: role || "tenant",
+      first_name: firstName,
+      last_name: lastName,
+      middle_name: middleName || null,
+      age: parsedAge,
+      gender,
+      mobile_number: mobileNumber,
+      birth_date: derivedBirthDate,
+      street_address: streetAddress,
+      barangay,
+      city,
+      province,
+      postal_code: parsedPostalCode,
+    });
 
-  if (authError) {
-    if (authError.message.includes("already registered") || authError.message.includes("already been registered")) {
+  if (insertError) {
+    if (insertError.code === "23505") {
       return { error: "An account with this email already exists. Please sign in instead.", success: false };
     }
-    if (authError.message.includes("rate limit")) {
-      return { error: "Too many sign-up attempts. Please try again later.", success: false };
-    }
-    if (authError.message.includes("password")) {
-      return { error: "Password does not meet the security requirements. Please choose a stronger password.", success: false };
-    }
-    if (authError.message.toLowerCase().includes("database error saving new user")) {
-      return { error: "We could not create your account profile. Please check your details and try again.", success: false };
-    }
-    return { error: authError.message, success: false };
+    return { error: "We could not create your account profile. Please check your details and try again.", success: false };
   }
 
   return { error: null, success: true };

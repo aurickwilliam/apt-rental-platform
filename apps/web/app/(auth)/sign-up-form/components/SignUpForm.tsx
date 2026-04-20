@@ -10,7 +10,6 @@ import {
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
-import { signUp } from "../../actions/sign-up";
 
 import { PROVINCES } from "@repo/constants";
 
@@ -18,9 +17,14 @@ import {
   Minus,
   CircleCheck,
   CircleX,
-  Phone,
   CircleAlert,
+  Mail,
 } from "lucide-react";
+
+import { createClient } from "@repo/supabase/browser";
+
+import { signUp } from "../../actions/sign-up";
+import { sendEmailOtp } from "../../actions/send-otp";
 
 interface SignUpFormData {
   email: string;
@@ -42,8 +46,15 @@ interface SignUpFormData {
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
-  const { isOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpenChange, onOpen } = useDisclosure();
+  const { 
+  isOpen: isErrorOpen, 
+  onOpenChange: onErrorOpenChange, 
+  onOpen: onErrorOpen 
+} = useDisclosure();
+
   const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -71,6 +82,11 @@ export default function SignUpForm() {
     if (error) setError(null);
   };
 
+  const showError = (msg: string) => {
+    setError(msg);
+    onErrorOpen();
+  };
+
   // Password validation checks
   const hasMinLength = formData.password.length >= 8;
   const hasUpperAndLower = /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password);
@@ -90,43 +106,81 @@ export default function SignUpForm() {
     setError(null);
     setLoading(true);
 
-    // Build FormData to pass to the server action
-    const fd = new FormData();
-    fd.set("email", formData.email);
-    fd.set("firstName", formData.firstName);
-    fd.set("lastName", formData.lastName);
-    fd.set("middleName", formData.middleName);
-    fd.set("age", formData.age?.toString() ?? "");
-    fd.set("gender", formData.gender);
-    fd.set("mobileNumber", formData.mobileNumber);
-    fd.set("streetAddress", formData.streetAddress);
-    fd.set("barangay", formData.barangay);
-    fd.set("city", formData.city);
-    fd.set("stateProvince", formData.stateProvince);
-    fd.set("postalCode", formData.postalCode?.toString() ?? "");
-    fd.set("password", formData.password);
-    fd.set("confirmPassword", formData.confirmPassword);
-    fd.set("role", role);
-
     try {
-      const result = await signUp({ error: null, success: false }, fd);
-
+      const result = await sendEmailOtp(formData.email, formData.password);
       if (result.error) {
-        setError(result.error);
-      } else if (result.success) {
-        setSuccess(true);
+        showError(result.error);
+        return;
       }
+      onOpen();
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      showError("Failed to send verification code.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = (onClose: () => void) => {
-    // TODO: Verify OTP with backend
-    console.log("Verifying OTP:", otp);
-    console.log("Submitting form data:", formData);
+  const handleVerifyOtp = async (onClose: () => void) => {
+    setLoading(true);
+    setOtpError(null);
+
+    try {
+      const supabase = createClient(); // client-side client
+      const { data, error: otpError } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: otp,
+        type: "signup",
+      });
+
+      console.log("verifyOtp data:", data);   // <-- add this
+      console.log("verifyOtp error:", otpError); 
+
+      if (otpError || !data.user) {
+        setOtpError("Invalid or expired code. Please try again.");
+        return;
+      }
+      
+      // Build FormData to pass to the server action
+      const fd = new FormData();
+      fd.set("email", formData.email);
+      fd.set("firstName", formData.firstName);
+      fd.set("lastName", formData.lastName);
+      fd.set("middleName", formData.middleName);
+      fd.set("age", formData.age?.toString() ?? "");
+      fd.set("gender", formData.gender);
+      fd.set("mobileNumber", formData.mobileNumber);
+      fd.set("streetAddress", formData.streetAddress);
+      fd.set("barangay", formData.barangay);
+      fd.set("city", formData.city);
+      fd.set("stateProvince", formData.stateProvince);
+      fd.set("postalCode", formData.postalCode?.toString() ?? "");
+      fd.set("password", formData.password);
+      fd.set("confirmPassword", formData.confirmPassword);
+      fd.set("role", role); 
+
+      const result = await signUp({ error: null, success: false }, fd);
+
+      if (result.error) {
+        showError(result.error);
+        onClose();
+      } else if (result.success) {
+        setSuccess(true);
+        onClose();
+      }
+    } catch (err) {
+      console.error("Caught error:", err); 
+      setOtpError("Verification failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clean up the pending auth user when user cancels
+  const handleCancelOtp = async (onClose: () => void) => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setOtp("");
+    setOtpError(null);
     onClose();
   };
 
@@ -164,14 +218,6 @@ export default function SignUpForm() {
 
   return (
     <>
-    {/* Error Message */}
-    {error && (
-      <div className="mt-6 p-4 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
-        <CircleAlert size={20} className="text-danger mt-0.5 shrink-0" />
-        <p className="text-sm text-danger">{error}</p>
-      </div>
-    )}
-
     <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
 
       {/* Personal Information */}
@@ -534,27 +580,32 @@ export default function SignUpForm() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Verify Your Mobile Number
+                Verify Your Email Address
               </ModalHeader>
               <ModalBody className="flex flex-col items-center gap-4 py-4">
                 <div className="rounded-full bg-primary/10 p-3">
-                  <Phone size={32} className="text-primary" />
+                  <Mail size={32} className="text-primary" />
                 </div>
                 <p className="text-center text-sm text-default-500">
                   We sent a 6-digit verification code to{" "}
-                  <span className="font-semibold text-foreground">{formData.mobileNumber}</span>.
-                  <br />
-                  Please enter it below.
+                  <span className="font-semibold text-foreground">{formData.email}</span>.
                 </p>
                 <InputOtp
-                  length={4}
+                  length={6}
                   size="lg"
                   variant="bordered"
                   color="primary"
                   value={otp}
-                  onValueChange={setOtp}
+                  onValueChange={(val) => {
+                    setOtp(val);
+                    setOtpError(null); // clear error when user types
+                  }}
                   autoFocus
                 />
+
+                {otpError && (
+                  <p className="text-sm text-danger text-center">{otpError}</p>
+                )}
               </ModalBody>
               <ModalFooter className="flex flex-col gap-2">
                 <Button
@@ -562,7 +613,7 @@ export default function SignUpForm() {
                   radius="full"
                   size="lg"
                   className="w-full"
-                  isDisabled={otp.length < 4}
+                  isDisabled={otp.length < 6 || loading}
                   onPress={() => handleVerifyOtp(onClose)}
                 >
                   Verify &amp; Create Account
@@ -572,9 +623,48 @@ export default function SignUpForm() {
                   radius="full"
                   size="lg"
                   className="w-full"
-                  onPress={onClose}
+                  isDisabled={loading}
+                  onPress={() => handleCancelOtp(onClose)}
                 >
                   Cancel
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Error Message */}
+      <Modal
+        isOpen={isErrorOpen}
+        onOpenChange={onErrorOpenChange}
+        placement="center"
+        backdrop="blur"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Something went wrong
+              </ModalHeader>
+              <ModalBody className="flex flex-col items-center gap-4 py-4">
+                <div className="rounded-full bg-danger-100 p-3">
+                  <CircleAlert size={32} className="text-danger" />
+                </div>
+                <p className="text-center text-sm text-default-500">
+                  {error}
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="danger"
+                  variant="flat"
+                  radius="full"
+                  size="lg"
+                  className="w-full"
+                  onPress={onClose}
+                >
+                  Close
                 </Button>
               </ModalFooter>
             </>
