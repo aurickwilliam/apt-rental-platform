@@ -5,6 +5,7 @@ import {
   fetchMessages,
   fetchOtherUserProfile,
   insertMessage,
+  markMessagesAsRead,
   type Message,
 } from '../service/chatService';
 
@@ -187,6 +188,7 @@ export function useChat({
         }
 
         setMessages(msgs);
+        markMessagesAsRead(profile.id, otherUserId, apartmentId).catch(console.error);
         setup(profile.id);
       } catch (err) {
         console.error('Chat init error:', err);

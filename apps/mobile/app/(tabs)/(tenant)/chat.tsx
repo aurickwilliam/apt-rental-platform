@@ -144,6 +144,11 @@ export default function Chat() {
               last_message: row.message,
               last_message_time: row.created_at,
               last_sender_is_me: row.sender_id === myId,
+
+              unread_count:
+                row.sender_id !== myId
+                  ? (next[index].unread_count ?? 0) + 1
+                  : next[index].unread_count,
             };
 
             next.splice(index, 1);
@@ -168,6 +173,15 @@ export default function Chat() {
   });
 
   const handleChatPress = (conversation: Conversation) => {
+    // Optimistically clear the badge before navigating
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.conversation_key === conversation.conversation_key
+          ? { ...c, unread_count: 0 }
+          : c
+      )
+    );
+    
     router.push({
       pathname: '/chat/[conversationId]',
       params: {
@@ -233,8 +247,7 @@ export default function Chat() {
                 lastMessage={conv.last_message}
                 isUserLastSender={Boolean(conv.last_sender_is_me)}
                 timestamp={getRelativeTime(new Date(conv.last_message_time))}
-                // Pass unread_count if your MessageCard supports a badge
-                // unreadCount={conv.unread_count}
+                unreadCount={conv.unread_count}
                 onPress={() => handleChatPress(conv)}
               />
             ))}

@@ -78,6 +78,24 @@ export async function insertMessage(params: {
   return data;
 }
 
+export async function markMessagesAsRead(
+  currentUserId: string,
+  otherUserId: string,
+  apartmentId: string | null
+) {
+  let query = supabase
+    .from('chat')
+    .update({ is_read: true })
+    .eq('receiver_id', currentUserId)
+    .eq('sender_id', otherUserId)
+    .eq('is_read', false);
+
+  query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
+
+  const { error } = await query;
+  if (error) throw error;
+}
+
 // ─── Conversations ────────────────────────────────────────────────────────────
 
 export type Conversation = {
