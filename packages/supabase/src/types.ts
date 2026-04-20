@@ -671,6 +671,7 @@ export type Database = {
           other_user_avatar: string
           other_user_id: string
           other_user_name: string
+          other_user_phone: string
           unread_count: number
         }[]
       }

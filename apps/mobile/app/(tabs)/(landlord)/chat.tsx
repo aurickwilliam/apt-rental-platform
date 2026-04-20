@@ -200,6 +200,7 @@ export default function Chat() {
         otherUserId: conversation.other_user_id,
         otherUserName: conversation.other_user_name,
         otherUserAvatar: conversation.other_user_avatar ?? '',
+        otherUserPhoneNumber: conversation.other_user_phone ?? '',
         apartmentId: conversation.apartment_id ?? 'none',
       },
     });

@@ -25,6 +25,8 @@ function useRouteParams() {
     otherUserId: string;
     otherUserName?: string;
     otherUserAvatar?: string;
+    otherUserPhone?: string;
+    otherUserPhoneNumber?: string;
     apartmentId?: string;
   }>();
 
@@ -37,6 +39,7 @@ function useRouteParams() {
     otherUserId: normalize(raw.otherUserId) ?? '',
     otherUserName: normalize(raw.otherUserName),
     otherUserAvatar: normalize(raw.otherUserAvatar),
+    otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
     apartmentId: !apartmentIdRaw || apartmentIdRaw === 'none' ? null : apartmentIdRaw,
   };
 }
@@ -51,6 +54,7 @@ export default function ChatScreen() {
     otherUserId,
     otherUserName: routedName,
     otherUserAvatar: routedAvatar,
+    otherUserPhoneNumber,
     apartmentId,
   } = useRouteParams();
 
@@ -95,6 +99,7 @@ export default function ChatScreen() {
           <ChatHeader
             name={otherUserName}
             profilePicture={otherUserAvatar ?? undefined}
+            phoneNumber={otherUserPhoneNumber}
           />
         </View>
       }
