@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useNavigation } from "expo-router";
+import { View, Text, TouchableOpacity, Image, Alert, Linking } from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COLORS } from "@repo/constants";
 import { DEFAULT_IMAGES } from "constants/images";
@@ -13,26 +14,42 @@ interface ChatHeaderProps {
   name: string;
   profilePicture?: string;
   onBackPress?: () => void;
+  phoneNumber?: string;
 }
 
 export default function ChatHeader({ 
     name, 
     profilePicture,
-    onBackPress 
+    onBackPress,
+    phoneNumber,
   }: ChatHeaderProps) {
 
-  const navigation = useNavigation();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const handleCall = async () => {
+    if (!phoneNumber) {
+      Alert.alert('No phone number', 'This user has no phone number on record.');
+      return;
+    }
+
+    try {
+      await Linking.openURL(`tel:${phoneNumber}`);
+    } catch {
+      Alert.alert('Error', 'Unable to open the phone dialer.');
+    }
+  };
   
   const handleBack = () => {
     if (onBackPress) {
       onBackPress();
     } else {
-      navigation.goBack();
+      router.back();
     }
   };
 
   return (
-    <View className="flex-row items-center justify-between bg-primary px-4 py-5">
+    <View className="flex-row items-center justify-between bg-primary px-4 py-5"  style={{ paddingTop: insets.top + 20 }}>
 
       {/* Left Back Button */}
       <View className="w-10 items-start justify-center">
@@ -67,10 +84,16 @@ export default function ChatHeader({
 
       {/* Right Side Call Button */}
       <View className="w-10 items-end justify-center">
-        <IconPhone 
-          size={24}
-          color={COLORS.white}
-        />
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={handleCall} 
+          className="p-1 -ml-1"
+        >
+          <IconPhone 
+            size={24}
+            color={COLORS.white}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );

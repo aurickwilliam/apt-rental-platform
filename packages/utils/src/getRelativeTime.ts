@@ -1,51 +1,48 @@
-import { formatDate } from "./formatDate";
-
-export function getRelativeTime(timestamp: Date | number | string): string {
+export function getRelativeTime(date: Date): string {
   const now = new Date();
-  const date = new Date(timestamp);
-  const dateTime = date.getTime();
-  if (Number.isNaN(dateTime)) {
-    throw new Error("Invalid timestamp passed to getRelativeTime");
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = diffMs / 1000 / 60;
+
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  // < 1 min
+  if (diffMins < 1) return 'just now';
+
+  // < 10 mins
+  if (diffMins < 10) {
+    const mins = Math.floor(diffMins);
+    return `${mins} min${mins === 1 ? '' : 's'} ago`;
   }
-  const seconds = Math.floor((now.getTime() - dateTime) / 1000);
-  const absSeconds = Math.abs(seconds);
-  const isFuture = seconds < 0;
 
-  // Just now
-  if (absSeconds < 10) return "just now";
+  // Same day
+  const isSameDay =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
 
-  // Yesterday / Tomorrow
+  if (isSameDay) {
+    return formatTime(date);
+  }
+
+  // Yesterday
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
 
-  if (isSameDay(date, yesterday)) return "yesterday";
-  if (isSameDay(date, tomorrow)) return "tomorrow";
+  const isYesterday =
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
 
-   const intervals: [number, number, string][] = [
-    [3600,        60,          "minute"],
-    [86400,       3600,        "hour"],
-    [86400 * 7,   86400,       "day"],
-    [86400 * 30,  86400 * 7,   "week"],
-    [86400 * 365, 86400 * 30,  "month"],
-  ];
-
-  for (const [threshold, divisor, unit] of intervals) {
-    if (absSeconds < threshold) {
-      const value = Math.floor(absSeconds / divisor);
-      const label = `${value} ${unit}${value !== 1 ? "s" : ""}`;
-      return isFuture ? `in ${label}` : `${label} ago`;
-    }
+  if (isYesterday) {
+    return `Yesterday, ${formatTime(date)}`;
   }
 
-  return formatDate(date); // Fallback to absolute date for times beyond a year
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  // Older
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
