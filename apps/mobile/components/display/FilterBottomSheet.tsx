@@ -153,7 +153,11 @@ export default function FilterBottomSheet({
           values={filters.budget}
           step={500}
           onChange={(vals) => setFilters((p) => ({ ...p, budget: vals }))}
-          format={(v) => `₱ ${v.toLocaleString()}`}
+          format={(v) =>
+            v === MAX_BUDGET
+              ? `₱ ${MAX_BUDGET.toLocaleString()}+`
+              : `₱ ${v.toLocaleString()}`
+          }
         />
 
         <Divider thickness={1} />
