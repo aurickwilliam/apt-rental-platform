@@ -14,31 +14,25 @@ import {
   Radio,
 } from "@heroui/react";
 import { Search } from "lucide-react";
+import {
+  APARTMENT_TYPES,
+  FURNISHED_TYPES,
+  FLOOR_LEVELS,
+  LEASE_DURATIONS,
+} from "@repo/constants";
 
 import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
-import { PERKS } from "../../components/inputs/perks"
+import { PERKS } from "../../components/inputs/perks";
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
-const APARTMENT_TYPES = [
-  "Studio",
-  "Loft",
-  "Duplex",
-  "Townhouse",
-  "Penthouse",
-  "Condominium",
-  "Apartment",
-];
+
+const MIN_BUDGET = 1000;
+const MAX_BUDGET = 50000;
+const MIN_SIZE = 10;
+const MAX_SIZE = 300;
+
 const BEDROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
 const BATHROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
-const FURNISHING_OPTIONS = ["Unfurnished", "Semi", "Fully"];
-const FLOOR_OPTIONS = [
-  "Ground Floor",
-  "Second Floor",
-  "Third Floor",
-  "Fourth Floor",
-  "Fifth Floor and Above",
-];
-const LEASE_OPTIONS = ["6 mos", "1 year", "2 year+"];
 const SORT_OPTIONS = [
   { value: "newest",     label: "Newest" },
   { value: "price_asc",  label: "Price: Low to High" },
@@ -62,14 +56,14 @@ type Filters = {
 
 const INITIAL_FILTERS: Filters = {
   locations: [...LOCATIONS],
-  priceRange: [5_000, 20_000],
+  priceRange: [MIN_BUDGET, MAX_BUDGET],
   aptTypes: [...APARTMENT_TYPES],
   bedroom: "Any",
   bathroom: "Any",
-  sizeRange: [50, 120],
-  furnishing: [...FURNISHING_OPTIONS],
-  floorLevel: [...FLOOR_OPTIONS],
-  leaseDuration: [...LEASE_OPTIONS],
+  sizeRange: [MIN_SIZE, MAX_SIZE],
+  furnishing: [...FURNISHED_TYPES],
+  floorLevel: [...FLOOR_LEVELS],
+  leaseDuration: [...LEASE_DURATIONS],
   amenities: [],
   sortBy: "newest",
 };
@@ -89,19 +83,19 @@ export default function FilterContainer({ resultCount }: Props) {
     return {
       locations:     locsRaw ? locsRaw.split(",") : [...LOCATIONS],
       priceRange: [
-        Number(searchParams.get("price_min") ?? 5000),
-        Number(searchParams.get("price_max") ?? 20000),
+        Number(searchParams.get("price_min") ?? MIN_BUDGET),
+        Number(searchParams.get("price_max") ?? MAX_BUDGET),
       ] as [number, number],
       aptTypes: typesRaw ? typesRaw.split(",") : [...APARTMENT_TYPES],
       bedroom:       searchParams.get("bedrooms") ?? "Any",
       bathroom:      searchParams.get("bathrooms") ?? "Any",
       sizeRange:     [
-        Number(searchParams.get("size_min") ?? 50),
-        Number(searchParams.get("size_max") ?? 120),
+        Number(searchParams.get("size_min") ?? MIN_SIZE),
+        Number(searchParams.get("size_max") ?? MAX_SIZE),
       ] as [number, number],
-      furnishing:    searchParams.get("furnishing")?.split(",") ?? [...FURNISHING_OPTIONS],
-      floorLevel:    searchParams.get("floor_level")?.split(",") ?? [...FLOOR_OPTIONS],
-      leaseDuration: searchParams.get("lease")?.split(",") ?? [...LEASE_OPTIONS],
+      furnishing:    searchParams.get("furnishing")?.split(",") ?? [...FURNISHED_TYPES],
+      floorLevel:    searchParams.get("floor_level")?.split(",") ?? [...FLOOR_LEVELS],
+      leaseDuration: searchParams.get("lease")?.split(",") ?? [...LEASE_DURATIONS],
       amenities:     searchParams.get("amenities")?.split(",").filter(Boolean) ?? [],
       sortBy:        searchParams.get("sort") ?? "newest",
     };
@@ -120,7 +114,9 @@ export default function FilterContainer({ resultCount }: Props) {
 
     // Price range
     current.set("price_min", String(filters.priceRange[0]));
-    current.set("price_max", String(filters.priceRange[1]));
+    if (filters.priceRange[1] < MAX_BUDGET) {
+      current.set("price_max", String(filters.priceRange[1]));
+    }
 
     // Apartment types
     if (filters.aptTypes.length > 0) current.set("apt_types", filters.aptTypes.join(","));
@@ -136,15 +132,15 @@ export default function FilterContainer({ resultCount }: Props) {
     current.set("size_max", String(filters.sizeRange[1]));
 
     // Furnishing
-    if (filters.furnishing.length < FURNISHING_OPTIONS.length)
+    if (filters.furnishing.length < FURNISHED_TYPES.length)
       current.set("furnishing", filters.furnishing.join(","));
 
     // Floor level
-    if (filters.floorLevel.length < FLOOR_OPTIONS.length)
+    if (filters.floorLevel.length < FLOOR_LEVELS.length)
       current.set("floor_level", filters.floorLevel.join(","));
 
     // Lease duration
-    if (filters.leaseDuration.length < LEASE_OPTIONS.length)
+    if (filters.leaseDuration.length < LEASE_DURATIONS.length)
       current.set("lease", filters.leaseDuration.join(","));
 
     // Amenities
@@ -211,13 +207,13 @@ export default function FilterContainer({ resultCount }: Props) {
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium">Budget</span>
           <span className="text-sm text-default-500">
-            ₱{filters.priceRange[0].toLocaleString()} – ₱{filters.priceRange[1].toLocaleString()}
+            ₱{filters.priceRange[0].toLocaleString()} – {filters.priceRange[1] === MAX_BUDGET ? `₱${MAX_BUDGET.toLocaleString()}+` : `₱${filters.priceRange[1].toLocaleString()}`}
           </span>
         </div>
         <Slider
-          minValue={1000}
-          maxValue={50000}
-          step={1000}
+          minValue={MIN_BUDGET}
+          maxValue={MAX_BUDGET}
+          step={500}
           value={filters.priceRange}
           onChange={(val) => updateFilter("priceRange", val as [number, number])}
           className="w-full"
@@ -293,9 +289,9 @@ export default function FilterContainer({ resultCount }: Props) {
           </span>
         </div>
         <Slider
-          minValue={20}
-          maxValue={200}
-          step={10}
+          minValue={MIN_SIZE}
+          maxValue={MAX_SIZE}
+          step={5}
           value={filters.sizeRange}
           onChange={(val) => updateFilter("sizeRange", val as [number, number])}
           className="w-full"
@@ -312,7 +308,7 @@ export default function FilterContainer({ resultCount }: Props) {
         onValueChange={(val) => updateFilter("furnishing", val)}
         className="flex flex-col gap-2"
       >
-        {FURNISHING_OPTIONS.map((option) => (
+        {FURNISHED_TYPES.map((option) => (
           <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
         ))}
       </CheckboxGroup>
@@ -324,7 +320,7 @@ export default function FilterContainer({ resultCount }: Props) {
         onValueChange={(val) => updateFilter("floorLevel", val)}
         className="flex flex-col gap-2"
       >
-        {FLOOR_OPTIONS.map((option) => (
+        {FLOOR_LEVELS.map((option) => (
           <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
         ))}
       </CheckboxGroup>
@@ -336,7 +332,7 @@ export default function FilterContainer({ resultCount }: Props) {
         onValueChange={(val) => updateFilter("leaseDuration", val)}
         className="flex flex-col gap-2"
       >
-        {LEASE_OPTIONS.map((option) => (
+        {LEASE_DURATIONS.map((option) => (
           <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
         ))}
       </CheckboxGroup>
