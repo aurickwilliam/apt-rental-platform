@@ -54,7 +54,9 @@ export default async function Home() {
       monthly_rent,
       average_rating,
       apartment_images(url, is_cover)
-    `);
+    `)
+    .limit(10)
+    .order('created_at', { ascending: false });
 
   if (error) console.error(error);
 
