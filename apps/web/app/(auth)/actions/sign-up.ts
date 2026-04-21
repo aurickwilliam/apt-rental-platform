@@ -11,11 +11,8 @@ export async function signUp(
   _prevState: SignUpFormState,
   formData: FormData,
 ): Promise<SignUpFormState> {
-  console.log("🔥 signUp action called");
-
+  
   try {
-    console.log("userId received:", formData.get("userId"));
-
     const role = formData.get("role") as string;
     const password = formData.get("password") as string | null;
     const confirmPassword = formData.get("confirmPassword") as string | null;
@@ -135,6 +132,7 @@ export async function signUp(
     }
 
     return { error: null, success: true };
+    
   } catch (error) {
     console.error("Unexpected error during sign-up:", error);
     return {

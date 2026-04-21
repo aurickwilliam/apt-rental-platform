@@ -147,9 +147,6 @@ export default function SignUpForm() {
         type: "signup",
       });
 
-      console.log("verifyOtp data:", data); // <-- add this
-      console.log("verifyOtp error:", otpError);
-
       if (otpError || !data.user) {
         setOtpError("Invalid or expired code. Please try again.");
         return;
@@ -606,7 +603,7 @@ export default function SignUpForm() {
         </Button>
       </Form>
 
-      {/* OTP Verification Modal (for future use) */}
+      {/* OTP Verification Modal */}
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
