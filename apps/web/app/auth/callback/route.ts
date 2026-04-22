@@ -6,6 +6,12 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
   const isPopup = searchParams.get("popup") === "true";
+  const requestedRole = searchParams.get("role");
+
+  const role =
+    requestedRole === "landlord" || requestedRole === "tenant"
+      ? requestedRole
+      : null;
 
   if (code) {
     const supabase = await createClient();
@@ -27,12 +33,21 @@ export async function GET(request: Request) {
       if (isOAuth) {
         const { data: profile } = await supabase
           .from("users")
-          .select("mobile_number")
+          .select("mobile_number, role")
           .eq("user_id", user!.id)
           .single();
 
+        if (role && profile && !profile.mobile_number && profile.role !== role) {
+          await supabase
+            .from("users")
+            .update({ role })
+            .eq("user_id", user!.id);
+        }
+
         if (!profile?.mobile_number) {
-          return NextResponse.redirect(`${origin}/complete-profile`);
+          return NextResponse.redirect(
+            `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
+          );
         }
       }
 
