@@ -38,7 +38,7 @@ export default async function CompleteProfilePage() {
 
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-default-900">
+          <h1 className="text-3xl font-semibold font-noto-serif text-default-900">
             Complete the Tenant Form
           </h1>
           <p className="text-default-500 mt-1">
