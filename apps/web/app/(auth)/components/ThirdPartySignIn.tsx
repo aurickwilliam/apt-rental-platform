@@ -2,8 +2,7 @@
 import { Button } from "@heroui/react";
 import Image from "next/image";
 import { useState } from "react";
-
-import { signInWithGoogle } from "../actions/oauth";
+import { createClient } from "@repo/supabase/browser";
 
 export default function ThirdPartySignIn() {
   const [loading, setLoading] = useState(false);
@@ -12,14 +11,52 @@ export default function ThirdPartySignIn() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const result = await signInWithGoogle();
-      if (result?.error) setError(result.error);
-    } catch {
-      // redirect() throws NEXT_REDIRECT — expected
-    } finally {
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?popup=true`,
+        skipBrowserRedirect: true,
+      },
+    });
+
+    if (error || !data.url) {
+      setError(error?.message ?? "Something went wrong.");
       setLoading(false);
+      return;
     }
+
+    // Open as popup
+    const popup = window.open(
+      data.url,
+      "Google Sign In",
+      "width=500,height=600,scrollbars=yes,resizable=yes",
+    );
+
+    // Poll until popup closes, then refresh session
+    const timer = setInterval(async () => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        setLoading(false);
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          // Check if profile is complete
+          const { data: profile } = await supabase
+            .from("users")
+            .select("mobile_number")
+            .eq("user_id", session.user.id)
+            .single();
+
+          window.location.href = profile?.mobile_number
+            ? "/"
+            : "/complete-profile";
+        }
+      }
+    }, 500);
   };
 
   return (
