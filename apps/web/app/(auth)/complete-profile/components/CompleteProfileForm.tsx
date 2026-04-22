@@ -31,7 +31,9 @@ export default function CompleteProfileForm({
     <form action={action} className="flex flex-col gap-8">
       {/* Personal Information */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Personal Information</h2>
+        <h2 className="text-lg font-medium font-noto-serif">
+          Personal Information
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -103,7 +105,7 @@ export default function CompleteProfileForm({
 
       {/* Address Information */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Address Information</h2>
+        <h2 className="text-lg font-medium font-noto-serif">Address Information</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
