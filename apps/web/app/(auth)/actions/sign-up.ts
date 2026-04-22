@@ -22,6 +22,7 @@ export async function signUp(
     const lastName = formData.get("lastName") as string;
     const middleName = formData.get("middleName") as string | null;
     const age = formData.get("age") as string | null;
+    const birthDate = formData.get("birthDate") as string | null;
     const gender = formData.get("gender") as string | null;
     const mobileNumber = formData.get("mobileNumber") as string | null;
 
@@ -58,9 +59,9 @@ export async function signUp(
       return { error: "Passwords do not match.", success: false };
     }
 
-    if (!age || !gender || !mobileNumber) {
+    if (!age || !birthDate || !gender || !mobileNumber) {
       return {
-        error: "Age, gender, and mobile number are required.",
+        error: "Age, birth date, gender, and mobile number are required.",
         success: false,
       };
     }
@@ -75,6 +76,14 @@ export async function signUp(
     const parsedAge = Number.parseInt(age, 10);
     if (Number.isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
       return { error: "Please enter a valid age.", success: false };
+    }
+
+    const parsedBirthDate = new Date(`${birthDate}T00:00:00`);
+    if (
+      Number.isNaN(parsedBirthDate.getTime()) ||
+      parsedBirthDate > new Date()
+    ) {
+      return { error: "Please enter a valid birth date.", success: false };
     }
 
     const parsedPostalCode = Number.parseInt(postalCode, 10);
@@ -92,9 +101,6 @@ export async function signUp(
       };
     }
 
-    const birthYear = new Date().getFullYear() - parsedAge;
-    const derivedBirthDate = `${birthYear}-01-01`;
-
     // Insert the profile row into public.users
     const { error: insertError } = await supabase.from("users").insert({
       user_id: userId,
@@ -106,7 +112,7 @@ export async function signUp(
       age: parsedAge,
       gender,
       mobile_number: mobileNumber,
-      birth_date: derivedBirthDate,
+      birth_date: birthDate,
       street_address: streetAddress,
       barangay,
       city,
