@@ -7,15 +7,17 @@ interface SignUpFormPageProps {
   searchParams: Promise<{ role?: string; email?: string }>;
 }
 
-export default async function SignUpFormPage({ searchParams }: SignUpFormPageProps) {
+export default async function SignUpFormPage({
+  searchParams,
+}: SignUpFormPageProps) {
   const { role, email } = await searchParams;
-  const initialRole = role === 'landlord' ? 'landlord' : 'tenant';
-  const initialEmail = email ?? '';
+  const initialRole = role === "landlord" ? "landlord" : "tenant";
+  const initialEmail = email ?? "";
 
   return (
     <AuthProviderWrapper initialRole={initialRole} initialEmail={initialEmail}>
       <div className="bg-white min-h-screen">
-        <main className="max-w-7xl min-h-screen mx-auto px-4 pt-4 flex flex-col">
+        <main className="max-w-4xl min-h-screen mx-auto px-4 pt-4 flex flex-col">
           <section className="flex flex-col">
             {/* Logo */}
             <div className="flex items-center justify-center gap-2 md:justify-start">
@@ -35,9 +37,12 @@ export default async function SignUpFormPage({ searchParams }: SignUpFormPagePro
             {/* Title Description */}
             <div className="mt-10">
               <h1 className="text-3xl font-medium font-noto-serif">
-                Complete the {initialRole === 'landlord' ? 'Landlord' : 'Tenant'} Form
+                Complete the{" "}
+                {initialRole === "landlord" ? "Landlord" : "Tenant"} Form
               </h1>
-              <p className="mt-2">Join us and start your apartment rental journey today!</p>
+              <p className="mt-2">
+                Join us and start your apartment rental journey today!
+              </p>
             </div>
 
             {/* Form */}

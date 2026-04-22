@@ -1,5 +1,5 @@
 export { COLORS } from './colors';
-export { GENDER } from './gender';
+export { GENDERS } from './gender';
 export { LANGUAGES } from './languages';
 export { PETS } from './pets';
 export { PROVINCES } from './provinces';
