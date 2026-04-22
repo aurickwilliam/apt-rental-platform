@@ -6,7 +6,7 @@ import MapLocation from "./components/MapLocation";
 
 import { Divider } from "@heroui/react";
 
-import { House, BedDouble, Bath, Expand } from "lucide-react";
+import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } from "lucide-react";
 
 import RenderReviews from "./components/RenderReviews";
 import RelatedApartments from "./components/RelatedApartments";
@@ -101,7 +101,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
             </h3>
           </div>
 
-          <div className="flex items-center justify-between gap-3 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
             <div className="flex gap-2 items-center">
               <House size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
@@ -124,6 +124,31 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
               <Expand size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.area_sqm} sqm
+              </h2>
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <Building2 size={22} className="text-grey-700" />
+              <h2 className="text-base font-medium text-grey-700">
+                {apartment.floor_level} Floor
+              </h2>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Users size={22} className="text-grey-700" />
+              <h2 className="text-base font-medium text-grey-700">
+                {apartment.max_occupants} Occupant{apartment.max_occupants !== 1 ? 's' : ''}
+              </h2>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Calendar size={22} className="text-grey-700" />
+              <h2 className="text-base font-medium text-grey-700">
+                {apartment.lease_duration}
+              </h2>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Armchair size={22} className="text-grey-700" />
+              <h2 className="text-base font-medium text-grey-700">
+                {apartment.furnished_type}
               </h2>
             </div>
           </div>
@@ -164,7 +189,11 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         </div>
 
         <div className="w-1/3 flex flex-col gap-5">
-          <PriceCard price={apartment.monthly_rent} />
+          <PriceCard 
+            price={apartment.monthly_rent} 
+            securityDeposit={apartment.security_deposit ?? undefined}
+            advancePayment={apartment.advance_rent ?? undefined}
+          />
 
           <LandlordCard
             name={`${landlord?.first_name} ${landlord?.last_name}`}
