@@ -31,6 +31,7 @@
     "base64-arraybuffer": "^1.0.2",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "expo-crypto": "^55.0.14",
     "expo-dev-client": "^6.0.20",
     "expo-document-picker": "~14.0.8",
     "expo-file-system": "~19.0.21",
