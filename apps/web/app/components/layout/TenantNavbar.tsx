@@ -29,7 +29,7 @@ import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { label: "Browse", href: "/browse" },
-  { label: "My Rentals", href: "/tenant/my-rental" },
+  { label: "My Rental", href: "/tenant/my-rental" },
   { label: "Maintenance", href: "/tenant/maintenance" },
   { label: "Messages", href: "/tenant/messages" },
 ];

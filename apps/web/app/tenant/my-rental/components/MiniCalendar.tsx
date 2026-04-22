@@ -4,7 +4,7 @@ import DashboardCard from "./DashboardCard";
 import { CALENDAR_DAYS } from "../constants";
 
 export default function MiniCalendar() {
-  const TODAY = 24;
+  const TODAY = 25;
 
   return (
     <DashboardCard>
