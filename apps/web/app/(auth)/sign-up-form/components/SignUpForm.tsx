@@ -21,7 +21,7 @@ import {
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
-import { PROVINCES } from "@repo/constants";
+import { PROVINCES, GENDERS } from "@repo/constants";
 
 import { Minus, CircleCheck, CircleX, CircleAlert, Mail } from "lucide-react";
 
@@ -197,9 +197,6 @@ export default function SignUpForm() {
     onClose();
   };
 
-  // Gender Options
-  const GENDER_OPTIONS = ["Male", "Female", "Others"];
-
   // If sign-up succeeded, show a success message
   if (success) {
     return (
@@ -360,7 +357,7 @@ export default function SignUpForm() {
               }}
               isDisabled={loading}
             >
-              {GENDER_OPTIONS.map((gender) => (
+              {GENDERS.map((gender) => (
                 <SelectItem
                   key={gender}
                   className="data-[hover=true]:bg-light-blue!"
