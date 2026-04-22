@@ -189,7 +189,11 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         </div>
 
         <div className="w-1/3 flex flex-col gap-5">
-          <PriceCard price={apartment.monthly_rent} />
+          <PriceCard 
+            price={apartment.monthly_rent} 
+            securityDeposit={apartment.security_deposit ?? undefined}
+            advancePayment={apartment.advance_rent ?? undefined}
+          />
 
           <LandlordCard
             name={`${landlord?.first_name} ${landlord?.last_name}`}
