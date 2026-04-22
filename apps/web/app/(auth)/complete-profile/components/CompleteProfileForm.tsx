@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   NumberInput,
+  DatePicker,
 } from "@heroui/react";
 import { useActionState } from "react";
 
@@ -91,10 +92,9 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
-          <Input
+          <DatePicker
             label="Birth Date"
             name="birth_date"
-            type="date"
             variant="bordered"
             isRequired
           />

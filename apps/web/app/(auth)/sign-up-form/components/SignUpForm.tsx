@@ -16,6 +16,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  DatePicker,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
@@ -36,6 +37,7 @@ interface SignUpFormData {
   lastName: string;
   middleName: string;
   age: number | undefined;
+  birthDate: string;
   gender: string;
   mobileNumber: string;
   streetAddress: string;
@@ -70,6 +72,7 @@ export default function SignUpForm() {
     lastName: "",
     middleName: "",
     age: undefined,
+    birthDate: "",
     gender: "",
     mobileNumber: "",
     streetAddress: "",
@@ -160,6 +163,7 @@ export default function SignUpForm() {
       fd.set("lastName", formData.lastName);
       fd.set("middleName", formData.middleName);
       fd.set("age", formData.age?.toString() ?? "");
+      fd.set("birthDate", formData.birthDate);
       fd.set("gender", formData.gender);
       fd.set("mobileNumber", formData.mobileNumber);
       fd.set("streetAddress", formData.streetAddress);
@@ -366,6 +370,26 @@ export default function SignUpForm() {
             }}
             value={formData.mobileNumber}
             onValueChange={handleChange("mobileNumber")}
+            isDisabled={loading}
+          />
+
+          <DatePicker
+            label="Birth Date"
+            name="birth_date"
+            variant="bordered"
+            isRequired
+            showMonthAndYearPickers
+            onChange={(value) => {
+              setFormData((prev) => ({
+                ...prev,
+                birthDate: value ? String(value) : "",
+              }));
+              if (error) setError(null);
+            }}
+            classNames={{
+              inputWrapper:
+                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
+            }}
             isDisabled={loading}
           />
         </div>
