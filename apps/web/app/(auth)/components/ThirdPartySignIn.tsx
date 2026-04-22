@@ -3,8 +3,10 @@ import { Button } from "@heroui/react";
 import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
+import { useAuth } from "./AuthContext";
 
 export default function ThirdPartySignIn() {
+  const { role } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +18,7 @@ export default function ThirdPartySignIn() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?popup=true`,
+        redirectTo: `${window.location.origin}/auth/callback?popup=true&role=${role}`,
         skipBrowserRedirect: true,
       },
     });
@@ -47,13 +49,19 @@ export default function ThirdPartySignIn() {
           // Check if profile is complete
           const { data: profile } = await supabase
             .from("users")
-            .select("mobile_number")
+            .select("mobile_number, role")
             .eq("user_id", session.user.id)
             .single();
 
-          window.location.href = profile?.mobile_number
-            ? "/"
-            : "/complete-profile";
+          if (!profile?.mobile_number) {
+            window.location.href = `/complete-profile?role=${role}`;
+            return;
+          }
+
+          window.location.href =
+            profile.role === "landlord"
+              ? "/landlord/dashboard"
+              : "/tenant/my-rental";
         }
       }
     }, 500);

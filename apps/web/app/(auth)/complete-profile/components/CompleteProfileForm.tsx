@@ -19,17 +19,21 @@ type Props = {
   email: string;
   firstName: string;
   lastName: string;
+  role: "tenant" | "landlord";
 };
 
 export default function CompleteProfileForm({
   email,
   firstName,
   lastName,
+  role,
 }: Props) {
   const [state, action, isPending] = useActionState(completeProfile, {});
 
   return (
     <form action={action} className="flex flex-col gap-8">
+      <input type="hidden" name="role" value={role} />
+
       {/* Personal Information */}
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif">
@@ -93,6 +97,7 @@ export default function CompleteProfileForm({
             isRequired
           />
           <DatePicker
+            showMonthAndYearPickers
             label="Birth Date"
             name="birth_date"
             variant="bordered"
