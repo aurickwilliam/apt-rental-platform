@@ -238,9 +238,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="Email"
-            size="lg"
             placeholder="Enter your email"
-            labelPlacement="outside"
             name="email"
             type="email"
             variant="bordered"
@@ -256,9 +254,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="First Name"
-            size="lg"
             placeholder="Enter your first name"
-            labelPlacement="outside"
             name="firstName"
             type="text"
             variant="bordered"
@@ -275,9 +271,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="Last Name"
-            size="lg"
             placeholder="Enter your last name"
-            labelPlacement="outside"
             name="lastName"
             type="text"
             variant="bordered"
@@ -293,9 +287,7 @@ export default function SignUpForm() {
           {/* Middle Name */}
           <Input
             label="Middle Name"
-            size="lg"
             placeholder="Enter your middle name (optional)"
-            labelPlacement="outside"
             name="middleName"
             type="text"
             variant="bordered"
@@ -312,9 +304,7 @@ export default function SignUpForm() {
           <NumberInput
             isRequired
             label="Age"
-            size="lg"
             placeholder="Enter your age"
-            labelPlacement="outside"
             name="age"
             variant="bordered"
             hideStepper
@@ -335,46 +325,38 @@ export default function SignUpForm() {
           />
 
           {/* Gender */}
-          <div className="flex flex-col gap-1 w-full">
-            <label className="text-base">
-              Gender <span className="text-danger">*</span>
-            </label>
-
-            <Select
-              disableAnimation
-              isRequired
-              size="lg"
-              placeholder="Select your gender"
-              name="gender"
-              variant="bordered"
-              classNames={{
-                base: "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-              }}
-              selectedKeys={formData.gender ? [formData.gender] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0];
-                handleChange("gender")(selected ? String(selected) : "");
-              }}
-              isDisabled={loading}
-            >
-              {GENDERS.map((gender) => (
-                <SelectItem
-                  key={gender}
-                  className="data-[hover=true]:bg-light-blue!"
-                >
-                  {gender}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
+          <Select
+            disableAnimation
+            isRequired
+            label="Gender"
+            placeholder="Select your gender"
+            name="gender"
+            variant="bordered"
+            classNames={{
+              base: "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
+            }}
+            selectedKeys={formData.gender ? [formData.gender] : []}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              handleChange("gender")(selected ? String(selected) : "");
+            }}
+            isDisabled={loading}
+          >
+            {GENDERS.map((gender) => (
+              <SelectItem
+                key={gender}
+                className="data-[hover=true]:bg-light-blue!"
+              >
+                {gender}
+              </SelectItem>
+            ))}
+          </Select>
 
           {/* Mobile Number */}
           <Input
             isRequired
             label="Mobile Number"
-            size="lg"
             placeholder="Enter your mobile number"
-            labelPlacement="outside"
             name="mobileNumber"
             type="tel"
             variant="bordered"
@@ -398,9 +380,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="Street Address"
-            size="lg"
             placeholder="Enter your street address"
-            labelPlacement="outside"
             name="streetAddress"
             type="text"
             variant="bordered"
@@ -417,9 +397,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="Barangay"
-            size="lg"
             placeholder="Enter your barangay"
-            labelPlacement="outside"
             name="barangay"
             type="text"
             variant="bordered"
@@ -436,9 +414,7 @@ export default function SignUpForm() {
           <Input
             isRequired
             label="City"
-            size="lg"
             placeholder="Enter your city"
-            labelPlacement="outside"
             name="city"
             type="text"
             variant="bordered"
@@ -452,48 +428,41 @@ export default function SignUpForm() {
           />
 
           {/* State/Province */}
-          <div className="flex flex-col gap-1 w-full">
-            <label className="text-base">
-              State/Province <span className="text-danger">*</span>
-            </label>
-            <Select
-              isRequired
-              placeholder="Select your state/province"
-              name="stateProvince"
-              variant="bordered"
-              size="lg"
-              classNames={{
-                trigger:
-                  "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-              }}
-              className="w-full"
-              selectedKeys={
-                formData.stateProvince ? [formData.stateProvince] : []
-              }
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0];
-                handleChange("stateProvince")(selected ? String(selected) : "");
-              }}
-              isDisabled={loading}
-            >
-              {PROVINCES.map((province) => (
-                <SelectItem
-                  key={province}
-                  className="data-[hover=true]:bg-light-blue!"
-                >
-                  {province}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
+          <Select
+            isRequired
+            placeholder="Select your state/province"
+            name="stateProvince"
+            label="State/Province"
+            variant="bordered"
+            classNames={{
+              trigger:
+                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
+            }}
+            className="w-full"
+            selectedKeys={
+              formData.stateProvince ? [formData.stateProvince] : []
+            }
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              handleChange("stateProvince")(selected ? String(selected) : "");
+            }}
+            isDisabled={loading}
+          >
+            {PROVINCES.map((province) => (
+              <SelectItem
+                key={province}
+                className="data-[hover=true]:bg-light-blue!"
+              >
+                {province}
+              </SelectItem>
+            ))}
+          </Select>
 
           {/* Postal Code */}
           <NumberInput
             isRequired
             label="Postal Code"
-            size="lg"
             placeholder="Enter your postal code"
-            labelPlacement="outside"
             name="postalCode"
             variant="bordered"
             hideStepper
@@ -524,9 +493,7 @@ export default function SignUpForm() {
           <PasswordField
             isRequired
             label="Password"
-            size="lg"
             placeholder="Create a password"
-            labelPlacement="outside"
             name="password"
             variant="bordered"
             value={formData.password}
@@ -536,9 +503,7 @@ export default function SignUpForm() {
           <PasswordField
             isRequired
             label="Confirm Password"
-            size="lg"
             placeholder="Confirm your password"
-            labelPlacement="outside"
             name="confirmPassword"
             variant="bordered"
             value={formData.confirmPassword}
