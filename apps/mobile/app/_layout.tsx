@@ -1,3 +1,4 @@
+import * as Crypto from "expo-crypto";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "./global.css";
@@ -9,10 +10,21 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
+import * as WebBrowser from "expo-web-browser";
+
 import { COLORS } from "@repo/constants";
+
+if (typeof global.crypto !== "object") {
+  global.crypto = {} as any;
+}
+if (typeof global.crypto.getRandomValues !== "function") {
+  global.crypto.getRandomValues = Crypto.getRandomValues as any;
+}
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   // Initialize custom fonts
@@ -50,13 +62,13 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="chat/[conversationId]" />
-          <Stack.Screen name="tenant"/>
-          <Stack.Screen name="landlord-profile/[landlordId]"/>
-          <Stack.Screen name="apartment/[apartmentId]"/>
-          <Stack.Screen name="(notification)"/>
-          <Stack.Screen name="settings"/>
-          <Stack.Screen name="document-id"/>
-          <Stack.Screen name="manage-apartment/[apartmentId]"/>
+          <Stack.Screen name="tenant" />
+          <Stack.Screen name="landlord-profile/[landlordId]" />
+          <Stack.Screen name="apartment/[apartmentId]" />
+          <Stack.Screen name="(notification)" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="document-id" />
+          <Stack.Screen name="manage-apartment/[apartmentId]" />
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
