@@ -1,43 +1,62 @@
 "use client";
-
 import { Button } from "@heroui/react";
 import Image from "next/image";
-import { signInWithGoogle, signInWithFacebook, signInWithApple } from "../actions/oauth";
 import { useState } from "react";
+import { createClient } from "@repo/supabase/browser";
 
 export default function ThirdPartySignIn() {
-  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleOAuthSignIn = async (provider: "google" | "facebook" | "apple") => {
-    setLoadingProvider(provider);
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
     setError(null);
 
-    try {
-      let result;
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?popup=true`,
+        skipBrowserRedirect: true,
+      },
+    });
 
-      switch (provider) {
-        case "google":
-          result = await signInWithGoogle();
-          break;
-        case "facebook":
-          result = await signInWithFacebook();
-          break;
-        case "apple":
-          result = await signInWithApple();
-          break;
-      }
-
-      // If we get here (no redirect happened), there was an error
-      if (result?.error) {
-        setError(result.error);
-      }
-    } catch {
-      // redirect() from server actions throws a NEXT_REDIRECT error — this is expected behavior
-      // If it's an actual error, it will be caught here
-    } finally {
-      setLoadingProvider(null);
+    if (error || !data.url) {
+      setError(error?.message ?? "Something went wrong.");
+      setLoading(false);
+      return;
     }
+
+    // Open as popup
+    const popup = window.open(
+      data.url,
+      "Google Sign In",
+      "width=500,height=600,scrollbars=yes,resizable=yes",
+    );
+
+    // Poll until popup closes, then refresh session
+    const timer = setInterval(async () => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        setLoading(false);
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          // Check if profile is complete
+          const { data: profile } = await supabase
+            .from("users")
+            .select("mobile_number")
+            .eq("user_id", session.user.id)
+            .single();
+
+          window.location.href = profile?.mobile_number
+            ? "/"
+            : "/complete-profile";
+        }
+      }
+    }, 500);
   };
 
   return (
@@ -47,68 +66,23 @@ export default function ThirdPartySignIn() {
           <p className="text-sm text-danger text-center">{error}</p>
         </div>
       )}
-
-      <div className="flex gap-5 items-center justify-center">
-        {/* Google */}
-        <Button
-          variant="flat"
-          isIconOnly
-          radius="full"
-          className="size-12 p-1 bg-darker-white"
-          isLoading={loadingProvider === "google"}
-          isDisabled={loadingProvider !== null}
-          onPress={() => handleOAuthSignIn("google")}
-        >
-          {loadingProvider !== "google" && (
-            <Image
-              src="/third-party/google-logo.svg"
-              alt="Google"
-              width={45}
-              height={45}
-            />
-          )}
-        </Button>
-
-        {/* Facebook */}
-        <Button
-          variant="flat"
-          isIconOnly
-          radius="full"
-          className="size-12 p-1 bg-darker-white"
-          isLoading={loadingProvider === "facebook"}
-          isDisabled={loadingProvider !== null}
-          onPress={() => handleOAuthSignIn("facebook")}
-        >
-          {loadingProvider !== "facebook" && (
-            <Image
-              src="/third-party/facebook-logo.svg"
-              alt="Facebook"
-              width={45}
-              height={45}
-            />
-          )}
-        </Button>
-
-        {/* Apple */}
-        <Button
-          variant="flat"
-          isIconOnly
-          radius="full"
-          className="size-12 p-1 bg-darker-white"
-          isLoading={loadingProvider === "apple"}
-          isDisabled={loadingProvider !== null}
-          onPress={() => handleOAuthSignIn("apple")}
-        >
-          {loadingProvider !== "apple" && (
-            <Image
-              src="/third-party/apple-logo.svg"
-              alt="Apple"
-              width={35}
-              height={35}
-            />
-          )}
-        </Button>
-      </div>
+      <Button
+        variant="flat"
+        isIconOnly
+        radius="full"
+        className="size-12 p-1 bg-darker-white"
+        isLoading={loading}
+        onPress={handleGoogleSignIn}
+      >
+        {!loading && (
+          <Image
+            src="/third-party/google-logo.svg"
+            alt="Google"
+            width={45}
+            height={45}
+          />
+        )}
+      </Button>
     </div>
   );
 }

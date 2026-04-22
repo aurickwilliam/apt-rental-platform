@@ -1,4 +1,4 @@
-import { View, Text, Image, Platform, Pressable } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,8 @@ import LogoButton from "components/buttons/LogoButton";
 
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
+
+import { useGoogleAuth } from "hooks/useGoogleAuth";
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,6 +24,12 @@ export default function SignUp() {
 
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
+
+  const {
+    signInWithGoogle,
+    loading: googleLoading,
+    error: googleError,
+  } = useGoogleAuth();
 
   useEffect(() => {
     setUserSide(userType === "landlord" ? "landlord" : "tenant");
@@ -45,9 +53,9 @@ export default function SignUp() {
 
     router.push({
       pathname: "/(auth)/complete-profile",
-      params: { email, userSide }
+      params: { email, userSide },
     });
-  }
+  };
 
   return (
     <ScreenWrapper className="p-5">
@@ -62,47 +70,65 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`${userSide === 'landlord' ? 'text-3xl' : 'text-4xl'}
-          text-text font-dmserif`}>
-          Create Your {userSide === 'landlord' ? "Landlord " : ""}Account
+        <Text
+          className={`${userSide === "landlord" ? "text-3xl" : "text-4xl"}
+          text-text font-dmserif`}
+        >
+          Create Your {userSide === "landlord" ? "Landlord " : ""}Account
         </Text>
         <Text className="text-md text-text font-poppins">
-          {
-            userSide === 'tenant' ?
-            'Join as tenant to start renting.' :
-            'Join us and start listing your properties in minutes.'
-          }
+          {userSide === "tenant"
+            ? "Join as tenant to start renting."
+            : "Join us and start listing your properties in minutes."}
         </Text>
       </View>
 
       {/* Toggle User Side */}
       <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
-        <Pressable 
-          onPress={() => setUserSide('tenant')}
+        <Pressable
+          onPress={() => setUserSide("tenant")}
           className="flex-1 py-3 rounded-xl"
-          style={userSide === 'tenant' ? { backgroundColor: 'white', elevation: 1 } : {}}
+          style={
+            userSide === "tenant"
+              ? { backgroundColor: "white", elevation: 1 }
+              : {}
+          }
         >
-          <Text 
+          <Text
             className="text-center font-interMedium"
-            style={{ color: userSide === 'tenant' ? COLORS.primary : COLORS.grey }}
+            style={{
+              color: userSide === "tenant" ? COLORS.primary : COLORS.grey,
+            }}
           >
             Tenant
           </Text>
         </Pressable>
 
-        <Pressable 
-          onPress={() => setUserSide('landlord')}
+        <Pressable
+          onPress={() => setUserSide("landlord")}
           className="flex-1 py-3 rounded-xl"
-          style={userSide === 'landlord' ? { backgroundColor: 'white', elevation: 1 } : {}}
+          style={
+            userSide === "landlord"
+              ? { backgroundColor: "white", elevation: 1 }
+              : {}
+          }
         >
-          <Text 
+          <Text
             className="text-center font-interMedium"
-            style={{ color: userSide === 'landlord' ? COLORS.secondary : COLORS.grey }}
+            style={{
+              color: userSide === "landlord" ? COLORS.secondary : COLORS.grey,
+            }}
           >
             Landlord
           </Text>
         </Pressable>
       </View>
+
+      {googleError ? (
+        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <Text className="text-sm text-red-600 font-inter">{googleError}</Text>
+        </View>
+      ) : null}
 
       {/* Form inputs */}
       <View className="mt-8">
@@ -129,22 +155,18 @@ export default function SignUp() {
       <View className="flex-row justify-center items-center mt-7 mb-7">
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
 
-        <Text className="mx-3 text-grey-400 font-inter">
-          or sign up with
-        </Text>
+        <Text className="mx-3 text-grey-400 font-inter">or sign up with</Text>
 
         <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
       </View>
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-10">
-        <LogoButton image={IMAGES.googleLogo} />
-        <LogoButton image={IMAGES.facebookLogo} />
-
-        {/* Show Apple sign in when using iOS */}
-        {Platform.OS === 'ios' && (
-          <LogoButton image={IMAGES.appleLogo} />
-        )}
+        <LogoButton
+          image={IMAGES.googleLogo}
+          onPress={() => signInWithGoogle(userSide)}
+          disabled={googleLoading}
+        />
       </View>
 
       {/* Footer links - Push to bottom with flex-1 spacer */}
@@ -152,9 +174,7 @@ export default function SignUp() {
 
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
-            Already have an account?
-          </Text>
+          <Text className="text-text font-inter">Already have an account?</Text>
           <Link
             href="/sign-in"
             className="text-primary font-interMedium underline"
