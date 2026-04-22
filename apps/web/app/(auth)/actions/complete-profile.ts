@@ -31,6 +31,11 @@ export async function completeProfile(
   const barangay = formData.get("barangay") as string;
   const city = formData.get("city") as string;
   const province = formData.get("province") as string;
+  const requestedRole = formData.get("role");
+  const role =
+    requestedRole === "landlord" || requestedRole === "tenant"
+      ? requestedRole
+      : "tenant";
   const postalCode = formData.get("postal_code")
     ? Number(formData.get("postal_code"))
     : null;
@@ -49,6 +54,7 @@ export async function completeProfile(
       barangay,
       city,
       province,
+      role,
       postal_code: postalCode,
       account_status: "verified",
     })
@@ -56,5 +62,5 @@ export async function completeProfile(
 
   if (error) return { error: error.message };
 
-  redirect("/");
+  redirect(role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
 }
