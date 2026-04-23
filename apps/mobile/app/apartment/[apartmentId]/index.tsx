@@ -85,7 +85,7 @@ const DEFAULT_COORDS = {
   longitude: 120.9600,
 }
 
-type DirectionMode = 'driving' | 'walking' | 'transit' | 'bicycling';
+type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -189,22 +189,35 @@ export default function ApartmentScreen() {
     const label = encodeURIComponent(apartment?.name || 'Apartment');
     const destination = `${latitude},${longitude}`;
 
-    const googleMapsWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${mode}`;
+    const googleMapsTravelMode =
+      mode === 'walking'    ? 'walking'    :
+      mode === 'transit'    ? 'transit'    :
+      mode === 'motorcycle' ? 'two-wheeler':
+      'driving'; // driving
 
+    const googleMapsWebUrl =
+      `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${googleMapsTravelMode}`;
+
+    // Apple Maps — no motorcycle or two-wheeler mode, fall back to Google Maps web
     const iosDirFlag =
       mode === 'walking' ? 'w' :
       mode === 'transit' ? 'r' :
-      'd';
+      'd'; // driving (also used as closest for motorcycle)
 
     const iosUrl =
-      mode === 'bicycling'
-        ? googleMapsWebUrl
+      mode === 'motorcycle'
+        ? googleMapsWebUrl // Apple Maps has no motorcycle mode
         : `http://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
 
+    // Android navigation intent — no motorcycle mode, fall back to Google Maps web
+    const androidNavMode =
+      mode === 'walking' ? 'w' :
+      'd'; // driving
+
     const androidUrl =
-      mode === 'transit'
-        ? googleMapsWebUrl
-        : `google.navigation:q=${destination}&mode=${mode === 'walking' ? 'w' : mode === 'bicycling' ? 'b' : 'd'}`;
+      mode === 'transit' || mode === 'motorcycle'
+        ? googleMapsWebUrl // No transit/motorcycle in navigation intent
+        : `google.navigation:q=${destination}&mode=${androidNavMode}`;
 
     const url = Platform.select({
       ios: iosUrl,
@@ -221,7 +234,7 @@ export default function ApartmentScreen() {
     }
 
     await Linking.openURL(googleMapsWebUrl);
-  }
+  };
 
   const handleGetDirections = () => {
     setIsDirectionsModalVisible(true);
@@ -903,15 +916,15 @@ export default function ApartmentScreen() {
 
             <View className='mt-4 gap-3'>
               <PillButton
-                label='Drive'
+                label='Drive/4-Wheels'
                 size='sm'
                 onPress={() => handleSelectDirectionMode('driving')}
               />
               <PillButton
-                label='Walk'
+                label='Motorcycle'
                 size='sm'
                 type='outline'
-                onPress={() => handleSelectDirectionMode('walking')}
+                onPress={() => handleSelectDirectionMode('motorcycle')}
               />
               <PillButton
                 label='Transit'
@@ -920,10 +933,10 @@ export default function ApartmentScreen() {
                 onPress={() => handleSelectDirectionMode('transit')}
               />
               <PillButton
-                label='Bicycle'
+                label='Walk/Bike'
                 size='sm'
                 type='outline'
-                onPress={() => handleSelectDirectionMode('bicycling')}
+                onPress={() => handleSelectDirectionMode('walking')}
               />
             </View>
 

@@ -205,17 +205,21 @@ export default function Index() {
     if (!apartment?.lease_agreement_url) return
 
     try {
-      // Normalize the storage path in case it's stored as a full URL 
-      let storagePath = apartment.lease_agreement_url
-      const bucketMarker = '/lease-agreements/'
-      
-      if (storagePath.startsWith('http')) {
-        const idx = storagePath.indexOf(bucketMarker)
-        if (idx !== -1) {
-          storagePath = storagePath.slice(idx + bucketMarker.length)
-          storagePath = storagePath.split('?')[0]
-        }
+      // List the actual files under this apartment's folder in storage
+      // instead of trusting the stored path, which may be stale or mismatched
+      const { data: files, error: listError } = await supabase.storage
+        .from('lease-agreements')
+        .list(apartmentId)
+
+      if (listError) throw listError
+
+      if (!files?.length) {
+        Alert.alert('Not Found', 'No lease agreement file found in storage.')
+        return
       }
+
+      // Use the first file found (there should only ever be one)
+      const storagePath = `${apartmentId}/${files[0].name}`
 
       const { data, error } = await supabase.storage
         .from('lease-agreements')
