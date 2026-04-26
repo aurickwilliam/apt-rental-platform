@@ -1,7 +1,6 @@
 import { View, Text, Pressable, TouchableOpacity } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
 import { TextInput } from 'react-native-gesture-handler'
-
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -12,36 +11,45 @@ import { COLORS } from '@repo/constants'
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import { supabase } from '@repo/supabase';
+
 import { useRegistrationStore } from '@/store/useRegistrationStore'
 
 export default function OTPVerification() {
   const router = useRouter();
-  const { mobileNum } = useLocalSearchParams();
+  const { email } = useLocalSearchParams();
 
   const { data, reset } = useRegistrationStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [otp, setOtp] = useState<string[]>(['', '', '', '']);
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [countdown, setCountdown] = useState<number>(30);
   const inputRefs = useRef<TextInput[]>([]);
 
-  // Get the last 4 digit of mobile number
-  const lastFourDigits = String(mobileNum).slice(-4);
+  const emailValue = Array.isArray(email) ? email[0] : email;
 
   // Countdown timer
   useEffect(() => {
     if (countdown > 0) {
-      // Minus 1 every 1000 milliseconds
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-
-      // Cleanup Function
       return () => clearTimeout(timer);
     }
   }, [countdown]);
 
   // Handle the OTP Input Change
   const handleChange = (index: number, text: string) => {
+    // Handle paste — if user pastes a full OTP string
+    if (text.length > 1) {
+      const digits = text.replace(/\D/g, '').slice(0, 6).split('');
+      const newOTP = Array(6).fill('');
+      digits.forEach((d, i) => { newOTP[i] = d; });
+      setOtp(newOTP);
+      // Focus on the last filled box or the last box
+      const focusIndex = Math.min(digits.length, 5);
+      inputRefs.current[focusIndex]?.focus();
+      return;
+    }
+
     // Check if the input is a number
     if (text && !/^\d+$/.test(text)) return;
 
@@ -49,27 +57,26 @@ export default function OTPVerification() {
     newOTP[index] = text;
     setOtp(newOTP);
 
-    // Focus on the next input field if it exists
-    if (index < 3 && text.length === 1) {
-      inputRefs.current[index + 1].focus();
+    // Focus on the next input field if it exists — fixed: was index < 3
+    if (index < 5 && text.length === 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   }
 
   // Handle the OTP if backspace is pressed
   const handleKeyPress = (e: any, index: number) => {
     if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
     }
   }
 
   // Handle resend of OTP
   const handleResend = () => {
-    // Reset OTP and start countdown
     setCountdown(30);
-    setOtp(['', '', '', '']);
-    inputRefs.current[0].focus();
+    setOtp(Array(6).fill('')); // fixed: was ['', '', '', ''] (only 4)
+    inputRefs.current[0]?.focus();
 
-    // TODO: Implement resend OTP to Mobile Number functionality
+    // TODO: Implement resend OTP to Email functionality
   }
 
   const handleVerify = async () => {
@@ -81,7 +88,7 @@ export default function OTPVerification() {
       const userSide = data.userSide;
 
       const { error } = await supabase.auth.signUp({
-        email: data.email!,
+        email: emailValue || data.email!,
         password: data.password!,
         options: {
           data: {
@@ -97,18 +104,16 @@ export default function OTPVerification() {
             city: data.city,
             province: data.province,
             postal_code: data.postalCode,
-            role: data.userSide, 
+            role: data.userSide,
           }
         }
       });
 
       if (error) throw error;
 
-      console.log('Registration Store Data in OTP Verification:', data);
-
       reset();
 
-      if (userSide === 'tenant') { 
+      if (userSide === 'tenant') {
         router.replace('/personalization/step-one');
       } else {
         router.replace('/(tabs)/(landlord)/dashboard');
@@ -120,6 +125,20 @@ export default function OTPVerification() {
       setLoading(false);
     }
   }
+
+  // Hide or mask the email address for privacy
+  const maskEmail = (email: string) => {
+    const [username, domain] = email.split("@");
+
+    if (username.length <= 2) {
+      return `${username[0]}***@${domain}`;
+    }
+
+    const maskedUsername = username[0] + "****" + username[username.length - 1];
+    return `${maskedUsername}@${domain}`;
+  };
+
+  const isOtpComplete = otp.every(d => d !== '');
 
   return (
     <ScreenWrapper className='p-5'>
@@ -141,8 +160,7 @@ export default function OTPVerification() {
 
           {/* Description */}
           <Text className="text-lg text-text font-poppinsRegular mb-5">
-            We&apos;ve sent a 4-digit code to your phone number.
-            Please enter the code sent to your number ending in ****-***-{lastFourDigits}.
+            We've sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
           </Text>
 
           {/* OTP Input Fields*/}
@@ -153,13 +171,14 @@ export default function OTPVerification() {
                 ref={(ref) => {
                   if (ref) inputRefs.current[index] = ref as TextInput;
                 }}
-                className="w-24 h-24 border-2 border-gray-300 rounded-2xl text-center text-4xl
-                 text-text font-interMedium"
+                className="size-16 border-2 border-gray-300 rounded-2xl text-center text-4xl text-text font-interMedium"
                 value={digit}
                 onChangeText={(text) => handleChange(index, text)}
                 onKeyPress={(e) => handleKeyPress(e, index)}
                 keyboardType="number-pad"
-                maxLength={1}
+                maxLength={6}
+                textContentType="oneTimeCode"   // iOS autofill
+                autoComplete="one-time-code"    // Android autofill
                 selectTextOnFocus
               />
             ))}
@@ -193,7 +212,7 @@ export default function OTPVerification() {
           label={loading ? 'Creating Account...' : 'Verify & Create Account'}
           onPress={handleVerify}
           isFullWidth
-          isDisabled={loading}
+          isDisabled={loading || !isOtpComplete}
         />
       </View>
     </ScreenWrapper>

@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import NumberField from 'components/inputs/NumberField';
@@ -15,23 +15,27 @@ import { useRegistrationStore } from '@/store/useRegistrationStore';
 
 export default function VerifyMobile() {
   const router = useRouter();
+  const { email } = useLocalSearchParams();
 
-  const { setData } = useRegistrationStore();
+  const { setData, data } = useRegistrationStore();
 
-  const { 
-    value: mobileNumber, 
-    validation, 
-    onChange, 
-    validate 
-  } = usePHMobileValidation();
+  const {
+    value: mobileNumber,
+    validation,
+    onChange,
+    validate
+  } = usePHMobileValidation(data.mobileNumber ?? '');
 
   const handleAndVerifyMobile = () => {
     const result = validate();
     if (!result.isValid) return;
 
     setData({ mobileNumber });
-    
-    router.push('/(auth)/otp-verification');
+
+    router.push({
+      pathname: '/(auth)/otp-verification',
+      params: { email, mobileNum: mobileNumber }
+    });
   }
 
   return (
@@ -52,7 +56,7 @@ export default function VerifyMobile() {
 
           {/* Title */}
           <Text className="text-3xl text-text font-poppinsSemiBold my-5">
-            Verify Your Mobile Number
+            Enter Your Mobile Number
           </Text>
 
           {/* Mobile Number Field */}
@@ -68,7 +72,7 @@ export default function VerifyMobile() {
 
         {/* Verify Button */}
         <PillButton
-          label="Verify"
+          label="Proceed to OTP Verification"
           onPress={handleAndVerifyMobile}
           isFullWidth
         />

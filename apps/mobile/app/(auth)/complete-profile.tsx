@@ -50,7 +50,7 @@ export default function CompleteProfile() {
   const router = useRouter();
   const { email, userSide } = useLocalSearchParams();
 
-  const { setData } = useRegistrationStore();
+  const { setData, reset } = useRegistrationStore();
 
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
@@ -84,7 +84,7 @@ export default function CompleteProfile() {
   } = usePasswordValidation();
 
   // Postal code hook
-  const { 
+  const {
     value: postalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
@@ -127,7 +127,7 @@ export default function CompleteProfile() {
     if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) return;
 
     const { confirmPassword, ...rest } = profileForm; // exclude confirmPassword
-    
+
     setData({
       ...rest,
       postalCode,
@@ -135,7 +135,15 @@ export default function CompleteProfile() {
       userSide: userSide as 'tenant' | 'landlord',
     });
 
-    router.push('/(auth)/verify-mobile');
+    router.push({
+      pathname: '/verify-mobile',
+      params: { email: profileForm.email }
+    });
+  }
+
+  const handleBackToSignUp = () => {
+    reset();
+    router.replace('/sign-up');
   }
 
   return (
@@ -145,7 +153,7 @@ export default function CompleteProfile() {
     >
 
       {/* Back button */}
-      <Pressable className="mb-3" onPress={router.back}>
+      <Pressable className="mb-3" onPress={handleBackToSignUp}>
         <Ionicons name="close" size={30} color={COLORS.text} />
       </Pressable>
 
@@ -254,7 +262,7 @@ export default function CompleteProfile() {
           }}
           onBlur={handlePostalCodeBlur}
           required
-          error={getError('postalCode')} 
+          error={getError('postalCode')}
         />
 
         {/* Date of Birth Field */}
@@ -278,7 +286,7 @@ export default function CompleteProfile() {
           required
           value={password}
           onChangeText={(value) => {
-            setPassword(value); 
+            setPassword(value);
             updateField('password', value);
           }}
           error={getError('password')}
