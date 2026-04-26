@@ -12,6 +12,8 @@ import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 
+import { supabase } from "@repo/supabase"
+
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -21,6 +23,7 @@ export default function SignUp() {
   const [email, setEmail] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+  const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
 
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
@@ -40,7 +43,7 @@ export default function SignUp() {
     if (emailError) setEmailError("");
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!email.trim()) {
       setEmailError("Email address is required.");
       return;
@@ -51,10 +54,33 @@ export default function SignUp() {
       return;
     }
 
-    router.push({
-      pathname: "/(auth)/complete-profile",
-      params: { email, userSide },
-    });
+    try {
+      setCheckingEmail(true);
+
+      const { count, error } = await supabase
+        .from("users")
+        .select("id", { count: "exact", head: true })
+        .eq("email", email.trim().toLowerCase());
+
+      if (error) {
+        setEmailError("Something went wrong. Please try again.");
+        return;
+      }
+
+      if (count && count > 0) {
+        setEmailError("This email is already registered. Please sign in instead.");
+        return;
+      }
+
+      router.push({
+        pathname: "/(auth)/complete-profile",
+        params: { email: email.trim().toLowerCase(), userSide },
+      });
+    } catch {
+      setEmailError("Something went wrong. Please try again.");
+    } finally {
+      setCheckingEmail(false);
+    }
   };
 
   return (
@@ -70,11 +96,8 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text
-          className={`${userSide === "landlord" ? "text-3xl" : "text-4xl"}
-          text-text font-dmserif`}
-        >
-          Create Your {userSide === "landlord" ? "Landlord " : ""}Account
+        <Text className={`text-4xl text-text font-dmserif`}>
+          Create Your Account
         </Text>
         <Text className="text-md text-text font-poppins">
           {userSide === "tenant"
