@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS , PROVINCES , GENDER } from '@repo/constants';
+import { COLORS , PROVINCES , GENDERS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import TextField from 'components/inputs/TextField';
@@ -194,7 +194,7 @@ export default function CompleteProfile() {
           label="Gender:"
           bottomSheetLabel="Select your gender"
           placeholder="Select your gender"
-          options={GENDER}
+          options={GENDERS}
           value={profileForm.gender}
           onSelect={(value) => updateField('gender', value)}
           required
