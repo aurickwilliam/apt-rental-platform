@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter } from 'expo-router'
+import { useState } from 'react';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import NumberField from 'components/inputs/NumberField';
@@ -13,9 +14,13 @@ import { usePHMobileValidation } from '@repo/hooks';
 
 import { useRegistrationStore } from '@/store/useRegistrationStore';
 
+import { supabase } from '@repo/supabase';
+
 export default function VerifyMobile() {
   const router = useRouter();
-  const { email } = useLocalSearchParams();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { setData, data } = useRegistrationStore();
 
@@ -26,17 +31,39 @@ export default function VerifyMobile() {
     validate
   } = usePHMobileValidation(data.mobileNumber ?? '');
 
-  const handleAndVerifyMobile = () => {
+  const handleAndVerifyMobile = async () => {
     const result = validate();
     if (!result.isValid) return;
 
-    setData({ mobileNumber });
+    setLoading(true);
+    setError(null);
 
-    router.push({
-      pathname: '/(auth)/otp-verification',
-      params: { email, mobileNum: mobileNumber }
-    });
-  }
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: data.email!,
+        password: data.password!,
+        options: {
+          data: {
+            full_name: `${data.firstName} ${data.lastName}`,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      setData({ mobileNumber });
+
+      router.push({
+        pathname: '/(auth)/otp-verification',
+        params: { email: data.email },
+      });
+
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScreenWrapper className='p-5'>

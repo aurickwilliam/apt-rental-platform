@@ -71,46 +71,55 @@ export default function OTPVerification() {
   }
 
   // Handle resend of OTP
-  const handleResend = () => {
+  const handleResend = async () => {
     setCountdown(30);
-    setOtp(Array(6).fill('')); // fixed: was ['', '', '', ''] (only 4)
+    setOtp(Array(6).fill(''));
     inputRefs.current[0]?.focus();
 
-    // TODO: Implement resend OTP to Email functionality
-  }
+    await supabase.auth.resend({
+      type: 'signup',
+      email: emailValue || data.email!,
+    });
+  };
 
   const handleVerify = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear();
-      const userSide = data.userSide;
-
-      const { error } = await supabase.auth.signUp({
+      // Step 1: Verify the OTP
+      const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
-        password: data.password!,
-        options: {
-          data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
-            middle_name: data.middleName,
-            gender: data.gender,
-            mobile_number: data.mobileNumber,
-            birth_date: data.birthDate,
-            age,
-            street_address: data.currentAddress,
-            barangay: data.barangay,
-            city: data.city,
-            province: data.province,
-            postal_code: data.postalCode,
-            role: data.userSide,
-          }
-        }
+        token: otp.join(''),
+        type: 'signup',
       });
 
-      if (error) throw error;
+      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed');
 
+      // Step 2: Insert full profile into public.users
+      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear();
+
+      const { error: insertError } = await supabase.from('users').insert({
+        user_id: authData.user.id,
+        email: emailValue || data.email!,
+        role: data.userSide ?? 'tenant',
+        first_name: data.firstName,
+        last_name: data.lastName,
+        middle_name: data.middleName ?? null,
+        age,
+        gender: data.gender,
+        mobile_number: data.mobileNumber,
+        birth_date: data.birthDate,
+        street_address: data.currentAddress,
+        barangay: data.barangay,
+        city: data.city,
+        province: data.province,
+        postal_code: parseInt(data.postalCode!, 10),
+      });
+
+      if (insertError) throw insertError;
+
+      const userSide = data.userSide;
       reset();
 
       if (userSide === 'tenant') {
@@ -124,7 +133,7 @@ export default function OTPVerification() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   // Hide or mask the email address for privacy
   const maskEmail = (email: string) => {

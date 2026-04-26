@@ -135,10 +135,7 @@ export default function CompleteProfile() {
       userSide: userSide as 'tenant' | 'landlord',
     });
 
-    router.push({
-      pathname: '/verify-mobile',
-      params: { email: profileForm.email }
-    });
+    router.push('/(auth)/verify-mobile');
   }
 
   const handleBackToSignUp = () => {
