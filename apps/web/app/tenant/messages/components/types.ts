@@ -1,5 +1,3 @@
-export type TabKey = "current" | "inquiries";
-
 export interface Contact {
   id: string;
   name: string;
@@ -7,6 +5,7 @@ export interface Contact {
   apartment: string;
   unreadCount: number;
 }
+
 export interface Message {
   id: string;
   sender_id: string;

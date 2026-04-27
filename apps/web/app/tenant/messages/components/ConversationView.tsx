@@ -215,10 +215,20 @@ export default function ConversationView({ activeContact, currentUserId, onConve
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
-        <Avatar 
-          src={activeContact.avatar} 
-          alt={activeContact.name} 
-          size="lg" 
+        <Avatar
+          src={activeContact.avatar}
+          alt={activeContact.name}
+          size="lg"
+          name={activeContact.name}
+          showFallback
+          getInitials={(name) =>
+            name
+              .split(" ")
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? "")
+              .join("")
+          }
         />
         <div>
           <h2 className="text-lg font-bold text-gray-800 leading-tight">
@@ -231,7 +241,7 @@ export default function ConversationView({ activeContact, currentUserId, onConve
       </div>
 
       {/* Chat History */}
-      <ScrollShadow 
+      <ScrollShadow
         className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4"
         visibility="none"
       >
@@ -247,8 +257,8 @@ export default function ConversationView({ activeContact, currentUserId, onConve
                 <div
                   key={msg.id}
                   className={`flex flex-col max-w-[80%] ${
-                    isMine 
-                      ? "self-end items-end" 
+                    isMine
+                      ? "self-end items-end"
                       : "self-start items-start"
                   }`}
                 >
@@ -275,9 +285,9 @@ export default function ConversationView({ activeContact, currentUserId, onConve
         )}
       </ScrollShadow>
 
-      <MessageInput 
-        onSend={handleSend} 
-        onTypingChange={handleTypingChange} 
+      <MessageInput
+        onSend={handleSend}
+        onTypingChange={handleTypingChange}
       />
     </div>
   );

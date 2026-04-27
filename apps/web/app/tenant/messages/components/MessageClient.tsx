@@ -4,31 +4,32 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
-import { Contact, TabKey } from "./types";
+import { Contact } from "./types";
 
 interface MessagesClientProps {
-  currentTenants: Contact[];
-  inquiries: Contact[];
+  myLandlord: Contact[];
+  pastInquiries: Contact[];
   currentUserId: string;
 }
 
-export default function MessagesClient({ currentTenants, inquiries, currentUserId }: MessagesClientProps) {
+export default function MessagesClient({ myLandlord, pastInquiries, currentUserId }: MessagesClientProps) {
   const supabase = useMemo(() => createClient(), []);
-  const [currentTenantContacts, setCurrentTenantContacts] = useState<Contact[]>(currentTenants);
-  const [inquiryContacts, setInquiryContacts] = useState<Contact[]>(inquiries);
-  const [activeTab, setActiveTab] = useState<TabKey>("current");
-  const [activeContact, setActiveContact] = useState<Contact | null>(currentTenants[0] ?? null);
+  const [myLandlordContacts, setMyLandlordContacts] = useState<Contact[]>(myLandlord);
+  const [pastInquiryContacts, setPastInquiryContacts] = useState<Contact[]>(pastInquiries);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(myLandlord[0]?.id ?? pastInquiries[0]?.id ?? null);
+
+  const contacts = [...myLandlordContacts, ...pastInquiryContacts];
 
   useEffect(() => {
-    setCurrentTenantContacts(currentTenants);
-  }, [currentTenants]);
+    setMyLandlordContacts(myLandlord);
+  }, [myLandlord]);
 
   useEffect(() => {
-    setInquiryContacts(inquiries);
-  }, [inquiries]);
+    setPastInquiryContacts(pastInquiries);
+  }, [pastInquiries]);
 
   const markContactAsRead = useCallback((contactId: string) => {
-    setCurrentTenantContacts((prev) => {
+    setMyLandlordContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
         if (contact.id === contactId && contact.unreadCount > 0) {
@@ -40,7 +41,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
       return changed ? next : prev;
     });
 
-    setInquiryContacts((prev) => {
+    setPastInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
         if (contact.id === contactId && contact.unreadCount > 0) {
@@ -54,7 +55,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
   }, []);
 
   const incrementUnreadForContact = useCallback((contactId: string) => {
-    setCurrentTenantContacts((prev) => {
+    setMyLandlordContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
         if (contact.id === contactId) {
@@ -66,7 +67,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
       return changed ? next : prev;
     });
 
-    setInquiryContacts((prev) => {
+    setPastInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
         if (contact.id === contactId) {
@@ -81,7 +82,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
 
   useEffect(() => {
     const channel = supabase
-      .channel(`landlord-unread:${currentUserId}`)
+      .channel(`tenant-unread:${currentUserId}`)
       .on(
         "postgres_changes",
         {
@@ -92,7 +93,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
         },
         (payload: { new: { sender_id: string } }) => {
           const senderId = payload.new.sender_id;
-          if (senderId === activeContact?.id) {
+          if (senderId === selectedContactId) {
             return;
           }
           incrementUnreadForContact(senderId);
@@ -103,19 +104,19 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact?.id, currentUserId, incrementUnreadForContact, supabase]);
+  }, [currentUserId, incrementUnreadForContact, selectedContactId, supabase]);
 
-  const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
+  const activeContact =
+    contacts.find((contact) => contact.id === selectedContactId) ?? contacts[0] ?? null;
 
   return (
-    <div className="flex h-svh min-h-0 overflow-hidden bg-white">
+    <div className="mx-auto flex h-full w-full max-w-7xl min-h-0 overflow-hidden bg-white">
       <ContactSidebar
-        contacts={contacts}
-        activeTab={activeTab}
+        myLandlord={myLandlordContacts}
+        pastInquiries={pastInquiryContacts}
         activeContact={activeContact}
-        onTabChange={setActiveTab}
         onSelectContact={(contact) => {
-          setActiveContact(contact);
+          setSelectedContactId(contact.id);
           markContactAsRead(contact.id);
         }}
       />

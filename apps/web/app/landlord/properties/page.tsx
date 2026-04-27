@@ -75,7 +75,7 @@ export default async function Properties() {
   ];
 
   return (
-    <div className="mt-4">
+    <div className="p-4">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-5xl text-secondary font-bold font-noto-serif">
           My Properties
