@@ -11,6 +11,7 @@ import { createClient } from "@repo/supabase/browser";
 interface ConversationViewProps {
   activeContact: Contact | null;
   currentUserId: string;
+  onConversationRead?: (contactId: string) => void;
 }
 
 function TypingIndicator() {
@@ -31,7 +32,7 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ConversationView({ activeContact, currentUserId }: ConversationViewProps) {
+export default function ConversationView({ activeContact, currentUserId, onConversationRead }: ConversationViewProps) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +74,30 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
     };
   }, [activeContact, currentUserId, supabase]);
 
+  // Mark incoming messages as read when this conversation is opened
+  useEffect(() => {
+    if (!activeContact) return;
+
+    const markAsRead = async () => {
+      const { data, error } = await supabase
+        .from("chat")
+        .update({
+          is_read: true,
+          read_at: new Date().toISOString(),
+        })
+        .select("id")
+        .eq("sender_id", activeContact.id)
+        .eq("receiver_id", currentUserId)
+        .eq("is_read", false);
+
+      if (!error && (data?.length ?? 0) > 0) {
+        onConversationRead?.(activeContact.id);
+      }
+    };
+
+    markAsRead();
+  }, [activeContact, currentUserId, onConversationRead, supabase]);
+
   // Realtime: new messages + typing presence
   useEffect(() => {
     if (!activeContact) return;
@@ -100,6 +125,16 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
           const incoming = payload.new as Message;
           if (incoming.receiver_id === currentUserId) {
             setMessages((prev) => [...prev, incoming]);
+            void supabase
+              .from("chat")
+              .update({
+                is_read: true,
+                read_at: new Date().toISOString(),
+              })
+              .eq("id", incoming.id)
+              .eq("receiver_id", currentUserId)
+              .eq("is_read", false);
+            onConversationRead?.(activeContact.id);
           }
         }
       )

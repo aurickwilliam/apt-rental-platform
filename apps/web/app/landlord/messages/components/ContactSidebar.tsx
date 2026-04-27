@@ -49,6 +49,8 @@ export default function ContactSidebar({
         ) : (
           contacts.map((contact) => {
             const isActive = activeContact?.id === contact.id;
+            const showUnreadBadge = contact.unreadCount > 0 && !isActive;
+            const unreadCountLabel = contact.unreadCount > 99 ? "99+" : String(contact.unreadCount);
             return (
               <div
                 key={contact.id}
@@ -59,7 +61,28 @@ export default function ContactSidebar({
                     : "border-l-transparent"
                 }`}
               >
-                <Avatar src={contact.avatar} alt={contact.name} size="md" />
+                <div className="relative">
+                  <Avatar
+                    src={contact.avatar}
+                    alt={contact.name}
+                    size="md"
+                    name={contact.name}
+                    showFallback
+                    getInitials={(name) =>
+                      name
+                        .split(" ")
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((part) => part[0]?.toUpperCase() ?? "")
+                        .join("")
+                    }
+                  />
+                  {showUnreadBadge && (
+                    <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-white bg-red-500 text-white text-[10px] font-semibold leading-none flex items-center justify-center">
+                      {unreadCountLabel}
+                    </span>
+                  )}
+                </div>
                 <div className="flex-1 overflow-hidden">
                   <h3 className="font-semibold text-sm text-gray-800 truncate">{contact.name}</h3>
                   <p className="text-xs text-gray-500 truncate">{contact.apartment}</p>

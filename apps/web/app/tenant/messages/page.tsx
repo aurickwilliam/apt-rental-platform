@@ -24,6 +24,19 @@ export default async function MessagesPage() {
 
   const tenantId = tenant.id;
 
+  // Get unread message counts for all conversations involving this tenant
+  const { data: unreadRows } = await supabase
+    .from("chat")
+    .select("sender_id")
+    .eq("receiver_id", tenantId)
+    .eq("is_read", false);
+
+  const unreadCountBySender = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
+    const senderId = row.sender_id;
+    acc.set(senderId, (acc.get(senderId) ?? 0) + 1);
+    return acc;
+  }, new Map<string, number>());
+
   const resolveAvatar = (avatarUrl: string | null) => {
     const normalized = avatarUrl?.trim();
     return normalized ? normalized : "";
@@ -58,6 +71,7 @@ export default async function MessagesPage() {
       name: `${landlord.first_name} ${landlord.last_name}`.trim(),
       avatar: resolveAvatar(landlord.avatar_url),
       apartment: apartment ? `Current: ${apartment.name}` : "Current Landlord",
+      unreadCount: unreadCountBySender.get(landlord.id) ?? 0,
     });
     return acc;
   }, []);
@@ -99,7 +113,8 @@ export default async function MessagesPage() {
       id: receiver.id,
       name: `${receiver.first_name} ${receiver.last_name}`.trim(),
       avatar: resolveAvatar(receiver.avatar_url),
-      apartment: apartment ? `Inquired: ${apartment.name}` : "Past Inquiry",
+      apartment: apartment ? `Previous inquiry: ${apartment.name}` : "Previous inquiry",
+      unreadCount: unreadCountBySender.get(receiver.id) ?? 0,
     });
 
     return acc;
