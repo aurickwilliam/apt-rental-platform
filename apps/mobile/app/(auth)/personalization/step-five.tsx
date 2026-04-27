@@ -44,7 +44,7 @@ export default function StepFive() {
     listOfVehicles: [], 
   });
 
-  // Number of Vehicles options for parking can be generated from 1 to 5
+  // Number of Vehicles options for parking can be generated from 0 to 5
   const parkingOptions = Array.from({ length: 6 }, (_, i) => `${i}`);
 
   // Function to update rental preferences
