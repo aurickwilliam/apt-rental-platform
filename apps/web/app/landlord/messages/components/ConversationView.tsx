@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Avatar, ScrollShadow, Spinner } from "@heroui/react";
+
 import MessageInput from "./MessageInput";
 import { Contact, Message } from "./types";
 
@@ -195,7 +196,10 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
       </div>
 
       {/* Chat History */}
-      <ScrollShadow className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4">
+      <ScrollShadow 
+        className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4"
+        visibility="none"
+      >
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Spinner size="md" color="primary" />
