@@ -8,7 +8,7 @@ export default function TenantLayout({
   return (
     <>
       <TenantNavbar />
-      <main className="bg-white h-[calc(100svh-var(--navbar-height,4rem))] overflow-hidden">
+      <main className="bg-white">
         {children}
       </main>
     </>
