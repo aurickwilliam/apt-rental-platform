@@ -23,24 +23,32 @@ export function useUser() {
   useEffect(() => {
     const supabase = createBrowserClient();
 
-    const fetchUserAndProfile = async (userId: string) => {
+    const fetchUserAndProfile = async (userId: string, authUser: User) => {
       const { data } = await supabase
         .from('users')
         .select('id, first_name, last_name, avatar_url, mobile_number, role')
         .eq('user_id', userId)
         .single();
-      setProfile(data);
+
+      setProfile({
+        id: data?.id ?? null,
+        first_name: data?.first_name ?? null,
+        last_name: data?.last_name ?? null,
+        avatar_url: data?.avatar_url ?? authUser?.user_metadata?.avatar_url ?? null,
+        mobile_number: data?.mobile_number ?? null,
+        role: data?.role ?? null,
+      });
     };
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
-      if (user) fetchUserAndProfile(user.id);
+      if (user) fetchUserAndProfile(user.id, user);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchUserAndProfile(session.user.id);
+      if (session?.user) fetchUserAndProfile(session.user.id, session.user);
       else setProfile(null);
       setLoading(false);
     });
