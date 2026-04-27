@@ -121,11 +121,13 @@ export default async function MessagesPage() {
   }, []);
 
   return (
-    <MessagesClient
-      myLandlord={myLandlord}
-      pastInquiries={pastInquiries}
-      currentUserId={tenantId}
-    />
+    <section className="h-[calc(100svh-var(--navbar-height,4rem))] overflow-hidden">
+      <MessagesClient
+        myLandlord={myLandlord}
+        pastInquiries={pastInquiries}
+        currentUserId={tenantId}
+      />
+    </section>
   );
 }
   
