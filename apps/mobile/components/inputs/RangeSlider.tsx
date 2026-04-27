@@ -44,6 +44,8 @@ export default function RangeSlider({
   step,
   onChange,
   format,
+  showLabelRange = true,
+  showTrackLabels = true,
 }: {
   label: string;
   min: number;
@@ -52,28 +54,34 @@ export default function RangeSlider({
   step: number;
   onChange: (vals: [number, number]) => void;
   format: (v: number) => string;
+  showLabelRange?: boolean;
+  showTrackLabels?: boolean;
 }) {
   return (
     <View>
       {/* Label + range display */}
-      <View className="flex-row items-center justify-between mb-1">
-        <Text className="font-poppinsMedium text-base text-text mb-3">
-          {label}
-        </Text>
-        <Text className="font-poppinsMedium text-[13px] text-primary">
-          {format(values[0])} – {format(values[1])}
-        </Text>
-      </View>
+      {showLabelRange && (
+        <View className="flex-row items-center justify-between mb-1">
+          <Text className="font-poppinsMedium text-base text-text mb-3">
+            {label}
+          </Text>
+          <Text className="font-poppinsMedium text-[13px] text-primary">
+            {format(values[0])} – {format(values[1])}
+          </Text>
+        </View>
+      )}
 
       {/* Track labels */}
-      <View className="flex-row justify-between mb-1 px-1">
-        <Text className="font-[Poppins_400Regular] text-[11px] text-[#AAAAAA]">
-          {format(min)}
-        </Text>
-        <Text className="font-[Poppins_400Regular] text-[11px] text-[#AAAAAA]">
-          {format(max)}
-        </Text>
-      </View>
+      {showTrackLabels && (
+        <View className="flex-row justify-between mb-1 px-1">
+          <Text className="font-[Poppins_400Regular] text-[11px] text-[#AAAAAA]">
+            {format(min)}
+          </Text>
+          <Text className="font-[Poppins_400Regular] text-[11px] text-[#AAAAAA]">
+            {format(max)}
+          </Text>
+        </View>
+      )}
 
       {/* Dual-handle slider */}
       <View style={{ alignItems: 'center' }}>
