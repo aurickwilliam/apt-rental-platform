@@ -1,6 +1,6 @@
 import { View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
-import { router, Redirect } from "expo-router";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLORS } from "@repo/constants";
@@ -53,8 +53,6 @@ export default function Index() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  return <Redirect href="/(auth)/personalization/step-five" />;
 
   return (
     <View className="flex-1 justify-center items-center">
