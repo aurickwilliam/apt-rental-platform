@@ -1,17 +1,15 @@
 import { Text, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Slider } from '@miblanchard/react-native-slider';
-
-import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import PillButton from "components/buttons/PillButton";
+import RangeSlider from "components/inputs/RangeSlider";
 
 export default function StepTwo() {
   const router = useRouter();
 
-  const [rentAmount, setRentAmount] = useState<number>(10_000);
+  const [budgetRange, setBudgetRange] = useState<[number, number]>([5_000, 100_000]);
 
   const handleNext = () => {
     router.replace("/personalization/step-three");
@@ -36,30 +34,21 @@ export default function StepTwo() {
 
           <View className="flex-1 items-center justify-center gap-10">
             {/* Rent Amount */}
-            <Text className="text-primary text-6xl font-dmserif">
-              ₱ {rentAmount.toLocaleString()}
+            <Text className="text-primary text-5xl font-dmserif">
+              ₱ {budgetRange[0].toLocaleString()} - ₱ {budgetRange[1].toLocaleString()}
             </Text>
 
-            {/* Slider */}
-            <Slider
-              value={rentAmount}
-              onValueChange={(value) => setRentAmount(value[0])}
-              minimumValue={2_000}
-              maximumValue={50_000}
+            {/* Budget Range Slider */}
+            <RangeSlider
+              label="Budget Range"
+              min={5_000}
+              max={100_000}
+              values={budgetRange}
               step={1_000}
-              minimumTrackTintColor={ COLORS.primary }
-              thumbTintColor={COLORS.primary}
-              thumbStyle={{
-                width: 20,
-                height: 20,
-                borderRadius: 100
-              }}
-              trackStyle={{
-                height: 10,
-                borderRadius: 50,
-                backgroundColor: COLORS.lightLightLightGrey
-              }}
-              containerStyle={{ width: '90%' }}
+              onChange={setBudgetRange}
+              format={(value) => `₱${value.toLocaleString()}`}
+              showLabelRange={false}
+              showTrackLabels={false}
             />
           </View>
         </View>

@@ -1,12 +1,12 @@
 import { View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
-import { router } from "expo-router";
+import { router, Redirect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
-export default function Index() {
+export default function Index() {  
   useEffect(() => {
     const checkOnboarding = async () => {
       const hasLaunched = await AsyncStorage.getItem("hasLaunched");
@@ -53,6 +53,8 @@ export default function Index() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  return <Redirect href="/(auth)/personalization/step-two" />;
 
   return (
     <View className="flex-1 justify-center items-center">
