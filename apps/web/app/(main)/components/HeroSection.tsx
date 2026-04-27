@@ -1,6 +1,6 @@
 "use client";
 
-import { Image, Chip } from "@heroui/react";
+import { Image } from "@heroui/react";
 import NextImage from "next/image";
 import StartBrowsingBtn from "./StartBrowsingBtn";
 import { IconShieldCheck, IconBuildingSkyscraper, IconUsers } from "@tabler/icons-react";
@@ -18,18 +18,6 @@ export default function HeroSection() {
 
       {/* Text Side */}
       <div className="relative h-full flex flex-col justify-center gap-6 p-8 z-10 w-full md:w-1/2">
-
-        {/* Trust badge */}
-        <Chip
-          startContent={<IconShieldCheck size={14} />}
-          variant="flat"
-          color="primary"
-          size="sm"
-          className="w-fit text-xs font-medium"
-        >
-          Philippines&lsquo; Trusted Rental Platform
-        </Chip>
-
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl md:text-5xl font-poppins font-bold text-primary leading-tight">
             Find, Rent, and Manage.{" "}
