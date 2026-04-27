@@ -42,7 +42,21 @@ export default function ContactSidebar({
             : "border-l-transparent"
         }`}
       >
-        <Avatar src={contact.avatar} alt={contact.name} size="md" />
+        <Avatar
+          src={contact.avatar}
+          alt={contact.name}
+          size="md"
+          name={contact.name}
+          showFallback
+          getInitials={(name) =>
+            name
+              .split(" ")
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? "")
+              .join("")
+          }
+        />
         <div className="flex-1 overflow-hidden">
           <h3 className="font-semibold text-sm text-gray-800 truncate">{contact.name}</h3>
           <p className="text-xs text-gray-500 truncate">{contact.apartment}</p>

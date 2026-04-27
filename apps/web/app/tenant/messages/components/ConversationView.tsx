@@ -184,6 +184,16 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
           src={activeContact.avatar}
           alt={activeContact.name}
           size="lg"
+          name={activeContact.name}
+          showFallback
+          getInitials={(name) =>
+            name
+              .split(" ")
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? "")
+              .join("")
+          }
         />
         <div>
           <h2 className="text-lg font-bold text-gray-800 leading-tight">
