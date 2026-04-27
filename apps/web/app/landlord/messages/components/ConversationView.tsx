@@ -159,6 +159,7 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
     }
   };
 
+  // Empty State
   if (!activeContact) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-4">
@@ -175,7 +176,7 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
         <Avatar 
@@ -194,7 +195,7 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
       </div>
 
       {/* Chat History */}
-      <ScrollShadow className="flex-1 p-4 bg-slate-50 overflow-y-auto">
+      <ScrollShadow className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4">
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Spinner size="md" color="primary" />
@@ -206,7 +207,11 @@ export default function ConversationView({ activeContact, currentUserId }: Conve
               return (
                 <div
                   key={msg.id}
-                  className={`flex flex-col max-w-[80%] ${isMine ? "self-end items-end" : "self-start items-start"}`}
+                  className={`flex flex-col max-w-[80%] ${
+                    isMine 
+                      ? "self-end items-end" 
+                      : "self-start items-start"
+                  }`}
                 >
                   <div
                     className={`p-3 rounded-2xl shadow-sm ${
