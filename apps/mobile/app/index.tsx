@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
-export default function Index() {
+export default function Index() {  
   useEffect(() => {
     const checkOnboarding = async () => {
       const hasLaunched = await AsyncStorage.getItem("hasLaunched");
