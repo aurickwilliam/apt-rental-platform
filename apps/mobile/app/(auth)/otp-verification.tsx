@@ -122,6 +122,7 @@ export default function OTPVerification() {
       const userSide = data.userSide;
       reset();
 
+      router.dismissAll();
       if (userSide === 'tenant') {
         router.replace('/personalization/step-one');
       } else {
@@ -169,7 +170,7 @@ export default function OTPVerification() {
 
           {/* Description */}
           <Text className="text-lg text-text font-poppinsRegular mb-5">
-            We've sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
+            We&apos;ve sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
           </Text>
 
           {/* OTP Input Fields*/}
