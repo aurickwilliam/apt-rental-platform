@@ -11,7 +11,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <LandlordSidebar />
 
-      <main className="bg-white min-h-screen w-full rounded-xl p-4">
+      <main className="bg-white min-h-screen w-full rounded-xl">
         {children}
       </main>
     </SidebarProvider>
