@@ -8,9 +8,10 @@ import { Contact, TabKey } from "./types";
 interface MessagesClientProps {
   currentTenants: Contact[];
   inquiries: Contact[];
+  currentUserId: string;
 }
 
-export default function MessagesClient({ currentTenants, inquiries }: MessagesClientProps) {
+export default function MessagesClient({ currentTenants, inquiries, currentUserId }: MessagesClientProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("current");
   const [activeContact, setActiveContact] = useState<Contact | null>(currentTenants[0] ?? null);
 
@@ -25,8 +26,10 @@ export default function MessagesClient({ currentTenants, inquiries }: MessagesCl
         onTabChange={setActiveTab}
         onSelectContact={setActiveContact}
       />
-      
-      <ConversationView activeContact={activeContact} />
+      <ConversationView
+        activeContact={activeContact}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 }
