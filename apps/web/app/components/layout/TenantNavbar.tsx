@@ -39,7 +39,7 @@ export default function TenantNavbar() {
 
   const pathname = usePathname();
 
-  const { user, loading } = useUser();
+  const { user, loading, profile } = useUser();
 
   // Get display name and initials from user metadata
   const firstName = user?.user_metadata?.first_name ?? "";
@@ -101,6 +101,7 @@ export default function TenantNavbar() {
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
+                src={profile?.avatar_url ?? undefined}
                 as="button"
                 size="sm"
                 className="cursor-pointer"

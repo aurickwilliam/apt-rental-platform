@@ -71,13 +71,6 @@ export default function CompleteProfileForm({
             placeholder="Enter your middle name (optional)"
             variant="bordered"
           />
-          <NumberInput
-            label="Age"
-            name="age"
-            placeholder="Enter your age"
-            variant="bordered"
-            isRequired
-          />
           <Select
             label="Gender"
             name="gender"
@@ -151,6 +144,9 @@ export default function CompleteProfileForm({
             placeholder="Enter your postal code"
             variant="bordered"
             hideStepper
+            formatOptions={{
+              useGrouping: false,
+            }}
           />
         </div>
       </div>
