@@ -1,4 +1,5 @@
 "use client";
+
 import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
@@ -215,7 +216,7 @@ export default function CreateApartmentPage() {
     if (step === 1) {
       if (!data.name.trim()) errors.name = "Apartment name is required.";
       if (!data.thumbnail) errors.thumbnail = "A cover photo is required.";
-      if (data.additionalPhotos.length < 2) errors.additionalPhotos = "At least 2 additional photos are required.";
+      if (data.additionalPhotos.length < 3) errors.additionalPhotos = "At least 3 additional photos are required.";
     }
 
     if (step === 2) {
