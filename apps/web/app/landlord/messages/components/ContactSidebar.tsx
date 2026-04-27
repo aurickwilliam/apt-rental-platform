@@ -19,7 +19,7 @@ export default function ContactSidebar({
   onSelectContact,
 }: ContactSidebarProps) {
   return (
-    <div className="w-1/3 min-w-[300px] max-w-[400px] border-r border-gray-200 flex flex-col bg-gray-50/50">
+    <div className="flex w-1/3 min-h-0 min-w-[300px] max-w-[400px] flex-col border-r border-gray-200 bg-gray-50/50">
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-2xl font-semibold text-secondary mb-4">
           Messages
@@ -37,7 +37,11 @@ export default function ContactSidebar({
         </Tabs>
       </div>
 
-      <ScrollShadow className="flex-1 overflow-y-auto">
+      <ScrollShadow 
+        className="min-h-0 flex-1 overflow-y-auto mask-none"
+        visibility="none"
+        size={0}
+      >
         {/* Empty State */}
         {contacts.length === 0 ? (
           <div className="p-8 text-center text-gray-500 text-sm">
