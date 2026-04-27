@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-
 import {
   Form,
   Button,
@@ -9,69 +8,40 @@ import {
   Select,
   SelectItem,
   NumberInput,
-  InputOtp,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
   DatePicker,
+  useDisclosure,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
+  
+import PasswordChecklist from "./PasswordChecklist";
+import OtpModal from "./OtpModal";
+import SuccessModal from "./SuccessModal";
+import ErrorModal from "./ErrorModal";
+
+import { useOtpFlow } from "../hooks/useOtpFlow";
+import { validateForm } from "../utils";
+import { SignUpFormData } from "../types";
 
 import { PROVINCES, GENDERS } from "@repo/constants";
-
-import { Minus, CircleCheck, CircleX, CircleAlert, Mail } from "lucide-react";
-
-import { createClient } from "@repo/supabase/browser";
-
-import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
-
-interface SignUpFormData {
-  email: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  age: number | undefined;
-  birthDate: string;
-  gender: string;
-  mobileNumber: string;
-  streetAddress: string;
-  barangay: string;
-  city: string;
-  stateProvince: string;
-  postalCode: number | undefined;
-  password: string;
-  confirmPassword: string;
-}
 
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const {
-    isOpen: isErrorOpen,
-    onOpenChange: onErrorOpenChange,
-    onOpen: onErrorOpen,
-  } = useDisclosure();
-
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState<string | null>(null);
+  const { isOpen: isErrorOpen, onOpenChange: onErrorOpenChange, onOpen: onErrorOpen } = useDisclosure();
+  const { isOpen: isSuccessOpen, onOpenChange: onSuccessOpenChange, onOpen: onSuccessOpen } = useDisclosure();
 
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<SignUpFormData>({
-    email: email,
+    email,
     firstName: "",
     lastName: "",
     middleName: "",
-    age: undefined,
     birthDate: "",
     gender: "",
     mobileNumber: "",
@@ -84,41 +54,29 @@ export default function SignUpForm() {
     confirmPassword: "",
   });
 
-  const handleChange = (field: keyof SignUpFormData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (error) setError(null);
-  };
-
   const showError = (msg: string) => {
     setError(msg);
     onErrorOpen();
   };
 
-  // Password validation checks
-  const hasMinLength = formData.password.length >= 8;
-  const hasUpperAndLower =
-    /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password);
-  const hasNumber = /[0-9]/.test(formData.password);
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(formData.password);
-  const passwordsMatch =
-    formData.password === formData.confirmPassword &&
-    formData.confirmPassword.length > 0;
-
-  const getCheckIcon = (isValid: boolean) => {
-    if (formData.password.length === 0)
-      return <Minus size={24} className="text-gray-400" />;
-    return isValid ? (
-      <CircleCheck size={24} className="text-green-500" />
-    ) : (
-      <CircleX size={24} className="text-red-500" />
-    );
+  const handleChange = (field: keyof SignUpFormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (error) setError(null);
   };
+
+  const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
+    const validationError = validateForm(formData);
+    if (validationError) {
+      showError(validationError);
+      return;
+    }
+
+    setLoading(true);
     try {
       const result = await sendEmailOtp(
         formData.email,
@@ -130,6 +88,7 @@ export default function SignUpForm() {
         showError(result.error);
         return;
       }
+      otpFlow.startCooldown();
       onOpen();
     } catch {
       showError("Failed to send verification code.");
@@ -137,97 +96,6 @@ export default function SignUpForm() {
       setLoading(false);
     }
   };
-
-  const handleVerifyOtp = async (onClose: () => void) => {
-    setLoading(true);
-    setOtpError(null);
-
-    try {
-      const supabase = createClient(); // client-side client
-      const { data, error: otpError } = await supabase.auth.verifyOtp({
-        email: formData.email,
-        token: otp,
-        type: "signup",
-      });
-
-      if (otpError || !data.user) {
-        setOtpError("Invalid or expired code. Please try again.");
-        return;
-      }
-
-      // Build FormData to pass to the server action
-      const fd = new FormData();
-      fd.set("userId", data.user.id);
-      fd.set("email", formData.email);
-      fd.set("firstName", formData.firstName);
-      fd.set("lastName", formData.lastName);
-      fd.set("middleName", formData.middleName);
-      fd.set("age", formData.age?.toString() ?? "");
-      fd.set("birthDate", formData.birthDate);
-      fd.set("gender", formData.gender);
-      fd.set("mobileNumber", formData.mobileNumber);
-      fd.set("streetAddress", formData.streetAddress);
-      fd.set("barangay", formData.barangay);
-      fd.set("city", formData.city);
-      fd.set("stateProvince", formData.stateProvince);
-      fd.set("postalCode", formData.postalCode?.toString() ?? "");
-      fd.set("password", formData.password);
-      fd.set("confirmPassword", formData.confirmPassword);
-      fd.set("role", role);
-
-      const result = await signUp({ error: null, success: false }, fd);
-
-      if (result.error) {
-        showError(result.error);
-        onClose();
-      } else if (result.success) {
-        setSuccess(true);
-        onClose();
-      }
-    } catch (err) {
-      console.error("Caught error:", err);
-      setOtpError("Verification failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Clean up the pending auth user when user cancels
-  const handleCancelOtp = async (onClose: () => void) => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setOtp("");
-    setOtpError(null);
-    onClose();
-  };
-
-  // If sign-up succeeded, show a success message
-  if (success) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 my-20 text-center">
-        <div className="rounded-full bg-green-100 p-4">
-          <CircleCheck size={48} className="text-green-600" />
-        </div>
-        <h2 className="text-2xl font-semibold font-noto-serif">
-          Account Created!
-        </h2>
-        <p className="text-default-500 max-w-md">
-          Your account has been created successfully. You can now sign in with
-          your email and password.
-        </p>
-        <Button
-          color="primary"
-          radius="full"
-          size="lg"
-          className="mt-4"
-          as="a"
-          href={role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"}
-        >
-          Continue to {role === "tenant" ? "My Rental" : "Dashboard"}
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -238,9 +106,9 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* Email Address */}
           <Input
             isRequired
+            isReadOnly
             label="Email"
             placeholder="Enter your email"
             name="email"
@@ -248,13 +116,12 @@ export default function SignUpForm() {
             variant="bordered"
             classNames={{
               inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
+                "data-[focus=true]:border-primary! data-[focus=true]:border-2! bg-default-100",
             }}
             value={formData.email}
             onValueChange={handleChange("email")}
           />
 
-          {/* First Name*/}
           <Input
             isRequired
             label="First Name"
@@ -271,7 +138,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Last Name */}
           <Input
             isRequired
             label="Last Name"
@@ -288,7 +154,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Middle Name */}
           <Input
             label="Middle Name"
             placeholder="Enter your middle name (optional)"
@@ -304,31 +169,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Age */}
-          <NumberInput
-            isRequired
-            label="Age"
-            placeholder="Enter your age"
-            name="age"
-            variant="bordered"
-            hideStepper
-            minValue={0}
-            maxValue={120}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            value={formData.age}
-            onValueChange={(val) =>
-              setFormData((prev) => ({
-                ...prev,
-                age: val === undefined ? undefined : Number(val),
-              }))
-            }
-            isDisabled={loading}
-          />
-
-          {/* Gender */}
           <Select
             disableAnimation
             isRequired
@@ -347,16 +187,12 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             {GENDERS.map((gender) => (
-              <SelectItem
-                key={gender}
-                className="data-[hover=true]:bg-light-blue!"
-              >
+              <SelectItem key={gender} className="data-[hover=true]:bg-light-blue!">
                 {gender}
               </SelectItem>
             ))}
           </Select>
 
-          {/* Mobile Number */}
           <Input
             isRequired
             label="Mobile Number"
@@ -400,7 +236,6 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* Street Address */}
           <Input
             isRequired
             label="Street Address"
@@ -417,7 +252,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Barangay */}
           <Input
             isRequired
             label="Barangay"
@@ -434,7 +268,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* City */}
           <Input
             isRequired
             label="City"
@@ -451,7 +284,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* State/Province */}
           <Select
             isRequired
             placeholder="Select your state/province"
@@ -463,9 +295,7 @@ export default function SignUpForm() {
                 "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
             }}
             className="w-full"
-            selectedKeys={
-              formData.stateProvince ? [formData.stateProvince] : []
-            }
+            selectedKeys={formData.stateProvince ? [formData.stateProvince] : []}
             onSelectionChange={(keys) => {
               const selected = Array.from(keys)[0];
               handleChange("stateProvince")(selected ? String(selected) : "");
@@ -473,16 +303,12 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             {PROVINCES.map((province) => (
-              <SelectItem
-                key={province}
-                className="data-[hover=true]:bg-light-blue!"
-              >
+              <SelectItem key={province} className="data-[hover=true]:bg-light-blue!">
                 {province}
               </SelectItem>
             ))}
           </Select>
 
-          {/* Postal Code */}
           <NumberInput
             isRequired
             label="Postal Code"
@@ -534,48 +360,12 @@ export default function SignUpForm() {
             onChange={handleChange("confirmPassword")}
           />
 
-          {/* Requirements Password */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              {getCheckIcon(hasMinLength)}
-              <p className="text-sm text-gray-600">At least 8 characters</p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {getCheckIcon(hasUpperAndLower)}
-              <p className="text-sm text-gray-600">
-                Contains uppercase and lowercase letters
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {getCheckIcon(hasNumber)}
-              <p className="text-sm text-gray-600">
-                Includes at least one number
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {getCheckIcon(hasSpecialChar)}
-              <p className="text-sm text-gray-600">
-                Contains at least one special character
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {formData.confirmPassword.length === 0 ? (
-                <Minus size={24} className="text-gray-400" />
-              ) : passwordsMatch ? (
-                <CircleCheck size={24} className="text-green-500" />
-              ) : (
-                <CircleX size={24} className="text-red-500" />
-              )}
-              <p className="text-sm text-gray-600">Passwords match</p>
-            </div>
-          </div>
+          <PasswordChecklist
+            password={formData.password}
+            confirmPassword={formData.confirmPassword}
+          />
         </div>
 
-        {/* Submit Button */}
         <Button
           color="primary"
           className="w-full mt-5 md:max-w-[300px] md:self-end"
@@ -589,111 +379,33 @@ export default function SignUpForm() {
         </Button>
       </Form>
 
-      {/* OTP Verification Modal */}
-      <Modal
+      <OtpModal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        placement="center"
-        backdrop="blur"
-        isDismissable={false}
-        isKeyboardDismissDisabled
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Verify Your Email Address
-              </ModalHeader>
-              <ModalBody className="flex flex-col items-center gap-4 py-4">
-                <div className="rounded-full bg-primary/10 p-3">
-                  <Mail size={32} className="text-primary" />
-                </div>
-                <p className="text-center text-sm text-default-500">
-                  We sent a 6-digit verification code to{" "}
-                  <span className="font-semibold text-foreground">
-                    {formData.email}
-                  </span>
-                  .
-                </p>
-                <InputOtp
-                  length={6}
-                  size="lg"
-                  variant="bordered"
-                  color="primary"
-                  value={otp}
-                  onValueChange={(val) => {
-                    setOtp(val);
-                    setOtpError(null); // clear error when user types
-                  }}
-                  autoFocus
-                />
+        email={formData.email}
+        otp={otpFlow.otp}
+        otpError={otpFlow.otpError}
+        resendCooldown={otpFlow.resendCooldown}
+        resendLoading={otpFlow.resendLoading}
+        loading={otpFlow.loading}
+        formatCooldown={otpFlow.formatCooldown}
+        onOtpChange={(val) => { otpFlow.setOtp(val); otpFlow.setOtpError(null); }}
+        onResend={otpFlow.handleResendOtp}
+        onVerify={otpFlow.handleVerifyOtp}
+        onCancel={otpFlow.handleCancelOtp}
+      />
 
-                {otpError && (
-                  <p className="text-sm text-danger text-center">{otpError}</p>
-                )}
-              </ModalBody>
-              <ModalFooter className="flex flex-col gap-2">
-                <Button
-                  color="primary"
-                  radius="full"
-                  size="lg"
-                  className="w-full"
-                  isDisabled={otp.length < 6 || loading}
-                  onPress={() => handleVerifyOtp(onClose)}
-                >
-                  Verify &amp; Create Account
-                </Button>
-                <Button
-                  variant="light"
-                  radius="full"
-                  size="lg"
-                  className="w-full"
-                  isDisabled={loading}
-                  onPress={() => handleCancelOtp(onClose)}
-                >
-                  Cancel
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onOpenChange={onSuccessOpenChange}
+        role={role}
+      />
 
-      {/* Error Message */}
-      <Modal
+      <ErrorModal
         isOpen={isErrorOpen}
         onOpenChange={onErrorOpenChange}
-        placement="center"
-        backdrop="blur"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Something went wrong
-              </ModalHeader>
-              <ModalBody className="flex flex-col items-center gap-4 py-4">
-                <div className="rounded-full bg-danger-100 p-3">
-                  <CircleAlert size={32} className="text-danger" />
-                </div>
-                <p className="text-center text-sm text-default-500">{error}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  color="danger"
-                  variant="flat"
-                  radius="full"
-                  size="lg"
-                  className="w-full"
-                  onPress={onClose}
-                >
-                  Close
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+        error={error}
+      />
     </>
   );
 }

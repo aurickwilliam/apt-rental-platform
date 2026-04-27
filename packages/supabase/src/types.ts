@@ -531,70 +531,70 @@ export type Database = {
       users: {
         Row: {
           account_status: string
-          age: number
+          age: number | null
           avatar_url: string | null
           background_url: string | null
-          barangay: string
-          birth_date: string
-          city: string
+          barangay: string | null
+          birth_date: string | null
+          city: string | null
           created_at: string
           email: string | null
-          first_name: string
+          first_name: string | null
           gender: string | null
           id: string
-          last_name: string
+          last_name: string | null
           middle_name: string | null
-          mobile_number: string
+          mobile_number: string | null
           postal_code: number | null
-          province: string
+          province: string | null
           role: string
-          street_address: string
+          street_address: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           account_status?: string
-          age: number
+          age?: number | null
           avatar_url?: string | null
           background_url?: string | null
-          barangay: string
-          birth_date: string
-          city: string
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
-          first_name: string
+          first_name?: string | null
           gender?: string | null
           id?: string
-          last_name: string
+          last_name?: string | null
           middle_name?: string | null
-          mobile_number: string
+          mobile_number?: string | null
           postal_code?: number | null
-          province: string
+          province?: string | null
           role?: string
-          street_address: string
+          street_address?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Update: {
           account_status?: string
-          age?: number
+          age?: number | null
           avatar_url?: string | null
           background_url?: string | null
-          barangay?: string
-          birth_date?: string
-          city?: string
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
-          first_name?: string
+          first_name?: string | null
           gender?: string | null
           id?: string
-          last_name?: string
+          last_name?: string | null
           middle_name?: string | null
-          mobile_number?: string
+          mobile_number?: string | null
           postal_code?: number | null
-          province?: string
+          province?: string | null
           role?: string
-          street_address?: string
+          street_address?: string | null
           updated_at?: string | null
           user_id?: string
         }

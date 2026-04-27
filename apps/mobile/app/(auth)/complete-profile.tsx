@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS , PROVINCES , GENDER } from '@repo/constants';
+import { COLORS , PROVINCES , GENDERS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import TextField from 'components/inputs/TextField';
@@ -50,7 +50,7 @@ export default function CompleteProfile() {
   const router = useRouter();
   const { email, userSide } = useLocalSearchParams();
 
-  const { setData } = useRegistrationStore();
+  const { setData, reset } = useRegistrationStore();
 
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
@@ -84,7 +84,7 @@ export default function CompleteProfile() {
   } = usePasswordValidation();
 
   // Postal code hook
-  const { 
+  const {
     value: postalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
@@ -127,7 +127,7 @@ export default function CompleteProfile() {
     if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) return;
 
     const { confirmPassword, ...rest } = profileForm; // exclude confirmPassword
-    
+
     setData({
       ...rest,
       postalCode,
@@ -138,6 +138,11 @@ export default function CompleteProfile() {
     router.push('/(auth)/verify-mobile');
   }
 
+  const handleBackToSignUp = () => {
+    reset();
+    router.replace('/sign-up');
+  }
+
   return (
     <ScreenWrapper
       scrollable
@@ -145,7 +150,7 @@ export default function CompleteProfile() {
     >
 
       {/* Back button */}
-      <Pressable className="mb-3" onPress={router.back}>
+      <Pressable className="mb-3" onPress={handleBackToSignUp}>
         <Ionicons name="close" size={30} color={COLORS.text} />
       </Pressable>
 
@@ -194,7 +199,7 @@ export default function CompleteProfile() {
           label="Gender:"
           bottomSheetLabel="Select your gender"
           placeholder="Select your gender"
-          options={GENDER}
+          options={GENDERS}
           value={profileForm.gender}
           onSelect={(value) => updateField('gender', value)}
           required
@@ -254,7 +259,7 @@ export default function CompleteProfile() {
           }}
           onBlur={handlePostalCodeBlur}
           required
-          error={getError('postalCode')} 
+          error={getError('postalCode')}
         />
 
         {/* Date of Birth Field */}
@@ -278,7 +283,7 @@ export default function CompleteProfile() {
           required
           value={password}
           onChangeText={(value) => {
-            setPassword(value); 
+            setPassword(value);
             updateField('password', value);
           }}
           error={getError('password')}
