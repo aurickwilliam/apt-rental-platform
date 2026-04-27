@@ -54,7 +54,7 @@ export default function Index() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return <Redirect href="/(auth)/personalization/step-two" />;
+  return <Redirect href="/(auth)/personalization/step-five" />;
 
   return (
     <View className="flex-1 justify-center items-center">
