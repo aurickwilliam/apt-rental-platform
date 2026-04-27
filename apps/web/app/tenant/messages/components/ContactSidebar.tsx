@@ -12,14 +12,11 @@ interface ContactSidebarProps {
 
 function SectionSeparator({ title }: { title: string }) {
   return (
-    <div className="px-4 py-3">
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500">
-          {title}
-        </span>
-        <div className="h-px flex-1 bg-gray-200" />
-      </div>
+    <div className="px-4 py-3 flex flex-col gap-1">
+      <span className={`text-base font-medium ${title === "My Landlord" ? "text-primary" : "text-gray-500"}`}>
+        {title}
+      </span>
+      <div className="h-1 rounded-full bg-gray-200" />
     </div>
   );
 }
