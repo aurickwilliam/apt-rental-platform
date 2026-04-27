@@ -69,7 +69,7 @@ const STATS = [
 
 export default function Dashboard() {
   return (
-    <div className="mt-4">
+    <div className="p-4">
       <h1 className="text-5xl text-secondary font-bold font-noto-serif mb-1">
         Dashboard
       </h1>
