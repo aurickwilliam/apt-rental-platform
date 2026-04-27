@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createClient } from "@repo/supabase/browser";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact, TabKey } from "./types";
@@ -12,10 +13,99 @@ interface MessagesClientProps {
 }
 
 export default function MessagesClient({ currentTenants, inquiries, currentUserId }: MessagesClientProps) {
+  const supabase = useMemo(() => createClient(), []);
+  const [currentTenantContacts, setCurrentTenantContacts] = useState<Contact[]>(currentTenants);
+  const [inquiryContacts, setInquiryContacts] = useState<Contact[]>(inquiries);
   const [activeTab, setActiveTab] = useState<TabKey>("current");
   const [activeContact, setActiveContact] = useState<Contact | null>(currentTenants[0] ?? null);
 
-  const contacts = activeTab === "current" ? currentTenants : inquiries;
+  useEffect(() => {
+    setCurrentTenantContacts(currentTenants);
+  }, [currentTenants]);
+
+  useEffect(() => {
+    setInquiryContacts(inquiries);
+  }, [inquiries]);
+
+  const markContactAsRead = useCallback((contactId: string) => {
+    setCurrentTenantContacts((prev) => {
+      let changed = false;
+      const next = prev.map((contact) => {
+        if (contact.id === contactId && contact.unreadCount > 0) {
+          changed = true;
+          return { ...contact, unreadCount: 0 };
+        }
+        return contact;
+      });
+      return changed ? next : prev;
+    });
+
+    setInquiryContacts((prev) => {
+      let changed = false;
+      const next = prev.map((contact) => {
+        if (contact.id === contactId && contact.unreadCount > 0) {
+          changed = true;
+          return { ...contact, unreadCount: 0 };
+        }
+        return contact;
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
+  const incrementUnreadForContact = useCallback((contactId: string) => {
+    setCurrentTenantContacts((prev) => {
+      let changed = false;
+      const next = prev.map((contact) => {
+        if (contact.id === contactId) {
+          changed = true;
+          return { ...contact, unreadCount: contact.unreadCount + 1 };
+        }
+        return contact;
+      });
+      return changed ? next : prev;
+    });
+
+    setInquiryContacts((prev) => {
+      let changed = false;
+      const next = prev.map((contact) => {
+        if (contact.id === contactId) {
+          changed = true;
+          return { ...contact, unreadCount: contact.unreadCount + 1 };
+        }
+        return contact;
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`landlord-unread:${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat",
+          filter: `receiver_id=eq.${currentUserId}`,
+        },
+        (payload: { new: { sender_id: string } }) => {
+          const senderId = payload.new.sender_id;
+          if (senderId === activeContact?.id) {
+            return;
+          }
+          incrementUnreadForContact(senderId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeContact?.id, currentUserId, incrementUnreadForContact, supabase]);
+
+  const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
   return (
     <div className="flex h-svh min-h-0 overflow-hidden bg-white">
@@ -24,11 +114,15 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
         activeTab={activeTab}
         activeContact={activeContact}
         onTabChange={setActiveTab}
-        onSelectContact={setActiveContact}
+        onSelectContact={(contact) => {
+          setActiveContact(contact);
+          markContactAsRead(contact.id);
+        }}
       />
       <ConversationView
         activeContact={activeContact}
         currentUserId={currentUserId}
+        onConversationRead={markContactAsRead}
       />
     </div>
   );

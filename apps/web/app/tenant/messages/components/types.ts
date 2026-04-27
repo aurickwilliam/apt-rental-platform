@@ -3,6 +3,7 @@ export interface Contact {
   name: string;
   avatar: string;
   apartment: string;
+  unreadCount: number;
 }
 
 export interface Message {
