@@ -40,7 +40,6 @@ export default function ContactSidebar({
       <ScrollShadow 
         className="min-h-0 flex-1 overflow-y-auto mask-none"
         visibility="none"
-        size={0}
       >
         {/* Empty State */}
         {contacts.length === 0 ? (
