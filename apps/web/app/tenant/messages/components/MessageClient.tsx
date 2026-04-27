@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact } from "./types";
@@ -12,27 +12,19 @@ interface MessagesClientProps {
 }
 
 export default function MessagesClient({ myLandlord, pastInquiries, currentUserId }: MessagesClientProps) {
-  const [activeContact, setActiveContact] = useState<Contact | null>(myLandlord[0] ?? pastInquiries[0] ?? null);
+  const contacts = [...myLandlord, ...pastInquiries];
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(myLandlord[0]?.id ?? pastInquiries[0]?.id ?? null);
 
-  useEffect(() => {
-    const allContacts = [...myLandlord, ...pastInquiries];
-    if (!activeContact && allContacts.length > 0) {
-      setActiveContact(allContacts[0]);
-      return;
-    }
-
-    if (activeContact && !allContacts.some((contact) => contact.id === activeContact.id)) {
-      setActiveContact(allContacts[0] ?? null);
-    }
-  }, [myLandlord, pastInquiries, activeContact]);
+  const activeContact =
+    contacts.find((contact) => contact.id === selectedContactId) ?? contacts[0] ?? null;
 
   return (
-    <div className="flex h-svh min-h-0 overflow-hidden bg-white">
+    <div className="mx-auto flex h-full w-full max-w-7xl min-h-0 overflow-hidden bg-white">
       <ContactSidebar
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}
         activeContact={activeContact}
-        onSelectContact={setActiveContact}
+        onSelectContact={(contact) => setSelectedContactId(contact.id)}
       />
       <ConversationView
         activeContact={activeContact}

@@ -24,6 +24,11 @@ export default async function MessagesPage() {
 
   const tenantId = tenant.id;
 
+  const resolveAvatar = (avatarUrl: string | null) => {
+    const normalized = avatarUrl?.trim();
+    return normalized ? normalized : "";
+  };
+
   const { data: tenancyRows } = await supabase
     .from("tenancies")
     .select(`
@@ -51,7 +56,7 @@ export default async function MessagesPage() {
     acc.push({
       id: landlord.id,
       name: `${landlord.first_name} ${landlord.last_name}`.trim(),
-      avatar: landlord.avatar_url ?? `https://i.pravatar.cc/150?u=${landlord.id}`,
+      avatar: resolveAvatar(landlord.avatar_url),
       apartment: apartment ? `Current: ${apartment.name}` : "Current Landlord",
     });
     return acc;
@@ -93,7 +98,7 @@ export default async function MessagesPage() {
     acc.push({
       id: receiver.id,
       name: `${receiver.first_name} ${receiver.last_name}`.trim(),
-      avatar: receiver.avatar_url ?? `https://i.pravatar.cc/150?u=${receiver.id}`,
+      avatar: resolveAvatar(receiver.avatar_url),
       apartment: apartment ? `Inquired: ${apartment.name}` : "Past Inquiry",
     });
 
