@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {
   Form,
@@ -31,12 +31,13 @@ import { createClient } from "@repo/supabase/browser";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 
+const OTP_COOLDOWN = 120;
+
 interface SignUpFormData {
   email: string;
   firstName: string;
   lastName: string;
   middleName: string;
-  age: number | undefined;
   birthDate: string;
   gender: string;
   mobileNumber: string;
@@ -52,18 +53,35 @@ interface SignUpFormData {
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
-  const { isOpen, onOpenChange, onOpen } = useDisclosure();
+  // For OTP modal
+  const { 
+    isOpen, 
+    onOpenChange, 
+    onOpen, 
+  } = useDisclosure();
+
+  // For error modal
   const {
     isOpen: isErrorOpen,
     onOpenChange: onErrorOpenChange,
     onOpen: onErrorOpen,
   } = useDisclosure();
 
+  // For success modal
+  const {
+    isOpen: isSuccessOpen,
+    onOpenChange: onSuccessOpenChange,
+    onOpen: onSuccessOpen,
+  } = useDisclosure();
+
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
 
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<SignUpFormData>({
@@ -71,7 +89,6 @@ export default function SignUpForm() {
     firstName: "",
     lastName: "",
     middleName: "",
-    age: undefined,
     birthDate: "",
     gender: "",
     mobileNumber: "",
@@ -84,6 +101,37 @@ export default function SignUpForm() {
     confirmPassword: "",
   });
 
+  // Clear interval on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const startCooldown = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    setResendCooldown(OTP_COOLDOWN);
+
+    timerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          timerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const formatCooldown = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Updates form data and clears error when user types
   const handleChange = (field: keyof SignUpFormData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);
@@ -130,6 +178,7 @@ export default function SignUpForm() {
         showError(result.error);
         return;
       }
+      startCooldown();
       onOpen();
     } catch {
       showError("Failed to send verification code.");
@@ -138,12 +187,35 @@ export default function SignUpForm() {
     }
   };
 
+  const handleResendOtp = async () => {
+    setResendLoading(true);
+    setOtpError(null);
+    try {
+      const result = await sendEmailOtp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName,
+      );
+      if (result.error) {
+        setOtpError(result.error);
+        return;
+      }
+      setOtp("");
+      startCooldown();
+    } catch {
+      setOtpError("Failed to resend code. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleVerifyOtp = async (onClose: () => void) => {
     setLoading(true);
     setOtpError(null);
 
     try {
-      const supabase = createClient(); // client-side client
+      const supabase = createClient();
       const { data, error: otpError } = await supabase.auth.verifyOtp({
         email: formData.email,
         token: otp,
@@ -155,14 +227,12 @@ export default function SignUpForm() {
         return;
       }
 
-      // Build FormData to pass to the server action
       const fd = new FormData();
       fd.set("userId", data.user.id);
       fd.set("email", formData.email);
       fd.set("firstName", formData.firstName);
       fd.set("lastName", formData.lastName);
       fd.set("middleName", formData.middleName);
-      fd.set("age", formData.age?.toString() ?? "");
       fd.set("birthDate", formData.birthDate);
       fd.set("gender", formData.gender);
       fd.set("mobileNumber", formData.mobileNumber);
@@ -181,8 +251,8 @@ export default function SignUpForm() {
         showError(result.error);
         onClose();
       } else if (result.success) {
-        setSuccess(true);
         onClose();
+        onSuccessOpen(); // ← open success modal instead of replacing page
       }
     } catch (err) {
       console.error("Caught error:", err);
@@ -192,42 +262,15 @@ export default function SignUpForm() {
     }
   };
 
-  // Clean up the pending auth user when user cancels
   const handleCancelOtp = async (onClose: () => void) => {
     const supabase = createClient();
     await supabase.auth.signOut();
     setOtp("");
     setOtpError(null);
+    if (timerRef.current) clearInterval(timerRef.current);
+    setResendCooldown(0);
     onClose();
   };
-
-  // If sign-up succeeded, show a success message
-  if (success) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 my-20 text-center">
-        <div className="rounded-full bg-green-100 p-4">
-          <CircleCheck size={48} className="text-green-600" />
-        </div>
-        <h2 className="text-2xl font-semibold font-noto-serif">
-          Account Created!
-        </h2>
-        <p className="text-default-500 max-w-md">
-          Your account has been created successfully. You can now sign in with
-          your email and password.
-        </p>
-        <Button
-          color="primary"
-          radius="full"
-          size="lg"
-          className="mt-4"
-          as="a"
-          href={role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"}
-        >
-          Continue to {role === "tenant" ? "My Rental" : "Dashboard"}
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -238,9 +281,9 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* Email Address */}
           <Input
             isRequired
+            isReadOnly
             label="Email"
             placeholder="Enter your email"
             name="email"
@@ -248,13 +291,12 @@ export default function SignUpForm() {
             variant="bordered"
             classNames={{
               inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
+                "data-[focus=true]:border-primary! data-[focus=true]:border-2! bg-default-100",
             }}
             value={formData.email}
             onValueChange={handleChange("email")}
           />
 
-          {/* First Name*/}
           <Input
             isRequired
             label="First Name"
@@ -271,7 +313,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Last Name */}
           <Input
             isRequired
             label="Last Name"
@@ -288,7 +329,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Middle Name */}
           <Input
             label="Middle Name"
             placeholder="Enter your middle name (optional)"
@@ -304,31 +344,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Age */}
-          <NumberInput
-            isRequired
-            label="Age"
-            placeholder="Enter your age"
-            name="age"
-            variant="bordered"
-            hideStepper
-            minValue={0}
-            maxValue={120}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            value={formData.age}
-            onValueChange={(val) =>
-              setFormData((prev) => ({
-                ...prev,
-                age: val === undefined ? undefined : Number(val),
-              }))
-            }
-            isDisabled={loading}
-          />
-
-          {/* Gender */}
           <Select
             disableAnimation
             isRequired
@@ -356,7 +371,6 @@ export default function SignUpForm() {
             ))}
           </Select>
 
-          {/* Mobile Number */}
           <Input
             isRequired
             label="Mobile Number"
@@ -400,7 +414,6 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* Street Address */}
           <Input
             isRequired
             label="Street Address"
@@ -417,7 +430,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* Barangay */}
           <Input
             isRequired
             label="Barangay"
@@ -434,7 +446,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* City */}
           <Input
             isRequired
             label="City"
@@ -451,7 +462,6 @@ export default function SignUpForm() {
             isDisabled={loading}
           />
 
-          {/* State/Province */}
           <Select
             isRequired
             placeholder="Select your state/province"
@@ -482,7 +492,6 @@ export default function SignUpForm() {
             ))}
           </Select>
 
-          {/* Postal Code */}
           <NumberInput
             isRequired
             label="Postal Code"
@@ -534,34 +543,29 @@ export default function SignUpForm() {
             onChange={handleChange("confirmPassword")}
           />
 
-          {/* Requirements Password */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               {getCheckIcon(hasMinLength)}
               <p className="text-sm text-gray-600">At least 8 characters</p>
             </div>
-
             <div className="flex items-center gap-2">
               {getCheckIcon(hasUpperAndLower)}
               <p className="text-sm text-gray-600">
                 Contains uppercase and lowercase letters
               </p>
             </div>
-
             <div className="flex items-center gap-2">
               {getCheckIcon(hasNumber)}
               <p className="text-sm text-gray-600">
                 Includes at least one number
               </p>
             </div>
-
             <div className="flex items-center gap-2">
               {getCheckIcon(hasSpecialChar)}
               <p className="text-sm text-gray-600">
                 Contains at least one special character
               </p>
             </div>
-
             <div className="flex items-center gap-2">
               {formData.confirmPassword.length === 0 ? (
                 <Minus size={24} className="text-gray-400" />
@@ -575,7 +579,6 @@ export default function SignUpForm() {
           </div>
         </div>
 
-        {/* Submit Button */}
         <Button
           color="primary"
           className="w-full mt-5 md:max-w-[300px] md:self-end"
@@ -623,7 +626,7 @@ export default function SignUpForm() {
                   value={otp}
                   onValueChange={(val) => {
                     setOtp(val);
-                    setOtpError(null); // clear error when user types
+                    setOtpError(null);
                   }}
                   autoFocus
                 />
@@ -631,6 +634,28 @@ export default function SignUpForm() {
                 {otpError && (
                   <p className="text-sm text-danger text-center">{otpError}</p>
                 )}
+
+                {/* Resend row */}
+                <div className="flex items-center gap-2 text-sm text-default-500">
+                  <span>Didn&apos;t receive a code?</span>
+                  {resendCooldown > 0 ? (
+                    <span className="font-medium text-default-400">
+                      Resend in {formatCooldown(resendCooldown)}
+                    </span>
+                  ) : (
+                    <Button
+                      variant="light"
+                      size="sm"
+                      color="primary"
+                      isLoading={resendLoading}
+                      isDisabled={resendLoading}
+                      onPress={handleResendOtp}
+                      className="p-0 h-auto min-w-0 font-medium"
+                    >
+                      Resend Code
+                    </Button>
+                  )}
+                </div>
               </ModalBody>
               <ModalFooter className="flex flex-col gap-2">
                 <Button
@@ -639,6 +664,7 @@ export default function SignUpForm() {
                   size="lg"
                   className="w-full"
                   isDisabled={otp.length < 6 || loading}
+                  isLoading={loading}
                   onPress={() => handleVerifyOtp(onClose)}
                 >
                   Verify &amp; Create Account
@@ -659,7 +685,51 @@ export default function SignUpForm() {
         </ModalContent>
       </Modal>
 
-      {/* Error Message */}
+      {/* Success Modal */}
+      <Modal
+        isOpen={isSuccessOpen}
+        onOpenChange={onSuccessOpenChange}
+        placement="center"
+        backdrop="blur"
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        hideCloseButton
+      >
+        <ModalContent>
+          {() => (
+            <>
+              <ModalBody className="flex flex-col items-center gap-4 py-8">
+                <div className="rounded-full bg-green-100 p-4">
+                  <CircleCheck size={48} className="text-green-600" />
+                </div>
+                <h2 className="text-2xl font-semibold font-noto-serif text-center">
+                  Account Created!
+                </h2>
+                <p className="text-default-500 text-center text-sm max-w-xs">
+                  Your account has been created successfully. You can now sign
+                  in with your email and password.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="primary"
+                  radius="full"
+                  size="lg"
+                  className="w-full"
+                  as="a"
+                  href={
+                    role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"
+                  }
+                >
+                  Continue to {role === "tenant" ? "My Rental" : "Dashboard"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Error Modal */}
       <Modal
         isOpen={isErrorOpen}
         onOpenChange={onErrorOpenChange}

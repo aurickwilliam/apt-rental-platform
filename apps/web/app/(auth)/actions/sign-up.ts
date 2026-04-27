@@ -2,6 +2,21 @@
 
 import { createClient } from "@repo/supabase/server";
 
+function calculateAgeFromBirthDate(birthDate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age -= 1;
+  }
+
+  return age;
+}
+
 export interface SignUpFormState {
   error: string | null;
   success: boolean;
@@ -21,7 +36,6 @@ export async function signUp(
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
     const middleName = formData.get("middleName") as string | null;
-    const age = formData.get("age") as string | null;
     const birthDate = formData.get("birthDate") as string | null;
     const gender = formData.get("gender") as string | null;
     const mobileNumber = formData.get("mobileNumber") as string | null;
@@ -59,9 +73,9 @@ export async function signUp(
       return { error: "Passwords do not match.", success: false };
     }
 
-    if (!age || !birthDate || !gender || !mobileNumber) {
+    if (!birthDate || !gender || !mobileNumber) {
       return {
-        error: "Age, birth date, gender, and mobile number are required.",
+        error: "Birth date, gender, and mobile number are required.",
         success: false,
       };
     }
@@ -73,16 +87,16 @@ export async function signUp(
       };
     }
 
-    const parsedAge = Number.parseInt(age, 10);
-    if (Number.isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
-      return { error: "Please enter a valid age.", success: false };
-    }
-
     const parsedBirthDate = new Date(`${birthDate}T00:00:00`);
     if (
       Number.isNaN(parsedBirthDate.getTime()) ||
       parsedBirthDate > new Date()
     ) {
+      return { error: "Please enter a valid birth date.", success: false };
+    }
+
+    const calculatedAge = calculateAgeFromBirthDate(parsedBirthDate);
+    if (calculatedAge < 0 || calculatedAge > 120) {
       return { error: "Please enter a valid birth date.", success: false };
     }
 
@@ -109,7 +123,7 @@ export async function signUp(
       first_name: firstName,
       last_name: lastName,
       middle_name: middleName || null,
-      age: parsedAge,
+      age: calculatedAge,
       gender,
       mobile_number: mobileNumber,
       birth_date: birthDate,
@@ -119,8 +133,6 @@ export async function signUp(
       province,
       postal_code: parsedPostalCode,
     });
-
-    console.log("insertError:", insertError);
 
     if (insertError) {
       if (insertError.code === "23505") {
