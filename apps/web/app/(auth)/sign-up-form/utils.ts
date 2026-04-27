@@ -36,17 +36,9 @@ export function validateForm(formData: SignUpFormData): string | null {
     return "Please enter a valid birth date.";
   }
 
-  const today = new Date();
-  let age = today.getFullYear() - parsedBirthDate.getFullYear();
-  const monthDiff = today.getMonth() - parsedBirthDate.getMonth();
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < parsedBirthDate.getDate())
-  ) {
-    age -= 1;
-  }
-  if (age < 0 || age > 120) {
-    return "Please enter a valid birth date.";
+  const age = calculateAgeFromBirthDate(parsedBirthDate);
+  if (age < 18 || age > 120) {
+    return "You must be at least 18 years old to register.";
   }
 
   if (
@@ -57,4 +49,14 @@ export function validateForm(formData: SignUpFormData): string | null {
   }
 
   return null;
+}
+
+export function calculateAgeFromBirthDate(birthDate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
 }
