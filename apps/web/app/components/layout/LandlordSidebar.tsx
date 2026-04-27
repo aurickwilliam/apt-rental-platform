@@ -30,8 +30,11 @@ import {
   Banknote,
   ChevronsUpDown,
 } from "lucide-react";
+
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import { useUser } from "@/hooks/use-user";
+
+import { usePathname } from "next/navigation";
 
 const MENU_ITEMS = [
   { label: "Dashboard",      icon: LayoutDashboard, href: "/landlord/dashboard"    },
@@ -44,6 +47,8 @@ const MENU_ITEMS = [
 export default function LandlordSidebar() {
   const { state } = useSidebar();
   const isExpanded = state === "expanded";
+
+  const pathname = usePathname();
 
   const { user, profile, loading } = useUser();
 
@@ -76,7 +81,11 @@ export default function LandlordSidebar() {
             <SidebarMenu>
               {MENU_ITEMS.map(({ label, icon: Icon, href }) => (
                 <SidebarMenuItem key={label}>
-                  <SidebarMenuButton asChild className="gap-3">
+                  <SidebarMenuButton 
+                    asChild 
+                    className="gap-3 data-[active=true]:bg-primary/15 data-[active=true]:text-primary"
+                    isActive={pathname === href || pathname.startsWith(href + "/")}
+                  >
                     <a href={href}>
                       <Icon className="w-5 h-5 shrink-0" />
                       <span>{label}</span>

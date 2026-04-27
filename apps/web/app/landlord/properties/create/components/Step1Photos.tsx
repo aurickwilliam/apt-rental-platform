@@ -188,7 +188,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
               )}
             </p>
           ) : (
-            <p className="text-xs text-grey-400">Minimum 2 additional photos required</p>
+            <p className="text-xs text-grey-400">Minimum 3 additional photos required</p>
           )}
         </div>
 
