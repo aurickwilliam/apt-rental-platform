@@ -34,6 +34,17 @@ const navLinks = [
   { label: "Messages", href: "/tenant/messages" },
 ];
 
+const getInitials = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized) return "U";
+  const parts = normalized.split(/\s+/).filter(Boolean);
+  const initials = parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  return initials || "U";
+};
+
 export default function TenantNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -42,15 +53,8 @@ export default function TenantNavbar() {
   const { user, loading, profile } = useUser();
 
   // Get display name and initials from user metadata
-  const firstName = user?.user_metadata?.first_name ?? "";
-  const lastName = user?.user_metadata?.last_name ?? "";
-  const displayName = firstName
-    ? `${firstName} ${lastName}`.trim()
-    : (user?.email ?? "");
-  const initials =
-    firstName && lastName
-      ? `${firstName[0]}${lastName[0]}`.toUpperCase()
-      : (user?.email?.[0]?.toUpperCase() ?? "");
+  const displayName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() || "Unknown";
+  const avatarSrc = profile?.avatar_url?.trim() || undefined;
 
   return (
     <Navbar
@@ -101,13 +105,13 @@ export default function TenantNavbar() {
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
-                src={profile?.avatar_url ?? undefined}
+                src={avatarSrc}
                 as="button"
                 size="sm"
                 className="cursor-pointer"
-                name={initials}
+                name={displayName}
                 showFallback
-                getInitials={(name) => name}
+                getInitials={getInitials}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User actions">
@@ -117,7 +121,7 @@ export default function TenantNavbar() {
                 className="opacity-100 cursor-default"
               >
                 <p className="font-semibold">{displayName}</p>
-                {user?.email && firstName && (
+                {user?.email && (
                   <p className="text-xs text-default-400">{user?.email}</p>
                 )}
               </DropdownItem>
