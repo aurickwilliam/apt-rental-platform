@@ -6,6 +6,7 @@ import type { ApartmentFormData, FormErrors } from "../page";
 import dynamic from "next/dynamic";
 import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
 
+const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
 interface Props {
   formData: ApartmentFormData;
@@ -14,7 +15,6 @@ interface Props {
 }
 
 export default function Step2Info({ formData, updateForm, errors }: Props) {
-  const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
   const handlePick = useCallback(
     (lat: number, lng: number) => updateForm({ 
