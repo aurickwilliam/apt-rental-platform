@@ -40,6 +40,7 @@ export type ApartmentFormData = {
   monthly_rent: number;
   security_deposit: number;
   advance_rent: number;
+  lease_agreement: File | null;
   // Step 4
   description: string;
   amenities: string[];
@@ -68,6 +69,7 @@ const INITIAL_FORM: ApartmentFormData = {
   monthly_rent: 0,
   security_deposit: 0,
   advance_rent: 0,
+  lease_agreement: null,
   description: "",
   amenities: [],
 };
@@ -243,6 +245,7 @@ export default function CreateApartmentPage() {
       if (data.monthly_rent <= 0) errors.monthly_rent = "Monthly rent must be greater than 0.";
       if (data.security_deposit < 0) errors.security_deposit = "Cannot be negative.";
       if (data.advance_rent < 0) errors.advance_rent = "Cannot be negative.";
+      if (!data.lease_agreement) errors.lease_agreement = "Lease agreement document is required.";
     }
 
     if (step === 4) {

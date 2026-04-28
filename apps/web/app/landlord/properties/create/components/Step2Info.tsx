@@ -53,6 +53,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.type}
             errorMessage={errors.type}
+            isRequired
           >
             {APARTMENT_TYPES.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -78,6 +79,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.furnished_type}
             errorMessage={errors.furnished_type}
+            isRequired
           >
             {FURNISHED_TYPES.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -99,6 +101,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.no_bedrooms}
             errorMessage={errors.no_bedrooms}
+            isRequired
           />
 
           <NumberInput
@@ -114,6 +117,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.no_bathrooms}
             errorMessage={errors.no_bathrooms}
+            isRequired
           />
 
           <NumberInput
@@ -129,6 +133,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.area_sqm}
             errorMessage={errors.area_sqm}
+            isRequired
           />
 
           <NumberInput
@@ -144,6 +149,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.max_occupants}
             errorMessage={errors.max_occupants}
+            isRequired
           />
 
           <Select
@@ -161,6 +167,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.floor_level}
             errorMessage={errors.floor_level}
+            isRequired
           >
             {FLOOR_LEVELS.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -186,6 +193,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.lease_duration}
             errorMessage={errors.lease_duration}
+            isRequired
           >
             {LEASE_DURATIONS.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -212,6 +220,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
           }}
           isInvalid={!!errors.street_address}
           errorMessage={errors.street_address}
+          isRequired
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -226,6 +235,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.barangay}
             errorMessage={errors.barangay}
+            isRequired
           />
           <Input
             label="City"
@@ -238,7 +248,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.city}
             errorMessage={errors.city}
-
+            isRequired
           />
 
           <Select
@@ -258,6 +268,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.province}
             errorMessage={errors.province}
+            isRequired
           >
             {PROVINCES.map((t) => (
               <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
@@ -277,6 +288,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             isInvalid={!!errors.zip_code}
             errorMessage={errors.zip_code}
+            isRequired
           />
         </div>
       </div>
@@ -306,6 +318,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             hideStepper
             isInvalid={!!errors.latitude}
             errorMessage={errors.latitude}
+            isRequired
           />
 
           <NumberInput
@@ -324,6 +337,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             hideStepper
             isInvalid={!!errors.longitude}
             errorMessage={errors.longitude}
+            isRequired
           />
         </div>
 
