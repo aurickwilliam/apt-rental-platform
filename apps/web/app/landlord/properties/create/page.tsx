@@ -255,7 +255,7 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div>
+      <div className="max-w-3xl mx-auto py-6 px-4">
         <Button
           onPress={router.back}
           radius="full"
