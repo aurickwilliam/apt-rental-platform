@@ -10,7 +10,8 @@ import {
   Linking,
   Platform,
   StyleProp,
-  ViewStyle
+  ViewStyle,
+  Alert
 } from 'react-native'
 import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -27,6 +28,7 @@ import LandlordCard from 'components/display/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from '@repo/constants';
+import { supabase } from '@repo/supabase';
 
 import {
   IconMapPin,
@@ -46,6 +48,7 @@ import {
   IconUsers,
   IconBuildingSkyscraper,
   IconCalendar,
+  IconX,
 } from "@tabler/icons-react-native";
 
 import { formatCurrency } from '@repo/utils';
@@ -96,6 +99,7 @@ export default function ApartmentScreen() {
   const [isReadMore, setIsReadMore] = useState<boolean>(false);
   const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
+  const [isMoveInCostModalVisible, setIsMoveInCostModalVisible] = useState<boolean>(false);
   const [imageIndex, setImageIndex] = useState<number>(0);
   const skeletonOpacity = useRef(new Animated.Value(0.45)).current;
 
@@ -245,8 +249,27 @@ export default function ApartmentScreen() {
     openDirections(mode);
   }
 
-  const handleLeaseAgreementNavigation = () => {
-    router.push(`/apartment/${apartmentId}/view-lease`);
+  const handleLeaseAgreementNavigation = async () => {
+    if (!apartment?.lease_agreement_url) {
+      Alert.alert('Not Found', 'This apartment does not have a lease agreement uploaded.');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('lease-agreements')
+        .createSignedUrl(apartment.lease_agreement_url, 3600);
+
+      if (error || !data?.signedUrl) throw error;
+
+      router.push({
+        pathname: '/apartment/[apartmentId]/view-lease',
+        params: { apartmentId, fileUrl: data.signedUrl },
+      });
+    } catch (err) {
+      Alert.alert('Error', 'Could not open lease agreement.');
+      console.error(err);
+    }
   }
 
   const handleViewFullImage = (index: number) => {
@@ -813,6 +836,7 @@ export default function ApartmentScreen() {
             label='View Full Lease Agreement'
             type='outline'
             size='sm'
+            isDisabled={!apartment?.lease_agreement_url}
             onPress={handleLeaseAgreementNavigation}
           />
         </View>
@@ -828,15 +852,24 @@ export default function ApartmentScreen() {
           className='flex items-start justify-between gap-3'
           edges={['bottom']}
         >
-          <View className='flex-1 flex-row gap-5 items-center'>
-            <View className='flex-row items-center'>
-              <Text className='text-3xl font-poppinsSemiBold text-primary'>
-                ₱ {formatCurrency(apartment?.monthly_rent ?? 0)}
+          <View className='flex-1 flex-row gap-4 items-center'>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              className='flex-col shrink-0'
+              onPress={() => setIsMoveInCostModalVisible(true)}
+            >
+              <View className='flex-row items-baseline'>
+                <Text className='text-2xl font-poppinsSemiBold text-primary'>
+                  ₱ {formatCurrency(apartment?.monthly_rent ?? 0)}
+                </Text>
+                <Text className='text-sm font-interMedium text-grey-500 ml-1'>
+                  /month
+                </Text>
+              </View>
+              <Text className='text-xs font-inter text-grey-500 mt-1 underline'>
+                Move-in cost breakdown
               </Text>
-              <Text className='text-base font-interMedium text-grey-500'>
-                /month
-              </Text>
-            </View>
+            </TouchableOpacity>
 
             <View className='flex-1'>
               <PillButton
@@ -891,6 +924,7 @@ export default function ApartmentScreen() {
         backgroundColor='rgb(0, 0, 0, 0.9)'
       />
 
+      {/* Get Directions Modal */}
       <Modal
         visible={isDirectionsModalVisible}
         transparent
@@ -947,6 +981,73 @@ export default function ApartmentScreen() {
                 type='danger'
                 onPress={() => setIsDirectionsModalVisible(false)}
               />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Move-in Cost Modal */}
+      <Modal
+        visible={isMoveInCostModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setIsMoveInCostModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          className='flex-1 bg-black/40 justify-center px-6'
+          onPress={() => setIsMoveInCostModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            className='bg-white rounded-2xl p-5 relative'
+            onPress={(event) => event.stopPropagation()}
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className='absolute top-4 right-4 z-10 bg-grey-100 p-1.5 rounded-full'
+              onPress={() => setIsMoveInCostModalVisible(false)}
+            >
+              <IconX size={20} color={COLORS.text} />
+            </TouchableOpacity>
+
+            <Text className='text-text font-poppinsSemiBold text-xl pr-8'>
+              Move-in Cost Breakdown
+            </Text>
+            <Text className='text-grey-500 font-inter mt-1 mb-4'>
+              Estimated initial payment required to move in.
+            </Text>
+
+            <View className='gap-3 bg-darkerWhite p-4 rounded-xl'>
+              <View className='flex-row justify-between items-center'>
+                <Text className='text-grey-500 font-inter text-base'>Monthly Rent</Text>
+                <Text className='text-text font-interMedium text-base'>
+                  ₱ {formatCurrency(apartment?.monthly_rent ?? 0)}
+                </Text>
+              </View>
+
+              <View className='flex-row justify-between items-center'>
+                <Text className='text-grey-500 font-inter text-base'>Security Deposit</Text>
+                <Text className='text-text font-interMedium text-base'>
+                  {apartment?.security_deposit != null ? `₱ ${formatCurrency(apartment.security_deposit)}` : 'None'}
+                </Text>
+              </View>
+              
+              <View className='flex-row justify-between items-center'>
+                <Text className='text-grey-500 font-inter text-base'>Advance Rent</Text>
+                <Text className='text-text font-interMedium text-base'>
+                  {apartment?.advance_rent != null ? `₱ ${formatCurrency(apartment.advance_rent)}` : 'None'}
+                </Text>
+              </View>
+
+              <View className='h-px bg-grey-200 my-1' />
+
+              <View className='flex-row justify-between items-center'>
+                <Text className='text-text font-poppinsSemiBold text-lg'>Total Move-in</Text>
+                <Text className='text-primary font-poppinsSemiBold text-lg'>
+                  ₱ {formatCurrency((apartment?.monthly_rent ?? 0) + (apartment?.security_deposit ?? 0) + (apartment?.advance_rent ?? 0))}
+                </Text>
+              </View>
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
