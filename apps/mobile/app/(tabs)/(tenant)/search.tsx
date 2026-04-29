@@ -8,6 +8,7 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconLayoutGrid,
+  IconLayoutList,
 } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -44,6 +45,8 @@ export default function Search() {
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isGridView, setIsGridView] = useState<boolean>(true);
+
   const pageRef = useRef(0);
 
   const filterSheetRef = useRef<BottomSheet>(null) as React.RefObject<BottomSheet>;
@@ -315,7 +318,7 @@ export default function Search() {
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
     <ApartmentCard
       {...item}
-      isGrid
+      isGrid={isGridView}
       onPress={() => handleApartmentPress(item.id)}
       onPressFavorite={() => toggleFavorite(item.id)}
     />
@@ -355,8 +358,11 @@ export default function Search() {
           />
         </View>
 
-        <TouchableOpacity activeOpacity={0.7}>
-          <IconLayoutGrid size={26} color={COLORS.grey} />
+        <TouchableOpacity activeOpacity={0.7} onPress={() => setIsGridView((prev) => !prev)}>
+          {isGridView
+            ? <IconLayoutGrid size={26} color={COLORS.grey} />
+            : <IconLayoutList size={26} color={COLORS.grey} />
+          }
         </TouchableOpacity>
       </View>
 
@@ -406,11 +412,12 @@ export default function Search() {
         </View>
       ) : (
         <FlatList
+          key={isGridView ? 'grid' : 'list'}
           data={apartments}
           renderItem={renderApartmentCard}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
+          numColumns={isGridView ? 2 : 1}
+          columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}
           contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={renderFooter}
