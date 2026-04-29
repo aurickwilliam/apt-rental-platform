@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -21,10 +21,12 @@ import {
   IconFileText,
   IconBubbleText,
   IconProps,
+  IconHomeOff,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';
 import QuickActionButton from '@/components/buttons/QuickActionButton';
+import { useTenancyStore } from '@/store/useTenancyStore';
 
 type actionsTypes = {
   id: number;
@@ -32,10 +34,54 @@ type actionsTypes = {
   icon: React.ComponentType<IconProps>;
 }
 
+function formatMonth(dateStr: string): string {
+  return new Date(dateStr).toLocaleString('default', { month: 'long' });
+}
+
+function formatYear(dateStr: string): string {
+  return new Date(dateStr).getFullYear().toString();
+}
+
+function formatAddress(apartment: {
+  street_address: string;
+  barangay: string;
+  city: string;
+  province: string;
+}): string {
+  return [apartment.street_address, apartment.barangay, apartment.city, apartment.province]
+    .filter(Boolean)
+    .join(', ');
+}
+
+function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
+  return status === 'paid' ? 'Paid' : 'Pending';
+}
+
+
+// Empty State when no active tenancy found
+function NoTenancyState() {
+  return (
+    <View className='flex-1 items-center justify-center gap-4 py-20'>
+      <IconHomeOff size={64} color={COLORS.grey} />
+      <View className='items-center gap-1'>
+        <Text className='text-text text-xl font-poppinsSemiBold text-center'>
+          No Active Tenancy
+        </Text>
+        <Text className='text-grey-500 text-base font-inter text-center px-8'>
+          You&apos;re not currently renting any apartment. Browse listings to find your next home.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export default function Rentals() {
   const router = useRouter();
 
-  // Date for Quick Actions
+  // Read directly from the store
+  const tenancy = useTenancyStore((s) => s.tenancy);
+  const loading = useTenancyStore((s) => s.loading);
+
   const actions: actionsTypes[] = [
     { id: 1, label: 'Chat Landlord', icon: IconBubbleText },
     { id: 2, label: 'View Lease', icon: IconFileText },
@@ -45,64 +91,79 @@ export default function Rentals() {
     { id: 6, label: 'Property Details', icon: IconHome2 },
     { id: 7, label: 'Settings', icon: IconSettings },
     { id: 8, label: 'FAQ', icon: IconHelp },
-  ]
+  ];
 
-  const handleRequestMaintenance = () => {
-    router.push('/tenant/maintenance-issue');
+  const handleRequestMaintenance = () => router.push('/tenant/maintenance-issue');
+  const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
+  const handlePayNow = () => router.push('/tenant/payment');
+  const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
+
+  // Loading State
+  if (loading) {
+    return (
+      <ScreenWrapper className='p-5'>
+        <View className='flex-1 items-center justify-center'>
+          <ActivityIndicator size='large' color={COLORS.primary} />
+        </View>
+      </ScreenWrapper>
+    );
   }
 
-  const handleViewMoreDetails = () => {
-    router.push('/tenant/current-apartment');
+  // Empty State
+  if (!tenancy) {
+    return (
+      <ScreenWrapper className='p-5'>
+        <NoTenancyState />
+      </ScreenWrapper>
+    );
   }
 
-  // Handle Pay Now button press
-  const handlePayNow = () => {
-    router.push('/tenant/payment');
-  }
+  // Derived data for rendering
+  const { apartment, landlord, currentPayment } = tenancy;
+  const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
-  // Handle View Payment History button press
-  const handleViewPaymentHistory = () => {
-    router.push('/tenant/payment/history');
-  }
+  const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();
+  const paymentStatus = currentPayment ? mapPaymentStatus(currentPayment.status) : 'Pending';
+  const balancePaid = currentPayment?.amount ?? 0;
+  const balanceLeft = Math.max(0, monthlyRent - balancePaid);
+
+  const landlordFullName = landlord
+    ? `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim()
+    : 'Unknown Landlord';
 
   return (
-    <ScreenWrapper 
-      scrollable 
+    <ScreenWrapper
+      scrollable
       className='p-5'
       bottomPadding={50}
     >
+      {/* Apartment Header */}
       <View className='flex-row items-center justify-start gap-2'>
-        <IconMapPinFilled
-          size={34}
-          color={COLORS.primary}
-          className='mr-2'
-        />
+        <IconMapPinFilled size={34} color={COLORS.primary} className='mr-2' />
         <Text className='text-secondary text-3xl font-dmserif leading-[34px]'>
-          Apartment Name
+          {apartment.name}
         </Text>
       </View>
 
       {/* Payment Summary Card */}
       <View className='mt-5'>
         <PaymentSummaryCard
-          periodMonth='January'
-          periodYear='2023'
-          status='Pending'
-          totalRent={1000}
-          balanceLeft={500}
-          balancePaid={500}
+          periodMonth={formatMonth(paymentPeriodDate)}
+          periodYear={formatYear(paymentPeriodDate)}
+          status={paymentStatus}
+          totalRent={monthlyRent}
+          balanceLeft={balanceLeft}
+          balancePaid={balancePaid}
           onPayNowPress={handlePayNow}
           onViewHistoryPress={handleViewPaymentHistory}
         />
       </View>
 
-      {/* Quick Actions List */}
+      {/* Quick Actions */}
       <View className='flex mt-5'>
         <Text className='text-text text-xl font-poppinsSemiBold'>
           Quick Actions
         </Text>
-
-        {/* Actions List */}
         <View className='mt-5 flex-row flex-wrap'>
           {actions.map((action) => (
             <QuickActionButton
@@ -113,60 +174,51 @@ export default function Rentals() {
           ))}
         </View>
       </View>
-          
-      {/* Landlord Information*/}
+
+      {/* Landlord Information */}
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
-          <IconUser
-            size={26}
-            color={COLORS.text}
-          />
+          <IconUser size={26} color={COLORS.text} />
           <Text className='text-text text-xl font-poppinsMedium'>
             Landlord Information
           </Text>
         </View>
-
         <LandlordCard
-          fullName={'Landlord Full Name'}
-          email={'landlord@example.com'}
-          phoneNumber={'123-456-7890'}
+          fullName={landlordFullName}
+          email={landlord?.email ?? 'No email provided'}
+          phoneNumber={landlord?.mobile_number ?? 'No number provided'}
+          profilePictureUrl={landlord?.avatar_url}
         />
       </View>
 
       {/* Apartment Description */}
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
-          <IconFileDescription
-            size={26}
-            color={COLORS.text}
-          />
+          <IconFileDescription size={26} color={COLORS.text} />
           <Text className='text-text text-xl font-poppinsMedium'>
             Apartment Description
           </Text>
         </View>
-
         <ApartmentDescriptionCard
-          apartmentName="Apartment Name"
-          apartmentAddress="123 Main St, City, Country"
-          leaseStartMonth="January"
-          leaseStartYear="2023"
-          leaseEndMonth="December"
-          leaseEndYear="2023"
-          monthlyRent={1000}
+          apartmentName={apartment.name}
+          apartmentAddress={formatAddress(apartment)}
+          leaseStartMonth={formatMonth(tenancy.move_in_date)}
+          leaseStartYear={formatYear(tenancy.move_in_date)}
+          leaseEndMonth={tenancy.move_out_date ? formatMonth(tenancy.move_out_date) : 'Ongoing'}
+          leaseEndYear={tenancy.move_out_date ? formatYear(tenancy.move_out_date) : ''}
+          monthlyRent={monthlyRent}
           onPressViewMore={handleViewMoreDetails}
         />
       </View>
 
-      {/* Divider */}
       <Divider />
 
-      {/* Button to Request Maintenance */}
-      <PillButton 
+      <PillButton
         label={'Request Maintenance Issue'}
         isFullWidth
         leftIconName={IconTool}
         onPress={handleRequestMaintenance}
       />
     </ScreenWrapper>
-  )
+  );
 }
