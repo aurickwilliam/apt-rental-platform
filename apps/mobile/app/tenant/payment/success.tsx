@@ -12,7 +12,7 @@ export default function Success() {
   const router = useRouter();
 
   const handleGoBackHome = () => {
-    router.replace('/(tabs)/(tenant)/home');
+    router.replace('/(tabs)/(tenant)/rentals');
   }
 
   return (
