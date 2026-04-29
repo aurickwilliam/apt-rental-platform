@@ -26,7 +26,7 @@ import {
 
 import { COLORS } from '@repo/constants';
 import QuickActionButton from '@/components/buttons/QuickActionButton';
-import { useTenancyStore } from '@/store/useTenancyStore';
+import { useTenancy } from '@/hooks/useTenancy';
 
 type actionsTypes = {
   id: number;
@@ -79,8 +79,7 @@ export default function Rentals() {
   const router = useRouter();
 
   // Read directly from the store
-  const tenancy = useTenancyStore((s) => s.tenancy);
-  const loading = useTenancyStore((s) => s.loading);
+  const { tenancy, loading } = useTenancy();
 
   const actions: actionsTypes[] = [
     { id: 1, label: 'Chat Landlord', icon: IconBubbleText },

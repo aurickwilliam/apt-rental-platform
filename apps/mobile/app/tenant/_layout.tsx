@@ -1,13 +1,6 @@
 import { Stack } from "expo-router"
-import { useEffect } from "react";
-import { useTenancyStore } from '@/store/useTenancyStore';
 
-
-export default function TenantLayout() {
-  useEffect(() => {
-    useTenancyStore.getState().fetchTenancy();
-  }, []);
-  
+export default function TenantLayout() {  
   return (
     <Stack
       screenOptions={{
