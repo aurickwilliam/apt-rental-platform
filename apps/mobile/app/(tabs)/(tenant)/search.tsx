@@ -1,13 +1,14 @@
 import { View, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, Text } from 'react-native';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 import {
   IconMapPinFilled,
   IconChevronDown,
   IconChevronUp,
   IconLayoutGrid,
+  IconLayoutList,
 } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -44,12 +45,14 @@ export default function Search() {
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isGridView, setIsGridView] = useState<boolean>(true);
+
   const pageRef = useRef(0);
 
-  const filterSheetRef = useRef<BottomSheet>(null) as React.RefObject<BottomSheet>;
+  const filterSheetRef = useRef<BottomSheetModal>(null) as React.RefObject<BottomSheetModal>;
 
   const openFilterSheet = useCallback(() => {
-    filterSheetRef.current?.expand();
+    filterSheetRef.current?.present();
   }, []);
 
   useEffect(() => {
@@ -165,22 +168,22 @@ export default function Search() {
       // Sort
       switch (activeFilters.sortBy) {
         case 'price_asc':
-          query = query.order('monthly_rent', { ascending: true });
+          query = query.order('monthly_rent', { ascending: true }).order('id', { ascending: true });
           break;
         case 'price_desc':
-          query = query.order('monthly_rent', { ascending: false });
+          query = query.order('monthly_rent', { ascending: false }).order('id', { ascending: true });
           break;
         case 'most_popular':
-          query = query.order('average_rating', { ascending: false });
+          query = query.order('average_rating', { ascending: false }).order('id', { ascending: true });
           break;
         case 'newest':
         default:
-          query = query.order('created_at', { ascending: false });
+          query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
           break;
       }
     } else {
       // Default sort when no filters applied
-      query = query.order('created_at', { ascending: false });
+      query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
     }
 
     return query;
@@ -258,7 +261,11 @@ export default function Search() {
       if (transformed.length === 0) {
         setHasMore(false);
       } else {
-        setApartments((prev) => [...prev, ...transformed]);
+        setApartments((prev) => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newItems = transformed.filter(t => !existingIds.has(t.id));
+          return [...prev, ...newItems];
+        });
         pageRef.current = nextPage;
         setHasMore(transformed.length === PAGE_SIZE);
       }
@@ -315,7 +322,7 @@ export default function Search() {
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
     <ApartmentCard
       {...item}
-      isGrid
+      isGrid={isGridView}
       onPress={() => handleApartmentPress(item.id)}
       onPressFavorite={() => toggleFavorite(item.id)}
     />
@@ -339,7 +346,7 @@ export default function Search() {
   };
 
   return (
-    <ScreenWrapper className='py-5' backgroundColor={COLORS.darkerWhite}>
+    <ScreenWrapper className='pt-5' backgroundColor={COLORS.darkerWhite} noBottomPadding>
       <View className='flex-row items-center justify-between mb-6 px-5'>
         <View className='flex-row gap-2'>
           <IconMapPinFilled size={30} color={COLORS.primary} />
@@ -355,8 +362,11 @@ export default function Search() {
           />
         </View>
 
-        <TouchableOpacity activeOpacity={0.7}>
-          <IconLayoutGrid size={26} color={COLORS.grey} />
+        <TouchableOpacity activeOpacity={0.7} onPress={() => setIsGridView((prev) => !prev)}>
+          {isGridView
+            ? <IconLayoutGrid size={26} color={COLORS.grey} />
+            : <IconLayoutList size={26} color={COLORS.grey} />
+          }
         </TouchableOpacity>
       </View>
 
@@ -406,11 +416,12 @@ export default function Search() {
         </View>
       ) : (
         <FlatList
+          key={isGridView ? 'grid' : 'list'}
           data={apartments}
           renderItem={renderApartmentCard}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
+          numColumns={isGridView ? 2 : 1}
+          columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}
           contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={renderFooter}
