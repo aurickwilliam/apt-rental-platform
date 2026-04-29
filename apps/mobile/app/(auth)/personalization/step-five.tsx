@@ -56,7 +56,7 @@ export default function StepFive() {
   }
 
   const handleNext = () => {
-    router.replace("/home");
+    router.replace("/(tabs)/(tenant)/rentals");
   };
 
   const toggleVehicle = (vehicle: string) => {
