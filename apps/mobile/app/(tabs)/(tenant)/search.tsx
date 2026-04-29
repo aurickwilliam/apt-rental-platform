@@ -346,7 +346,7 @@ export default function Search() {
   };
 
   return (
-    <ScreenWrapper className='py-5' backgroundColor={COLORS.darkerWhite}>
+    <ScreenWrapper className='pt-5' backgroundColor={COLORS.darkerWhite} noBottomPadding>
       <View className='flex-row items-center justify-between mb-6 px-5'>
         <View className='flex-row gap-2'>
           <IconMapPinFilled size={30} color={COLORS.primary} />
