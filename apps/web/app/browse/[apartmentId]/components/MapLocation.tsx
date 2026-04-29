@@ -40,8 +40,10 @@ interface MapLocationProps {
 }
 
 export default function MapLocation({ latitude, longitude }: MapLocationProps) {
-  const [isExpandOpen,     setIsExpandOpen]     = useState(false);
-  const [isDirectionsOpen, setIsDirectionsOpen] = useState(false);
+  const [isExpandOpen,     setIsExpandOpen]     = useState<boolean>(false);
+  const [isDirectionsOpen, setIsDirectionsOpen] = useState<boolean>(false);
+
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
   // Default Preview Map
   useEffect(() => {
@@ -94,6 +96,27 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
     };
   }, [isExpandOpen, latitude, longitude]);
 
+  const handleOpenDirections = () => {
+    setIsDirectionsOpen(true);
+    
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.warn("User denied location or location unavailable", error);
+        }
+      );
+    } else {
+      console.warn("Geolocation is not supported by this browser.");
+    }
+  };
+
+
   // Open Google Maps with directions
   const openInGoogleMaps = (mode: typeof MODES[number]) => {
     const params = new URLSearchParams({
@@ -101,7 +124,14 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
       destination: `${latitude},${longitude}`,
       travelmode: mode.googleMode,
     });
+
+    // If we successfully got their location, append it as the origin
+    if (userLocation) {
+      params.append("origin", `${userLocation.lat},${userLocation.lng}`);
+    }
+
     window.open(`https://www.google.com/maps/dir/?${params.toString()}`, "_blank");
+    setIsDirectionsOpen(false);
   };
 
   // Empty State of no coordinates of the apartment
@@ -124,7 +154,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
             radius="full"
             size="sm"
             title="Get Directions"
-            onPress={() => setIsDirectionsOpen(true)}
+            onPress={handleOpenDirections}
             startContent={<Navigation size={16} />}
           >
             <p>Get Directions</p>
