@@ -44,6 +44,17 @@ const MENU_ITEMS = [
   { label: "Payments",       icon: Banknote,        href: "/landlord/payments"     },
 ];
 
+const getInitials = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized) return "U";
+  const parts = normalized.split(/\s+/).filter(Boolean);
+  const initials = parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  return initials || "U";
+};
+
 export default function LandlordSidebar() {
   const { state } = useSidebar();
   const isExpanded = state === "expanded";
@@ -51,6 +62,8 @@ export default function LandlordSidebar() {
   const pathname = usePathname();
 
   const { user, profile, loading } = useUser();
+  const displayName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() || "Unknown";
+  const avatarSrc = profile?.avatar_url?.trim() || undefined;
 
   return (
     <Sidebar className="w-64" collapsible="icon">
@@ -111,8 +124,10 @@ export default function LandlordSidebar() {
                   }`}
                 >
                   <Avatar
-                    src={profile?.avatar_url ?? undefined}
-                    name={`${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`}
+                    src={avatarSrc}
+                    name={displayName}
+                    showFallback
+                    getInitials={getInitials}
                     size={isExpanded ? "md" : "sm"}
                     className="shrink-0"
                     classNames={{

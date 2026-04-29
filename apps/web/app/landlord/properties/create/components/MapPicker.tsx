@@ -1,11 +1,10 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import React from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix default marker icon broken in Next.js
 const markerIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -14,12 +13,21 @@ const markerIcon = L.icon({
   iconAnchor: [12, 41],
 });
 
-// Re-centers map when coordinates change (e.g. after geocoding)
 function MapController({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    map.setView([lat, lng], map.getZoom());
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      map.setView([lat, lng], map.getZoom());
+    }, 400);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [lat, lng, map]);
+
   return null;
 }
 
@@ -39,7 +47,6 @@ interface Props {
   error?: string;
 }
 
-// Default center: Philippines
 const DEFAULT_CENTER: [number, number] = [14.6650, 120.9670];
 
 function MapPicker({ latitude, longitude, onPick, error }: Props) {

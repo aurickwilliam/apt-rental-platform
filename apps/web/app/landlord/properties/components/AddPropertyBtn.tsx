@@ -2,6 +2,7 @@
 
 import { Button } from "@heroui/react";
 import Link from "next/link"
+import { CirclePlus } from "lucide-react";
 
 export default function AddPropertyBtn(){
   return (
@@ -11,6 +12,7 @@ export default function AddPropertyBtn(){
       variant="solid"
       color="primary"
       size="sm"
+      startContent={<CirclePlus size={16} />}
     >
       Add Property
     </Button>
