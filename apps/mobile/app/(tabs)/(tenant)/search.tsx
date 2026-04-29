@@ -1,7 +1,7 @@
 import { View, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, Text } from 'react-native';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 import {
   IconMapPinFilled,
@@ -49,10 +49,10 @@ export default function Search() {
 
   const pageRef = useRef(0);
 
-  const filterSheetRef = useRef<BottomSheet>(null) as React.RefObject<BottomSheet>;
+  const filterSheetRef = useRef<BottomSheetModal>(null) as React.RefObject<BottomSheetModal>;
 
   const openFilterSheet = useCallback(() => {
-    filterSheetRef.current?.expand();
+    filterSheetRef.current?.present();
   }, []);
 
   useEffect(() => {

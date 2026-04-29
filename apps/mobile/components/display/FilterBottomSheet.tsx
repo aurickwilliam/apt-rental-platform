@@ -1,9 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useCallback, useMemo, useState } from 'react';
-import BottomSheet, {
-  BottomSheetScrollView,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetScrollView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
 import { APARTMENT_TYPES, FURNISHED_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, COLORS } from '@repo/constants';
 
@@ -57,7 +54,7 @@ export const DEFAULT_FILTERS: FilterState = {
 };
 
 type Props = {
-  bottomSheetRef: React.RefObject<BottomSheet>;
+  bottomSheetRef: React.RefObject<BottomSheetModal>;
   resultCount?: number;
   initialFilters?: FilterState;
   onApply: (filters: FilterState) => void;
@@ -88,12 +85,12 @@ export default function FilterBottomSheet({
   const handleClearAll = () => {
     setFilters(DEFAULT_FILTERS);
     onClear();
-    bottomSheetRef.current?.close();
+    bottomSheetRef.current?.dismiss();
   };
 
   const handleApply = () => {
     onApply(filters);
-    bottomSheetRef.current?.close();
+    bottomSheetRef.current?.dismiss();
   };
 
   const renderBackdrop = useCallback(
@@ -116,9 +113,8 @@ export default function FilterBottomSheet({
   }, [amenitySearch]);
 
   return (
-    <BottomSheet
+    <BottomSheetModal
       ref={bottomSheetRef}
-      index={-1}
       snapPoints={snapPoints}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
@@ -339,6 +335,6 @@ export default function FilterBottomSheet({
           </TouchableOpacity>
         </View>
       </View>
-    </BottomSheet>
+    </BottomSheetModal>
   );
 }
