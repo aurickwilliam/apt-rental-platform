@@ -37,7 +37,7 @@ export default function ApartmentCard({
     : width - HORIZONTAL_PADDING * 2;
 
   return (
-    <View style={{width: cardWidth}}>
+    <View style={{width: cardWidth, alignSelf: isGrid ? 'auto' : 'center'}}>
       <TouchableOpacity
         className='bg-white rounded-2xl relative'
         activeOpacity={0.7}

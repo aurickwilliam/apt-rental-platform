@@ -168,22 +168,22 @@ export default function Search() {
       // Sort
       switch (activeFilters.sortBy) {
         case 'price_asc':
-          query = query.order('monthly_rent', { ascending: true });
+          query = query.order('monthly_rent', { ascending: true }).order('id', { ascending: true });
           break;
         case 'price_desc':
-          query = query.order('monthly_rent', { ascending: false });
+          query = query.order('monthly_rent', { ascending: false }).order('id', { ascending: true });
           break;
         case 'most_popular':
-          query = query.order('average_rating', { ascending: false });
+          query = query.order('average_rating', { ascending: false }).order('id', { ascending: true });
           break;
         case 'newest':
         default:
-          query = query.order('created_at', { ascending: false });
+          query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
           break;
       }
     } else {
       // Default sort when no filters applied
-      query = query.order('created_at', { ascending: false });
+      query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
     }
 
     return query;
@@ -261,7 +261,11 @@ export default function Search() {
       if (transformed.length === 0) {
         setHasMore(false);
       } else {
-        setApartments((prev) => [...prev, ...transformed]);
+        setApartments((prev) => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newItems = transformed.filter(t => !existingIds.has(t.id));
+          return [...prev, ...newItems];
+        });
         pageRef.current = nextPage;
         setHasMore(transformed.length === PAGE_SIZE);
       }
