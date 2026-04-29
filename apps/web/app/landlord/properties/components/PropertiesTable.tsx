@@ -29,13 +29,14 @@ import ApartmentImagesModal from "./ApartmentImagesModal";
 import { PERKS } from "../../../components/inputs/perks";
 import AmenitiesSelect from "@/app/components/inputs/AmenitiesSelect";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+import { 
+  APARTMENT_TYPES, 
+  FURNISHED_TYPES, 
+  FLOOR_LEVELS, 
+  LEASE_DURATIONS 
+} from "@repo/constants";
 
-const APARTMENT_TYPES   = ["Studio", "Loft", "Duplex", "Townhouse", "Penthouse", "Condominium", "Apartment"];
-const FURNISHING_OPTIONS = ["Unfurnished", "Semi", "Fully"];
-const FLOOR_OPTIONS      = ["Ground Floor", "Second Floor", "Third Floor", "Fourth Floor", "Fifth Floor and Above"];
-const LEASE_OPTIONS      = ["6 mos", "1 year", "2 year+"];
-const CITIES             = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
+const CITIES = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
 const STATUS_COLOR: Record<string, "success" | "warning" | "default"> = {
   verified:   "success",
@@ -43,8 +44,8 @@ const STATUS_COLOR: Record<string, "success" | "warning" | "default"> = {
   occupied:   "default",
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
+// Property Types/Interfaces
 export type Property = {
   id:             string;
   name:           string;
@@ -76,8 +77,8 @@ type Props = {
   properties: Property[];
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
+// Helper Components
 function ReadOnlyField({ label, value }: { label: string; value?: string | number | null }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -101,7 +102,6 @@ type ApartmentImage = {
   is_cover: boolean;
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PropertiesTable({ properties: initial }: Props) {
   const [properties, setProperties] = useState<Property[]>(initial);
@@ -115,8 +115,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
   const [imagesModalOpen, setImagesModalOpen] = useState(false);
   const [apartmentImages, setApartmentImages] = useState<ApartmentImage[]>([]);
 
-  // ── Sheet handlers ──
-
+  
+  // Sheet Handlers
   const openSheet = (property: Property, editMode = false) => {
     setSelected(property);
     setForm({ ...property });
@@ -133,8 +133,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ── Supabase handlers ──
 
+  // Supabase Handlers
   const handleSave = async () => {
     if (!selected) return;
     setSaving(true);
@@ -207,8 +207,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
     setImagesModalOpen(true);
   }
 
-  // ── Empty state ──
-
+  
+  // Empty State of the Table
   if (properties.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
@@ -218,11 +218,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
     );
   }
 
-  // ── Render ──
-
   return (
     <>
-      {/* ── Table ── */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -319,8 +316,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
         </TableBody>
       </Table>
 
-      {/* ── Slide-over Sheet ── */}
-
+      
+      {/* Side Sheet for Apartment Information */}
       <Sheet
         open={!!selected}
         onOpenChange={(open) => !open && closeSheet()}
@@ -473,7 +470,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
                     </Button>
                   </div>
                 ) : (
-                  /* ── Edit form ── */
+                  // Edit Mode Form
                   <div className="flex flex-col gap-4">
                     <Input
                       label="Name" labelPlacement="outside" placeholder="Apartment name"
@@ -505,21 +502,21 @@ export default function PropertiesTable({ properties: initial }: Props) {
                         selectedKeys={form.furnished_type ? [form.furnished_type] : []}
                         onSelectionChange={(k) => updateForm("furnished_type", Array.from(k)[0] as string ?? null)}
                       >
-                        {FURNISHING_OPTIONS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        {FURNISHED_TYPES.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
                       </Select>
                       <Select
                         label="Floor Level" labelPlacement="outside"
                         selectedKeys={form.floor_level ? [form.floor_level] : []}
                         onSelectionChange={(k) => updateForm("floor_level", Array.from(k)[0] as string ?? null)}
                       >
-                        {FLOOR_OPTIONS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        {FLOOR_LEVELS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
                       </Select>
                       <Select
                         label="Lease Duration" labelPlacement="outside"
                         selectedKeys={form.lease_duration ? [form.lease_duration] : []}
                         onSelectionChange={(k) => updateForm("lease_duration", Array.from(k)[0] as string ?? null)}
                       >
-                        {LEASE_OPTIONS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        {LEASE_DURATIONS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
                       </Select>
                       <Input
                         label="Bedrooms" labelPlacement="outside" type="number"
