@@ -46,7 +46,7 @@ export default function Submitted() {
 
         <TouchableOpacity 
           activeOpacity={0.7}
-          onPress={() => router.navigate(`/(tabs)/(tenant)/home`)}
+          onPress={() => router.navigate(`/(tabs)/(tenant)/rentals`)}
           className='flex items-center justify-center'
         >
           <Text className='text-secondary text-lg font-interMedium'>

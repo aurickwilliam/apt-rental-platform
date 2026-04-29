@@ -13,12 +13,39 @@ import {
   IconUser,
   IconFileDescription,
   IconTool,
+  IconHelp,
+  IconSettings,
+  IconHome2,
+  IconCash,
+  IconReceipt,
+  IconFileText,
+  IconBubbleText,
+  IconProps,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';
+import QuickActionButton from '@/components/buttons/QuickActionButton';
+
+type actionsTypes = {
+  id: number;
+  label: string;
+  icon: React.ComponentType<IconProps>;
+}
 
 export default function Rentals() {
   const router = useRouter();
+
+  // Date for Quick Actions
+  const actions: actionsTypes[] = [
+    { id: 1, label: 'Chat Landlord', icon: IconBubbleText },
+    { id: 2, label: 'View Lease', icon: IconFileText },
+    { id: 3, label: 'View Receipts', icon: IconReceipt },
+    { id: 4, label: 'Pay Rent', icon: IconCash },
+    { id: 5, label: 'Request Maintenance', icon: IconTool },
+    { id: 6, label: 'Property Details', icon: IconHome2 },
+    { id: 7, label: 'Settings', icon: IconSettings },
+    { id: 8, label: 'FAQ', icon: IconHelp },
+  ]
 
   const handleRequestMaintenance = () => {
     router.push('/tenant/maintenance-issue');
@@ -69,6 +96,24 @@ export default function Rentals() {
         />
       </View>
 
+      {/* Quick Actions List */}
+      <View className='flex mt-5'>
+        <Text className='text-text text-xl font-poppinsSemiBold'>
+          Quick Actions
+        </Text>
+
+        {/* Actions List */}
+        <View className='mt-5 flex-row flex-wrap'>
+          {actions.map((action) => (
+            <QuickActionButton
+              key={action.id}
+              label={action.label}
+              icon={action.icon}
+            />
+          ))}
+        </View>
+      </View>
+          
       {/* Landlord Information*/}
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>

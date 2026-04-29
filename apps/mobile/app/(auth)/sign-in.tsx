@@ -105,7 +105,7 @@ export default function SignIn() {
       router.replace(
         userProfile.role === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
-          : "../(tabs)/(tenant)/home",
+          : "../(tabs)/(tenant)/rentals",
       );
     } catch (err) {
       setError(
