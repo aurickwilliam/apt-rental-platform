@@ -21,11 +21,30 @@ export default async function Properties() {
     ? await supabase
         .from("apartments")
         .select(`
-          id, name, description, monthly_rent, type,
-          street_address, barangay, city, province, zip_code,
-          status, average_rating, no_ratings, no_bedrooms, no_bathrooms,
-          area_sqm, max_occupants, furnished_type, floor_level,
-          lease_duration, latitude, longitude, amenities,
+          id, 
+          name, 
+          description, 
+          monthly_rent, 
+          type,
+          street_address, 
+          barangay, 
+          city, 
+          province, 
+          zip_code,
+          status, 
+          average_rating, 
+          no_ratings, 
+          no_bedrooms, 
+          no_bathrooms,
+          area_sqm, 
+          max_occupants, 
+          furnished_type, 
+          floor_level,
+          lease_duration, 
+          latitude, 
+          longitude, 
+          amenities,
+          lease_agreement_url,
           apartment_images(url, is_cover)
         `)
         .eq("landlord_id", profile.id)
@@ -57,6 +76,7 @@ export default async function Properties() {
     latitude:       apt.latitude,
     longitude:      apt.longitude,
     amenities:      apt.amenities ?? [],
+    lease_agreement_url: apt.lease_agreement_url ?? null,
     thumbnail:      apt.apartment_images?.find((img) => img.is_cover)?.url
                     ?? "/default/default-thumbnail.jpeg",
   }));

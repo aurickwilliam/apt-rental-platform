@@ -40,6 +40,7 @@ export type ApartmentFormData = {
   monthly_rent: number;
   security_deposit: number;
   advance_rent: number;
+  lease_agreement: File | null;
   // Step 4
   description: string;
   amenities: string[];
@@ -68,6 +69,7 @@ const INITIAL_FORM: ApartmentFormData = {
   monthly_rent: 0,
   security_deposit: 0,
   advance_rent: 0,
+  lease_agreement: null,
   description: "",
   amenities: [],
 };
@@ -124,7 +126,7 @@ export default function CreateApartmentPage() {
     try {
       const supabase = createClient();
 
-      // 1. Insert apartment record
+      // Insert apartment record first
       const { data: apartment, error: aptError } = await supabase
         .from("apartments")
         .insert({
@@ -157,8 +159,35 @@ export default function CreateApartmentPage() {
 
       if (aptError || !apartment) throw aptError;
 
-      // 2. Upload images — roll back apartment if this fails
+
+      // Upload lease agreement and images
+      // then update apartment record with lease agreement URL and image URLs
+      let leaseAgreementPath: string | null = null;
+
       try {
+        if (formData.lease_agreement) {
+          const file = formData.lease_agreement;
+          const ext = file.name.split(".").pop();
+          const path = `${apartment.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+          const { error: leaseUploadError } = await supabase.storage
+            .from("lease-agreements")
+            .upload(path, file);
+
+          if (leaseUploadError) throw leaseUploadError;
+
+          leaseAgreementPath = path;
+        }
+
+        if (leaseAgreementPath) {
+          const { error: patchError } = await supabase
+            .from("apartments")
+            .update({ lease_agreement_url: leaseAgreementPath })
+            .eq("id", apartment.id);
+
+          if (patchError) throw patchError;
+        }
+
         const allImages: { file: File; isCover: boolean }[] = [
           ...(formData.thumbnail ? [{ file: formData.thumbnail, isCover: true }] : []),
           ...formData.additionalPhotos.map((f) => ({ file: f, isCover: false })),
@@ -194,10 +223,14 @@ export default function CreateApartmentPage() {
 
           if (imgError) throw imgError;
         }
-      } catch (imgErr) {
-        // Roll back: delete the apartment so no orphaned records are left
+      } catch (uploadErr) {
+        // Clean up storage files if any were uploaded
+        if (leaseAgreementPath) {
+          await supabase.storage.from("lease-agreements").remove([leaseAgreementPath]);
+        }
+        // Roll back apartment row
         await supabase.from("apartments").delete().eq("id", apartment.id);
-        throw imgErr;
+        throw uploadErr;
       }
 
       router.push("/landlord/properties");
@@ -243,6 +276,7 @@ export default function CreateApartmentPage() {
       if (data.monthly_rent <= 0) errors.monthly_rent = "Monthly rent must be greater than 0.";
       if (data.security_deposit < 0) errors.security_deposit = "Cannot be negative.";
       if (data.advance_rent < 0) errors.advance_rent = "Cannot be negative.";
+      if (!data.lease_agreement) errors.lease_agreement = "Lease agreement document is required.";
     }
 
     if (step === 4) {
@@ -255,7 +289,7 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div>
+      <div className="max-w-3xl mx-auto py-6 px-4">
         <Button
           onPress={router.back}
           radius="full"
