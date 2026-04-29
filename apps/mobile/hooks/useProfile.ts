@@ -3,10 +3,10 @@ import { supabase } from '@repo/supabase';
 
 type UserProfile = {
   id: string;
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string | null;
-  mobile_number: string;
+  mobile_number: string | null;
   avatar_url: string | null;
   account_status: string;
   background_url: string | null;

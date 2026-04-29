@@ -28,7 +28,7 @@ export default function Index() {
       if (userProfile?.role === "landlord") {
         router.replace("/(tabs)/(landlord)/dashboard");
       } else {
-        router.replace("/(tabs)/(tenant)/home");
+        router.replace("/(tabs)/(tenant)/rentals");
       }
     };
 
