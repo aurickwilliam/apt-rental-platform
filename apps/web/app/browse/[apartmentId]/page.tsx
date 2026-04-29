@@ -17,6 +17,7 @@ import FavoriteBtn from "./components/FavoriteBtn";
 
 import { createClient } from "@repo/supabase/server";
 import LeaseAgreementCard from "./components/LeaseAgreementCard";
+import ExpandableDescription from "./components/ExpandableDescription";
 
 export default async function ApartmentDetailsPage({ params }: { params: Promise<{ apartmentId: string }> }) {
   const { apartmentId } = await params;
@@ -171,10 +172,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
           <Divider className="my-8" />
 
-          <div className="max-h-64 overflow-y-auto">
-            <h3 className="text-lg font-medium mb-2">Description</h3>
-            <p>{apartment.description}</p>
-          </div>
+          <ExpandableDescription text={apartment.description || ""} />
 
           <Divider className="my-8" />
 

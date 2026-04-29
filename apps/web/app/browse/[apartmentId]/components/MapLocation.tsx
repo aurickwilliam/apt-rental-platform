@@ -3,20 +3,21 @@
 import { useEffect, useState } from "react";
 import { Modal, ModalContent, ModalBody, Button } from "@heroui/react";
 import { Expand } from "lucide-react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+async function initMap(id: string, latitude: number, longitude: number) {
+  const L = (await import("leaflet")).default;
+  await import("leaflet/dist/leaflet.css");
 
-function initMap(id: string, latitude: number, longitude: number) {
   const container = L.DomUtil.get(id);
   if (container && (container as HTMLElement & { _leaflet_id?: number })._leaflet_id) return;
+
+  const icon = L.icon({
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
 
   const map = L.map(id).setView([latitude, longitude], 15);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -38,21 +39,32 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   // Small preview map
   useEffect(() => {
     if (!latitude || !longitude) return;
-    const map = initMap("map-preview", latitude, longitude);
-    return () => { map?.remove(); };
+    
+    let mapInstance: Awaited<ReturnType<typeof initMap>>;
+    
+    initMap("map-preview", latitude, longitude).then((m) => {
+      mapInstance = m;
+    });
+    
+    return () => { mapInstance?.remove(); };
   }, [latitude, longitude]);
 
-  // Large modal map — init after modal opens
+  // Large modal map
   useEffect(() => {
     if (!isOpen || !latitude || !longitude) return;
 
-    // Wait for modal DOM to render
+    let mapInstance: Awaited<ReturnType<typeof initMap>>;
+
     const timeout = setTimeout(() => {
-      const map = initMap("map-modal", latitude, longitude);
-      return () => { map?.remove(); };
+      initMap("map-modal", latitude, longitude).then((m) => {
+        mapInstance = m;
+      });
     }, 100);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      mapInstance?.remove();
+    };
   }, [isOpen, latitude, longitude]);
 
   if (!latitude || !longitude) {
