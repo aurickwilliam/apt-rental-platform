@@ -664,15 +664,22 @@ export default function PropertiesTable({ properties: initial }: Props) {
               <SheetFooter className="p-4 border-t flex flex-col gap-2">
                 {isEditing ? (
                   <Button
-                    color="primary" className="w-full" radius="full"
-                    isLoading={saving} onPress={handleSave}
+                    color="primary" 
+                    className="w-full" 
+                    radius="full"
+                    isLoading={saving} 
+                    onPress={handleSave}
                   >
                     Save Changes
                   </Button>
                 ) : (
                   <Button
-                    color="danger" variant="flat" className="w-full" radius="full"
-                    isLoading={deleting} onPress={handleDelete}
+                    color="danger" 
+                    variant="flat" 
+                    className="w-full" 
+                    radius="full"
+                    isLoading={deleting} 
+                    onPress={handleDelete}
                   >
                     Delete Property
                   </Button>

@@ -131,7 +131,8 @@ export default function ApartmentImagesModal({
     <Modal
       isOpen={isOpen}
       onOpenChange={(open) => !open && handleDone()}
-      size="3xl" scrollBehavior="inside"
+      size="3xl" 
+      scrollBehavior="inside"
       className="pointer-events-auto shadow-2xl"
       classNames={{
         wrapper: "z-[100]",

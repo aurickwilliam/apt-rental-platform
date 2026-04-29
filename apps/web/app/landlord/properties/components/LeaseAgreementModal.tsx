@@ -105,7 +105,15 @@ export default function LeaseAgreementModal({ isOpen, onClose, apartmentId, curr
   const isSaveDisabled = !file || file.size === 0;
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={handleOpenChange}>
+    <Modal 
+      isOpen={isOpen} 
+      onOpenChange={handleOpenChange}
+      className="pointer-events-auto shadow-2xl"
+      classNames={{
+        wrapper: "z-[100]",
+        backdrop: "z-[99]"
+      }}
+    >
       <ModalContent>
         {(onCloseModal) => (
           <>

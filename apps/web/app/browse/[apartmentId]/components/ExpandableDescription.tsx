@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@heroui/react";
 
 interface Props {
   text: string;
@@ -25,12 +26,14 @@ export default function ExpandableDescription({ text, maxLength = 300 }: Props) 
       <h3 className="text-lg font-medium mb-2">Description</h3>
       <p className="whitespace-pre-line text-foreground/80 leading-relaxed">{displayText}</p>
       {shouldTruncate && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-2 text-primary font-medium hover:opacity-80 transition-opacity text-sm underline-offset-2 hover:underline"
+        <Button
+          onPress={() => setIsExpanded(!isExpanded)}
+          radius="full"
+          variant="light"
+          className="mt-2 text-primary font-medium text-sm transform -translate-x-4"
         >
           {isExpanded ? "View less" : "View more"}
-        </button>
+        </Button>
       )}
     </div>
   );

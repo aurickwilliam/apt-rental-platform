@@ -2,7 +2,7 @@
 
 import { PERKS } from "../../../components/inputs/perks";
 
-import { Button } from "@heroui/react";
+// import { Button } from "@heroui/react";
 
 interface AmenitiesProps {
   apartmentPerks: string[];
@@ -16,7 +16,7 @@ export default function Amenities({ apartmentPerks }: AmenitiesProps) {
           Amenities
         </h3>
 
-        <Button
+        {/* <Button
           size="sm"
           variant="light"
           radius="full"
@@ -27,7 +27,7 @@ export default function Amenities({ apartmentPerks }: AmenitiesProps) {
           }}
         >
           See all amenities
-        </Button>
+        </Button> */}
       </div>
 
       <ul className="grid grid-cols-2 gap-3">
