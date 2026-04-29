@@ -20,6 +20,7 @@ interface ScreenWrapperProps {
   scrollable?: boolean;
   bottomPadding?: number;
   noTopPadding?: boolean;
+  noBottomPadding?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
   dismissKeyboardOnTouch?: boolean;
@@ -41,6 +42,7 @@ export default function ScreenWrapper({
   scrollable = false,
   bottomPadding = 0,
   noTopPadding = false,
+  noBottomPadding = false,
   refreshing = false,
   onRefresh,
   dismissKeyboardOnTouch = true,
@@ -75,7 +77,7 @@ export default function ScreenWrapper({
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: paddingTop,
-            paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+            paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
           }}
         >
           {dismissKeyboardOnTouch ? (
@@ -97,7 +99,7 @@ export default function ScreenWrapper({
             style={{
               flex: 1,
               paddingTop: paddingTop,
-              paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
             }}
           >
             <View className={`flex-1 relative ${className}`}>
@@ -110,7 +112,7 @@ export default function ScreenWrapper({
             style={{
               flex: 1,
               paddingTop: paddingTop,
-              paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
             }}
           >
             <View className={`flex-1 relative ${className}`}>
