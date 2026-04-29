@@ -21,10 +21,12 @@ import {
 import {
   Star, MoreHorizontal, Pencil, Trash2,
   MapPin, BedDouble, Bath, Expand, Users,
+  FileText
 } from "lucide-react";
 
 import { createBrowserClient } from "@repo/supabase";
 import ApartmentImagesModal from "./ApartmentImagesModal";
+import LeaseAgreementModal from "./LeaseAgreementModal";
 
 import { PERKS } from "../../../components/inputs/perks";
 import AmenitiesSelect from "@/app/components/inputs/AmenitiesSelect";
@@ -71,6 +73,7 @@ export type Property = {
   longitude:      number | null;
   amenities:      string[];
   thumbnail:      string;
+  lease_agreement_url?: string | null;
 };
 
 type Props = {
@@ -114,6 +117,10 @@ export default function PropertiesTable({ properties: initial }: Props) {
   // For Modal in Editing Images
   const [imagesModalOpen, setImagesModalOpen] = useState(false);
   const [apartmentImages, setApartmentImages] = useState<ApartmentImage[]>([]);
+
+  // For Modal in Editing Lease Agreement
+  const [leaseModalOpen, setLeaseModalOpen] = useState(false);
+  const [viewingLease, setViewingLease] = useState(false);
 
   
   // Sheet Handlers
@@ -161,7 +168,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
         lease_duration: form.lease_duration ?? undefined,
         latitude:       form.latitude ?? undefined,
         longitude:      form.longitude ?? undefined,
-        amenities: form.amenities ?? undefined,
+        amenities:      form.amenities ?? undefined,
       })
       .eq("id", selected.id);
 
@@ -206,6 +213,34 @@ export default function PropertiesTable({ properties: initial }: Props) {
     );
     setImagesModalOpen(true);
   }
+
+  const handleViewLease = async () => {
+    if (!selected?.lease_agreement_url) return;
+    setViewingLease(true);
+    try {
+      const supabase = createBrowserClient();
+      const { data: signed, error } = await supabase.storage
+        .from('lease-agreements')
+        .createSignedUrl(selected.lease_agreement_url, 60 * 60);
+
+      if (error) throw error;
+
+      if (signed?.signedUrl) {
+        const isPdf = selected.lease_agreement_url.toLowerCase().endsWith('.pdf');
+        
+        const leaseUrl = isPdf
+          ? signed.signedUrl 
+          : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(signed.signedUrl)}`;
+        
+        window.open(leaseUrl, '_blank');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to view lease agreement");
+    } finally {
+      setViewingLease(false);
+    }
+  };
 
   
   // Empty State of the Table
@@ -326,7 +361,7 @@ export default function PropertiesTable({ properties: initial }: Props) {
           style={{ width: "600px", maxWidth: "none" }}
           className="overflow-y-auto flex flex-col gap-0 p-0 z-50"
           onPointerDownOutside={(e) => {
-            if (imagesModalOpen) {
+            if (imagesModalOpen || leaseModalOpen) {
               e.preventDefault();
             }
           }}
@@ -457,6 +492,36 @@ export default function PropertiesTable({ properties: initial }: Props) {
                         </div>
                       </section>
                     )}
+
+                    <section>
+                      <SectionTitle>Lease Agreement</SectionTitle>
+                      {selected.lease_agreement_url ? (
+                        <div className="flex gap-2">
+                          <Button 
+                            className="flex-1" 
+                            variant="flat" 
+                            color="default" 
+                            onPress={handleViewLease}
+                            isLoading={viewingLease}
+                          >
+                            <FileText size={16} /> View Document
+                          </Button>
+                          <Button 
+                            isIconOnly 
+                            variant="flat" 
+                            color="default" 
+                            onPress={() => setLeaseModalOpen(true)}
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center text-sm text-muted-foreground p-3 border border-dashed rounded-lg">
+                          <p>No lease agreement uploaded</p>
+                          <Button size="sm" variant="flat" onPress={() => setLeaseModalOpen(true)}>Upload</Button>
+                        </div>
+                      )}
+                    </section>
 
                     {/* Button to trigger Modal for Editing Images*/}
                     <Button
@@ -634,6 +699,22 @@ export default function PropertiesTable({ properties: initial }: Props) {
               );
               setSelected((prev) => prev ? { ...prev, thumbnail: newCover } : prev);
             }
+          }}
+        />
+      )}
+
+      {/* Modal for Editing Lease Agreement */}
+      {selected && (
+        <LeaseAgreementModal
+          isOpen={leaseModalOpen}
+          onClose={() => setLeaseModalOpen(false)}
+          apartmentId={selected.id}
+          currentUrl={selected.lease_agreement_url}
+          onUpdated={(newUrl) => {
+            setProperties((prev) =>
+              prev.map((p) => p.id === selected.id ? { ...p, lease_agreement_url: newUrl } : p)
+            );
+            setSelected((prev) => prev ? { ...prev, lease_agreement_url: newUrl } : prev);
           }}
         />
       )}
