@@ -23,6 +23,8 @@ export type ApartmentDetails = {
   furnished_type: string | null;
   lease_duration: string | null;
   max_occupants: number | null;
+  security_deposit: number | null;
+  advance_rent: number | null;
   landlord: {
     id: string;
     first_name: string;
@@ -88,6 +90,8 @@ export function useApartmentDetails(apartmentId: string) {
           furnished_type,
           lease_duration,
           max_occupants,
+          security_deposit,
+          advance_rent,
           landlord:landlord_id (
             id,
             first_name,
