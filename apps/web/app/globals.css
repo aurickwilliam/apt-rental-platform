@@ -5,6 +5,13 @@
 @source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
+/* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
+body[data-scroll-locked] [data-slot="popover"],
+body[data-scroll-locked] [role="listbox"],
+body[data-scroll-locked] [role="option"] {
+  pointer-events: auto !important;
+}
+
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-poppins: var(--font-poppins), ui-sans-serif, sans-serif;

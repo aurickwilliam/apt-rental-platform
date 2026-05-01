@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from 'components/display/ApplicationHeader'
 import UploadImageField from 'components/inputs/UploadImageField'
-import UploadGeneralFile from 'components/inputs/UploadGeneralFileField'
+import UploadGeneralFile from '@/components/inputs/UploadFileField'
 import PillButton from 'components/buttons/PillButton'
 
 import { COLORS } from '@repo/constants'

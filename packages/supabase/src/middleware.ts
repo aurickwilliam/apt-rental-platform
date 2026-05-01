@@ -3,7 +3,19 @@ import type { CookieOptions } from "@supabase/ssr/dist/main/types";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./types";
 
+const ROLE_ROUTES: Record<string, string[]> = {
+  tenant: ["/tenant"],
+  landlord: ["/landlord"],
+  admin: ["/admin"],
+};
+
+const PROTECTED_ROUTES = Object.values(ROLE_ROUTES).flat();
+
 export async function updateSession(request: NextRequest) {
+  if (request.headers.get("next-action") !== null) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -87,6 +99,32 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
+  }
+
+  // Role-based protection
+  const isProtected = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  if (user && isProtected) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    const role = profile?.role as string;
+    const ownRoutes = ROLE_ROUTES[role];
+
+    const isWrongRoute = PROTECTED_ROUTES.some(
+      (route) => !ownRoutes.includes(route) && pathname.startsWith(route),
+    );
+
+    if (isWrongRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = ownRoutes[0] ?? "/"; // redirect to their first/main route
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

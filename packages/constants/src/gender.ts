@@ -1,4 +1,4 @@
-export const GENDER: string[] = [
+export const GENDERS: string[] = [
   "Male",
   "Female",
   "Other",

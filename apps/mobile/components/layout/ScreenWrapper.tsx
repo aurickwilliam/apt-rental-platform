@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import {
   View,
   Platform,
+  RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
@@ -19,7 +20,18 @@ interface ScreenWrapperProps {
   scrollable?: boolean;
   bottomPadding?: number;
   noTopPadding?: boolean;
+  noBottomPadding?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  dismissKeyboardOnTouch?: boolean;
 }
+
+// This wraps the content so tapping empty space closes the keyboard
+const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    {children}
+  </TouchableWithoutFeedback>
+);
 
 export default function ScreenWrapper({
   children,
@@ -30,17 +42,14 @@ export default function ScreenWrapper({
   scrollable = false,
   bottomPadding = 0,
   noTopPadding = false,
+  noBottomPadding = false,
+  refreshing = false,
+  onRefresh,
+  dismissKeyboardOnTouch = true,
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
 
   const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
-
-  // This wraps the content so tapping empty space closes the keyboard
-  const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      {children}
-    </TouchableWithoutFeedback>
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
@@ -54,26 +63,43 @@ export default function ScreenWrapper({
           extraScrollHeight={Platform.OS === "ios" ? 50 : 80}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={COLORS.primary}
+                colors={[COLORS.primary]}
+              />
+            ) : undefined
+          }
 
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: paddingTop,
-            paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+            paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
           }}
         >
-          <WrapWithDismiss>
+          {dismissKeyboardOnTouch ? (
+            <WrapWithDismiss>
+              <View className={`flex-1 relative ${className}`}>
+                {children}
+              </View>
+            </WrapWithDismiss>
+          ) : (
             <View className={`flex-1 relative ${className}`}>
               {children}
             </View>
-          </WrapWithDismiss>
+          )}
         </KeyboardAwareScrollView>
       ) : (
+        dismissKeyboardOnTouch ? (
         <WrapWithDismiss>
           <View
             style={{
               flex: 1,
               paddingTop: paddingTop,
-              paddingBottom: footer ? 0 : bottomPadding + (insets.bottom),
+              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
             }}
           >
             <View className={`flex-1 relative ${className}`}>
@@ -81,6 +107,19 @@ export default function ScreenWrapper({
             </View>
           </View>
         </WrapWithDismiss>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              paddingTop: paddingTop,
+              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+            }}
+          >
+            <View className={`flex-1 relative ${className}`}>
+              {children}
+            </View>
+          </View>
+        )
       )}
 
       {footer && (

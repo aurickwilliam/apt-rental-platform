@@ -1,45 +1,43 @@
-import { Image, TouchableOpacity } from 'react-native'
-import { useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
-import ImageViewing from 'react-native-image-viewing';
-
+import { useState } from 'react'
+import { View, ActivityIndicator } from 'react-native'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { WebView } from 'react-native-webview'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
-import { SAMPLE_IMAGES } from 'constants/images'
+import { COLORS } from '@repo/constants'
 
 export default function ViewLease() {
-  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const router = useRouter()
+  const { fileUrl } = useLocalSearchParams<{
+    fileUrl: string
+  }>()
 
-  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true)
 
-  const leaseAgreementImage = SAMPLE_IMAGES.sampleLeaseAgreement || {uri: ''};
+  // Google Docs Viewer handles both PDF and DOCX
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`
 
   return (
     <ScreenWrapper
       header={
-        <StandardHeader title="Lease Agreement" />
-      }
-      className='p-5 items-center justify-center'
-    >
-      <TouchableOpacity
-        activeOpacity={0.7}
-        className='w-full h-[80%] border border-grey-300 rounded-2xl'
-        onPress={() => setIsVisible(true)}
-      >
-        <Image
-          source={leaseAgreementImage}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode='contain'
+        <StandardHeader
+          title="Lease Agreement"
+          onBackPress={() => router.back()}
         />
-      </TouchableOpacity>
-
-      <ImageViewing
-        images={[leaseAgreementImage]}
-        imageIndex={0}
-        visible={isVisible}
-        onRequestClose={() => setIsVisible(false)}
+      }
+    >
+      {loading && (
+        <View className="absolute inset-0 items-center justify-center z-10">
+          <ActivityIndicator color={COLORS.primary} />
+        </View>
+      )}
+      
+      <WebView
+        source={{ uri: viewerUrl }}
+        onLoadEnd={() => setLoading(false)}
+        className="flex-1"
       />
     </ScreenWrapper>
   )

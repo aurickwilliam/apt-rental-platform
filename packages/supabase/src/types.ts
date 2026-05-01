@@ -14,16 +14,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      apartment_images: {
+        Row: {
+          apartment_id: string | null
+          created_at: string | null
+          id: string
+          is_cover: boolean | null
+          url: string
+        }
+        Insert: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url: string
+        }
+        Update: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apartment_images_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apartments: {
         Row: {
-          address: string
+          advance_rent: number | null
+          amenities: string[] | null
           area_sqm: number
           average_rating: number | null
           barangay: string
           city: string
           created_at: string
+          deleted_at: string | null
           description: string
+          floor_level: string | null
+          furnished_type: string | null
           id: string
+          landlord_id: string | null
+          latitude: number | null
+          lease_agreement_url: string | null
+          lease_duration: string | null
+          longitude: number | null
+          max_occupants: number | null
           monthly_rent: number
           name: string
           no_bathrooms: number
@@ -31,19 +73,32 @@ export type Database = {
           no_favorites: number | null
           no_ratings: number | null
           province: string
+          security_deposit: number | null
           status: string
+          street_address: string
           type: string
           updated_at: string | null
+          zip_code: number | null
         }
         Insert: {
-          address: string
+          advance_rent?: number | null
+          amenities?: string[] | null
           area_sqm: number
           average_rating?: number | null
           barangay: string
           city: string
           created_at?: string
+          deleted_at?: string | null
           description: string
+          floor_level?: string | null
+          furnished_type?: string | null
           id?: string
+          landlord_id?: string | null
+          latitude?: number | null
+          lease_agreement_url?: string | null
+          lease_duration?: string | null
+          longitude?: number | null
+          max_occupants?: number | null
           monthly_rent: number
           name: string
           no_bathrooms: number
@@ -51,19 +106,32 @@ export type Database = {
           no_favorites?: number | null
           no_ratings?: number | null
           province: string
+          security_deposit?: number | null
           status?: string
+          street_address: string
           type: string
           updated_at?: string | null
+          zip_code?: number | null
         }
         Update: {
-          address?: string
+          advance_rent?: number | null
+          amenities?: string[] | null
           area_sqm?: number
           average_rating?: number | null
           barangay?: string
           city?: string
           created_at?: string
+          deleted_at?: string | null
           description?: string
+          floor_level?: string | null
+          furnished_type?: string | null
           id?: string
+          landlord_id?: string | null
+          latitude?: number | null
+          lease_agreement_url?: string | null
+          lease_duration?: string | null
+          longitude?: number | null
+          max_occupants?: number | null
           monthly_rent?: number
           name?: string
           no_bathrooms?: number
@@ -71,98 +139,216 @@ export type Database = {
           no_favorites?: number | null
           no_ratings?: number | null
           province?: string
+          security_deposit?: number | null
           status?: string
+          street_address?: string
           type?: string
           updated_at?: string | null
+          zip_code?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "apartments_landlord_id_fkey1"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat: {
         Row: {
+          apartment_id: string | null
           created_at: string
           id: string
+          is_read: boolean
           message: string
-          time_stamp: string
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
           updated_at: string | null
         }
         Insert: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
+          is_read?: boolean
           message: string
-          time_stamp?: string
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
           updated_at?: string | null
         }
         Update: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
+          is_read?: boolean
           message?: string
-          time_stamp?: string
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_request: {
         Row: {
+          apartment_id: string | null
           category: string
           created_at: string
           id: string
+          image_urls: string[] | null
           message: string
+          resolved_at: string | null
+          status: string
+          tenant_id: string | null
           title: string
           updated_at: string | null
           urgency: string
         }
         Insert: {
+          apartment_id?: string | null
           category: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           message: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string | null
           title: string
           updated_at?: string | null
           urgency: string
         }
         Update: {
+          apartment_id?: string | null
           category?: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           message?: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string | null
           title?: string
           updated_at?: string | null
           urgency?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_request_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_request_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment: {
         Row: {
           amount: number | null
+          apartment_id: string | null
           created_at: string
           date: string
+          due_date: string | null
           id: string
           method: string
+          period_end: string | null
+          period_start: string | null
+          proof_url: string | null
           reference_no: number
           status: string
+          tenancy_id: string | null
+          tenant_id: string | null
           updated_at: string | null
         }
         Insert: {
           amount?: number | null
+          apartment_id?: string | null
           created_at?: string
           date: string
+          due_date?: string | null
           id?: string
           method: string
+          period_end?: string | null
+          period_start?: string | null
+          proof_url?: string | null
           reference_no: number
           status?: string
+          tenancy_id?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Update: {
           amount?: number | null
+          apartment_id?: string | null
           created_at?: string
           date?: string
+          due_date?: string | null
           id?: string
           method?: string
+          period_end?: string | null
+          period_start?: string | null
+          proof_url?: string | null
           reference_no?: number
           status?: string
+          tenancy_id?: string | null
+          tenant_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "tenancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rental_application: {
         Row: {
@@ -227,61 +413,188 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          apartment_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          stayed_date: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          apartment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          stayed_date?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          apartment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          stayed_date?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenancies: {
+        Row: {
+          advance_rent: number | null
+          apartment_id: string
+          created_at: string
+          id: string
+          landlord_id: string | null
+          monthly_rent: number | null
+          move_in_date: string
+          move_out_date: string | null
+          notes: string | null
+          security_deposit: number | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          advance_rent?: number | null
+          apartment_id: string
+          created_at?: string
+          id?: string
+          landlord_id?: string | null
+          monthly_rent?: number | null
+          move_in_date: string
+          move_out_date?: string | null
+          notes?: string | null
+          security_deposit?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          advance_rent?: number | null
+          apartment_id?: string
+          created_at?: string
+          id?: string
+          landlord_id?: string | null
+          monthly_rent?: number | null
+          move_in_date?: string
+          move_out_date?: string | null
+          notes?: string | null
+          security_deposit?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenancies_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancies_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_status: string
-          age: number
-          barangay: string
-          birth_date: string
-          city: string
+          age: number | null
+          avatar_url: string | null
+          background_url: string | null
+          barangay: string | null
+          birth_date: string | null
+          city: string | null
           created_at: string
-          first_name: string
+          email: string | null
+          first_name: string | null
+          gender: string | null
           id: string
-          last_name: string
+          last_name: string | null
           middle_name: string | null
-          mobile_number: string
+          mobile_number: string | null
           postal_code: number | null
-          province: string
+          province: string | null
           role: string
-          street_address: string
+          street_address: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           account_status?: string
-          age: number
-          barangay: string
-          birth_date: string
-          city: string
+          age?: number | null
+          avatar_url?: string | null
+          background_url?: string | null
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
           created_at?: string
-          first_name: string
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
           id?: string
-          last_name: string
+          last_name?: string | null
           middle_name?: string | null
-          mobile_number: string
+          mobile_number?: string | null
           postal_code?: number | null
-          province: string
+          province?: string | null
           role?: string
-          street_address: string
+          street_address?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Update: {
           account_status?: string
-          age?: number
-          barangay?: string
-          birth_date?: string
-          city?: string
+          age?: number | null
+          avatar_url?: string | null
+          background_url?: string | null
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
           created_at?: string
-          first_name?: string
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
           id?: string
-          last_name?: string
+          last_name?: string | null
           middle_name?: string | null
-          mobile_number?: string
+          mobile_number?: string | null
           postal_code?: number | null
-          province?: string
+          province?: string | null
           role?: string
-          street_address?: string
+          street_address?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -289,40 +602,79 @@ export type Database = {
       }
       visit_request: {
         Row: {
+          apartment_id: string | null
           created_at: string
           id: string
           no_visitors: number
           notes: string | null
+          status: string
+          tenant_id: string | null
           time: string
           updated_at: string | null
           visit_date: string
         }
         Insert: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
           no_visitors: number
           notes?: string | null
+          status?: string
+          tenant_id?: string | null
           time: string
           updated_at?: string | null
           visit_date: string
         }
         Update: {
+          apartment_id?: string | null
           created_at?: string
           id?: string
           no_visitors?: number
           notes?: string | null
+          status?: string
+          tenant_id?: string | null
           time?: string
           updated_at?: string | null
           visit_date?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "visit_request_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_request_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_conversations: {
+        Args: { p_user_id: string }
+        Returns: {
+          apartment_id: string
+          apartment_name: string
+          conversation_key: string
+          conversation_type: string
+          last_message: string
+          last_message_time: string
+          other_user_avatar: string
+          other_user_id: string
+          other_user_name: string
+          other_user_phone: string
+          unread_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

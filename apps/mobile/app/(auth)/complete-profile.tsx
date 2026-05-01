@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS , PROVINCES , GENDER } from '@repo/constants';
+import { COLORS , PROVINCES , GENDERS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import TextField from 'components/inputs/TextField';
@@ -13,6 +13,8 @@ import DateTimeField from 'components/inputs/DateTimeField';
 import DropdownField from 'components/inputs/DropdownField';
 
 import { usePasswordValidation, usePHPostalCode } from '@repo/hooks';
+
+import { useRegistrationStore } from '@/store/useRegistrationStore';
 
 type ProfileForm = {
   email: string;
@@ -48,6 +50,8 @@ export default function CompleteProfile() {
   const router = useRouter();
   const { email, userSide } = useLocalSearchParams();
 
+  const { setData, reset } = useRegistrationStore();
+
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
 
@@ -80,7 +84,7 @@ export default function CompleteProfile() {
   } = usePasswordValidation();
 
   // Postal code hook
-  const { 
+  const {
     value: postalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
@@ -120,23 +124,23 @@ export default function CompleteProfile() {
 
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
-    if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) {
-      return;
-    }
-    
-    const formData = {
-      ...profileForm,
-      postalCode, 
-      password, 
-      confirmPassword,
-    }
-    
-    // Print form data to console (for testing purposes)
-    Object.entries(formData).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`);
+    if (!isPasswordValid || emptyFields.length > 0 || !isPostalCodeValidOnSubmit) return;
+
+    const { confirmPassword, ...rest } = profileForm; // exclude confirmPassword
+
+    setData({
+      ...rest,
+      postalCode,
+      password,
+      userSide: userSide as 'tenant' | 'landlord',
     });
 
     router.push('/(auth)/verify-mobile');
+  }
+
+  const handleBackToSignUp = () => {
+    reset();
+    router.replace('/sign-up');
   }
 
   return (
@@ -146,7 +150,7 @@ export default function CompleteProfile() {
     >
 
       {/* Back button */}
-      <Pressable className="mb-3" onPress={router.back}>
+      <Pressable className="mb-3" onPress={handleBackToSignUp}>
         <Ionicons name="close" size={30} color={COLORS.text} />
       </Pressable>
 
@@ -195,7 +199,7 @@ export default function CompleteProfile() {
           label="Gender:"
           bottomSheetLabel="Select your gender"
           placeholder="Select your gender"
-          options={GENDER}
+          options={GENDERS}
           value={profileForm.gender}
           onSelect={(value) => updateField('gender', value)}
           required
@@ -255,7 +259,7 @@ export default function CompleteProfile() {
           }}
           onBlur={handlePostalCodeBlur}
           required
-          error={getError('postalCode')} 
+          error={getError('postalCode')}
         />
 
         {/* Date of Birth Field */}
@@ -279,7 +283,7 @@ export default function CompleteProfile() {
           required
           value={password}
           onChangeText={(value) => {
-            setPassword(value); 
+            setPassword(value);
             updateField('password', value);
           }}
           error={getError('password')}

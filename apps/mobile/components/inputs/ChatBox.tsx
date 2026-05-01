@@ -2,10 +2,7 @@ import { View, TextInput, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
 
 import { COLORS } from '@repo/constants';
-
-import {
-  IconArrowUp
-} from '@tabler/icons-react-native';
+import { IconArrowUp } from '@tabler/icons-react-native';
 
 interface ChatBoxProps {
   chatValue: string;
@@ -13,6 +10,8 @@ interface ChatBoxProps {
   isDisabled?: boolean;
   chatPlaceholder?: string;
   onSendPress?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export default function ChatBox({
@@ -21,13 +20,13 @@ export default function ChatBox({
   isDisabled = false,
   chatPlaceholder = "Type a message...",
   onSendPress,
+  onFocus,
+  onBlur,
 }: ChatBoxProps) {
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
   const borderColor = isFocused ? 'border-primary' : 'border-grey-300';
-
-  // TODO: Multiple lines for the Text Input
 
   return (
     <View className={`px-5 flex-row items-center justify-between gap-3`}>
@@ -37,40 +36,34 @@ export default function ChatBox({
           numberOfLines={1}
           editable={!isDisabled}
           onChangeText={onChatValueChange}
-  
           style={{
             flex: 1,
             height: '100%',
             paddingVertical: 0,
             color: isDisabled ? COLORS.mediumGrey : COLORS.text,
-  
             fontFamily: 'Inter_24pt-Regular',
             fontSize: 16,
             lineHeight: 20,
           }}
           placeholder={chatPlaceholder}
           placeholderTextColor={COLORS.grey}
-  
           onFocus={() => {
             setIsFocused(true);
+            onFocus?.();
           }}
-          // When the user taps out of the input field
           onBlur={() => {
             setIsFocused(false);
+            onBlur?.();
           }}
         />
       </View>
 
-      {/* Send Button */}
       <TouchableOpacity 
         activeOpacity={0.7}
         onPress={onSendPress}
         className='bg-secondary p-4 rounded-full'
       >
-        <IconArrowUp 
-        size={26} 
-        color={COLORS.white} 
-      />
+        <IconArrowUp size={26} color={COLORS.white} />
       </TouchableOpacity>
     </View>
   )

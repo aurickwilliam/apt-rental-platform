@@ -44,8 +44,8 @@ export default function StepFive() {
     listOfVehicles: [], 
   });
 
-  // Number of Vehicles options for parking can be generated from 1 to 10
-  const parkingOptions = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
+  // Number of Vehicles options for parking can be generated from 0 to 5
+  const parkingOptions = Array.from({ length: 6 }, (_, i) => `${i}`);
 
   // Function to update rental preferences
   const updateRentalPreference = (key: keyof rentalPreferenceType, value: any) => {
@@ -56,7 +56,7 @@ export default function StepFive() {
   }
 
   const handleNext = () => {
-    router.replace("/home");
+    router.replace("/(tabs)/(tenant)/rentals");
   };
 
   const toggleVehicle = (vehicle: string) => {

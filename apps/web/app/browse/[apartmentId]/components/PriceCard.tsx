@@ -5,18 +5,36 @@ import {
   CardBody,
   CardHeader,
   CardFooter,
-  Button
+  Button,
+  Divider
 } from "@heroui/react";
 
 import { Flag } from "lucide-react";
 
+import { formatCurrency } from "@repo/utils";
+
 interface PriceCardProps {
   price: number;
+  securityDeposit: number | undefined;
+  advancePayment: number | undefined;
 }
 
 export default function PriceCard({
   price,
+  securityDeposit = 0,
+  advancePayment = 0,
 }: PriceCardProps) {
+
+  const formattedPrice = formatCurrency(price);
+
+  const totalMoveInCost = price + securityDeposit + advancePayment;
+
+  const costBreakdown = [
+    { label: "Monthly Rent", value: `₱ ${formattedPrice}` },
+    { label: "Security Deposit", value: `₱ ${formatCurrency(securityDeposit)}` },
+    { label: "Advance Payment", value: `₱ ${formatCurrency(advancePayment)}` },
+  ]
+
   return (
     <Card
       shadow="none"
@@ -26,22 +44,25 @@ export default function PriceCard({
     >
       <CardHeader>
         <h2 className="text-3xl font-noto-serif font-medium text-primary">
-          ₱ {price}<span className="text-xl">/month</span>
+          ₱ {formattedPrice}<span className="text-xl">/month</span>
         </h2>
       </CardHeader>
 
       <CardBody>
         <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-lg">
-          {[
-              { label: "2 Months Security Deposit", value: "₱ 20,000" },
-              { label: "1 Month Advance", value: "₱ 10,000" },
-              { label: "Association Dues", value: "₱ 2,500" },
-            ].map(({ label, value }) => (
+          {costBreakdown.map(({ label, value }) => (
               <div key={label} className="flex justify-between text-sm">
                 <span className="text-grey-500">{label}</span>
                 <span className="font-medium">{value}</span>
               </div>
             ))}
+
+          <Divider />
+
+          <div className="flex justify-between text-sm">
+            <span className="font-medium">Total Move-in Cost:</span>
+            <span className="font-medium">₱ {formatCurrency(totalMoveInCost)}</span>
+          </div>
         </div>
       </CardBody>
 

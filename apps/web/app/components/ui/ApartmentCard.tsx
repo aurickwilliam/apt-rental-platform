@@ -9,8 +9,9 @@ import {
   Heart,
 } from "lucide-react"
 
+import { formatCurrency } from "@repo/utils";
+
 interface ApartmentCardProps {
-  id: string;
   name: string;
   location: string;
   price: number;
@@ -20,7 +21,6 @@ interface ApartmentCardProps {
 }
 
 export default function ApartmentCard({
-  id,
   name,
   location,
   price,
@@ -31,13 +31,13 @@ export default function ApartmentCard({
 
   return (
     <Card
-      className="bg-white rounded-xl shadow-sm overflow-hidden w-56 relative"
+      className="bg-white rounded-xl shadow-sm overflow-hidden w-56 h-full relative"
       isPressable
       onPress={onPress}
     >
       <CardBody className="p-0">
         <Image
-          src={'/default/default-thumbnail.jpeg'}
+          src={thumbnailUrl}
           alt="Apartment Thumbnail"
           width={300}
           height={200}
@@ -45,7 +45,7 @@ export default function ApartmentCard({
         />
 
         <div className="p-2">
-          <h3 className="text-base font-semibold">
+          <h3 className="text-base font-semibold truncate">
             {name}
           </h3>
 
@@ -59,7 +59,7 @@ export default function ApartmentCard({
 
       <CardFooter className="p-2 flex justify-between items-center">
         <p className="text-base font-medium text-primary">
-          ₱ {price}
+          ₱ {formatCurrency(price)}
         </p>
 
         <div className="flex items-center gap-1">
