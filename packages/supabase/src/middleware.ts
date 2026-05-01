@@ -1,18 +1,20 @@
-import { createServerClient } from '@supabase/ssr';
-import type { CookieOptions } from '@supabase/ssr/dist/main/types';
-import { NextResponse, type NextRequest } from 'next/server';
-import type { Database } from './types';
+import { createServerClient } from "@supabase/ssr";
+import type { CookieOptions } from "@supabase/ssr/dist/main/types";
+import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "./types";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.');
+    console.warn(
+      "Supabase URL or Anon Key is missing. Please check your environment variables.",
+    );
     return supabaseResponse;
   }
 
@@ -21,15 +23,17 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+      setAll(
+        cookiesToSet: { name: string; value: string; options: CookieOptions }[],
+      ) {
         cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
+          request.cookies.set(name, value),
         );
         supabaseResponse = NextResponse.next({
           request,
         });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          supabaseResponse.cookies.set(name, value, options),
         );
       },
     },
@@ -43,33 +47,45 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Pages that anyone can access without logging in
-  const publicRoutes = ['/', '/browse', '/sign-in', '/sign-up', '/sign-up-form', '/auth/callback'];
+  const publicRoutes = [
+    "/",
+    "/browse",
+    "/sign-in",
+    "/sign-up",
+    "/sign-up-form",
+    "/auth/callback",
+    "/about",
+    "/community",
+    "/company",
+    "/careers",
+    "/help",
+    "/contact",
+    "/safety",
+    "/faq",
+  ];
 
   // Pages that logged-in users should be redirected away from
-  const authRoutes = ['/sign-in', '/sign-up', '/sign-up-form'];
+  const authRoutes = ["/sign-in", "/sign-up", "/sign-up-form"];
 
   const pathname = request.nextUrl.pathname;
 
   const isPublicRoute = publicRoutes.some((route) =>
-    route === '/' ? pathname === '/' : pathname.startsWith(route)
+    route === "/" ? pathname === "/" : pathname.startsWith(route),
   );
 
   // If the user is not signed in and trying to access a non-public route,
   // redirect them to the sign-in page
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/sign-in';
+    url.pathname = "/sign-in";
     return NextResponse.redirect(url);
   }
 
   // If the user is signed in and trying to access auth routes,
   // redirect them to the home page
-  if (
-    user &&
-    authRoutes.some((route) => pathname.startsWith(route))
-  ) {
+  if (user && authRoutes.some((route) => pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
