@@ -66,6 +66,14 @@ export async function updateSession(request: NextRequest) {
     "/sign-up",
     "/sign-up-form",
     "/auth/callback",
+    "/about",
+    "/community",
+    "/company",
+    "/careers",
+    "/help",
+    "/contact",
+    "/safety",
+    "/faq",
   ];
 
   // Pages that logged-in users should be redirected away from
