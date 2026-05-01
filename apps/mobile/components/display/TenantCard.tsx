@@ -13,7 +13,7 @@ interface TenantCardProps {
   fullName: string;
   email: string;
   phoneNumber: string;
-  profilePictureUrl: string;
+  profilePictureUrl: string | undefined;
   onPress: () => void;
   leaseStartMonthYear: string;
   leaseEndMonthYear: string;

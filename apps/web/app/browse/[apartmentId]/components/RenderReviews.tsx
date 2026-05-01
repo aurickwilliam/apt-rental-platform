@@ -1,31 +1,52 @@
+import { createClient } from '@repo/supabase/server';
 import ReviewCard from "./ReviewCard";
 
-export default function RenderReviews() {
+interface RenderReviewsProps {
+  apartmentId: string;
+}
+
+export default async function RenderReviews({ apartmentId }: RenderReviewsProps) {
+  const supabase = await createClient();
+
+  const { data: reviews, error } = await supabase
+    .from('reviews')
+    .select(`
+      id,
+      rating,
+      comment,
+      stayed_date,
+      created_at,
+      users(first_name, last_name, avatar_url)
+    `)
+    .eq('apartment_id', apartmentId)
+    .order('created_at', { ascending: false });
+
+  if (error) console.error(error);
+  if (!reviews || reviews.length === 0) return <p className="text-sm text-gray-500">No reviews yet.</p>;
+
   return (
     <div className="grid grid-cols-2 gap-5">
-        <ReviewCard
-          reviewerName="John Doe"
-          reviewerAvatar=""
-          reviewDate="March 15, 2024"
-          reviewText="Great apartment! Clean, spacious, and in a fantastic location. The host was very responsive and helpful. Would definitely stay here again!"
-          stayPeriod="Stayed in February 2024"
-        />
+      {reviews.map((review) => {
+        const user = Array.isArray(review.users) ? review.users[0] : review.users;
+        const reviewDate = review.created_at
+          ? new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : '';
 
-        <ReviewCard
-          reviewerName="Jane Smith"
-          reviewerAvatar=""
-          reviewDate="April 10, 2024"
-          reviewText="The apartment was decent but had some issues with the plumbing. The location was good, but the noise from the street was a bit bothersome at night."
-          stayPeriod="Stayed in March 2024"
-        />
+        const stayPeriod = review.stayed_date
+          ? `Stayed in ${new Date(review.stayed_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}`
+          : '';
 
-        <ReviewCard
-          reviewerName="Alice Johnson"
-          reviewerAvatar=""
-          reviewDate="May 5, 2024"
-          reviewText="I had a wonderful stay! The apartment was beautifully decorated and had all the amenities I needed. The host went above and beyond to make sure I was comfortable."
-          stayPeriod="Stayed in April 2024"
-        />
+        return (
+          <ReviewCard
+            key={review.id}
+            reviewerName={`${user?.first_name} ${user?.last_name}`}
+            reviewerAvatar={user?.avatar_url ?? ''}
+            reviewDate={reviewDate}
+            reviewText={review.comment ?? ''}
+            stayPeriod={stayPeriod}
+          />
+        );
+      })}
     </div>
   );
 }

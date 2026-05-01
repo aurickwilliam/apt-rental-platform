@@ -1,7 +1,10 @@
 import ApartmentCarousel from "./components/ApartmentCarousel";
 import DiscoverNowBtn from "./components/DiscoverNowBtn";
+import HeroSection from "./components/HeroSection";
 
 import { Divider } from "@heroui/react";
+
+import { redirect } from "next/navigation";
 
 import {
   KeyRound,
@@ -12,9 +15,58 @@ import {
   FileCheckCorner,
   BanknoteArrowUp,
 } from "lucide-react";
-import HeroSection from "./components/HeroSection";
 
-export default function Home() {
+import { createClient } from '@repo/supabase/server';
+
+export default async function Home() {
+  const supabase = await createClient();
+
+  // Redirect immediately the user to their respective dashboard
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    // Fetch the user's role from your profile/users table
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    // Redirect based on role
+    switch (profile?.role) {
+      case 'tenant':
+        redirect('/tenant/my-rental');
+      case 'landlord':
+        redirect('/landlord/dashboard');
+      case 'admin':
+        redirect('/admin/dashboard');
+    }
+  }
+
+  const { data: apartments, error } = await supabase
+    .from('apartments')
+    .select(`
+      id,
+      name,
+      city,
+      monthly_rent,
+      average_rating,
+      apartment_images(url, is_cover)
+    `)
+    .limit(10)
+    .order('created_at', { ascending: false });
+
+  if (error) console.error(error);
+
+  const mapped = (apartments ?? []).map((apt) => ({
+    id: apt.id,
+    name: apt.name,
+    location: apt.city,
+    price: apt.monthly_rent,
+    rating: apt.average_rating ?? 0,
+    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
+  }));
+
   return (
     <>
       <div className="bg-white min-h-screen">
@@ -94,7 +146,7 @@ export default function Home() {
 
           {/* Featured Apartments */}
           <section className="md:mt-20">
-            <ApartmentCarousel />
+            <ApartmentCarousel apartment={mapped} />
           </section>
 
           <Divider className="my-10" />

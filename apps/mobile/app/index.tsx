@@ -4,33 +4,56 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLORS } from "@repo/constants";
+import { supabase } from "@repo/supabase";
 
-export default function Index() {
+export default function Index() {  
   useEffect(() => {
-    const checkFirstLaunch = async () => {
-      try {
-        const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+    const checkOnboarding = async () => {
+      const hasLaunched = await AsyncStorage.getItem("hasLaunched");
+      if (hasLaunched === null) {
+        await AsyncStorage.setItem("hasLaunched", "true");
+        router.replace("/onboarding");
+        return true; // signal to skip auth check
+      }
+      return false;
+    };
 
-        if (hasLaunched === null) {
-          // First time opening the app
+    const redirectByRole = async (userId: string) => {
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
 
-          // Store the value of hasLaunched to true
-          await AsyncStorage.setItem("hasLaunched", "true");
-          router.replace("/onboarding");
-        } else {
-          // Not first time
-          router.replace("/sign-in");
-        }
-      } catch (error) {
-        console.error("Launch check failed:", error);
-        router.replace("/sign-up");
+      if (userProfile?.role === "landlord") {
+        router.replace("/(tabs)/(landlord)/dashboard");
+      } else {
+        router.replace("/(tabs)/(tenant)/rentals");
       }
     };
 
-    checkFirstLaunch();
+    // Listen to auth state — fires once session is restored from storage
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const wentToOnboarding = await checkOnboarding();
+        if (wentToOnboarding) {
+          subscription.unsubscribe();
+          return;
+        }
+
+        if (!session) {
+          router.replace("/sign-in");
+        } else {
+          await redirectByRole(session.user.id);
+        }
+
+        subscription.unsubscribe();
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Simple loading screen while redirecting
   return (
     <View className="flex-1 justify-center items-center">
       <ActivityIndicator size="large" color={COLORS.primary} />

@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
 import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
+import { checkEmailAvailability } from '../actions/check-email-availability';
 
 import { Form, Input, Link, Button } from '@heroui/react'
 
@@ -16,42 +17,58 @@ const initialState: SignInFormState = {
 export default function AuthForm() {
   const { type, role, email, setEmail } = useAuth();
   const router = useRouter();
+  const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const [state, formAction, isPending] = useActionState(signIn, initialState);
 
-  // If there's an error from the server action, we can display it
-  useEffect(() => {
-    if (state.error) {
-      console.error('Sign-in error:', state.error);
-    }
-  }, [state.error]);
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     if (type === 'sign-up') {
-      // For sign-up, we don't use the server action — just navigate to the sign-up form
       e.preventDefault();
+      setSignUpError(null);
+
       const data = Object.fromEntries(new FormData(e.currentTarget));
-      const emailValue = encodeURIComponent(data.email as string);
+      const rawEmail = (data.email as string | undefined)?.trim() ?? '';
+
+      if (!rawEmail) {
+        setSignUpError('Please enter your email.');
+        return;
+      }
+
+      setCheckingEmail(true);
+
+      const { exists, error } = await checkEmailAvailability(rawEmail);
+
+      setCheckingEmail(false);
+
+      if (error) {
+        setSignUpError(error);
+        return;
+      }
+
+      if (exists) {
+        setSignUpError('This email is already registered. Please sign in instead.');
+        return;
+      }
+
+      const emailValue = encodeURIComponent(rawEmail);
       router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
       return;
     }
-
-    // For sign-in, let the form action handle it (don't prevent default)
-    // The hidden role field will be included in the FormData
   };
 
   return (
     <div>
       {/* Error Message */}
-      {state.error && (
+      {(state.error || signUpError) && (
         <div className="mt-4 p-3 bg-danger-50 border border-danger-200 rounded-lg">
-          <p className="text-sm text-danger">{state.error}</p>
+          <p className="text-sm text-danger">{state.error ?? signUpError}</p>
         </div>
       )}
 
       {/* Form */}
       <Form
-        className={`${state.error ? 'mt-5' : 'mt-16'} flex flex-col gap-5`}
+        className={`${state.error || signUpError ? 'mt-5' : 'mt-16'} flex flex-col gap-5`}
         action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
@@ -68,8 +85,11 @@ export default function AuthForm() {
           type="email"
           variant='bordered'
           value={email}
-          onValueChange={setEmail}
-          isDisabled={isPending}
+          onValueChange={(value) => {
+            setEmail(value);
+            if (signUpError) setSignUpError(null);
+          }}
+          isDisabled={isPending || checkingEmail}
           classNames={{
             inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
           }}
@@ -101,11 +121,11 @@ export default function AuthForm() {
           size='lg'
           radius="full"
           type='submit'
-          isLoading={isPending}
-          isDisabled={isPending}
+          isLoading={isPending || checkingEmail}
+          isDisabled={isPending || checkingEmail}
         >
-          {isPending
-            ? (type === 'sign-up' ? 'Signing Up...' : 'Signing In...')
+          {isPending || checkingEmail
+            ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
             : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
           }
         </Button>

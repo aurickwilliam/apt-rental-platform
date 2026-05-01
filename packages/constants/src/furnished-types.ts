@@ -1,0 +1,1 @@
+export const FURNISHED_TYPES = ["Fully Furnished", "Semi-Furnished", "Unfurnished"];

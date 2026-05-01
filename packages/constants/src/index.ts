@@ -1,5 +1,5 @@
 export { COLORS } from './colors';
-export { GENDER } from './gender';
+export { GENDERS } from './gender';
 export { LANGUAGES } from './languages';
 export { PETS } from './pets';
 export { PROVINCES } from './provinces';
@@ -13,3 +13,7 @@ export { MONTHS } from './months';
 export { YEARS } from './years';
 export { PAYMENT_STATUS } from './payment-status';
 export { VALID_IDS, SECONDARY_IDS } from './valid-ids';
+export { APARTMENT_TYPES } from './apartment-types';
+export { FLOOR_LEVELS } from './floor-level';
+export { LEASE_DURATIONS } from './lease-duration';
+export { FURNISHED_TYPES } from './furnished-types';

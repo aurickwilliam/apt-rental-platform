@@ -1,19 +1,18 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
-
 import { COLORS } from '@repo/constants'
 
 interface PropertyCardProps {
   apartmentName: string
-  address: string
+  barangay: string
   city: string
-  status: 'Available' | 'Occupied' | 'Under Maintenance'
-  thumbnailUrl: string
+  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+  thumbnailUrl: string | undefined
   onPress: () => void
 }
 
 export default function PropertyCard({
   apartmentName,
-  address,
+  barangay,
   city,
   status,
   thumbnailUrl,
@@ -22,50 +21,61 @@ export default function PropertyCard({
 
   const STATUS_STYLES = {
     'Occupied': {
-      backgroundColor: COLORS.lightGreen,
-      color: COLORS.greenHulk,
+      backgroundColor: COLORS.lightGreen,   
+      color: COLORS.greenHulk,              
     },
     'Under Maintenance': {
-      backgroundColor: COLORS.lightLightRedHead,
-      color: COLORS.redHead,
+      backgroundColor: COLORS.lightYellowish,
+      color: COLORS.yellowish,               
     },
     'Available': {
-      backgroundColor: COLORS.lightYellowish,
-      color: COLORS.yellowish,
+      backgroundColor: COLORS.lightBlue,    
+      color: COLORS.primary,                
+    },
+    'Unverified': {
+      backgroundColor: COLORS.lightLightLightGrey, 
+      color: COLORS.grey,                          
     },
   }
 
   return (
     <TouchableOpacity
-      className='bg-white rounded-2xl border border-grey-200 flex-row'
+      className='bg-white rounded-2xl border border-grey-200 flex-row overflow-hidden'
       activeOpacity={0.7}
       onPress={onPress}
     >
       {/* Image */}
-      <View className='overflow-hidden size-32 rounded-2xl'>
-        <Image 
+      <View className='size-32 shrink-0'>
+        <Image
           source={{ uri: thumbnailUrl }}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          style={{ width: '100%', height: '100%' }}
         />
       </View>
 
-      <View className='p-3 flex-1'>
-        <View className='flex-1'> 
-          <Text className='text-text text-lg font-interMedium'>
+      {/* Content */}
+      <View className='p-3 flex-1 min-w-0'>
+        <View className='mb-2'>
+          <Text
+            className='text-lg font-interMedium text-text'
+            numberOfLines={1}
+            ellipsizeMode='tail'
+          >
             {apartmentName}
           </Text>
 
-          <Text className='text-grey-500 text-base font-inter'>
-            {address}, {city}
+          <Text
+            className='text-grey-500 text-base font-inter'
+            numberOfLines={2}
+            ellipsizeMode='tail'
+          >
+            {barangay}, {city}
           </Text>
         </View>
 
         <View
-          className='flex items-center justify-center px-2 py-1 rounded-full self-start'
-          style={{ backgroundColor: STATUS_STYLES[status].backgroundColor }}
+          className='px-2 py-1 rounded-full self-start mt-auto border'
+          style={{ backgroundColor: STATUS_STYLES[status].backgroundColor, borderColor: STATUS_STYLES[status].color }}
+
         >
           <Text
             className='text-sm font-inter'
