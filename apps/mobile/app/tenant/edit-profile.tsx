@@ -11,7 +11,7 @@ import DateTimeField from 'components/inputs/DateTimeField'
 import NumberField from 'components/inputs/NumberField'
 
 import { SAMPLE_IMAGES } from 'constants/images'
-import { COLORS, PROVINCES, GENDER } from '@repo/constants'
+import { COLORS, PROVINCES, GENDERS } from '@repo/constants'
 
 import {
   IconCamera,
@@ -147,7 +147,7 @@ export default function EditProfile() {
         <DropdownField 
           label='Gender:' 
           bottomSheetLabel={'Select Gender'} 
-          options={GENDER} 
+          options={GENDERS} 
           value={currentTenantInfo.gender}
           onSelect={(value) => handleUpdateInfo({ gender: value })}        
         />

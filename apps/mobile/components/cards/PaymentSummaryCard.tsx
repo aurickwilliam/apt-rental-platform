@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 
 import { COLORS } from '@repo/constants';
 
-import StatusPill from './StatusPill';
+import StatusPill from '@/components/display/StatusPill'
 import PillButton from 'components/buttons/PillButton';
 
 interface PaymentSummaryCardProps {

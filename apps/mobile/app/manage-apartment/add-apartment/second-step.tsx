@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from './components/ApplicationHeader'
+import ApplicationHeader from '@/components/display/ApplicationHeader'
 import TextField from '@/components/inputs/TextField'
 import DropdownField from '@/components/inputs/DropdownField'
 import NumberField from '@/components/inputs/NumberField'
@@ -17,7 +17,8 @@ import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native'
 
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
 
-setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
+// Suppress the missing API key warning since we're using free OSM tiles
+setAccessToken(null);
 
 // Field-level error shape
 interface FormErrors {
