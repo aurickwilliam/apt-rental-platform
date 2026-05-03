@@ -10,6 +10,7 @@ import {
 import { Link } from 'expo-router';
 
 import { SLIDES } from '@/app/(auth)/data/onboarding-data';
+import { USER_ROLES } from '@/app/(auth)/data/user-role';
 
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
 import PillButton from 'components/buttons/PillButton';
@@ -49,30 +50,10 @@ export default function OnboardingScreen() {
     }
   };
 
+  // Scroll to the very end of the ScrollView
   const skip = () => {
-    // Scroll to the very end of the ScrollView
     scrollViewRef.current?.scrollToEnd({ animated: true });
   };
-
-  // User Role Buttons Data
-  interface UserRole {
-    label: string,
-    type: 'primary' | 'secondary',
-    userType: 'landlord' | 'tenant',
-  }
-
-  const userRoles: UserRole[] = [
-    {
-      label: "I'm a Landlord",
-      type: 'secondary',
-      userType: 'landlord'
-    },
-    {
-      label: "I'm a Tenant",
-      type: 'primary',
-      userType: 'tenant'
-    },
-  ]
 
   return (
     <View className='flex-1 bg-white'>
@@ -95,7 +76,6 @@ export default function OnboardingScreen() {
             width={width}
           />
         ))}
-
       </ScrollView>
 
       {/* Pagination Dots */}
@@ -159,7 +139,7 @@ export default function OnboardingScreen() {
           ) : (
 
             // Generate User Role Buttons
-            userRoles.map((role) => (
+            USER_ROLES.map((role) => (
               <View key={role.userType} className='flex-1'>
                 <Link
                   href={`/sign-up?userType=${role.userType}`}
@@ -176,7 +156,6 @@ export default function OnboardingScreen() {
                 </Link>
               </View>
             ))
-
           )
         }
       </View>
