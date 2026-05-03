@@ -7,7 +7,7 @@ import { readAsStringAsync } from 'expo-file-system/legacy'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
-import PerkItem from '../../components/PerkItem'
+import PerkItem from 'components/display/PerkItem'
 import PillButton from '@/components/buttons/PillButton'
 
 import {

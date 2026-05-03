@@ -55,7 +55,8 @@ import { formatCurrency } from '@repo/utils';
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 
-setAccessToken(null); // Suppress the missing API key warning since we're using free OSM tiles
+// Suppress the missing API key warning since we're using free OSM tiles
+setAccessToken(null); 
 
 const MAP_STYLE = {
   version: 8,

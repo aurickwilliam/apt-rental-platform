@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import DropdownButton from './components/DropdownButton'
+import DropdownButton from 'components/buttons/DropdownButton'
 import PaymentHistoryBigCard from './components/PaymentHistoryBigCard'
 import MonthDivider from './components/MonthDivider'
 

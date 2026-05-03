@@ -46,7 +46,7 @@ export default function Upload() {
 
       {/* Upload Image Field */}
       <View className='mt-5'>
-        <UploadImageField />
+        {/* <UploadImageField /> */}
       </View>
 
       {/* Verification */}

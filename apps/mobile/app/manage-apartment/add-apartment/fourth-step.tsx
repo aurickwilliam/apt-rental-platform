@@ -3,7 +3,7 @@ import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from './components/ApplicationHeader'
+import ApplicationHeader from '@/components/display/ApplicationHeader'
 import TextBox from '@/components/inputs/TextBox'
 import PillButton from '@/components/buttons/PillButton'
 import PerkButton from '../components/PerkButton'

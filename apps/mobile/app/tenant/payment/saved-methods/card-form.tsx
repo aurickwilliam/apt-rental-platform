@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 
-import DateTimeField from '../components/DateTimeField'
+import DateTimeField from 'components/inputs/DateTimeField'
 import NumberField from '@/components/inputs/NumberField'
 import TextField from '@/components/inputs/TextField'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
