@@ -8,7 +8,7 @@ import {
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from 'components/layout/StandardHeader';
-import ApartmentCard from 'components/display/ApartmentCard';
+import ApartmentCard from 'components/cards/ApartmentCard';
 
 import { COLORS } from "@repo/constants"
 

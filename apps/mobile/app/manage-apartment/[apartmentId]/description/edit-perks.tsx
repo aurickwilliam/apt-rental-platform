@@ -6,7 +6,7 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
-import PerkButton from '@/components/buttons/PerkButton'
+import PerkButton from '../../components/PerkButton'
 import PillButton from '@/components/buttons/PillButton'
 
 import { COLORS } from '@repo/constants'

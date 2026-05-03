@@ -6,7 +6,7 @@ import { useState } from 'react'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import PillButton from '@/components/buttons/PillButton'
-import DocumentCard from '@/components/display/DocumentCard'
+import DocumentCard from './components/DocumentCard'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
 import { COLORS } from '@repo/constants'

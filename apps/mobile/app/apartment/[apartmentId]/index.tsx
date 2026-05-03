@@ -23,8 +23,8 @@ import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@mapl
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
-import SmallRatingCard from 'components/display/SmallRatingCard';
-import LandlordCard from 'components/display/LandlordCard';
+import SmallRatingCard from 'components/cards/SmallRatingCard';
+import LandlordCard from 'components/cards/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from '@repo/constants';

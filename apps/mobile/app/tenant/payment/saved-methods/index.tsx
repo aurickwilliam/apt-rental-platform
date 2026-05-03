@@ -7,7 +7,7 @@ import StandardHeader from '@/components/layout/StandardHeader'
 import { IconPlus } from '@tabler/icons-react-native'
 
 import { COLORS } from '@repo/constants'
-import PaymentMethodCard from '@/components/display/PaymentMethodCard'
+import PaymentMethodCard from './components/PaymentMethodCard'
 
 export default function Index() {
   const router = useRouter();

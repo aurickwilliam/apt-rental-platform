@@ -8,7 +8,7 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import Divider from '@/components/display/Divider'
 import QuickActionButton from '@/components/buttons/QuickActionButton'
 import SearchField from '@/components/inputs/SearchField'
-import PropertyCard from '@/components/display/PropertyCard'
+import PropertyCard from '@/components/cards/PropertyCard'
 
 import {
   IconChartDonut3,
