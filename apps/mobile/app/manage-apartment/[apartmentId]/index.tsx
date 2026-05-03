@@ -7,9 +7,9 @@ import { useFocusEffect } from '@react-navigation/native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import PillButton from '@/components/buttons/PillButton'
-import TenantCard from '@/components/display/TenantCard'
-import PaymentHistoryCard from '@/components/display/PaymentHistoryCard'
-import MaintenanceRequestCard from '@/components/display/MaintenanceRequestCard'
+import TenantCard from './components/TenantCard'
+import PaymentHistoryCard from './components/PaymentHistoryCard'
+import MaintenanceRequestCard from './components/MaintenanceRequestCard'
 
 import {
   IconBath,

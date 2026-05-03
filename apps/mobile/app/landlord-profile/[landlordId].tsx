@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import PillButton from 'components/buttons/PillButton'
-import ApartmentCard from 'components/display/ApartmentCard'
+import ApartmentCard from 'components/cards/ApartmentCard'
 
 import { COLORS } from '@repo/constants'
 import { SAMPLE_IMAGES } from 'constants/images'

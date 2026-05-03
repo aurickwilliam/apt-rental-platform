@@ -9,9 +9,9 @@ import { supabase } from '@repo/supabase'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import { IconBell } from "@tabler/icons-react-native"
-import RentDueCard from '@/components/display/RentDueCard'
-import ProfitTrendCard from '@/components/charts/ProfitTrendCard'
-import ProfitByPropertyCard from '@/components/charts/ProfitByPropertyCard'
+import RentDueCard from '@/components/cards/RentDueCard'
+import ProfitTrendCard from '@/components/cards/ProfitTrendCard'
+import ProfitByPropertyCard from '@/components/cards/ProfitByPropertyCard'
 
 import { useProfile } from '@/hooks/useProfile'
 

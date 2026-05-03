@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from './components/ApplicationHeader'
 import UploadImageField from '@/components/inputs/UploadImageField'
 import TextField from '@/components/inputs/TextField'
 import PillButton from '@/components/buttons/PillButton'

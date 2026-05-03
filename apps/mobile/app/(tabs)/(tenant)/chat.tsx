@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import SearchField from 'components/inputs/SearchField';
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import MessageCard from 'components/display/MessageCard';
+import MessageCard from '@/components/cards/MessageCard';
 import Divider from 'components/display/Divider';
 
 import { COLORS } from '@repo/constants';
