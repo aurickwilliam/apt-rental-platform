@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from './components/ApplicationHeader'
 import NumberField from '@/components/inputs/NumberField'
 import Divider from '@/components/display/Divider'
 import UploadFileField from '@/components/inputs/UploadFileField'   // ← swapped

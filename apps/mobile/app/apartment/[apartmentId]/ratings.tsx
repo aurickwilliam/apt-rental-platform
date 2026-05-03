@@ -7,7 +7,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 import RatingBarCount from 'components/display/RatingBarCount'
 import DropdownButton from 'components/buttons/DropdownButton'
 import Divider from 'components/display/Divider'
-import RatingCard from 'components/display/RatingCard'
+import RatingCard from 'components/cards/RatingCard'
 import PillButton from 'components/buttons/PillButton'
 
 import { COLORS } from '@repo/constants'

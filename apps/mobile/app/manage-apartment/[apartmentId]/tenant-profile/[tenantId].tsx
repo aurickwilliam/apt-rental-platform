@@ -8,7 +8,7 @@ import { SAMPLE_IMAGES, DEFAULT_IMAGES } from '@/constants/images';
 
 import { IconMessage, IconRosetteDiscountCheckFilled } from '@tabler/icons-react-native';
 import PillButton from '@/components/buttons/PillButton';
-import PastApartmentCard from '@/components/display/PastApartmentCard';
+import PastApartmentCard from './components/PastApartmentCard';
 
 export default function TenantProfile() {
 

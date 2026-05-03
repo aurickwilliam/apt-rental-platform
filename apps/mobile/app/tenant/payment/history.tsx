@@ -3,9 +3,9 @@ import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import DropdownButton from '@/components/buttons/DropdownButton'
-import PaymentHistoryBigCard from '@/components/display/PaymentHistoryBigCard'
-import MonthDivider from '@/components/display/MonthDivider'
+import DropdownButton from './components/DropdownButton'
+import PaymentHistoryBigCard from './components/PaymentHistoryBigCard'
+import MonthDivider from './components/MonthDivider'
 
 import { YEARS, PAYMENT_STATUS } from '@repo/constants'
 

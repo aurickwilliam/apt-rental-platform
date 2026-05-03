@@ -97,12 +97,22 @@ export default function VerifyMobile() {
           />
         </View>
 
-        {/* Verify Button */}
-        <PillButton
-          label="Proceed to OTP Verification"
-          onPress={handleAndVerifyMobile}
-          isFullWidth
-        />
+        <View className="gap-y-3">
+          {/* Global Error Display */}
+          {error && (
+            <Text className="text-red-500 font-poppinsRegular text-center">
+              {error}
+            </Text>
+          )}
+
+          {/* Verify Button */}
+          <PillButton
+            label={loading ? "Please wait..." : "Proceed to OTP Verification"}
+            onPress={handleAndVerifyMobile}
+            isFullWidth
+            isDisabled={loading}
+          />
+        </View>
       </View>
     </ScreenWrapper>
   )

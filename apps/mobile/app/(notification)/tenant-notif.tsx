@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import NotificationCard from 'components/display/NotificationCard';
+import NotificationCard from 'components/cards/NotificationCard';
 import DropdownButton from 'components/buttons/DropdownButton';
 
 export default function TenantNotification() {

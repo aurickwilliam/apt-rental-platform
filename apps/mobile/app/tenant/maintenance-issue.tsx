@@ -11,7 +11,7 @@ import TextField from '@/components/inputs/TextField'
 import { MAINTENANCE_CATEGORIES } from '@repo/constants';
 import TextBox from '@/components/inputs/TextBox'
 import UploadImageField from '@/components/inputs/UploadImageField'
-import RadioButton from '@/components/buttons/RadioButton'
+import RadioButton from './components/RadioButton'
 import PillButton from '@/components/buttons/PillButton'
 
 type MaintenanceDetails = {

@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
-import MessageCard from '@/components/display/MessageCard'
+import MessageCard from '@/components/cards/MessageCard'
 
 import { getRelativeTime } from '@repo/utils'
 import { supabase } from '@repo/supabase'
