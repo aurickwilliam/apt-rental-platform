@@ -168,9 +168,10 @@ export default function SignUp() {
       {/* Sign In Button */}
       <View className="mt-5">
         <PillButton
-          label="Continue"
+          label={checkingEmail ? "Please wait..." : "Continue"}
           isFullWidth={true}
           onPress={handleSignUp}
+          isDisabled={checkingEmail}
         />
       </View>
 
