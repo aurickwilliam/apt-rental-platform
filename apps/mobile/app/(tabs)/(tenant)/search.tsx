@@ -14,7 +14,7 @@ import {
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import DropdownButton from 'components/buttons/DropdownButton';
 import SearchField from 'components/inputs/SearchField';
-import ApartmentCard from 'components/display/ApartmentCard';
+import ApartmentCard from 'components/cards/ApartmentCard';
 import FilterBottomSheet, {
   DEFAULT_FILTERS,
   FilterState,

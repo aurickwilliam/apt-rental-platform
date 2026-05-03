@@ -6,10 +6,10 @@ import { useRouter } from 'expo-router'
 import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from './components/ApplicationHeader'
 import PillButton from '@/components/buttons/PillButton'
-import PerkItem from '@/components/display/PerkItem'
-import LandlordCard from '@/components/display/LandlordCard'
+import PerkItem from '../components/PerkItem'
+import LandlordCard from '@/components/cards/LandlordCard'
 
 import { COLORS } from '@repo/constants'
 

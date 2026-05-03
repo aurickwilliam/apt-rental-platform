@@ -2,9 +2,9 @@ import { View, Text, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import PaymentSummaryCard from 'components/display/PaymentSummaryCard'
-import LandlordCard from 'components/display/LandlordCard';
-import ApartmentDescriptionCard from "components/display/ApartmentDescriptionCard";
+import PaymentSummaryCard from 'components/cards/PaymentSummaryCard'
+import LandlordCard from 'components/cards/LandlordCard';
+import ApartmentDescriptionCard from "components/cards/ApartmentDescriptionCard";
 import PillButton from 'components/buttons/PillButton';
 import Divider from 'components/display/Divider';
 
