@@ -1,4 +1,4 @@
-import { ONBOARDING_IMAGES } from "../constants/images";
+import { ONBOARDING_IMAGES } from "../../../constants/images";
 import { ImageSourcePropType } from "react-native";
 
 interface Slide {

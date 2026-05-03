@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Link } from 'expo-router';
 
-import { SLIDES } from 'constants/onboarding-data';
+import { SLIDES } from '@/app/(auth)/data/onboarding-data';
 
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
 import PillButton from 'components/buttons/PillButton';
