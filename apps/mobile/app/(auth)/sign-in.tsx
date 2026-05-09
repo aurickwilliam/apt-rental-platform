@@ -224,11 +224,9 @@ export default function SignIn() {
       </View>
 
       <Link href="/forgot-password" asChild>
-        <Pressable>
-          <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
-            Forgot Password?
-          </Text>
-        </Pressable>
+        <Text className="mt-3 self-start text-left text-secondary font-interMedium underline">
+          Forgot Password?
+        </Text>
       </Link>
 
       {/* Sign In Button */}
@@ -264,7 +262,9 @@ export default function SignIn() {
 
       <View className="mb-8 mt-5 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">New here?</Text>
+          <Text className="text-text font-inter">
+            New here?
+          </Text>
           <Link
             href="/sign-up"
             className="text-primary font-interMedium underline"
