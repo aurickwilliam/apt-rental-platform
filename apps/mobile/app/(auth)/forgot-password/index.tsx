@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import PillButton from 'components/buttons/PillButton'
 
 import {
   IconMessage,

@@ -29,6 +29,8 @@ export default function SignIn() {
     error: googleError,
   } = useGoogleAuth();
 
+  const combinedError = error || googleError;
+
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
     if (error) setError("");
@@ -37,6 +39,11 @@ export default function SignIn() {
   const handlePasswordTextChange = (text: string) => {
     setPassword(text);
     if (error) setError("");
+  };
+
+  const handleGoogleSignIn = () => {
+    if (error) setError("");
+    signInWithGoogle(userSide);
   };
 
   const handleSignIn = async () => {
@@ -141,7 +148,10 @@ export default function SignIn() {
       {/* Toggle User Side */}
       <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
         <Pressable
-          onPress={() => setUserSide("tenant")}
+          onPress={() => {
+            setUserSide("tenant");
+            if (error) setError("");
+          }}
           className="flex-1 py-3 rounded-xl"
           style={
             userSide === "tenant"
@@ -160,7 +170,10 @@ export default function SignIn() {
         </Pressable>
 
         <Pressable
-          onPress={() => setUserSide("landlord")}
+          onPress={() => {
+            setUserSide("landlord");
+            if (error) setError("");
+          }}
           className="flex-1 py-3 rounded-xl"
           style={
             userSide === "landlord"
@@ -180,15 +193,11 @@ export default function SignIn() {
       </View>
 
       {/* Error message */}
-      {error ? (
+      {combinedError ? (
         <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <Text className="text-sm text-red-600 font-inter">{error}</Text>
-        </View>
-      ) : null}
-
-      {googleError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <Text className="text-sm text-red-600 font-inter">{googleError}</Text>
+          <Text className="text-sm text-red-600 font-inter">
+            {combinedError}
+          </Text>
         </View>
       ) : null}
 
@@ -245,15 +254,15 @@ export default function SignIn() {
       <View className="flex-row justify-center items-center gap-10">
         <LogoButton
           image={IMAGES.googleLogo}
-          onPress={() => signInWithGoogle(userSide)}
+          onPress={handleGoogleSignIn}
           disabled={googleLoading}
         />
       </View>
 
-      {/* Footer links - Push to bottom with flex-1 spacer */}
+      {/* Footer links */}
       <View className="flex-1" />
 
-      <View className="mb-8 flex items-center gap-2">
+      <View className="mb-8 mt-5 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">New here?</Text>
           <Link

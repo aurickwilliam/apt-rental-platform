@@ -18,7 +18,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
-import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native';
+
+import {
+  MapView,
+  Camera,
+  ShapeSource,
+  CircleLayer,
+  setAccessToken
+} from '@maplibre/maplibre-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import IconButton from 'components/buttons/IconButton';
@@ -28,6 +35,7 @@ import LandlordCard from 'components/cards/LandlordCard';
 import PerkItem from 'components/display/PerkItem';
 
 import { COLORS } from '@repo/constants';
+
 import { supabase } from '@repo/supabase';
 
 import {
