@@ -27,7 +27,7 @@ export function useGoogleAuth() {
       const { data, error: exchangeError } =
         await supabase.auth.exchangeCodeForSession(code);
 
-      console.log("exchange result:", data, exchangeError);
+      console.log("exchangeError:", JSON.stringify(exchangeError));
 
       if (exchangeError || !data.session) {
         setError("Failed to establish session.");
