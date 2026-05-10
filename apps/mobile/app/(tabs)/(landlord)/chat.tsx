@@ -322,6 +322,7 @@ export default function Chat() {
                     isUserLastSender={Boolean(message.last_sender_is_me)}
                     timestamp={getRelativeTime(new Date(message.last_message_time))}
                     unreadCount={message.unread_count} 
+                    profilePictureUrl={message.other_user_avatar ?? undefined}
                     onPress={() => handleChatPress(message)}
                   />
                 ))}
