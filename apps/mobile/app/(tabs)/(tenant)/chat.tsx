@@ -10,9 +10,14 @@ import Divider from 'components/display/Divider';
 
 import { COLORS } from '@repo/constants';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
+
 import { getRelativeTime } from '@repo/utils';
+
 import { supabase } from '@repo/supabase';
+
 import { getConversations, type Conversation } from '@/service/chatService';
+
+import { useTenancy } from '@/hooks/useTenancy';
 
 type ConversationWithMeta = Conversation & {
   last_sender_is_me?: boolean;
@@ -30,6 +35,8 @@ export default function Chat() {
   const [myId, setMyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { tenancy } = useTenancy();
 
   const fetchConversations = useCallback(async () => {
     try {
@@ -172,6 +179,20 @@ export default function Chat() {
     );
   });
 
+  const currentLandlordConversation =
+    tenancy?.landlord?.id && tenancy?.apartment?.id
+      ? filteredConversations.find(
+          (c) =>
+            c.other_user_id === tenancy.landlord?.id &&
+            c.apartment_id === tenancy.apartment.id
+        )
+      : null;
+
+  const otherConversations = filteredConversations.filter(
+    (c) =>
+      c.conversation_key !== currentLandlordConversation?.conversation_key
+  );
+
   const handleChatPress = (conversation: Conversation) => {
     // Optimistically clear the badge before navigating
     setConversations((prev) =>
@@ -190,7 +211,7 @@ export default function Chat() {
         otherUserName: conversation.other_user_name,
         otherUserAvatar: conversation.other_user_avatar ?? '',
         otherUserPhoneNumber: conversation.other_user_phone ?? '',
-        apartmentId: conversation.apartment_id ?? 'none',
+        apartmentId: conversation.apartment_id ?? '',
       },
     });
   };
@@ -239,20 +260,63 @@ export default function Chat() {
       ) : (
         <>
           <Divider />
-          <View className='flex-1 gap-3'>
-            {filteredConversations.map((conv) => (
+
+          {/* Current Landlord */}
+          {currentLandlordConversation && (
+            <View>
+              <Text className='text-lg font-poppinsMedium text-primary mb-3'>
+                Current Landlord
+              </Text>
+
               <MessageCard
-                key={conv.conversation_key}
-                name={conv.other_user_name}
-                apartmentName={conv.apartment_name ?? 'Unknown Property'}
-                lastMessage={conv.last_message}
-                isUserLastSender={Boolean(conv.last_sender_is_me)}
-                timestamp={getRelativeTime(new Date(conv.last_message_time))}
-                unreadCount={conv.unread_count}
-                onPress={() => handleChatPress(conv)}
+                key={currentLandlordConversation.conversation_key}
+                name={currentLandlordConversation.other_user_name}
+                apartmentName={
+                  currentLandlordConversation.apartment_name ??
+                  'Unknown Property'
+                }
+                lastMessage={currentLandlordConversation.last_message}
+                isUserLastSender={Boolean(
+                  currentLandlordConversation.last_sender_is_me
+                )}
+                timestamp={getRelativeTime(
+                  new Date(currentLandlordConversation.last_message_time)
+                )}
+                unreadCount={currentLandlordConversation.unread_count}
+                onPress={() =>
+                  handleChatPress(currentLandlordConversation)
+                }
               />
-            ))}
-          </View>
+            </View>
+          )}
+
+          <Divider />
+
+          {/* Other conversations */}
+          {otherConversations.length > 0 && (
+            <View className='gap-3'>
+              <Text className='text-lg font-poppinsMedium text-grey-500'>
+                Past Conversations
+              </Text>
+
+              {otherConversations.map((conv) => (
+                <MessageCard
+                  key={conv.conversation_key}
+                  name={conv.other_user_name}
+                  apartmentName={
+                    conv.apartment_name ?? 'Unknown Property'
+                  }
+                  lastMessage={conv.last_message}
+                  isUserLastSender={Boolean(conv.last_sender_is_me)}
+                  timestamp={getRelativeTime(
+                    new Date(conv.last_message_time)
+                  )}
+                  unreadCount={conv.unread_count}
+                  onPress={() => handleChatPress(conv)}
+                />
+              ))}
+            </View>
+          )}
         </>
       )}
     </ScreenWrapper>
