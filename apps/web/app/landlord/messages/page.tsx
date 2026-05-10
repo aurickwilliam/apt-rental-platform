@@ -24,13 +24,15 @@ export default async function MessagesPage() {
   // Get unread message counts for all conversations involving this landlord
   const { data: unreadRows } = await supabase
     .from("chat")
-    .select("sender_id")
+    .select("sender_id, apartment_id")
     .eq("receiver_id", landlordId)
     .eq("is_read", false);
 
-  const unreadCountBySender = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
+  const unreadCountByConversation = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
     const senderId = row.sender_id;
-    acc.set(senderId, (acc.get(senderId) ?? 0) + 1);
+    const apartmentId = row.apartment_id ?? "none";
+    const key = `${senderId}:${apartmentId}`;
+    acc.set(key, (acc.get(key) ?? 0) + 1);
     return acc;
   }, new Map<string, number>());
 
@@ -45,6 +47,7 @@ export default async function MessagesPage() {
         avatar_url
       ),
       apartment:apartments!tenancies_apartment_id_fkey (
+        id,
         name
       )
     `)
@@ -53,21 +56,23 @@ export default async function MessagesPage() {
 
   const currentTenants: Contact[] = (tenancyRows ?? []).map((row) => {
     const tenant = row.tenant as { id: string; first_name: string; last_name: string; avatar_url: string | null };
-    const apartment = row.apartment as { name: string };
+    const apartment = row.apartment as { id: string; name: string };
+    const conversationKey = `${tenant.id}:${apartment?.id ?? "none"}`;
     return {
       id: tenant.id,
+      conversationKey,
       name: `${tenant.first_name} ${tenant.last_name}`.trim(),
       avatar: tenant.avatar_url ?? `https://i.pravatar.cc/150?u=${tenant.id}`,
       apartment: apartment.name,
-      unreadCount: unreadCountBySender.get(tenant.id) ?? 0,
+      apartmentId: apartment?.id ?? null,
+      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
     };
   });
 
-  // Active tenant IDs to exclude from inquiries
-  const activeTenantIds = currentTenants.map((t) => t.id);
+  const activeConversations = new Set(currentTenants.map((tenant) => tenant.conversationKey));
 
   // Inquiries: users who messaged the landlord but aren't active tenants
-  let chatQuery = supabase
+  const chatQuery = supabase
     .from("chat")
     .select(`
       sender:users!chat_sender_id_fkey (
@@ -77,15 +82,12 @@ export default async function MessagesPage() {
         avatar_url
       ),
       apartment:apartments!chat_apartment_id_fkey (
+        id,
         name
       )
     `)
     .eq("receiver_id", landlordId)
     .order("created_at", { ascending: false });
-
-  if (activeTenantIds.length > 0) {
-    chatQuery = chatQuery.not("sender_id", "in", `(${activeTenantIds.join(",")})`);
-  }
 
   const { data: chatRows } = await chatQuery;
 
@@ -93,17 +95,23 @@ export default async function MessagesPage() {
   const seenIds = new Set<string>();
   const inquiries: Contact[] = (chatRows ?? []).reduce<Contact[]>((acc, row) => {
     const sender = row.sender as { id: string; first_name: string; last_name: string; avatar_url: string | null };
-    const apartment = row.apartment as { name: string } | null;
-    if (!seenIds.has(sender.id)) {
-      seenIds.add(sender.id);
-      acc.push({
-        id: sender.id,
-        name: `${sender.first_name} ${sender.last_name}`.trim(),
-        avatar: sender.avatar_url ?? `https://i.pravatar.cc/150?u=${sender.id}`,
-        apartment: apartment ? `Inquiring: ${apartment.name}` : "Inquiring",
-        unreadCount: unreadCountBySender.get(sender.id) ?? 0,
-      });
+    const apartment = row.apartment as { id: string; name: string } | null;
+    const apartmentId = apartment?.id ?? null;
+    const conversationKey = `${sender.id}:${apartmentId ?? "none"}`;
+    if (activeConversations.has(conversationKey) || seenIds.has(conversationKey)) {
+      return acc;
     }
+
+    seenIds.add(conversationKey);
+    acc.push({
+      id: sender.id,
+      conversationKey,
+      name: `${sender.first_name} ${sender.last_name}`.trim(),
+      avatar: sender.avatar_url ?? `https://i.pravatar.cc/150?u=${sender.id}`,
+      apartment: apartment ? `Inquiring: ${apartment.name}` : "Inquiring",
+      apartmentId,
+      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
+    });
     return acc;
   }, []);
 

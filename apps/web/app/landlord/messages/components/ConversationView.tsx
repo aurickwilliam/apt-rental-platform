@@ -12,6 +12,7 @@ interface ConversationViewProps {
   activeContact: Contact | null;
   currentUserId: string;
   onConversationRead?: (contactId: string) => void;
+  apartmentId?: string | null;
 }
 
 function TypingIndicator() {
@@ -32,7 +33,12 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ConversationView({ activeContact, currentUserId, onConversationRead }: ConversationViewProps) {
+export default function ConversationView({
+  activeContact,
+  currentUserId,
+  onConversationRead,
+  apartmentId,
+}: ConversationViewProps) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +58,7 @@ export default function ConversationView({ activeContact, currentUserId, onConve
       setIsLoading(true);
       setIsContactTyping(false);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("chat")
         .select("*")
         .or(
@@ -60,6 +66,12 @@ export default function ConversationView({ activeContact, currentUserId, onConve
           `and(sender_id.eq.${activeContact.id},receiver_id.eq.${currentUserId})`
         )
         .order("created_at", { ascending: true });
+
+      if (apartmentId) {
+        query = query.eq("apartment_id", apartmentId);
+      }
+
+      const { data, error } = await query;
 
       if (!isCancelled) {
         if (!error && data) setMessages(data as Message[]);
@@ -72,14 +84,14 @@ export default function ConversationView({ activeContact, currentUserId, onConve
     return () => {
       isCancelled = true;
     };
-  }, [activeContact, currentUserId, supabase]);
+  }, [activeContact, apartmentId, currentUserId, supabase]);
 
   // Mark incoming messages as read when this conversation is opened
   useEffect(() => {
     if (!activeContact) return;
 
     const markAsRead = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("chat")
         .update({
           is_read: true,
@@ -90,13 +102,19 @@ export default function ConversationView({ activeContact, currentUserId, onConve
         .eq("receiver_id", currentUserId)
         .eq("is_read", false);
 
+      if (apartmentId) {
+        query = query.eq("apartment_id", apartmentId);
+      }
+
+      const { data, error } = await query;
+
       if (!error && (data?.length ?? 0) > 0) {
-        onConversationRead?.(activeContact.id);
+        onConversationRead?.(activeContact.conversationKey);
       }
     };
 
     markAsRead();
-  }, [activeContact, currentUserId, onConversationRead, supabase]);
+  }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
   // Realtime: new messages + typing presence
   useEffect(() => {
@@ -123,6 +141,9 @@ export default function ConversationView({ activeContact, currentUserId, onConve
         },
         (payload: { new: Message }) => {
           const incoming = payload.new as Message;
+          if (apartmentId && incoming.apartment_id !== apartmentId) {
+            return;
+          }
           if (incoming.receiver_id === currentUserId) {
             setMessages((prev) => [...prev, incoming]);
             void supabase
@@ -134,7 +155,7 @@ export default function ConversationView({ activeContact, currentUserId, onConve
               .eq("id", incoming.id)
               .eq("receiver_id", currentUserId)
               .eq("is_read", false);
-            onConversationRead?.(activeContact.id);
+            onConversationRead?.(activeContact.conversationKey);
           }
         }
       )
@@ -154,7 +175,7 @@ export default function ConversationView({ activeContact, currentUserId, onConve
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact, currentUserId, supabase]);
+  }, [activeContact, apartmentId, currentUserId, supabase]);
 
   // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {
@@ -171,7 +192,7 @@ export default function ConversationView({ activeContact, currentUserId, onConve
       message: content,
       is_read: false,
       read_at: null,
-      apartment_id: null,
+      apartment_id: apartmentId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -181,6 +202,8 @@ export default function ConversationView({ activeContact, currentUserId, onConve
       sender_id: currentUserId,
       receiver_id: activeContact.id,
       message: content,
+      apartment_id: apartmentId ?? null,
+      is_read: false,
     });
 
     if (error) {
@@ -241,32 +264,39 @@ export default function ConversationView({ activeContact, currentUserId, onConve
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {messages.map((msg) => {
-              const isMine = msg.sender_id === currentUserId;
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col max-w-[80%] ${
-                    isMine 
-                      ? "self-end items-end" 
-                      : "self-start items-start"
-                  }`}
-                >
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
+                <p className="text-sm font-medium text-foreground">No messages yet</p>
+                <p className="text-xs text-default-500">Say hi to start the conversation.</p>
+              </div>
+            ) : (
+              messages.map((msg) => {
+                const isMine = msg.sender_id === currentUserId;
+                return (
                   <div
-                    className={`p-3 rounded-2xl shadow-sm ${
-                      isMine
-                        ? "bg-blue-600 text-white rounded-tr-none"
-                        : "bg-white text-gray-700 border border-gray-100 rounded-tl-none"
+                    key={msg.id}
+                    className={`flex flex-col max-w-[80%] ${
+                      isMine 
+                        ? "self-end items-end" 
+                        : "self-start items-start"
                     }`}
                   >
-                    <p className="text-sm">{msg.message}</p>
+                    <div
+                      className={`p-3 rounded-2xl shadow-sm ${
+                        isMine
+                          ? "bg-blue-600 text-white rounded-tr-none"
+                          : "bg-white text-gray-700 border border-gray-100 rounded-tl-none"
+                      }`}
+                    >
+                      <p className="text-sm">{msg.message}</p>
+                    </div>
+                    <span className="text-[10px] mt-1 text-gray-400">
+                      {formatTime(msg.created_at)}
+                    </span>
                   </div>
-                  <span className="text-[10px] mt-1 text-gray-400">
-                    {formatTime(msg.created_at)}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
 
             {isContactTyping && <TypingIndicator />}
 
