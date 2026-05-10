@@ -7,3 +7,4 @@ export { default as RatingsSection } from './RatingsSection';
 export { default as LandlordSection } from './LandlordSection';
 export { default as LeaseAgreementSection } from './LeaseAgreementSection';
 export { default as MoveInCostFooter } from './MoveInCostFooter';
+export { default as ApartmentDetailsSection } from './ApartmentDetailsSection';

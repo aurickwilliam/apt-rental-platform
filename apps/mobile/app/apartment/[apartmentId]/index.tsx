@@ -25,6 +25,7 @@ import {
   LeaseAgreementSection,
   MoveInCostFooter,
   ApartmentSkeleton,
+  ApartmentDetailsSection,
 } from './components';
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
@@ -111,7 +112,13 @@ export default function ApartmentScreen() {
           images={apartmentImages}
         />
 
-        <ApartmentDescriptionSection description={apartment?.description} />
+        <ApartmentDetailsSection 
+          apartment={apartment}
+        />
+
+        <ApartmentDescriptionSection 
+          description={apartment?.description} 
+        />
 
         <PerksSection amenities={apartment?.amenities} />
 

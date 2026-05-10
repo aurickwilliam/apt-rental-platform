@@ -114,7 +114,7 @@ export default function ApartmentHeroSection({
             </Text>
           </View>
 
-          <View className='flex-row items-center justify-between mt-5 gap-6'>
+          <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
               <IconBed size={24} color={COLORS.lightLightLightGrey} />
               <Text className='text-grey-100 font-interMedium text-base'>
@@ -135,44 +135,6 @@ export default function ApartmentHeroSection({
               <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
               <Text className='text-grey-100 font-interMedium text-base'>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
-              </Text>
-            </View>
-          </View>
-
-          <View className='flex-row mt-4 gap-6'>
-            <View className='flex-1 flex-row items-center gap-2'>
-              <IconUsers size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
-                Max {apartment?.max_occupants}{' '}
-                {apartment?.max_occupants === 1 ? 'Occupant' : 'Occupants'}
-              </Text>
-            </View>
-
-            <View className='flex-1 flex-row items-center gap-2'>
-              <IconBuildingSkyscraper
-                size={24}
-                color={COLORS.lightLightLightGrey}
-              />
-              <Text className='text-grey-100 font-interMedium text-base'>
-                {apartment?.floor_level
-                  ? `Floor ${apartment?.floor_level}`
-                  : 'N/A'}
-              </Text>
-            </View>
-          </View>
-
-          <View className='flex-row mt-4 mb-5 gap-6'>
-            <View className='flex-1 flex-row items-center gap-2'>
-              <IconHome2 size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
-                {apartment?.type || 'N/A'}
-              </Text>
-            </View>
-
-            <View className='flex-1 flex-row items-center gap-2'>
-              <IconCalendar size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
-                {apartment?.lease_duration || 'N/A'}
               </Text>
             </View>
           </View>
