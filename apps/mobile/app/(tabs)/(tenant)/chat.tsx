@@ -312,6 +312,8 @@ export default function Chat() {
                     new Date(conv.last_message_time)
                   )}
                   unreadCount={conv.unread_count}
+                  profilePictureUrl={conv.other_user_avatar ?? undefined}
+                  profilePictureUrl={conv.other_user_avatar ?? undefined}
                   onPress={() => handleChatPress(conv)}
                 />
               ))}
