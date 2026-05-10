@@ -40,7 +40,7 @@ function useRouteParams() {
     otherUserName: normalize(raw.otherUserName),
     otherUserAvatar: normalize(raw.otherUserAvatar),
     otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
-    apartmentId: !apartmentIdRaw || apartmentIdRaw === 'none' ? null : apartmentIdRaw,
+    apartmentId: apartmentIdRaw || null,
   };
 }
 

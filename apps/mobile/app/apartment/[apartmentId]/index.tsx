@@ -14,7 +14,6 @@ import {
   IconHeart,
 } from "@tabler/icons-react-native";
 
-
 import {
   ApartmentHeroSection,
   ApartmentDescriptionSection,
@@ -120,7 +119,9 @@ export default function ApartmentScreen() {
           description={apartment?.description} 
         />
 
-        <PerksSection amenities={apartment?.amenities} />
+        <PerksSection 
+          amenities={apartment?.amenities}
+        />
 
         <MapPreviewSection
           apartmentName={apartment?.name}
@@ -129,7 +130,10 @@ export default function ApartmentScreen() {
           onOpenMap={handleMapViewNavigation}
         />
 
-        <RatingsSection reviews={reviews} onSeeAll={handleSeeAllRatings} />
+        <RatingsSection 
+          reviews={reviews} 
+          onSeeAll={handleSeeAllRatings} 
+        />
 
         <LandlordSection
           landlord={apartment?.landlord ?? null}

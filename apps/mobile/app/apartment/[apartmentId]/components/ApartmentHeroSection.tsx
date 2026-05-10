@@ -17,10 +17,6 @@ import {
   IconBed,
   IconBath,
   IconMaximize,
-  IconUsers,
-  IconBuildingSkyscraper,
-  IconHome2,
-  IconCalendar,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';

@@ -2,7 +2,9 @@ import { View, Text } from 'react-native';
 import { IconUser } from '@tabler/icons-react-native';
 
 import LandlordCard from 'components/cards/LandlordCard';
+
 import { COLORS } from '@repo/constants';
+
 import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
 
 type LandlordSectionProps = {
