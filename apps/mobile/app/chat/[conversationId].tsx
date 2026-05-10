@@ -168,7 +168,14 @@ function LoadingState() {
 
 function EmptyState() {
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
+    <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 24,
+        transform: [{ scaleY: -1 }],
+      }}
+    >
       <View
         style={{
           backgroundColor: '#FFFFFF',

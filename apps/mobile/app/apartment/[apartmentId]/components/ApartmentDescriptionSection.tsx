@@ -26,7 +26,7 @@ export default function ApartmentDescriptionSection({
       </View>
 
       <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
-        <Text w
+        <Text
           numberOfLines={isReadMore ? undefined : 10}
           ellipsizeMode='tail'
         >

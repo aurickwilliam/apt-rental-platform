@@ -51,7 +51,23 @@ export default function ApartmentScreen() {
   }
 
   const handleMessageLandlord = () => {
-    console.log("Message Landlord Button Pressed!");
+    if (!apartment?.landlord?.id || !apartmentId) return;
+
+    const landlord = apartment.landlord;
+    const fullName = `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim();
+    const conversationId = `inquiry-${apartmentId}-${landlord.id}`;
+
+    router.push({
+      pathname: '/chat/[conversationId]',
+      params: {
+        conversationId,
+        otherUserId: landlord.id,
+        otherUserName: fullName || 'Landlord',
+        otherUserAvatar: landlord.avatar_url ?? '',
+        otherUserPhoneNumber: landlord.mobile_number ?? '',
+        apartmentId,
+      },
+    });
   }
 
   const handleLandlordProfileNavigation = () => {
