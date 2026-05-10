@@ -11,9 +11,9 @@ import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } 
 import RenderReviews from "./components/RenderReviews";
 import RelatedApartments from "./components/RelatedApartments";
 import PriceCard from "./components/PriceCard";
-import LandlordCard from "./components/LandlordCard";
 import ShareBtn from "./components/ShareBtn";
 import FavoriteBtn from "./components/FavoriteBtn";
+import LandlordChatPanel from "./components/LandlordChatPanel";
 
 import { createClient } from "@repo/supabase/server";
 import LeaseAgreementCard from "./components/LeaseAgreementCard";
@@ -23,6 +23,16 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
   const { apartmentId } = await params;
 
   const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: currentUser } = user
+    ? await supabase
+        .from("users")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle()
+    : { data: null };
 
   // Fetch apartment details along with images
   const { data: apartment, error } = await supabase
@@ -213,10 +223,14 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
             leaseDetailsUrl={leaseUrl ?? ''}
           />
 
-          <LandlordCard
-            name={`${landlord?.first_name} ${landlord?.last_name}`}
-            avatarUrl={landlord?.avatar_url ?? ''}
-            contactInfo={landlord?.mobile_number ?? ''}
+          <LandlordChatPanel
+            currentUserId={currentUser?.id ?? null}
+            landlordId={apartment.landlord_id ?? null}
+            landlordName={`${landlord?.first_name ?? ""} ${landlord?.last_name ?? ""}`}
+            landlordAvatarUrl={landlord?.avatar_url ?? ""}
+            landlordContactInfo={landlord?.mobile_number ?? ""}
+            apartmentId={apartment.id}
+            apartmentName={apartment.name ?? ""}
           />
         </div>
       </div>
