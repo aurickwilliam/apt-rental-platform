@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal, ModalContent, ModalBody, ModalHeader, Button } from "@heroui/react";
 import { Expand, Navigation } from "lucide-react";
 
@@ -44,55 +44,91 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   const [isDirectionsOpen, setIsDirectionsOpen] = useState<boolean>(false);
 
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const previewMapRef = useRef<import("leaflet").Map | null>(null);
+  const modalMapRef = useRef<import("leaflet").Map | null>(null);
 
   // Default Preview Map
   useEffect(() => {
     if (!latitude || !longitude) return;
-
-    let map: import("leaflet").Map | undefined;
+    let cancelled = false;
 
     (async () => {
       const L = (await import("leaflet")).default;
       await import("leaflet/dist/leaflet.css");
+      if (cancelled) return;
 
       const container = L.DomUtil.get("map-preview") as LeafletContainer | null;
-      if (container?._leaflet_id) return;
+      if (!container) return;
+      if (cancelled) return;
+
+      if (previewMapRef.current) {
+        previewMapRef.current.remove();
+        previewMapRef.current = null;
+      }
+
+      if (container._leaflet_id) {
+        delete container._leaflet_id;
+      }
+      if (cancelled) return;
 
       const icon = await makeLeafletIcon();
-      map = L.map("map-preview").setView([latitude, longitude], 15);
+      const map = L.map("map-preview").setView([latitude, longitude], 15);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
       L.marker([latitude, longitude], { icon }).addTo(map);
+      previewMapRef.current = map;
     })();
 
-    return () => { map?.remove(); };
+    return () => {
+      cancelled = true;
+      if (previewMapRef.current) {
+        previewMapRef.current.remove();
+        previewMapRef.current = null;
+      }
+    };
   }, [latitude, longitude]);
 
   // Expand Modal Map
   useEffect(() => {
     if (!isExpandOpen || !latitude || !longitude) return;
-
-    let map: import("leaflet").Map | undefined;
+    let cancelled = false;
 
     const t = setTimeout(async () => {
       const L = (await import("leaflet")).default;
       await import("leaflet/dist/leaflet.css");
+      if (cancelled) return;
 
       const container = L.DomUtil.get("map-modal") as LeafletContainer | null;
-      if (container?._leaflet_id) return;
+      if (!container) return;
+      if (cancelled) return;
+
+      if (modalMapRef.current) {
+        modalMapRef.current.remove();
+        modalMapRef.current = null;
+      }
+
+      if (container._leaflet_id) {
+        delete container._leaflet_id;
+      }
+      if (cancelled) return;
 
       const icon = await makeLeafletIcon();
-      map = L.map("map-modal").setView([latitude, longitude], 15);
+      const map = L.map("map-modal").setView([latitude, longitude], 15);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
       L.marker([latitude, longitude], { icon }).addTo(map);
+      modalMapRef.current = map;
     }, 100);
 
     return () => {
+      cancelled = true;
       clearTimeout(t);
-      map?.remove();
+      if (modalMapRef.current) {
+        modalMapRef.current.remove();
+        modalMapRef.current = null;
+      }
     };
   }, [isExpandOpen, latitude, longitude]);
 
