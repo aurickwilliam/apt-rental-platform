@@ -40,10 +40,7 @@ export default function ApartmentScreen() {
     image: { uri: img.url },
   })) ?? [];
 
-  const location = apartment
-    ? `${apartment.street_address}, Brgy. ${apartment.barangay}, ${apartment.city}`
-    : '';
-
+  // Handlers for User Navigation and Actions
   // TODO: Implement this Functions
   const handleFavoriteToggle = () => {
     console.log("Favorite Button Pressed!");
@@ -111,7 +108,6 @@ export default function ApartmentScreen() {
       >
         <ApartmentHeroSection
           apartment={apartment}
-          location={location}
           images={apartmentImages}
         />
 

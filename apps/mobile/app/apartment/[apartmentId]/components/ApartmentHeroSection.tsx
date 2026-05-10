@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
+
 import {
   IconMapPin,
   IconStarFilled,
@@ -23,6 +24,7 @@ import {
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';
+
 import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
 
 type ApartmentImage = {
@@ -32,19 +34,19 @@ type ApartmentImage = {
 
 type ApartmentHeroSectionProps = {
   apartment: ApartmentDetails | null;
-  location: string;
   images: ApartmentImage[];
 };
 
 export default function ApartmentHeroSection({
   apartment,
-  location,
   images,
 }: ApartmentHeroSectionProps) {
   const { width } = Dimensions.get('window');
   const scrollX = useRef(new Animated.Value(0)).current;
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+
+  const location = `${apartment?.street_address}, ${apartment?.city}, ${apartment?.province}`;
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
