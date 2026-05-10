@@ -26,11 +26,8 @@ export default function ThirdProcess() {
 
       <View className='p-5'>
         <View className='flex gap-3'>
-          <UploadImageField
+          {/* <UploadImageField
             label="Valid Government-issued ID:"
-            placeholder="Select files"
-            onChange={(uri) => console.log(uri)}
-            value=""
             required
           />
 
@@ -43,9 +40,6 @@ export default function ThirdProcess() {
 
           <UploadImageField
             label="NBI Clearance:"
-            placeholder="Select files"
-            onChange={(uri) => console.log(uri)}
-            value=""
             required
           />
 
@@ -54,7 +48,7 @@ export default function ThirdProcess() {
             placeholder="Select files"
             onChange={(uri) => console.log(uri)}
             required
-          />
+          /> */}
         </View>
 
         {/* Back or Next Button */}

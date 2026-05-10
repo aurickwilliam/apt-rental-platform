@@ -1,8 +1,10 @@
 export interface Contact {
   id: string;
+  conversationKey: string;
   name: string;
   avatar: string;
   apartment: string;
+  apartmentId: string | null;
   unreadCount: number;
 }
 

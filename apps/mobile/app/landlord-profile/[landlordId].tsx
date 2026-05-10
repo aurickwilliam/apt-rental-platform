@@ -235,7 +235,7 @@ export default function LandlordProfile() {
             landlordListings.map((listing) => (
               <ApartmentCard
                 key={listing.id}
-                id={listing.id}
+                id={String(listing.id)}
                 name={listing.name}
                 location={listing.location}
                 monthlyRent={listing.monthlyRent}

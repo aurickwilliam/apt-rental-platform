@@ -10,7 +10,6 @@ type PresenceState = {
 };
 
 type UseChatChannelOptions = {
-  conversationId: string;
   otherUserId: string;
   apartmentId: string | null;
   onNewMessage: (msg: Message) => void;
@@ -18,7 +17,6 @@ type UseChatChannelOptions = {
 };
 
 export function useChatChannel({
-  conversationId,
   otherUserId,
   apartmentId,
   onNewMessage,
@@ -41,11 +39,11 @@ export function useChatChannel({
   }, []);
 
   const setup = useCallback(
-    (currentUserId: string) => {
+    (currentUserId: string, conversationKey: string) => {
       teardown();
 
       // ── Broadcast channel (incoming messages) ────────────────────────────
-      const msgChannel = supabase.channel(`chat:msg:${conversationId}`);
+      const msgChannel = supabase.channel(`chat:msg:${conversationKey}`);
 
       msgChannel
         .on('broadcast', { event: 'new_message' }, ({ payload }) => {
@@ -71,7 +69,7 @@ export function useChatChannel({
       msgChannelRef.current = msgChannel;
 
       // ── Presence channel (typing indicators) ─────────────────────────────
-      const presenceChannel = supabase.channel(`chat:presence:${conversationId}`, {
+      const presenceChannel = supabase.channel(`chat:presence:${conversationKey}`, {
         config: { presence: { key: currentUserId } },
       });
 
@@ -112,7 +110,7 @@ export function useChatChannel({
 
       presenceChannelRef.current = presenceChannel;
     },
-    [apartmentId, conversationId, otherUserId, onNewMessage, onOtherUserTypingChange, teardown]
+    [apartmentId, otherUserId, onNewMessage, onOtherUserTypingChange, teardown]
   );
 
   /** Broadcasts an already-inserted message to the other user. */

@@ -16,7 +16,9 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
   const supabase = useMemo(() => createClient(), []);
   const [myLandlordContacts, setMyLandlordContacts] = useState<Contact[]>(myLandlord);
   const [pastInquiryContacts, setPastInquiryContacts] = useState<Contact[]>(pastInquiries);
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(myLandlord[0]?.id ?? pastInquiries[0]?.id ?? null);
+  const [selectedConversationKey, setSelectedConversationKey] = useState<string | null>(
+    myLandlord[0]?.conversationKey ?? pastInquiries[0]?.conversationKey ?? null
+  );
 
   const contacts = [...myLandlordContacts, ...pastInquiryContacts];
 
@@ -28,11 +30,11 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     setPastInquiryContacts(pastInquiries);
   }, [pastInquiries]);
 
-  const markContactAsRead = useCallback((contactId: string) => {
+  const markContactAsRead = useCallback((conversationKey: string) => {
     setMyLandlordContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId && contact.unreadCount > 0) {
+        if (contact.conversationKey === conversationKey && contact.unreadCount > 0) {
           changed = true;
           return { ...contact, unreadCount: 0 };
         }
@@ -44,7 +46,7 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     setPastInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId && contact.unreadCount > 0) {
+        if (contact.conversationKey === conversationKey && contact.unreadCount > 0) {
           changed = true;
           return { ...contact, unreadCount: 0 };
         }
@@ -54,11 +56,11 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     });
   }, []);
 
-  const incrementUnreadForContact = useCallback((contactId: string) => {
+  const incrementUnreadForContact = useCallback((conversationKey: string) => {
     setMyLandlordContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId) {
+        if (contact.conversationKey === conversationKey) {
           changed = true;
           return { ...contact, unreadCount: contact.unreadCount + 1 };
         }
@@ -70,7 +72,7 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     setPastInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId) {
+        if (contact.conversationKey === conversationKey) {
           changed = true;
           return { ...contact, unreadCount: contact.unreadCount + 1 };
         }
@@ -91,12 +93,14 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
           table: "chat",
           filter: `receiver_id=eq.${currentUserId}`,
         },
-        (payload: { new: { sender_id: string } }) => {
+        (payload: { new: { sender_id: string; apartment_id: string | null } }) => {
           const senderId = payload.new.sender_id;
-          if (senderId === selectedContactId) {
+          const apartmentId = payload.new.apartment_id ?? "none";
+          const conversationKey = `${senderId}:${apartmentId}`;
+          if (conversationKey === selectedConversationKey) {
             return;
           }
-          incrementUnreadForContact(senderId);
+          incrementUnreadForContact(conversationKey);
         }
       )
       .subscribe();
@@ -104,10 +108,12 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId, incrementUnreadForContact, selectedContactId, supabase]);
+  }, [currentUserId, incrementUnreadForContact, selectedConversationKey, supabase]);
 
   const activeContact =
-    contacts.find((contact) => contact.id === selectedContactId) ?? contacts[0] ?? null;
+    contacts.find((contact) => contact.conversationKey === selectedConversationKey) ??
+    contacts[0] ??
+    null;
 
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl min-h-0 overflow-hidden bg-white">
@@ -116,13 +122,14 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
         pastInquiries={pastInquiryContacts}
         activeContact={activeContact}
         onSelectContact={(contact) => {
-          setSelectedContactId(contact.id);
-          markContactAsRead(contact.id);
+          setSelectedConversationKey(contact.conversationKey);
+          markContactAsRead(contact.conversationKey);
         }}
       />
       <ConversationView
         activeContact={activeContact}
         currentUserId={currentUserId}
+        apartmentId={activeContact?.apartmentId}
         onConversationRead={markContactAsRead}
       />
     </div>

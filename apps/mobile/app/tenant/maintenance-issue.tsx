@@ -11,7 +11,7 @@ import TextField from '@/components/inputs/TextField'
 import { MAINTENANCE_CATEGORIES } from '@repo/constants';
 import TextBox from '@/components/inputs/TextBox'
 import UploadImageField from '@/components/inputs/UploadImageField'
-import RadioButton from './components/RadioButton'
+import RadioButton from 'components/buttons/RadioButton'
 import PillButton from '@/components/buttons/PillButton'
 
 type MaintenanceDetails = {
@@ -110,9 +110,9 @@ export default function MaintenanceIssue() {
           onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, message: value})}        
         />
 
-        <UploadImageField 
+        {/* <UploadImageField 
           label={'Add Photos or Videos:'}          
-        />
+        /> */}
 
         <View className='mt-5 flex gap-3'>
           <Text className='text-text text-base font-interMedium'>

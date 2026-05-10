@@ -27,11 +27,11 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     setInquiryContacts(inquiries);
   }, [inquiries]);
 
-  const markContactAsRead = useCallback((contactId: string) => {
+  const markContactAsRead = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId && contact.unreadCount > 0) {
+        if (contact.conversationKey === conversationKey && contact.unreadCount > 0) {
           changed = true;
           return { ...contact, unreadCount: 0 };
         }
@@ -43,7 +43,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     setInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId && contact.unreadCount > 0) {
+        if (contact.conversationKey === conversationKey && contact.unreadCount > 0) {
           changed = true;
           return { ...contact, unreadCount: 0 };
         }
@@ -53,11 +53,11 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     });
   }, []);
 
-  const incrementUnreadForContact = useCallback((contactId: string) => {
+  const incrementUnreadForContact = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId) {
+        if (contact.conversationKey === conversationKey) {
           changed = true;
           return { ...contact, unreadCount: contact.unreadCount + 1 };
         }
@@ -69,7 +69,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     setInquiryContacts((prev) => {
       let changed = false;
       const next = prev.map((contact) => {
-        if (contact.id === contactId) {
+        if (contact.conversationKey === conversationKey) {
           changed = true;
           return { ...contact, unreadCount: contact.unreadCount + 1 };
         }
@@ -90,12 +90,14 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
           table: "chat",
           filter: `receiver_id=eq.${currentUserId}`,
         },
-        (payload: { new: { sender_id: string } }) => {
+        (payload: { new: { sender_id: string; apartment_id: string | null } }) => {
           const senderId = payload.new.sender_id;
-          if (senderId === activeContact?.id) {
+          const apartmentId = payload.new.apartment_id ?? "none";
+          const conversationKey = `${senderId}:${apartmentId}`;
+          if (conversationKey === activeContact?.conversationKey) {
             return;
           }
-          incrementUnreadForContact(senderId);
+          incrementUnreadForContact(conversationKey);
         }
       )
       .subscribe();
@@ -103,7 +105,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact?.id, currentUserId, incrementUnreadForContact, supabase]);
+  }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, supabase]);
 
   const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
@@ -116,12 +118,13 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
         onTabChange={setActiveTab}
         onSelectContact={(contact) => {
           setActiveContact(contact);
-          markContactAsRead(contact.id);
+          markContactAsRead(contact.conversationKey);
         }}
       />
       <ConversationView
         activeContact={activeContact}
         currentUserId={currentUserId}
+        apartmentId={activeContact?.apartmentId}
         onConversationRead={markContactAsRead}
       />
     </div>

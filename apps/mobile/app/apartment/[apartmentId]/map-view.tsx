@@ -9,6 +9,7 @@ import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
 
 import { COLORS } from '@repo/constants'
+
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 
 import {
@@ -18,7 +19,8 @@ import {
   IconNavigation,
 } from '@tabler/icons-react-native';
 
-setAccessToken(null); // Suppress the missing API key warning since we're using free OSM tiles
+// Suppress the missing API key warning since we're using free OSM tiles
+setAccessToken(null);
 
 const MAP_STYLE = {
   version: 8,

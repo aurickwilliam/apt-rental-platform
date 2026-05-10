@@ -5,6 +5,7 @@ import {
   CardBody,
   Avatar,
   Button,
+  Tooltip,
 } from "@heroui/react";
 
 import {
@@ -15,6 +16,10 @@ interface LandlordCardProps {
   name: string;
   avatarUrl?: string | null;
   contactInfo: string;
+  onMessagePress?: () => void;
+  isMessageDisabled?: boolean;
+  messageDisabledReason?: string;
+  showMessageButton?: boolean;
 }
 
 const getInitials = (value: string) => {
@@ -31,7 +36,11 @@ const getInitials = (value: string) => {
 export default function LandlordCard({
   name,
   avatarUrl,
-  contactInfo
+  contactInfo,
+  onMessagePress,
+  isMessageDisabled = false,
+  messageDisabledReason = "",
+  showMessageButton = true,
 }: LandlordCardProps) {
   const displayName = name.trim() || "Unknown";
   const avatarSrc = avatarUrl?.trim() || undefined;
@@ -62,19 +71,30 @@ export default function LandlordCard({
           </p>
         </div>
 
-        <div>
-          <Button
-            isIconOnly
-            variant="flat"
-            color="secondary"
-            radius="full"
-          >
-            <MessageSquare
-              size={20}
-              className="text-secondary"
-            />
-          </Button>
-        </div>
+        {showMessageButton ? (
+          <div>
+            <Tooltip
+              content={messageDisabledReason}
+              isDisabled={!isMessageDisabled || !messageDisabledReason}
+            >
+              <span>
+                <Button
+                  isIconOnly
+                  variant="flat"
+                  color="secondary"
+                  radius="full"
+                  isDisabled={isMessageDisabled}
+                  onPress={onMessagePress}
+                >
+                  <MessageSquare
+                    size={20}
+                    className="text-secondary"
+                  />
+                </Button>
+              </span>
+            </Tooltip>
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

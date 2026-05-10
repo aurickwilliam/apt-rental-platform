@@ -40,7 +40,7 @@ function useRouteParams() {
     otherUserName: normalize(raw.otherUserName),
     otherUserAvatar: normalize(raw.otherUserAvatar),
     otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
-    apartmentId: !apartmentIdRaw || apartmentIdRaw === 'none' ? null : apartmentIdRaw,
+    apartmentId: apartmentIdRaw || null,
   };
 }
 
@@ -168,7 +168,14 @@ function LoadingState() {
 
 function EmptyState() {
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
+    <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 24,
+        transform: [{ scaleY: -1 }],
+      }}
+    >
       <View
         style={{
           backgroundColor: '#FFFFFF',

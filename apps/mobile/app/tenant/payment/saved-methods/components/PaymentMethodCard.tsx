@@ -1,6 +1,6 @@
 import { View, Text, Image } from 'react-native'
 
-import PillButton from '../buttons/PillButton'
+import PillButton from '@/components/buttons/PillButton'
 
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 

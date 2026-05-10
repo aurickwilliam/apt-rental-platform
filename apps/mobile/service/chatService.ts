@@ -62,6 +62,13 @@ export async function insertMessage(params: {
   message: string;
   apartmentId: string | null;
 }) {
+  // Guard for Null Apartment ID
+  // For ensuring that apartment ID is always provided for tenant-landlord conversations
+  // and always null for inquiry conversations
+  if (!params.apartmentId) {
+    throw new Error('Chat requires apartmentId');
+  }
+
   const { data, error } = await supabase
     .from('chat')
     .insert({
@@ -139,8 +146,8 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
 
   return {
     id: data.id,
-    firstName: data.first_name,
-    lastName: data.last_name,
+    firstName: data.first_name ?? '',
+    lastName: data.last_name ?? '',
     avatarUrl: data.avatar_url ?? null,
   };
 }
@@ -154,4 +161,13 @@ export function mapMessages(rows: any[], currentUserId: string): Message[] {
     timestamp: getRelativeTime(new Date(m.created_at)),
     isSent: m.sender_id === currentUserId,
   }));
+}
+
+export function buildConversationKey(
+  userAId: string,
+  userBId: string,
+  apartmentId: string | null
+) {
+  const [first, second] = [userAId, userBId].sort();
+  return `chat:${apartmentId ?? 'none'}:${first}:${second}`;
 }
