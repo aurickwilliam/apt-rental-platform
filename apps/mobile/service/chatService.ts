@@ -162,3 +162,12 @@ export function mapMessages(rows: any[], currentUserId: string): Message[] {
     isSent: m.sender_id === currentUserId,
   }));
 }
+
+export function buildConversationKey(
+  userAId: string,
+  userBId: string,
+  apartmentId: string | null
+) {
+  const [first, second] = [userAId, userBId].sort();
+  return `chat:${apartmentId ?? 'none'}:${first}:${second}`;
+}
