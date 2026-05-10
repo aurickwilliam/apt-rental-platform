@@ -6,6 +6,7 @@ import {
   fetchOtherUserProfile,
   insertMessage,
   markMessagesAsRead,
+  buildConversationKey,
   type Message,
 } from '../service/chatService';
 
@@ -21,7 +22,7 @@ type Options = {
 };
 
 export function useChat({
-  conversationId,
+  conversationId: _conversationId,
   otherUserId,
   apartmentId,
   initialOtherUserName,
@@ -55,7 +56,6 @@ export function useChat({
   }, []);
 
   const { setup, teardown, broadcast, trackPresence } = useChatChannel({
-    conversationId,
     otherUserId,
     apartmentId,
     onNewMessage: handleNewMessage,
@@ -189,7 +189,8 @@ export function useChat({
 
         setMessages(msgs);
         markMessagesAsRead(profile.id, otherUserId, apartmentId).catch(console.error);
-        setup(profile.id);
+        const channelKey = buildConversationKey(profile.id, otherUserId, apartmentId);
+        setup(profile.id, channelKey);
       } catch (err) {
         console.error('Chat init error:', err);
       } finally {

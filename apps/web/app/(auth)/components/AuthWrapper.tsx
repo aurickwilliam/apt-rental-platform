@@ -50,7 +50,7 @@ function AuthContent() {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-5">
         <h1 className="text-4xl font-noto-serif font-semibold tracking-wide">
           {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
         </h1>

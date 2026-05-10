@@ -47,6 +47,18 @@ export default function Chat() {
       if (!profile) return;
       setMyId(profile.id);
 
+      const { data: tenancyRows, error: tenancyError } = await supabase
+        .from('tenancies')
+        .select('tenant_id')
+        .eq('landlord_id', profile.id)
+        .eq('status', 'active');
+
+      if (tenancyError) throw tenancyError;
+
+      const activeTenantIds = new Set(
+        (tenancyRows ?? []).map((row) => row.tenant_id as string)
+      );
+
       const data = await getConversations(profile.id);
 
       const { data: chatRows, error: chatError } = await supabase
@@ -73,6 +85,9 @@ export default function Chat() {
 
       const conversationsWithMeta = data.map((conv) => ({
         ...conv,
+        conversation_type: activeTenantIds.has(conv.other_user_id)
+          ? 'tenant'
+          : 'inquiry',
         last_sender_is_me:
           lastSenderIsMeByConversation[
             getConversationMetaKey(conv.other_user_id, conv.apartment_id)
@@ -201,7 +216,7 @@ export default function Chat() {
         otherUserName: conversation.other_user_name,
         otherUserAvatar: conversation.other_user_avatar ?? '',
         otherUserPhoneNumber: conversation.other_user_phone ?? '',
-        apartmentId: conversation.apartment_id ?? 'none',
+        apartmentId: conversation.apartment_id ?? '',
       },
     });
   };
@@ -307,6 +322,7 @@ export default function Chat() {
                     isUserLastSender={Boolean(message.last_sender_is_me)}
                     timestamp={getRelativeTime(new Date(message.last_message_time))}
                     unreadCount={message.unread_count} 
+                    profilePictureUrl={message.other_user_avatar ?? undefined}
                     onPress={() => handleChatPress(message)}
                   />
                 ))}

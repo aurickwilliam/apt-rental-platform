@@ -8,9 +8,9 @@ import RadioButton from "components/buttons/RadioButton";
 import DropdownField from "components/inputs/DropdownField";
 import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
+import CheckBox from "@/components/buttons/CheckBox";
 
 import { PETS } from "@repo/constants";
-import CheckBox from "@/components/buttons/CheckBox";
 
 type rentalPreferenceType = {
   hasPets: boolean;

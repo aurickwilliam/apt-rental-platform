@@ -27,13 +27,15 @@ export default async function MessagesPage() {
   // Get unread message counts for all conversations involving this tenant
   const { data: unreadRows } = await supabase
     .from("chat")
-    .select("sender_id")
+    .select("sender_id, apartment_id")
     .eq("receiver_id", tenantId)
     .eq("is_read", false);
 
-  const unreadCountBySender = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
+  const unreadCountByConversation = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
     const senderId = row.sender_id;
-    acc.set(senderId, (acc.get(senderId) ?? 0) + 1);
+    const apartmentId = row.apartment_id ?? "none";
+    const key = `${senderId}:${apartmentId}`;
+    acc.set(key, (acc.get(key) ?? 0) + 1);
     return acc;
   }, new Map<string, number>());
 
@@ -52,6 +54,7 @@ export default async function MessagesPage() {
         avatar_url
       ),
       apartment:apartments!tenancies_apartment_id_fkey (
+        id,
         name
       )
     `)
@@ -59,26 +62,30 @@ export default async function MessagesPage() {
     .eq("status", "active");
 
   // My Landlord: active landlord relationship(s) for this tenant
-  const seenLandlordIds = new Set<string>();
+  const seenConversations = new Set<string>();
   const myLandlord: Contact[] = (tenancyRows ?? []).reduce<Contact[]>((acc, row) => {
     const landlord = row.landlord as { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
-    const apartment = row.apartment as { name: string } | null;
-    if (!landlord || seenLandlordIds.has(landlord.id)) return acc;
+    const apartment = row.apartment as { id: string; name: string } | null;
+    if (!landlord || !apartment?.id) return acc;
 
-    seenLandlordIds.add(landlord.id);
+    const conversationKey = `${landlord.id}:${apartment.id}`;
+    if (seenConversations.has(conversationKey)) return acc;
+    seenConversations.add(conversationKey);
     acc.push({
       id: landlord.id,
+      conversationKey,
       name: `${landlord.first_name} ${landlord.last_name}`.trim(),
       avatar: resolveAvatar(landlord.avatar_url),
       apartment: apartment ? `Current: ${apartment.name}` : "Current Landlord",
-      unreadCount: unreadCountBySender.get(landlord.id) ?? 0,
+      apartmentId: apartment?.id ?? null,
+      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
     });
     return acc;
   }, []);
 
-  const activeLandlordIds = myLandlord.map((landlord) => landlord.id);
+  const activeConversations = new Set(myLandlord.map((landlord) => landlord.conversationKey));
 
-  let chatQuery = supabase
+  const chatQuery = supabase
     .from("chat")
     .select(`
       receiver:users!chat_receiver_id_fkey (
@@ -88,33 +95,37 @@ export default async function MessagesPage() {
         avatar_url
       ),
       apartment:apartments!chat_apartment_id_fkey (
+        id,
         name
       )
     `)
     .eq("sender_id", tenantId)
     .order("created_at", { ascending: false });
 
-  if (activeLandlordIds.length > 0) {
-    chatQuery = chatQuery.not("receiver_id", "in", `(${activeLandlordIds.join(",")})`);
-  }
-
   const { data: chatRows } = await chatQuery;
 
   // Past Inquiries: previous landlord conversations excluding active landlord(s)
-  const seenReceiverIds = new Set<string>();
+  const seenReceiverKeys = new Set<string>();
   const pastInquiries: Contact[] = (chatRows ?? []).reduce<Contact[]>((acc, row) => {
     const receiver = row.receiver as { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
-    const apartment = row.apartment as { name: string } | null;
+    const apartment = row.apartment as { id: string; name: string } | null;
 
-    if (!receiver || seenReceiverIds.has(receiver.id)) return acc;
+    if (!receiver || !apartment?.id) return acc;
 
-    seenReceiverIds.add(receiver.id);
+    const conversationKey = `${receiver.id}:${apartment.id}`;
+    if (activeConversations.has(conversationKey) || seenReceiverKeys.has(conversationKey)) {
+      return acc;
+    }
+
+    seenReceiverKeys.add(conversationKey);
     acc.push({
       id: receiver.id,
+      conversationKey,
       name: `${receiver.first_name} ${receiver.last_name}`.trim(),
       avatar: resolveAvatar(receiver.avatar_url),
       apartment: apartment ? `Previous inquiry: ${apartment.name}` : "Previous inquiry",
-      unreadCount: unreadCountBySender.get(receiver.id) ?? 0,
+      apartmentId: apartment?.id ?? null,
+      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
     });
 
     return acc;

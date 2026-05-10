@@ -16,6 +16,7 @@ export type ApartmentDetails = {
   street_address: string;
   barangay: string;
   city: string;
+  province: string;
   latitude: number | null;
   longitude: number | null;
   lease_agreement_url: string | null;
@@ -83,6 +84,7 @@ export function useApartmentDetails(apartmentId: string) {
           street_address,
           barangay,
           city,
+          province,
           latitude,
           longitude,
           lease_agreement_url,

@@ -13,6 +13,8 @@ export default function UploadId() {
   const router = useRouter();
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+  const [frontImages, setFrontImages] = useState<any[]>([]);
+  const [backImages, setBackImages] = useState<any[]>([]);
 
   return (
     <ScreenWrapper
@@ -37,12 +39,24 @@ export default function UploadId() {
         <UploadImageField 
           label='Front of ID:'
           required
+          images={frontImages}
+          onAdd={(images) => {
+            // Only allow one image for the front, so replace any existing image
+            setFrontImages(Array.isArray(images) ? [images[0]] : [images]);
+          }}
+          onRemove={(url) => setFrontImages(frontImages.filter(img => img.uri !== url))}
         />
 
         {/* Back */}
         <UploadImageField 
           label='Back of ID:' 
           required
+          images={backImages}
+          onAdd={(images) => {
+            // Only allow one image for the back, so replace any existing image
+            setBackImages(Array.isArray(images) ? [images[0]] : [images]);
+          }}
+          onRemove={(url) => setBackImages(backImages.filter(img => img.uri !== url))}
         />
       </View>
 

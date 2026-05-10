@@ -13,10 +13,11 @@ export function useGoogleAuth() {
     console.log("handleUrl called with:", url);
 
     try {
-      const queryString = url.split("?")[1] ?? "";
-      const queryParams = new URLSearchParams(queryString);
+      const parsedUrl = new URL(url);
+      const code = parsedUrl.searchParams.get("code");
+      const state = parsedUrl.searchParams.get("state");
 
-      const code = queryParams.get("code");
+      console.log("oauth callback params:", { code, state });
 
       if (!code) {
         setError("Authentication failed. No code returned.");
@@ -27,7 +28,7 @@ export function useGoogleAuth() {
       const { data, error: exchangeError } =
         await supabase.auth.exchangeCodeForSession(code);
 
-      console.log("exchange result:", data, exchangeError);
+      console.log("exchangeError:", JSON.stringify(exchangeError));
 
       if (exchangeError || !data.session) {
         setError("Failed to establish session.");
@@ -68,7 +69,7 @@ export function useGoogleAuth() {
       router.replace(
         role === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
-          : "../(tabs)/(tenant)/home",
+          : "../(tabs)/(tenant)/rentals",
       );
     } catch (err) {
       console.error("handleUrl error:", err);

@@ -28,12 +28,12 @@ export default function ContactSidebar({
   onSelectContact,
 }: ContactSidebarProps) {
   const renderContact = (contact: Contact) => {
-    const isActive = activeContact?.id === contact.id;
+    const isActive = activeContact?.conversationKey === contact.conversationKey;
     const showUnreadBadge = contact.unreadCount > 0 && !isActive;
     const unreadCountLabel = contact.unreadCount > 99 ? "99+" : String(contact.unreadCount);
     return (
       <div
-        key={contact.id}
+        key={contact.conversationKey}
         onClick={() => onSelectContact(contact)}
         className={`p-4 cursor-pointer border-b border-gray-100 hover:bg-gray-100 transition-colors flex items-center gap-3 border-l-4 ${
           isActive
