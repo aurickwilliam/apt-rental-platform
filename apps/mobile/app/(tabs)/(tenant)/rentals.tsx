@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -20,6 +20,7 @@ import {
   IconReceipt,
   IconFileText,
   IconBubbleText,
+  IconBell,
   IconProps,
   IconHomeOff,
 } from '@tabler/icons-react-native';
@@ -137,11 +138,17 @@ export default function Rentals() {
       bottomPadding={50}
     >
       {/* Apartment Header */}
-      <View className='flex-row items-center justify-start gap-2'>
-        <IconMapPinFilled size={34} color={COLORS.primary} className='mr-2' />
-        <Text className='text-secondary text-3xl font-dmserif leading-[34px]'>
-          {apartment.name}
-        </Text>
+      <View className='flex-row items-center justify-between gap-2'>
+        <View className='flex-row items-center justify-start gap-2'>
+          <IconMapPinFilled size={34} color={COLORS.primary} className='mr-2' />
+          <Text className='text-secondary text-3xl font-dmserif leading-[34px]'>
+            {apartment.name}
+          </Text>
+        </View>
+
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/tenant-notif')}>
+          <IconBell size={26} color={COLORS.grey} />
+        </TouchableOpacity>
       </View>
 
       {/* Payment Summary Card */}
