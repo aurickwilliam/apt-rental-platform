@@ -12,6 +12,7 @@ import PillButton from 'components/buttons/PillButton';
 import {
   IconChevronLeft,
   IconHeart,
+  IconHeartFilled,
 } from "@tabler/icons-react-native";
 
 import {
@@ -28,12 +29,15 @@ import {
 } from './components';
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
+import { useFavorites } from '@/hooks/useFavorites';
+import { COLORS } from '@repo/constants';
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
 
   const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const apartmentImages = apartment?.apartment_images.map(img => ({
     id: img.id,
@@ -42,9 +46,15 @@ export default function ApartmentScreen() {
 
   // Handlers for User Navigation and Actions
   // TODO: Implement this Functions
-  const handleFavoriteToggle = () => {
-    console.log("Favorite Button Pressed!");
-  }
+  const handleFavoriteToggle = async () => {
+    if (!apartmentId) return;
+
+    try {
+      await toggleFavorite(apartmentId);
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+    }
+  };
 
   const handleApplyNow = () => {
     router.push(`/apartment/${apartmentId}/apply/apartment-summary`);
@@ -195,8 +205,11 @@ export default function ApartmentScreen() {
         edges={['top']}
       >
         <IconButton
-          iconName={IconHeart}
-          onPress={handleFavoriteToggle}
+          iconName={isFavorite(apartmentId) ? IconHeartFilled : IconHeart}
+          iconColor={isFavorite(apartmentId) ? COLORS.lightRedHead : COLORS.text}
+          onPress={() => {
+            void handleFavoriteToggle();
+          }}
         />
       </SafeAreaView>
 
