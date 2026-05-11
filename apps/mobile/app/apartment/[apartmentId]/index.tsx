@@ -45,7 +45,6 @@ export default function ApartmentScreen() {
   })) ?? [];
 
   // Handlers for User Navigation and Actions
-  // TODO: Implement this Functions
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;
 
