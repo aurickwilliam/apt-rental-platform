@@ -386,7 +386,7 @@ export default function Search() {
         </View>
       </View>
 
-      <View className='px-5 mb-3'>
+      <View className='px-5'>
         <SearchField
           searchValue={searchQuery}
           onChangeSearch={setSearchQuery}
@@ -395,33 +395,34 @@ export default function Search() {
         />
 
         {(activeFilterCount > 0 || resultCount !== undefined) && (
-          <View className='flex-row items-center justify-between mt-3'>
+          <View className='flex-row items-center justify-between my-3'>
 
             {/* Left: active filters chip */}
             {activeFilterCount > 0 ? (
-              <TouchableOpacity
-                onPress={handleClearFilters}
-                activeOpacity={0.7}
-                className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
-              >
-                <Text className='text-primary text-sm font-poppinsMedium'>
-                  {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
-                </Text>
-                <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  onPress={handleClearFilters}
+                  activeOpacity={0.7}
+                  className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
+                >
+                  <Text className='text-primary text-sm font-poppinsMedium'>
+                    {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
+                  </Text>
+                  <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
+                </TouchableOpacity>
+
+                {/* Right: apartment count */}
+                {resultCount !== undefined && (
+                  <Text className='text-sm text-grey-500 font-poppinsRegular'>
+                    {loading
+                      ? 'Searching...'
+                      : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
+                  </Text>
+                )}
+              </>
             ) : (
               <View />
             )}
-
-            {/* Right: apartment count */}
-            {resultCount !== undefined && (
-              <Text className='text-sm text-grey-500 font-poppinsRegular'>
-                {loading
-                  ? 'Searching...'
-                  : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
-              </Text>
-            )}
-
           </View>
         )}
       </View>

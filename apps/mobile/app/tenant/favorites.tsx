@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Text, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, View, Text, ActivityIndicator, FlatList } from 'react-native';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 
@@ -158,10 +158,11 @@ export default function TenantFavorites() {
           <Text className='text-lg text-grey-500 font-poppinsMedium'>No favorite apartments yet</Text>
         </View>
       ) : (
-        <View className='flex-row flex-wrap justify-between gap-y-4'>
-          {apartments.map((apartment) => (
+        <FlatList
+          key={viewMode === 'grid' ? 'grid' : 'list'}
+          data={apartments}
+          renderItem={({ item: apartment }) => (
             <ApartmentCard
-              key={apartment.id}
               {...apartment}
               isGrid={viewMode === 'grid'}
               onPress={() => router.push(`/apartment/${apartment.id}`)}
@@ -169,8 +170,13 @@ export default function TenantFavorites() {
                 void handleFavoriteToggle(apartment.id);
               }}
             />
-          ))}
-        </View>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={viewMode === 'grid' ? 2 : 1}
+          columnWrapperStyle={viewMode === 'grid' ? { paddingHorizontal: 16, gap: 8 } : undefined}
+          scrollEnabled={false}
+          contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
+        />
       )}
     </ScreenWrapper>
   );
