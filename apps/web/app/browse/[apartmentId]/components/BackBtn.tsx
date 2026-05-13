@@ -1,18 +1,19 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
-import Link from "next/link";
 
 import { ArrowLeft } from "lucide-react";
 
 export default function BackBtn() {
+  const router = useRouter();
+
   return (
     <Button
-      as={Link}
       variant="bordered"
       radius="full"
       startContent={<ArrowLeft size={18} />}
-      href="/browse"
+      onPress={() => router.back()}
     >
       Back
     </Button>

@@ -100,7 +100,7 @@ export default function FavoritesClient() {
   const combinedError = error ?? apartmentsError;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs text-default-400 uppercase tracking-widest">Favorites</p>
@@ -145,7 +145,7 @@ export default function FavoritesClient() {
           </CardBody>
         </Card>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-5">
           {apartments.map((apartment) => (
             <ApartmentCard
               key={apartment.id}
