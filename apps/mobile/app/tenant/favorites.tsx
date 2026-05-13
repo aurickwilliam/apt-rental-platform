@@ -134,8 +134,8 @@ export default function TenantFavorites() {
 
   return (
     <ScreenWrapper 
-      scrollable 
-      className='p-5'
+      scrollable
+      className='pt-5'
       header={
         <StandardHeader 
           title='Favorites Apartment'
@@ -143,19 +143,11 @@ export default function TenantFavorites() {
         />
       }
       backgroundColor={COLORS.darkerWhite}
-      bottomPadding={50}
+      noBottomPadding
     >
       {isLoading ? (
         <View className='flex-1 items-center justify-center py-10'>
           <ActivityIndicator size='large' color={COLORS.primary} />
-        </View>
-      ) : combinedError ? (
-        <View className='flex-1 items-center justify-center py-10'>
-          <Text className='text-lg text-grey-500 font-poppinsMedium'>{combinedError}</Text>
-        </View>
-      ) : apartments.length === 0 ? (
-        <View className='flex-1 items-center justify-center py-10'>
-          <Text className='text-lg text-grey-500 font-poppinsMedium'>No favorite apartments yet</Text>
         </View>
       ) : (
         <FlatList
@@ -176,6 +168,13 @@ export default function TenantFavorites() {
           columnWrapperStyle={viewMode === 'grid' ? { paddingHorizontal: 16, gap: 8 } : undefined}
           scrollEnabled={false}
           contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
+          ListEmptyComponent={
+            <View className='flex-1 items-center justify-center py-10'>
+              <Text className='text-lg text-grey-500 font-poppinsMedium'>
+                {combinedError ?? 'No favorite apartments yet'}
+              </Text>
+            </View>
+          }
         />
       )}
     </ScreenWrapper>
