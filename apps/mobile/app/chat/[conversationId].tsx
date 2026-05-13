@@ -5,6 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
   LayoutChangeEvent,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback } from 'react';
@@ -105,43 +106,43 @@ export default function ChatScreen() {
       }
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior="padding"
         keyboardVerticalOffset={headerHeight}
       >
         {loading ? (
           <LoadingState />
         ) : (
-          <FlatList
-            inverted
-            ref={flatListRef}
-            style={{ flex: 1 }}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ChatBubble
-                message={item.message}
-                timestamp={item.timestamp}
-                isSent={item.isSent}
-              />
-            )}
-            contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-            nestedScrollEnabled
-            ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
-            ListEmptyComponent={<EmptyState />}
-            onContentSizeChange={handleContentSizeChange}
-          />
+          <View className="flex-1">
+            {messages.length === 0 && <EmptyState />}
+            <FlatList
+              inverted
+              ref={flatListRef}
+              className="flex-1"
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <ChatBubble
+                  message={item.message}
+                  timestamp={item.timestamp}
+                  isSent={item.isSent}
+                />
+              )}
+              contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+              nestedScrollEnabled
+              ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+              onContentSizeChange={handleContentSizeChange}
+            />
+          </View>
         )}
 
         <View
+          className="bg-white px-3 pt-2"
           style={{
-            backgroundColor: '#FFFFFF',
-            paddingHorizontal: 12,
-            paddingTop: 8,
             paddingBottom: Math.max(insets.bottom, 8),
           }}
         >
@@ -160,7 +161,7 @@ export default function ChatScreen() {
 
 function LoadingState() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <View className="flex-1 items-center justify-center">
       <ActivityIndicator color={COLORS.primary} />
     </View>
   );
@@ -168,31 +169,17 @@ function LoadingState() {
 
 function EmptyState() {
   return (
-    <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 24,
-        transform: [{ scaleY: -1 }],
-      }}
-    >
+    <View className="flex-1 items-center justify-center py-6">
       <View
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderColor: '#E5E7EB',
-          borderWidth: 1,
-          borderRadius: 12,
-          paddingHorizontal: 14,
-          paddingVertical: 10,
-          maxWidth: '92%',
-        }}
+        className="max-w-[92%] rounded-xl border border-slate-200 bg-white px-3.5 py-2.5"
       >
         <Text
-          style={{ color: COLORS.primary, fontSize: 14, textAlign: 'center', fontWeight: '600' }}
+          className="text-center text-[14px] font-semibold text-[color:var(--tw-color-primary)]"
+          style={{ color: COLORS.primary }}
         >
           No messages yet
         </Text>
-        <Text style={{ marginTop: 4, color: '#6B7280', fontSize: 12, textAlign: 'center' }}>
+        <Text className="mt-1 text-center text-[12px] text-slate-500">
           Say hi to start the conversation.
         </Text>
       </View>
