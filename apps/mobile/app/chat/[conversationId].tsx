@@ -1,11 +1,9 @@
 import {
   View,
-  Text,
   KeyboardAvoidingView,
   FlatList,
   ActivityIndicator,
   LayoutChangeEvent,
-  Platform,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback } from 'react';
@@ -16,6 +14,7 @@ import ChatHeader from 'components/layout/ChatHeader';
 import ChatBubble from 'components/display/ChatBubble';
 import ChatBox from 'components/inputs/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
+import ChatEmptyState from './components/ChatEmptyState';
 
 import { COLORS } from '@repo/constants';
 import { useChat } from 'hooks/useChat';
@@ -111,10 +110,15 @@ export default function ChatScreen() {
         keyboardVerticalOffset={headerHeight}
       >
         {loading ? (
-          <LoadingState />
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color={COLORS.primary} />
+          </View>
         ) : (
           <View className="flex-1">
-            {messages.length === 0 && <EmptyState />}
+            {/* Show Empty State if no messages */}
+            {messages.length === 0 && <ChatEmptyState />}
+
+            {/* Render the message list */}
             <FlatList
               inverted
               ref={flatListRef}
@@ -156,33 +160,5 @@ export default function ChatScreen() {
         </View>
       </KeyboardAvoidingView>
     </ScreenWrapper>
-  );
-}
-
-function LoadingState() {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <ActivityIndicator color={COLORS.primary} />
-    </View>
-  );
-}
-
-function EmptyState() {
-  return (
-    <View className="flex-1 items-center justify-center py-6">
-      <View
-        className="max-w-[92%] rounded-xl border border-slate-200 bg-white px-3.5 py-2.5"
-      >
-        <Text
-          className="text-center text-[14px] font-semibold text-[color:var(--tw-color-primary)]"
-          style={{ color: COLORS.primary }}
-        >
-          No messages yet
-        </Text>
-        <Text className="mt-1 text-center text-[12px] text-slate-500">
-          Say hi to start the conversation.
-        </Text>
-      </View>
-    </View>
   );
 }
