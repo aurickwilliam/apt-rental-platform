@@ -128,6 +128,9 @@ export default function TenantNavbar() {
               <DropdownItem key="profile" href="/profile" color="primary">
                 Profile
               </DropdownItem>
+              <DropdownItem key="favorites" href="/tenant/favorites" color="primary">
+                Favorites
+              </DropdownItem>
               <DropdownItem key="settings" href="/settings" color="primary">
                 Settings
               </DropdownItem>

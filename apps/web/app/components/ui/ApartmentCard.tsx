@@ -18,6 +18,9 @@ interface ApartmentCardProps {
   rating: number;
   thumbnailUrl: string;
   onPress?: () => void;
+  isFavorite?: boolean;
+  isFavoriteLoading?: boolean;
+  onFavoritePress?: () => void;
 }
 
 export default function ApartmentCard({
@@ -26,8 +29,12 @@ export default function ApartmentCard({
   price,
   rating,
   thumbnailUrl,
-  onPress
+  onPress,
+  isFavorite = false,
+  isFavoriteLoading = false,
+  onFavoritePress,
 }: ApartmentCardProps) {
+  const showFavoriteButton = Boolean(onFavoritePress);
 
   return (
     <Card
@@ -74,19 +81,25 @@ export default function ApartmentCard({
         </div>
       </CardFooter>
 
-      {/* Overlay */}
-      <Button
-        as="div"
-        variant="flat"
-        radius="full"
-        className="absolute top-2 right-2 bg-black/30"
-        isIconOnly
-        onPress={() => {
-          console.log("Favorite Press")
-        }}
-      >
-        <Heart className="text-white" />
-      </Button>
+      {showFavoriteButton ? (
+        <Button
+          as="div"
+          variant="flat"
+          radius="full"
+          className="absolute top-2 right-2 bg-black/30"
+          isIconOnly
+          isLoading={isFavoriteLoading}
+          onClick={(event) => {
+            event.stopPropagation();
+            onFavoritePress?.();
+          }}
+        >
+          <Heart
+            className={isFavorite ? "text-red-500" : "text-white"}
+            fill={isFavorite ? "currentColor" : "none"}
+          />
+        </Button>
+      ) : null}
     </Card>
   );
 }
