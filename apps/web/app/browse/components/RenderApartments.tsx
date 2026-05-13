@@ -1,8 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import { Pagination } from "@heroui/react";
+import { addToast } from "@heroui/toast";
+
 import ApartmentCard from "../../components/ui/ApartmentCard";
+import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
+import { useFavorites } from "@/hooks/use-favorites";
 
 interface ApartmentItem {
   id: string;
@@ -24,11 +30,51 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
 
   const handlePageChange = (newPage: number) => {
     const current = new URLSearchParams(searchParams.toString());
     current.set("page", String(newPage));
     router.push(`/browse?${current.toString()}`);
+  };
+
+  const handleFavoriteToggle = async (apartmentId: string) => {
+    setActiveFavoriteId(apartmentId);
+
+    try {
+      const nextValue = await toggleFavorite(apartmentId);
+      addToast({
+        title: nextValue ? "Saved to favorites" : "Removed from favorites",
+        severity: nextValue ? "success" : "default",
+        color: nextValue ? "primary" : "default",
+      });
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+
+      if (error?.code === "AUTH_REQUIRED") {
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      if (error?.code === "NOT_TENANT") {
+        addToast({
+          title: error?.message ?? "Only tenants can save favorites",
+          severity: "warning",
+          color: "warning",
+        });
+        return;
+      }
+
+      addToast({
+        title: error?.message ?? "Unable to update favorites",
+        severity: "danger",
+        color: "danger",
+      });
+    } finally {
+      setActiveFavoriteId(null);
+    }
   };
 
   return (
@@ -48,6 +94,11 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
               price={apt.price}
               rating={apt.rating}
               thumbnailUrl={apt.image}
+              isFavorite={isFavorite(apt.id)}
+              isFavoriteLoading={activeFavoriteId === apt.id}
+              onFavoritePress={() => {
+                void handleFavoriteToggle(apt.id);
+              }}
               onPress={() => router.push(`/browse/${apt.id}`)}
             />
           ))}
@@ -69,6 +120,13 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           />
         </div>
       )}
+
+      <AuthPromptModal
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        title="Sign in to save favorites"
+        description="Create an account to save apartments and access them anytime."
+      />
     </div>
   );
 }

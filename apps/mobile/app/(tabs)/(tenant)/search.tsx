@@ -9,6 +9,7 @@ import {
   IconChevronUp,
   IconLayoutGrid,
   IconLayoutList,
+  IconHeart,
 } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -21,7 +22,10 @@ import FilterBottomSheet, {
 } from 'components/display/FilterBottomSheet';
 
 import { APARTMENT_TYPES, COLORS, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants';
+
 import { supabase } from '@repo/supabase';
+
+import { useFavorites } from '@/hooks/useFavorites';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
 const PAGE_SIZE = 10;
@@ -46,6 +50,7 @@ export default function Search() {
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isGridView, setIsGridView] = useState<boolean>(true);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const pageRef = useRef(0);
 
@@ -206,7 +211,6 @@ export default function Search() {
         name: apt.name,
         location: `${apt.barangay}, ${apt.city}`,
         ratings: apt.average_rating?.toFixed(1) ?? '0.0',
-        isFavorite: false,
         monthlyRent: apt.monthly_rent,
         noBedroom: apt.no_bedrooms,
         noBathroom: apt.no_bathrooms,
@@ -311,20 +315,28 @@ export default function Search() {
     return count;
   }, [filters]);
 
-  const toggleFavorite = useCallback((id: string) => {
-    setApartments((prev) =>
-      prev.map((apt) => (apt.id === id ? { ...apt, isFavorite: !apt.isFavorite } : apt))
-    );
-  }, []);
+  const handleToggleFavorite = useCallback(
+    async (id: string) => {
+      try {
+        await toggleFavorite(id);
+      } catch (err) {
+        console.error('Error toggling favorite:', err);
+      }
+    },
+    [toggleFavorite]
+  );
 
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}`);
 
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
     <ApartmentCard
       {...item}
+      isFavorite={isFavorite(item.id)}
       isGrid={isGridView}
       onPress={() => handleApartmentPress(item.id)}
-      onPressFavorite={() => toggleFavorite(item.id)}
+      onPressFavorite={() => {
+        void handleToggleFavorite(item.id);
+      }}
     />
   );
 
@@ -362,15 +374,21 @@ export default function Search() {
           />
         </View>
 
-        <TouchableOpacity activeOpacity={0.7} onPress={() => setIsGridView((prev) => !prev)}>
-          {isGridView
-            ? <IconLayoutGrid size={26} color={COLORS.grey} />
-            : <IconLayoutList size={26} color={COLORS.grey} />
-          }
-        </TouchableOpacity>
+        <View className='flex-row items-center gap-4'>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/tenant/favorites')}>
+            <IconHeart size={24} color={COLORS.grey} />
+          </TouchableOpacity>
+
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setIsGridView((prev) => !prev)}>
+            {isGridView
+              ? <IconLayoutGrid size={26} color={COLORS.grey} />
+              : <IconLayoutList size={26} color={COLORS.grey} />
+            }
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View className='px-5 mb-3'>
+      <View className='px-5'>
         <SearchField
           searchValue={searchQuery}
           onChangeSearch={setSearchQuery}
@@ -379,33 +397,34 @@ export default function Search() {
         />
 
         {(activeFilterCount > 0 || resultCount !== undefined) && (
-          <View className='flex-row items-center justify-between mt-3'>
+          <View className='flex-row items-center justify-between my-3'>
 
             {/* Left: active filters chip */}
             {activeFilterCount > 0 ? (
-              <TouchableOpacity
-                onPress={handleClearFilters}
-                activeOpacity={0.7}
-                className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
-              >
-                <Text className='text-primary text-sm font-poppinsMedium'>
-                  {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
-                </Text>
-                <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  onPress={handleClearFilters}
+                  activeOpacity={0.7}
+                  className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
+                >
+                  <Text className='text-primary text-sm font-poppinsMedium'>
+                    {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
+                  </Text>
+                  <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
+                </TouchableOpacity>
+
+                {/* Right: apartment count */}
+                {resultCount !== undefined && (
+                  <Text className='text-sm text-grey-500 font-poppinsRegular'>
+                    {loading
+                      ? 'Searching...'
+                      : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
+                  </Text>
+                )}
+              </>
             ) : (
               <View />
             )}
-
-            {/* Right: apartment count */}
-            {resultCount !== undefined && (
-              <Text className='text-sm text-grey-500 font-poppinsRegular'>
-                {loading
-                  ? 'Searching...'
-                  : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
-              </Text>
-            )}
-
           </View>
         )}
       </View>

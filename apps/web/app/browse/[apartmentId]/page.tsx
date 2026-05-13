@@ -108,7 +108,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         <BackBtn />
         <div className="flex items-center gap-2">
           <ShareBtn />
-          <FavoriteBtn />
+          <FavoriteBtn apartmentId={apartment.id} />
         </div>
       </div>
 
