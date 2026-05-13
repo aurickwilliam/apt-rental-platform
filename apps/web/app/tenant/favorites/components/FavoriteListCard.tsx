@@ -80,9 +80,6 @@ export default function FavoriteListCard({
           </div>
 
           <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-3">
-            <p className="text-lg font-semibold text-primary">
-              ₱ {formatCurrency(apartment.monthly_rent ?? 0)}
-            </p>
             <Button
               isIconOnly
               radius="full"
@@ -97,6 +94,10 @@ export default function FavoriteListCard({
                 fill={isFavorite ? "currentColor" : "none"}
               />
             </Button>
+
+            <p className="text-lg font-semibold text-primary">
+              ₱ {formatCurrency(apartment.monthly_rent ?? 0)}
+            </p>
           </div>
         </div>
       </CardBody>

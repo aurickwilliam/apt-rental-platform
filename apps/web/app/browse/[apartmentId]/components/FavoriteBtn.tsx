@@ -27,6 +27,7 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
       addToast({
         title: nextValue ? "Saved to favorites" : "Removed from favorites",
         severity: nextValue ? "success" : "default",
+        color: nextValue ? "primary" : "default",
       });
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
@@ -40,6 +41,7 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
         addToast({
           title: error?.message ?? "Only tenants can save favorites",
           severity: "warning",
+          color: "warning",
         });
         return;
       }
@@ -47,6 +49,7 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
       addToast({
         title: error?.message ?? "Unable to update favorites",
         severity: "danger",
+        color: "danger",
       });
     } finally {
       setIsSaving(false);

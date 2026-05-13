@@ -76,7 +76,7 @@ export default function ApartmentCard({
             size={18}
           />
           <p className="text-sm">
-            {rating}
+            {rating == 0 ? "-" : rating}
           </p>
         </div>
       </CardFooter>
@@ -89,8 +89,7 @@ export default function ApartmentCard({
           className="absolute top-2 right-2 bg-black/30"
           isIconOnly
           isLoading={isFavoriteLoading}
-          onClick={(event) => {
-            event.stopPropagation();
+          onPress={() => {
             onFavoritePress?.();
           }}
         >
