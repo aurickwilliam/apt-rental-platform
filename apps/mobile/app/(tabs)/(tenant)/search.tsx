@@ -22,7 +22,9 @@ import FilterBottomSheet, {
 } from 'components/display/FilterBottomSheet';
 
 import { APARTMENT_TYPES, COLORS, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants';
+
 import { supabase } from '@repo/supabase';
+
 import { useFavorites } from '@/hooks/useFavorites';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
