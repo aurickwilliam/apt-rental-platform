@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   KeyboardAvoidingView,
   FlatList,
   ActivityIndicator,
@@ -15,6 +14,7 @@ import ChatHeader from 'components/layout/ChatHeader';
 import ChatBubble from 'components/display/ChatBubble';
 import ChatBox from 'components/inputs/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
+import ChatEmptyState from './components/ChatEmptyState';
 
 import { COLORS } from '@repo/constants';
 import { useChat } from 'hooks/useChat';
@@ -105,43 +105,48 @@ export default function ChatScreen() {
       }
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior="padding"
         keyboardVerticalOffset={headerHeight}
       >
         {loading ? (
-          <LoadingState />
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color={COLORS.primary} />
+          </View>
         ) : (
-          <FlatList
-            inverted
-            ref={flatListRef}
-            style={{ flex: 1 }}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ChatBubble
-                message={item.message}
-                timestamp={item.timestamp}
-                isSent={item.isSent}
-              />
-            )}
-            contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-            nestedScrollEnabled
-            ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
-            ListEmptyComponent={<EmptyState />}
-            onContentSizeChange={handleContentSizeChange}
-          />
+          <View className="flex-1">
+            {/* Show Empty State if no messages */}
+            {messages.length === 0 && <ChatEmptyState />}
+
+            {/* Render the message list */}
+            <FlatList
+              inverted
+              ref={flatListRef}
+              className="flex-1"
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <ChatBubble
+                  message={item.message}
+                  timestamp={item.timestamp}
+                  isSent={item.isSent}
+                />
+              )}
+              contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+              nestedScrollEnabled
+              ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+              onContentSizeChange={handleContentSizeChange}
+            />
+          </View>
         )}
 
         <View
+          className="bg-white px-3 pt-2"
           style={{
-            backgroundColor: '#FFFFFF',
-            paddingHorizontal: 12,
-            paddingTop: 8,
             paddingBottom: Math.max(insets.bottom, 8),
           }}
         >
@@ -155,47 +160,5 @@ export default function ChatScreen() {
         </View>
       </KeyboardAvoidingView>
     </ScreenWrapper>
-  );
-}
-
-function LoadingState() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <ActivityIndicator color={COLORS.primary} />
-    </View>
-  );
-}
-
-function EmptyState() {
-  return (
-    <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 24,
-        transform: [{ scaleY: -1 }],
-      }}
-    >
-      <View
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderColor: '#E5E7EB',
-          borderWidth: 1,
-          borderRadius: 12,
-          paddingHorizontal: 14,
-          paddingVertical: 10,
-          maxWidth: '92%',
-        }}
-      >
-        <Text
-          style={{ color: COLORS.primary, fontSize: 14, textAlign: 'center', fontWeight: '600' }}
-        >
-          No messages yet
-        </Text>
-        <Text style={{ marginTop: 4, color: '#6B7280', fontSize: 12, textAlign: 'center' }}>
-          Say hi to start the conversation.
-        </Text>
-      </View>
-    </View>
   );
 }
