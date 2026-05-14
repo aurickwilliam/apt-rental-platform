@@ -7,6 +7,8 @@ import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "components/cards/ApartmentDescriptionCard";
 import PillButton from 'components/buttons/PillButton';
 import Divider from 'components/display/Divider';
+import QuickActionButton from 'components/buttons/QuickActionButton';
+import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 
 import {
   IconMapPinFilled,
@@ -26,14 +28,8 @@ import {
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';
-import QuickActionButton from '@/components/buttons/QuickActionButton';
-import { useTenancy } from '@/hooks/useTenancy';
 
-type actionsTypes = {
-  id: number;
-  label: string;
-  icon: React.ComponentType<IconProps>;
-}
+import { useTenancy } from '@/hooks/useTenancy';
 
 function formatMonth(dateStr: string): string {
   return new Date(dateStr).toLocaleString('default', { month: 'long' });
@@ -58,40 +54,28 @@ function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
 }
 
-
-// Empty State when no active tenancy found
-function NoTenancyState() {
-  return (
-    <View className='flex-1 items-center justify-center gap-4 py-20'>
-      <IconHomeOff size={64} color={COLORS.grey} />
-      <View className='items-center gap-1'>
-        <Text className='text-text text-xl font-poppinsSemiBold text-center'>
-          No Active Tenancy
-        </Text>
-        <Text className='text-grey-500 text-base font-inter text-center px-8'>
-          You&apos;re not currently renting any apartment. Browse listings to find your next home.
-        </Text>
-      </View>
-    </View>
-  );
+type actionsTypes = {
+  id: number;
+  label: string;
+  icon: React.ComponentType<IconProps>;
 }
+
+const actions: actionsTypes[] = [
+  { id: 1, label: 'Chat Landlord', icon: IconBubbleText },
+  { id: 2, label: 'View Lease', icon: IconFileText },
+  { id: 3, label: 'View Receipts', icon: IconReceipt },
+  { id: 4, label: 'Pay Rent', icon: IconCash },
+  { id: 5, label: 'Request Maintenance', icon: IconTool },
+  { id: 6, label: 'Property Details', icon: IconHome2 },
+  { id: 7, label: 'Settings', icon: IconSettings },
+  { id: 8, label: 'FAQ', icon: IconHelp },
+];
 
 export default function Rentals() {
   const router = useRouter();
 
   // Read directly from the store
   const { tenancy, loading } = useTenancy();
-
-  const actions: actionsTypes[] = [
-    { id: 1, label: 'Chat Landlord', icon: IconBubbleText },
-    { id: 2, label: 'View Lease', icon: IconFileText },
-    { id: 3, label: 'View Receipts', icon: IconReceipt },
-    { id: 4, label: 'Pay Rent', icon: IconCash },
-    { id: 5, label: 'Request Maintenance', icon: IconTool },
-    { id: 6, label: 'Property Details', icon: IconHome2 },
-    { id: 7, label: 'Settings', icon: IconSettings },
-    { id: 8, label: 'FAQ', icon: IconHelp },
-  ];
 
   const handleRequestMaintenance = () => router.push('/tenant/maintenance-issue');
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
@@ -113,7 +97,7 @@ export default function Rentals() {
   if (!tenancy) {
     return (
       <ScreenWrapper className='p-5'>
-        <NoTenancyState />
+        <TenancyEmptyState />
       </ScreenWrapper>
     );
   }

@@ -55,8 +55,13 @@ export async function updateSession(request: NextRequest) {
   // It reads from cookies which could be tampered with.
   // Use getUser() instead which validates the session with the Supabase Auth server.
   const {
-    data: { user },
+    data: { user: fetchedUser },
+    error: userError,
   } = await supabase.auth.getUser();
+  const user = userError?.name === "AuthSessionMissingError" ? null : fetchedUser;
+  if (userError && userError.name !== "AuthSessionMissingError") {
+    console.warn("Failed to fetch user in middleware", userError);
+  }
 
   // Pages that anyone can access without logging in
   const publicRoutes = [

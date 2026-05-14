@@ -36,7 +36,12 @@ export async function getTenantContext(): Promise<TenantContext> {
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError) throw authError;
+  if (authError) {
+    if (authError.name === "AuthSessionMissingError") {
+      return { tenantId: null, role: null, isAuthenticated: false };
+    }
+    throw authError;
+  }
   if (!user) {
     return { tenantId: null, role: null, isAuthenticated: false };
   }
