@@ -10,6 +10,8 @@ import TextField from "components/inputs/TextField";
 import PillButton from "components/buttons/PillButton";
 import LogoButton from "components/buttons/LogoButton";
 
+import { Button } from 'heroui-native';
+
 import { supabase } from "@repo/supabase";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
@@ -231,12 +233,15 @@ export default function SignIn() {
 
       {/* Sign In Button */}
       <View className="mt-5">
-        <PillButton
-          label={loading ? "Signing In..." : "Sign In"}
-          isFullWidth={true}
+        <Button
           onPress={handleSignIn}
           isDisabled={loading}
-        />
+          className="bg-primary"
+        >
+          <Button.Label className="font-interMedium">
+            {loading ? "Signing In..." : "Sign In"}
+          </Button.Label>
+        </Button>
       </View>
 
       {/* Divider */}

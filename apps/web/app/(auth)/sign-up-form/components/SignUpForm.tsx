@@ -7,14 +7,14 @@ import {
   Input,
   Select,
   SelectItem,
-  NumberInput,
+  NumberField,
   DatePicker,
-  useDisclosure,
+  useOverlayState,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
-  
+
 import PasswordChecklist from "./PasswordChecklist";
 import OtpModal from "./OtpModal";
 import SuccessModal from "./SuccessModal";
@@ -30,9 +30,14 @@ import { sendEmailOtp } from "../../actions/send-otp";
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
-  const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const { isOpen: isErrorOpen, onOpenChange: onErrorOpenChange, onOpen: onErrorOpen } = useDisclosure();
-  const { isOpen: isSuccessOpen, onOpenChange: onSuccessOpenChange, onOpen: onSuccessOpen } = useDisclosure();
+  const [isOpen, { open: onOpen, close: onClose }] = useOverlayState();
+  const [isErrorOpen, { open: onErrorOpen, close: onErrorClose }] = useOverlayState();
+  const [isSuccessOpen, { open: onSuccessOpen, close: onSuccessClose }] = useOverlayState();
+
+  // Adapter for child modals that still use onOpenChange pattern
+  const onOpenChange = (val: boolean) => (val ? onOpen() : onClose());
+  const onErrorOpenChange = (val: boolean) => (val ? onErrorOpen() : onErrorClose());
+  const onSuccessOpenChange = (val: boolean) => (val ? onSuccessOpen() : onSuccessClose());
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -114,10 +119,6 @@ export default function SignUpForm() {
             name="email"
             type="email"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2! bg-default-100",
-            }}
             value={formData.email}
             onValueChange={handleChange("email")}
           />
@@ -129,10 +130,6 @@ export default function SignUpForm() {
             name="firstName"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.firstName}
             onValueChange={handleChange("firstName")}
             isDisabled={loading}
@@ -145,10 +142,6 @@ export default function SignUpForm() {
             name="lastName"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.lastName}
             onValueChange={handleChange("lastName")}
             isDisabled={loading}
@@ -160,10 +153,6 @@ export default function SignUpForm() {
             name="middleName"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.middleName}
             onValueChange={handleChange("middleName")}
             isDisabled={loading}
@@ -176,9 +165,6 @@ export default function SignUpForm() {
             placeholder="Select your gender"
             name="gender"
             variant="bordered"
-            classNames={{
-              base: "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             selectedKeys={formData.gender ? [formData.gender] : []}
             onSelectionChange={(keys) => {
               const selected = Array.from(keys)[0];
@@ -187,7 +173,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             {GENDERS.map((gender) => (
-              <SelectItem key={gender} className="data-[hover=true]:bg-light-blue!">
+              <SelectItem key={gender} id={gender} className="data-[hover=true]:bg-light-blue!">
                 {gender}
               </SelectItem>
             ))}
@@ -200,10 +186,6 @@ export default function SignUpForm() {
             name="mobileNumber"
             type="tel"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.mobileNumber}
             onValueChange={handleChange("mobileNumber")}
             isDisabled={loading}
@@ -222,10 +204,6 @@ export default function SignUpForm() {
               }));
               if (error) setError(null);
             }}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             isDisabled={loading}
           />
         </div>
@@ -243,10 +221,6 @@ export default function SignUpForm() {
             name="streetAddress"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.streetAddress}
             onValueChange={handleChange("streetAddress")}
             isDisabled={loading}
@@ -259,10 +233,6 @@ export default function SignUpForm() {
             name="barangay"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.barangay}
             onValueChange={handleChange("barangay")}
             isDisabled={loading}
@@ -275,10 +245,6 @@ export default function SignUpForm() {
             name="city"
             type="text"
             variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.city}
             onValueChange={handleChange("city")}
             isDisabled={loading}
@@ -290,10 +256,6 @@ export default function SignUpForm() {
             name="stateProvince"
             label="State/Province"
             variant="bordered"
-            classNames={{
-              trigger:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             className="w-full"
             selectedKeys={formData.stateProvince ? [formData.stateProvince] : []}
             onSelectionChange={(keys) => {
@@ -303,13 +265,13 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             {PROVINCES.map((province) => (
-              <SelectItem key={province} className="data-[hover=true]:bg-light-blue!">
+              <SelectItem key={province} id={province} className="data-[hover=true]:bg-light-blue!">
                 {province}
               </SelectItem>
             ))}
           </Select>
 
-          <NumberInput
+          <NumberField
             isRequired
             label="Postal Code"
             placeholder="Enter your postal code"
@@ -319,10 +281,6 @@ export default function SignUpForm() {
             maxValue={9999}
             minValue={1000}
             formatOptions={{ useGrouping: false }}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.postalCode}
             onValueChange={(val) =>
               setFormData((prev) => ({
