@@ -5,10 +5,13 @@ import "./global.css";
 
 // For using custom fonts
 import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
+
 import { useEffect } from "react";
+
+import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { HeroUINativeProvider } from "heroui-native";
 
 import * as WebBrowser from "expo-web-browser";
 
@@ -51,26 +54,28 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" backgroundColor={COLORS.primary} />
-      <BottomSheetModalProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="chat/[conversationId]" />
-          <Stack.Screen name="tenant" />
-          <Stack.Screen name="landlord-profile/[landlordId]" />
-          <Stack.Screen name="apartment/[apartmentId]" />
-          <Stack.Screen name="(notification)" />
-          <Stack.Screen name="settings" />
-          <Stack.Screen name="document-id" />
-          <Stack.Screen name="manage-apartment/[apartmentId]" />
-        </Stack>
-      </BottomSheetModalProvider>
+      <HeroUINativeProvider>
+        <StatusBar style="light" backgroundColor={COLORS.primary} />
+        <BottomSheetModalProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="chat/[conversationId]" />
+            <Stack.Screen name="tenant" />
+            <Stack.Screen name="landlord-profile/[landlordId]" />
+            <Stack.Screen name="apartment/[apartmentId]" />
+            <Stack.Screen name="(notification)" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="document-id" />
+            <Stack.Screen name="manage-apartment/[apartmentId]" />
+          </Stack>
+        </BottomSheetModalProvider>
+      </HeroUINativeProvider>
     </GestureHandlerRootView>
   );
 }

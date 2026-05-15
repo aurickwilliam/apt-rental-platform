@@ -24,7 +24,6 @@ import {
   IconBubbleText,
   IconBell,
   IconProps,
-  IconHomeOff,
 } from '@tabler/icons-react-native';
 
 import { COLORS } from '@repo/constants';
