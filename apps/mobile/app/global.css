@@ -1,3 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'uniwind';
+
+@import 'heroui-native/styles';
+
+/* HeroUI Native component source */
+@source '../node_modules/heroui-native/lib';
+
+/* Components outside the app/ directory */
+@source '../components';
+
+/* Shared monorepo packages */
+@source '../../../packages/constants/src';
+@source '../../../packages/utils/src';
+
+@theme {
+  /* Font families — single font only, no fallbacks in React Native */
+  --font-poppins: 'Poppins-Regular';
+  --font-poppinsMedium: 'Poppins-Medium';
+  --font-poppinsSemiBold: 'Poppins-SemiBold';
+  --font-dmserif: 'DMSerifText-Regular';
+  --font-inter: 'Inter_24pt-Regular';
+  --font-interMedium: 'Inter_24pt-Medium';
+  --font-interSemiBold: 'Inter_24pt-SemiBold';
+
+  /* Colors */
+  --color-primary: #376BF5;
+  --color-lightBlue: #EFF6FF;
+  --color-secondary: #FFA500;
+  --color-darkerWhite: #F8F9FA;
+  --color-text: #333333;
+
+  --color-grey-100: #E5E7EB;
+  --color-grey-200: #D1D5DB;
+  --color-grey-300: #BDBDBD;
+  --color-grey-400: #9CA3AF;
+  --color-grey-500: #6C757D;
+
+  --color-greenHulk-100: #E6F4EA;
+  --color-greenHulk-200: #22C55E;
+
+  --color-redHead-50: #FDA4AF;
+  --color-redHead-100: #FF4B4B;
+  --color-redHead-200: #E50914;
+
+  --color-yellowish-100: #FFF8E1;
+  --color-yellowish-200: #FACC15;
+}
