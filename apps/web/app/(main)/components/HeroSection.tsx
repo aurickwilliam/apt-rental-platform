@@ -12,7 +12,7 @@ const STATS = [
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full h-[800px] flex flex-row items-center rounded-2xl mb-20 overflow-hidden">
+    <section className="relative w-full h-[calc(100svh-80px)] flex flex-row items-center rounded-2xl mb-20 overflow-hidden">
       <div className="absolute inset-0 w-1/2 pointer-events-none z-0" />
 
       {/* Text Side */}
@@ -47,15 +47,15 @@ export default function HeroSection() {
       </div>
 
       {/* Image Side */}
-      <div className="relative hidden md:flex w-1/2 h-full items-center justify-center">
+      <div className="relative self-stretch hidden md:flex w-1/2">
         <div className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none" />
 
         <NextImage
           src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=800&fit=crop&auto=format"
           alt="Hero Image"
-          width={600}
-          height={800}
-          className="object-cover w-full h-full rounded-r-2xl"
+          fill
+          className="object-cover rounded-r-2xl"
+          sizes="50vw"
         />
 
         {/* Floating verification badge */}
