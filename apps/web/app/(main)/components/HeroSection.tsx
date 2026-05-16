@@ -1,11 +1,10 @@
 "use client";
 
-import { Image } from "@heroui/react";
 import NextImage from "next/image";
 import StartBrowsingBtn from "./StartBrowsingBtn";
 import { IconShieldCheck, IconBuildingSkyscraper, IconUsers } from "@tabler/icons-react";
 
-const stats = [
+const STATS = [
   { icon: <IconBuildingSkyscraper size={18} />, value: "2,400+", label: "Active Listings" },
   { icon: <IconUsers size={18} />, value: "800+", label: "Verified Landlords" },
   { icon: <IconShieldCheck size={18} />, label: "Secure Payments", value: "100%" },
@@ -34,7 +33,7 @@ export default function HeroSection() {
 
         {/* Stats row */}
         <div className="flex flex-row gap-6 pt-2 border-t border-divider mt-2">
-          {stats.map((stat) => (
+          {STATS.map((stat) => (
             <div key={stat.label} className="flex flex-col gap-0.5">
               <span className="text-xl font-poppins font-semibold text-primary">
                 {stat.value}
@@ -49,11 +48,9 @@ export default function HeroSection() {
 
       {/* Image Side */}
       <div className="relative hidden md:flex w-1/2 h-full items-center justify-center">
-        
         <div className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none" />
 
-        <Image
-          as={NextImage}
+        <NextImage
           src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=800&fit=crop&auto=format"
           alt="Hero Image"
           width={600}
@@ -61,7 +58,7 @@ export default function HeroSection() {
           className="object-cover w-full h-full rounded-r-2xl"
         />
 
-        {/* Floating verification badge on the image */}
+        {/* Floating verification badge */}
         <div className="absolute bottom-10 left-8 z-20 bg-background/80 backdrop-blur-md border border-divider rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
           <div className="w-9 h-9 rounded-full bg-success/10 flex items-center justify-center text-success">
             <IconShieldCheck size={18} />
