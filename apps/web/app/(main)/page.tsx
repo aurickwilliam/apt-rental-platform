@@ -2,7 +2,7 @@ import ApartmentCarousel from "./components/ApartmentCarousel";
 import DiscoverNowBtn from "./components/DiscoverNowBtn";
 import HeroSection from "./components/HeroSection";
 
-import { Divider } from "@heroui/react";
+import { Separator } from "@heroui/react";
 
 import { redirect } from "next/navigation";
 
@@ -101,8 +101,8 @@ export default async function Home() {
                 </p>
               </div>
 
-              <Divider className="my-3 md:hidden" />
-              <Divider
+              <Separator className="my-3 md:hidden" />
+              <Separator
                 className="mx-2 hidden md:block self-stretch h-auto"
                 orientation="vertical"
               />
@@ -121,8 +121,8 @@ export default async function Home() {
                 </p>
               </div>
 
-              <Divider className="my-3 md:hidden" />
-              <Divider
+              <Separator className="my-3 md:hidden" />
+              <Separator
                 className="mx-2 hidden md:block self-stretch h-auto"
                 orientation="vertical"
               />
@@ -149,7 +149,7 @@ export default async function Home() {
             <ApartmentCarousel apartment={mapped} />
           </section>
 
-          <Divider className="my-10" />
+          <Separator className="my-10" />
 
           {/* How it Works */}
           <section className="md:mt-10 mb-10">

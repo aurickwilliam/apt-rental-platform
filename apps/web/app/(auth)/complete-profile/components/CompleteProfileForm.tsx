@@ -12,7 +12,6 @@ import {
 import { useActionState } from "react";
 
 import { completeProfile } from "../../actions/complete-profile";
-
 import { GENDERS, PROVINCES } from "@repo/constants";
 
 type Props = {
@@ -28,27 +27,33 @@ export default function CompleteProfileForm({
   lastName,
   role,
 }: Props) {
-  const [state, action, isPending] = useActionState(completeProfile, {});
+  const [state, action, isPending] = useActionState(
+    completeProfile,
+    {}
+  );
 
   return (
     <form action={action} className="flex flex-col gap-8">
       <input type="hidden" name="role" value={role} />
 
       {/* Personal Information */}
-      <div className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif">
           Personal Information
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             label="Email"
             name="email"
-            value={email}
+            defaultValue={email}
             isReadOnly
             variant="bordered"
-            classNames={{ inputWrapper: "bg-default-100" }}
+            classNames={{
+              inputWrapper: "bg-default-100",
+            }}
           />
+
           <Input
             label="First Name"
             name="first_name"
@@ -57,6 +62,7 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
+
           <Input
             label="Last Name"
             name="last_name"
@@ -65,12 +71,14 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
+
           <Input
             label="Middle Name"
             name="middle_name"
             placeholder="Enter your middle name (optional)"
             variant="bordered"
           />
+
           <Select
             label="Gender"
             name="gender"
@@ -78,34 +86,41 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           >
-            {GENDERS.map((g) => (
-              <SelectItem key={g}>{g}</SelectItem>
+            {GENDERS.map((gender) => (
+              <SelectItem key={gender}>
+                {gender}
+              </SelectItem>
             ))}
           </Select>
+
           <Input
             label="Mobile Number"
             name="mobile_number"
             placeholder="Enter your mobile number"
             variant="bordered"
+            type="tel"
             isRequired
           />
+
           <DatePicker
-            showMonthAndYearPickers
             label="Birth Date"
             name="birth_date"
             variant="bordered"
+            showMonthAndYearPickers
             isRequired
           />
         </div>
-      </div>
+      </section>
 
       <Divider />
 
       {/* Address Information */}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium font-noto-serif">Address Information</h2>
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-medium font-noto-serif">
+          Address Information
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             label="Street Address"
             name="street_address"
@@ -113,6 +128,7 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
+
           <Input
             label="Barangay"
             name="barangay"
@@ -120,6 +136,7 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
+
           <Input
             label="City"
             name="city"
@@ -127,6 +144,7 @@ export default function CompleteProfileForm({
             variant="bordered"
             isRequired
           />
+
           <Select
             label="Province"
             name="province"
@@ -135,9 +153,12 @@ export default function CompleteProfileForm({
             isRequired
           >
             {PROVINCES.map((province) => (
-              <SelectItem key={province}>{province}</SelectItem>
+              <SelectItem key={province}>
+                {province}
+              </SelectItem>
             ))}
           </Select>
+
           <NumberInput
             label="Postal Code"
             name="postal_code"
@@ -149,11 +170,13 @@ export default function CompleteProfileForm({
             }}
           />
         </div>
-      </div>
+      </section>
 
       {state?.error && (
-        <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg">
-          <p className="text-sm text-danger text-center">{state.error}</p>
+        <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
+          <p className="text-center text-sm text-danger">
+            {state.error}
+          </p>
         </div>
       )}
 
@@ -161,9 +184,9 @@ export default function CompleteProfileForm({
         type="submit"
         color="primary"
         size="lg"
-        isLoading={isPending}
-        className="w-full font-semibold"
         radius="full"
+        className="w-full font-semibold"
+        isLoading={isPending}
       >
         Complete Profile
       </Button>
