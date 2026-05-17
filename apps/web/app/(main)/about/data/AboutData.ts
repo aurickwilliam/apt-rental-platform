@@ -22,7 +22,7 @@ export const teamMembers = [
   {
     name: "Mhart Aaron Navales",
     role: "Full Stack Yearner",
-    bio: "Contributions: 21 git commits, 14 TikTok repost per day, and 1 unsint message.",
+    bio: "Matcha lover, umiiyak kapag nauulanan yung mga stray cats & dogs, academic archiver, 6'7, walang gbf, nakikinig kila daniel caesar, taylor swift, laufey, lana del rey, beabadoobedoobedapdap, w2e, leehi, clairo, niki, malcolm todd, prefers wired earphones, bias si hanni ng newjeans, anime & kdrama lover, malakas mag ml, knows ball, marunong mag gitara, naliligo kahit malamig tubig, emotionally intelligent, good listener, nakikinig sa news, may good sense of humor, galit sa period cramps, okc, kfc, ufc, lakers in 5 (hates corruption btw)",
     image: "/images/ron.jpg",
     imageHeight: "h-56",
     github: "https://github.com/Kaironnnn",
@@ -31,7 +31,7 @@ export const teamMembers = [
   {
     name: "Michael Jann Mateo",
     role: "Project Manager",
-    bio: "A good Project Manager. Lover boy specialist. Current RS status is unknown.",
+    bio: "A good Project Manager. 67676767. piti piwpiw wiw wiw. (tambay sa fully booked btw)",
     image: "/images/mija.jpg",
     imageHeight: "h-63",
     github: "https://github.com/YuriPatriotic",
