@@ -95,17 +95,21 @@ export default function TenantNavbar() {
               <Dropdown>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 h-auto px-2 py-1"
+                  className="flex items-center gap-2 h-auto p-1 rounded-full"
                 >
-                  <Avatar size="sm" className="shrink-0">
+                  <Avatar 
+                    size="sm" 
+                    className="shrink-0"
+                  >
                     {avatarSrc && (
                       <Avatar.Image src={avatarSrc} alt={displayName} />
                     )}
+
                     <Avatar.Fallback className="bg-primary text-white font-medium">
                       {getInitials(displayName)}
                     </Avatar.Fallback>
                   </Avatar>
-                  <span className="text-sm font-medium">{displayName}</span>
+                  <span className="text-sm font-medium pr-1">{displayName}</span>
                 </Button>
 
                 <Dropdown.Popover>

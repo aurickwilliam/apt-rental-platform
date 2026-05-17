@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TextField, Label, InputGroup, FieldError } from "@heroui/react";
+import { TextField, Label, InputGroup, FieldError, Button } from "@heroui/react";
 
 import { Eye, EyeOff } from "lucide-react";
 
@@ -45,18 +45,20 @@ export default function PasswordField({
         />
 
         <InputGroup.Suffix>
-          <button
-            type="button"
+          <Button
+            isIconOnly
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setIsVisible((v) => !v)}
             className="text-muted focus:outline-none cursor-pointer placeholder:text-gray-400"
-            aria-label="Toggle password visibility"
+            aria-label={isVisible ? "Hide password" : "Show password"}
+            size="sm"
+            variant="ghost"
           >
             {isVisible 
               ? <EyeOff size={18} className="text-gray-400" /> 
               : <Eye size={18} className="text-gray-400" />
             }
-          </button>
+          </Button>
         </InputGroup.Suffix>
       </InputGroup>
 

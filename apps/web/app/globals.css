@@ -9,6 +9,10 @@
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
 
+  .button--secondary {
+    @apply bg-secondary text-white hover:bg-[#e59400];
+  }
+
   .input {
     @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
   }
@@ -21,6 +25,10 @@
   .input:focus-visible,
   .input[data-focus-visible="true"] {
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  }
+
+  .toggle-button[data-selected="true"] {
+    @apply bg-blue-500 text-white border-blue-500;
   }
 }
 
@@ -53,6 +61,11 @@ body[data-scroll-locked] [role="option"] {
   --color-red-600: #E50914;
   --color-red-400: #FF4B4B;
   --color-red-200: #FDA4AF;
+
+  --heroui-primary: var(--primary);
+  --heroui-secondary: var(--secondary);
+
+  --heroui-focus: var(--primary);
 }
 
 @theme inline {
