@@ -29,7 +29,7 @@ export default function SearchContainer() {
 
       {/* Search bar */}
       <div className="flex items-center gap-2 w-full max-w-lg mt-2">
-        <InputGroup className="rounded-xl border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+        <InputGroup className="w-full rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
           <InputGroup.Prefix>
             <Search size={20} className="text-grey-500" />
           </InputGroup.Prefix>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
-  ButtonGroup,
   Button,
   Slider,
   Separator,
@@ -17,7 +16,7 @@ import {
   ToggleButton,
 } from "@heroui/react";
 
-import { Check, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 import {
   APARTMENT_TYPES,
@@ -250,7 +249,7 @@ export default function FilterContainer({ resultCount }: Props) {
       <CheckboxGroup
         value={filters.aptTypes}
         onChange={(val) => updateFilter("aptTypes", val)}
-        className="flex flex-col gap-2"
+        className="flex flex-col"
       >
         {APARTMENT_TYPES.map((type) => (
           <Checkbox key={type} value={type}>
@@ -370,7 +369,7 @@ export default function FilterContainer({ resultCount }: Props) {
       <CheckboxGroup
         value={filters.furnishing}
         onChange={(val) => updateFilter("furnishing", val)}
-        className="flex flex-col gap-2"
+        className="flex flex-col"
       >
         {FURNISHED_TYPES.map((option) => (
           <Checkbox key={option} value={option}>
@@ -390,7 +389,7 @@ export default function FilterContainer({ resultCount }: Props) {
       <CheckboxGroup
         value={filters.floorLevel}
         onChange={(val) => updateFilter("floorLevel", val)}
-        className="flex flex-col gap-2"
+        className="flex flex-col"
       >
         {FLOOR_LEVELS.map((option) => (
           <Checkbox key={option} value={option}>
@@ -410,7 +409,7 @@ export default function FilterContainer({ resultCount }: Props) {
       <CheckboxGroup
         value={filters.leaseDuration}
         onChange={(val) => updateFilter("leaseDuration", val)}
-        className="flex flex-col gap-2"
+        className="flex flex-col"
       >
         {LEASE_DURATIONS.map((option) => (
           <Checkbox key={option} value={option}>
