@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input, Button } from "@heroui/react";
+import { Input, Button, InputGroup } from "@heroui/react";
 import { Search } from "lucide-react";
 
 export default function SearchContainer() {
@@ -29,21 +29,20 @@ export default function SearchContainer() {
 
       {/* Search bar */}
       <div className="flex items-center gap-2 w-full max-w-lg mt-2">
-        <Input
-          placeholder="Search by name or location..."
-          radius="full"
-          size="lg"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          startContent={<Search size={20} className="text-grey-500" />}
-          classNames={{
-            inputWrapper: "bg-white shadow-sm",
-          }}
-        />
+        <InputGroup className="rounded-xl border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+          <InputGroup.Prefix>
+            <Search size={20} className="text-grey-500" />
+          </InputGroup.Prefix>
+          <InputGroup.Input 
+            placeholder="Search by name or location..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+        </InputGroup>
+
         <Button
-          color="secondary"
-          radius="full"
+          variant="secondary"
           size="lg"
           onPress={handleSearch}
         >

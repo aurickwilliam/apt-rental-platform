@@ -7,13 +7,18 @@ import {
   ButtonGroup,
   Button,
   Slider,
-  Divider,
+  Separator,
   CheckboxGroup,
   Checkbox,
   RadioGroup,
   Radio,
+  Label,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@heroui/react";
-import { Search } from "lucide-react";
+
+import { Check, Search } from "lucide-react";
+
 import {
   APARTMENT_TYPES,
   FURNISHED_TYPES,
@@ -163,21 +168,15 @@ export default function FilterContainer({ resultCount }: Props) {
       <div className="flex gap-3 items-center justify-center mb-5">
         {/* Search Button */}
         <Button
-          color="primary"
           className="w-full"
-          radius="full"
           onPress={handleApply}
-          startContent={
-            <Search size={20} />
-          }
         >
+          <Search size={20} />
           Search Apartment
         </Button>
 
         <Button
-          variant="light"
-          radius="full"
-          color="primary"
+          variant="tertiary"
           onPress={handleClear}
         >
           Clear All
@@ -194,22 +193,24 @@ export default function FilterContainer({ resultCount }: Props) {
       <p className="text-sm font-medium mb-2">Location</p>
       <CheckboxGroup
         value={filters.locations}
-        onValueChange={(val) => updateFilter("locations", val)}
-        className="flex flex-col gap-2"
+        onChange={(val) => updateFilter("locations", val)}
+        className="flex flex-col"
       >
         {LOCATIONS.map((option) => (
-          <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
+          <Checkbox key={option} value={option}>
+            <Checkbox.Control>
+              <Checkbox.Indicator/>
+            </Checkbox.Control>
+
+            <Checkbox.Content>
+              <Label>{option}</Label>
+            </Checkbox.Content>
+          </Checkbox>
         ))}
       </CheckboxGroup>
 
       {/* Budget */}
       <div className="flex flex-col gap-2 mt-6">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Budget</span>
-          <span className="text-sm text-default-500">
-            ₱{filters.priceRange[0].toLocaleString()} – {filters.priceRange[1] === MAX_BUDGET ? `₱${MAX_BUDGET.toLocaleString()}+` : `₱${filters.priceRange[1].toLocaleString()}`}
-          </span>
-        </div>
         <Slider
           minValue={MIN_BUDGET}
           maxValue={MAX_BUDGET}
@@ -217,77 +218,124 @@ export default function FilterContainer({ resultCount }: Props) {
           value={filters.priceRange}
           onChange={(val) => updateFilter("priceRange", val as [number, number])}
           className="w-full"
-          size="sm"
-        />
+        >
+          <Label>Budget</Label>
+
+          <Slider.Output>
+            {() => {
+              const maxDisplay =
+                filters.priceRange[1] === MAX_BUDGET
+                  ? `₱${MAX_BUDGET.toLocaleString()}+`
+                  : `₱${filters.priceRange[1].toLocaleString()}`;
+
+              return `₱${filters.priceRange[0].toLocaleString()} – ${maxDisplay}`;
+            }}
+          </Slider.Output>
+
+          <Slider.Track>
+            {({ state }) => (
+              <>
+                <Slider.Fill />
+                {state.values.map((_, i) => (
+                  <Slider.Thumb key={i} index={i} />
+                ))}
+              </>
+            )}
+          </Slider.Track>
+        </Slider>
       </div>
 
       {/* Unit Type */}
       <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
       <CheckboxGroup
         value={filters.aptTypes}
-        onValueChange={(val) => updateFilter("aptTypes", val)}
+        onChange={(val) => updateFilter("aptTypes", val)}
         className="flex flex-col gap-2"
       >
         {APARTMENT_TYPES.map((type) => (
-          <Checkbox key={type} value={type} size="sm">{type}</Checkbox>
+          <Checkbox key={type} value={type}>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+
+            <Checkbox.Content>
+              <Label>{type}</Label>
+            </Checkbox.Content>
+          </Checkbox>
         ))}
       </CheckboxGroup>
 
-      <Divider className="my-5" />
+      <Separator className="my-5" />
 
       {/* Sort By */}
       <p className="text-sm font-medium mb-2">Sort By</p>
       <RadioGroup
         value={filters.sortBy}
-        onValueChange={(val) => updateFilter("sortBy", val)}
+        onChange={(val) => updateFilter("sortBy", val)}
       >
         {SORT_OPTIONS.map((opt) => (
-          <Radio key={opt.value} value={opt.value} size="sm">
-            {opt.label}
+          <Radio key={opt.value} value={opt.value}>
+            <Radio.Control>
+              <Radio.Indicator />
+            </Radio.Control>
+
+            <Radio.Content>
+              <Label>{opt.label}</Label>
+            </Radio.Content>
           </Radio>
         ))}
       </RadioGroup>
 
       {/* Bedrooms */}
       <p className="text-sm font-medium mb-2 mt-6">Bedrooms</p>
-      <ButtonGroup variant="flat" className="w-full" radius="full">
-        {BEDROOM_OPTIONS.map((option) => (
-          <Button
-            key={option}
+      <ToggleButtonGroup
+        selectionMode="single"
+        selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
+        onSelectionChange={(keys) => {
+          const selected = [...keys][0];
+          updateFilter("bedroom", String(selected) ?? null);
+        }}
+        fullWidth
+        className="w-full"
+      >
+        {BEDROOM_OPTIONS.map((option, index) => (
+          <ToggleButton 
+            key={option} 
+            id={option} 
             className="flex-1 min-w-0"
-            onPress={() => updateFilter("bedroom", option)}
-            color={filters.bedroom === option ? "primary" : "default"}
-            variant={filters.bedroom === option ? "solid" : "flat"}
           >
+            {index !== 0 && <ToggleButtonGroup.Separator />}
             {option}
-          </Button>
+          </ToggleButton>
         ))}
-      </ButtonGroup>
+      </ToggleButtonGroup>
 
       {/* Bathrooms */}
       <p className="text-sm font-medium mt-6 mb-2">Bathrooms</p>
-      <ButtonGroup variant="flat" className="w-full" radius="full">
-        {BATHROOM_OPTIONS.map((option) => (
-          <Button
-            key={option}
+      <ToggleButtonGroup
+        selectionMode="single"
+        selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
+        onSelectionChange={(keys) => {
+          const selected = [...keys][0];
+          updateFilter("bathroom", String(selected) ?? null);
+        }}
+        fullWidth
+        className="w-full"
+      >
+        {BATHROOM_OPTIONS.map((option, index) => (
+          <ToggleButton 
+            key={option} 
+            id={option} 
             className="flex-1 min-w-0"
-            onPress={() => updateFilter("bathroom", option)}
-            color={filters.bathroom === option ? "primary" : "default"}
-            variant={filters.bathroom === option ? "solid" : "flat"}
           >
+            {index !== 0 && <ToggleButtonGroup.Separator />}
             {option}
-          </Button>
+          </ToggleButton>
         ))}
-      </ButtonGroup>
+      </ToggleButtonGroup>
 
       {/* Size Range */}
       <div className="flex flex-col gap-2 mt-6">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Size Range</span>
-          <span className="text-sm text-default-500">
-            {filters.sizeRange[0]} – {filters.sizeRange[1]} sqm
-          </span>
-        </div>
         <Slider
           minValue={MIN_SIZE}
           maxValue={MAX_SIZE}
@@ -295,21 +343,45 @@ export default function FilterContainer({ resultCount }: Props) {
           value={filters.sizeRange}
           onChange={(val) => updateFilter("sizeRange", val as [number, number])}
           className="w-full"
-          size="sm"
-        />
+        >
+          <Label>Size Range</Label>
+
+          <Slider.Output>
+            {() => `${filters.sizeRange[0]} – ${filters.sizeRange[1]} sqm`}
+          </Slider.Output>
+
+          <Slider.Track>
+            {({ state }) => (
+              <>
+                <Slider.Fill />
+                {state.values.map((_, i) => (
+                  <Slider.Thumb key={i} index={i} />
+                ))}
+              </>
+            )}
+          </Slider.Track>
+        </Slider>
       </div>
 
-      <Divider className="my-5" />
+      <Separator className="my-5" />
 
       {/* Furnishing */}
       <p className="text-sm font-medium mb-2">Furnishing</p>
       <CheckboxGroup
         value={filters.furnishing}
-        onValueChange={(val) => updateFilter("furnishing", val)}
+        onChange={(val) => updateFilter("furnishing", val)}
         className="flex flex-col gap-2"
       >
         {FURNISHED_TYPES.map((option) => (
-          <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
+          <Checkbox key={option} value={option}>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+
+            <Checkbox.Content>
+              <Label>{option}</Label>
+            </Checkbox.Content>
+          </Checkbox>
         ))}
       </CheckboxGroup>
 
@@ -317,11 +389,19 @@ export default function FilterContainer({ resultCount }: Props) {
       <p className="text-sm font-medium mt-6 mb-2">Floor Level</p>
       <CheckboxGroup
         value={filters.floorLevel}
-        onValueChange={(val) => updateFilter("floorLevel", val)}
+        onChange={(val) => updateFilter("floorLevel", val)}
         className="flex flex-col gap-2"
       >
         {FLOOR_LEVELS.map((option) => (
-          <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
+          <Checkbox key={option} value={option}>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+
+            <Checkbox.Content>
+              <Label>{option}</Label>
+            </Checkbox.Content>
+          </Checkbox>
         ))}
       </CheckboxGroup>
 
@@ -329,15 +409,23 @@ export default function FilterContainer({ resultCount }: Props) {
       <p className="text-sm font-medium mt-6 mb-2">Lease Duration</p>
       <CheckboxGroup
         value={filters.leaseDuration}
-        onValueChange={(val) => updateFilter("leaseDuration", val)}
+        onChange={(val) => updateFilter("leaseDuration", val)}
         className="flex flex-col gap-2"
       >
         {LEASE_DURATIONS.map((option) => (
-          <Checkbox key={option} value={option} size="sm">{option}</Checkbox>
+          <Checkbox key={option} value={option}>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+
+            <Checkbox.Content>
+              <Label>{option}</Label>
+            </Checkbox.Content>
+          </Checkbox>
         ))}
       </CheckboxGroup>
 
-      <Divider className="my-5" />
+      <Separator className="my-5" />
 
       {/* Amenities */}
       <p className="text-sm font-medium mb-2">Amenities</p>
