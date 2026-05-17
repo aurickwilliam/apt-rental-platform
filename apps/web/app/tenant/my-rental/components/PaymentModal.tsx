@@ -15,10 +15,6 @@ export default function PaymentModal({ isOpen, onOpenChange, onConfirm }: Paymen
 
   return (
     <Modal>
-      <Button variant="secondary" onPress={state.open}>
-        Open Payment Modal
-      </Button>
-
       <Modal.Backdrop isOpen={state.isOpen} onOpenChange={state.setOpen}>
         <Modal.Container>
           <Modal.Dialog>

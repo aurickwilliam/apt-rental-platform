@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Button, Card, CardBody } from "@heroui/react";
+
+import { Button, Card } from "@heroui/react";
+
 import { BedDouble, Bath, Expand, Heart } from "lucide-react";
 
 import { formatCurrency } from "@repo/utils";
+
 import type { FavoriteApartment } from "@/service/favoritesService";
 
 interface FavoriteListCardProps {
@@ -25,8 +28,8 @@ export default function FavoriteListCard({
   onPress,
 }: FavoriteListCardProps) {
   return (
-    <Card shadow="none" className="border border-default-200">
-      <CardBody className="p-4">
+    <Card className="border border-default-200">
+      <Card.Content className="p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div
             className="relative h-40 w-full overflow-hidden rounded-xl sm:h-28 sm:w-44"
@@ -82,10 +85,9 @@ export default function FavoriteListCard({
           <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-3">
             <Button
               isIconOnly
-              radius="full"
-              variant="flat"
-              color={isFavorite ? "danger" : "default"}
-              isLoading={isFavoriteLoading}
+              variant="ghost"
+              className={isFavorite ? "bg-red-200" : "bg-default-500"}
+              isPending={isFavoriteLoading}
               onPress={onFavoritePress}
             >
               <Heart
@@ -100,7 +102,7 @@ export default function FavoriteListCard({
             </p>
           </div>
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }
