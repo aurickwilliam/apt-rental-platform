@@ -2,32 +2,24 @@
 
 import { useState } from "react";
 import NextImage from "next/image";
-import NextLink from "next/link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { signOut } from "@/app/(auth)/actions/sign-out";
-import { useUser } from "@/hooks/use-user";
+import { Menu, X } from "lucide-react";
 
-import {
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  NavbarMenuToggle,
-  NavbarMenu,
-  NavbarMenuItem,
-} from "@heroui/navbar";
+import { signOut } from "@/app/(auth)/actions/sign-out";
+
+import { useUser } from "@/hooks/use-user";
 import {
   Avatar,
   Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
+  Button,
+  Label,
 } from "@heroui/react";
 
 import ThemeToggle from "./ThemeToggle";
 
-const navLinks = [
+const NAV_LINKS = [
   { label: "Browse", href: "/browse" },
   { label: "My Rental", href: "/tenant/my-rental" },
   { label: "Maintenance", href: "/tenant/maintenance" },
@@ -47,132 +39,162 @@ const getInitials = (value: string) => {
 
 export default function TenantNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const pathname = usePathname();
-
   const { user, loading, profile } = useUser();
 
-  // Get display name and initials from user metadata
-  const displayName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() || "Unknown";
+  const displayName =
+    `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||
+    "Unknown";
   const avatarSrc = profile?.avatar_url?.trim() || undefined;
 
   return (
-    <Navbar
-      isBordered
-      maxWidth="xl"
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-    >
-      <NavbarContent>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
-        <NavbarBrand>
-          <NextLink href="/">
-            <NextImage
-              src={"/logo/logo-name-transparent.svg"}
-              alt="Apt Rental Logo"
-              width={100}
-              height={25}
-            />
-          </NextLink>
-        </NavbarBrand>
-      </NavbarContent>
+    <div className="sticky top-0 z-40 w-full border-b border-divider bg-background/70 backdrop-blur-md backdrop-saturate-150">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex h-16 items-center justify-between">
 
-      {/* Desktop links */}
-      <NavbarContent justify="end" className="hidden sm:flex gap-5">
-        {navLinks.map((link) => (
-          <NavbarItem key={link.label} isActive={pathname === link.href}>
-            <NextLink
-              href={link.href}
-              className={
-                pathname === link.href
-                  ? "text-primary font-medium"
-                  : "text-foreground font-medium"
-              }
+          {/* Left: hamburger + logo */}
+          <div className="flex items-center gap-3">
+            <button
+              className="sm:hidden p-2 rounded-md text-foreground"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
-              {link.label}
-            </NextLink>
-          </NavbarItem>
-        ))}
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
 
-        {loading ? (
-          <NavbarItem>
-            <div className="w-8 h-8 rounded-full bg-default-200 animate-pulse" />
-          </NavbarItem>
-        ) : (
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                src={avatarSrc}
-                as="button"
-                size="sm"
-                className="cursor-pointer"
-                name={displayName}
-                showFallback
-                getInitials={getInitials}
+            <Link href="/">
+              <NextImage
+                src="/logo/logo-name-transparent.svg"
+                alt="APT Logo"
+                width={100}
+                height={40}
+                className="object-contain"
               />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="User actions">
-              <DropdownItem
-                key="user-info"
-                isReadOnly
-                className="opacity-100 cursor-default"
-              >
-                <p className="font-semibold">{displayName}</p>
-                {user?.email && (
-                  <p className="text-xs text-default-400">{user?.email}</p>
-                )}
-              </DropdownItem>
-              <DropdownItem key="profile" href="/profile" color="primary">
-                Profile
-              </DropdownItem>
-              <DropdownItem key="favorites" href="/tenant/favorites" color="primary">
-                Favorites
-              </DropdownItem>
-              <DropdownItem key="settings" href="/settings" color="primary">
-                Settings
-              </DropdownItem>
-              <DropdownItem
-                key="logout"
-                color="danger"
-                className="text-danger"
-                onPress={() => signOut()}
-              >
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        )}
+            </Link>
+          </div>
 
-        {/* Switching to Dark Mode */}
-        <NavbarItem>
-          <ThemeToggle />
-        </NavbarItem>
-      </NavbarContent>
+          {/* Right: nav links + avatar + theme (desktop) */}
+          <div className="hidden sm:flex items-center gap-6">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={
+                  pathname === link.href
+                    ? "text-primary font-medium"
+                    : "text-foreground font-medium"
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-default-200 animate-pulse" />
+            ) : (
+              <Dropdown>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 h-auto px-2 py-1"
+                >
+                  <Avatar size="sm" className="shrink-0">
+                    {avatarSrc && (
+                      <Avatar.Image src={avatarSrc} alt={displayName} />
+                    )}
+                    <Avatar.Fallback className="bg-primary text-white font-medium">
+                      {getInitials(displayName)}
+                    </Avatar.Fallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">{displayName}</span>
+                </Button>
+
+                <Dropdown.Popover>
+                  <Dropdown.Menu
+                    onAction={(key) => {
+                      if (key === "profile")   window.location.href = "/profile";
+                      if (key === "favorites") window.location.href = "/tenant/favorites";
+                      if (key === "settings")  window.location.href = "/settings";
+                      if (key === "logout")    signOut();
+                    }}
+                  >
+                    <Dropdown.Item id="profile" textValue="Profile">
+                      <Label>Profile</Label>
+                    </Dropdown.Item>
+                    <Dropdown.Item id="favorites" textValue="Favorites">
+                      <Label>Favorites</Label>
+                    </Dropdown.Item>
+                    <Dropdown.Item id="settings" textValue="Settings">
+                      <Label>Settings</Label>
+                    </Dropdown.Item>
+                    <Dropdown.Item id="logout" textValue="Log Out" variant="danger">
+                      <Label>Log Out</Label>
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
+            )}
+
+            <ThemeToggle />
+          </div>
+        </div>
+      </div>
 
       {/* Mobile menu */}
-      <NavbarMenu>
-        {navLinks.map((link) => (
-          <NavbarMenuItem key={link.label} isActive={pathname === link.href}>
-            <NextLink
+      {isMenuOpen && (
+        <div className="sm:hidden border-t border-divider bg-background px-4 py-4 flex flex-col gap-4">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
               href={link.href}
               className={
                 pathname === link.href
                   ? "text-primary font-medium"
                   : "text-foreground font-medium"
               }
+              onClick={() => setIsMenuOpen(false)}
             >
               {link.label}
-            </NextLink>
-          </NavbarMenuItem>
-        ))}
+            </Link>
+          ))}
 
-        <NavbarMenuItem>
+          <div className="h-px bg-divider" />
+
+          {!loading && (
+            <>
+              <Link
+                href="/profile"
+                className="text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <Link
+                href="/tenant/favorites"
+                className="text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Favorites
+              </Link>
+              <Link
+                href="/settings"
+                className="text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Settings
+              </Link>
+              <button
+                onClick={() => { signOut(); setIsMenuOpen(false); }}
+                className="text-danger font-medium text-left"
+              >
+                Log Out
+              </button>
+            </>
+          )}
+
+          <div className="h-px bg-divider" />
           <ThemeToggle />
-        </NavbarMenuItem>
-      </NavbarMenu>
-    </Navbar>
+        </div>
+      )}
+    </div>
   );
 }

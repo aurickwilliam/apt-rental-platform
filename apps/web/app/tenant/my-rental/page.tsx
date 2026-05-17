@@ -94,11 +94,10 @@ export default function MyRental() {
             ))}
           </div>
           <Button
-            color="primary"
             className="mt-5 w-fit"
-            startContent={<CreditCard size={14} />}
             onPress={() => setShowPaymentModal(true)}
           >
+            <CreditCard size={14} />
             Pay now
           </Button>
         </DashboardCard>
@@ -158,10 +157,10 @@ export default function MyRental() {
             ))}
           </div>
           <Button
-            variant="light"
+            variant="ghost"
             className="mt-3 w-full justify-between text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-            endContent={<ChevronRight size={13} />}
           >
+            <ChevronRight size={13} />
             <span className="flex items-center gap-1.5"><MessageCircle size={13} />View all messages</span>
           </Button>
         </DashboardCard>
@@ -216,10 +215,12 @@ export default function MyRental() {
             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Unit 3B — 1 year term</p>
             <p className="text-xs text-zinc-500">Jan 1 – Dec 31, 2025</p>
           </div>
-          <Button variant="flat" className="w-full justify-start" startContent={<FileText size={14} />}>
+          <Button variant="ghost" className="w-full justify-start">
+            <FileText size={14} />
             View lease PDF
           </Button>
-          <Button variant="flat" className="mt-2 w-full justify-start" startContent={<Download size={14} />}>
+          <Button variant="ghost" className="mt-2 w-full justify-start">
+            <Download size={14} />
             Download copy
           </Button>
           <div className="mt-auto pt-3 flex items-center gap-2">

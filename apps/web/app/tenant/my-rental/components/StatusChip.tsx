@@ -11,16 +11,21 @@ type StatusChipProps = {
 };
 
 export default function StatusChip({ variant, children }: StatusChipProps) {
-  const colors: Record<BadgeVariant, "success" | "warning" | "danger" | "primary" | "default"> = {
+  const colors: Record<BadgeVariant, "success" | "warning" | "danger" | "accent" | "default"> = {
     success: "success",
     warning: "warning",
     danger: "danger",
-    info: "primary",
+    info: "accent",
     neutral: "default",
   };
 
   return (
-    <Chip size="sm" variant="flat" color={colors[variant]} className="text-[11px]">
+    <Chip 
+      size="sm" 
+      variant="soft" 
+      color={colors[variant]} 
+      className="text-[11px]"
+    >
       {children}
     </Chip>
   );
