@@ -10,7 +10,7 @@ export default function StartBrowsingBtn() {
   return (
     <Button 
       variant="primary"
-      className="mt-6 bg-primary text-white"
+      className="mt-6"
     >
       <SearchIcon />
 

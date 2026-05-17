@@ -125,13 +125,13 @@ export default function AppNavbar() {
             ) : (
               <>
                 <Link href="/sign-in">
-                  <Button variant="ghost" className="rounded-full">
+                  <Button variant="ghost">
                     Sign In
                   </Button>
                 </Link>
 
                 <Link href="/sign-up">
-                  <Button className="bg-primary text-white rounded-full">
+                  <Button>
                     Sign Up
                   </Button>
                 </Link>

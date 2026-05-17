@@ -5,9 +5,11 @@ import ThirdPartySignIn from "./ThirdPartySignIn";
 import AuthForm from "./AuthForm";
 import { AuthProvider, useAuth } from "./AuthContext";
 
-import { Divider, Button, Link } from "@heroui/react";
+import { Separator, Button } from "@heroui/react";
 
 import { ArrowLeft, UserRoundKey, Building } from "lucide-react";
+
+import Link from "next/link";
 
 interface AuthWrapperProps {
   type: 'sign-in' | 'sign-up';
@@ -27,13 +29,12 @@ function AuthContent() {
         {/* Back Button */}
         <Button
           isIconOnly
-          variant="light"
-          radius="full"
-          as={Link}
-          href="/"
+          variant="ghost"
           className="-ml-2"
         >
-          <ArrowLeft size={20} />
+          <Link href="/">
+            <ArrowLeft size={20} />
+          </Link>
         </Button>
 
         <div className={`flex items-center gap-2 border-2 rounded-xl px-3 py-1 
@@ -63,9 +64,9 @@ function AuthContent() {
 
       {/* Divider */}
       <div className="flex items-center gap-3 mt-5">
-        <Divider className="flex-1" />
+        <Separator className="flex-1" />
         <p className="text-sm text-gray-400 whitespace-nowrap">or sign {type === "sign-in" ? "in" : "up"} with</p>
-        <Divider className="flex-1" />
+        <Separator className="flex-1" />
       </div>
 
       <ThirdPartySignIn />

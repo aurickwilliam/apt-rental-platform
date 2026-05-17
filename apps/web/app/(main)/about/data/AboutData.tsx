@@ -17,7 +17,7 @@ export const teamMembers = [
     image: "/images/orik.jpg",
     imageHeight: "h-63",
     github: "https://github.com/aurickwilliam",
-    linkedin: null,
+    linkedin: "https://www.linkedin.com/in/aurick-william-lorenzo-ba83a73a6/?skipRedirect=true",
   },
   {
     name: "Mhart Aaron Navales",

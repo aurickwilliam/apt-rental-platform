@@ -2,7 +2,7 @@ import ApartmentCarousel from "./components/ApartmentCarousel";
 import DiscoverNowBtn from "./components/DiscoverNowBtn";
 import HeroSection from "./components/HeroSection";
 
-import { Separator } from "@heroui/react";
+import { Separator, Surface } from "@heroui/react";
 
 import { redirect } from "next/navigation";
 
@@ -164,7 +164,7 @@ export default async function Home() {
 
             <div className="flex flex-col md:flex-row gap-5 mt-5 md:mt-10">
               {/* Discover */}
-              <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
+              <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
                 <Map size={48} className="text-primary" />
 
                 <h2 className="text-3xl text-primary font-poppins font-semibold">
@@ -205,11 +205,11 @@ export default async function Home() {
                 <div className="mt-5">
                   <DiscoverNowBtn />
                 </div>
-              </div>
+              </Surface>
 
               {/* Apply & Pay */}
               <div className="flex flex-col gap-5 md:w-1/2">
-                <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <FileCheckCorner size={48} className="text-primary" />
 
                   <h2 className="text-3xl text-primary font-poppins font-semibold">
@@ -222,9 +222,9 @@ export default async function Home() {
                     sign securely using digital e-signing, eliminating paperwork
                     and unnecessary delays.
                   </p>
-                </div>
+                </Surface>
 
-                <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <BanknoteArrowUp size={48} className="text-primary" />
 
                   <h2 className="text-3xl text-primary font-poppins font-semibold">
@@ -237,7 +237,7 @@ export default async function Home() {
                     updates, and communicate with owners or management, all
                     conveniently from your mobile device.
                   </p>
-                </div>
+                </Surface>
               </div>
             </div>
           </section>
