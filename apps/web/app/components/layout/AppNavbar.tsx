@@ -16,7 +16,7 @@ import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 
 const navLinks = [
-  { label: "For Owners", href: "#" },
+  { label: "For Owners", href: "/forowners" },
   { label: "Browse", href: "/browse" },
 ];
 
