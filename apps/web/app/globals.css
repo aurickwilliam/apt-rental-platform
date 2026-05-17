@@ -8,6 +8,20 @@
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
+
+  .input {
+    @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
+  }
+
+  .input:hover,
+  .input[data-hovered="true"] {
+    @apply border-gray-400;
+  }
+
+  .input:focus-visible,
+  .input[data-focus-visible="true"] {
+    @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  }
 }
 
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
