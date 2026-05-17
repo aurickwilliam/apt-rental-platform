@@ -1,10 +1,12 @@
 "use client";
 
-import { Card, Button, Spinner } from "@heroui/react";
 import Image from "next/image";
+
+import { Card, Button, Spinner } from "@heroui/react";
+
 import { Star, Heart } from "lucide-react";
+
 import { formatCurrency } from "@repo/utils";
-import { div } from "framer-motion/client";
 
 interface ApartmentCardProps {
   name: string;
@@ -37,33 +39,39 @@ export default function ApartmentCard({
       onClick={onPress}
       role="button"
     >
-      <Card className="bg-white rounded-xl shadow-sm overflow-hidden w-56 h-full relative">
-        <Card.Content className="p-0">
+      <Card className="bg-white rounded-xl overflow-hidden w-56 h-full relative p-0">
+        <div>
           <Image
             src={thumbnailUrl}
             alt="Apartment Thumbnail"
             width={300}
             height={200}
-            className="rounded-xl object-cover size-56"
+            className="object-cover rounded-xl size-56"
           />
 
           <div className="p-2">
-            <h3 className="text-base font-semibold truncate">{name}</h3>
+            <h3 className="text-[15px] font-semibold truncate">
+              {name}
+            </h3>
 
             <div className="flex items-center gap-1">
-              <p className="text-gray-600 text-sm">{location}</p>
+              <p className="text-gray-600 text-xs">
+                {location}
+              </p>
             </div>
           </div>
-        </Card.Content>
+        </div>
 
         <Card.Footer className="p-2 flex justify-between items-center">
-          <p className="text-base font-medium text-primary">
+          <p className="text-[15px] font-medium text-primary">
             ₱ {formatCurrency(price)}
           </p>
 
           <div className="flex items-center gap-1">
             <Star className="text-yellow-400" fill="currentColor" size={18} />
-            <p className="text-sm">{rating === 0 ? "-" : rating}</p>
+            <p className="text-sm">
+              {rating === 0 ? "-" : rating}
+            </p>
           </div>
         </Card.Footer>
 
@@ -73,16 +81,16 @@ export default function ApartmentCard({
             className="absolute top-2 right-2 bg-black/30"
             isIconOnly
             isPending={isFavoriteLoading}
-            onPress={(e) => {
+            onPress={() => {
               onFavoritePress?.();
             }}
           >
             {({ isPending }) => (
               <>
                 {isPending ? (
-                  <Spinner 
-                    color="current" 
-                    size="sm" 
+                  <Spinner
+                    color="current"
+                    size="sm"
                   />
                 ) : (
                   <Heart
