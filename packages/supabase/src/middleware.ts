@@ -67,6 +67,7 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = [
     "/",
     "/browse",
+    "/forowners",
     "/sign-in",
     "/sign-up",
     "/sign-up-form",
