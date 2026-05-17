@@ -33,7 +33,7 @@ export default function LocationSection() {
           Where we <em className="text-primary not-italic">work</em>
         </h2>
         <p className="text-sm text-default-700 mb-5">
-          We're based in Caloocan and work remotely across the CAMANAVA.
+          We&apos;re based in Caloocan and work remotely across the CAMANAVA.
         </p>
       </motion.div>
 

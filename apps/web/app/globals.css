@@ -4,6 +4,12 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+@layer components {
+  .button--primary {
+    @apply bg-primary text-white hover:bg-[#2554d4];
+  }
+}
+
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
 body[data-scroll-locked] [data-slot="popover"],
 body[data-scroll-locked] [role="listbox"],
@@ -13,8 +19,7 @@ body[data-scroll-locked] [role="option"] {
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-poppins: var(--font-poppins), ui-sans-serif, sans-serif;
-  --font-noto-serif: var(--font-noto-serif), ui-serif, serif;
+  --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;

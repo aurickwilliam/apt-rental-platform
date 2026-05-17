@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 import { Button } from "@heroui/react";
 
 import {
@@ -28,7 +28,7 @@ interface RenderApartmentsCarouselProps {
 }
 
 export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselProps) {
-  const [api, setApi] = React.useState<CarouselApi>();
+  const [api, setApi] = useState<CarouselApi>();
 
   return (
     <Carousel setApi={setApi} className="mt-10">

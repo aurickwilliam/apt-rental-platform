@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Card, CardBody } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { IoLogoGithub, IoLogoLinkedin } from "react-icons/io5";
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/AboutData";
@@ -35,11 +35,8 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
   }, []);
 
   return (
-    <Card
-      className="border border-default-200 hover:-translate-y-1 hover:border-primary hover:shadow-lg transition-all duration-300 h-full"
-      shadow="none"
-    >
-      <CardBody className="p-0 flex flex-col h-full">
+    <Card className="p-0 border border-default-200 hover:-translate-y-1 hover:border-primary hover:shadow-lg transition-all duration-300 h-full">
+      <Card.Content className="p-0 flex flex-col h-full">
         {/* Photo */}
         <div
           className="w-full rounded-t-xl overflow-hidden flex items-end justify-center"
@@ -57,7 +54,9 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
 
         {/* Info */}
         <div className="p-5 flex flex-col flex-1 overflow-hidden">
-          <p className="font-poppinsSemiBold text-sm">{member.name}</p>
+          <p className="font-poppinsSemiBold text-sm">
+            {member.name}
+          </p>
           <p className="text-xs text-primary font-poppinsMedium mt-0.5 mb-2">
             {member.role}
           </p>
@@ -101,6 +100,7 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
                   <IoLogoGithub size={14} />
                 </a>
               )}
+
               {member.linkedin && (
                 <a
                   href={member.linkedin}
@@ -114,7 +114,7 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
             </div>
           )}
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

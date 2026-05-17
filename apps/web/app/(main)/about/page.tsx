@@ -1,9 +1,15 @@
 "use client";
 
-import { Divider } from "@heroui/react";
-import { Users, Target, Eye } from "lucide-react";
+import Link from "next/link";
+
 import { motion } from "framer-motion";
+
+import { Separator } from "@heroui/react";
+
+import { Users, Target, Eye } from "lucide-react";
+
 import { stats } from "./data/AboutData";
+
 import TeamSection from "./components/TeamSection";
 import LocationSection from "./components/LocationSection";
 
@@ -34,9 +40,12 @@ export default function AboutUs() {
             animate="visible"
             className="flex items-center gap-2 text-xs text-default-700 mb-4"
           >
-            <a href="/" className="hover:text-primary transition-colors">
+            <Link 
+              href="/" 
+              className="hover:text-primary transition-colors"
+            >
               Home
-            </a>
+            </Link>
             <span>/</span>
             <span>About Us</span>
           </motion.div>
@@ -149,9 +158,12 @@ export default function AboutUs() {
           </motion.div>
         </motion.div>
 
-        <Divider className="mb-14" />
+        <Separator className="mb-14" />
+
         <TeamSection />
-        <Divider className="my-10" />
+
+        <Separator className="my-10" />
+
         <LocationSection />
       </div>
     </div>
