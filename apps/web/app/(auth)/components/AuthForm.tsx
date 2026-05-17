@@ -8,7 +8,7 @@ import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
 
-import { Form, Input, Link, Button } from '@heroui/react'
+import { Form, Input, Link, Button, TextField, FieldError, Label } from '@heroui/react'
 
 const initialState: SignInFormState = {
   error: null,
@@ -61,39 +61,52 @@ export default function AuthForm() {
     <div>
       {/* Error Message */}
       {(state.error || signUpError) && (
-        <div className="mt-4 p-3 bg-danger-50 border border-danger-200 rounded-lg">
-          <p className="text-sm text-danger">{state.error ?? signUpError}</p>
+        <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
+          <p className="text-sm text-red-600">{state.error ?? signUpError}</p>
         </div>
       )}
 
       {/* Form */}
       <Form
-        className={`${state.error || signUpError ? 'mt-5' : 'mt-16'} flex flex-col gap-5`}
+        className={`${state.error || signUpError ? 'mt-4' : 'mt-8'} flex flex-col gap-4`}
         action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
         {/* Hidden field to pass the role to the server action */}
         <input type="hidden" name="role" value={role} />
 
-        <Input
-          isRequired
-          label="Email"
-          size='lg'
-          placeholder='Enter your email'
-          labelPlacement="outside"
+        <TextField
           name="email"
           type="email"
-          variant='bordered'
+          isRequired
           value={email}
-          onValueChange={(value) => {
+          onChange={(value) => {
             setEmail(value);
-            if (signUpError) setSignUpError(null);
+
+            if (signUpError) {
+              setSignUpError(null);
+            }
           }}
           isDisabled={isPending || checkingEmail}
-          classNames={{
-            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-          }}
-        />
+        >
+          <Label>Email</Label>
+
+          <Input placeholder="Enter your email"/>
+
+          <FieldError>
+            {({ validationDetails }) => {
+              if (validationDetails.valueMissing) {
+                return "Email is required";
+              }
+
+              if (validationDetails.typeMismatch) {
+                return "Enter a valid email";
+              }
+
+              return null;
+            }}
+          </FieldError>
+        </TextField>
 
         {
           type === 'sign-in' && (
@@ -103,12 +116,13 @@ export default function AuthForm() {
                 label="Password"
                 isRequired
                 errorMessage="Please enter your password"
-                labelPlacement="outside"
                 placeholder='Enter your password'
-                size='lg'
               />
 
-              <Link href="/(auth)/forgot-password" className="text-sm text-right text-secondary underline">
+              <Link 
+                href="/(auth)/forgot-password" 
+                className="text-sm text-right text-secondary underline"
+              >
                 Forgot Password?
               </Link>
             </>
@@ -116,12 +130,10 @@ export default function AuthForm() {
         }
 
         <Button
-          color="primary"
           className='w-full mt-5'
           size='lg'
-          radius="full"
           type='submit'
-          isLoading={isPending || checkingEmail}
+          isPending={isPending || checkingEmail}
           isDisabled={isPending || checkingEmail}
         >
           {isPending || checkingEmail
