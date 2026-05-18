@@ -9,6 +9,7 @@ import {
   Select,
   TextArea, 
   TextField,
+  Separator,
 } from "@heroui/react";
 
 import { createBrowserClient } from "@repo/supabase";
@@ -41,7 +42,6 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
   const [form, setForm] = useState<Partial<Property>>({ ...property });
   const [saving, setSaving] = useState(false);
 
-  // Reset form when modal opens with a (possibly different) property
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setForm({ ...property });
@@ -98,16 +98,24 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
           <Modal.Dialog>
             {({ close }) => (
               <>
+                <Modal.CloseTrigger className="text-black" />
+                
                 <Modal.Header>
-                  <Modal.Heading>Edit Property</Modal.Heading>
+                  <Modal.Heading className="font-medium text-2xl p-1">
+                    Edit Property
+                  </Modal.Heading>
                 </Modal.Header>
-                <Modal.Body className="flex flex-col gap-5">
+
+                <Modal.Body className="flex flex-col gap-5 p-1">
                   {/* Basic Info */}
                   <section>
                     <SectionTitle>Basic Info</SectionTitle>
                     <div className="flex flex-col gap-4">
                       <TextField>
-                        <Label>Name</Label>
+                        <Label>
+                          Name
+                        </Label>
+
                         <Input
                           placeholder="Apartment name"
                           value={form.name ?? ""}
@@ -115,23 +123,34 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                       </TextField>
                       <TextField>
-                        <Label>Description</Label>
+                        <Label>
+                          Description
+                        </Label>
+
                         <TextArea
                           placeholder="Describe the unit..."
                           value={form.description ?? ""}
                           onChange={(e) => updateForm("description", e.target.value)}
-                          rows={4}
+                          rows={10}
                         />
                       </TextField>
                     </div>
                   </section>
 
+                  <Separator />
+
                   {/* Price Details */}
                   <section>
-                    <SectionTitle>Price Details</SectionTitle>
-                    <div className="grid grid-cols-2 gap-3">
+                    <SectionTitle>
+                      Price Details
+                    </SectionTitle>
+
+                    <div className="flex flex-col gap-3">
                       <TextField>
-                        <Label>Monthly Rent (₱)</Label>
+                        <Label>
+                          Monthly Rent (₱)
+                        </Label>
+
                         <Input
                           type="number"
                           value={String(form.monthly_rent ?? "")}
@@ -139,7 +158,10 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                       </TextField>
                       <TextField>
-                        <Label>Security Deposit (₱)</Label>
+                        <Label>
+                          Security Deposit (₱)
+                        </Label>
+
                         <Input
                           type="number"
                           value={String(form.security_deposit ?? "")}
@@ -147,7 +169,10 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                       </TextField>
                       <TextField>
-                        <Label>Advance Rent (₱)</Label>
+                        <Label>
+                          Advance Rent (₱)
+                        </Label>
+
                         <Input
                           type="number"
                           value={String(form.advance_rent ?? "")}
@@ -159,71 +184,207 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                   {/* Unit Details */}
                   <section>
-                    <SectionTitle>Unit Details</SectionTitle>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Select value={form.type ?? null} onChange={(v) => updateForm("type", (v as string) ?? null)} placeholder="Select one">
-                        <Label>Type</Label>
-                        <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
-                        <Select.Popover><ListBox>{APARTMENT_TYPES.map((t) => <ListBox.Item key={t} id={t}>{t}</ListBox.Item>)}</ListBox></Select.Popover>
+                    <SectionTitle>
+                      Unit Details
+                    </SectionTitle>
+
+                    <div className="flex flex-col gap-3">
+                      <Select 
+                        value={form.type ?? null} 
+                        onChange={(v) => updateForm("type", (v as string) ?? null)} 
+                        placeholder="Select one"
+                      >
+                        <Label>
+                          Type
+                        </Label>
+
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {APARTMENT_TYPES.map((t) => <ListBox.Item key={t} id={t}>{t}</ListBox.Item>)}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
-                      <Select value={form.furnished_type ?? null} onChange={(v) => updateForm("furnished_type", (v as string) ?? null)} placeholder="Select one">
-                        <Label>Furnishing</Label>
-                        <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
-                        <Select.Popover><ListBox>{FURNISHED_TYPES.map((t) => <ListBox.Item key={t} id={t}>{t}</ListBox.Item>)}</ListBox></Select.Popover>
+
+                      <Select 
+                        value={form.furnished_type ?? null} 
+                        onChange={(v) => updateForm("furnished_type", (v as string) ?? null)} 
+                        placeholder="Select one"
+                      >
+                        <Label>
+                          Furnishing
+                        </Label>
+                        
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {FURNISHED_TYPES.map((t) => <ListBox.Item key={t} id={t}>{t}</ListBox.Item>)}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
-                      <Select value={form.floor_level ?? null} onChange={(v) => updateForm("floor_level", (v as string) ?? null)} placeholder="Select one">
-                        <Label>Floor Level</Label>
-                        <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
-                        <Select.Popover><ListBox>{FLOOR_LEVELS.map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}</ListBox></Select.Popover>
+
+                      <Select 
+                        value={form.floor_level ?? null} 
+                        onChange={(v) => updateForm("floor_level", (v as string) ?? null)} 
+                        placeholder="Select one"
+                      >
+                        <Label>
+                          Floor Level
+                        </Label>
+
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+
+                        <Select.Popover>
+                          <ListBox>
+                            {FLOOR_LEVELS.map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
-                      <Select value={form.lease_duration ?? null} onChange={(v) => updateForm("lease_duration", (v as string) ?? null)} placeholder="Select one">
-                        <Label>Lease Duration</Label>
-                        <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
-                        <Select.Popover><ListBox>{LEASE_DURATIONS.map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}</ListBox></Select.Popover>
+
+                      <Select 
+                        value={form.lease_duration ?? null} 
+                        onChange={(v) => updateForm("lease_duration", (v as string) ?? null)} 
+                        placeholder="Select one"
+                      >
+                        <Label>
+                          Lease Duration
+                        </Label>
+
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+
+                        <Select.Popover>
+                          <ListBox>
+                            {LEASE_DURATIONS.map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
+
                       <TextField>
-                        <Label>Bedrooms</Label>
-                        <Input type="number" value={String(form.no_bedrooms ?? "")} onChange={(e) => updateForm("no_bedrooms", Number(e.target.value))} />
+                        <Label>
+                          Bedrooms
+                        </Label>
+
+                        <Input 
+                          type="number" 
+                          value={String(form.no_bedrooms ?? "")} 
+                          onChange={(e) => updateForm("no_bedrooms", Number(e.target.value))} 
+                        />
                       </TextField>
+
                       <TextField>
-                        <Label>Bathrooms</Label>
-                        <Input type="number" value={String(form.no_bathrooms ?? "")} onChange={(e) => updateForm("no_bathrooms", Number(e.target.value))} />
+                        <Label>
+                          Bathrooms
+                        </Label>
+                        <Input 
+                          type="number" 
+                          value={String(form.no_bathrooms ?? "")} 
+                          onChange={(e) => updateForm("no_bathrooms", Number(e.target.value))} 
+                        />
                       </TextField>
+
                       <TextField>
-                        <Label>Area (sqm)</Label>
-                        <Input type="number" value={String(form.area_sqm ?? "")} onChange={(e) => updateForm("area_sqm", Number(e.target.value))} />
+                        <Label>
+                          Area (sqm)
+                        </Label>
+                        <Input 
+                          type="number" 
+                          value={String(form.area_sqm ?? "")} 
+                          onChange={(e) => updateForm("area_sqm", Number(e.target.value))} 
+                        />
                       </TextField>
+
                       <TextField>
-                        <Label>Max Occupants</Label>
-                        <Input type="number" value={String(form.max_occupants ?? "")} onChange={(e) => updateForm("max_occupants", Number(e.target.value))} />
+                        <Label>
+                          Max Occupants
+                        </Label>
+                        <Input 
+                          type="number" 
+                          value={String(form.max_occupants ?? "")} 
+                          onChange={(e) => updateForm("max_occupants", Number(e.target.value))} 
+                        />
                       </TextField>
                     </div>
                   </section>
 
                   {/* Address */}
                   <section>
-                    <SectionTitle>Address</SectionTitle>
-                    <TextField>
-                      <Label>Street Address</Label>
-                      <Input value={form.street_address ?? ""} onChange={(e) => updateForm("street_address", e.target.value)} />
-                    </TextField>
-                    <div className="grid grid-cols-2 gap-3">
+                    <SectionTitle>
+                      Address
+                    </SectionTitle>
+
+                    <div className="flex flex-col gap-3">
                       <TextField>
-                        <Label>Barangay</Label>
-                        <Input value={form.barangay ?? ""} onChange={(e) => updateForm("barangay", e.target.value)} />
+                        <Label>
+                          Street Address
+                        </Label>
+                        <Input 
+                          value={form.street_address ?? ""} 
+                          onChange={(e) => updateForm("street_address", e.target.value)} 
+                        />
                       </TextField>
-                      <Select value={form.city ?? null} onChange={(v) => updateForm("city", (v as string) ?? null)} placeholder="Select one">
-                        <Label>City</Label>
-                        <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
-                        <Select.Popover><ListBox>{CITIES.map((c) => <ListBox.Item key={c} id={c}>{c}</ListBox.Item>)}</ListBox></Select.Popover>
+
+                      <TextField>
+                        <Label>
+                          Barangay
+                        </Label>
+                        <Input 
+                          value={form.barangay ?? ""} 
+                          onChange={(e) => updateForm("barangay", e.target.value)} 
+                        />
+                      </TextField>
+
+                      <Select 
+                        value={form.city ?? null} 
+                        onChange={(v) => updateForm("city", (v as string) ?? null)} 
+                        placeholder="Select one"
+                      >
+                        <Label>
+                          City
+                        </Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+
+                        <Select.Popover>
+                          <ListBox>
+                            {CITIES.map((c) => <ListBox.Item key={c} id={c}>{c}</ListBox.Item>)}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
+
                       <TextField>
-                        <Label>Province</Label>
-                        <Input value={form.province ?? ""} onChange={(e) => updateForm("province", e.target.value)} />
+                        <Label>
+                          Province
+                        </Label>
+
+                        <Input 
+                          value={form.province ?? ""} 
+                          onChange={(e) => updateForm("province", e.target.value)} 
+                        />
                       </TextField>
+                      
                       <TextField>
-                        <Label>Zip Code</Label>
-                        <Input type="number" value={String(form.zip_code ?? "")} onChange={(e) => updateForm("zip_code", Number(e.target.value))} />
+                        <Label>
+                          Zip Code
+                        </Label>
+                        <Input 
+                          type="number" 
+                          value={String(form.zip_code ?? "")} 
+                          onChange={(e) => updateForm("zip_code", Number(e.target.value))} 
+                        />
                       </TextField>
                     </div>
                   </section>
@@ -231,14 +392,22 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                   {/* Coordinates */}
                   <section>
                     <SectionTitle>Coordinates</SectionTitle>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-3">
                       <TextField>
                         <Label>Latitude</Label>
-                        <Input type="number" value={String(form.latitude ?? "")} onChange={(e) => updateForm("latitude", Number(e.target.value))} />
+                        <Input 
+                          type="number" 
+                          value={String(form.latitude ?? "")} 
+                          onChange={(e) => updateForm("latitude", Number(e.target.value))} 
+                        />
                       </TextField>
                       <TextField>
                         <Label>Longitude</Label>
-                        <Input type="number" value={String(form.longitude ?? "")} onChange={(e) => updateForm("longitude", Number(e.target.value))} />
+                        <Input 
+                          type="number" 
+                          value={String(form.longitude ?? "")} 
+                          onChange={(e) => updateForm("longitude", Number(e.target.value))} 
+                        />
                       </TextField>
                     </div>
                   </section>
@@ -253,15 +422,24 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     />
                   </section>
                 </Modal.Body>
+
                 <Modal.Footer>
-                  <Button variant="tertiary" onPress={() => { close(); setForm({ ...property }); }}>
+                  <Button 
+                    variant="danger-soft" 
+                    onPress={() => { 
+                      close(); 
+                      setForm({ ...property }); 
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button isPending={saving} onPress={handleSave}>
+                  <Button 
+                    isPending={saving} 
+                    onPress={handleSave}
+                  >
                     Save Changes
                   </Button>
                 </Modal.Footer>
-                <Modal.CloseTrigger />
               </>
             )}
           </Modal.Dialog>
