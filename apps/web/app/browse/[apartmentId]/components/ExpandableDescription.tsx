@@ -28,9 +28,8 @@ export default function ExpandableDescription({ text, maxLength = 300 }: Props) 
       {shouldTruncate && (
         <Button
           onPress={() => setIsExpanded(!isExpanded)}
-          radius="full"
-          variant="light"
-          className="mt-2 text-primary font-medium text-sm transform -translate-x-4"
+          variant="ghost"
+          className="mt-2 text-secondary font-medium text-sm transform -translate-x-4"
         >
           {isExpanded ? "View less" : "View more"}
         </Button>

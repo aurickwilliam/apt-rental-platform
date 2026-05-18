@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, CardHeader, CardFooter, Avatar } from "@heroui/react";
+import { Card, Avatar } from "@heroui/react";
 
 interface ReviewCardProps {
   reviewerName: string;
@@ -18,18 +18,17 @@ export default function ReviewCard({
   stayPeriod,
 }: ReviewCardProps) {
   return (
-    <Card
-     shadow="none"
-     classNames={{
-       base: "gap-0"
-     }}
-    >
-      <CardHeader className="flex gap-3">
-        <Avatar
-          size="md"
-          src={reviewerAvatar}
-          alt="User Avatar"
-        />
+    <Card className="gap-0">
+      <Card.Header className="flex gap-3">
+        <Avatar size="md">
+          <Avatar.Image src={reviewerAvatar} alt={reviewerName} />
+          <Avatar.Fallback>
+            {reviewerName
+              .split(" ")
+              .map((part) => part[0]?.toUpperCase())
+              .join("")}
+          </Avatar.Fallback>
+        </Avatar>
         
         <div className="flex flex-col">
           <h3 className="text-base font-medium">
@@ -39,19 +38,19 @@ export default function ReviewCard({
             {reviewDate}
           </p>
         </div>
-      </CardHeader>
+      </Card.Header>
 
-      <CardBody>
+      <Card.Content>
         <p className="text-sm">
           {reviewText}
         </p>
-      </CardBody>
+      </Card.Content>
 
-      <CardFooter>
+      <Card.Footer>
         <span className="text-sm text-gray-500">
           {stayPeriod}
         </span>
-      </CardFooter>
+      </Card.Footer>
     </Card>
   );
 }

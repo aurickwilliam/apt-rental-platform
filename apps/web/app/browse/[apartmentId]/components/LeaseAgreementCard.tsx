@@ -1,7 +1,9 @@
 "use client";
 
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { FileText } from "lucide-react";
+
+import Link from "next/link";
 
 interface LeaseAgreementCardProps {
   leaseDetailsUrl: string;
@@ -11,11 +13,8 @@ export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCa
   const hasLease = !!leaseDetailsUrl;
 
   return (
-    <Card
-      shadow="none"
-      classNames={{ base: "border border-grey-300" }}
-    >
-      <CardBody className="flex flex-col items-start gap-2">
+    <Card className="border border-grey-300 shadow-none">
+      <Card.Content className="flex flex-col items-start gap-2">
         <h3 className="text-lg font-medium">
           Lease Agreement
         </h3>
@@ -26,18 +25,14 @@ export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCa
               View the lease agreement for this apartment.
             </p>
             <Button
-              as="a"
-              href={leaseDetailsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="solid"
-              color="primary"
-              startContent={<FileText size={16} />}
               className="w-full"
-              radius="full"
               isDisabled={!leaseDetailsUrl}
             >
-              View Lease Agreement
+              <FileText size={16} />
+
+              <Link href={leaseDetailsUrl} target="_blank" rel="noopener noreferrer">
+                View Lease Agreement
+              </Link>
             </Button>
           </>
         ) : (
@@ -45,7 +40,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCa
             No lease agreement has been uploaded for this apartment.
           </p>
         )}
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

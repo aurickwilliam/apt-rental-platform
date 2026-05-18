@@ -10,11 +10,10 @@ export default function BackBtn() {
 
   return (
     <Button
-      variant="bordered"
-      radius="full"
-      startContent={<ArrowLeft size={18} />}
+      variant="outline"
       onPress={() => router.back()}
     >
+      <ArrowLeft size={18} />
       Back
     </Button>
   );

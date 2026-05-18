@@ -5,6 +5,7 @@ import { Button, toast } from "@heroui/react";
 import { Heart } from "lucide-react";
 
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
+
 import { useFavorites } from "@/hooks/use-favorites";
 
 interface FavoriteBtnProps {
@@ -50,11 +51,10 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
   return (
     <>
       <Button
-        variant="light"
+        variant="tertiary"
         size="md"
-        radius="full"
         isIconOnly
-        isLoading={isSaving}
+        isPending={isSaving}
         isDisabled={loading}
         onPress={handleToggleFavorite}
       >
