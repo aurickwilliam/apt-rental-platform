@@ -2,11 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+
 import {
-  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  Button, Chip,
+  Modal,
+  Button, 
+  Chip,
 } from "@heroui/react";
+
 import { X, ImagePlus, Star } from "lucide-react";
+
 import { createBrowserClient } from "@repo/supabase";
 
 type ApartmentImage = {
@@ -128,99 +132,110 @@ export default function ApartmentImagesModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && handleDone()}
-      size="3xl" 
-      scrollBehavior="inside"
-      className="pointer-events-auto shadow-2xl"
-      classNames={{
-        wrapper: "z-[100]",
-        backdrop: "z-[99]"
-      }}
-    >
-      <ModalContent>
-        <ModalHeader className="font-noto-serif">Edit Images</ModalHeader>
+    <Modal>
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && handleDone()}
+        className="z-99"
+      >
+        <Modal.Container
+          size="lg"
+          scroll="inside"
+          className="z-100 shadow-2xl pointer-events-auto"
+        >
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading className="font-noto-serif">Edit Images</Modal.Heading>
+            </Modal.Header>
 
-        <ModalBody>
-          {/* Upload area */}
-          <div
-            className="relative z-60 border-2 border-dashed border-default-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              fileInputRef.current?.click();
-            }}
-          >
-            <ImagePlus size={28} className="text-default-400" />
-            <p className="text-sm text-default-500 font-medium">Click to upload images</p>
-            <p className="text-xs text-default-400">JPEG, PNG, WEBP · Max 5MB each</p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="hidden"
-              onChange={handleUpload}
-            />
-          </div>
+            <Modal.Body className="flex flex-col gap-4">
+              {/* Upload area */}
+              <div
+                className="relative border-2 border-dashed border-default-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+              >
+                <ImagePlus size={28} className="text-default-400" />
+                <p className="text-sm text-default-500 font-medium">Click to upload images</p>
+                <p className="text-xs text-default-400">JPEG, PNG, WEBP · Max 5MB each</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleUpload}
+                />
+              </div>
 
-          {uploading && (
-            <p className="text-sm text-primary text-center animate-pulse">Uploading...</p>
-          )}
+              {uploading && (
+                <p className="text-sm text-primary text-center animate-pulse">Uploading...</p>
+              )}
 
-          {/* Image grid */}
-          {localImages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <p className="text-sm">No images yet</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 mt-2">
-              {localImages.map((image) => (
-                <div key={image.id} className="relative group rounded-xl overflow-hidden aspect-video">
-                  <Image src={image.url} alt="Apartment" fill className="object-cover" />
-
-                  {/* Cover badge */}
-                  {image.is_cover && (
-                    <div className="absolute top-2 left-2">
-                      <Chip size="sm" color="warning" variant="solid" startContent={<Star size={10} />}>
-                        Cover
-                      </Chip>
-                    </div>
-                  )}
-
-                  {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    {!image.is_cover && (
-                      <Button
-                        size="sm" radius="full" variant="flat"
-                        className="bg-white/90 text-xs"
-                        onPress={() => handleSetCover(image)}
-                      >
-                        Set Cover
-                      </Button>
-                    )}
-                    <Button
-                      isIconOnly size="sm" radius="full"
-                      className="bg-danger/90"
-                      isLoading={deleting === image.id}
-                      onPress={() => handleDelete(image)}
-                    >
-                      <X size={14} className="text-white" />
-                    </Button>
-                  </div>
+              {/* Image grid */}
+              {localImages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-32 text-default-400">
+                  <p className="text-sm">No images yet</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </ModalBody>
+              ) : (
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  {localImages.map((image) => (
+                    <div key={image.id} className="relative group rounded-xl overflow-hidden aspect-video">
+                      <Image src={image.url} alt="Apartment" fill className="object-cover" />
 
-        <ModalFooter>
-          <Button color="primary" radius="full" onPress={handleDone}>
-            Done
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+                      {/* Cover badge */}
+                      {image.is_cover && (
+                        <div className="absolute top-2 left-2">
+                          <Chip 
+                            size="sm" 
+                            color="warning" 
+                          >
+                            <Star size={10} />
+                            Cover
+                          </Chip>
+                        </div>
+                      )}
+
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {!image.is_cover && (
+                          <Button
+                            size="sm" 
+                            variant="tertiary"
+                            className="bg-white/90 text-xs"
+                            onPress={() => handleSetCover(image)}
+                          >
+                            Set Cover
+                          </Button>
+                        )}
+                        <Button
+                          isIconOnly 
+                          size="sm" 
+                          className="bg-danger/90"
+                          isPending={deleting === image.id}
+                          onPress={() => handleDelete(image)}
+                        >
+                          <X size={14} className="text-white" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button onPress={handleDone}>
+                Done
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

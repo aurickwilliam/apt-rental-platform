@@ -3,7 +3,16 @@
 import { useState } from "react";
 import Image from "next/image";
 
-import { Button, Chip, Input, Select, SelectItem, Textarea } from "@heroui/react";
+import {
+  Button,
+  Chip,
+  Input,
+  Label,
+  ListBox,
+  Select,
+  TextArea,
+  TextField,
+} from "@heroui/react";
 
 import {
   Table, TableBody, TableCell, TableHead,
@@ -312,7 +321,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
 
               <TableCell>
                 <Chip
-                  size="sm" variant="flat"
+                  size="sm" 
+                  variant="soft"
                   color={STATUS_COLOR[property.status] ?? "default"}
                   className="capitalize"
                 >
@@ -324,7 +334,9 @@ export default function PropertiesTable({ properties: initial }: Props) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      isIconOnly variant="light" size="sm" radius="full"
+                      isIconOnly 
+                      variant="tertiary" 
+                      size="sm"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <MoreHorizontal size={16} />
@@ -380,7 +392,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
                     </p>
                   </div>
                   <Chip
-                    size="sm" variant="solid"
+                    size="sm" 
+                    variant="primary"
                     color={STATUS_COLOR[selected.status] ?? "default"}
                     className="capitalize"
                   >
@@ -398,8 +411,8 @@ export default function PropertiesTable({ properties: initial }: Props) {
                       {isEditing ? "Edit Property" : "Property Details"}
                     </SheetTitle>
                     <Button
-                      size="sm" radius="full" color="primary"
-                      variant={isEditing ? "flat" : "bordered"}
+                      size="sm"
+                      variant={isEditing ? "tertiary" : "outline"}
                       onPress={() => setIsEditing((prev) => !prev)}
                     >
                       {isEditing ? "Cancel" : "Edit"}
@@ -484,7 +497,10 @@ export default function PropertiesTable({ properties: initial }: Props) {
                           {selected.amenities.map((id) => {
                             const perk = PERKS[id];
                             return perk ? (
-                              <Chip key={id} size="sm" variant="flat" color="primary">
+                              <Chip key={id} 
+                                size="sm" 
+                                variant="tertiary"
+                              >
                                 {perk.name}
                               </Chip>
                             ) : null;
@@ -499,17 +515,15 @@ export default function PropertiesTable({ properties: initial }: Props) {
                         <div className="flex gap-2">
                           <Button 
                             className="flex-1" 
-                            variant="flat" 
-                            color="default" 
+                            variant="tertiary" 
                             onPress={handleViewLease}
-                            isLoading={viewingLease}
+                            isPending={viewingLease}
                           >
                             <FileText size={16} /> View Document
                           </Button>
                           <Button 
                             isIconOnly 
-                            variant="flat" 
-                            color="default" 
+                            variant="tertiary" 
                             onPress={() => setLeaseModalOpen(true)}
                           >
                             <Pencil size={16} />
@@ -518,15 +532,20 @@ export default function PropertiesTable({ properties: initial }: Props) {
                       ) : (
                         <div className="flex justify-between items-center text-sm text-muted-foreground p-3 border border-dashed rounded-lg">
                           <p>No lease agreement uploaded</p>
-                          <Button size="sm" variant="flat" onPress={() => setLeaseModalOpen(true)}>Upload</Button>
+                          <Button 
+                            size="sm" 
+                            variant="tertiary" 
+                            onPress={() => setLeaseModalOpen(true)}
+                          >
+                            Upload
+                          </Button>
                         </div>
                       )}
                     </section>
 
                     {/* Button to trigger Modal for Editing Images*/}
                     <Button
-                      variant="bordered"
-                      radius="full"
+                      variant="outline"
                       size="sm"
                       className="w-full"
                       onPress={() => handleEditImages(selected.id)}
@@ -537,117 +556,218 @@ export default function PropertiesTable({ properties: initial }: Props) {
                 ) : (
                   // Edit Mode Form
                   <div className="flex flex-col gap-4">
-                    <Input
-                      label="Name" labelPlacement="outside" placeholder="Apartment name"
-                      value={form.name ?? ""}
-                      onChange={(e) => updateForm("name", e.target.value)}
-                    />
-                    <Textarea
-                      label="Description" labelPlacement="outside" placeholder="Describe the unit..."
-                      value={form.description ?? ""}
-                      onChange={(e) => updateForm("description", e.target.value)}
-                      minRows={3}
-                    />
-                    <Input
-                      label="Monthly Rent (₱)" labelPlacement="outside" type="number"
-                      value={String(form.monthly_rent ?? "")}
-                      onChange={(e) => updateForm("monthly_rent", Number(e.target.value))}
-                    />
+                    <TextField>
+                      <Label>Name</Label>
+                      <Input
+                        placeholder="Apartment name"
+                        value={form.name ?? ""}
+                        onChange={(e) => updateForm("name", e.target.value)}
+                      />
+                    </TextField>
+                    <TextField>
+                      <Label>Description</Label>
+                      <TextArea
+                        placeholder="Describe the unit..."
+                        value={form.description ?? ""}
+                        onChange={(e) => updateForm("description", e.target.value)}
+                        rows={3}
+                      />
+                    </TextField>
+                    <TextField>
+                      <Label>Monthly Rent (₱)</Label>
+                      <Input
+                        type="number"
+                        value={String(form.monthly_rent ?? "")}
+                        onChange={(e) => updateForm("monthly_rent", Number(e.target.value))}
+                      />
+                    </TextField>
 
                     <div className="grid grid-cols-2 gap-3">
                       <Select
-                        label="Type" labelPlacement="outside"
-                        selectedKeys={form.type ? [form.type] : []}
-                        onSelectionChange={(k) => updateForm("type", Array.from(k)[0] as string ?? null)}
+                        value={form.type ?? null}
+                        onChange={(value) => updateForm("type", (value as string) ?? null)}
+                        placeholder="Select one"
                       >
-                        {APARTMENT_TYPES.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        <Label>Type</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {APARTMENT_TYPES.map((t) => (
+                              <ListBox.Item key={t} id={t}>
+                                {t}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
                       <Select
-                        label="Furnishing" labelPlacement="outside"
-                        selectedKeys={form.furnished_type ? [form.furnished_type] : []}
-                        onSelectionChange={(k) => updateForm("furnished_type", Array.from(k)[0] as string ?? null)}
+                        value={form.furnished_type ?? null}
+                        onChange={(value) => updateForm("furnished_type", (value as string) ?? null)}
+                        placeholder="Select one"
                       >
-                        {FURNISHED_TYPES.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        <Label>Furnishing</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {FURNISHED_TYPES.map((t) => (
+                              <ListBox.Item key={t} id={t}>
+                                {t}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
                       <Select
-                        label="Floor Level" labelPlacement="outside"
-                        selectedKeys={form.floor_level ? [form.floor_level] : []}
-                        onSelectionChange={(k) => updateForm("floor_level", Array.from(k)[0] as string ?? null)}
+                        value={form.floor_level ?? null}
+                        onChange={(value) => updateForm("floor_level", (value as string) ?? null)}
+                        placeholder="Select one"
                       >
-                        {FLOOR_LEVELS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        <Label>Floor Level</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {FLOOR_LEVELS.map((t) => (
+                              <ListBox.Item key={t} id={t}>
+                                {t}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
                       <Select
-                        label="Lease Duration" labelPlacement="outside"
-                        selectedKeys={form.lease_duration ? [form.lease_duration] : []}
-                        onSelectionChange={(k) => updateForm("lease_duration", Array.from(k)[0] as string ?? null)}
+                        value={form.lease_duration ?? null}
+                        onChange={(value) => updateForm("lease_duration", (value as string) ?? null)}
+                        placeholder="Select one"
                       >
-                        {LEASE_DURATIONS.map((t) => <SelectItem key={t}>{t}</SelectItem>)}
+                        <Label>Lease Duration</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {LEASE_DURATIONS.map((t) => (
+                              <ListBox.Item key={t} id={t}>
+                                {t}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
-                      <Input
-                        label="Bedrooms" labelPlacement="outside" type="number"
-                        value={String(form.no_bedrooms ?? "")}
-                        onChange={(e) => updateForm("no_bedrooms", Number(e.target.value))}
-                      />
-                      <Input
-                        label="Bathrooms" labelPlacement="outside" type="number"
-                        value={String(form.no_bathrooms ?? "")}
-                        onChange={(e) => updateForm("no_bathrooms", Number(e.target.value))}
-                      />
-                      <Input
-                        label="Area (sqm)" labelPlacement="outside" type="number"
-                        value={String(form.area_sqm ?? "")}
-                        onChange={(e) => updateForm("area_sqm", Number(e.target.value))}
-                      />
-                      <Input
-                        label="Max Occupants" labelPlacement="outside" type="number"
-                        value={String(form.max_occupants ?? "")}
-                        onChange={(e) => updateForm("max_occupants", Number(e.target.value))}
-                      />
+                      <TextField>
+                        <Label>Bedrooms</Label>
+                        <Input
+                          type="number"
+                          value={String(form.no_bedrooms ?? "")}
+                          onChange={(e) => updateForm("no_bedrooms", Number(e.target.value))}
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Bathrooms</Label>
+                        <Input
+                          type="number"
+                          value={String(form.no_bathrooms ?? "")}
+                          onChange={(e) => updateForm("no_bathrooms", Number(e.target.value))}
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Area (sqm)</Label>
+                        <Input
+                          type="number"
+                          value={String(form.area_sqm ?? "")}
+                          onChange={(e) => updateForm("area_sqm", Number(e.target.value))}
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Max Occupants</Label>
+                        <Input
+                          type="number"
+                          value={String(form.max_occupants ?? "")}
+                          onChange={(e) => updateForm("max_occupants", Number(e.target.value))}
+                        />
+                      </TextField>
                     </div>
 
                     <SectionTitle>Address</SectionTitle>
-                    <Input
-                      label="Street Address" labelPlacement="outside"
-                      value={form.street_address ?? ""}
-                      onChange={(e) => updateForm("street_address", e.target.value)}
-                    />
+                    <TextField>
+                      <Label>Street Address</Label>
+                      <Input
+                        value={form.street_address ?? ""}
+                        onChange={(e) => updateForm("street_address", e.target.value)}
+                      />
+                    </TextField>
                     <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        label="Barangay" labelPlacement="outside"
-                        value={form.barangay ?? ""}
-                        onChange={(e) => updateForm("barangay", e.target.value)}
-                      />
+                      <TextField>
+                        <Label>Barangay</Label>
+                        <Input
+                          value={form.barangay ?? ""}
+                          onChange={(e) => updateForm("barangay", e.target.value)}
+                        />
+                      </TextField>
                       <Select
-                        label="City" labelPlacement="outside"
-                        selectedKeys={form.city ? [form.city] : []}
-                        onSelectionChange={(k) => updateForm("city", Array.from(k)[0] as string ?? null)}
+                        value={form.city ?? null}
+                        onChange={(value) => updateForm("city", (value as string) ?? null)}
+                        placeholder="Select one"
                       >
-                        {CITIES.map((c) => <SelectItem key={c}>{c}</SelectItem>)}
+                        <Label>City</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {CITIES.map((c) => (
+                              <ListBox.Item key={c} id={c}>
+                                {c}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
-                      <Input
-                        label="Province" labelPlacement="outside"
-                        value={form.province ?? ""}
-                        onChange={(e) => updateForm("province", e.target.value)}
-                      />
-                      <Input
-                        label="Zip Code" labelPlacement="outside" type="number"
-                        value={String(form.zip_code ?? "")}
-                        onChange={(e) => updateForm("zip_code", Number(e.target.value))}
-                      />
+                      <TextField>
+                        <Label>Province</Label>
+                        <Input
+                          value={form.province ?? ""}
+                          onChange={(e) => updateForm("province", e.target.value)}
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Zip Code</Label>
+                        <Input
+                          type="number"
+                          value={String(form.zip_code ?? "")}
+                          onChange={(e) => updateForm("zip_code", Number(e.target.value))}
+                        />
+                      </TextField>
                     </div>
 
                     <SectionTitle>Coordinates</SectionTitle>
                     <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        label="Latitude" labelPlacement="outside" type="number"
-                        value={String(form.latitude ?? "")}
-                        onChange={(e) => updateForm("latitude", Number(e.target.value))}
-                      />
-                      <Input
-                        label="Longitude" labelPlacement="outside" type="number"
-                        value={String(form.longitude ?? "")}
-                        onChange={(e) => updateForm("longitude", Number(e.target.value))}
-                      />
+                      <TextField>
+                        <Label>Latitude</Label>
+                        <Input
+                          type="number"
+                          value={String(form.latitude ?? "")}
+                          onChange={(e) => updateForm("latitude", Number(e.target.value))}
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Longitude</Label>
+                        <Input
+                          type="number"
+                          value={String(form.longitude ?? "")}
+                          onChange={(e) => updateForm("longitude", Number(e.target.value))}
+                        />
+                      </TextField>
                     </div>
 
                     <SectionTitle>Amenities</SectionTitle>
@@ -664,21 +784,17 @@ export default function PropertiesTable({ properties: initial }: Props) {
               <SheetFooter className="p-4 border-t flex flex-col gap-2">
                 {isEditing ? (
                   <Button
-                    color="primary" 
                     className="w-full" 
-                    radius="full"
-                    isLoading={saving} 
+                    isPending={saving} 
                     onPress={handleSave}
                   >
                     Save Changes
                   </Button>
                 ) : (
                   <Button
-                    color="danger" 
-                    variant="flat" 
+                    variant="tertiary" 
                     className="w-full" 
-                    radius="full"
-                    isLoading={deleting} 
+                    isPending={deleting} 
                     onPress={handleDelete}
                   >
                     Delete Property

@@ -107,13 +107,13 @@ export default function AppNavbar() {
                       if (key === "logout")    signOut();
                     }}
                   >
-                    <Dropdown.Item id="profile"   textValue="Profile">
+                    <Dropdown.Item id="profile" textValue="Profile">
                       <Label>Profile</Label>
                     </Dropdown.Item>
                     <Dropdown.Item id="dashboard" textValue="Dashboard">
                       <Label>Dashboard</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="settings"  textValue="Settings">
+                    <Dropdown.Item id="settings" textValue="Settings">
                       <Label>Settings</Label>
                     </Dropdown.Item>
                     <Dropdown.Item id="logout" textValue="Log Out" variant="danger">
