@@ -453,7 +453,7 @@ export default function PropertyDetailsSheet({
                                 key={item.id} 
                                 size="sm" 
                                 variant="soft"
-                                className="flex flex-row gap-1 px-2 py-1"
+                                className="flex flex-row gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100"
                               >
                                 {item.perk.icon && (
                                   <item.perk.icon 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import {
   Popover,
   Checkbox,
@@ -8,8 +9,8 @@ import {
   Chip,
   InputGroup,
   Label,
-  CloseButton,
 } from "@heroui/react";
+
 import { ChevronDown, Search, X } from "lucide-react";
 
 import { Perk } from "./perks";
