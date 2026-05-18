@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, Tab, Avatar, ScrollShadow } from "@heroui/react";
+import { Tabs, Avatar, ScrollShadow, Badge } from "@heroui/react";
 import { Contact, TabKey } from "./types";
 
 interface ContactSidebarProps {
@@ -24,33 +24,45 @@ export default function ContactSidebar({
         <h1 className="text-2xl font-semibold text-secondary mb-4">
           Messages
         </h1>
+
         <Tabs
-          aria-label="Message Categories"
           selectedKey={activeTab}
           onSelectionChange={(key) => onTabChange(key as TabKey)}
-          fullWidth
-          size="md"
-          color="primary"
+          className="w-full"
         >
-          <Tab key="current" title="Current Tenants" />
-          <Tab key="inquiries" title="Inquiries" />
+          <Tabs.ListContainer>
+            <Tabs.List aria-label="Message Categories" className="*:text-black">
+              <Tabs.Tab id="current" className="data-[selected=true]:text-primary">
+                Current Tenants
+                <Tabs.Indicator />
+              </Tabs.Tab>
+
+              <Tabs.Tab id="inquiries" className="data-[selected=true]:text-primary">
+                <Tabs.Separator />
+                Inquiries
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
         </Tabs>
       </div>
 
-      <ScrollShadow 
+      <ScrollShadow
         className="min-h-0 flex-1 overflow-y-auto mask-none"
         visibility="none"
       >
-        {/* Empty State */}
         {contacts.length === 0 ? (
           <div className="p-8 text-center text-gray-500 text-sm">
             No messages in this category.
           </div>
         ) : (
           contacts.map((contact) => {
-            const isActive = activeContact?.conversationKey === contact.conversationKey;
+            const isActive =
+              activeContact?.conversationKey === contact.conversationKey;
             const showUnreadBadge = contact.unreadCount > 0 && !isActive;
-            const unreadCountLabel = contact.unreadCount > 99 ? "99+" : String(contact.unreadCount);
+            const unreadCountLabel =
+              contact.unreadCount > 99 ? "99+" : String(contact.unreadCount);
+
             return (
               <div
                 key={contact.conversationKey}
@@ -61,31 +73,38 @@ export default function ContactSidebar({
                     : "border-l-transparent"
                 }`}
               >
-                <div className="relative">
-                  <Avatar
-                    src={contact.avatar}
-                    alt={contact.name}
-                    size="md"
-                    name={contact.name}
-                    showFallback
-                    getInitials={(name) =>
-                      name
+                {/* Badge.Anchor handles positioning — no more manual relative/absolute */}
+                <Badge.Anchor>
+                  <Avatar size="md">
+                    <Avatar.Image src={contact.avatar} alt={contact.name} />
+                    <Avatar.Fallback>
+                      {contact.name
                         .split(" ")
                         .filter(Boolean)
                         .slice(0, 2)
                         .map((part) => part[0]?.toUpperCase() ?? "")
-                        .join("")
-                    }
-                  />
+                        .join("")}
+                    </Avatar.Fallback>
+                  </Avatar>
                   {showUnreadBadge && (
-                    <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-white bg-red-500 text-white text-[10px] font-semibold leading-none flex items-center justify-center">
+                    <Badge
+                      color="danger"
+                      size="sm"
+                      placement="top-right"
+                      className="border-2 border-white"
+                    >
                       {unreadCountLabel}
-                    </span>
+                    </Badge>
                   )}
-                </div>
+                </Badge.Anchor>
+
                 <div className="flex-1 overflow-hidden">
-                  <h3 className="font-semibold text-sm text-gray-800 truncate">{contact.name}</h3>
-                  <p className="text-xs text-gray-500 truncate">{contact.apartment}</p>
+                  <h3 className="font-semibold text-sm text-gray-800 truncate">
+                    {contact.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 truncate">
+                    {contact.apartment}
+                  </p>
                 </div>
               </div>
             );

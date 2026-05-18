@@ -175,7 +175,7 @@ export default function ConversationView({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact, apartmentId, currentUserId, supabase]);
+  }, [activeContact, apartmentId, currentUserId, supabase, onConversationRead]);
 
   // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {
@@ -238,11 +238,23 @@ export default function ConversationView({
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
-        <Avatar 
-          src={activeContact.avatar} 
-          alt={activeContact.name} 
-          size="lg" 
-        />
+        <Avatar size="lg">
+          {activeContact.avatar ? (
+            <Avatar.Image
+              src={activeContact.avatar}
+              alt={activeContact.name}
+            />
+          ) : null}
+          <Avatar.Fallback>
+            {activeContact.name
+              .split(" ")
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? "")
+              .join("")}
+          </Avatar.Fallback>
+        </Avatar>
+
         <div>
           <h2 className="text-lg font-bold text-gray-800 leading-tight">
             {activeContact.name}
@@ -260,7 +272,7 @@ export default function ConversationView({
       >
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <Spinner size="md" color="primary" />
+            <Spinner size="md" color="accent" />
           </div>
         ) : (
           <div className="flex flex-col gap-4">
