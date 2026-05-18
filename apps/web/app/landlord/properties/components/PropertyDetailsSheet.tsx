@@ -262,22 +262,30 @@ export default function PropertyDetailsSheet({
                         Property Details
                       </h3>
 
-                      <div className="flex flex-row gap-3">
+                      <div className="flex flex-row gap-2">
                         <Button
-                          variant="outline"
+                          isIconOnly
+                          variant="ghost"
                           size="sm"
-                          className="w-full"
-                          onPress={() => handleEditImages(selected.id)}
+                          onPress={() => setEditModalOpen(true)}
                         >
-                          Edit Images
+                          <Pencil size={14} />
+                        </Button>
+
+                        <Button
+                          isIconOnly
+                          variant="ghost"
+                          size="sm"
+                          onPress={() => handleViewLease()}
+                        >
+                          <FileText size={14} />
                         </Button>
 
                         <Dropdown>
                           <Button 
                             isIconOnly 
-                            variant="ghost" 
+                            variant="tertiary" 
                             size="sm"
-                            className="rounded-full"
                           >
                             <MoreHorizontal 
                               size={16} 
@@ -288,32 +296,21 @@ export default function PropertyDetailsSheet({
                           <Dropdown.Popover>
                             <Dropdown.Menu
                               onAction={(key) => {
-                                if (key === "edit") setEditModalOpen(true);
-                                if (key === "view-lease") handleViewLease();
+                                if (key === "edit-image") handleEditImages(selected.id);
                                 if (key === "edit-lease") setLeaseModalOpen(true);
                                 if (key === "upload-lease") setLeaseModalOpen(true);
                                 if (key === "delete") handleDelete();
                               }}
                             >
-                              <Dropdown.Item id="edit" textValue="Edit">
+                              <Dropdown.Item id="edit-image" textValue="Edit">
                                 <div className="flex items-center gap-2">
                                   <Pencil size={14} />
-                                  <span>Edit</span>
+                                  <span>Edit Images</span>
                                 </div>
                               </Dropdown.Item>
 
                               {selected.lease_agreement_url ? (
                                 <>
-                                  <Dropdown.Item
-                                    id="view-lease"
-                                    textValue="View Lease"
-                                    isDisabled={viewingLease}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <FileText size={14} />
-                                      <span>View Lease</span>
-                                    </div>
-                                  </Dropdown.Item>
                                   <Dropdown.Item id="edit-lease" textValue="Edit Lease">
                                     <div className="flex items-center gap-2">
                                       <Pencil size={14} />
