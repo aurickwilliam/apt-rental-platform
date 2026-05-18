@@ -175,7 +175,7 @@ export default function ConversationView({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact, apartmentId, currentUserId, supabase]);
+  }, [activeContact, apartmentId, currentUserId, supabase, onConversationRead]);
 
   // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {

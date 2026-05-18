@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
 import { 
-  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button 
+  Modal, Button 
 } from "@heroui/react";
+
 import { FileUp, Trash2 } from "lucide-react";
+
 import { createBrowserClient } from "@repo/supabase";
 
 type Props = {
@@ -105,69 +108,83 @@ export default function LeaseAgreementModal({ isOpen, onClose, apartmentId, curr
   const isSaveDisabled = !file || file.size === 0;
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onOpenChange={handleOpenChange}
-      className="pointer-events-auto shadow-2xl"
-      classNames={{
-        wrapper: "z-[100]",
-        backdrop: "z-[99]"
-      }}
-    >
-      <ModalContent>
-        {(onCloseModal) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">Manage Lease Agreement</ModalHeader>
-            <ModalBody>
-              <div className="flex flex-col gap-4">
-                {currentUrl && (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-default-50">
-                    <div className="text-sm font-medium">Current Lease Uploaded</div>
-                    <Button 
-                      isIconOnly 
-                      color="danger" 
-                      variant="flat" 
-                      size="sm" 
-                      isLoading={deleting}
-                      onPress={handleDelete}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm font-medium">Upload New Lease Agreement</p>
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-default-50 hover:border-primary transition-all">
-                    <FileUp size={24} className="text-muted-foreground mb-2" />
-                    <span className="text-sm font-medium">Click to select file</span>
-                    <span className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX up to 10MB</span>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                  </label>
-                  {file && (
-                    <div className="text-sm text-primary font-medium mt-1 truncate">
-                      Selected: {file.name}
+    <Modal>
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={handleOpenChange}
+        className="z-99"
+      >
+        <Modal.Container className="z-100 shadow-2xl pointer-events-auto">
+          <Modal.Dialog>
+            {({ close }) => (
+              <>
+                <Modal.CloseTrigger />
+                <Modal.Header>
+                  <Modal.Heading>Manage Lease Agreement</Modal.Heading>
+                </Modal.Header>
+
+                <Modal.Body>
+                  <div className="flex flex-col gap-4">
+                    {currentUrl && (
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-default-50">
+                        <div className="text-sm font-medium">Current Lease Uploaded</div>
+                        <Button
+                          isIconOnly
+                          variant="tertiary"
+                          className="text-danger"
+                          size="sm"
+                          isPending={deleting}
+                          onPress={handleDelete}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm font-medium">Upload New Lease Agreement</p>
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-default-50 hover:border-primary transition-all">
+                        <FileUp size={24} className="text-default-400 mb-2" />
+                        <span className="text-sm font-medium">Click to select file</span>
+                        <span className="text-xs text-default-400 mt-1">PDF, DOC, DOCX up to 10MB</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {file && (
+                        <div className="text-sm text-primary font-medium mt-1 truncate">
+                          Selected: {file.name}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onCloseModal}>
-                Cancel
-              </Button>
-              <Button color="primary" onPress={handleSave} isLoading={saving} isDisabled={isSaveDisabled}>
-                Save Details
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+                  </div>
+                </Modal.Body>
+
+                <Modal.Footer>
+                  <Button 
+                    className="text-danger"
+                    variant="tertiary" 
+                    onPress={close}
+                  >
+                    Cancel
+                  </Button>
+                  
+                  <Button 
+                    onPress={handleSave} 
+                    isPending={saving} 
+                    isDisabled={isSaveDisabled}
+                  >
+                    Save Details
+                  </Button>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
