@@ -1,15 +1,28 @@
 import { useState } from "react";
+
 import {
-  Button, Input, Label, ListBox, Modal, Select,
-  TextArea, TextField,
+  Button, 
+  Input, 
+  Label,
+  ListBox, 
+  Modal, 
+  Select,
+  TextArea, 
+  TextField,
 } from "@heroui/react";
+
 import { createBrowserClient } from "@repo/supabase";
+
 import AmenitiesSelect from "../../../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../../../components/inputs/perks";
+
 import {
-  APARTMENT_TYPES, FURNISHED_TYPES,
-  FLOOR_LEVELS, LEASE_DURATIONS,
+  APARTMENT_TYPES, 
+  FURNISHED_TYPES,
+  FLOOR_LEVELS, 
+  LEASE_DURATIONS,
 } from "@repo/constants";
+
 import { CITIES } from "../propertyConstants";
 import type { Property } from "../propertyTypes";
 
