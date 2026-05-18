@@ -14,18 +14,28 @@ export default function DescriptionModal({ isOpen, onClose, description }: Props
           <Modal.Dialog>
             {({ close }) => (
               <>
+                <Modal.CloseTrigger className="text-black" />
+
                 <Modal.Header>
-                  <Modal.Heading>Description</Modal.Heading>
+                  <Modal.Heading className="font-medium text-2xl">
+                    Description
+                  </Modal.Heading>
                 </Modal.Header>
+
                 <Modal.Body>
-                  <p className="text-sm text-default-700 whitespace-pre-line">
+                  <p className="text-sm text-grey-700 whitespace-pre-line">
                     {description ?? "—"}
                   </p>
                 </Modal.Body>
+
                 <Modal.Footer>
-                  <Button variant="tertiary" onPress={close}>Close</Button>
+                  <Button 
+                    variant="primary" 
+                    onPress={close}
+                  >
+                    Close
+                  </Button>
                 </Modal.Footer>
-                <Modal.CloseTrigger />
               </>
             )}
           </Modal.Dialog>
