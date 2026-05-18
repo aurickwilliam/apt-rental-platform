@@ -144,9 +144,11 @@ export default function ApartmentImagesModal({
           className="z-100 shadow-2xl pointer-events-auto"
         >
           <Modal.Dialog>
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="text-black" />
             <Modal.Header>
-              <Modal.Heading className="font-noto-serif">Edit Images</Modal.Heading>
+              <Modal.Heading className="font-medium">
+                Edit Images
+              </Modal.Heading>
             </Modal.Header>
 
             <Modal.Body className="flex flex-col gap-4">
@@ -159,9 +161,9 @@ export default function ApartmentImagesModal({
                   fileInputRef.current?.click();
                 }}
               >
-                <ImagePlus size={28} className="text-default-400" />
-                <p className="text-sm text-default-500 font-medium">Click to upload images</p>
-                <p className="text-xs text-default-400">JPEG, PNG, WEBP · Max 5MB each</p>
+                <ImagePlus size={28} className="text-grey-400" />
+                <p className="text-sm text-grey-500 font-medium">Click to upload images</p>
+                <p className="text-xs text-grey-400">JPEG, PNG, WEBP · Max 5MB each</p>
                 <input
                   ref={fileInputRef}
                   type="file"
