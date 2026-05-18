@@ -7,13 +7,6 @@ import {
   Button,
   Chip,
   Dropdown,
-  Input,
-  Label,
-  ListBox,
-  Select,
-  TextArea,
-  TextField,
-  Modal,
   Drawer,
   useOverlayState,
   Separator,
@@ -31,16 +24,8 @@ import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
 import { PERKS } from "../../../components/inputs/perks";
-import AmenitiesSelect from "../../../components/inputs/AmenitiesSelect";
 
-import {
-  APARTMENT_TYPES,
-  FURNISHED_TYPES,
-  FLOOR_LEVELS,
-  LEASE_DURATIONS,
-} from "@repo/constants";
-
-import { CITIES, STATUS_COLOR } from "./propertyConstants";
+import { STATUS_COLOR } from "./propertyConstants";
 import type { Property } from "./propertyTypes";
 import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
@@ -104,7 +89,6 @@ export default function PropertyDetailsSheet({
   onDelete,
 }: Props) {
   const [form, setForm] = useState<Partial<Property>>({});
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const [imagesModalOpen, setImagesModalOpen] = useState(false);
@@ -155,51 +139,6 @@ export default function PropertyDetailsSheet({
       setEditModalOpen(true);
     }
   }, [selected, openEditMode]);
-
-  const updateForm = <K extends keyof Property>(key: K, value: Property[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!selected) return;
-    setSaving(true);
-    const supabase = createBrowserClient();
-
-    const { error } = await supabase
-      .from("apartments")
-      .update({
-        name: form.name ?? undefined,
-        description: form.description ?? undefined,
-        monthly_rent: form.monthly_rent,
-        security_deposit: form.security_deposit ?? undefined,
-        advance_rent: form.advance_rent ?? undefined,
-        type: form.type ?? undefined,
-        street_address: form.street_address ?? undefined,
-        barangay: form.barangay ?? undefined,
-        city: form.city ?? undefined,
-        province: form.province ?? undefined,
-        zip_code: form.zip_code ?? undefined,
-        no_bedrooms: form.no_bedrooms ?? undefined,
-        no_bathrooms: form.no_bathrooms ?? undefined,
-        area_sqm: form.area_sqm ?? undefined,
-        max_occupants: form.max_occupants ?? undefined,
-        furnished_type: form.furnished_type ?? undefined,
-        floor_level: form.floor_level ?? undefined,
-        lease_duration: form.lease_duration ?? undefined,
-        latitude: form.latitude ?? undefined,
-        longitude: form.longitude ?? undefined,
-        amenities: form.amenities ?? undefined,
-      })
-      .eq("id", selected.id);
-
-    if (!error) {
-      const updated = { ...selected, ...form } as Property;
-      onUpdate(updated);
-      setForm(updated);
-      setEditModalOpen(false);
-    }
-    setSaving(false);
-  };
 
   const handleDelete = async () => {
     if (!selected || deleting) return;
@@ -261,13 +200,6 @@ export default function PropertyDetailsSheet({
     } finally {
       setViewingLease(false);
     }
-  };
-
-  const handleEditModalOpenChange = (open: boolean) => {
-    if (!open && selected) {
-      setForm({ ...selected });
-    }
-    setEditModalOpen(open);
   };
 
   const isAnyModalOpen =

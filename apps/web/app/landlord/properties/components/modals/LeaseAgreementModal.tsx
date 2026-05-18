@@ -118,20 +118,23 @@ export default function LeaseAgreementModal({ isOpen, onClose, apartmentId, curr
           <Modal.Dialog>
             {({ close }) => (
               <>
-                <Modal.CloseTrigger />
+                <Modal.CloseTrigger className="text-black" />
                 <Modal.Header>
-                  <Modal.Heading>Manage Lease Agreement</Modal.Heading>
+                  <Modal.Heading className="font-medium">
+                    Manage Lease Agreement
+                  </Modal.Heading>
                 </Modal.Header>
 
                 <Modal.Body>
                   <div className="flex flex-col gap-4">
                     {currentUrl && (
                       <div className="flex items-center justify-between p-3 border rounded-lg bg-default-50">
-                        <div className="text-sm font-medium">Current Lease Uploaded</div>
+                        <div className="text-sm font-medium text-grey-500">
+                          Current Lease Uploaded
+                        </div>
                         <Button
                           isIconOnly
-                          variant="tertiary"
-                          className="text-danger"
+                          variant="danger-soft"
                           size="sm"
                           isPending={deleting}
                           onPress={handleDelete}
@@ -142,11 +145,13 @@ export default function LeaseAgreementModal({ isOpen, onClose, apartmentId, curr
                     )}
 
                     <div className="flex flex-col gap-2">
-                      <p className="text-sm font-medium">Upload New Lease Agreement</p>
+                      <p className="text-sm font-medium text-black">
+                        Upload New Lease Agreement
+                      </p>
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-default-50 hover:border-primary transition-all">
-                        <FileUp size={24} className="text-default-400 mb-2" />
-                        <span className="text-sm font-medium">Click to select file</span>
-                        <span className="text-xs text-default-400 mt-1">PDF, DOC, DOCX up to 10MB</span>
+                        <FileUp size={24} className="text-grey-400 mb-2" />
+                        <span className="text-sm font-medium text-grey-400">Click to select file</span>
+                        <span className="text-xs text-grey-400 mt-1">PDF, DOC, DOCX up to 10MB</span>
                         <input
                           type="file"
                           className="hidden"
@@ -166,7 +171,7 @@ export default function LeaseAgreementModal({ isOpen, onClose, apartmentId, curr
                 <Modal.Footer>
                   <Button 
                     className="text-danger"
-                    variant="tertiary" 
+                    variant="danger-soft" 
                     onPress={close}
                   >
                     Cancel
