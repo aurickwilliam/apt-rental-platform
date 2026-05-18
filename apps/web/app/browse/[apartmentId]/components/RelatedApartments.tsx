@@ -35,17 +35,15 @@ export default function RelatedApartments({apartments} : Props) {
 
         <div className="flex items-center gap-2">
           <Button
-            variant="flat"
+            variant="outline"
             isIconOnly
-            radius="full"
             onPress={() => api?.scrollPrev()}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
-            variant="flat"
+            variant="outline"
             isIconOnly
-            radius="full"
             onPress={() => api?.scrollNext()}
           >
             <ChevronRight className="w-4 h-4" />

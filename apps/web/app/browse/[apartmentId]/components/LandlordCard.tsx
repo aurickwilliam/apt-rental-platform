@@ -2,7 +2,6 @@
 
 import {
   Card,
-  CardBody,
   Avatar,
   Button,
   Tooltip,
@@ -46,56 +45,43 @@ export default function LandlordCard({
   const avatarSrc = avatarUrl?.trim() || undefined;
 
   return (
-    <Card
-      shadow="none"
-      classNames={{
-        base: "border border-grey-300"
-      }}
-    >
-      <CardBody className="flex flex-row items-center justify-between gap-4">
-        <Avatar
-          src={avatarSrc}
-          alt={displayName}
-          name={displayName}
-          showFallback
-          getInitials={getInitials}
-          size="lg"
-        />
+    <Card className="border border-grey-300 shadow-none">
+      <Card.Content className="flex flex-row items-center justify-between gap-4">
+        <Avatar size="lg">
+          <Avatar.Image src={avatarSrc} alt={displayName} />
+          <Avatar.Fallback>{getInitials(displayName)}</Avatar.Fallback>
+        </Avatar>
 
         <div className="flex-1">
-          <h3 className="text-lg font-medium">
+          <Card.Title>
             {displayName}
-          </h3>
-          <p className="text-sm text-grey-500">
+          </Card.Title>
+          <Card.Description className="text-grey-500">
             {contactInfo}
-          </p>
+          </Card.Description>
         </div>
 
         {showMessageButton ? (
-          <div>
-            <Tooltip
-              content={messageDisabledReason}
-              isDisabled={!isMessageDisabled || !messageDisabledReason}
-            >
+          <Tooltip isDisabled={!isMessageDisabled || !messageDisabledReason}>
+            <Tooltip.Trigger>
+              {/* span keeps tooltip working on a disabled button */}
               <span>
                 <Button
                   isIconOnly
-                  variant="flat"
-                  color="secondary"
-                  radius="full"
+                  variant="tertiary"
                   isDisabled={isMessageDisabled}
                   onPress={onMessagePress}
                 >
-                  <MessageSquare
-                    size={20}
-                    className="text-secondary"
-                  />
+                  <MessageSquare size={20} className="text-secondary" />
                 </Button>
               </span>
-            </Tooltip>
-          </div>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              {messageDisabledReason}
+            </Tooltip.Content>
+          </Tooltip>
         ) : null}
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

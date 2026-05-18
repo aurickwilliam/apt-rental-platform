@@ -1,6 +1,6 @@
 "use client";
 
-import { Progress, Button } from "@heroui/react"
+import { Meter, Button } from "@heroui/react"
 
 import { Star } from "lucide-react";
 
@@ -26,20 +26,18 @@ export default function RatingSection({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium mb-8">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-lg font-medium">
           Ratings & Reviews
         </h3>
 
         <Button
           size="sm"
-          variant="light"
-          radius="full"
-          color="secondary"
+          variant="ghost"
           onPress={() => {
             alert("SEE ALL REVIEWS");
           }}
-          className="-mr-3"
+          className="-mr-3 text-secondary"
         >
           See all reviews
         </Button>
@@ -98,12 +96,16 @@ export default function RatingSection({
                 <Star size={14} className="text-secondary" fill="currentColor" />
               </div>
 
-              <Progress
+              <Meter
                 value={totalReviews > 0 ? (count / totalReviews) * 100 : 0}
                 aria-label={`${label} Star`}
                 className="flex-1"
-                color="secondary"
-              />
+                color="accent"
+              >
+                <Meter.Track>
+                  <Meter.Fill />
+                </Meter.Track>
+              </Meter>
 
               <p className="text-sm w-20 shrink-0 text-right text-grey-700">
                 {count} reviews

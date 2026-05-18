@@ -43,21 +43,18 @@ export default function ContactSidebar({
       >
         <div className="relative">
           {/* User Avatar */}
-          <Avatar
-            src={contact.avatar}
-            alt={contact.name}
-            size="md"
-            name={contact.name}
-            showFallback
-            getInitials={(name) =>
-              name
+          <Avatar size="md">
+            <Avatar.Image src={contact.avatar} alt={contact.name} />
+            <Avatar.Fallback>
+              {contact.name
                 .split(" ")
                 .filter(Boolean)
                 .slice(0, 2)
                 .map((part) => part[0]?.toUpperCase() ?? "")
-                .join("")
-            }
-          />
+                .join("")}
+            </Avatar.Fallback>
+          </Avatar>
+          
           {showUnreadBadge && (
             <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-white bg-red-500 text-white text-[10px] font-semibold leading-none flex items-center justify-center">
               {unreadCountLabel}
