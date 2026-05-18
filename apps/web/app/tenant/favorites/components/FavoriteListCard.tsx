@@ -29,7 +29,7 @@ export default function FavoriteListCard({
 }: FavoriteListCardProps) {
   return (
     <Card className="border border-default-200">
-      <Card.Content className="p-4">
+      <Card.Content className="p-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div
             className="relative h-40 w-full overflow-hidden rounded-xl sm:h-28 sm:w-44"
