@@ -116,23 +116,16 @@ export default function LandlordSidebar() {
       <SidebarFooter className="overflow-visible">
         <Dropdown>
           <Dropdown.Trigger>
-            <Button
-              variant="tertiary"
-              className={`flex w-full items-center h-auto ${
+            <div
+              className={`rounded-full flex w-full items-center h-auto cursor-pointer hover:bg-grey-200 ${
                 isExpanded
-                  ? "justify-start gap-3 px-2 py-2"
+                  ? "justify-start gap-2 px-2 pr-3 py-2"
                   : "justify-center px-0 py-0 mb-2 min-w-0"
               }`}
             >
-              <Avatar 
-                size={isExpanded ? "md" : "sm"} 
-                className="shrink-0 bg-primary"
-              >
+              <Avatar size={isExpanded ? "md" : "sm"} className="shrink-0 bg-primary">
                 <Avatar.Image src={avatarSrc} alt={displayName} />
-
-                <Avatar.Fallback>
-                  {getInitials(displayName)}
-                </Avatar.Fallback>
+                <Avatar.Fallback>{getInitials(displayName)}</Avatar.Fallback>
               </Avatar>
 
               {isExpanded && (
@@ -148,7 +141,7 @@ export default function LandlordSidebar() {
                   <ChevronsUpDown className="w-4 h-4 ml-auto shrink-0 text-default-400" />
                 </>
               )}
-            </Button>
+            </div>
           </Dropdown.Trigger>
           
           <Dropdown.Popover placement="top">

@@ -13,6 +13,10 @@
     @apply bg-secondary text-white hover:bg-[#e59400];
   }
 
+  .button--tertiary {
+    @apply bg-muted text-muted-foreground hover:bg-[#d1d5db];
+  }
+
   .input {
     @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
   }
