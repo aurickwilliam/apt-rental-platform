@@ -1,20 +1,25 @@
-import { View, Text } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import Ionicons from '@expo/vector-icons/build/Ionicons';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import TextField from '@/components/inputs/TextField';
-import PillButton from '@/components/buttons/PillButton';
+import AppInput from '@/components/inputs/AppInput';
+
+import { Button, FieldError, Label, TextField } from 'heroui-native';
 
 import { COLORS } from '@repo/constants';
 
 import { usePasswordValidation } from '@repo/hooks';
 
+import { Eye, EyeOff } from 'lucide-react-native';
+
 export default function ResetPassword() {
   const router = useRouter();
 
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const requiredFields = [
     'password',
@@ -62,12 +67,12 @@ export default function ResetPassword() {
     <ScreenWrapper
       className='p-5'
     >
-      <View className='flex gap-3'>
-        <Text className='text-4xl text-text font-interSemiBold'>
+      <View className='flex gap-1'>
+        <Text className='text-3xl text-text font-nunitoSemiBold'>
           Reset Password
         </Text>
 
-        <Text className='text-lg text-text font-inter'>
+        <Text className='text-base text-text font-inter'>
           Almost done! Let’s set a fresh new password.
         </Text>
       </View>
@@ -76,33 +81,75 @@ export default function ResetPassword() {
 
         {/* Password Field */}
         <TextField
-          label="Password:"
-          placeholder="Create a password"
-          isPassword
-          required
-          value={password}
-          onChangeText={(value) => {
-            setPassword(value); 
-          }}
-          error={getError('password')}
-        />
+          isRequired
+          isInvalid={!!getError('password')}
+        >
+          <Label>Password:</Label>
+          <View className="w-full flex-row items-center">
+            <AppInput
+              placeholder="Create a password"
+              secureTextEntry={!showPassword}
+              className="flex-1 pr-10"
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value); 
+              }}
+            />
+
+            <Pressable
+              onPress={() => setShowPassword(!showPassword)}
+              className="absolute right-3"
+            >
+              {showPassword ? (
+                <EyeOff size={18} color={COLORS.grey} />
+              ) : (
+                <Eye size={18} color={COLORS.grey} />
+              )}
+            </Pressable>
+          </View>
+          
+          {!!getError('password') && (
+            <FieldError>{getError('password')}</FieldError>
+          )}
+        </TextField>
 
         {/* Confirm Password Field */}
         <TextField
-          label="Confirm Password:"
-          placeholder="Confirm your password"
-          isPassword
-          required
-          value={confirmPassword}
-          onChangeText={(value) => {
-            setConfirmPassword(value);
-          }}
-          error={getError('confirmPassword')}
-        />
+          isRequired
+          isInvalid={!!getError('confirmPassword')}
+        >
+          <Label>Confirm Password:</Label>
+          <View className="w-full flex-row items-center">
+            <AppInput
+              placeholder="Confirm your password"
+              secureTextEntry={!showConfirmPassword}
+              className="flex-1 pr-10"
+              value={confirmPassword}
+              onChangeText={(value) => {
+                setConfirmPassword(value);
+              }}
+            />
+
+            <Pressable
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3"
+            >
+              {showConfirmPassword ? (
+                <EyeOff size={18} color={COLORS.grey} />
+              ) : (
+                <Eye size={18} color={COLORS.grey} />
+              )}
+            </Pressable>
+          </View>
+
+          {!!getError('confirmPassword') && (
+            <FieldError>{getError('confirmPassword')}</FieldError>
+          )}
+        </TextField>
 
         {/* Password Checker */}
-        <View className="flex-col gap-1">
-          <Text className='text-base text-text font-interMedium mb-2'>
+        <View className="flex-col gap-1 mt-5">
+          <Text className='text-text font-interMedium mb-2'>
             Your password must contain:
           </Text>
 
@@ -167,12 +214,17 @@ export default function ResetPassword() {
       </View>
 
       <View className='flex-1' />
-
-      <PillButton
-        label="Submit"
-        isFullWidth
+      
+      {/* Submit Button */}
+      <Button 
         onPress={handleSubmit}
-      />
+        className="mt-5"
+        isDisabled={!isPasswordValid}
+      >
+        <Button.Label>
+          Submit
+        </Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }
