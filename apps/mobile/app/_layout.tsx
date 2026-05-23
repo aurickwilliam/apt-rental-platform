@@ -1,5 +1,5 @@
 import * as Crypto from "expo-crypto";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "./global.css";
 
@@ -30,6 +30,8 @@ SplashScreen.preventAutoHideAsync();
 WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
+  const router = useRouter();
+  
   // Initialize custom fonts
   const [fontsLoaded, fontError] = useFonts({
     "Inter_24pt-Regular": require("../assets/fonts/Inter_24pt-Regular.ttf"),
@@ -45,6 +47,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
+
+      if (__DEV__) {
+        router.replace('/dev');
+      }
     }
   }, [fontsLoaded, fontError]);
 
@@ -62,6 +68,7 @@ export default function RootLayout() {
               headerShown: false,
             }}
           >
+            <Stack.Screen name="dev" />
             <Stack.Screen name="index" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="(auth)" />

@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import PillButton from 'components/buttons/PillButton'
+
+import { Button, CloseButton } from 'heroui-native'
 
 import {
   IconMessage,
@@ -26,19 +27,19 @@ export default function Index() {
 
   return (
     <ScreenWrapper
-      className='p-5'
+      className='px-5'
     >
       <View>
-        <TouchableOpacity 
+        <CloseButton 
           onPress={() => router.back()}
           className='my-5'
         >
           <IconChevronLeft size={26} color={COLORS.text} />
-        </TouchableOpacity>
+        </CloseButton>
       </View>
       
       <View className='flex gap-3'>
-        <Text className='text-secondary text-4xl font-nunito'>
+        <Text className='text-secondary text-3xl font-nunitoSemiBold'>
           Forgot Password
         </Text>
 
@@ -51,21 +52,27 @@ export default function Index() {
         </Text>
 
         <View className='flex gap-3 mt-5'>
-          <PillButton 
-            label='Send via SMS'
-            type='outline'
-            size='sm'
-            leftIconName={IconMessage}
+          {/* Send via SMS */}
+          <Button
+            variant='outline'
             onPress={() => handleForgotPassword('sms')}
-          />
+          >
+            <IconMessage size={20} color={COLORS.text} />
+            <Button.Label className='font-interMedium'>
+              Send via SMS
+            </Button.Label>
+          </Button>
 
-          <PillButton 
-            label='Send via Email'
-            type='outline'
-            size='sm'
-            leftIconName={IconMail}
+          {/* Send via Email */}
+          <Button
+            variant='outline'
             onPress={() => handleForgotPassword('email')}
-          />
+          >
+            <IconMail size={20} color={COLORS.text} />
+            <Button.Label className='font-interMedium'>
+              Send via Email
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
