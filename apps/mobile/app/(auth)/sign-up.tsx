@@ -1,11 +1,9 @@
-import { View, Text, Image, Pressable } from "react-native";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { View, Image } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import TextField from "components/inputs/TextField";
-import PillButton from "components/buttons/PillButton";
-import LogoButton from "components/buttons/LogoButton";
+import AppInput from "components/inputs/AppInput";
 
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
@@ -13,6 +11,8 @@ import { COLORS } from "@repo/constants";
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 
 import { supabase } from "@repo/supabase"
+
+import { Tabs, Text, TextField, LinkButton, Label, FieldError, Button, Separator} from "heroui-native";
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,116 +96,143 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`text-4xl text-text font-nunito`}>
+        <Text className="text-3xl text-text font-nunitoSemiBold">
           Create Your Account
         </Text>
-        <Text className="text-md text-text font-interSemiBold">
+
+        <Text className="text-base text-text font-interMedium">
           {userSide === "tenant"
             ? "Join as tenant to start renting."
             : "Join us and start listing your properties in minutes."}
         </Text>
       </View>
 
-      {/* Toggle User Side */}
-      <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
-        <Pressable
-          onPress={() => setUserSide("tenant")}
-          className="flex-1 py-3 rounded-xl"
-          style={
-            userSide === "tenant"
-              ? { backgroundColor: "white", elevation: 1 }
-              : {}
-          }
-        >
-          <Text
-            className="text-center font-interMedium"
-            style={{
-              color: userSide === "tenant" ? COLORS.primary : COLORS.grey,
-            }}
-          >
-            Tenant
-          </Text>
-        </Pressable>
+      {/* Tab Group User Side */}
+      <Tabs
+        value={userSide}
+        onValueChange={(val) => {
+          setUserSide(val as "tenant" | "landlord");
+        }}
+        variant="primary"
+        className="mt-5"
+      >
+        <Tabs.List className="w-full">
+          <Tabs.Indicator />
 
-        <Pressable
-          onPress={() => setUserSide("landlord")}
-          className="flex-1 py-3 rounded-xl"
-          style={
-            userSide === "landlord"
-              ? { backgroundColor: "white", elevation: 1 }
-              : {}
-          }
-        >
-          <Text
-            className="text-center font-interMedium"
-            style={{
-              color: userSide === "landlord" ? COLORS.secondary : COLORS.grey,
-            }}
-          >
-            Landlord
-          </Text>
-        </Pressable>
-      </View>
+          <Tabs.Trigger value="tenant" className="w-1/2">
+            {({ isSelected }) => (
+              <Tabs.Label
+                style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+              >
+                Tenant
+              </Tabs.Label>
+            )}
+          </Tabs.Trigger>
+
+          <Tabs.Trigger value="landlord" className="w-1/2">
+            {({ isSelected }) => (
+              <Tabs.Label
+                style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
+              >
+                Landlord
+              </Tabs.Label>
+            )}
+          </Tabs.Trigger>
+        </Tabs.List>
+      </Tabs>
 
       {googleError ? (
         <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <Text className="text-sm text-red-600 font-inter">{googleError}</Text>
+          <Text className="text-sm text-red-600 font-inter">
+            {googleError}
+          </Text>
         </View>
       ) : null}
 
       {/* Form inputs */}
       <View className="mt-8">
         <TextField
-          label="Email Address:"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={handleEmailTextChange}
-          error={emailError}
-          required={true}
-        />
+          isRequired
+          isInvalid={!!emailError && !email.trim()}
+        >
+          <Label>Email Address:</Label>
+          <AppInput 
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={handleEmailTextChange}
+          />
+
+          {!!emailError && !email.trim() && (
+              <FieldError>Please enter your email address.</FieldError>
+          )}
+        </TextField>
       </View>
 
       {/* Sign In Button */}
       <View className="mt-5">
-        <PillButton
+        {/* <PillButton
           label={checkingEmail ? "Please wait..." : "Continue"}
           isFullWidth={true}
           onPress={handleSignUp}
           isDisabled={checkingEmail}
-        />
+        /> */}
+        <Button
+          onPress={handleSignUp}
+          isDisabled={checkingEmail}
+        >
+          <Button.Label className="font-interMedium">
+            {checkingEmail ? "Please wait..." : "Continue"}
+          </Button.Label>
+        </Button>
       </View>
 
       {/* Divider */}
-      <View className="flex-row justify-center items-center mt-7 mb-7">
-        <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
+      <View className="flex-row justify-center items-center my-5">
+        <Separator orientation="horizontal" className="flex-1" />
 
-        <Text className="mx-3 text-grey-400 font-inter">or sign up with</Text>
+        <Text className="mx-3 text-grey-400 font-inter">
+          or sign up with
+        </Text>
 
-        <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
+        <Separator orientation="horizontal" className="flex-1" />
       </View>
 
       {/* Third-party sign-in options */}
-      <View className="flex-row justify-center items-center gap-10">
-        <LogoButton
-          image={IMAGES.googleLogo}
+      <View className="flex-row justify-center items-center gap-4 mt-2">
+        <Button
+          variant="outline"
           onPress={() => signInWithGoogle(userSide)}
-          disabled={googleLoading}
-        />
+          isDisabled={googleLoading}
+          className="flex-1"
+        >
+          <Image
+            source={IMAGES.googleLogo}
+            style={{ width: 20, height: 20 }}
+            resizeMode="contain"
+          />
+          <Button.Label className="font-interMedium text-text">
+            Continue with Google
+          </Button.Label>
+        </Button>
       </View>
 
-      {/* Footer links - Push to bottom with flex-1 spacer */}
+      {/* Footer links */}
       <View className="flex-1" />
 
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">Already have an account?</Text>
-          <Link
-            href="/sign-in"
-            className="text-primary font-interMedium underline"
-            replace={true}
+          <Text className="text-text font-inter">
+            Already have an account?
+          </Text>
+
+          <LinkButton
+            onPress={() => router.replace("/sign-in")}
+            className="p-0"
           >
-            Sign In
-          </Link>
+            <LinkButton.Label className="text-primary font-interMedium underline">
+              Sign In
+            </LinkButton.Label>
+          </LinkButton>
         </View>
       </View>
     </ScreenWrapper>
