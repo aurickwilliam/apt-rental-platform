@@ -1,12 +1,11 @@
 import {View, Image, Pressable} from "react-native";
 import { useState } from "react";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import LogoButton from "components/buttons/LogoButton";
 import AppInput from "components/inputs/AppInput";
 
 import {Button, Text, Tabs, TextField, Label, FieldError, LinkButton, Separator} from 'heroui-native';
@@ -36,8 +35,6 @@ export default function SignIn() {
     error: googleError,
   } = useGoogleAuth();
 
-  const combinedError = error || googleError;
-
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
     if (error) setError("");
@@ -50,7 +47,7 @@ export default function SignIn() {
 
   const handleGoogleSignIn = () => {
     if (error) setError("");
-    signInWithGoogle(userSide);
+    void signInWithGoogle(userSide);
   };
 
   const handleSignIn = async () => {
@@ -190,12 +187,19 @@ export default function SignIn() {
         </Tabs.List>
       </Tabs>
 
-      {/* Error message */}
-      {combinedError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      {/* Google Error message */}
+      {googleError ? (
+        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
           <Text className="text-sm text-red-600 font-inter">
-            {combinedError}
+            {googleError}
           </Text>
+        </View>
+      ) : null}
+
+      {/* General Error Message */}
+      {error && email.trim() && password.trim() ? (
+        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+          <Text className="text-sm text-red-600 font-inter">{error}</Text>
         </View>
       ) : null}
 
