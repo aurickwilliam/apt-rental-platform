@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 
 import { IMAGES} from '../../../constants/images'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native';
 
 export default function Updated() {
   const router = useRouter();
@@ -16,27 +17,29 @@ export default function Updated() {
       <View className='flex-1 items-center justify-center gap-10'>
         <Image 
           source={IMAGES.lockReset}
-          style={{ width: 200, height: 200 }}
+          style={{ width: 175, height: 175 }}
           resizeMode='contain'
         />
 
         <View>
-          <Text className='text-text text-3xl font-interSemiBold text-center'>
+          <Text className='text-primary text-2xl font-nunitoBold text-center'>
             Password Updated
           </Text>
 
-          <Text className='text-text text-lg font-inter mt-2 text-center'>
+          <Text className='text-text text-base font-inter mt-2 text-center'>
             Great! Your new password is ready to use.
           </Text>
         </View>
       </View>
 
-      <PillButton 
-        label={'Back to Sign In'}
-        onPress={() => {
-          router.replace('/(auth)/sign-in');
-        }}
-      />
+      {/* Back to Sign In */}
+      <Button onPress={() => {
+        router.replace('/(auth)/sign-in');
+      }}>
+        <Button.Label>
+          Back to Sign In
+        </Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }
