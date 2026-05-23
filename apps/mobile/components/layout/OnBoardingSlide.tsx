@@ -26,12 +26,12 @@ export default function OnBoardingSlide({ slide, width }: OnBoardingSlideProps) 
       <View className="w-full flex gap-3 px-2">
 
         {/* Title */}
-        <Text className="text-5xl font-dmserif text-secondary">
+        <Text className="text-5xl font-nunito text-secondary">
           {slide.title}
         </Text>
         
         {/* Description */}
-        <Text className="text-text text-xl font-poppins">
+        <Text className="text-text text-xl font-interSemiBold">
           {slide.description}
         </Text>
 

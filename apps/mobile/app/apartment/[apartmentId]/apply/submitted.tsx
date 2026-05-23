@@ -28,7 +28,7 @@ export default function Submitted() {
           />
         </View>
 
-        <Text className='text-primary font-poppinsSemiBold text-3xl mb-5'>
+        <Text className='text-primary font-interSemiBold text-3xl mb-5'>
           Application Sent!
         </Text>
 

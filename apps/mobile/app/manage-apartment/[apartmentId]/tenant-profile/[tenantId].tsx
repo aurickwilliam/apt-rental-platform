@@ -112,7 +112,7 @@ export default function TenantProfile() {
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
-            <Text className='text-text text-2xl font-poppinsMedium'>
+            <Text className='text-text text-2xl font-interSemiBold'>
               {tenantData.fullName}
             </Text>
             <Text className='text-grey-500 text-lg font-inter'>
@@ -210,7 +210,7 @@ export default function TenantProfile() {
 
       {/* Past/Previous Apartments */}
       <View className='m-5'>
-        <Text className='text-text text-xl font-poppinsMedium'>
+        <Text className='text-text text-xl font-interSemiBold'>
           {getFirstName(tenantData.fullName)}&apos;s Listings
         </Text>
 

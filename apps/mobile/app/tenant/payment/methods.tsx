@@ -122,7 +122,7 @@ export default function Methods() {
       >
         {/* Title */}
         <View className='flex'>
-          <Text className='text-secondary text-lg font-poppinsMedium'>
+          <Text className='text-secondary text-lg font-interSemiBold'>
             Choose Payment Method
           </Text>
 
@@ -301,7 +301,7 @@ export default function Methods() {
               Total
             </Text>
 
-            <Text className='text-primary text-3xl font-poppinsMedium'>
+            <Text className='text-primary text-3xl font-interSemiBold'>
               ₱ {formatCurrency(totalPayment)}
             </Text>
           </View>

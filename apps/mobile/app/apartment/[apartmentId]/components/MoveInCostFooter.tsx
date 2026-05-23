@@ -40,7 +40,7 @@ export default function MoveInCostFooter({
               onPress={() => setIsMoveInCostModalVisible(true)}
             >
               <View className='flex-row items-baseline'>
-                <Text className='text-2xl font-poppinsSemiBold text-primary'>
+                <Text className='text-2xl font-interSemiBold text-primary'>
                   ₱ {formatCurrency(monthlyRent)}
                 </Text>
                 <Text className='text-sm font-interMedium text-grey-500 ml-1'>
@@ -83,7 +83,7 @@ export default function MoveInCostFooter({
               <IconX size={20} color={COLORS.text} />
             </TouchableOpacity>
 
-            <Text className='text-text font-poppinsSemiBold text-xl pr-8'>
+            <Text className='text-text font-interSemiBold text-xl pr-8'>
               Move-in Cost Breakdown
             </Text>
             <Text className='text-grey-500 font-inter mt-1 mb-4'>
@@ -125,10 +125,10 @@ export default function MoveInCostFooter({
               <View className='h-px bg-grey-200 my-1' />
 
               <View className='flex-row justify-between items-center'>
-                <Text className='text-text font-poppinsSemiBold text-lg'>
+                <Text className='text-text font-interSemiBold text-lg'>
                   Total Move-in
                 </Text>
-                <Text className='text-primary font-poppinsSemiBold text-lg'>
+                <Text className='text-primary font-interSemiBold text-lg'>
                   ₱ {formatCurrency(totalMoveIn)}
                 </Text>
               </View>

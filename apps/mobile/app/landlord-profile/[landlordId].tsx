@@ -118,7 +118,7 @@ export default function LandlordProfile() {
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
-            <Text className='text-text text-2xl font-poppinsMedium'>
+            <Text className='text-text text-2xl font-interSemiBold'>
               {landlordData.fullName}
             </Text>
             <Text className='text-grey-500 text-lg font-inter'>
@@ -225,7 +225,7 @@ export default function LandlordProfile() {
 
       {/* Listings */}
       <View className='mt-8 mx-5'>
-        <Text className='text-text text-xl font-poppinsMedium'>
+        <Text className='text-text text-xl font-interSemiBold'>
           {getFirstName(landlordData.fullName)}&apos;s Listings
         </Text>
 

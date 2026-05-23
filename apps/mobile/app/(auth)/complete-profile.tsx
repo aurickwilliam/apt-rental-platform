@@ -155,7 +155,7 @@ export default function CompleteProfile() {
       </Pressable>
 
       {/* Title */}
-      <Text className="text-2xl text-text font-poppinsSemiBold my-5">
+      <Text className="text-2xl text-text font-interSemiBold my-5">
         Complete Your {userSide === 'landlord' ? "Landlord " : "Tenant"} Profile
       </Text>
 

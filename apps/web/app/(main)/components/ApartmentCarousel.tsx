@@ -33,7 +33,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
   return (
     <Carousel setApi={setApi} className="mt-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-poppins font-semibold md:text-3xl">
+        <h2 className="text-2xl font-inter font-semibold md:text-3xl">
           Apartments Tenants Love
         </h2>
 

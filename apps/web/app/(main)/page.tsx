@@ -76,7 +76,7 @@ export default async function Home() {
 
           {/* Why Us */}
           <section className="mt-10">
-            <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
+            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
               Why Us?
             </h2>
 
@@ -89,7 +89,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <KeyRound className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Tenants
                 </h3>
 
@@ -110,7 +110,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <Building2 className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Owners
                 </h3>
 
@@ -130,7 +130,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <ClipboardCheck className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Management
                 </h3>
 
@@ -153,7 +153,7 @@ export default async function Home() {
 
           {/* How it Works */}
           <section className="md:mt-10 mb-10">
-            <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
+            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
               How it Works?
             </h2>
 
@@ -167,7 +167,7 @@ export default async function Home() {
               <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
                 <Map size={48} className="text-primary" />
 
-                <h2 className="text-3xl text-primary font-poppins font-semibold">
+                <h2 className="text-3xl text-primary font-inter font-semibold">
                   Discover
                 </h2>
 
@@ -212,7 +212,7 @@ export default async function Home() {
                 <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <FileCheckCorner size={48} className="text-primary" />
 
-                  <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  <h2 className="text-3xl text-primary font-inter font-semibold">
                     Apply & Sign
                   </h2>
 
@@ -227,7 +227,7 @@ export default async function Home() {
                 <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <BanknoteArrowUp size={48} className="text-primary" />
 
-                  <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  <h2 className="text-3xl text-primary font-inter font-semibold">
                     Live & Pay
                   </h2>
 

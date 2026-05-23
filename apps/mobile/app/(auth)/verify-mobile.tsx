@@ -82,7 +82,7 @@ export default function VerifyMobile() {
           </TouchableOpacity>
 
           {/* Title */}
-          <Text className="text-3xl text-text font-poppinsSemiBold my-5">
+          <Text className="text-3xl text-text font-interSemiBold my-5">
             Enter Your Mobile Number
           </Text>
 
@@ -100,7 +100,7 @@ export default function VerifyMobile() {
         <View className="gap-y-3">
           {/* Global Error Display */}
           {error && (
-            <Text className="text-red-500 font-poppinsRegular text-center">
+            <Text className="text-red-500 font-interSemiBold text-center">
               {error}
             </Text>
           )}

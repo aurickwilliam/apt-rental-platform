@@ -204,7 +204,7 @@ export default function FifthStep() {
         >
           {/* Apartment Details */}
           <View>
-            <Text className='text-white font-poppinsSemiBold text-2xl'>
+            <Text className='text-white font-interSemiBold text-2xl'>
               {name || 'Unnamed Apartment'}
             </Text>
 
@@ -314,7 +314,7 @@ export default function FifthStep() {
       {/* Apartment Description */}
       <View className='mt-5 px-5 flex-row items-center gap-2'>
         <IconBuildingCommunity size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-xl text-text'>
           Everything About Your Apartment
         </Text>
       </View>
@@ -345,7 +345,7 @@ export default function FifthStep() {
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <IconSquareCheck size={26} color={COLORS.text} />
-            <Text className='font-poppinsSemiBold text-xl text-text'>
+            <Text className='font-interSemiBold text-xl text-text'>
               Included Perks
             </Text>
           </View>
@@ -377,7 +377,7 @@ export default function FifthStep() {
       {/* Map View */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconMap size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-xl text-text'>
           View on Map
         </Text>
       </View>
@@ -438,7 +438,7 @@ export default function FifthStep() {
       {/* Landlord Card */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconUser size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-xl text-text'>
           Meet Your Rental Owner
         </Text>
       </View>
@@ -465,7 +465,7 @@ export default function FifthStep() {
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center gap-2'>
           <IconFileDescription size={26} color={COLORS.text} />
-          <Text className='font-poppinsSemiBold text-xl text-text'>
+          <Text className='font-interSemiBold text-xl text-text'>
             Lease Agreement & Rules
           </Text>
         </View>
@@ -485,7 +485,7 @@ export default function FifthStep() {
       <View className='bg-white mt-20 px-5 py-4 border border-grey-200'>
         <View className='flex-row gap-5 items-center'>
           <View className='flex-row items-center'>
-            <Text className='text-3xl font-poppinsSemiBold text-primary'>
+            <Text className='text-3xl font-interSemiBold text-primary'>
               ₱ {formatCurrency(Number(monthlyRent))}
             </Text>
             <Text className='text-base font-interMedium text-grey-500'>

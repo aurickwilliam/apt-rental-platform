@@ -90,12 +90,12 @@ export default function OTPVerification() {
         </TouchableOpacity>
       </View>
       <View className='flex gap-3'>
-        <Text className='text-text text-2xl font-poppinsSemiBold'>
+        <Text className='text-text text-2xl font-interSemiBold'>
           OTP was Sent!
         </Text>
 
         {/* Description */}
-        <Text className="text-lg text-text font-poppinsRegular mb-5">
+        <Text className="text-lg text-text font-interSemiBold mb-5">
           We&apos;ve sent a 4-digit code to your {method === 'sms' ? 'phone number' : 'email'}.
           Please enter the code sent to your {userInfo}.
         </Text>

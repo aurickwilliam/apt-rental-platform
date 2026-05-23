@@ -39,14 +39,14 @@ export default function SearchFiltersBar({
                 activeOpacity={0.7}
                 className='flex-row items-center gap-1 bg-primary/10 rounded-full px-3 py-1'
               >
-                <Text className='text-primary text-sm font-poppinsMedium'>
+                <Text className='text-primary text-sm font-interSemiBold'>
                   {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
                 </Text>
-                <Text className='text-primary text-sm font-poppinsBold'>✕</Text>
+                <Text className='text-primary text-sm font-interSemiBold'>✕</Text>
               </TouchableOpacity>
 
               {resultCount !== undefined && (
-                <Text className='text-sm text-grey-500 font-poppinsRegular'>
+                <Text className='text-sm text-grey-500 font-interSemiBold'>
                   {loading
                     ? 'Searching...'
                     : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}

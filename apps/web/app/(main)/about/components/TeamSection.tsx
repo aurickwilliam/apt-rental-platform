@@ -54,10 +54,10 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
 
         {/* Info */}
         <div className="p-5 flex flex-col flex-1 overflow-hidden">
-          <p className="font-poppinsSemiBold text-sm">
+          <p className="font-inter font-semibold text-sm">
             {member.name}
           </p>
-          <p className="text-xs text-primary font-poppinsMedium mt-0.5 mb-2">
+          <p className="text-xs text-primary font-inter font-semibold mt-0.5 mb-2">
             {member.role}
           </p>
 
@@ -128,10 +128,10 @@ export default function TeamSection() {
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
       >
-        <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+        <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
           Team
         </p>
-        <h2 className="text-2xl font-poppins tracking-tight mb-1">
+        <h2 className="text-2xl font-inter font-semibold tracking-tight mb-1">
           The <em className="text-primary not-italic">people</em> who built this
         </h2>
         <p className="text-sm text-default-700 mb-8">

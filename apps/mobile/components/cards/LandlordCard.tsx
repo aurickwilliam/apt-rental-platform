@@ -31,7 +31,7 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
 
   return (
     <View className="w-36 h-36 rounded-xl border border-grey-300 bg-primary items-center justify-center">
-      <Text className="text-white font-poppinsSemiBold text-3xl">
+      <Text className="text-white font-interSemiBold text-3xl">
         {initials}
       </Text>
     </View>

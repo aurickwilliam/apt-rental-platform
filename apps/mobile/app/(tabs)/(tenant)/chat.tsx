@@ -225,7 +225,7 @@ export default function Chat() {
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >
-      <Text className='text-primary text-5xl font-dmserif leading-[54px]'>
+      <Text className='text-primary text-5xl font-nunito leading-[54px]'>
         Messages
       </Text>
 
@@ -250,10 +250,10 @@ export default function Chat() {
               style={{ width: '100%', height: '100%' }}
             />
           </View>
-          <Text className='text-2xl text-primary font-poppinsMedium mb-2 mt-5'>
+          <Text className='text-2xl text-primary font-interSemiBold mb-2 mt-5'>
             No Messages Yet
           </Text>
-          <Text className='text-base text-grey-500 font-poppins text-center px-10'>
+          <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
             Start a conversation with a landlord to see your messages here.
           </Text>
         </View>
@@ -264,7 +264,7 @@ export default function Chat() {
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
-              <Text className='text-lg font-poppinsMedium text-primary mb-3'>
+              <Text className='text-lg font-interSemiBold text-primary mb-3'>
                 Current Landlord
               </Text>
 
@@ -295,7 +295,7 @@ export default function Chat() {
           {/* Other conversations */}
           {otherConversations.length > 0 && (
             <View className='gap-3'>
-              <Text className='text-lg font-poppinsMedium text-grey-500'>
+              <Text className='text-lg font-interSemiBold text-grey-500'>
                 Past Conversations
               </Text>
 

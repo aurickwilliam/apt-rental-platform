@@ -285,7 +285,7 @@ export default function ApartmentMapViewScreen() {
             className='bg-white rounded-2xl p-5'
             onPress={(event) => event.stopPropagation()}
           >
-            <Text className='text-text font-poppinsSemiBold text-lg'>
+            <Text className='text-text font-interSemiBold text-lg'>
               Choose Route Type
             </Text>
             <Text className='text-grey-500 font-inter mt-1'>

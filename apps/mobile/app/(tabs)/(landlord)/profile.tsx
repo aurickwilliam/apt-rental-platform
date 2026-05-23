@@ -113,7 +113,7 @@ export default function Profile() {
               />
             ) : (
               <View className='h-full w-full items-center justify-center'>
-                <Text className='text-white text-7xl font-poppinsSemiBold text-center leading-none'>
+                <Text className='text-white text-7xl font-interSemiBold text-center leading-none'>
                   {avatarInitials || 'U'}
                 </Text>
               </View>
@@ -122,7 +122,7 @@ export default function Profile() {
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
-            <Text className='text-text text-2xl font-poppinsMedium'>
+            <Text className='text-text text-2xl font-interSemiBold'>
               {loading ? '...' : `${profile?.first_name} ${profile?.last_name}`}
             </Text>
             <Text className='text-grey-500 text-lg font-inter'>
@@ -140,7 +140,7 @@ export default function Profile() {
             color={COLORS.text}
           />
 
-          <Text className='text-text text-lg font-poppinsMedium'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Verification Status
           </Text>
         </View>

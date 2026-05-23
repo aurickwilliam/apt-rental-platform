@@ -15,13 +15,13 @@
 
 @theme {
   /* Font families — single font only, no fallbacks in React Native */
-  --font-poppins: 'Poppins-Regular';
-  --font-poppinsMedium: 'Poppins-Medium';
-  --font-poppinsSemiBold: 'Poppins-SemiBold';
-  --font-dmserif: 'DMSerifText-Regular';
   --font-inter: 'Inter_24pt-Regular';
   --font-interMedium: 'Inter_24pt-Medium';
   --font-interSemiBold: 'Inter_24pt-SemiBold';
+  --font-nunito: 'Nunito-Regular';
+  --font-nunitoMedium: 'Nunito-Medium';
+  --font-nunitoSemiBold: 'Nunito-SemiBold';
+  --font-nunitoBold: 'Nunito-Bold';
 
   /* Colors */
   --color-primary: #376BF5;

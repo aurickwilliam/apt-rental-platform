@@ -20,7 +20,7 @@ export default function ApartmentDescriptionSection({
     <>
       <View className='mt-5 px-5 flex-row items-center gap-2'>
         <IconBuildingCommunity size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-xl text-text'>
           Everything About Your Apartment
         </Text>
       </View>

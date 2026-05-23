@@ -92,7 +92,7 @@ export default function ApartmentHeroSection({
         pointerEvents='none'
       >
         <View>
-          <Text className='text-white font-poppinsSemiBold text-2xl'>
+          <Text className='text-white font-interSemiBold text-2xl'>
             {apartment?.name || 'Unnamed Apartment'}
           </Text>
 

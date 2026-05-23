@@ -51,7 +51,7 @@ export default function ApartmentsList({
 
   const renderEmptyState = () => (
     <View className='flex-1 items-center justify-center py-10'>
-      <Text className='text-lg text-grey-500 font-poppinsMedium'>
+      <Text className='text-lg text-grey-500 font-interSemiBold'>
         {error ?? 'No apartments found'}
       </Text>
     </View>

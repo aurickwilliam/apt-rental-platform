@@ -34,7 +34,7 @@ export default function RentDueCard({
           size={24} 
           color={COLORS.grey} 
         />
-        <Text className='text-text font-poppinsMedium'>
+        <Text className='text-text font-interSemiBold'>
           {propertyName}
         </Text>
       </View>

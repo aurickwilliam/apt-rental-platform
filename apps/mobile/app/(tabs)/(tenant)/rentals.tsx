@@ -124,7 +124,7 @@ export default function Rentals() {
       <View className='flex-row items-center justify-between gap-2'>
         <View className='flex-row items-center justify-start gap-2'>
           <IconMapPinFilled size={34} color={COLORS.primary} className='mr-2' />
-          <Text className='text-secondary text-3xl font-dmserif leading-[34px]'>
+          <Text className='text-secondary text-3xl font-nunito leading-[34px]'>
             {apartment.name}
           </Text>
         </View>
@@ -150,7 +150,7 @@ export default function Rentals() {
 
       {/* Quick Actions */}
       <View className='flex mt-5'>
-        <Text className='text-text text-xl font-poppinsSemiBold'>
+        <Text className='text-text text-xl font-interSemiBold'>
           Quick Actions
         </Text>
         <View className='mt-5 flex-row flex-wrap'>
@@ -168,7 +168,7 @@ export default function Rentals() {
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
           <IconUser size={26} color={COLORS.text} />
-          <Text className='text-text text-xl font-poppinsMedium'>
+          <Text className='text-text text-xl font-interSemiBold'>
             Landlord Information
           </Text>
         </View>
@@ -184,7 +184,7 @@ export default function Rentals() {
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
           <IconFileDescription size={26} color={COLORS.text} />
-          <Text className='text-text text-xl font-poppinsMedium'>
+          <Text className='text-text text-xl font-interSemiBold'>
             Apartment Description
           </Text>
         </View>

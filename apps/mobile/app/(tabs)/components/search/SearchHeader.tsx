@@ -39,7 +39,7 @@ export default function SearchHeader({
           options={cities}
           value={selectedCity}
           onSelect={onSelectCity}
-          textClassName='text-2xl text-text font-poppinsSemiBold leading-[34px]'
+          textClassName='text-2xl text-text font-interSemiBold leading-[34px]'
           buttonClassName='bg-transparent flex-row items-center justify-center gap-1'
           openIcon={IconChevronUp}
           closeIcon={IconChevronDown}

@@ -63,7 +63,7 @@ export default function ResetPassword() {
       className='p-5'
     >
       <View className='flex gap-3'>
-        <Text className='text-4xl text-text font-poppinsSemiBold'>
+        <Text className='text-4xl text-text font-interSemiBold'>
           Reset Password
         </Text>
 

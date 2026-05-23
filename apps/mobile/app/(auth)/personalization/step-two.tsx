@@ -22,7 +22,7 @@ export default function StepTwo() {
           {/* Question and Description */}
           <View className="flex gap-3">
             {/* Question */}
-            <Text className="text-secondary text-3xl font-dmserif">
+            <Text className="text-secondary text-3xl font-nunito">
               Got a budget in mind for your place?
             </Text>
 
@@ -34,7 +34,7 @@ export default function StepTwo() {
 
           <View className="flex-1 items-center justify-center gap-10">
             {/* Rent Amount */}
-            <Text className="text-primary text-5xl font-dmserif">
+            <Text className="text-primary text-5xl font-nunito">
               ₱ {budgetRange[0].toLocaleString()} - ₱ {budgetRange[1].toLocaleString()}
             </Text>
 
