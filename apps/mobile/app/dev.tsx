@@ -4,8 +4,7 @@ import { useRouter } from 'expo-router';
 const DEV_ROUTES = [
   { label: 'OTP Verification', href: '/(auth)/forgot-password/otp-verification' },
   { label: 'Reset Password', href: '/(auth)/forgot-password/reset-password' },
-  { label: 'Tenant Dashboard', href: '/(tenant)/home' },
-  // add more as needed
+  { label: 'Updated', href: '/(auth)/forgot-password/updated' },
 ];
 
 export default function DevLauncher() {
