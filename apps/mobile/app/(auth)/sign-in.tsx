@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Image, Pressable } from "react-native";
 import { useState } from "react";
 import { Link, useRouter } from "expo-router";
 
@@ -10,7 +10,7 @@ import TextField from "components/inputs/TextField";
 import PillButton from "components/buttons/PillButton";
 import LogoButton from "components/buttons/LogoButton";
 
-import { Button } from 'heroui-native';
+import { Button, Text } from 'heroui-native';
 
 import { supabase } from "@repo/supabase";
 
@@ -139,15 +139,18 @@ export default function SignIn() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className="text-4xl text-text font-dmserif">Welcome Back!</Text>
-        <Text className="text-md text-text font-poppins">
+        <Text className="text-4xl text-text font-nunitoSemiBold">
+          Welcome Back!
+        </Text>
+
+        <Text className="text-md text-text font-interMedium">
           {userSide === "tenant"
             ? "Log in to continue your apartment journey."
             : "Access your listings and manage your tenants easily."}
         </Text>
       </View>
 
-      {/* Toggle User Side */}
+      {/* Tab Group User Side */}
       <View className="flex-row bg-gray-100 p-1 rounded-2xl mt-8">
         <Pressable
           onPress={() => {
@@ -246,11 +249,13 @@ export default function SignIn() {
 
       {/* Divider */}
       <View className="flex-row justify-center items-center mt-7 mb-7">
-        <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
+        <View className="flex-1 h-0.5 bg-grey-300 rounded-full mt-1" />
 
-        <Text className="mx-3 text-grey-400 font-inter">or sign in with</Text>
+        <Text className="mx-3 text-grey-400 font-inter">
+          or sign in with
+        </Text>
 
-        <View className="flex-1 h-[2px] bg-grey-300 rounded-full mt-1" />
+        <View className="flex-1 h-0.5 bg-grey-300 rounded-full mt-1" />
       </View>
 
       {/* Third-party sign-in options */}

@@ -164,12 +164,12 @@ export default function OTPVerification() {
           </TouchableOpacity>
 
           {/* Title */}
-          <Text className="text-3xl text-text font-poppinsSemiBold my-5">
+          <Text className="text-3xl text-text font-interSemiBold my-5">
             OTP was Sent!
           </Text>
 
           {/* Description */}
-          <Text className="text-lg text-text font-poppinsRegular mb-5">
+          <Text className="text-lg text-text font-interSemiBold mb-5">
             We&apos;ve sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
           </Text>
 

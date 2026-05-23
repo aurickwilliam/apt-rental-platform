@@ -107,7 +107,7 @@ export default function ApartmentScreen() {
   if (error && !apartment) {
     return (
       <View className='flex-1 bg-white items-center justify-center px-8'>
-        <Text className='text-text font-poppinsSemiBold text-lg text-center'>
+        <Text className='text-text font-interSemiBold text-lg text-center'>
           Unable to load apartment details
         </Text>
         <Text className='text-grey-500 font-inter text-center mt-2'>

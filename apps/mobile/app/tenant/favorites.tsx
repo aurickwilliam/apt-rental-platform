@@ -170,7 +170,7 @@ export default function TenantFavorites() {
           contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
           ListEmptyComponent={
             <View className='flex-1 items-center justify-center py-10'>
-              <Text className='text-lg text-grey-500 font-poppinsMedium'>
+              <Text className='text-lg text-grey-500 font-interSemiBold'>
                 {combinedError ?? 'No favorite apartments yet'}
               </Text>
             </View>

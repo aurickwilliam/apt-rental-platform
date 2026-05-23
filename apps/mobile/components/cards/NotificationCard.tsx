@@ -55,7 +55,7 @@ export default function NotificationCard({
         <Icon 
           size={28} color={iconColor}
         />
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           {title}
         </Text>
       </View>

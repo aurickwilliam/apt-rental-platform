@@ -32,13 +32,13 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   // Initialize custom fonts
   const [fontsLoaded, fontError] = useFonts({
-    "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
-    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
-    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
-    "DMSerifText-Regular": require("../assets/fonts/DMSerifText-Regular.ttf"),
     "Inter_24pt-Regular": require("../assets/fonts/Inter_24pt-Regular.ttf"),
     "Inter_24pt-Medium": require("../assets/fonts/Inter_24pt-Medium.ttf"),
     "Inter_24pt-SemiBold": require("../assets/fonts/Inter_24pt-SemiBold.ttf"),
+    "Nunito-Regular": require("../assets/fonts/Nunito-Regular.ttf"),
+    "Nunito-Medium": require("../assets/fonts/Nunito-Medium.ttf"),
+    "Nunito-SemiBold": require("../assets/fonts/Nunito-SemiBold.ttf"),
+    "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
   });
 
   // Check if the fonts have loaded or if there was an error

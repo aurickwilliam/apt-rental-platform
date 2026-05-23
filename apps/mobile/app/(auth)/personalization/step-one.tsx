@@ -42,7 +42,7 @@ export default function StepOne() {
           {/* Question and Descriptio */}
           <View className="flex gap-3 mb-5">
             {/* Question */}
-            <Text className="text-secondary text-3xl font-dmserif">
+            <Text className="text-secondary text-3xl font-nunito">
               Which city or area would you like to explore?
             </Text>
 

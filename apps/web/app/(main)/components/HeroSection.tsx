@@ -18,7 +18,7 @@ export default function HeroSection() {
       {/* Text Side */}
       <div className="relative h-full flex flex-col justify-center gap-6 p-8 z-10 w-full md:w-1/2">
         <div className="flex flex-col gap-3">
-          <h1 className="text-4xl md:text-5xl font-poppins font-bold text-primary leading-tight">
+          <h1 className="text-4xl md:text-5xl font-inter font-semibold text-primary leading-tight">
             Find, Rent, and Manage.{" "}
             <span className="text-foreground">All in one place.</span>
           </h1>
@@ -35,7 +35,7 @@ export default function HeroSection() {
         <div className="flex flex-row gap-6 pt-2 border-t border-divider mt-2">
           {STATS.map((stat) => (
             <div key={stat.label} className="flex flex-col gap-0.5">
-              <span className="text-xl font-poppins font-semibold text-primary">
+              <span className="text-xl font-inter font-semibold text-primary">
                 {stat.value}
               </span>
               <span className="text-xs text-default-400 font-medium whitespace-nowrap">

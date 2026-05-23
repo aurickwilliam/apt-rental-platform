@@ -29,7 +29,7 @@ const stagger = {
 
 export default function AboutUs() {
   return (
-    <div className="min-h-screen font-poppins">
+    <div className="min-h-screen font-inter font-semibold">
       {/* Hero Section */}
       <section className="px-4 py-9 md:px-12 border-b border-default-200">
         <div className="max-w-7xl mx-auto">
@@ -56,7 +56,7 @@ export default function AboutUs() {
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-poppinsSemiBold uppercase tracking-widest px-3 py-1.5 rounded-full mb-5"
+            className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-inter font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-5"
           >
             <Users size={12} />
             About Us
@@ -67,10 +67,10 @@ export default function AboutUs() {
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-5xl font-poppins leading-tight tracking-tight mb-4"
+            className="text-4xl md:text-5xl font-inter font-semibold leading-tight tracking-tight mb-4"
           >
             Meet the people{" "}
-            <em className="text-primary not-italic font-poppins">behind</em> APT
+            <em className="text-primary not-italic font-inter font-semibold">behind</em> APT
           </motion.h1>
 
           <motion.p
@@ -97,7 +97,7 @@ export default function AboutUs() {
                 variants={fadeUp}
                 className="bg-primary/5 border border-primary/10 rounded-2xl p-4"
               >
-                <p className="text-xl font-poppinsSemiBold text-primary">
+                <p className="text-xl font-inter font-semibold text-primary">
                   {stat.value}
                 </p>
                 <p className="text-xs text-default-700 mt-1">{stat.label}</p>
@@ -124,10 +124,10 @@ export default function AboutUs() {
             <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
               <Target size={20} className="text-primary" />
             </div>
-            <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+            <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
               Mission
             </p>
-            <h3 className="text-xl font-poppinsSemiBold mb-3">
+            <h3 className="text-xl font-inter font-semibold mb-3">
               What we are here to do
             </h3>
             <p className="text-sm text-default-700 leading-relaxed">
@@ -144,10 +144,10 @@ export default function AboutUs() {
             <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
               <Eye size={20} className="text-primary" />
             </div>
-            <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+            <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
               Vision
             </p>
-            <h3 className="text-xl font-poppinsSemiBold mb-3">
+            <h3 className="text-xl font-inter font-semibold mb-3">
               Where we are headed
             </h3>
             <p className="text-sm text-default-700 leading-relaxed">

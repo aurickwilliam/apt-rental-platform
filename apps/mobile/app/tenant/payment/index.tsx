@@ -99,7 +99,7 @@ export default function Index() {
         {/* Payment Summary */}
         <View className='w-full border border-grey-300 rounded-xl p-4'>
           {/* Title */}
-          <Text className='text-secondary text-lg font-poppinsMedium'>
+          <Text className='text-secondary text-lg font-interSemiBold'>
             Payment Summary
           </Text>
 
@@ -183,7 +183,7 @@ export default function Index() {
             Total
           </Text>
 
-          <Text className='text-primary text-3xl font-poppinsMedium'>
+          <Text className='text-primary text-3xl font-interSemiBold'>
             ₱ {formatCurrency(totalPayment)}
           </Text>
         </View>

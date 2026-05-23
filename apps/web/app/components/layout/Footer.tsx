@@ -13,7 +13,7 @@ export default function Footer() {
       <Accordion className="md:hidden">
         <Accordion.Item id="who-we-are">
           <Accordion.Heading>
-            <Accordion.Trigger className="font-semibold font-poppins text-white border-b border-white/40">
+            <Accordion.Trigger className="font-semibold font-inter font-semibold text-white border-b border-white/40">
               Who we are
               <Accordion.Indicator className="text-white" />
             </Accordion.Trigger>
@@ -39,7 +39,7 @@ export default function Footer() {
 
         <Accordion.Item id="support">
           <Accordion.Heading>
-            <Accordion.Trigger className="font-semibold font-poppins text-white border-b border-white/40">
+            <Accordion.Trigger className="font-semibold font-inter font-semibold text-white border-b border-white/40">
               Support
               <Accordion.Indicator className="text-white" />
             </Accordion.Trigger>
@@ -65,7 +65,7 @@ export default function Footer() {
 
         <Accordion.Item id="quick-links">
           <Accordion.Heading>
-            <Accordion.Trigger className="font-semibold font-poppins text-white border-b border-white/40">
+            <Accordion.Trigger className="font-semibold font-inter font-semibold text-white border-b border-white/40">
               Quick Links
               <Accordion.Indicator className="text-white" />
             </Accordion.Trigger>
@@ -92,7 +92,7 @@ export default function Footer() {
       {/* Desktop: Columns */}
       <div className="hidden md:flex justify-between gap-10">
         <div className="flex flex-col gap-3">
-          <h3 className="font-semibold font-poppins text-white">Who we are</h3>
+          <h3 className="font-semibold font-inter font-semibold text-white">Who we are</h3>
           <Link href="/company" className="text-base font-medium text-white/80 hover:text-white">
             Company
           </Link>
@@ -107,7 +107,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="font-semibold font-poppins text-white">Support</h3>
+          <h3 className="font-semibold font-inter font-semibold text-white">Support</h3>
           <Link href="/help" className="text-base font-medium text-white/80 hover:text-white">
             Help Center
           </Link>
@@ -122,7 +122,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="font-semibold font-poppins text-white">Quick Links</h3>
+          <h3 className="font-semibold font-inter font-semibold text-white">Quick Links</h3>
           <Link href="/browse" className="text-base font-medium text-white/80 hover:text-white">
             Search Rentals
           </Link>

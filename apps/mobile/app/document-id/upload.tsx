@@ -35,7 +35,7 @@ export default function Upload() {
     >
       <View className='flex gap-1'>
         {/* Name of Document */}
-        <Text className='text-secondary text-2xl font-poppinsMedium'>
+        <Text className='text-secondary text-2xl font-interSemiBold'>
           {docType}
         </Text>
 

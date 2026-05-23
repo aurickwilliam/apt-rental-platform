@@ -43,7 +43,7 @@ function EmptyProperties({ onAdd }: { onAdd: () => void }) {
         <IconBuildingOff size={48} color={COLORS.grey} />
       </View>
       <View className='items-center gap-1'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           No properties yet
         </Text>
         <Text className='text-gray-400 text-sm font-inter text-center px-8'>
@@ -228,15 +228,15 @@ export default function Units() {
   return (
     <ScreenWrapper className='p-5' scrollable bottomPadding={50}>
       {/* Header */}
-      <Text className='text-secondary text-4xl font-dmserif'>My Properties</Text>
+      <Text className='text-secondary text-4xl font-nunito'>My Properties</Text>
 
       {/* Property Stats */}
       <View className='flex gap-3 mt-5'>
         <View className='bg-primary p-4 rounded-xl flex gap-2'>
-          <Text className='text-white text-base font-poppinsMedium'>
+          <Text className='text-white text-base font-interSemiBold'>
             {currentMonthLabel} Total Profit
           </Text>
-          <Text className='text-white text-4xl font-poppinsMedium'>
+          <Text className='text-white text-4xl font-interSemiBold'>
             {loading
               ? '—'
               : monthlyProfit === null
@@ -273,7 +273,7 @@ export default function Units() {
 
       {/* Property Actions */}
       <View className='flex gap-5'>
-        <Text className='text-text text-lg font-poppinsMedium'>Property Actions</Text>
+        <Text className='text-text text-lg font-interSemiBold'>Property Actions</Text>
         <View className='flex-row flex-wrap'>
           <QuickActionButton
             label={'Add Property'}
@@ -288,7 +288,7 @@ export default function Units() {
 
       {/* List of Properties */}
       <View className='mt-5'>
-        <Text className='text-primary text-3xl font-dmserif'>List of Properties</Text>
+        <Text className='text-primary text-3xl font-nunito'>List of Properties</Text>
 
         <View className='mt-3'>
           <SearchField
@@ -313,7 +313,7 @@ export default function Units() {
             <EmptyProperties onAdd={() => router.push('/manage-apartment/add-apartment/')} />
           ) : (
             <View className='items-center py-12 gap-2'>
-              <Text className='text-gray-400 font-poppinsMedium'>No properties match your search.</Text>
+              <Text className='text-gray-400 font-interSemiBold'>No properties match your search.</Text>
             </View>
           )
         ) : (

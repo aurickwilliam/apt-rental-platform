@@ -121,7 +121,7 @@ export default function Dashboard() {
       <View className='flex-row items-center justify-between mb-5'>
         <View className='flex-row gap-3 items-center'>
           <Image source={IMAGES.logo} className='size-9' resizeMode='contain' />
-          <Text className='text-secondary text-4xl font-dmserif'>Dashboard</Text>
+          <Text className='text-secondary text-4xl font-nunito'>Dashboard</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/landlord-notif')}>
           <IconBell size={26} color={COLORS.grey} />
@@ -169,7 +169,7 @@ export default function Dashboard() {
 
       {/* Upcoming Payment Due Date */}
       <View className='flex gap-5 mt-5'>
-        <Text className='text-text text-lg font-poppinsMedium'>Upcoming Rent Due</Text>
+        <Text className='text-text text-lg font-interSemiBold'>Upcoming Rent Due</Text>
         <View className='flex gap-3'>
           {upcomingRentDue.map((rent) => (
             <RentDueCard

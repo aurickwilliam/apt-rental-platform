@@ -124,12 +124,12 @@ export default function FilterBottomSheet({
       {/* ── Sticky Header ── */}
       <View className="px-5 py-3 border-b border-[#F0F0F0]">
         <View className="flex-row items-center justify-between">
-          <Text className="font-poppinsMedium text-base text-text mb-3">
+          <Text className="font-interSemiBold text-base text-text mb-3">
             Filters
           </Text>
 
           {resultCount !== undefined && (
-            <Text className="text-[#9E9E9E] font-poppins text-[13px]">
+            <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
               {resultCount} results found
             </Text>
           )}
@@ -172,7 +172,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Sort By */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Sort By
         </Text>
 
@@ -188,7 +188,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Bedrooms */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Bedrooms
         </Text>
 
@@ -201,7 +201,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Bathrooms */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Bathrooms
         </Text>
 
@@ -214,7 +214,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Unit Type */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Unit Type
         </Text>
 
@@ -227,7 +227,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Furnishing */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Furnishing
         </Text>
 
@@ -240,7 +240,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Floor Level */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Floor Level
         </Text>
 
@@ -253,7 +253,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Lease Duration */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Lease Duration
         </Text>
 
@@ -266,7 +266,7 @@ export default function FilterBottomSheet({
         <Divider thickness={1} />
 
         {/* Amenities */}
-        <Text className="font-poppinsMedium text-base text-text mb-3">
+        <Text className="font-interSemiBold text-base text-text mb-3">
           Amenities
         </Text>
 
@@ -299,7 +299,7 @@ export default function FilterBottomSheet({
                 <Icon size={14} color={isSelected ? '#FFFFFF' : '#555555'} />
 
                 <Text
-                  className={`font-poppins text-[13px] ${
+                  className={`font-interSemiBold text-[13px] ${
                     isSelected ? 'text-white' : 'text-[#555555]'
                   }`}
                 >
@@ -310,7 +310,7 @@ export default function FilterBottomSheet({
           })}
 
           {filteredPerks.length === 0 && (
-            <Text className="text-[#9E9E9E] font-poppins text-[13px]">
+            <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
               No amenities match your search.
             </Text>
           )}

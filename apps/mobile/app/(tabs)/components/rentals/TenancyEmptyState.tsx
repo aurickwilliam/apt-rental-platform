@@ -10,7 +10,7 @@ export default function TenancyEmptyState() {
       <IconHomeOff size={64} color={COLORS.grey} />
       
       <View className='items-center gap-1'>
-        <Text className='text-text text-xl font-poppinsSemiBold text-center'>
+        <Text className='text-text text-xl font-interSemiBold text-center'>
           No Active Tenancy
         </Text>
         <Text className='text-grey-500 text-base font-inter text-center px-8'>

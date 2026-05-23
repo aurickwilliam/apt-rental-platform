@@ -269,7 +269,7 @@ export default function Index() {
       }
     >
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           Main Information
         </Text>
         <TouchableOpacity
@@ -334,7 +334,7 @@ export default function Index() {
       <Divider />
 
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           Apartment Full Description
         </Text>
         <TouchableOpacity
@@ -351,7 +351,7 @@ export default function Index() {
       </View>
 
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium mt-5'>
+        <Text className='text-text text-lg font-interSemiBold mt-5'>
           Room/Unit Details
         </Text>
         <TouchableOpacity
@@ -407,7 +407,7 @@ export default function Index() {
       {(apartment?.amenities?.length ?? 0) > 0 && (
         <>
           <View className='flex-row items-center justify-between'>
-            <Text className='text-text text-lg font-poppinsMedium mt-5'>
+            <Text className='text-text text-lg font-interSemiBold mt-5'>
               Included Perks
             </Text>
             <TouchableOpacity

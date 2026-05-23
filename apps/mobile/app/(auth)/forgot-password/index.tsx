@@ -38,7 +38,7 @@ export default function Index() {
       </View>
       
       <View className='flex gap-3'>
-        <Text className='text-secondary text-4xl font-dmserif'>
+        <Text className='text-secondary text-4xl font-nunito'>
           Forgot Password
         </Text>
 

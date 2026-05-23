@@ -138,7 +138,7 @@ No pets / No smoking inside the unit`
       <Divider />
 
       {/* Full Description */}
-      <Text className='text-text text-base font-poppinsMedium'>
+      <Text className='text-text text-base font-interSemiBold'>
         Apartment Full Description
       </Text>
 
@@ -149,7 +149,7 @@ No pets / No smoking inside the unit`
       </View>
 
       {/* Room/Unit Details */}
-      <Text className='text-text text-lg font-poppinsMedium mt-5'>
+      <Text className='text-text text-lg font-interSemiBold mt-5'>
         Room/Unit Details
       </Text>
 
@@ -196,7 +196,7 @@ No pets / No smoking inside the unit`
       </View>
 
       {/* Included Perks */}
-      <Text className='text-text text-lg font-poppinsMedium mt-5'>
+      <Text className='text-text text-lg font-interSemiBold mt-5'>
         Included Perks
       </Text>
 

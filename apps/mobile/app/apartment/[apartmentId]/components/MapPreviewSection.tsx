@@ -127,7 +127,7 @@ export default function MapPreviewSection({
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconMap size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-xl text-text'>
           View on Map
         </Text>
       </View>
@@ -217,7 +217,7 @@ export default function MapPreviewSection({
             className='bg-white rounded-2xl p-5'
             onPress={(event) => event.stopPropagation()}
           >
-            <Text className='text-text font-poppinsSemiBold text-lg'>
+            <Text className='text-text font-interSemiBold text-lg'>
               Choose Route Type
             </Text>
             <Text className='text-grey-500 font-inter mt-1'>

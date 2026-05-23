@@ -19,7 +19,7 @@ export default function Success() {
       />
 
       <View>
-        <Text className='text-2xl font-poppinsSemiBold text-center mt-5 text-primary'>
+        <Text className='text-2xl font-interSemiBold text-center mt-5 text-primary'>
           You’ve successfully posted your property!
         </Text>
 

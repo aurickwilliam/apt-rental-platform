@@ -46,7 +46,7 @@ export default function ProfitTrendCard() {
       {/* HEADER */}
       <View className='flex-row items-center justify-between'>
         <View className='flex'>
-          <Text className='text-primary font-poppinsSemiBold text-xl'>
+          <Text className='text-primary font-interSemiBold text-xl'>
             Profit Trend
           </Text>
           <Text className='text-grey-500 font-inter text-base'>

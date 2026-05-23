@@ -14,7 +14,7 @@ export default function MaintenanceRequestCard({ issueName, reportedDate, onUpda
   return (
     <View className='w-full bg-white border border-grey-200 p-4 rounded-xl'>
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text font-poppinsMedium text-lg'>
+        <Text className='text-text font-interSemiBold text-lg'>
           Maintenance Request
         </Text>
 

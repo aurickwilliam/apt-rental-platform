@@ -231,7 +231,7 @@ export default function Chat() {
       onRefresh={handleRefresh}
     >
       {/* Title Messages */}
-      <Text className='text-primary text-5xl font-dmserif leading-[54px]'>
+      <Text className='text-primary text-5xl font-nunito leading-[54px]'>
         Messages
       </Text>
 
@@ -267,10 +267,10 @@ export default function Chat() {
               />
             </View>
 
-            <Text className='text-2xl text-primary font-poppinsMedium mb-2 mt-5'>
+            <Text className='text-2xl text-primary font-interSemiBold mb-2 mt-5'>
               No Messages Yet
             </Text>
-            <Text className='text-base text-grey-500 font-poppins text-center px-10'>
+            <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
               Start a conversation with a tenant to see your messages here.
             </Text>
           </View>
@@ -303,10 +303,10 @@ export default function Chat() {
 
             {filteredConversations.length === 0 ? (
               <View className='flex-1 items-center justify-center mt-10'>
-                <Text className='text-lg text-primary font-poppinsMedium mb-2'>
+                <Text className='text-lg text-primary font-interSemiBold mb-2'>
                   No {selectedFilter} Messages
                 </Text>
-                <Text className='text-base text-grey-500 font-poppins text-center px-10'>
+                <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
                   Try switching filters to view your other conversations.
                 </Text>
               </View>

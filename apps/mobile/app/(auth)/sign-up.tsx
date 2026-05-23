@@ -96,10 +96,10 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className={`text-4xl text-text font-dmserif`}>
+        <Text className={`text-4xl text-text font-nunito`}>
           Create Your Account
         </Text>
-        <Text className="text-md text-text font-poppins">
+        <Text className="text-md text-text font-interSemiBold">
           {userSide === "tenant"
             ? "Join as tenant to start renting."
             : "Join us and start listing your properties in minutes."}

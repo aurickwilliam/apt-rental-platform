@@ -29,7 +29,7 @@ export default function PaymentHistoryCard({
           />
 
           {/* Month Year */}
-          <Text className="text-grey-500 text-base font-poppins">
+          <Text className="text-grey-500 text-base font-interSemiBold">
             {month} {year}
           </Text>
         </View>

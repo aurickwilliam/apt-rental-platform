@@ -155,7 +155,7 @@ export default function SecondStep() {
 
         {/* Apartment Details */}
         <View className='flex'>
-          <Text className='text-text text-xl font-poppinsMedium'>Apartment Details</Text>
+          <Text className='text-text text-xl font-interSemiBold'>Apartment Details</Text>
 
           <View className='flex gap-3 mt-3'>
             <TextField
@@ -301,7 +301,7 @@ export default function SecondStep() {
 
         {/* Apartment Address */}
         <View className='flex gap-3 mt-10'>
-          <Text className='text-text text-xl font-poppinsMedium'>Apartment Address</Text>
+          <Text className='text-text text-xl font-interSemiBold'>Apartment Address</Text>
 
           <TextField
             label='Unit No./Street Name:'
@@ -370,7 +370,7 @@ export default function SecondStep() {
 
         {/* Apartment Location */}
         <View className='flex gap-2 mt-10'>
-          <Text className='text-text text-xl font-poppinsMedium'>Apartment Map Location</Text>
+          <Text className='text-text text-xl font-interSemiBold'>Apartment Map Location</Text>
 
           <Text className='text-text text-base font-inter'>
             Check if the pin location is correct. Drag the pin to the correct location if needed.

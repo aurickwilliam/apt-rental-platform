@@ -377,7 +377,7 @@ export default function Index() {
             {/* Property Details */}
             <View className="flex gap-5">
               <View className="flex gap-1">
-                <Text className="text-primary text-3xl font-dmserif">
+                <Text className="text-primary text-3xl font-nunito">
                   {apartment.name}
                 </Text>
                 <Text className="text-text font-inter text-base">
@@ -512,7 +512,7 @@ export default function Index() {
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
                       <IconUser size={26} color={COLORS.text} />
-                      <Text className="text-text text-lg font-poppinsMedium">
+                      <Text className="text-text text-lg font-interSemiBold">
                         Tenant Information
                       </Text>
                     </View>
@@ -544,7 +544,7 @@ export default function Index() {
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-text text-xl font-poppinsSemiBold">
+                      <Text className="text-text text-xl font-interSemiBold">
                         Rent Payment History
                       </Text>
                       <TouchableOpacity
@@ -615,7 +615,7 @@ export default function Index() {
           // Error State
           <View className="flex-1 items-center justify-center py-24 gap-4">
             <IconBuildingOff size={48} color={COLORS.grey} />
-            <Text className="text-gray-400 font-poppinsMedium text-center">
+            <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
             <PillButton label="Retry" size="sm" onPress={fetchApartmentDetail} />

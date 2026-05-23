@@ -21,7 +21,7 @@ export default function Updated() {
         />
 
         <View>
-          <Text className='text-text text-3xl font-poppinsSemiBold text-center'>
+          <Text className='text-text text-3xl font-interSemiBold text-center'>
             Password Updated
           </Text>
 

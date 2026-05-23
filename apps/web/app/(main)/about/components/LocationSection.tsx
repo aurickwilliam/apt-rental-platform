@@ -26,10 +26,10 @@ export default function LocationSection() {
       viewport={{ once: true, margin: "-80px" }}
     >
       <motion.div variants={fadeUp}>
-        <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+        <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
           Location
         </p>
-        <h2 className="text-2xl font-poppins tracking-tight mb-1">
+        <h2 className="text-2xl font-inter font-semibold tracking-tight mb-1">
           Where we <em className="text-primary not-italic">work</em>
         </h2>
         <p className="text-sm text-default-700 mb-5">
@@ -46,10 +46,10 @@ export default function LocationSection() {
           <MapPin size={20} className="text-primary" />
         </div>
         <div>
-          <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-1">
+          <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-1">
             Office Address
           </p>
-          <p className="text-sm font-poppinsMedium">
+          <p className="text-sm font-inter font-semibold">
             109 Samson Road corner Caimito Road, Caloocan, Philippines
           </p>
           <p className="text-xs text-default-700 mt-1">

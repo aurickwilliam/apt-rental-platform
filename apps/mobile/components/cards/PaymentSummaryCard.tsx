@@ -33,7 +33,7 @@ export default function PaymentSummaryCard({
     <View className='bg-primary rounded-3xl p-4'>
       {/* Title Header */}
       <View className='flex-row items-center justify-between'>
-        <Text className='text-white text-2xl font-poppinsSemiBold'>
+        <Text className='text-white text-2xl font-interSemiBold'>
           Payment Summary
         </Text>
 

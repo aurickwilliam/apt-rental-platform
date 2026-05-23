@@ -72,6 +72,7 @@ body[data-scroll-locked] [role="option"] {
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
