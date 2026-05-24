@@ -1,16 +1,15 @@
 import { Text, View } from "react-native";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import PillButton from "components/buttons/PillButton";
-import RadioButton from "components/buttons/RadioButton";
 import DropdownField from "components/inputs/DropdownField";
 import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
-import CheckBox from "@/components/buttons/CheckBox";
 
 import { PETS } from "@repo/constants";
+
+import { RadioGroup, Radio, Label, Checkbox, Button } from "heroui-native";
 
 type rentalPreferenceType = {
   hasPets: boolean;
@@ -21,39 +20,36 @@ type rentalPreferenceType = {
   hasSmoker: boolean;
   hasDisability: boolean;
   listOfVehicles: string[];
-}
+};
 
-const vehicleOptions = [
-  "Car",
-  "Motorcycle",
-  "Bicycle",
-  "Other"
-]
+const vehicleOptions = ["Car", "Motorcycle", "Bicycle", "Other"];
 
 export default function StepFive() {
   const router = useRouter();
 
-  const [rentalPreference, setRentalPreference] = useState<rentalPreferenceType>({
-    hasPets: false,
-    kindOfPets: "",
-    nameOfPets: null,
-    hasParking: false,
-    noOfParkingSpots: 0,
-    hasSmoker: false,
-    hasDisability: false,
-    listOfVehicles: [], 
-  });
+  const [rentalPreference, setRentalPreference] =
+    useState<rentalPreferenceType>({
+      hasPets: false,
+      kindOfPets: "",
+      nameOfPets: null,
+      hasParking: false,
+      noOfParkingSpots: 0,
+      hasSmoker: false,
+      hasDisability: false,
+      listOfVehicles: [],
+    });
 
-  // Number of Vehicles options for parking can be generated from 0 to 5
   const parkingOptions = Array.from({ length: 6 }, (_, i) => `${i}`);
 
-  // Function to update rental preferences
-  const updateRentalPreference = (key: keyof rentalPreferenceType, value: any) => {
-    setRentalPreference(prev => ({
+  const updateRentalPreference = (
+    key: keyof rentalPreferenceType,
+    value: any,
+  ) => {
+    setRentalPreference((prev) => ({
       ...prev,
       [key]: value,
     }));
-  }
+  };
 
   const handleNext = () => {
     router.replace("/(tabs)/(tenant)/rentals");
@@ -65,8 +61,8 @@ export default function StepFive() {
       return {
         ...prev,
         listOfVehicles: isSelected
-          ? prev.listOfVehicles.filter((v) => v !== vehicle)  // remove
-          : [...prev.listOfVehicles, vehicle],                // add
+          ? prev.listOfVehicles.filter((v) => v !== vehicle)
+          : [...prev.listOfVehicles, vehicle],
       };
     });
   };
@@ -77,58 +73,75 @@ export default function StepFive() {
         <View className="mb-20">
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
-            {/* Question */}
-            <Text className="text-secondary text-3xl font-nunito">
+            <Text className="text-secondary text-2xl font-nunitoMedium">
               What is your rental preferences?
             </Text>
-
-            {/* Description */}
-            <Text className="text-text text-lg font-inter">
-              Fill-up the form and select the appropriate response to curate the properties that will fit for you. 
+            <Text className="text-text text-base font-inter">
+              Fill-up the form and select the appropriate response to curate the
+              properties that will fit for you.
             </Text>
           </View>
 
           {/* Pets */}
           <View className="flex gap-5">
             <View className="flex gap-3">
-              <Text className="text-text text-lg font-interMedium">
+              <Text className="text-text text-base font-interMedium">
                 Do you have any pets?
               </Text>
 
-              <View className="flex-row gap-5 items-center">
-                <RadioButton 
-                  label={"Yes"} 
-                  onPress={() => updateRentalPreference("hasPets", !rentalPreference.hasPets)} 
-                  selected={rentalPreference.hasPets}                
-                />
-              </View>
+              <RadioGroup
+                value={rentalPreference.hasPets ? "yes" : "no"}
+                onValueChange={(val) =>
+                  updateRentalPreference("hasPets", val === "yes")
+                }
+              >
+                <RadioGroup.Item
+                  value="yes"
+                  className="flex-row items-center justify-start gap-2"
+                >
+                  <Radio>
+                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  </Radio>
+                  <Label>Yes</Label>
+                </RadioGroup.Item>
+                <RadioGroup.Item
+                  value="no"
+                  className="flex-row items-center justify-start gap-2"
+                >
+                  <Radio>
+                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  </Radio>
+                  <Label>No</Label>
+                </RadioGroup.Item>
+              </RadioGroup>
             </View>
 
-            {
-              rentalPreference.hasPets && (
-                <DropdownField 
-                  label="If yes, what kind of pet do you have?"
-                  bottomSheetLabel="Select your Pet"
-                  placeholder="Select the kind of pets you have"
-                  options={PETS}
-                  onSelect={(value) => updateRentalPreference("kindOfPets", value)}
-                  value={rentalPreference.kindOfPets}
-                  required
-                />
-              )
-            }
+            {rentalPreference.hasPets && (
+              <DropdownField
+                label="If yes, what kind of pet do you have?"
+                bottomSheetLabel="Select your Pet"
+                placeholder="Select the kind of pets you have"
+                options={PETS}
+                onSelect={(value) =>
+                  updateRentalPreference("kindOfPets", value)
+                }
+                value={rentalPreference.kindOfPets}
+                required
+              />
+            )}
 
-            {
-              rentalPreference.hasPets && rentalPreference.kindOfPets === "Other" && (
-                <TextField 
+            {rentalPreference.hasPets &&
+              rentalPreference.kindOfPets === "Other" && (
+                <TextField
                   label="Please specify the kind of pet you have"
                   placeholder="Type the kind of pet you have"
                   value={rentalPreference.nameOfPets || ""}
-                  onChangeText={(value) => updateRentalPreference("nameOfPets", value)}
+                  onChangeText={(value) =>
+                    updateRentalPreference("nameOfPets", value)
+                  }
                   required
                 />
-              )
-            }
+              )}
           </View>
 
           <Divider />
@@ -140,97 +153,147 @@ export default function StepFive() {
                 Do you need a parking space?
               </Text>
 
-              <View className="flex-row gap-5 items-center">
-                <RadioButton 
-                  label={"Yes"} 
-                  onPress={() => updateRentalPreference("hasParking", !rentalPreference.hasParking)} 
-                  selected={rentalPreference.hasParking}                
-                />
-              </View>
+              <RadioGroup
+                value={rentalPreference.hasParking ? "yes" : "no"}
+                onValueChange={(val) =>
+                  updateRentalPreference("hasParking", val === "yes")
+                }
+              >
+                <RadioGroup.Item
+                  value="yes"
+                  className="flex-row items-center justify-start gap-2"
+                >
+                  <Radio>
+                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  </Radio>
+                  <Label>Yes</Label>
+                </RadioGroup.Item>
+                <RadioGroup.Item
+                  value="no"
+                  className="flex-row items-center justify-start gap-2"
+                >
+                  <Radio>
+                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  </Radio>
+                  <Label>No</Label>
+                </RadioGroup.Item>
+              </RadioGroup>
             </View>
 
-            {
-              rentalPreference.hasParking && (
-                <DropdownField 
-                  label="If yes, how many cars or motorcycles do you have?"
-                  bottomSheetLabel="Select your Parking"
-                  placeholder="Select the number of parking you need"
-                  options={parkingOptions}
-                  onSelect={(value) => updateRentalPreference("noOfParkingSpots", value)}
-                  value={String(rentalPreference.noOfParkingSpots)}
-                  required
-                />
-              )
-            }
+            {rentalPreference.hasParking && (
+              <DropdownField
+                label="If yes, how many cars or motorcycles do you have?"
+                bottomSheetLabel="Select your Parking"
+                placeholder="Select the number of parking you need"
+                options={parkingOptions}
+                onSelect={(value) =>
+                  updateRentalPreference("noOfParkingSpots", value)
+                }
+                value={String(rentalPreference.noOfParkingSpots)}
+                required
+              />
+            )}
 
-            {/* Select Kinds of Vehicles */}
-            {
-              rentalPreference.hasParking && rentalPreference.noOfParkingSpots > 0 && (
+            {rentalPreference.hasParking &&
+              rentalPreference.noOfParkingSpots > 0 && (
                 <View className="flex gap-3">
                   <Text className="text-text text-base font-interMedium">
                     Select the kinds of vehicles you have:
                   </Text>
 
-                  {
-                    vehicleOptions.map((vehicle) => (
-                      <CheckBox
-                        key={vehicle}
-                        label={vehicle}
-                        onPress={() => toggleVehicle(vehicle)} 
-                        selected={rentalPreference.listOfVehicles.includes(vehicle)}                      
+                  {vehicleOptions.map((vehicle) => (
+                    <View key={vehicle} className="flex-row items-center gap-2">
+                      <Checkbox
+                        isSelected={rentalPreference.listOfVehicles.includes(
+                          vehicle,
+                        )}
+                        onSelectedChange={() => toggleVehicle(vehicle)}
+                        className="border border-grey-400 shadow-none"
                       />
-                    ))
-                  }
+                      <Label>{vehicle}</Label>
+                    </View>
+                  ))}
                 </View>
-              )
-            }
+              )}
           </View>
 
           <Divider />
 
           {/* Smoker */}
           <View className="flex gap-3">
-            <View className="flex gap-3">
-              <Text className="text-text text-lg font-interMedium">
-                Is anyone in your household a smoker?
-              </Text>
+            <Text className="text-text text-lg font-interMedium">
+              Is anyone in your household a smoker?
+            </Text>
 
-              <View className="flex-row gap-5 items-center">
-                <RadioButton 
-                  label={"Yes"} 
-                  onPress={() => updateRentalPreference("hasSmoker", !rentalPreference.hasSmoker)} 
-                  selected={rentalPreference.hasSmoker}                
-                />
-              </View>
-            </View>
+            <RadioGroup
+              value={rentalPreference.hasSmoker ? "yes" : "no"}
+              onValueChange={(val) =>
+                updateRentalPreference("hasSmoker", val === "yes")
+              }
+            >
+              <RadioGroup.Item
+                value="yes"
+                className="flex-row items-center justify-start gap-2"
+              >
+                <Radio>
+                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                </Radio>
+                <Label>Yes</Label>
+              </RadioGroup.Item>
+              <RadioGroup.Item
+                value="no"
+                className="flex-row items-center justify-start gap-2"
+              >
+                <Radio>
+                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                </Radio>
+                <Label>No</Label>
+              </RadioGroup.Item>
+            </RadioGroup>
           </View>
 
           <Divider />
 
           {/* Disability */}
           <View className="flex gap-3">
-            <View className="flex gap-3">
-              <Text className="text-text text-lg font-interMedium">
-                Do you have any household members with a disability?
-              </Text>
+            <Text className="text-text text-lg font-interMedium">
+              Do you have any household members with a disability?
+            </Text>
 
-              <View className="flex-row gap-5 items-center">
-                <RadioButton 
-                  label={"Yes"} 
-                  onPress={() => updateRentalPreference("hasDisability", !rentalPreference.hasDisability)} 
-                  selected={rentalPreference.hasDisability}                
-                />
-              </View>
-            </View>
+            <RadioGroup
+              value={rentalPreference.hasDisability ? "yes" : "no"}
+              onValueChange={(val) =>
+                updateRentalPreference("hasDisability", val === "yes")
+              }
+            >
+              <RadioGroup.Item
+                value="yes"
+                className="flex-row items-center justify-start gap-2"
+              >
+                <Radio>
+                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                </Radio>
+                <Label>Yes</Label>
+              </RadioGroup.Item>
+              <RadioGroup.Item
+                value="no"
+                className="flex-row items-center justify-start gap-2"
+              >
+                <Radio>
+                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                </Radio>
+                <Label>No</Label>
+              </RadioGroup.Item>
+            </RadioGroup>
           </View>
         </View>
 
         {/* Next Button*/}
-        <PillButton
-          label={"Let's find your place!"}
-          onPress={handleNext}
-          isFullWidth
-        />
+        <Button onPress={handleNext}>
+          <Button.Label>
+            Let&apos;s find your place!
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   );
