@@ -31,7 +31,7 @@ export default function TenantNotification() {
           'Apartment',
           'System'
         ]} 
-        onSelect={(value) => setFilterType(value)}      
+        onSelect={(value) => setFilterType(value as FilterType)}   
       />
 
       {/* // TODO: Change to Mapping when DB is implemented */}
