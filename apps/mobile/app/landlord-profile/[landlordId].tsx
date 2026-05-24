@@ -10,7 +10,6 @@ import ApartmentCard from 'components/cards/ApartmentCard'
 import { Button, Avatar } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
-import { DEFAULT_IMAGES } from 'constants/images'
 
 import { supabase } from '@repo/supabase'
 
@@ -182,9 +181,6 @@ export default function LandlordProfile() {
   const getFirstName = (name: string) => name.split(' ')[0] || 'Landlord';
 
   const backgroundPhotoUri = profile?.background_url ? { uri: profile.background_url } : undefined;
-  const profilePhotoSource = profile?.avatar_url
-    ? { uri: profile.avatar_url }
-    : DEFAULT_IMAGES.defaultProfilePicture;
 
   // TODO: Implement function to handle report landlord
   const handleReportLandlord = () => {
