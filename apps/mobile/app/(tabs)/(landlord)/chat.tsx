@@ -1,12 +1,13 @@
-import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, Image, ActivityIndicator } from 'react-native'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
 import MessageCard from '@/components/cards/MessageCard'
+
+import { SearchField, Tabs } from 'heroui-native'
 
 import { getRelativeTime } from '@repo/utils'
 import { supabase } from '@repo/supabase'
@@ -231,22 +232,25 @@ export default function Chat() {
       onRefresh={handleRefresh}
     >
       {/* Title Messages */}
-      <Text className='text-primary text-5xl font-nunito leading-[54px]'>
+      <Text className='text-primary text-3xl font-nunitoSemiBold mb-3'>
         Messages
       </Text>
 
       {/* Search Box */}
-      {
-        conversations.length > 0 && (
-          <View className='mt-3'>
-            <SearchField 
-              searchPlaceholder='Search messages'
-              onChangeSearch={setSearchQuery}
-              searchValue={searchQuery}     
-            />
-          </View>
-        )
-      }
+      {conversations.length > 0 && (
+        <View className='mt-3'>
+          <SearchField value={searchQuery} onChange={setSearchQuery}>
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input 
+                placeholder='Search messages...' 
+                className='flex-1 shadow-none'
+              />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
+        </View>
+      )}
 
       {/* List of Messages */}
       {
@@ -279,36 +283,55 @@ export default function Chat() {
             <Divider />
 
             {/* Group Button */}
-            <View className='flex-row gap-3'>
-              <TouchableOpacity
-                className={`rounded-lg py-2 px-4 items-center justify-center ${selectedFilter === 'Tenant' ? 'bg-primary' : 'bg-white'}`}
-                activeOpacity={0.7}
-                onPress={() => handleMessageToggle('Tenant')}
-              >
-                <Text className={`text-text text-base font-interMedium ${selectedFilter === 'Tenant' ? 'text-white' : 'text-primary'}`}>
-                  Tenants
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className={`rounded-lg py-2 px-4 items-center justify-center ${selectedFilter === 'Inquiries' ? 'bg-primary' : 'bg-white'}`}
-                activeOpacity={0.7}
-                onPress={() => handleMessageToggle('Inquiries')}
-              >
-                <Text className={`text-text text-base font-interMedium ${selectedFilter === 'Inquiries' ? 'text-white' : 'text-primary'}`}>
-                  Inquiries
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Tabs
+              value={selectedFilter}
+              onValueChange={(value) => handleMessageToggle(value as 'Tenant' | 'Inquiries')}
+              variant="primary"
+            >
+              <Tabs.List>
+                <Tabs.Indicator />
+                <Tabs.Trigger value="Tenant">
+                  {({ isSelected }) => (
+                      <Tabs.Label
+                          style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+                      >
+                        Tenant
+                      </Tabs.Label>
+                  )}
+                </Tabs.Trigger>
+                <Tabs.Trigger value="Inquiries">
+                  {({ isSelected }) => (
+                      <Tabs.Label
+                          style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+                      >
+                        Inquiries
+                      </Tabs.Label>
+                  )}
+                </Tabs.Trigger>
+              </Tabs.List>
+            </Tabs>
 
             {filteredConversations.length === 0 ? (
               <View className='flex-1 items-center justify-center mt-10'>
-                <Text className='text-lg text-primary font-interSemiBold mb-2'>
-                  No {selectedFilter} Messages
-                </Text>
-                <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
-                  Try switching filters to view your other conversations.
-                </Text>
+                {searchQuery.trim().length > 0 ? (
+                  <>
+                    <Text className='text-lg text-primary font-interSemiBold mb-2'>
+                      No results found
+                    </Text>
+                    <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+                      No conversations match &quot;{searchQuery}&quot;. Try a different name, property, or message.
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text className='text-lg text-primary font-interSemiBold mb-2'>
+                      No {selectedFilter} Messages
+                    </Text>
+                    <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+                      Try switching filters to view your other conversations.
+                    </Text>
+                  </>
+                )}
               </View>
             ) : (
               <View className='flex-1 gap-3 mt-3'>
