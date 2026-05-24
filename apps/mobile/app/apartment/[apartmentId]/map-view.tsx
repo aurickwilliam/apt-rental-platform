@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { View, Text, TouchableOpacity, Linking, Platform, Modal } from 'react-native'
+import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { MapView as LibreMapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
@@ -7,6 +7,8 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
+
+import { Dialog, Button } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
 
@@ -53,7 +55,7 @@ const DEFAULT_COORDS = {
   longitude: 120.9600,
 }
 
-type DirectionMode = 'driving' | 'walking' | 'transit' | 'bicycling';
+type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
 export default function ApartmentMapViewScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -79,22 +81,33 @@ export default function ApartmentMapViewScreen() {
 
     const label = encodeURIComponent(apartmentName);
     const destination = `${aptLat},${aptLng}`;
-    const googleMapsWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${mode}`;
+
+    const googleMapsTravelMode =
+      mode === 'walking'
+        ? 'walking'
+        : mode === 'transit'
+        ? 'transit'
+        : mode === 'motorcycle'
+        ? 'two-wheeler'
+        : 'driving';
+
+    const googleMapsWebUrl =
+      `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=${googleMapsTravelMode}`;
 
     const iosDirFlag =
-      mode === 'walking' ? 'w' :
-      mode === 'transit' ? 'r' :
-      'd';
+      mode === 'walking' ? 'w' : mode === 'transit' ? 'r' : 'd';
 
     const iosUrl =
-      mode === 'bicycling'
+      mode === 'motorcycle'
         ? googleMapsWebUrl
         : `http://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
 
+    const androidNavMode = mode === 'walking' ? 'w' : 'd';
+
     const androidUrl =
-      mode === 'transit'
+      mode === 'transit' || mode === 'motorcycle'
         ? googleMapsWebUrl
-        : `google.navigation:q=${destination}&mode=${mode === 'walking' ? 'w' : mode === 'bicycling' ? 'b' : 'd'}`;
+        : `google.navigation:q=${destination}&mode=${androidNavMode}`;
 
     const url = Platform.select({
       ios: iosUrl,
@@ -111,7 +124,7 @@ export default function ApartmentMapViewScreen() {
     }
 
     await Linking.openURL(googleMapsWebUrl);
-  }
+  };
 
   // Handle Get Directions Press
   const handleGetDirections = () => {
@@ -176,12 +189,12 @@ export default function ApartmentMapViewScreen() {
       }
     >
       {/* Apartment Name and Address */}
-      <View className='flex-row items-center justify-between bg-white p-5 gap-1'>
-        <View className='flex gap-1'>
-          <Text className='text-2xl font-interSemiBold text-primary'>
+      <View className='flex-row items-center justify-between bg-white px-5 py-3 gap-1'>
+        <View className='flex-1 gap-1'>
+          <Text className='text-lg font-interSemiBold text-primary'>
             {apartmentName}
           </Text>
-          <Text className='text-base text-grey-500'>
+          <Text className='text-sm text-grey-500'>
             {apartmentAddress}
           </Text>
         </View>
@@ -269,66 +282,85 @@ export default function ApartmentMapViewScreen() {
         </View>
       </View>
 
-      <Modal
-        visible={isDirectionsModalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setIsDirectionsModalVisible(false)}
+      <Dialog
+        isOpen={isDirectionsModalVisible}
+        onOpenChange={setIsDirectionsModalVisible}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          className='flex-1 bg-black/40 justify-center px-6'
-          onPress={() => setIsDirectionsModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            className='bg-white rounded-2xl p-5'
-            onPress={(event) => event.stopPropagation()}
-          >
-            <Text className='text-text font-interSemiBold text-lg'>
-              Choose Route Type
-            </Text>
-            <Text className='text-grey-500 font-inter mt-1'>
-              Select how you want to get there.
-            </Text>
+        <Dialog.Portal>
+          {/* Overlay handles the background dimming and centers the content */}
+          <Dialog.Overlay className="bg-black/40 items-center justify-center px-6" />
 
-            <View className='mt-4 gap-3'>
-              <PillButton
-                label='Drive'
-                size='sm'
-                onPress={() => handleSelectDirectionMode('driving')}
-              />
-              <PillButton
-                label='Walk'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('walking')}
-              />
-              <PillButton
-                label='Transit'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('transit')}
-              />
-              <PillButton
-                label='Bicycle'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('bicycling')}
-              />
+          <Dialog.Content className="w-full bg-white rounded-2xl p-5">
+            {/* Top-Right Close Button */}
+            <Dialog.Close variant="ghost" className="absolute top-4 right-4 z-50" />
+
+            {/* Header */}
+            <View>
+              <Text className="text-text font-interSemiBold text-lg">
+                Choose Route Type
+              </Text>
+              <Text className="text-grey-500 font-inter mt-1">
+                Select how you want to get there.
+              </Text>
             </View>
 
-            <View className='mt-4'>
-              <PillButton
-                label='Cancel'
-                size='sm'
-                type='danger'
+            {/* Body */}
+            <View className="mt-4 gap-3">
+              <Button
+                size="sm"
+                onPress={() => handleSelectDirectionMode("driving")}
+              >
+                <Button.Label>
+                  Drive/4-Wheels
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("motorcycle")}
+              >
+                <Button.Label>
+                  Motorcycle
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("transit")}
+              >
+                <Button.Label>
+                  Transit
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("walking")}
+              >
+                <Button.Label>
+                  Walk/Bike
+                </Button.Label>
+              </Button>
+            </View>
+
+            {/* Footer */}
+            <View className="mt-4">
+              <Button
+                variant="danger-soft"
+                size="sm"
                 onPress={() => setIsDirectionsModalVisible(false)}
-              />
+              >
+                <Button.Label>
+                  Cancel
+                </Button.Label>
+              </Button>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScreenWrapper>
   )
 }

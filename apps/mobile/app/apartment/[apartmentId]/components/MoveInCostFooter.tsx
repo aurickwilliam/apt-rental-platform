@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconX } from '@tabler/icons-react-native';
 
-import PillButton from 'components/buttons/PillButton';
+import { Button } from "heroui-native"
+
 import { COLORS } from '@repo/constants';
 import { formatCurrency } from '@repo/utils';
 
@@ -53,7 +54,14 @@ export default function MoveInCostFooter({
             </TouchableOpacity>
 
             <View className='flex-1'>
-              <PillButton label='Apply Now' size='md' onPress={onApplyNow} />
+              <Button
+                onPress={onApplyNow}
+                size="md"
+              >
+                <Button.Label>
+                  Apply Now
+                </Button.Label>
+              </Button>
             </View>
           </View>
         </SafeAreaView>

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { View, Text } from 'react-native';
 import { IconBuildingCommunity } from '@tabler/icons-react-native';
 
-import PillButton from 'components/buttons/PillButton';
 import { COLORS } from '@repo/constants';
+
+import { Button } from "heroui-native"
 
 type ApartmentDescriptionSectionProps = {
   description?: string | null;
@@ -20,7 +21,7 @@ export default function ApartmentDescriptionSection({
     <>
       <View className='mt-5 px-5 flex-row items-center gap-2'>
         <IconBuildingCommunity size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           Everything About Your Apartment
         </Text>
       </View>
@@ -35,12 +36,15 @@ export default function ApartmentDescriptionSection({
 
         {hasLongDescription && (
           <View className='mt-5'>
-            <PillButton
-              label={isReadMore ? 'Read Less' : 'Read More'}
-              type='outline'
-              size='sm'
+            <Button
+              size="sm"
+              variant="tertiary"
               onPress={() => setIsReadMore((prev) => !prev)}
-            />
+            >
+              <Button.Label>
+                {isReadMore ? 'Read Less' : 'Read More'}
+              </Button.Label>
+            </Button>
           </View>
         )}
       </View>

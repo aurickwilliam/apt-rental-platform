@@ -55,7 +55,7 @@ export default function ApartmentHeroSection({
   };
 
   return (
-    <View className='h-[42rem] bg-white relative'>
+    <View className='h-168 bg-white relative'>
       <ScrollView
         horizontal
         pagingEnabled
@@ -113,7 +113,7 @@ export default function ApartmentHeroSection({
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
               <IconBed size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
+              <Text className='text-grey-100 font-interMedium text-sm'>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
               </Text>
@@ -121,7 +121,7 @@ export default function ApartmentHeroSection({
 
             <View className='flex-row items-center gap-2'>
               <IconBath size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
+              <Text className='text-grey-100 font-interMedium text-sm'>
                 {apartment?.no_bathrooms}{' '}
                 {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
               </Text>
@@ -129,7 +129,7 @@ export default function ApartmentHeroSection({
 
             <View className='flex-row items-center gap-2'>
               <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
+              <Text className='text-grey-100 font-interMedium text-sm'>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
               </Text>
             </View>
