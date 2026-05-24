@@ -6,10 +6,11 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
 import PerkButton from '../components/PerkButton'
 
-import { TextField, Label, TextArea, FieldError, Button } from 'heroui-native'
+import { TextField, Label, TextArea, FieldError, Button, Chip } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { PERKS } from '@/constants/perks'
 
 export default function FourthStep() {
   const router = useRouter()
@@ -84,15 +85,21 @@ export default function FourthStep() {
           {/* Selected amenities preview */}
           {amenities.length > 0 ? (
             <View className='flex-row flex-wrap gap-3'>
-              {amenities.map((perkId) => (
-                <PerkButton
-                  key={perkId}
-                  perkId={perkId}
-                  isSelected
-                  // Tapping opens the amenities editor for quick edits
-                  onPress={() => router.push('/manage-apartment/add-apartment/amenities')}
-                />
-              ))}
+              {amenities.map((perkId) => {
+                const perk = PERKS[perkId]
+                if (!perk) return null
+                return (
+                  <Chip
+                    key={perkId}
+                    variant='secondary'
+                    color='accent'
+                    onPress={() => router.push('/manage-apartment/add-apartment/amenities')}
+                  >
+                    <perk.icon size={16} color={COLORS.primary} />
+                    <Chip.Label>{perk.name}</Chip.Label>
+                  </Chip>
+                )
+              })}
             </View>
           ) : (
             errors.amenities && (
