@@ -21,8 +21,7 @@ import {
   IconLogout
 } from '@tabler/icons-react-native';
 
-import PillButton from 'components/buttons/PillButton';
-import SettingOptionButton from 'components/buttons/SettingOptionButton';
+import { Avatar, Button, Card, ListGroup, Separator } from 'heroui-native';
 
 import { useProfile } from '@/hooks/useProfile';
 
@@ -88,7 +87,7 @@ export default function Profile() {
       showsVerticalScrollIndicator={false}
       className='bg-darkerWhite flex-1'
     >
-      <View className='relative h-[24rem]'>
+      <View className='relative h-96'>
         {/* Background Photo */}
         <View 
           className='w-full h-60' 
@@ -105,23 +104,18 @@ export default function Profile() {
         </View>
 
         {/* Profile Picture */}
-        <View 
-          className='absolute top-24 left-0 right-0 items-center'
-        >
-          <View className='size-56 rounded-full overflow-hidden border-[6px] border-primary mb-5 bg-primary items-center justify-center'>
-            {profile?.avatar_url ? (
-              <Image 
-                source={{ uri: profile.avatar_url }}
-                style={{ width: '100%', height: '100%' }}
-              />
-            ) : (
-              <View className='h-full w-full items-center justify-center'>
-                <Text className='text-white text-7xl font-interSemiBold text-center leading-none'>
-                  {avatarInitials || 'U'}
-                </Text>
-              </View>
-            )}
-          </View>
+        <View className='absolute top-24 left-0 right-0 items-center'>
+          <Avatar
+            size="lg"
+            color="accent"
+            className="size-56 border-[6px] border-primary mb-5"
+            alt={`${profile?.first_name} ${profile?.last_name}`}
+          >
+            <Avatar.Image source={{ uri: profile?.avatar_url ?? '' }} />
+            <Avatar.Fallback delayMs={200}>
+              {avatarInitials || 'U'}
+            </Avatar.Fallback>
+          </Avatar>
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
@@ -136,132 +130,167 @@ export default function Profile() {
       </View>
 
       {/* Verification Status */}
-      <View className='bg-white mt-10 mx-5 p-4 rounded-2xl'>
-        <View className='flex-row gap-3 items-center'>
-          <IconId 
-            size={24}
-            color={COLORS.text}
-          />
-
-          <Text className='text-text text-lg font-interSemiBold'>
+      <Card className='mt-10 mx-5'>
+        {/* Header */}
+        <Card.Header className='flex-row gap-3 items-center pb-0'>
+          <IconId size={24} color={COLORS.text} />
+          <Card.Title className='text-text font-interSemiBold'>
             Verification Status
-          </Text>
-        </View>
-        
-        {/* Status */}
-        <View className='flex-row items-center mt-4 gap-2'>
-          <Icon
-            size={26} 
-            color={statusStyle[accountStatus].iconColor} 
-          />
-          <Text className={`text-xl ${statusStyle[accountStatus].style} font-interMedium`}>
-            {statusStyle[accountStatus].text}
-          </Text>
-        </View>
-        
-        {/* If Rejected */}
-        {
-          accountStatus === 'rejected' && (
+          </Card.Title>
+        </Card.Header>
+
+        <Card.Body className='gap-3 mt-3'>
+          {/* Status Row */}
+          <View className='flex-row items-center gap-2'>
+            <Icon size={26} color={statusStyle[accountStatus].iconColor} />
+            <Text className={`text-lg ${statusStyle[accountStatus].style} font-interMedium`}>
+              {statusStyle[accountStatus].text}
+            </Text>
+          </View>
+
+          {/* If Rejected */}
+          {accountStatus === 'rejected' && (
             <>
-              <Text className='text-redHead-200 mt-3 font-inter mb-5'>
+              <Card.Description className='text-redHead-200 font-inter text-sm'>
                 Reason: {rejectedReason}
-              </Text>
-
-              <PillButton 
-                label='Re-Apply for Verification' 
-                isFullWidth
+              </Card.Description>
+              <Button
+                variant='primary'
                 size='sm'
-                leftIconName={IconCamera}
                 onPress={() => router.push('/(auth)/verify-account')}
-              />
+                className='w-full'
+              >
+                <IconCamera size={16} color='white' />
+                <Button.Label>Re-Apply for Verification</Button.Label>
+              </Button>
             </>
-          )
-        }
+          )}
 
-        {/* If Pending */}
-        {
-          accountStatus === 'pending' && (
-            <Text className='text-grey-400 mt-3 font-inter'>
+          {/* If Pending */}
+          {accountStatus === 'pending' && (
+            <Card.Description className='text-grey-400 font-inter text-sm'>
               Your documents are currently under review. We will notify you once the verification process is complete.
-            </Text>
-          )
-        }
+            </Card.Description>
+          )}
 
-        {/* If Verified */}
-        {
-          accountStatus === 'verified' && (
+          {/* If Verified */}
+          {accountStatus === 'verified' && (
             <>
-              <Text className='text-grey-400 mt-3 font-inter'>
+              <Card.Description className='text-grey-400 font-inter text-sm'>
                 You have successfully been verified as a tenant. You can now apply for rental properties on our platform.
-              </Text>
-
-              <Text className='text-grey-400 mt-3 font-inter'>
+              </Card.Description>
+              <Card.Description className='text-grey-400 font-inter text-sm'>
                 Last Verified: {dateVerified}
-              </Text>
+              </Card.Description>
             </>
-          )
-        }
+          )}
 
-        {/* If Unverified */}
-        {accountStatus === 'unverified' && (
-          <>
-            <Text className='text-grey-400 my-3 font-inter'>
-              Your account has not been verified yet. Please submit your documents to get verified.
-            </Text>
-
-            <PillButton
-              label='Apply for Verification'
-              isFullWidth
-              size='sm'
-              leftIconName={IconCamera}
-              onPress={() => router.push('/(auth)/verify-account')}
-            />
-          </>
-        )}
-      </View>
+          {/* If Unverified */}
+          {accountStatus === 'unverified' && (
+            <>
+              <Card.Description className='text-grey-400 font-inter text-sm'>
+                Your account has not been verified yet. Please submit your documents to get verified.
+              </Card.Description>
+              <Button
+                variant='primary'
+                size='sm'
+                onPress={() => router.push('/(auth)/verify-account')}
+                className='w-full'
+              >
+                <IconCamera size={16} color='white' />
+                <Button.Label>Apply for Verification</Button.Label>
+              </Button>
+            </>
+          )}
+        </Card.Body>
+      </Card>
       
       {/* Profile Options */}
-      <View className='mt-5 px-5 flex gap-3 mb-20'>
-        <SettingOptionButton 
-          label='Edit Profile'
-          iconName={IconUser}
-          onPress={() => router.push('/tenant/edit-profile')}
-        />
-        <SettingOptionButton 
-          label='Document & IDs'
-          iconName={IconFileText}
-          onPress={() => router.push('/document-id')}
-        />
-        <SettingOptionButton 
-          label='Favorites'
-          iconName={IconHeart}
-          onPress={() => router.push('/tenant/favorites')}
-        />
-        <SettingOptionButton
-          label='Payment History'
-          iconName={IconClock}
-          onPress={() => router.push('/tenant/payment/history')}
-        />
-        <SettingOptionButton
-          label='Payment Methods'
-          iconName={IconCreditCard}
-          onPress={() => router.push('/tenant/payment/saved-methods')}
-        />
-        <SettingOptionButton
-          label='Settings'
-          iconName={IconSettings}
-          onPress={() => router.push('/settings')}
-        />
+      <View className='mt-5 px-5'>
+        <ListGroup className="shadow-none">
+          <ListGroup.Item onPress={() => router.push('/tenant/edit-profile')}>
+            <ListGroup.ItemPrefix>
+              <IconUser size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Edit Profile</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+
+          <Separator className='mx-4' />
+
+          <ListGroup.Item onPress={() => router.push('/document-id')}>
+            <ListGroup.ItemPrefix>
+              <IconFileText size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Document & IDs</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+
+          <Separator className='mx-4' />
+
+          <ListGroup.Item onPress={() => router.push('/tenant/favorites')}>
+            <ListGroup.ItemPrefix>
+              <IconHeart size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Favorites</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+
+          <Separator className='mx-4' />
+
+          <ListGroup.Item onPress={() => router.push('/tenant/payment/history')}>
+            <ListGroup.ItemPrefix>
+              <IconClock size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Payment History</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+
+          <Separator className='mx-4' />
+
+          <ListGroup.Item onPress={() => router.push('/tenant/payment/saved-methods')}>
+            <ListGroup.ItemPrefix>
+              <IconCreditCard size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Payment Methods</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+
+          <Separator className='mx-4' />
+
+          <ListGroup.Item onPress={() => router.push('/settings')}>
+            <ListGroup.ItemPrefix>
+              <IconSettings size={22} color={COLORS.text} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle className='font-interMedium'>Settings</ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+        </ListGroup>
       </View>
 
       <View className='p-5'>
-        <PillButton
-          label='Logout'
-          isFullWidth
-          type='danger'
-          leftIconName={IconLogout}
+        <Button
           onPress={handleLogout}
-        />
+          variant='danger'
+          size='md'
+        >
+          <IconLogout size={16} color='white' />
+          <Button.Label>
+            Logout
+          </Button.Label>
+        </Button>
       </View>
 
     </ScrollView>

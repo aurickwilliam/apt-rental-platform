@@ -3,10 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 
-import SearchField from 'components/inputs/SearchField';
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import MessageCard from '@/components/cards/MessageCard';
-import Divider from 'components/display/Divider';
 
 import { COLORS } from '@repo/constants';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
@@ -18,6 +16,11 @@ import { supabase } from '@repo/supabase';
 import { getConversations, type Conversation } from '@/service/chatService';
 
 import { useTenancy } from '@/hooks/useTenancy';
+
+import {
+  SearchField,
+  Separator,
+} from 'heroui-native';
 
 type ConversationWithMeta = Conversation & {
   last_sender_is_me?: boolean;
@@ -225,16 +228,22 @@ export default function Chat() {
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >
-      <Text className='text-primary text-5xl font-nunito leading-[54px]'>
+      <Text className='text-primary text-3xl font-nunitoSemiBold'>
         Messages
       </Text>
 
       {conversations.length > 0 && (
         <View className='mt-3'>
-          <SearchField
-            onChangeSearch={setSearchQuery}
-            searchValue={searchQuery}
-          />
+          <SearchField value={searchQuery} onChange={setSearchQuery}>
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input 
+                placeholder='Search messages...' 
+                className='flex-1 shadow-none'
+              />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
         </View>
       )}
 
@@ -259,12 +268,12 @@ export default function Chat() {
         </View>
       ) : (
         <>
-          <Divider />
+          <Separator className='my-3' />
 
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
-              <Text className='text-lg font-interSemiBold text-primary mb-3'>
+              <Text className='text-base font-interMedium text-primary mb-3'>
                 Current Landlord
               </Text>
 
@@ -290,12 +299,12 @@ export default function Chat() {
             </View>
           )}
 
-          <Divider />
+          <Separator className='my-3' />
 
           {/* Other conversations */}
           {otherConversations.length > 0 && (
             <View className='gap-3'>
-              <Text className='text-lg font-interSemiBold text-grey-500'>
+              <Text className='text-base font-interMedium text-grey-500'>
                 Past Conversations
               </Text>
 

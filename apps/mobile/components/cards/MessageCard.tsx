@@ -1,6 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
-
-import { DEFAULT_IMAGES } from 'constants/images'
+import { View, Text } from 'react-native'
+import { Avatar, Card, PressableFeedback } from 'heroui-native'
 
 interface MessageCardProps {
   name: string;
@@ -24,59 +23,55 @@ export default function MessageCard({
   onPress
 }: MessageCardProps) {
 
-  const profilePicture = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
-
   return (
-    <TouchableOpacity 
-      onPress={onPress}
-      activeOpacity={0.7}
-      className='bg-white p-4 rounded-2xl flex-row gap-4'
-    >
-      {/* Profile Picture */}
-      <View className='relative'>
-        <View className='size-20 rounded-full overflow-hidden border-2 border-secondary'>
-          <Image 
-            source={profilePicture}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          />
+    <PressableFeedback onPress={onPress} className='rounded-2xl overflow-hidden'>
+      <PressableFeedback.Highlight />
+      <Card className='flex-row gap-4 shadow-none'>
+
+        {/* Profile Picture */}
+        <View className='relative'>
+          <Avatar size='lg' className='border border-secondary'>
+            <Avatar.Image source={{ uri: profilePictureUrl }} />
+            <Avatar.Fallback delayMs={200}>
+              {name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+            </Avatar.Fallback>
+          </Avatar>
+
+          {unreadCount > 0 && (
+            <View className='absolute -top-1 -right-1 bg-primary rounded-full min-w-5 h-5 px-1 items-center justify-center'>
+              <Text className='text-white text-xs font-interMedium'>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </View>
 
-        {unreadCount > 0 && (
-          <View className='absolute top-0 right-0 bg-primary rounded-full min-w-[20px] h-5 px-1 items-center justify-center'>
-            <Text className='text-white text-xs font-interMedium'>
-              {unreadCount > 99 ? '99+' : unreadCount}
+        {/* Message Details */}
+        <View className='flex-1 justify-between'>
+          <View>
+            <Text className='font-interMedium text-sm'>
+              {name}
+            </Text>
+            <Text className='text-grey-500 text-xs font-inter'>
+              {apartmentName}
             </Text>
           </View>
-        )}
-      </View>
 
-      {/* Message Details */}
-      <View className='flex-1 justify-between'>
-        <View>
-          <Text className='font-interMedium text-base'>
-            {name}
-          </Text>
-          <Text className='text-grey-500 text-sm font-inter'>
-            {apartmentName}
-          </Text>
-        </View>
-        
-        <View className='flex-row justify-start items-center gap-2'>
-          <Text 
-            className='text-text text-base font-inter flex-1' 
-            numberOfLines={1}
-          >
-            {isUserLastSender ? `You: ${lastMessage}` : lastMessage}
-          </Text>
+          <View className='flex-row justify-start items-center gap-2'>
+            <Text
+              className='text-text text-xs font-inter flex-1'
+              numberOfLines={1}
+            >
+              {isUserLastSender ? `You: ${lastMessage}` : lastMessage}
+            </Text>
 
-          <Text className='text-gray-500 text-sm font-inter'>
-            {timestamp}
-          </Text>
+            <Text className='text-gray-500 text-xs font-inter'>
+              {timestamp}
+            </Text>
+          </View>
         </View>
-      </View>    
-    </TouchableOpacity>
+
+      </Card>
+    </PressableFeedback>
   )
 }
