@@ -80,10 +80,10 @@ export default function TenantProfile() {
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header Information */}
-      <View className='relative h-[20rem]'>
+      <View className='relative h-80'>
         {/* Background Photo */}
         <View
-          className='w-full h-[10rem]'
+          className='w-full h-40'
           style={{ backgroundColor: backgroundColor }}
         >
           {
@@ -138,7 +138,7 @@ export default function TenantProfile() {
         </View>
 
         <View
-          className='w-[1px] h-full bg-grey-300'
+          className='w-px h-full bg-grey-300'
         />
 
         <View className='flex items-center gap-1 w-1/3'>
@@ -154,7 +154,7 @@ export default function TenantProfile() {
         </View>
 
         <View
-          className='w-[1px] h-full bg-grey-300'
+          className='w-px h-full bg-grey-300'
         />
 
         <View className='flex items-center gap-1 w-1/3'>
