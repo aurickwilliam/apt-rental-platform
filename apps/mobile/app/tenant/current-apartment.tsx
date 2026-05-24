@@ -11,6 +11,8 @@ import { formatCurrency } from '@repo/utils'
 
 import { COLORS } from '@repo/constants'
 
+import { Button } from "heroui-native"
+
 import {
   IconHome,
   IconBath,
@@ -83,7 +85,7 @@ No pets / No smoking inside the unit`
     >
       {/* Name and Address */}
       <View>
-        <Text className='text-2xl font-interSemiBold text-text'>
+        <Text className='text-2xl font-nunitoSemiBold text-text'>
           {apartmentDetails.apartmentName}
         </Text>
         <Text className='text-base text-text'>
@@ -93,10 +95,10 @@ No pets / No smoking inside the unit`
 
       {/* Landlord */}
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>
+        <Text className='text-text text-xs font-inter'>
           Landlord
         </Text>
-        <Text className='text-text text-lg font-interMedium'>
+        <Text className='text-text text-base font-interMedium'>
           John Doe
         </Text>
       </View>
@@ -105,20 +107,20 @@ No pets / No smoking inside the unit`
       <View className='flex-row mt-5'>
         {/* Start */}
         <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
+          <Text className='text-text text-xs font-inter'>
             Lease Start
           </Text>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-base font-interMedium'>
             {`${apartmentDetails.leaseStartMonth} ${apartmentDetails.leaseStartYear}`}
           </Text>
         </View>
 
         {/* End */}
         <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
+          <Text className='text-text text-xs font-inter'>
             Lease End
           </Text>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-base font-interMedium'>
             {`${apartmentDetails.leaseEndMonth} ${apartmentDetails.leaseEndYear}`}
           </Text>
         </View>
@@ -126,10 +128,10 @@ No pets / No smoking inside the unit`
 
       {/* Monthly Rent */}
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>
+        <Text className='text-text text-xs font-inter'>
           Monthly Rent
         </Text>
-        <Text className='text-text text-lg font-interMedium'>
+        <Text className='text-text text-base font-interMedium'>
           {`₱ ${formattedMonthlyRent}`}
         </Text>
       </View>
@@ -143,7 +145,7 @@ No pets / No smoking inside the unit`
       </Text>
 
       <View className='mt-3 bg-darkerWhite p-4 rounded-2xl'>
-        <Text className='text-text text-base font-inter'>
+        <Text className='text-text text-sm font-inter'>
           {apartmentFullDescription}
         </Text>
       </View>
@@ -218,13 +220,15 @@ No pets / No smoking inside the unit`
 
       {/* Button for View Lease Agreement */}
       <View className='mt-5'>
-        <PillButton
-          label='View Lease Agreement'
-          isFullWidth
-          type='outline'
-          leftIconName={IconFileText}
+        <Button
+          variant="tertiary"
           onPress={handleViewLeaseAgreement}
-        />
+        >
+          <IconFileText size={20} color={COLORS.grey} />
+          <Button.Label>
+            View Lease Agreement
+          </Button.Label>
+        </Button>
       </View>
 
     </ScreenWrapper>
