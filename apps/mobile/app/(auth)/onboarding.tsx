@@ -15,6 +15,8 @@ import { USER_ROLES } from './data/user-role';
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
 import PillButton from 'components/buttons/PillButton';
 
+import { Button } from "heroui-native"
+
 // Get the device width
 const { width } = Dimensions.get('window');
 
@@ -115,26 +117,29 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Bottom Buttons */}
-      <View className='flex-row items-center justify-between gap-8 px-10 mb-10'>
+      <View className='flex-row items-center justify-between gap-8 px-5 mb-8'>
         {
           currentIndex < SLIDES.length - 1 ? (
             <>
-              <View className='flex-1'>
-                <PillButton
-                  label="Skip"
-                  type="outline"
-                  isFullWidth={true}
-                  onPress={skip}
-                />
-              </View>
+              <Button
+                onPress={skip}
+                variant="secondary"
+                className="flex-1"
+              >
+                <Button.Label>
+                  Skip
+                </Button.Label>
+              </Button>
 
-              <View className='flex-1'>
-                <PillButton
-                  label="Next"
-                  isFullWidth={true}
-                  onPress={goToNext}
-                />
-              </View>
+              <Button
+                onPress={goToNext}
+                variant="primary"
+                className="flex-1"
+              >
+                <Button.Label>
+                  Next
+                </Button.Label>
+              </Button>
             </>
           ) : (
 
@@ -146,13 +151,14 @@ export default function OnboardingScreen() {
                   asChild
                   replace={true}
                 >
-
-                  <PillButton
-                    label={role.label}
-                    type={role.type}
-                    isFullWidth={true}
-                  />
-
+                  <Button
+                    variant={role.type === "primary" ? "primary" : "secondary"}
+                    className={role.type !== "primary" ? "bg-secondary" : undefined}
+                  >
+                    <Button.Label className={role.type !== "primary" ? "text-white" : undefined}>
+                      {role.label}
+                    </Button.Label>
+                  </Button>
                 </Link>
               </View>
             ))

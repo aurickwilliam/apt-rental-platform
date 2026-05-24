@@ -119,7 +119,7 @@ export default function SignUp() {
         <Tabs.List className="w-full">
           <Tabs.Indicator />
 
-          <Tabs.Trigger value="tenant" className="w-1/2">
+          <Tabs.Trigger value="tenant" className="flex-1">
             {({ isSelected }) => (
               <Tabs.Label
                 style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
@@ -129,7 +129,7 @@ export default function SignUp() {
             )}
           </Tabs.Trigger>
 
-          <Tabs.Trigger value="landlord" className="w-1/2">
+          <Tabs.Trigger value="landlord" className="flex-1">
             {({ isSelected }) => (
               <Tabs.Label
                 style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
