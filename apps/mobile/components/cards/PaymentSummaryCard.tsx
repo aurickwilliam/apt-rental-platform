@@ -2,8 +2,7 @@ import { View, Text } from 'react-native';
 
 import { COLORS } from '@repo/constants';
 
-import StatusPill from '@/components/display/StatusPill'
-import PillButton from 'components/buttons/PillButton';
+import { Button, Chip } from 'heroui-native';
 
 interface PaymentSummaryCardProps {
   periodMonth?: string;
@@ -27,43 +26,51 @@ export default function PaymentSummaryCard({
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
 
-  const statusColor = status === 'Pending' ? COLORS.yellowish : COLORS.greenHulk;
+  const isPending = status === 'Pending';
 
   return (
     <View className='bg-primary rounded-3xl p-4'>
       {/* Title Header */}
       <View className='flex-row items-center justify-between'>
-        <Text className='text-white text-2xl font-interSemiBold'>
+        <Text className='text-white text-xl font-interSemiBold'>
           Payment Summary
         </Text>
 
         {/* Status */}
-        <StatusPill
-          status={status}
-          color={statusColor}
-        />
+        <Chip
+          size="sm"
+          variant="soft"
+          style={{ backgroundColor: isPending ? COLORS.yellowish : COLORS.greenHulk }}
+        >
+          <Chip.Label
+            className='font-interMedium'
+            style={{ color: isPending ? '#78350f' : '#052e16' }}
+          >
+            {status}
+          </Chip.Label>
+        </Chip>
       </View>
 
-      {/* Payment Detaisl */}
+      {/* Payment Details */}
       <View className='flex-1 flex-row items-center mt-5'>
         {/* Month Period */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-base font-inter'>
+          <Text className='text-darkerWhite text-sm font-inter'>
             Period
           </Text>
 
-          <Text className='text-white text-xl font-interMedium'>
+          <Text className='text-white text-base font-interMedium'>
             {periodMonth} {periodYear}
           </Text>
         </View>
 
         {/* Total Rent */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-base font-inter'>
+          <Text className='text-darkerWhite text-sm font-inter'>
             Total Rent
           </Text>
 
-          <Text className='text-white text-xl font-interMedium'>
+          <Text className='text-white text-base font-interMedium'>
             ₱ {totalRent}
           </Text>
         </View>
@@ -72,22 +79,22 @@ export default function PaymentSummaryCard({
       <View className='flex-1 flex-row items-center mt-5'>
         {/* Balance Left */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-base font-inter'>
+          <Text className='text-darkerWhite text-sm font-inter'>
             Balance Left
           </Text>
 
-          <Text className='text-white text-xl font-interMedium'>
+          <Text className='text-white text-base font-interMedium'>
             ₱ {balanceLeft}
           </Text>
         </View>
 
         {/* Balance Paid */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-base font-inter'>
+          <Text className='text-darkerWhite text-sm font-inter'>
             Paid
           </Text>
 
-          <Text className='text-white text-xl font-interMedium'>
+          <Text className='text-white text-base font-interMedium'>
             ₱ {balancePaid}
           </Text>
         </View>
@@ -95,24 +102,26 @@ export default function PaymentSummaryCard({
 
       {/* Action Buttons */}
       <View className='flex-row flex-1 mt-5 gap-5'>
-        <View className='flex-1'>
-          <PillButton
-            label={'Pay Now'}
-            type='secondary'
-            size='sm'
-            isFullWidth
-            onPress={onPayNowPress}
-          />
-        </View>
-        <View className='flex-1'>
-          <PillButton
-            label={'View History'}
-            type='outline'
-            size='sm'
-            isFullWidth
-            onPress={onViewHistoryPress}
-          />
-        </View>
+        <Button
+          size="sm"
+          onPress={onPayNowPress}
+          className='flex-1 bg-secondary text-white'
+        >
+          <Button.Label>
+            Pay Now
+          </Button.Label>
+        </Button>
+
+        <Button
+          size="sm"
+          variant="secondary"
+          onPress={onViewHistoryPress}
+          className='flex-1'
+        >
+          <Button.Label>
+            View History
+          </Button.Label>
+        </Button>
       </View>
     </View>
   );

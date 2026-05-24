@@ -1,11 +1,10 @@
-import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native'
+import { View, Text, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from 'components/cards/PaymentSummaryCard'
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "components/cards/ApartmentDescriptionCard";
-import PillButton from 'components/buttons/PillButton';
 import Divider from 'components/display/Divider';
 import QuickActionButton from 'components/buttons/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
@@ -29,6 +28,8 @@ import {
 import { COLORS } from '@repo/constants';
 
 import { useTenancy } from '@/hooks/useTenancy';
+
+import { Button } from 'heroui-native';
 
 function formatMonth(dateStr: string): string {
   return new Date(dateStr).toLocaleString('default', { month: 'long' });
@@ -123,19 +124,24 @@ export default function Rentals() {
       {/* Apartment Header */}
       <View className='flex-row items-center justify-between gap-2'>
         <View className='flex-row items-center justify-start gap-2'>
-          <IconMapPinFilled size={34} color={COLORS.primary} className='mr-2' />
-          <Text className='text-secondary text-3xl font-nunito leading-[34px]'>
+          <IconMapPinFilled size={30} color={COLORS.primary} className='mr-2' />
+
+          <Text className='text-secondary text-2xl font-nunitoSemiBold'>
             {apartment.name}
           </Text>
         </View>
 
-        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/tenant-notif')}>
+        <Button 
+          isIconOnly
+          variant='ghost' 
+          onPress={() => router.push('/tenant-notif')}
+        >
           <IconBell size={26} color={COLORS.grey} />
-        </TouchableOpacity>
+        </Button>
       </View>
 
       {/* Payment Summary Card */}
-      <View className='mt-5'>
+      <View className='mt-3'>
         <PaymentSummaryCard
           periodMonth={formatMonth(paymentPeriodDate)}
           periodYear={formatYear(paymentPeriodDate)}
@@ -150,7 +156,7 @@ export default function Rentals() {
 
       {/* Quick Actions */}
       <View className='flex mt-5'>
-        <Text className='text-text text-xl font-interSemiBold'>
+        <Text className='text-text text-lg font-interSemiBold'>
           Quick Actions
         </Text>
         <View className='mt-5 flex-row flex-wrap'>
@@ -168,10 +174,11 @@ export default function Rentals() {
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
           <IconUser size={26} color={COLORS.text} />
-          <Text className='text-text text-xl font-interSemiBold'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Landlord Information
           </Text>
         </View>
+
         <LandlordCard
           fullName={landlordFullName}
           email={landlord?.email ?? 'No email provided'}
@@ -184,10 +191,11 @@ export default function Rentals() {
       <View className='mt-5 flex gap-3'>
         <View className='flex-row items-center justify-start gap-2'>
           <IconFileDescription size={26} color={COLORS.text} />
-          <Text className='text-text text-xl font-interSemiBold'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Apartment Description
           </Text>
         </View>
+
         <ApartmentDescriptionCard
           apartmentName={apartment.name}
           apartmentAddress={formatAddress(apartment)}
@@ -202,12 +210,12 @@ export default function Rentals() {
 
       <Divider />
 
-      <PillButton
-        label={'Request Maintenance Issue'}
-        isFullWidth
-        leftIconName={IconTool}
-        onPress={handleRequestMaintenance}
-      />
+      <Button onPress={handleRequestMaintenance}>
+        <IconTool size={20} color={COLORS.white} />
+        <Button.Label>
+          Request Maintenance Issue
+        </Button.Label>
+      </Button>
     </ScreenWrapper>
   );
 }

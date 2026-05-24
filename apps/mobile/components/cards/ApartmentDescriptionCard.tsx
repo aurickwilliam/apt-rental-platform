@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native';
 import { formatCurrency } from '@repo/utils';
 
-import PillButton from 'components/buttons/PillButton';
+import { Button } from 'heroui-native';
 
 interface ApartmentDescriptionCardProps {
   apartmentName?: string;
@@ -28,13 +28,13 @@ export default function ApartmentDescriptionCard({
   const formattedMonthlyRent = formatCurrency(monthlyRent);
 
   return (
-    <View className='w-full bg-darkerWhite rounded-2xl p-4'>
+    <View className='w-full bg-darkerWhite rounded-3xl p-4'>
       {/* Name and Address */}
       <View>
-        <Text className='text-xl font-interSemiBold text-text'>
+        <Text className='text-lg font-interSemiBold text-text'>
           {apartmentName}
         </Text>
-        <Text className='text-base text-text'>
+        <Text className='text-sm text-text'>
           {apartmentAddress}
         </Text>
       </View>
@@ -74,12 +74,15 @@ export default function ApartmentDescriptionCard({
 
       {/* Button to View More */}
       <View className='mt-5'>
-        <PillButton 
-          label={'View More Details'}      
-          type='outline'
-          size='sm'
+        <Button
+          variant="secondary"
+          size="sm"
           onPress={onPressViewMore}
-        />
+        >
+          <Button.Label>
+            View More Details
+          </Button.Label>
+        </Button>
       </View>
     </View>
   );
