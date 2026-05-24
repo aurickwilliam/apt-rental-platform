@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Linking, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
+
 import {
   MapView,
   Camera,
@@ -7,9 +8,11 @@ import {
   CircleLayer,
   setAccessToken,
 } from '@maplibre/maplibre-react-native';
+
 import { IconMap } from '@tabler/icons-react-native';
 
-import PillButton from 'components/buttons/PillButton';
+import { Dialog, Button } from "heroui-native"
+
 import { COLORS } from '@repo/constants';
 
 setAccessToken(null);
@@ -127,7 +130,7 @@ export default function MapPreviewSection({
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconMap size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           View on Map
         </Text>
       </View>
@@ -187,80 +190,101 @@ export default function MapPreviewSection({
           </MapView>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className='absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full'
+        <Button
           onPress={(event) => {
             event.stopPropagation();
             setIsDirectionsModalVisible(true);
           }}
+          size="sm"
+          variant="secondary"
+          className='absolute bottom-4 right-4 shadow-xs'
         >
-          <Text className='font-interMedium text-base text-primary'>
+          <Button.Label>
             Get Directions
-          </Text>
-        </TouchableOpacity>
+          </Button.Label>
+        </Button>
       </TouchableOpacity>
 
-      <Modal
-        visible={isDirectionsModalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setIsDirectionsModalVisible(false)}
+      <Dialog
+        isOpen={isDirectionsModalVisible}
+        onOpenChange={setIsDirectionsModalVisible}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          className='flex-1 bg-black/40 justify-center px-6'
-          onPress={() => setIsDirectionsModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            className='bg-white rounded-2xl p-5'
-            onPress={(event) => event.stopPropagation()}
-          >
-            <Text className='text-text font-interSemiBold text-lg'>
-              Choose Route Type
-            </Text>
-            <Text className='text-grey-500 font-inter mt-1'>
-              Select how you want to get there.
-            </Text>
+        <Dialog.Portal>
+          <Dialog.Overlay className="bg-black/40 items-center justify-center px-6" />
+          
+          <Dialog.Content className="w-full rounded-2xl bg-white p-5">
+            <Dialog.Close 
+              variant="ghost" 
+              className="absolute top-4 right-4 z-50"
+            />
 
-            <View className='mt-4 gap-3'>
-              <PillButton
-                label='Drive/4-Wheels'
-                size='sm'
-                onPress={() => handleSelectDirectionMode('driving')}
-              />
-              <PillButton
-                label='Motorcycle'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('motorcycle')}
-              />
-              <PillButton
-                label='Transit'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('transit')}
-              />
-              <PillButton
-                label='Walk/Bike'
-                size='sm'
-                type='outline'
-                onPress={() => handleSelectDirectionMode('walking')}
-              />
+            {/* Header */}
+            <View>
+              <Text className="font-interSemiBold text-lg text-text">
+                Choose Route Type
+              </Text>
+              <Text className="mt-1 font-inter text-grey-500">
+                Select how you want to get there.
+              </Text>
             </View>
 
-            <View className='mt-4'>
-              <PillButton
-                label='Cancel'
-                size='sm'
-                type='danger'
+            {/* Body */}
+            <View className="mt-4 gap-3">
+              <Button
+                size="sm"
+                onPress={() => handleSelectDirectionMode("driving")}
+              >
+                <Button.Label>
+                  Drive/4-Wheels
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("motorcycle")}
+              >
+                <Button.Label>
+                  Motorcycle
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("transit")}
+              >
+                <Button.Label>
+                  Transit
+                </Button.Label>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => handleSelectDirectionMode("walking")}
+              >
+                <Button.Label>
+                  Walk/Bike
+                </Button.Label>
+              </Button>
+            </View>
+
+            {/* Footer */}
+            <View className="mt-5">
+              <Button
+                variant="danger-soft"
+                size="sm"
                 onPress={() => setIsDirectionsModalVisible(false)}
-              />
+              >
+                <Button.Label>
+                  Cancel
+                </Button.Label>
+              </Button>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </>
   );
 }

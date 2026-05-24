@@ -1,15 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import { APARTMENT_TYPES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS, COLORS } from '@repo/constants';
+import { APARTMENT_TYPES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants';
 import { supabase } from '@repo/supabase';
 
 import { useFavorites } from '@/hooks/useFavorites';
 
 import { type FilterState } from 'components/display/FilterBottomSheet';
-
-import { useToast } from 'heroui-native';
-
-import { IconHeartFilled, IconHeartOff, IconAlertTriangle } from '@tabler/icons-react-native';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
 const PAGE_SIZE = 10;
@@ -33,8 +29,6 @@ export default function useSearchLogic() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isGridView, setIsGridView] = useState<boolean>(true);
   const { isFavorite, toggleFavorite } = useFavorites();
-
-  const { toast } = useToast();
 
   const pageRef = useRef(0);
 
@@ -304,26 +298,13 @@ export default function useSearchLogic() {
 
   const handleToggleFavorite = useCallback(
     async (id: string) => {
-      const wasAlreadyFavorite = isFavorite(id);
       try {
         await toggleFavorite(id);
-        toast.show({
-          variant: wasAlreadyFavorite ? 'default' : 'success',
-          label: wasAlreadyFavorite ? 'Removed from favorites' : 'Added to favorites',
-          icon: wasAlreadyFavorite
-            ? <IconHeartOff size={18} color={COLORS.text} style={{ marginTop: 3 }} />
-            : <IconHeartFilled size={18} color={COLORS.greenHulk} style={{ marginTop: 3 }} />
-        });
       } catch (err) {
         console.error('Error toggling favorite:', err);
-        toast.show({
-          variant: 'danger',
-          label: 'Something went wrong',
-          icon: <IconAlertTriangle size={18} color={COLORS.danger} />,
-        });
       }
     },
-    [toggleFavorite, isFavorite, toast]
+    [toggleFavorite]
   );
 
   return {

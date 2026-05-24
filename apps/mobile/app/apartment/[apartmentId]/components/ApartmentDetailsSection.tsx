@@ -28,7 +28,7 @@ function DetailBlock({
   return (
     <View className='flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl mb-2'>
       <Icon size={24} color={COLORS.text} />
-      <Text className='text-text font-interMedium text-base'>
+      <Text className='text-text font-interMedium text-sm'>
         {value}
       </Text>
     </View>

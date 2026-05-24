@@ -96,7 +96,7 @@ export default function RateApartment() {
       }
     >
       {/* Apartment Thumbnail */}
-      <View className='w-full h-[15rem]'>
+      <View className='w-full h-60'>
         <Image
           source={apartment.thumbnailUrl}
           style={{ width: '100%', height: '100%' }}
