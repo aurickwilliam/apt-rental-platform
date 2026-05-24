@@ -1,5 +1,5 @@
 import { View, Text, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from 'components/cards/PaymentSummaryCard'
@@ -58,15 +58,16 @@ type actionsTypes = {
   id: number;
   label: string;
   icon: React.ComponentType<IconProps>;
+  onPress?: () => void;
 }
 
 const actions: actionsTypes[] = [
   { id: 1, label: 'Chat Landlord', icon: IconBubbleText },
-  { id: 2, label: 'View Lease', icon: IconFileText },
+  { id: 2, label: 'View Lease', icon: IconFileText, onPress: () => router.push('/tenant/current-lease') },
   { id: 3, label: 'View Receipts', icon: IconReceipt },
   { id: 4, label: 'Pay Rent', icon: IconCash },
   { id: 5, label: 'Request Maintenance', icon: IconTool },
-  { id: 6, label: 'Property Details', icon: IconHome2 },
+  { id: 6, label: 'Property Details', icon: IconHome2, onPress: () => router.push('/tenant/current-apartment') },
   { id: 7, label: 'Settings', icon: IconSettings },
   { id: 8, label: 'FAQ', icon: IconHelp },
 ];
@@ -165,6 +166,7 @@ export default function Rentals() {
               key={action.id}
               label={action.label}
               icon={action.icon}
+              onPress={action.onPress}
             />
           ))}
         </View>
