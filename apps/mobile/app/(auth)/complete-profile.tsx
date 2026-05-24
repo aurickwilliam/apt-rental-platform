@@ -6,9 +6,6 @@ import { useState } from 'react';
 import { COLORS , PROVINCES , GENDERS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-// import TextField from 'components/inputs/TextField';
-import PillButton from 'components/buttons/PillButton';
-import NumberField from 'components/inputs/NumberField';
 import DateTimeField from 'components/inputs/DateTimeField';
 import DropdownField from 'components/inputs/DropdownField';
 

@@ -50,7 +50,7 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       if (__DEV__) {
-        router.replace('/(auth)/complete-profile');
+        router.replace('/(auth)/onboarding');
       }
     }
   }, [fontsLoaded, fontError]);

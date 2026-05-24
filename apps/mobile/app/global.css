@@ -52,6 +52,9 @@
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
 
+    --secondary: var(--color-secondary);
+    --secondary-foreground: oklch(1 0 0);
+
     --warning: var(--color-secondary);
     --warning-foreground: oklch(1 0 0);
 
@@ -69,6 +72,9 @@
   @variant dark {
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
+
+    --secondary: var(--color-secondary);
+    --secondary-foreground: oklch(0.2 0 0);
 
     --warning: var(--color-secondary);
     --warning-foreground: oklch(0.2 0 0);
