@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native'
+import { Card } from 'heroui-native'
 
-// Icons Import
 import {
   IconSettingsExclamation,
   IconInfoSquareRoundedFilled,
@@ -17,13 +17,15 @@ interface NotificationCardProps {
   type: 'payment' | 'message' | 'maintenance' | 'apartment' | 'system';
   message?: string;
   date?: string;
+  onPress?: () => void;
 }
 
 export default function NotificationCard({
   title,
   type = "system",
   message = "New Message",
-  date = "0/0/0000"
+  date = "0/0/0000",
+  onPress,
 }: NotificationCardProps) {
 
   const iconMap = {
@@ -39,36 +41,40 @@ export default function NotificationCard({
     message: COLORS.primary,
     maintenance: COLORS.yellowish,
     apartment: COLORS.primary,
-    system: COLORS.grey
+    system: COLORS.grey,
   }
 
-  const Icon = iconMap[type] || IconInfoSquareRoundedFilled;
-  const iconColor = colorMap[type] || COLORS.grey;
+  const Icon = iconMap[type] ?? IconInfoSquareRoundedFilled;
+  const iconColor = colorMap[type] ?? COLORS.grey;
 
   return (
-    <TouchableOpacity
-      className='bg-white p-2 rounded-xl border border-grey-300'
-      activeOpacity={0.7}
+    <TouchableOpacity 
+      activeOpacity={0.7} 
+      onPress={onPress}
     >
-      {/* Title */}
-      <View className='flex-row items-center justify-start gap-1'>
-        <Icon 
-          size={28} color={iconColor}
-        />
-        <Text className='text-text text-lg font-interSemiBold'>
-          {title}
-        </Text>
-      </View>
+      <Card className="bg-white rounded-xl border border-grey-200 p-4 shadow-none">
+        <Card.Header>
+          <View className="flex-row items-center gap-2">
+            <Icon size={20} color={iconColor} />
 
-      {/* Message */}
-      <Text className='text-text font-inter mt-2'>
-        {message}
-      </Text>
+            <Card.Title className="text-base font-interMedium">
+              {title}
+            </Card.Title>
+          </View>
+        </Card.Header>
 
-      {/* Date */}
-      <Text className='text-grey-300 text-sm mt-2'>
-        {date}
-      </Text>
+        <Card.Body className="pt-2">
+          <Card.Description className="text-text font-inter">
+            {message}
+          </Card.Description>
+        </Card.Body>
+
+        <Card.Footer className="pt-2">
+          <Text className="text-grey-300 text-sm">
+            {date}
+          </Text>
+        </Card.Footer>
+      </Card>
     </TouchableOpacity>
   )
 }
