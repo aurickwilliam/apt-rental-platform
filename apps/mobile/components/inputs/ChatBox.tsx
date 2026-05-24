@@ -1,8 +1,10 @@
-import { View, TextInput, TouchableOpacity } from 'react-native'
+import { View } from 'react-native'
 import { useState } from 'react'
 
 import { COLORS } from '@repo/constants';
 import { IconArrowUp } from '@tabler/icons-react-native';
+
+import { Button, Input, TextField } from 'heroui-native';
 
 interface ChatBoxProps {
   chatValue: string;
@@ -29,42 +31,36 @@ export default function ChatBox({
   const borderColor = isFocused ? 'border-primary' : 'border-grey-300';
 
   return (
-    <View className={`px-5 flex-row items-center justify-between gap-3`}>
-      <View className={`flex-1 bg-white p-4 rounded-full border-2 ${borderColor}`}>
-        <TextInput
+    <View className="px-5 flex-row items-center justify-between gap-3">
+      <TextField
+        isDisabled={isDisabled}
+        className="flex-1"
+        onFocus={() => {
+          setIsFocused(true);
+          onFocus?.();
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+          onBlur?.();
+        }}
+      >
+        <Input
           value={chatValue}
           numberOfLines={1}
-          editable={!isDisabled}
           onChangeText={onChatValueChange}
-          style={{
-            flex: 1,
-            height: '100%',
-            paddingVertical: 0,
-            color: isDisabled ? COLORS.mediumGrey : COLORS.text,
-            fontFamily: 'Inter_24pt-Regular',
-            fontSize: 16,
-            lineHeight: 20,
-          }}
           placeholder={chatPlaceholder}
-          placeholderTextColor={COLORS.grey}
-          onFocus={() => {
-            setIsFocused(true);
-            onFocus?.();
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-            onBlur?.();
-          }}
+          className={`rounded-full ${borderColor}`}
         />
-      </View>
+      </TextField>
 
-      <TouchableOpacity 
-        activeOpacity={0.7}
+      <Button
+        isIconOnly
+        isDisabled={isDisabled}
         onPress={onSendPress}
-        className='bg-secondary p-4 rounded-full'
+        className="bg-secondary rounded-full"
       >
         <IconArrowUp size={26} color={COLORS.white} />
-      </TouchableOpacity>
+      </Button>
     </View>
   )
 }
