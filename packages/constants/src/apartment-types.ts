@@ -4,6 +4,4 @@ export const APARTMENT_TYPES = [
   "House",
   "Apartment",
   "Townhouse",
-  "Boarding House / Room",
-  "Bedspace",
 ]
