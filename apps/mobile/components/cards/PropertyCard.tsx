@@ -58,7 +58,7 @@ export default function PropertyCard({
         />
 
         {/* Content */}
-        <Card.Body className='px-3 py-2 min-w-0 justify-between'>
+        <Card.Body className='px-3 py-2 min-w-0 justify-between flex-1'>
           <View>
             <Card.Title
               className='text-base font-interMedium text-text leading-snug'

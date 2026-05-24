@@ -4,8 +4,11 @@ import { useState } from 'react'
 import { MapView, Camera, PointAnnotation, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native'
+
 import { COLORS } from '@repo/constants'
+
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
 
 setAccessToken(null)
@@ -123,11 +126,16 @@ export default function MapPin() {
             </Text>
           </View>
 
-          <PillButton
+          {/* <PillButton
             label='Confirm Location'
             isFullWidth
             onPress={handleConfirm}
-          />
+          /> */}
+          <Button onPress={handleConfirm}>
+            <Button.Label>
+              Confirm Location
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>

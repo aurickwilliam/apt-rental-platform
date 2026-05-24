@@ -206,7 +206,7 @@ export default function FifthStep() {
           pointerEvents='none'
         >
           {/* Apartment Details */}
-          <View>
+          <View className="mb-5">
             <Text className='text-white font-interSemiBold text-2xl'>
               {name || 'Unnamed Apartment'}
             </Text>
@@ -294,7 +294,7 @@ export default function FifthStep() {
           <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
             <IconBuildingSkyscraper size={24} color={COLORS.text} />
             <Text className='text-text font-interMedium text-base'>
-              {floorLevel ? `Floor ${floorLevel}` : 'N/A'}
+              {floorLevel ? `${floorLevel}` : 'N/A'}
             </Text>
           </View>
         </View>
@@ -537,7 +537,7 @@ export default function FifthStep() {
         <Dialog.Portal>
           <Dialog.Overlay />
           <Dialog.Content>
-            <Dialog.Close />
+            <Dialog.Close variant='ghost' className='absolute top-4 right-4' />
             <View className='mb-4 gap-1.5'>
               <Dialog.Title>Publish Failed</Dialog.Title>
               <Dialog.Description>{publishError}</Dialog.Description>

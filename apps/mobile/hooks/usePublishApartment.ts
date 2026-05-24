@@ -1,4 +1,3 @@
-// hooks/usePublishApartment.ts
 import { useState } from 'react'
 import { supabase } from '@repo/supabase'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
