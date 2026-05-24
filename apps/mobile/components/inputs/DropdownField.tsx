@@ -1,12 +1,36 @@
-import { useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, Pressable, TouchableOpacity } from 'react-native';
+import { useState, useMemo } from 'react';
+import { View, Text, Pressable } from 'react-native';
 
-import { BottomSheetModal, BottomSheetBackdrop, BottomSheetFlatList, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+import { BottomSheet, Input, useBottomSheetAwareHandlers } from 'heroui-native';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
-import { Ionicons } from '@expo/vector-icons';
+import {
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react-native"
 
 import { COLORS } from '@repo/constants';
+
+interface SearchInputProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+}
+
+function SearchInput({ value, onChangeText, placeholder }: SearchInputProps) {
+  const { onFocus, onBlur } = useBottomSheetAwareHandlers();
+
+  return (
+    <Input
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      className="mb-2"
+    />
+  );
+}
 
 interface DropdownFieldProps {
   label: string;
@@ -31,154 +55,123 @@ export default function DropdownField({
   required = false,
   error,
   enableSearch = false,
-  searchPlaceholder = 'Search...'
+  searchPlaceholder = 'Search...',
 }: DropdownFieldProps) {
-  
-  const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['50%', '75%'], []);
-
-  // Filter options based on search query
   const filteredOptions = useMemo(() => {
-    if (!enableSearch || searchQuery.trim() === '') {
-      return options;
-    }
-
-    return options.filter((option: string) =>
-      option.toLowerCase().startsWith(searchQuery.toLowerCase())
+    if (!enableSearch || !searchQuery.trim()) return options;
+    return options.filter((o) =>
+      o.toLowerCase().startsWith(searchQuery.toLowerCase())
     );
   }, [options, searchQuery, enableSearch]);
 
-  const openSheet = useCallback(() => {
-    setIsFocused(true);
-    bottomSheetRef.current?.present();
-  }, []);
-
-  const closeSheet = useCallback(() => {
-    setIsFocused(false);
-    bottomSheetRef.current?.dismiss();
-  }, []);
-
-  const handleOnDismiss = useCallback(() => {
-    setIsFocused(false);
-    setSearchQuery('');
-  }, []);
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) setSearchQuery('');
+  };
 
   return (
-    <View className='w-full flex-col gap-2'>
+    <View className="w-full flex-col gap-2">
 
-      {/* Label Text */}
-      <Text className='text-md text-text font-interMedium'>
-        {label} {required && <Text className='text-redHead-200'>*</Text>}
+      <Text className="text-base text-text font-interMedium">
+        {label} {required && <Text className="text-redHead-200">*</Text>}
       </Text>
 
-      {/* Trigger Field */}
-      <TouchableOpacity
-        className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-16 flex-row items-center 
-          justify-between ${error ? 'border-redHead-200' : 
-          isFocused ? 'border-primary' : 'border-gray-200'}`}
-        onPress={openSheet}
-      >
-        <Text className={`text-lg font-inter ${value ? 'text-text' : 'text-gray-400'}`}>
-          {value || placeholder}
-        </Text>
+      <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
 
-        <Ionicons 
-          name={`${isFocused ? 'caret-up' : 'caret-down'}`}
-          size={24}
-          color={COLORS.text}
-        />
-      </TouchableOpacity>
+        <BottomSheet.Trigger asChild>
+          <Pressable
+            style={{ alignItems: 'center' }} 
+            className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
+              justify-between shadow-xs ${
+                error
+                  ? 'border-redHead-200'
+                  : isOpen
+                  ? 'border-primary'
+                  : 'border-gray-200'
+              }`}
+          >
+            <Text className={`font-inter ${value ? 'text-text' : 'text-gray-500'}`}>
+              {value || placeholder}
+            </Text>
 
-      {/* Bottom Sheet Modal */}
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        index={0} 
-        enablePanDownToClose={true}
-        enableDynamicSizing={false}
-        keyboardBehavior='extend'
-        keyboardBlurBehavior='restore'
-        android_keyboardInputMode='adjustResize'
+            {/* <Ionicons
+              name={isOpen ? 'caret-up' : 'caret-down'}
+              size={24}
+              color={COLORS.text}
+            /> */}
+            {isOpen ? (
+              <ChevronUp size={24} color={COLORS.text} />
+            ) : (
+              <ChevronDown size={24} color={COLORS.text} />
+            )}
+          </Pressable>
+        </BottomSheet.Trigger>
 
-        backdropComponent={renderBackdrop}
-        backgroundStyle={{
-          backgroundColor: 'white',
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
-        }}
-        handleIndicatorStyle={{
-          backgroundColor: '#ccc',
-          width: 40,
-        }}
-        style={{ zIndex: 9999 }}
-        onDismiss={handleOnDismiss}
-      >
-        <BottomSheetFlatList
-          data={filteredOptions}
-          keyExtractor={(item: string) => item}
-          renderItem={({ item }: { item: string }) => (
-            <Pressable
-              className='p-4 rounded-lg border-b border-grey-100'
-              onPress={() => {
-                onSelect(item);
-                closeSheet();
-              }}
-            >
-              <Text className='text-lg text-text text-left font-inter'>{item}</Text>
-            </Pressable>
-          )}
-
-          ListHeaderComponent={
-            <View>
-              <Text className='text-lg text-center text-text font-interMedium border-b
-                border-grey-200 pb-3 mb-4'>
-                {bottomSheetLabel}
-              </Text>
-
-              {
-                enableSearch && 
-                <BottomSheetTextInput
-                  className='w-full p-4 mb-2 text-lg text-text border-2 border-grey-200 rounded-2xl font-inter'
-                  placeholder={searchPlaceholder}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
+        <BottomSheet.Portal>
+          <BottomSheet.Overlay />
+          <BottomSheet.Content
+            snapPoints={['50%', '75%']}
+            enableOverDrag={false}
+            enableDynamicSizing={false}
+            contentContainerClassName="h-full"
+            keyboardBehavior="extend"
+            keyboardBlurBehavior="restore"
+            android_keyboardInputMode="adjustResize"
+            backgroundClassName="bg-white"
+            handleIndicatorClassName="bg-gray-300 w-10"
+          >
+            <BottomSheetFlatList
+              data={filteredOptions}
+              keyExtractor={(item: string) => item}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }: { item: string }) => (
+                <Pressable
+                  className="p-4 rounded-lg border-b border-grey-100"
+                  onPress={() => {
+                    onSelect(item);
+                    setIsOpen(false);
+                  }}
+                >
+                  <Text className="text-base text-text text-left font-inter">{item}</Text>
+                </Pressable>
+              )}
+              ListHeaderComponent={
+                <View>
+                  <Text className="text-base text-center text-text font-interMedium border-b border-grey-200 pb-3 mb-4">
+                    {bottomSheetLabel}
+                  </Text>
+                  {enableSearch && (
+                    <SearchInput
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder={searchPlaceholder}
+                    />
+                  )}
+                </View>
               }
+              ListEmptyComponent={
+                <View className="py-8 items-center justify-center">
+                  <Text className="text-lg text-gray-500 font-inter">
+                    {searchQuery.trim() ? 'No results found' : 'No options available'}
+                  </Text>
+                </View>
+              }
+              contentContainerStyle={{
+                paddingBottom: 80,
+              }}
+            />
+          </BottomSheet.Content>
+        </BottomSheet.Portal>
 
-            </View>
-          }
+      </BottomSheet>
 
-          ListEmptyComponent={
-            <View className='h-full py-8 items-center justify-center'>
-              <Text className='text-lg text-gray-500 font-inter'>
-                {searchQuery.trim() ? 'No results found' : 'No options available'}
-              </Text>
-            </View>
-          }
+      {error && (
+        <Text className="text-sm text-redHead-200 font-inter">{error}</Text>
+      )}
 
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 80,
-          }}
-        />
-      </BottomSheetModal>
     </View>
   );
 }

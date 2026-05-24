@@ -2,7 +2,7 @@ import { Text, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 
 const DEV_ROUTES = [
-  { label: 'OTP Verification', href: '/(auth)/forgot-password/otp-verification' },
+  { label: 'Complete Profile', href: '/(auth)/complete-profile' },
   { label: 'Reset Password', href: '/(auth)/forgot-password/reset-password' },
   { label: 'Updated', href: '/(auth)/forgot-password/updated' },
 ];

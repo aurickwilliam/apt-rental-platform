@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { HeroUINativeProvider } from "heroui-native";
 
 import * as WebBrowser from "expo-web-browser";
@@ -49,7 +50,7 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       if (__DEV__) {
-        router.replace('/dev');
+        router.replace('/(auth)/complete-profile');
       }
     }
   }, [fontsLoaded, fontError]);
@@ -61,27 +62,30 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
-        <StatusBar style="light" backgroundColor={COLORS.primary} />
-        <BottomSheetModalProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
-            <Stack.Screen name="dev" />
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="chat/[conversationId]" />
-            <Stack.Screen name="tenant" />
-            <Stack.Screen name="landlord-profile/[landlordId]" />
-            <Stack.Screen name="apartment/[apartmentId]" />
-            <Stack.Screen name="(notification)" />
-            <Stack.Screen name="settings" />
-            <Stack.Screen name="document-id" />
-            <Stack.Screen name="manage-apartment/[apartmentId]" />
-          </Stack>
-        </BottomSheetModalProvider>
+        <PortalProvider>
+          <StatusBar style="light" backgroundColor={COLORS.primary} />
+          <BottomSheetModalProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="dev" />
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="chat/[conversationId]" />
+              <Stack.Screen name="tenant" />
+              <Stack.Screen name="landlord-profile/[landlordId]" />
+              <Stack.Screen name="apartment/[apartmentId]" />
+              <Stack.Screen name="(notification)" />
+              <Stack.Screen name="settings" />
+              <Stack.Screen name="document-id" />
+              <Stack.Screen name="manage-apartment/[apartmentId]" />
+            </Stack>
+          </BottomSheetModalProvider>
+          <PortalHost name="root" />
+        </PortalProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
   );
