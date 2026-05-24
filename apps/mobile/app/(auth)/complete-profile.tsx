@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { COLORS , PROVINCES , GENDERS } from '@repo/constants';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import TextField from 'components/inputs/TextField';
+// import TextField from 'components/inputs/TextField';
 import PillButton from 'components/buttons/PillButton';
 import NumberField from 'components/inputs/NumberField';
 import DateTimeField from 'components/inputs/DateTimeField';
@@ -15,6 +15,15 @@ import DropdownField from 'components/inputs/DropdownField';
 import { usePasswordValidation, usePHPostalCode } from '@repo/hooks';
 
 import { useRegistrationStore } from '@/store/useRegistrationStore';
+
+import { 
+  CloseButton,
+  TextField,
+  Label,
+  Input,
+  FieldError,
+  Button
+} from 'heroui-native';
 
 type ProfileForm = {
   email: string;
@@ -150,9 +159,10 @@ export default function CompleteProfile() {
     >
 
       {/* Back button */}
-      <Pressable className="mb-3" onPress={handleBackToSignUp}>
-        <Ionicons name="close" size={30} color={COLORS.text} />
-      </Pressable>
+      <CloseButton 
+        onPress={handleBackToSignUp} 
+        iconProps={{ size: 20, color: COLORS.text }}
+      />
 
       {/* Title */}
       <Text className="text-2xl text-text font-interSemiBold my-5">
@@ -163,36 +173,39 @@ export default function CompleteProfile() {
 
       <View className="flex gap-4">
         {/* Email Address Field */}
-        <TextField
-          label="Email Address:"
-          value={emailValue}
-          disabled
-        />
+        <TextField isDisabled>
+          <Label>Email Address:</Label>
+          <Input value={emailValue} />
+        </TextField>
 
         {/* First Name Field */}
-        <TextField
-          label="First Name:"
-          placeholder="Enter your first name"
-          required
-          onChangeText={(value) => updateField('firstName', value)}
-          error={getError('firstName')}
-        />
+        <TextField isRequired isInvalid={!!getError('firstName')}>
+          <Label>First Name:</Label>
+          <Input
+            placeholder="Enter your first name"
+            onChangeText={(value) => updateField('firstName', value)}
+          />
+          {getError('firstName') && <FieldError>{getError('firstName')}</FieldError>}
+        </TextField>
 
         {/* Last Name Field */}
-        <TextField
-          label="Last Name:"
-          placeholder="Enter your last name"
-          required
-          onChangeText={(value) => updateField('lastName', value)}
-          error={getError('lastName')}
-        />
+        <TextField isRequired isInvalid={!!getError('lastName')}>
+          <Label>Last Name:</Label>
+          <Input
+            placeholder="Enter your last name"
+            onChangeText={(value) => updateField('lastName', value)}
+          />
+          {getError('lastName') && <FieldError>{getError('lastName')}</FieldError>}
+        </TextField>
 
         {/* Middle Name Field */}
-        <TextField
-          label="Middle Name:"
-          placeholder="Enter your middle name"
-          onChangeText={(value) => updateField('middleName', value)}
-        />
+        <TextField>
+          <Label>Middle Name:</Label>
+          <Input
+            placeholder="Enter your middle name"
+            onChangeText={(value) => updateField('middleName', value)}
+          />
+        </TextField>
 
         {/* Gender Field */}
         <DropdownField
@@ -207,31 +220,34 @@ export default function CompleteProfile() {
         />
 
         {/* Current Address Field */}
-        <TextField
-          label="Current Address:"
-          placeholder="Enter your current address"
-          required
-          onChangeText={(value) => updateField('currentAddress', value)}
-          error={getError('currentAddress')}
-        />
+        <TextField isRequired isInvalid={!!getError('currentAddress')}>
+          <Label>Current Address:</Label>
+          <Input
+            placeholder="Enter your current address"
+            onChangeText={(value) => updateField('currentAddress', value)}
+          />
+          {getError('currentAddress') && <FieldError>{getError('currentAddress')}</FieldError>}
+        </TextField>
 
         {/* Barangay Field */}
-        <TextField
-          label="Barangay:"
-          placeholder="Enter your barangay"
-          required
-          onChangeText={(value) => updateField('barangay', value)}
-          error={getError('barangay')}
-        />
+        <TextField isRequired isInvalid={!!getError('barangay')}>
+          <Label>Barangay:</Label>
+          <Input
+            placeholder="Enter your barangay"
+            onChangeText={(value) => updateField('barangay', value)}
+          />
+          {getError('barangay') && <FieldError>{getError('barangay')}</FieldError>}
+        </TextField>
 
-        {/* City Field  */}
-        <TextField
-          label="City:"
-          placeholder="Enter your city"
-          required
-          onChangeText={(value) => updateField('city', value)}
-          error={getError('city')}
-        />
+        {/* City Field */}
+        <TextField isRequired isInvalid={!!getError('city')}>
+          <Label>City:</Label>
+          <Input
+            placeholder="Enter your city"
+            onChangeText={(value) => updateField('city', value)}
+          />
+          {getError('city') && <FieldError>{getError('city')}</FieldError>}
+        </TextField>
 
         {/* Province Field */}
         <DropdownField
@@ -248,19 +264,23 @@ export default function CompleteProfile() {
         />
 
         {/* Postal Code Field */}
-        <NumberField
-          label="Postal Code:"
-          placeholder="Enter your postal code"
-          maxLength={4}
-          value={postalCode}
-          onChange={(value) => {
-            handlePostalCodeChange(value);
-            updateField('postalCode', value);
-          }}
-          onBlur={handlePostalCodeBlur}
-          required
-          error={getError('postalCode')}
-        />
+        <TextField isRequired isInvalid={!!getError('postalCode')}>
+          <Label>Postal Code</Label>
+          <Input
+            placeholder="Enter your postal code"
+            keyboardType="numeric"
+            maxLength={4}
+            value={postalCode}
+            onChangeText={(value) => {
+              handlePostalCodeChange(value);
+              updateField('postalCode', value);
+            }}
+            onBlur={handlePostalCodeBlur}
+          />
+          {getError('postalCode') && (
+            <FieldError>{getError('postalCode')}</FieldError>
+          )}
+        </TextField>
 
         {/* Date of Birth Field */}
         <DateTimeField
@@ -276,36 +296,38 @@ export default function CompleteProfile() {
         />
 
         {/* Password Field */}
-        <TextField
-          label="Password:"
-          placeholder="Create a password"
-          isPassword
-          required
-          value={password}
-          onChangeText={(value) => {
-            setPassword(value);
-            updateField('password', value);
-          }}
-          error={getError('password')}
-        />
+        <TextField isRequired isInvalid={!!getError('password')}>
+          <Label>Password:</Label>
+          <Input
+            placeholder="Create a password"
+            secureTextEntry
+            value={password}
+            onChangeText={(value) => {
+              setPassword(value);
+              updateField('password', value);
+            }}
+          />
+          {getError('password') && <FieldError>{getError('password')}</FieldError>}
+        </TextField>
 
         {/* Confirm Password Field */}
-        <TextField
-          label="Confirm Password:"
-          placeholder="Confirm your password"
-          isPassword
-          required
-          value={confirmPassword}
-          onChangeText={(value) => {
-            setConfirmPassword(value);
-            updateField('confirmPassword', value);
-          }}
-          error={getError('confirmPassword')}
-        />
+        <TextField isRequired isInvalid={!!getError('confirmPassword')}>
+          <Label>Confirm Password:</Label>
+          <Input
+            placeholder="Confirm your password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={(value) => {
+              setConfirmPassword(value);
+              updateField('confirmPassword', value);
+            }}
+          />
+          {getError('confirmPassword') && <FieldError>{getError('confirmPassword')}</FieldError>}
+        </TextField>
 
         {/* Password Checker */}
         <View className="flex-col gap-1">
-          <Text className='text-base text-text font-interMedium mb-2'>
+          <Text className='text-text font-interMedium mb-2'>
             Your password must contain:
           </Text>
 
@@ -371,11 +393,11 @@ export default function CompleteProfile() {
 
       {/* Submit Button */}
       <View className="mt-16 mb-0">
-        <PillButton
-          label="Submit"
-          isFullWidth
-          onPress={handleSubmit}
-        />
+        <Button onPress={handleSubmit}>
+          <Button.Label>
+            Submit
+          </Button.Label>
+        </Button>
       </View>
 
     </ScreenWrapper>
