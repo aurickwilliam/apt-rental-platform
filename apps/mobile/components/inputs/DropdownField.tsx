@@ -75,7 +75,7 @@ export default function DropdownField({
   return (
     <View className="w-full flex-col gap-2">
 
-      <Text className="text-base text-text font-interMedium">
+      <Text className={`text-base font-interMedium ${error ? 'text-redHead-200' : 'text-text'}`}>
         {label} {required && <Text className="text-redHead-200">*</Text>}
       </Text>
 
