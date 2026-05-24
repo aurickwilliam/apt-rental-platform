@@ -162,7 +162,7 @@ export default function FifthStep() {
         totalSteps={5}
       />
 
-      <View className='h-[42rem] bg-white relative'>
+      <View className='h-168 bg-white relative'>
         {/* Image Carousel */}
         <ScrollView
           ref={imageScrollViewRef}

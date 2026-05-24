@@ -49,9 +49,9 @@ export default function RootLayout() {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
 
-      // if (__DEV__) {
-      //   router.replace('/(auth)/personalization/step-five');
-      // }
+      if (__DEV__) {
+        router.replace('/manage-apartment/add-apartment/fifth-step');
+      }
     }
   }, [fontsLoaded, fontError]);
 

@@ -4,9 +4,9 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
-import TextBox from '@/components/inputs/TextBox'
-import PillButton from '@/components/buttons/PillButton'
 import PerkButton from '../components/PerkButton'
+
+import { TextField, Label, TextArea, FieldError, Button } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
@@ -53,23 +53,22 @@ export default function FourthStep() {
       />
 
       <View className='p-5 flex-1'>
-        {/* Description Field */}
-        <TextBox
-          label='Apartment Description:'
-          required
-          placeholder='Write a detailed description of the apartment, including its features, amenities, and any other relevant information that would attract potential renters.'
-          boxHeight={200}
-          value={description}
-          onChangeText={(text) => {
-            setDescription(text)
-            if (errors.description) setErrors((e) => ({ ...e, description: undefined }))
-          }}
-        />
-        {errors.description && (
-          <Text className='text-red-500 text-sm font-inter mt-1'>
-            {errors.description}
-          </Text>
-        )}
+        <TextField
+          isRequired
+          isInvalid={!!errors.description}
+        >
+          <Label>Apartment Description:</Label>
+          <TextArea
+            placeholder='Write a detailed description of the apartment, including its features, amenities, and any other relevant information that would attract potential renters.'
+            value={description}
+            onChangeText={(text) => {
+              setDescription(text)
+              if (errors.description) setErrors((e) => ({ ...e, description: undefined }))
+            }}
+            className='h-50'
+          />
+          {errors.description && <FieldError>{errors.description}</FieldError>}
+        </TextField>
 
         {/* Amenities Section */}
         <View className='mt-5 flex gap-3'>
@@ -102,32 +101,38 @@ export default function FourthStep() {
               </Text>
             )
           )}
-
-          <PillButton
-            label={amenities.length > 0 ? `Edit Amenities (${amenities.length})` : 'Add Amenities'}
+          
+          <Button
             size='sm'
-            type='outline'
+            variant='tertiary'
             onPress={() => router.push('/manage-apartment/add-apartment/amenities')}
-          />
+          >
+            <Button.Label>
+              {amenities.length > 0 ? `Edit Amenities (${amenities.length})` : 'Add Amenities'}
+            </Button.Label>
+          </Button>
         </View>
 
         {/* Back or Next Button */}
         <View className='flex-row mt-auto pt-10 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Back'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={handleNext}
-            />
-          </View>
+          <Button
+            variant="outline"
+            onPress={() => router.back()}
+            className="flex-1"
+          >
+            <Button.Label>
+              Back
+            </Button.Label>
+          </Button>
+
+          <Button
+            onPress={handleNext}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
