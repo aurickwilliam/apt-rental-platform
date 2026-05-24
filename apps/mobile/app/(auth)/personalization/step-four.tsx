@@ -6,6 +6,8 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import PillButton from "components/buttons/PillButton";
 import PersonalizationRadioButton from "components/buttons/PersonalizationRadioButton";
 
+import { Button } from "heroui-native";
+
 export default function StepFour() {
   const router = useRouter();
 
@@ -42,12 +44,12 @@ export default function StepFour() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             {/* Question */}
-            <Text className="text-secondary text-3xl font-nunito">
+            <Text className="text-secondary text-2xl font-nunitoMedium">
               Can you share with us your family information?
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-lg font-inter">
+            <Text className="text-text text-base font-inter">
               Help us personalize listings that fit your household.
             </Text>
           </View>
@@ -68,11 +70,11 @@ export default function StepFour() {
         </View>
 
         {/* Next Button*/}
-        <PillButton
-          label={"Continue"}
-          onPress={handleNext}
-          isFullWidth
-        />
+        <Button onPress={handleNext}>
+          <Button.Label>
+            Continue
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   );
