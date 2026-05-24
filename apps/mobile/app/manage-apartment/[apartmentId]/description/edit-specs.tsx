@@ -5,9 +5,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
-import PillButton from '@/components/buttons/PillButton'
+
 import DropdownField from '@/components/inputs/DropdownField'
-import NumberField from '@/components/inputs/NumberField'
+
+import { Input, Label, TextField, FieldError, Button } from "heroui-native"
 
 import {
   IconCirclePlus,
@@ -125,6 +126,7 @@ export default function EditSpecs() {
 
   return (
     <ScreenWrapper
+      scrollable
       className='p-5'
       header={
         <StandardHeader title='Edit Room/Unit Details' />
@@ -142,14 +144,16 @@ export default function EditSpecs() {
           onSelect={(val) => setPropertyType(val)}
         />
 
-        <NumberField
-          label='Floor Area (sqm):'
-          required
-          placeholder='Enter floor area'
-          value={floorArea}
-          error={errors.floorArea ?? ''}
-          onChange={(val) => setFloorArea(val)}
-        />
+        <TextField isRequired isInvalid={!!errors.floorArea}>
+          <Label>Floor Area (sqm)</Label>
+          <Input
+            placeholder="Enter floor area"
+            keyboardType="numeric"
+            value={floorArea}
+            onChangeText={(val) => setFloorArea(val)}
+          />
+          {errors.floorArea && <FieldError>{errors.floorArea}</FieldError>}
+        </TextField>
 
         <DropdownField
           label='Furnished Type:'
@@ -243,12 +247,15 @@ export default function EditSpecs() {
 
       <View className='flex-1' />
 
-      <PillButton
-        label={loading ? 'Saving...' : 'Save Changes'}
+      <Button
         onPress={handleSaveChanges}
         isDisabled={loading}
-      />
-
+        className='mt-10'
+      >
+        <Button.Label>
+          {loading ? 'Saving...' : 'Save Changes'}
+        </Button.Label>
+      </Button>
     </ScreenWrapper>
   );
 }

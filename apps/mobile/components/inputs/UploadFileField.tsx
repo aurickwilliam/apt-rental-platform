@@ -6,6 +6,8 @@ import PillButton from 'components/buttons/PillButton'
 import { COLORS } from '@repo/constants'
 import { IconFileUpload, IconFile, IconX } from '@tabler/icons-react-native'
 
+import { Button } from "heroui-native"
+
 interface UploadFileFieldProps {
   label: string
   placeholder?: string
@@ -137,30 +139,31 @@ export default function UploadFileField({
 
       {/* Buttons */}
       <View className="flex-1 flex-row gap-4 mt-3">
-        <View className="flex-1">
-          <PillButton
-            label={hasFile ? 'Replace File' : 'Upload a File'}
-            size="sm"
-            type="secondary"
-            isFullWidth
-            leftIconName={IconFileUpload}
-            onPress={pickFile}
-            isDisabled={disabled || loading}
-          />
-        </View>
-        {hasFile && (
-          <View className="flex-1">
-            <PillButton
-              label="Remove File"
-              size="sm"
-              type="secondary"
-              isFullWidth
-              leftIconName={IconX}
-              onPress={removeFile}
-              isDisabled={disabled}
-            />
-          </View>
-        )}
+        <Button
+          size="sm"
+          onPress={pickFile}
+          isDisabled={disabled || loading}
+          className="flex-1"
+          variant="secondary"
+        >
+          <IconFileUpload size={16} color={COLORS.primary} />
+          <Button.Label>
+            {hasFile ? 'Replace File' : 'Upload a File'}
+          </Button.Label>
+        </Button>
+
+        <Button
+          size="sm"
+          onPress={removeFile}
+          isDisabled={disabled}
+          className="flex-1"
+          variant="danger-soft"
+        >
+          <IconX size={16} color={COLORS.lightRedHead} />
+          <Button.Label>
+            Remove File
+          </Button.Label>
+        </Button>
       </View>
     </View>
   )
