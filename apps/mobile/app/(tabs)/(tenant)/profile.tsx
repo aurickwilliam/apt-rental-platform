@@ -113,7 +113,9 @@ export default function Profile() {
           >
             <Avatar.Image source={{ uri: profile?.avatar_url ?? '' }} />
             <Avatar.Fallback delayMs={200}>
-              {avatarInitials || 'U'}
+              <Text className="text-5xl mt-5 font-medium text-primary">
+                {avatarInitials || 'U'}
+              </Text>
             </Avatar.Fallback>
           </Avatar>
 
