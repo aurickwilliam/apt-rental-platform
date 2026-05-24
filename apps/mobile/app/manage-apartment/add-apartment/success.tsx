@@ -1,13 +1,15 @@
 import { View, Text, Image } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
 
 import { IMAGES } from '@/constants/images'
 
+import { Button } from "heroui-native"
+
 export default function Success() {
   const router = useRouter();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   return (
     <ScreenWrapper
@@ -19,26 +21,27 @@ export default function Success() {
       />
 
       <View>
-        <Text className='text-2xl font-interSemiBold text-center mt-5 text-primary'>
+        <Text className='text-lg font-interSemiBold text-center mt-5 text-primary'>
           You’ve successfully posted your property!
         </Text>
 
-        <Text className='text-lg font-interMedium text-center mt-5 text-text'>
+        <Text className='text-sm font-interMedium text-center mt-2 text-text'>
           Great job! Tenants can now view and apply for your listing. Keep it updated to attract more renters.
         </Text>
       </View>
 
       <View className='w-full mt-10 flex gap-3'>
-        <PillButton
-          label='View My Property'
-          onPress={() => router.push('/manage-apartment/1')}
-        />
+        <Button onPress={() => router.replace(`/manage-apartment/${apartmentId}`)}>
+          <Button.Label>
+            View My Property
+          </Button.Label>
+        </Button>
 
-        <PillButton
-          label='Go to Dashboard'
-          type='outline'
-          onPress={() => router.push('/(tabs)/(landlord)/dashboard')}
-        />
+        <Button variant="tertiary" onPress={() => router.replace('/(tabs)/(landlord)/dashboard')}>
+          <Button.Label>
+            Go to Dashboard
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )

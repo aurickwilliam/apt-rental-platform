@@ -43,7 +43,7 @@ export function usePublishApartment() {
 
   const clearError = () => setError(null);
 
-  const publish = async (): Promise<boolean> => {
+  const publish = async (): Promise<string | null> => {
     setLoading(true)
     setError(null)
 
@@ -149,10 +149,10 @@ export function usePublishApartment() {
       // 7. Reset form store
       store.reset()
 
-      return true
+      return apartment.id
     } catch (err: any) {
       setError(err.message ?? 'Something went wrong.')
-      return false
+      return null
     } finally {
       setLoading(false)
     }

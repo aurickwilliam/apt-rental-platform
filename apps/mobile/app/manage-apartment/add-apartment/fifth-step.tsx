@@ -147,9 +147,9 @@ export default function FifthStep() {
   }
 
   const handlePublish = async () => {
-    const success = await publish()
-    if (success) {
-      router.push('/manage-apartment/add-apartment/success')
+    const result = await publish()
+    if (result) {
+      router.replace(`/manage-apartment/add-apartment/success?apartmentId=${result}`)
     }
   }
 

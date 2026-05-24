@@ -3,9 +3,10 @@ import { View, Text } from 'react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
-import PerkButton from '../components/PerkButton'
+
+import { Chip, SearchField } from 'heroui-native'
+import Ionicons from '@expo/vector-icons/build/Ionicons'
 
 import { COLORS } from '@repo/constants'
 import { PERKS } from '@/constants/perks'
@@ -17,10 +18,8 @@ export default function Amenities() {
   const amenities = useApartmentFormStore((s) => s.amenities)
   const toggleAmenity = useApartmentFormStore((s) => s.toggleAmenity)
 
-  // All perk entries as an array
   const allPerks = useMemo(() => Object.values(PERKS), [])
 
-  // Filter unselected perks by search query
   const filteredUnselected = useMemo(() => {
     const query = searchValue.toLowerCase().trim()
     return allPerks.filter((perk) => {
@@ -30,7 +29,6 @@ export default function Amenities() {
     })
   }, [allPerks, amenities, searchValue])
 
-  // Filter selected perks by search query
   const filteredSelected = useMemo(() => {
     const query = searchValue.toLowerCase().trim()
     return allPerks.filter((perk) => {
@@ -44,18 +42,16 @@ export default function Amenities() {
     <ScreenWrapper
       className='p-5'
       scrollable
-      header={
-        <StandardHeader title='Add Perks & Amenities' />
-      }
+      header={<StandardHeader title='Add Perks & Amenities' />}
     >
-      <SearchField
-        searchPlaceholder='Search a perk'
-        onChangeSearch={setSearchValue}
-        searchValue={searchValue}
-        backgroundColor={COLORS.darkerWhite}
-      />
+      <SearchField value={searchValue} onChange={setSearchValue}>
+        <SearchField.Group className='bg-darkerWhite'>
+          <SearchField.SearchIcon />
+          <SearchField.Input placeholder='Search a perk' />
+          <SearchField.ClearButton />
+        </SearchField.Group>
+      </SearchField>
 
-      {/* Validation hint */}
       {amenities.length === 0 && (
         <Text className='text-red-500 text-sm font-inter mt-2'>
           Please select at least one amenity.
@@ -64,21 +60,23 @@ export default function Amenities() {
 
       <Divider />
 
-      {/* Added / Selected Perks */}
       {filteredSelected.length > 0 && (
         <View className='flex gap-3'>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-base font-interMedium'>
             Added Perks ({amenities.length})
           </Text>
-
-          <View className='flex-row flex-wrap gap-5'>
+          <View className='flex-row flex-wrap gap-3'>
             {filteredSelected.map((perk) => (
-              <PerkButton
+              <Chip
                 key={perk.id}
-                perkId={perk.id}
-                isSelected
+                variant='secondary'
+                color='accent'
                 onPress={() => toggleAmenity(perk.id)}
-              />
+              >
+                <perk.icon size={16} color={COLORS.primary} />
+                <Chip.Label>{perk.name}</Chip.Label>
+                <Ionicons name='close' size={12} />
+              </Chip>
             ))}
           </View>
         </View>
@@ -88,20 +86,21 @@ export default function Amenities() {
         <Divider />
       )}
 
-      {/* All Remaining Perks */}
       {filteredUnselected.length > 0 ? (
         <View className='flex gap-3 mt-3'>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-base font-interMedium'>
             All Perks
           </Text>
-
-          <View className='flex-row flex-wrap gap-5'>
+          <View className='flex-row flex-wrap gap-3'>
             {filteredUnselected.map((perk) => (
-              <PerkButton
+              <Chip
                 key={perk.id}
-                perkId={perk.id}
+                variant='secondary'
                 onPress={() => toggleAmenity(perk.id)}
-              />
+              >
+                <perk.icon size={16} color={COLORS.text} />
+                <Chip.Label className='text-text'>{perk.name}</Chip.Label>
+              </Chip>
             ))}
           </View>
         </View>

@@ -49,9 +49,9 @@ export default function RootLayout() {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
 
-      if (__DEV__) {
-        router.replace('/manage-apartment/add-apartment/amenities');
-      }
+      // if (__DEV__) {
+      //   router.replace('/manage-apartment/add-apartment/success');
+      // }
     }
   }, [fontsLoaded, fontError]);
 
