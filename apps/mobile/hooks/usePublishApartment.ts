@@ -41,6 +41,8 @@ export function usePublishApartment() {
   const store = useApartmentFormStore()
   const { profile } = useProfile()
 
+  const clearError = () => setError(null);
+
   const publish = async (): Promise<boolean> => {
     setLoading(true)
     setError(null)
@@ -156,5 +158,5 @@ export function usePublishApartment() {
     }
   }
 
-  return { publish, loading, error }
+  return { publish, loading, error, clearError }
 }

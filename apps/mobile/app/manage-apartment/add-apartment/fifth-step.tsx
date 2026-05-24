@@ -7,9 +7,10 @@ import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@mapl
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
-import PillButton from '@/components/buttons/PillButton'
 import PerkItem from 'components/display/PerkItem'
 import LandlordCard from 'components/cards/LandlordCard'
+
+import { Button, Dialog } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
 
@@ -80,11 +81,13 @@ export default function FifthStep() {
   const [imageIndex, setImageIndex] = useState<number>(0);
 
   const { profile, loading: profileLoading } = useProfile()
-  const { stats, loading: statsLoading } = useLandlordStats(profile?.id)
+  const { loading: statsLoading } = useLandlordStats(profile?.id)
+
   const { 
     publish, 
     loading: publishing, 
-    error: publishError 
+    error: publishError,
+    clearError: clearPublishError,
   } = usePublishApartment()
 
   const isLoading = profileLoading || statsLoading;
@@ -153,7 +156,7 @@ export default function FifthStep() {
   return (
     <ScreenWrapper
       scrollable
-      backgroundColor={COLORS.darkerWhite}
+      backgroundColor={COLORS.white}
     >
       <ApplicationHeader
         currentTitle={'Preview & Publish'}
@@ -244,38 +247,6 @@ export default function FifthStep() {
                 </Text>
               </View>
             </View>
-
-            <View className='flex-row mt-4 gap-6'>
-              <View className='flex-1 flex-row items-center gap-2'>
-                <IconUsers size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
-                </Text>
-              </View>
-
-              <View className='flex-1 flex-row items-center gap-2'>
-                <IconBuildingSkyscraper size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {floorLevel ? `Floor ${floorLevel}` : 'N/A'}
-                </Text>
-              </View>
-            </View>
-
-            <View className='flex-row mt-4 mb-5 gap-6'>
-              <View className='flex-1 flex-row items-center gap-2'>
-                <IconHome2 size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {apartmentType || 'N/A'}
-                </Text>
-              </View>
-
-              <View className='flex-1 flex-row items-center gap-2'>
-                <IconCalendar size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
-                  {leaseDuration || 'N/A'}
-                </Text>
-              </View>
-            </View>
           </View>
 
           {/* Pagination Dots */}
@@ -311,15 +282,49 @@ export default function FifthStep() {
         </LinearGradient>
       </View>
 
+      <View className='mt-5 px-5'>
+        <View className='flex-row gap-6'>
+          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
+            <IconUsers size={24} color={COLORS.text} />
+            <Text className='text-text font-interMedium text-base'>
+              Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
+            </Text>
+          </View>
+
+          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
+            <IconBuildingSkyscraper size={24} color={COLORS.text} />
+            <Text className='text-text font-interMedium text-base'>
+              {floorLevel ? `Floor ${floorLevel}` : 'N/A'}
+            </Text>
+          </View>
+        </View>
+
+        <View className='flex-row mt-4 mb-5 gap-6'>
+          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
+            <IconHome2 size={24} color={COLORS.text} />
+            <Text className='text-text font-interMedium text-base'>
+              {apartmentType || 'N/A'}
+            </Text>
+          </View>
+
+          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
+            <IconCalendar size={24} color={COLORS.text} />
+            <Text className='text-text font-interMedium text-base'>
+              {leaseDuration || 'N/A'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
       {/* Apartment Description */}
       <View className='mt-5 px-5 flex-row items-center gap-2'>
         <IconBuildingCommunity size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           Everything About Your Apartment
         </Text>
       </View>
 
-      <View className='mt-3 mx-5 p-4 bg-white rounded-2xl'>
+      <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
         <Text>
           {description
             ? isReadMore
@@ -330,12 +335,15 @@ export default function FifthStep() {
 
         {description.length > 500 && (
           <View className='mt-5'>
-            <PillButton
-              label={isReadMore ? 'Read Less' : 'Read More'}
-              type='outline'
-              size='sm'
+            <Button
+              size="sm"
+              variant="tertiary"
               onPress={toggleReadMoreDescription}
-            />
+            >
+              <Button.Label>
+                {isReadMore ? 'Read Less' : 'Read More'}
+              </Button.Label>
+            </Button>
           </View>
         )}
       </View>
@@ -345,16 +353,10 @@ export default function FifthStep() {
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <IconSquareCheck size={26} color={COLORS.text} />
-            <Text className='font-interSemiBold text-xl text-text'>
+            <Text className='font-interSemiBold text-lg text-text'>
               Included Perks
             </Text>
           </View>
-
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text className='font-interMedium text-base text-primary'>
-              See All
-            </Text>
-          </TouchableOpacity>
         </View>
 
         <Text>These are already included in your rent.</Text>
@@ -377,7 +379,7 @@ export default function FifthStep() {
       {/* Map View */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconMap size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           View on Map
         </Text>
       </View>
@@ -438,7 +440,7 @@ export default function FifthStep() {
       {/* Landlord Card */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconUser size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           Meet Your Rental Owner
         </Text>
       </View>
@@ -454,9 +456,6 @@ export default function FifthStep() {
             email={profile.email ?? ''}
             phoneNumber={profile.mobile_number ?? ''}
             profilePictureUrl={profile.avatar_url}
-            withRentalInfo
-            averageRating={stats.averageRating}
-            totalRentals={stats.totalProperties}
           />
         ) : null}
       </View>
@@ -465,7 +464,7 @@ export default function FifthStep() {
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center gap-2'>
           <IconFileDescription size={26} color={COLORS.text} />
-          <Text className='font-interSemiBold text-xl text-text'>
+          <Text className='font-interSemiBold text-lg text-text'>
             Lease Agreement & Rules
           </Text>
         </View>
@@ -474,60 +473,87 @@ export default function FifthStep() {
           Please review the rental owner&apos;s property rules before applying.
         </Text>
 
-        <PillButton
-          label='View Full Lease Agreement'
-          type='outline'
-          size='sm'
-        />
+        <Button
+          size="sm"
+          variant="tertiary"
+          className="mt-3"
+          isDisabled
+        >
+          <Button.Label>
+            View Full Lease Agreement
+          </Button.Label>
+        </Button>
       </View>
 
       {/* Footer */}
       <View className='bg-white mt-20 px-5 py-4 border border-grey-200'>
         <View className='flex-row gap-5 items-center'>
-          <View className='flex-row items-center'>
-            <Text className='text-3xl font-interSemiBold text-primary'>
-              ₱ {formatCurrency(Number(monthlyRent))}
-            </Text>
-            <Text className='text-base font-interMedium text-grey-500'>
-              /month
+          <View className="flex-col">
+            <View className='flex-row items-baseline'>
+              <Text className='text-2xl font-interSemiBold text-primary'>
+                ₱ {formatCurrency(Number(monthlyRent))}
+              </Text>
+              <Text className='text-sm font-interMedium text-grey-500 ml-1'>
+                /month
+              </Text>
+            </View>
+            <Text className='text-xs font-inter text-grey-500 mt-1 underline'>
+              Move-in cost breakdown
             </Text>
           </View>
 
-          <View className='flex-1'>
-            <PillButton
-              label='Apply Now'
-              size='md'
-              isDisabled
-            />
-          </View>
+          <Button isDisabled className="flex-1">
+            <Button.Label>
+              Apply Now
+            </Button.Label>
+          </Button>
         </View>
       </View>
 
       <View className='flex-row w-full gap-4 p-5'>
-        <View className='flex-1'>
-          <PillButton
-            label='Back'
-            type='outline'
-            isFullWidth
-            onPress={() => router.back()}
-          />
-        </View>
-        <View className='flex-1'>
-          <PillButton
-            label={publishing ? 'Publishing...' : 'Publish'}
-            isFullWidth
-            isDisabled={publishing}
-            onPress={handlePublish}
-          />
-        </View>
+        <Button
+          variant="outline"
+          onPress={() => router.back()}
+          className="flex-1"
+        >
+          <Button.Label>
+            Back
+          </Button.Label>
+        </Button>
+
+        <Button
+          isDisabled={publishing}
+          onPress={handlePublish}
+          className="flex-1"
+        >
+          <Button.Label>
+            {publishing ? 'Publishing...' : 'Publish'}
+          </Button.Label>
+        </Button>
       </View>
 
       {/* Optionally show the error */}
-      {publishError && (
-        <Text className='text-red-500 text-sm text-center mt-2'>
-          {publishError}
-        </Text>
-      )}
+      <Dialog isOpen={!!publishError} onOpenChange={(open) => { if (!open) clearPublishError(); }}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close />
+            <View className='mb-4 gap-1.5'>
+              <Dialog.Title>Publish Failed</Dialog.Title>
+              <Dialog.Description>{publishError}</Dialog.Description>
+            </View>
+            <View className='flex-row justify-end'>
+              <Button
+                size='sm'
+                variant='ghost'
+                onPress={() => clearPublishError()}
+              >
+                Dismiss
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
 
       {/* Image Viewer */}
       <ImageViewing

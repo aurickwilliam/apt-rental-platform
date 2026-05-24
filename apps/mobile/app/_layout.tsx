@@ -50,7 +50,7 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       if (__DEV__) {
-        router.replace('/manage-apartment/add-apartment/fifth-step');
+        router.replace('/manage-apartment/add-apartment/amenities');
       }
     }
   }, [fontsLoaded, fontError]);
