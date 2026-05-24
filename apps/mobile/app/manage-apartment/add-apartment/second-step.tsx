@@ -5,11 +5,10 @@ import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@mapl
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
-import TextField from '@/components/inputs/TextField'
 import DropdownField from '@/components/inputs/DropdownField'
-import NumberField from '@/components/inputs/NumberField'
 import CheckBox from '@/components/buttons/CheckBox'
-import PillButton from '@/components/buttons/PillButton'
+
+import { TextField, Label, Input, FieldError, Button } from "heroui-native"
 
 import { COLORS, APARTMENT_TYPES, PROVINCES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants'
 
@@ -155,16 +154,21 @@ export default function SecondStep() {
 
         {/* Apartment Details */}
         <View className='flex'>
-          <Text className='text-text text-xl font-interSemiBold'>Apartment Details</Text>
+          <Text className='text-text text-lg font-interSemiBold'>
+            Apartment Details
+          </Text>
 
           <View className='flex gap-3 mt-3'>
             <TextField
-              label='Apartment Name:'
-              required
-              placeholder='Enter apartment name'
-              disabled
-              value={name}
-            />
+              isRequired
+            >
+              <Label>Apartment Name:</Label>
+              <Input
+                placeholder='Enter apartment name'
+                value={name}
+                isDisabled
+              />
+            </TextField>
 
             <DropdownField
               label='Property Type:'
@@ -182,17 +186,26 @@ export default function SecondStep() {
           </View>
 
           <View className='flex gap-3 mt-3'>
-            <NumberField
-              label='Floor Area (sqm):'
-              required
-              placeholder='Enter floor area'
-              value={floorArea}
-              error={errors.floorArea}
-              onChange={(value) => {
-                setField('floorArea', value)
-                clearError('floorArea')
-              }}
-            />
+            <TextField 
+              isRequired 
+              isInvalid={!!errors.floorArea}
+            >
+              <Label>Floor Area (sqm):</Label>
+              <Input
+                placeholder='Enter floor area'
+                value={floorArea}
+                keyboardType='numeric'
+                onChangeText={(value) => {
+                  // Only allow numeric input
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    setField('floorArea', value)
+                    clearError('floorArea')
+                  }
+                }}
+              />
+              {errors.floorArea && 
+                <FieldError>{errors.floorArea}</FieldError>}
+            </TextField>
 
             <DropdownField
               label='Furnished Type:'
@@ -301,43 +314,46 @@ export default function SecondStep() {
 
         {/* Apartment Address */}
         <View className='flex gap-3 mt-10'>
-          <Text className='text-text text-xl font-interSemiBold'>Apartment Address</Text>
+          <Text className='text-text text-lg font-interSemiBold'>Apartment Address</Text>
 
-          <TextField
-            label='Unit No./Street Name:'
-            required
-            placeholder='Enter street name'
-            value={streetName}
-            error={errors.streetName}
-            onChangeText={(value) => {
-              setField('streetName', value)
-              clearError('streetName')
-            }}
-          />
+          <TextField isRequired isInvalid={!!errors.streetName}>
+            <Label>Unit No./Street Name:</Label>
+            <Input
+              placeholder="Enter street name"
+              value={streetName}
+              onChangeText={(value) => {
+                setField('streetName', value)
+                clearError('streetName')
+              }}
+            />
+            {errors.streetName && <FieldError>{errors.streetName}</FieldError>}
+          </TextField>
 
-          <TextField
-            label='Barangay:'
-            required
-            placeholder='Enter barangay name'
-            value={barangay}
-            error={errors.barangay}
-            onChangeText={(value) => {
-              setField('barangay', value)
-              clearError('barangay')
-            }}
-          />
+          <TextField isRequired isInvalid={!!errors.barangay}>
+            <Label>Barangay:</Label>
+            <Input
+              placeholder="Enter barangay name"
+              value={barangay}
+              onChangeText={(value) => {
+                setField('barangay', value)
+                clearError('barangay')
+              }}
+            />
+            {errors.barangay && <FieldError>{errors.barangay}</FieldError>}
+          </TextField>
 
-          <TextField
-            label='City:'
-            required
-            placeholder='Enter city name'
-            value={city}
-            error={errors.city}
-            onChangeText={(value) => {
-              setField('city', value)
-              clearError('city')
-            }}
-          />
+          <TextField isRequired isInvalid={!!errors.city}>
+            <Label>City:</Label>
+            <Input
+              placeholder="Enter city name"
+              value={city}
+              onChangeText={(value) => {
+                setField('city', value)
+                clearError('city')
+              }}
+            />
+            {errors.city && <FieldError>{errors.city}</FieldError>}
+          </TextField>
 
           <DropdownField
             label="Province:"
@@ -355,22 +371,26 @@ export default function SecondStep() {
             error={errors.province}
           />
 
-          <NumberField
-            label='Zip Code:'
-            required
-            placeholder='Enter zip code'
-            value={postalCode}
-            error={errors.postalCode}
-            onChange={(value) => {
-              setField('postalCode', value)
-              clearError('postalCode')
-            }}
-          />
+          <TextField isRequired isInvalid={!!errors.postalCode}>
+            <Label>Zip Code:</Label>
+            <Input
+              placeholder="Enter zip code"
+              value={postalCode}
+              keyboardType="numeric"
+              onChangeText={(value) => {
+                setField('postalCode', value)
+                clearError('postalCode')
+              }}
+            />
+            {errors.postalCode && <FieldError>{errors.postalCode}</FieldError>}
+          </TextField>
         </View>
 
         {/* Apartment Location */}
         <View className='flex gap-2 mt-10'>
-          <Text className='text-text text-xl font-interSemiBold'>Apartment Map Location</Text>
+          <Text className='text-text text-lg font-interSemiBold'>
+            Apartment Map Location
+          </Text>
 
           <Text className='text-text text-base font-inter'>
             Check if the pin location is correct. Drag the pin to the correct location if needed.
@@ -480,12 +500,24 @@ export default function SecondStep() {
 
         {/* Back or Next Button */}
         <View className='flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton label={'Back'} type='outline' isFullWidth onPress={() => router.back()} />
-          </View>
-          <View className='flex-1'>
-            <PillButton label={'Next'} isFullWidth onPress={handleNext} />
-          </View>
+           <Button
+              variant="outline"
+              onPress={() => router.back()}
+              className="flex-1"
+            >
+              <Button.Label>
+                Back
+              </Button.Label>
+            </Button>
+
+            <Button
+              onPress={handleNext}
+              className="flex-1"
+            >
+              <Button.Label>
+                Next
+              </Button.Label>
+            </Button>
         </View>
       </View>
     </ScreenWrapper>

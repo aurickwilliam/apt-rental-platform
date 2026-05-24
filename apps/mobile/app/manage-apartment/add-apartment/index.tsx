@@ -5,8 +5,8 @@ import { useState } from 'react'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
 import UploadImageField from '@/components/inputs/UploadImageField'
-import TextField from '@/components/inputs/TextField'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button, TextField, Label, Input, FieldError } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
@@ -78,16 +78,20 @@ export default function Index() {
       <View className='p-5 flex-1'>
         <View className='flex-1 gap-5'>
           <TextField
-            label='Apartment Name:'
-            required
-            placeholder='Enter apartment name'
-            value={name}
-            error={errors.name}
-            onChangeText={(value) => {
-              setName(value)
-              clearError('name')
-            }}
-          />
+            isRequired
+            isInvalid={!!errors.name}
+          >
+            <Label>Apartment Name:</Label>
+            <Input
+              placeholder='Enter apartment name'
+              value={name}
+              onChangeText={(value) => {
+                setName(value)
+                clearError('name')
+              }}
+            />
+            <FieldError>{errors.name}</FieldError>
+          </TextField>
 
           <UploadImageField
             label='Add a Thumbnail:'
@@ -137,21 +141,24 @@ export default function Index() {
         </View>
 
         <View className='flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label='Cancel'
-              type='danger'
-              isFullWidth
-              onPress={handleCancel}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label='Next'
-              isFullWidth
-              onPress={handleNext}
-            />
-          </View>
+          <Button
+            variant="danger-soft"
+            onPress={handleCancel}
+            className="flex-1"
+          >
+            <Button.Label>
+              Cancel
+            </Button.Label>
+          </Button>
+
+          <Button
+            onPress={handleNext}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
