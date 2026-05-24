@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
-import { APARTMENT_TYPES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants';
+import { APARTMENT_TYPES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS, COLORS } from '@repo/constants';
 import { supabase } from '@repo/supabase';
 
 import { useFavorites } from '@/hooks/useFavorites';
+
 import { type FilterState } from 'components/display/FilterBottomSheet';
+
+import { useToast } from 'heroui-native';
+
+import { IconHeartFilled, IconHeartOff, IconAlertTriangle } from '@tabler/icons-react-native';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
 const PAGE_SIZE = 10;
@@ -30,13 +34,12 @@ export default function useSearchLogic() {
   const [isGridView, setIsGridView] = useState<boolean>(true);
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  const { toast } = useToast();
+
   const pageRef = useRef(0);
 
-  const filterSheetRef = useRef<BottomSheetModal>(null!);
-
-  const openFilterSheet = useCallback(() => {
-    filterSheetRef.current?.present();
-  }, []);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const openFilterSheet = useCallback(() => setIsFilterSheetOpen(true), []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
@@ -301,13 +304,26 @@ export default function useSearchLogic() {
 
   const handleToggleFavorite = useCallback(
     async (id: string) => {
+      const wasAlreadyFavorite = isFavorite(id);
       try {
         await toggleFavorite(id);
+        toast.show({
+          variant: wasAlreadyFavorite ? 'default' : 'success',
+          label: wasAlreadyFavorite ? 'Removed from favorites' : 'Added to favorites',
+          icon: wasAlreadyFavorite
+            ? <IconHeartOff size={18} color={COLORS.text} style={{ marginTop: 3 }} />
+            : <IconHeartFilled size={18} color={COLORS.greenHulk} style={{ marginTop: 3 }} />
+        });
       } catch (err) {
         console.error('Error toggling favorite:', err);
+        toast.show({
+          variant: 'danger',
+          label: 'Something went wrong',
+          icon: <IconAlertTriangle size={18} color={COLORS.danger} />,
+        });
       }
     },
-    [toggleFavorite]
+    [toggleFavorite, isFavorite, toast]
   );
 
   return {
@@ -318,7 +334,9 @@ export default function useSearchLogic() {
     error,
     fetchApartments,
     filters,
-    filterSheetRef,
+    isFilterSheetOpen,
+    setIsFilterSheetOpen,
+    openFilterSheet,
     handleApplyFilters,
     handleClearFilters,
     handleToggleFavorite,
@@ -327,7 +345,6 @@ export default function useSearchLogic() {
     loading,
     loadingMore,
     loadMore,
-    openFilterSheet,
     refreshing,
     resultCount,
     searchQuery,

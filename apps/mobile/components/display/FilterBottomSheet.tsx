@@ -1,36 +1,38 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useCallback, useMemo, useState } from 'react';
-import { BottomSheetModal, BottomSheetScrollView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { View, Text } from "react-native";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
-import { APARTMENT_TYPES, FURNISHED_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, COLORS } from '@repo/constants';
+import {
+  BottomSheet,
+  Button,
+  Slider,
+  TagGroup,
+  SearchField,
+  Separator,
+  Chip,
+} from "heroui-native";
 
-import { PERKS } from '@/constants/perks';
+import {
+  APARTMENT_TYPES,
+  FURNISHED_TYPES,
+  FLOOR_LEVELS,
+  LEASE_DURATIONS,
+  COLORS,
+} from "@repo/constants";
 
-import PillButton from '../buttons/PillButton';
-import Divider from './Divider';
-import SingleChipGroup from '../inputs/SingleChipGroup';
-import MultiChipGroup from '../inputs/MultiChipGroup';
-import RangeSlider from '../inputs/RangeSlider';
-import SearchField from '../inputs/SearchField';
+import { PERKS } from "@/constants/perks";
 
-const MAX_SIZE      = 300;
-const MIN_BUDGET    = 1000;
-const MAX_BUDGET    = 50000;
-const MIN_SIZE      = 10;
+const MAX_SIZE = 300;
+const MIN_BUDGET = 1000;
+const MAX_BUDGET = 50000;
+const MIN_SIZE = 10;
 
-const ROOM_OPTS = ['Any', '1', '2', '3', '4+'];
-
-const SORT_OPTIONS: { label: string; value: FilterState['sortBy'] }[] = [
-  { label: 'Newest',             value: 'newest'       },
-  { label: 'Price: Low to High', value: 'price_asc'    },
-  { label: 'Price: High to Low', value: 'price_desc'   },
-  { label: 'Most Popular',       value: 'most_popular' },
-];
+const ROOM_OPTS = ["Any", "1", "2", "3", "4+"];
 
 export type FilterState = {
   budget: [number, number];
   unitTypes: string[];
-  sortBy: 'newest' | 'price_asc' | 'price_desc' | 'most_popular';
+  sortBy: "newest" | "price_asc" | "price_desc" | "most_popular";
   bedrooms: string;
   bathrooms: string;
   sizeRange: [number, number];
@@ -44,9 +46,9 @@ export const DEFAULT_FILTERS: FilterState = {
   budget: [MIN_BUDGET, MAX_BUDGET],
   sizeRange: [MIN_SIZE, MAX_SIZE],
   unitTypes: APARTMENT_TYPES,
-  sortBy: 'newest',
-  bedrooms: 'Any',
-  bathrooms: 'Any',
+  sortBy: "newest",
+  bedrooms: "Any",
+  bathrooms: "Any",
   furnishing: FURNISHED_TYPES,
   floorLevel: FLOOR_LEVELS,
   leaseDuration: LEASE_DURATIONS,
@@ -54,7 +56,8 @@ export const DEFAULT_FILTERS: FilterState = {
 };
 
 type Props = {
-  bottomSheetRef: React.RefObject<BottomSheetModal>;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   resultCount?: number;
   initialFilters?: FilterState;
   onApply: (filters: FilterState) => void;
@@ -62,279 +65,384 @@ type Props = {
 };
 
 export default function FilterBottomSheet({
-  bottomSheetRef,
+  isOpen,
+  onOpenChange,
   resultCount,
   initialFilters = DEFAULT_FILTERS,
   onApply,
   onClear,
 }: Props) {
-  const snapPoints = useMemo(() => ['85%'], []);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const [amenitySearch, setAmenitySearch] = useState('');
+  const [amenitySearch, setAmenitySearch] = useState("");
 
-  const toggleArrayItem = useCallback((key: keyof FilterState, item: string) => {
-    setFilters((prev) => {
-      const arr = prev[key] as string[];
-      return {
-        ...prev,
-        [key]: arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item],
-      };
-    });
-  }, []);
+  const toggleArrayItem = useCallback(
+    (key: keyof FilterState, item: string) => {
+      setFilters((prev) => {
+        const arr = prev[key] as string[];
+        return {
+          ...prev,
+          [key]: arr.includes(item)
+            ? arr.filter((x) => x !== item)
+            : [...arr, item],
+        };
+      });
+    },
+    [],
+  );
 
   const handleClearAll = () => {
     setFilters(DEFAULT_FILTERS);
     onClear();
-    bottomSheetRef.current?.dismiss();
+    onOpenChange(false);
   };
 
   const handleApply = () => {
     onApply(filters);
-    bottomSheetRef.current?.dismiss();
+    onOpenChange(false);
   };
-
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
-    ),
-    []
-  );
 
   const filteredPerks = useMemo(() => {
     const q = amenitySearch.toLowerCase().trim();
-    return Object.values(PERKS).filter((p) =>
-      q === '' || p.name.toLowerCase().includes(q)
-    );
-  }, [amenitySearch]);
+    return Object.values(PERKS)
+      .filter((p) => q === "" || p.name.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const aSelected = filters.amenities.includes(a.id);
+        const bSelected = filters.amenities.includes(b.id);
+        return Number(bSelected) - Number(aSelected);
+      });
+  }, [amenitySearch, filters.amenities]);
+
+  const handleSingleSelect =
+    (key: keyof FilterState) => (keys: Set<string | number>) => {
+      const val = Array.from(keys)[0] as string;
+      if (val) setFilters((p) => ({ ...p, [key]: val }));
+    };
+
+  const handleMultiSelect =
+    (key: keyof FilterState) => (keys: Set<string | number>) =>
+      setFilters((p) => ({ ...p, [key]: Array.from(keys) as string[] }));
+
+  useEffect(() => {
+    setFilters(initialFilters);
+  }, [initialFilters]);
 
   return (
-    <BottomSheetModal
-      ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{ backgroundColor: '#D0D0D0', width: 40 }}
-      backgroundStyle={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-    >
-      {/* ── Sticky Header ── */}
-      <View className="px-5 py-3 border-b border-[#F0F0F0]">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-interSemiBold text-base text-text mb-3">
-            Filters
-          </Text>
+    <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
+      <BottomSheet.Portal>
+        <BottomSheet.Overlay />
+        <BottomSheet.Content
+          snapPoints={["85%"]}
+          enableOverDrag={false}
+          enableDynamicSizing={false}
+          contentContainerClassName="h-full"
+          handleIndicatorClassName="bg-[#D0D0D0] w-10"
+          backgroundClassName="bg-white rounded-t-[20px]"
+        >
+          {/* Sticky Header */}
+          <View className="border-b border-[#F0F0F0]">
+            <View className="flex-row items-center justify-between">
+              <Text className="font-interSemiBold text-base text-text mb-3">
+                Filters
+              </Text>
 
-          {resultCount !== undefined && (
-            <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
-              {resultCount} results found
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {/* ── Scrollable Content ── */}
-      <BottomSheetScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Budget */}
-        <RangeSlider
-          label="Budget"
-          min={MIN_BUDGET}
-          max={MAX_BUDGET}
-          values={filters.budget}
-          step={500}
-          onChange={(vals) => setFilters((p) => ({ ...p, budget: vals }))}
-          format={(v) =>
-            v === MAX_BUDGET
-              ? `₱ ${MAX_BUDGET.toLocaleString()}+`
-              : `₱ ${v.toLocaleString()}`
-          }
-        />
-
-        <Divider thickness={1} />
-
-        {/* Size Range */}
-        <RangeSlider
-          label="Size Range"
-          min={MIN_SIZE}
-          max={MAX_SIZE}
-          values={filters.sizeRange}
-          step={5}
-          onChange={(vals) => setFilters((p) => ({ ...p, sizeRange: vals }))}
-          format={(v) => `${v} sqm`}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Sort By */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Sort By
-        </Text>
-
-        <SingleChipGroup
-          options={SORT_OPTIONS.map((o) => o.label)}
-          selected={SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label ?? 'Newest'}
-          onSelect={(label) => {
-            const match = SORT_OPTIONS.find((o) => o.label === label);
-            if (match) setFilters((p) => ({ ...p, sortBy: match.value }));
-          }}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Bedrooms */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Bedrooms
-        </Text>
-
-        <SingleChipGroup
-          options={ROOM_OPTS}
-          selected={filters.bedrooms}
-          onSelect={(v) => setFilters((p) => ({ ...p, bedrooms: v }))}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Bathrooms */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Bathrooms
-        </Text>
-
-        <SingleChipGroup
-          options={ROOM_OPTS}
-          selected={filters.bathrooms}
-          onSelect={(v) => setFilters((p) => ({ ...p, bathrooms: v }))}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Unit Type */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Unit Type
-        </Text>
-
-        <MultiChipGroup
-          options={APARTMENT_TYPES}
-          selected={filters.unitTypes}
-          onToggle={(item) => toggleArrayItem('unitTypes', item)}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Furnishing */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Furnishing
-        </Text>
-
-        <MultiChipGroup
-          options={FURNISHED_TYPES}
-          selected={filters.furnishing}
-          onToggle={(item) => toggleArrayItem('furnishing', item)}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Floor Level */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Floor Level
-        </Text>
-
-        <MultiChipGroup
-          options={FLOOR_LEVELS}
-          selected={filters.floorLevel}
-          onToggle={(item) => toggleArrayItem('floorLevel', item)}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Lease Duration */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Lease Duration
-        </Text>
-
-        <MultiChipGroup
-          options={LEASE_DURATIONS}
-          selected={filters.leaseDuration}
-          onToggle={(item) => toggleArrayItem('leaseDuration', item)}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Amenities */}
-        <Text className="font-interSemiBold text-base text-text mb-3">
-          Amenities
-        </Text>
-
-        {/* Search box */}
-        <SearchField
-          searchPlaceholder="Search amenities..."
-          searchValue={amenitySearch}
-          onChangeSearch={setAmenitySearch}
-          backgroundColor={COLORS.darkerWhite}
-        />
-
-        <Divider thickness={1} />
-
-        {/* Perk chips with icons */}
-        <View className="flex-row flex-wrap gap-2">
-          {filteredPerks.map((perk) => {
-            const isSelected = filters.amenities.includes(perk.id);
-            const Icon = perk.icon;
-            return (
-              <TouchableOpacity
-                key={perk.id}
-                onPress={() => toggleArrayItem('amenities', perk.id)}
-                activeOpacity={0.7}
-                className={`flex-row items-center justify-center gap-2 px-3 py-2 rounded-full border ${
-                  isSelected
-                    ? 'bg-primary border-primary'
-                    : 'bg-white border-[#E0E0E0]'
-                }`}
-              >
-                <Icon size={14} color={isSelected ? '#FFFFFF' : '#555555'} />
-
-                <Text
-                  className={`font-interSemiBold text-[13px] ${
-                    isSelected ? 'text-white' : 'text-[#555555]'
-                  }`}
-                >
-                  {perk.name}
+              {resultCount !== undefined && (
+                <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
+                  {resultCount} results found
                 </Text>
-              </TouchableOpacity>
-            );
-          })}
-
-          {filteredPerks.length === 0 && (
-            <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
-              No amenities match your search.
-            </Text>
-          )}
-        </View>
-      </BottomSheetScrollView>
-        
-      <View className="px-5 py-3 border-b border-[#F0F0F0]">
-        <View className="flex-row items-center justify-between mb-3 gap-5">
-          <View className='flex-1'>
-            <PillButton 
-              label='Apply Filters'
-              size='sm'
-              onPress={handleApply}
-              isFullWidth
-            />
+              )}
+            </View>
           </View>
 
-          <TouchableOpacity onPress={handleClearAll} activeOpacity={0.7}>
-            <Text className="text-primary font-[Poppins_500Medium] text-[14px]">
-              Clear All
+          {/* ── Scrollable Content ── */}
+          <BottomSheetScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingTop: 16,
+              paddingBottom: 32,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Budget */}
+            <Slider
+              value={filters.budget}
+              onChange={(v) =>
+                setFilters((p) => ({ ...p, budget: v as [number, number] }))
+              }
+              minValue={MIN_BUDGET}
+              maxValue={MAX_BUDGET}
+              step={500}
+            >
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="font-interSemiBold text-base text-text">
+                  Budget
+                </Text>
+                <Slider.Output>
+                  {({ state }) => (
+                    <Text className="font-interSemiBold text-sm text-primary">
+                      ₱ {state.values[0].toLocaleString()} –{" "}
+                      {state.values[1] >= MAX_BUDGET
+                        ? `₱ ${MAX_BUDGET.toLocaleString()}+`
+                        : `₱ ${state.values[1].toLocaleString()}`}
+                    </Text>
+                  )}
+                </Slider.Output>
+              </View>
+              <Slider.Track>
+                {({ state }) => (
+                  <>
+                    <Slider.Fill />
+                    {state.values.map((_, i) => (
+                      <Slider.Thumb key={i} index={i} />
+                    ))}
+                  </>
+                )}
+              </Slider.Track>
+              <View className="flex-row justify-between mt-1">
+                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                  ₱ 1,000
+                </Text>
+                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                  ₱ 50,000+
+                </Text>
+              </View>
+            </Slider>
+
+            <Separator className="my-4" />
+
+            {/* Size Range */}
+            <Slider
+              value={filters.sizeRange}
+              onChange={(v) =>
+                setFilters((p) => ({ ...p, sizeRange: v as [number, number] }))
+              }
+              minValue={MIN_SIZE}
+              maxValue={MAX_SIZE}
+              step={5}
+            >
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="font-interSemiBold text-base text-text">
+                  Size Range
+                </Text>
+                <Slider.Output>
+                  {({ state }) => (
+                    <Text className="font-interSemiBold text-sm text-primary">
+                      {state.values[0]} sqm – {state.values[1]} sqm
+                    </Text>
+                  )}
+                </Slider.Output>
+              </View>
+              <Slider.Track>
+                {({ state }) => (
+                  <>
+                    <Slider.Fill />
+                    {state.values.map((_, i) => (
+                      <Slider.Thumb key={i} index={i} />
+                    ))}
+                  </>
+                )}
+              </Slider.Track>
+              <View className="flex-row justify-between mt-1">
+                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                  10 sqm
+                </Text>
+                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                  300 sqm
+                </Text>
+              </View>
+            </Slider>
+
+            <Separator className="my-4" />
+
+            {/* Sort By */}
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Sort By
             </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </BottomSheetModal>
+            <TagGroup
+              selectionMode="single"
+              selectedKeys={new Set([filters.sortBy])}
+              onSelectionChange={(keys) => {
+                const val = Array.from(keys)[0] as FilterState["sortBy"];
+                if (val) setFilters((p) => ({ ...p, sortBy: val }));
+              }}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                <TagGroup.Item id="newest">Newest</TagGroup.Item>
+                <TagGroup.Item id="price_asc">Price: Low to High</TagGroup.Item>
+                <TagGroup.Item id="price_desc">
+                  Price: High to Low
+                </TagGroup.Item>
+                <TagGroup.Item id="most_popular">Most Popular</TagGroup.Item>
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Bedrooms
+            </Text>
+            <TagGroup
+              selectionMode="single"
+              selectedKeys={new Set([filters.bedrooms])}
+              onSelectionChange={handleSingleSelect("bedrooms")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {ROOM_OPTS.map((opt) => (
+                  <TagGroup.Item key={opt} id={opt}>
+                    {opt}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Bathrooms
+            </Text>
+            <TagGroup
+              selectionMode="single"
+              selectedKeys={new Set([filters.bathrooms])}
+              onSelectionChange={handleSingleSelect("bathrooms")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {ROOM_OPTS.map((opt) => (
+                  <TagGroup.Item key={opt} id={opt}>
+                    {opt}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Unit Type
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.unitTypes)}
+              onSelectionChange={handleMultiSelect("unitTypes")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {APARTMENT_TYPES.map((type) => (
+                  <TagGroup.Item key={type} id={type}>
+                    {type}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Furnishing
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.furnishing)}
+              onSelectionChange={handleMultiSelect("furnishing")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {FURNISHED_TYPES.map((type) => (
+                  <TagGroup.Item key={type} id={type}>
+                    {type}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Floor Level
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.floorLevel)}
+              onSelectionChange={handleMultiSelect("floorLevel")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {FLOOR_LEVELS.map((level) => (
+                  <TagGroup.Item key={level} id={level}>
+                    {level}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Lease Duration
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.leaseDuration)}
+              onSelectionChange={handleMultiSelect("leaseDuration")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {LEASE_DURATIONS.map((duration) => (
+                  <TagGroup.Item key={duration} id={duration}>
+                    {duration}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
+
+            <Separator className="my-4" />
+
+            <Text className="font-interSemiBold text-base text-text mb-3">
+              Amenities
+            </Text>
+            <SearchField value={amenitySearch} onChange={setAmenitySearch}>
+              <SearchField.Group>
+                <SearchField.SearchIcon />
+                <SearchField.Input placeholder="Search amenities..." />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+
+            <Separator className="my-4" />
+
+            <View className="flex-row flex-wrap gap-2">
+              {filteredPerks.map((perk) => {
+                const isSelected = filters.amenities.includes(perk.id);
+                const Icon = perk.icon;
+                return (
+                  <Chip
+                    key={perk.id}
+                    variant={isSelected ? 'soft' : 'secondary'}
+                    color={isSelected ? 'accent' : 'default'}
+                    onPress={() => toggleArrayItem('amenities', perk.id)}
+                  >
+                    <Icon size={14} color={isSelected ? COLORS.primary : '#555555'} />
+                    <Chip.Label>{perk.name}</Chip.Label>
+                  </Chip>
+                );
+              })}
+
+              {filteredPerks.length === 0 && (
+                <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
+                  No amenities match your search.
+                </Text>
+              )}
+            </View>
+          </BottomSheetScrollView>
+
+          {/* Sticky Footer */}
+          <View className="border-t border-[#F0F0F0] pt-3">
+            <View className="flex-row items-center justify-between mb-3 gap-5">
+              <Button className="flex-1" onPress={handleApply} size="sm">
+                <Button.Label>Apply Filters</Button.Label>
+              </Button>
+
+              <Button onPress={handleClearAll} variant="tertiary" size="sm">
+                <Button.Label>Clear All</Button.Label>
+              </Button>
+            </View>
+          </View>
+        </BottomSheet.Content>
+      </BottomSheet.Portal>
+    </BottomSheet>
   );
 }
