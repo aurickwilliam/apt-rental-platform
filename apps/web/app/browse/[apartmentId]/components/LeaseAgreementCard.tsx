@@ -12,28 +12,29 @@ interface LeaseAgreementCardProps {
 export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCardProps) {
   const hasLease = !!leaseDetailsUrl;
 
+  const viewerUrl = hasLease
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(leaseDetailsUrl)}&embedded=true`
+    : null;
+
   return (
     <Card className="border border-grey-300 shadow-none">
       <Card.Content className="flex flex-col items-start gap-2">
-        <h3 className="text-lg font-medium">
-          Lease Agreement
-        </h3>
+        <h3 className="text-lg font-medium">Lease Agreement</h3>
 
-        {hasLease ? (
+        {viewerUrl ? (
           <>
             <p className="text-sm text-grey-500">
               View the lease agreement for this apartment.
             </p>
-            <Button
-              className="w-full"
-              isDisabled={!leaseDetailsUrl}
-            >
-              <FileText size={16} />
-
-              <Link href={leaseDetailsUrl} target="_blank" rel="noopener noreferrer">
+            <Link href={viewerUrl} target="_blank" rel="noopener noreferrer" className="w-full no-underline">
+              <Button
+                variant="outline"
+                className="w-full"
+              >
+                <FileText size={16} />
                 View Lease Agreement
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </>
         ) : (
           <p className="text-sm text-grey-500">
