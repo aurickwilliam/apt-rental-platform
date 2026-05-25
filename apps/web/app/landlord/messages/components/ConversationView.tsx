@@ -7,7 +7,7 @@ import MessageInput from "./MessageInput";
 import { Contact, Message } from "./types";
 
 import { createClient } from "@repo/supabase/browser";
-import { ArrowLeft, MessageSquare, Pencil, Type } from "lucide-react";
+import { MessageSquare} from "lucide-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
