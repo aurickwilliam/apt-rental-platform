@@ -26,7 +26,7 @@ import { formatCurrency } from '@repo/utils'
 
 import { Button, SearchField } from "heroui-native"
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
 
 type Apartment = {
   id: string
@@ -164,9 +164,14 @@ export default function Units() {
         const images = apt.apartment_images ?? []
         const cover = images.find((img) => img.is_cover) ?? images[0] ?? null
 
-        const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified']
-        const status = validStatuses.includes(apt.status as ApartmentStatus)
-          ? (apt.status as ApartmentStatus)
+        const rawStatus = apt.status
+          ? apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
+          : 'Unverified'
+
+        const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified', 'Verified']
+
+        const status = validStatuses.includes(rawStatus as ApartmentStatus)
+          ? (rawStatus as ApartmentStatus)
           : 'Unverified'
 
         return {

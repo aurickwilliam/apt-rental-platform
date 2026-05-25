@@ -111,12 +111,7 @@ export function usePublishApartment() {
 
         if (uploadError) throw uploadError
 
-        const { data: signedData, error: signedError } = await supabase.storage
-          .from('lease-agreements')
-          .createSignedUrl(fileName, 60 * 60 * 24 * 365)
-
-        if (signedError) throw signedError
-        leaseAgreementUrl = signedData.signedUrl
+        leaseAgreementUrl = fileName
       }
 
       // 5. Update apartment with lease URL

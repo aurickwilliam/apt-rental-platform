@@ -19,27 +19,14 @@ export default function CurrentLease() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!tenancy?.apartment.id) return
-    generateSignedUrl(tenancy.apartment.id)
-  }, [tenancy?.apartment.id])
+    if (!tenancy?.apartment.lease_agreement_url) return
+    generateSignedUrl(tenancy.apartment.lease_agreement_url)
+  }, [tenancy?.apartment.lease_agreement_url])
 
-  async function generateSignedUrl(apartmentId: string) {
+  async function generateSignedUrl(storagePath: string) {
     try {
       setUrlLoading(true)
       setError(null)
-
-      // List actual files in the folder instead of trusting the stored path
-      const { data: files, error: listError } = await supabase.storage
-        .from('lease-agreements')
-        .list(apartmentId)
-
-      if (listError) throw listError
-
-      if (!files?.length) {
-        throw new Error('No lease agreement file found in storage.')
-      }
-
-      const storagePath = `${apartmentId}/${files[0].name}`
 
       const { data, error: signedUrlError } = await supabase.storage
         .from('lease-agreements')

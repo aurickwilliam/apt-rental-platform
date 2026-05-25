@@ -34,7 +34,7 @@ import { COLORS } from '@repo/constants'
 import { IMAGES } from '@/constants/images'
 import { supabase } from '@repo/supabase'
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
 
 type ApartmentImage = {
   id: string
@@ -171,9 +171,13 @@ export default function Index() {
 
       if (aptError) throw aptError
 
-      const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified']
-      const status = validStatuses.includes(aptData.status as ApartmentStatus)
-        ? (aptData.status as ApartmentStatus)
+      const rawStatus = aptData.status
+        ? aptData.status.charAt(0).toUpperCase() + aptData.status.slice(1)
+        : 'Unverified'
+
+      const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified', 'Verified']
+      const status = validStatuses.includes(rawStatus as ApartmentStatus)
+        ? (rawStatus as ApartmentStatus)
         : 'Unverified'
 
       setApartment({
@@ -324,7 +328,7 @@ export default function Index() {
 
       await supabase
         .from('apartments')
-        .update({ status: 'Available' })
+        .update({ status: 'available' })
         .eq('id', apartmentId)
 
       setIsVacateDialogOpen(false)
