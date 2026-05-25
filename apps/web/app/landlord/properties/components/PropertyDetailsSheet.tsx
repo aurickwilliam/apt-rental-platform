@@ -30,6 +30,7 @@ import type { Property } from "./propertyTypes";
 import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
 import EditPropertyModal from "./modals/EditPropertyModal";
+import DeletePropertyModal from "./modals/DeletePropertyModal";
 
 type ApartmentImage = {
   id: string;
@@ -101,6 +102,8 @@ export default function PropertyDetailsSheet({
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   const lastSelectedId = useRef<string | null>(null);
 
   const drawerState = useOverlayState({
@@ -152,7 +155,10 @@ export default function PropertyDetailsSheet({
 
     if (!error) {
       onDelete(selected.id);
+    } else {
+      console.error(error);
     }
+
     setDeleting(false);
   };
 
@@ -207,7 +213,8 @@ export default function PropertyDetailsSheet({
     leaseModalOpen ||
     editModalOpen ||
     descriptionModalOpen ||
-    amenitiesModalOpen;
+    amenitiesModalOpen ||
+    deleteConfirmOpen;
 
   const amenities = (selected?.amenities ?? [])
     .map((id) => ({ id, perk: PERKS[id] }))
@@ -299,7 +306,7 @@ export default function PropertyDetailsSheet({
                                 if (key === "edit-image") handleEditImages(selected.id);
                                 if (key === "edit-lease") setLeaseModalOpen(true);
                                 if (key === "upload-lease") setLeaseModalOpen(true);
-                                if (key === "delete") handleDelete();
+                                if (key === "delete") setDeleteConfirmOpen(true);
                               }}
                             >
                               <Dropdown.Item id="edit-image" textValue="Edit">
@@ -528,6 +535,17 @@ export default function PropertyDetailsSheet({
           }}
         />
       )}
+
+      <DeletePropertyModal
+        isOpen={deleteConfirmOpen}
+        propertyName={selected?.name}
+        isDeleting={deleting}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={async () => {
+          await handleDelete();
+          setDeleteConfirmOpen(false);
+        }}
+      />
     </>
   );
 }
