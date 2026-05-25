@@ -6,7 +6,7 @@ interface PropertyCardProps {
   apartmentName: string
   barangay: string
   city: string
-  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
   thumbnailUrl: string | undefined
   onPress: () => void
 }
@@ -37,6 +37,10 @@ export default function PropertyCard({
       backgroundColor: COLORS.lightLightLightGrey,
       color: COLORS.grey,
     },
+    'Verified': {
+      backgroundColor: COLORS.lightGreen,
+      color: COLORS.greenHulk,
+    }
   }
 
   return (
