@@ -3,10 +3,9 @@ import {
   Text
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import IconButton from 'components/buttons/IconButton';
 import PillButton from 'components/buttons/PillButton';
 
 import {
@@ -30,11 +29,15 @@ import {
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useFavorites } from '@/hooks/useFavorites';
+
 import { COLORS } from '@repo/constants';
+
+import { Button } from "heroui-native"
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -66,6 +69,8 @@ export default function ApartmentScreen() {
     const fullName = `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim();
     const conversationId = `inquiry-${apartmentId}-${landlord.id}`;
 
+    console.log('Navigating to chat with landlord:', conversationId)
+
     router.push({
       pathname: '/chat/[conversationId]',
       params: {
@@ -81,7 +86,13 @@ export default function ApartmentScreen() {
 
   const handleLandlordProfileNavigation = () => {
     if (apartment?.landlord) {
-      router.push(`/landlord-profile/${apartment.landlord.id}`);
+      router.push({
+        pathname: '/landlord-profile/[landlordId]',
+        params: {
+          landlordId: apartment.landlord.id,
+          apartmentId,
+        },
+      });
     }
   }
 
@@ -107,7 +118,7 @@ export default function ApartmentScreen() {
   if (error && !apartment) {
     return (
       <View className='flex-1 bg-white items-center justify-center px-8'>
-        <Text className='text-text font-poppinsSemiBold text-lg text-center'>
+        <Text className='text-text font-interSemiBold text-lg text-center'>
           Unable to load apartment details
         </Text>
         <Text className='text-grey-500 font-inter text-center mt-2'>
@@ -186,31 +197,36 @@ export default function ApartmentScreen() {
 
       {/* Fixed Icon Buttons */}
       {/* Back Button */}
-      <SafeAreaView
-        className='absolute left-4 top-5'
-        edges={['top']}
+      <View
+        className='absolute left-4'
+        style={{ top: insets.top + 8 }}
       >
-        <IconButton
-          iconName={IconChevronLeft}
-          onPress={() => {
-            router.back();
-          }}
-        />
-      </SafeAreaView>
+        <Button 
+          onPress={() => router.back()} 
+          variant="tertiary" 
+          isIconOnly
+        >
+          <IconChevronLeft size={24} color={COLORS.text} />
+        </Button>
+      </View>
 
-      {/* Favorite Button */}
-      <SafeAreaView
-        className='absolute right-4 top-5'
-        edges={['top']}
+      {/* Favorite Button */} 
+      <View
+        className='absolute right-4'
+        style={{ top: insets.top + 8 }}
       >
-        <IconButton
-          iconName={isFavorite(apartmentId) ? IconHeartFilled : IconHeart}
-          iconColor={isFavorite(apartmentId) ? COLORS.lightRedHead : COLORS.text}
-          onPress={() => {
-            void handleFavoriteToggle();
-          }}
-        />
-      </SafeAreaView>
+        <Button 
+          onPress={() => void handleFavoriteToggle()} 
+          variant="tertiary" 
+          isIconOnly
+        >
+          {isFavorite(apartmentId) ? (
+            <IconHeartFilled size={24} color={COLORS.lightRedHead} />
+          ) : (
+            <IconHeart size={24} color={COLORS.text} />
+          )}
+        </Button>
+      </View>
 
     </View>
   )

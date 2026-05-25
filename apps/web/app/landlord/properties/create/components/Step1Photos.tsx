@@ -1,9 +1,11 @@
 "use client";
 import { useRef } from "react";
 import NextImage from "next/image";
-import { Button } from "@heroui/react";
-import { Input } from "@heroui/react";
+
+import { Button, Input, TextField, Label, FieldError, Description } from "@heroui/react";
+
 import { Upload, X, ImagePlus } from "lucide-react";
+
 import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
@@ -55,20 +57,19 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
       </div>
 
       {/* Listing Title */}
-      <Input
-        label="Listing Title"
-        placeholder="e.g. Cozy 1BR Studio near BGC"
+      <TextField
         value={formData.name}
-        onValueChange={(v) => updateForm({ name: v })}
-        radius="lg"
-        variant="bordered"
-        description="This is the first thing tenants will see."
-        classNames={{
-          inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-        }}
-        errorMessage={errors.name}
+        onChange={(v) => updateForm({ name: v })}
         isInvalid={!!errors.name}
-      />
+      >
+        <Label>Listing Title</Label>
+        <Input
+          placeholder="e.g. Cozy 1BR Studio near BGC"
+          className="rounded-lg"
+        />
+        <Description>This is the first thing tenants will see.</Description>
+        <FieldError>{errors.name}</FieldError>
+      </TextField>
 
       {/* Cover / Thumbnail */}
       <div>
@@ -95,7 +96,6 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
             <Button
               isIconOnly
               size="sm"
-              radius="full"
               className="absolute top-3 right-3 bg-black/60 text-white hover:bg-black/80"
               onPress={() => updateForm({ thumbnail: null })}
             >
@@ -103,9 +103,9 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
             </Button>
             <Button
               size="sm"
-              radius="full"
               className="absolute bottom-3 right-3 bg-white/90 text-grey-800 opacity-0 group-hover:opacity-100 transition"
               onPress={() => thumbnailRef.current?.click()}
+              variant="tertiary"
             >
               Change photo
             </Button>
@@ -160,7 +160,6 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
               <Button
                 isIconOnly
                 size="sm"
-                radius="full"
                 className="absolute top-1.5 right-1.5 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
                 onPress={() => removeAdditional(i)}
               >

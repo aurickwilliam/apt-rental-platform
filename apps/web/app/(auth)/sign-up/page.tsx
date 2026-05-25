@@ -11,30 +11,31 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
 
   return (
     <main className="flex w-screen h-screen overflow-hidden">
+      {/* Left Panel */}
+      <div className="w-1/2">
+        <AuthWrapper
+          type="sign-up"
+          initialRole={initialRole}
+        />
+      </div>
+      
       {/* Right Panel */}
       <div
-        className="flex-1 bg-amber-200 relative hidden md:flex"
+        className="w-1/2 bg-primary relative hidden md:flex"
         style={{backgroundImage: "url('/building-bg2.jpg')"}}
       >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/50" />
-
         {/* Content */}
-        <div className="relative z-10 p-12 h-full flex flex-col justify-between">
+        <div className="relative z-10 p-5 h-full flex flex-col justify-between items-end">
           <Image
             src="/logo/logo-name.svg"
             alt="Logo"
-            width={200}
-            height={150}
+            width={150}
+            height={100}
           />
 
-          <h2 className="text-5xl font-noto-serif font-semibold text-white tracking-wide">
-            Your Next Home is Waiting.
-          </h2>
+          {/* Can add Information or Testimonials here */}
         </div>
       </div>
-
-      <AuthWrapper type="sign-up" initialRole={initialRole} />
     </main>
   );
 }

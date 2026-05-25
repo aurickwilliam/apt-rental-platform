@@ -20,17 +20,17 @@ export default function ChatBubble({
     <View className={`max-w-[80%] mb-4 ${alignment}`}>
       {/* Message Bubble */}
       <View 
-        className={`px-4 py-3 rounded-2xl ${bubbleColor}`}
+        className={`px-3 py-2 rounded-full ${bubbleColor}`}
       >
         <Text 
-          className={`text-base font-inter leading-6 ${textColor}`}
+          className={`text-sm font-inter leading-6 ${textColor}`}
         >
           {message}
         </Text>
       </View>
 
       {/* Timestamp */}
-      <Text className='text-grey-400 text-sm font-inter mt-1'>
+      <Text className='text-grey-400 text-xs font-inter mt-1'>
         {timestamp}
       </Text>
     </View>

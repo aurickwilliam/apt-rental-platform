@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, FlatList, Pressable, Modal } from 'react-native'
+import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native'
 import ImageViewing from 'react-native-image-viewing'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useState, useCallback } from 'react'
@@ -10,6 +10,8 @@ import PillButton from '@/components/buttons/PillButton'
 import TenantCard from './components/TenantCard'
 import PaymentHistoryCard from './components/PaymentHistoryCard'
 import MaintenanceRequestCard from './components/MaintenanceRequestCard'
+
+import { Button, Menu, Dialog } from 'heroui-native'
 
 import {
   IconBath,
@@ -32,7 +34,7 @@ import { COLORS } from '@repo/constants'
 import { IMAGES } from '@/constants/images'
 import { supabase } from '@repo/supabase'
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
 
 type ApartmentImage = {
   id: string
@@ -131,6 +133,9 @@ export default function Index() {
   const [maintenanceRequest, setMaintenanceRequest] = useState<MaintenanceRequest | null>(null)
   const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([])
 
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
+  const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
+
   const fetchApartmentDetail = useCallback(async () => {
     if (!apartmentId) return
     setLoading(true)
@@ -166,9 +171,13 @@ export default function Index() {
 
       if (aptError) throw aptError
 
-      const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified']
-      const status = validStatuses.includes(aptData.status as ApartmentStatus)
-        ? (aptData.status as ApartmentStatus)
+      const rawStatus = aptData.status
+        ? aptData.status.charAt(0).toUpperCase() + aptData.status.slice(1)
+        : 'Unverified'
+
+      const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified', 'Verified']
+      const status = validStatuses.includes(rawStatus as ApartmentStatus)
+        ? (rawStatus as ApartmentStatus)
         : 'Unverified'
 
       setApartment({
@@ -303,12 +312,34 @@ export default function Index() {
 
   const handleVacateUnit = () => {
     setOpen(false)
-    // TODO: update tenancy status to 'inactive' and apartment status to 'Available'
-    console.log('Vacate unit')
+    setIsVacateDialogOpen(true)
+  }
+
+  const handleConfirmVacate = async () => {
+    if (!apartmentId) return
+    try {
+      const { error } = await supabase
+        .from('tenancies')
+        .update({ status: 'inactive' })
+        .eq('apartment_id', apartmentId)
+        .eq('status', 'active')
+
+      if (error) throw error
+
+      await supabase
+        .from('apartments')
+        .update({ status: 'available' })
+        .eq('id', apartmentId)
+
+      setIsVacateDialogOpen(false)
+      fetchApartmentDetail()
+    } catch (err) {
+      console.error('Error vacating unit:', err)
+      setIsVacateDialogOpen(false)
+    }
   }
 
   const handleRemoveUnit = async () => {
-    setOpen(false)
     if (!apartmentId) return
 
     try {
@@ -318,10 +349,12 @@ export default function Index() {
         .eq('id', apartmentId)
 
       if (error) throw error
-      
+
+      setIsRemoveDialogOpen(false)
       router.back()
     } catch (err) {
       console.error('Error removing unit:', err)
+      setIsRemoveDialogOpen(false)
     }
   }
 
@@ -377,10 +410,10 @@ export default function Index() {
             {/* Property Details */}
             <View className="flex gap-5">
               <View className="flex gap-1">
-                <Text className="text-primary text-3xl font-dmserif">
+                <Text className="text-primary text-2xl font-nunito">
                   {apartment.name}
                 </Text>
-                <Text className="text-text font-inter text-base">
+                <Text className="text-text font-inter">
                   {apartment.street_address}, {apartment.barangay}, {apartment.city}
                   {apartment.province ? `, ${apartment.province}` : ''} {apartment.zip_code ? `, ${apartment.zip_code}` : ''}
                 </Text>
@@ -470,7 +503,7 @@ export default function Index() {
                   <Text className="text-base text-grey-500 font-interMedium">Average</Text>
                 </View>
 
-                <View className="w-[1px] h-full bg-grey-300" />
+                <View className="w-px h-full bg-grey-300" />
 
                 <View className="flex items-center gap-1 w-1/3">
                   <Text className="text-base text-grey-500 font-inter">Reviews</Text>
@@ -480,7 +513,7 @@ export default function Index() {
                   <Text className="text-base text-grey-500 font-interMedium">Total</Text>
                 </View>
 
-                <View className="w-[1px] h-full bg-grey-300" />
+                <View className="w-px h-full bg-grey-300" />
 
                 <View className="flex items-center gap-1 w-1/3">
                   <Text className="text-base text-grey-500 font-inter">Status</Text>
@@ -497,11 +530,14 @@ export default function Index() {
 
             {/* Description Button */}
             <View className="mt-5">
-              <PillButton
-                label="View Full Description"
+              <Button 
+                onPress={() => router.push(`/manage-apartment/${apartmentId}/description`)} 
                 size="sm"
-                onPress={() => router.push(`/manage-apartment/${apartmentId}/description`)}
-              />
+              >
+                <Button.Label>
+                  View Full Description
+                </Button.Label>
+              </Button>
             </View>
 
             {/* Render the tenant information, maintenance if any, payments, if it is occupied */}
@@ -512,7 +548,7 @@ export default function Index() {
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
                       <IconUser size={26} color={COLORS.text} />
-                      <Text className="text-text text-lg font-poppinsMedium">
+                      <Text className="text-text text-lg font-interSemiBold">
                         Tenant Information
                       </Text>
                     </View>
@@ -544,7 +580,7 @@ export default function Index() {
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-text text-xl font-poppinsSemiBold">
+                      <Text className="text-text text-xl font-interSemiBold">
                         Rent Payment History
                       </Text>
                       <TouchableOpacity
@@ -586,12 +622,14 @@ export default function Index() {
                   </Text>
                 </View>
 
-                <PillButton
-                  label="View Applications"
+                <Button 
                   size="sm"
-                  type="outline"
-                  isFullWidth
-                />
+                  variant="outline"
+                >
+                  <Button.Label>
+                    View Applications
+                  </Button.Label>
+                </Button>
               </View>
             )}
 
@@ -615,7 +653,7 @@ export default function Index() {
           // Error State
           <View className="flex-1 items-center justify-center py-24 gap-4">
             <IconBuildingOff size={48} color={COLORS.grey} />
-            <Text className="text-gray-400 font-poppinsMedium text-center">
+            <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
             <PillButton label="Retry" size="sm" onPress={fetchApartmentDetail} />
@@ -623,44 +661,87 @@ export default function Index() {
         )}
       </ScreenWrapper>
 
-      {/* FAB */}
-      <Pressable
-        onPress={() => setOpen(true)}
-        className="absolute bottom-8 right-6 w-16 h-16 rounded-full bg-primary
-                   items-center justify-center shadow-lg active:opacity-80"
-      >
-        <IconDotsVertical size={26} color={COLORS.white} />
-      </Pressable>
-
-      <Modal
-        visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setOpen(false)}
-      >
-        <Pressable className="flex-1" onPress={() => setOpen(false)}>
-          <Pressable
-            className="absolute bottom-8 right-6 bg-white rounded-2xl border border-grey-300 overflow-hidden min-w-[180px]"
-            onPress={() => {}}
+      {/* FAB with Menu */}
+      <Menu>
+        <Menu.Trigger asChild>
+          <Button
+            className="absolute bottom-8 right-6 rounded-full bg-primary
+              items-center justify-center shadow-lg active:opacity-80"
+            isIconOnly
           >
-            <Pressable
-              onPress={handleVacateUnit}
-              className="px-5 py-4 active:bg-grey-100 border-b border-gray-100 flex-row items-center gap-3"
-            >
-              <IconLogout2 size={20} color={COLORS.text} />
-              <Text className="text-text text-base font-interMedium">Vacate</Text>
-            </Pressable>
+            <IconDotsVertical size={26} color={COLORS.white} />
+          </Button>
 
-            <Pressable
-              onPress={handleRemoveUnit}
-              className="px-5 py-4 active:bg-grey-100 border-b border-gray-100 flex-row items-center gap-3"
-            >
-              <IconCircleX size={20} color={COLORS.redHead} />
-              <Text className="text-redHead-200 text-base font-interMedium">Remove Unit</Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        </Menu.Trigger>
+
+        <Menu.Portal>
+          <Menu.Overlay />
+          <Menu.Content
+            presentation="popover"
+            placement="top"
+            align="end"
+            width={200}
+          >
+            <Menu.Item onPress={handleVacateUnit}>
+              <IconLogout2 size={20} color={COLORS.text} />
+              <Menu.ItemTitle>Vacate</Menu.ItemTitle>
+            </Menu.Item>
+
+            <Menu.Item variant="danger" onPress={() => { setOpen(false); setIsRemoveDialogOpen(true) }}>
+              <IconCircleX size={20} color={COLORS.lightRedHead} />
+              <Menu.ItemTitle>Remove Unit</Menu.ItemTitle>
+            </Menu.Item>
+          </Menu.Content>
+        </Menu.Portal>
+      </Menu>
+      
+      {/* Remove Unit Dialog */}
+      <Dialog isOpen={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
+            <View className="mb-5 gap-1.5">
+              <Dialog.Title>Remove Unit</Dialog.Title>
+              <Dialog.Description>
+                Are you sure you want to remove this property? This action cannot be undone.
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end gap-3">
+              <Button variant="ghost" size="sm" onPress={() => setIsRemoveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" variant="danger" onPress={handleRemoveUnit}>
+                Remove
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+      
+      {/* Confirm Dialog for Vacating Unit */}
+      <Dialog isOpen={isVacateDialogOpen} onOpenChange={setIsVacateDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
+            <View className="mb-5 gap-1.5">
+              <Dialog.Title>Vacate Unit</Dialog.Title>
+              <Dialog.Description>
+                Are you sure you want to mark this unit as vacant? The current tenant&apos;s lease will be ended and the unit will be listed as available.
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end gap-3">
+              <Button variant="ghost" size="sm" onPress={() => setIsVacateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" variant="danger" onPress={handleConfirmVacate}>
+                Vacate
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </View>
   )
 }

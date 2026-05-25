@@ -2,11 +2,8 @@
 
 import {
   Card,
-  CardBody,
-  CardHeader,
-  CardFooter,
   Button,
-  Divider
+  Separator
 } from "@heroui/react";
 
 import { Flag } from "lucide-react";
@@ -36,19 +33,14 @@ export default function PriceCard({
   ]
 
   return (
-    <Card
-      shadow="none"
-      classNames={{
-        base: "border border-grey-300"
-      }}
-    >
-      <CardHeader>
-        <h2 className="text-3xl font-noto-serif font-medium text-primary">
+    <Card className="border border-grey-300 shadow-none">
+      <Card.Header>
+        <Card.Title className="text-3xl font-medium text-primary">
           ₱ {formattedPrice}<span className="text-xl">/month</span>
-        </h2>
-      </CardHeader>
+        </Card.Title>
+      </Card.Header>
 
-      <CardBody>
+      <Card.Content>
         <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-lg">
           {costBreakdown.map(({ label, value }) => (
               <div key={label} className="flex justify-between text-sm">
@@ -57,36 +49,30 @@ export default function PriceCard({
               </div>
             ))}
 
-          <Divider />
+          <Separator />
 
           <div className="flex justify-between text-sm">
             <span className="font-medium">Total Move-in Cost:</span>
             <span className="font-medium">₱ {formatCurrency(totalMoveInCost)}</span>
           </div>
         </div>
-      </CardBody>
+      </Card.Content>
 
-      <CardFooter className="flex flex-col gap-2">
-        <Button
-          variant="solid"
-          radius="full"
-          color="primary"
-          fullWidth
-        >
+      <Card.Footer className="flex flex-col gap-2">
+        <Button fullWidth>
           Apply Now
         </Button>
 
         {/* Report Button */}
         <Button
-          variant="light"
-          radius="full"
-          color="danger"
+          variant="tertiary"
+          className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
           fullWidth
-          startContent={<Flag size={16} />}
         >
+          <Flag size={16} />
           Report
         </Button>
-      </CardFooter>
+      </Card.Footer>
     </Card>
   );
 }

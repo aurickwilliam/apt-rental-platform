@@ -6,15 +6,19 @@ import {
   Button,
   Input,
   Select,
-  SelectItem,
-  NumberInput,
   DatePicker,
-  useDisclosure,
+  useOverlayState,
+  TextField, 
+  Label,
+  ListBox,
+  DateField,
+  Calendar,
+  FieldError,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
-  
+
 import PasswordChecklist from "./PasswordChecklist";
 import OtpModal from "./OtpModal";
 import SuccessModal from "./SuccessModal";
@@ -30,9 +34,14 @@ import { sendEmailOtp } from "../../actions/send-otp";
 export default function SignUpForm() {
   const { role, email } = useAuth();
 
-  const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const { isOpen: isErrorOpen, onOpenChange: onErrorOpenChange, onOpen: onErrorOpen } = useDisclosure();
-  const { isOpen: isSuccessOpen, onOpenChange: onSuccessOpenChange, onOpen: onSuccessOpen } = useDisclosure();
+  const { isOpen, open: onOpen, close: onClose } = useOverlayState();
+  const { isOpen: isErrorOpen, open: onErrorOpen, close: onErrorClose } = useOverlayState();
+  const { isOpen: isSuccessOpen, open: onSuccessOpen, close: onSuccessClose } = useOverlayState();
+
+  // Adapter for child modals that still use onOpenChange pattern
+  const onOpenChange = (val: boolean) => (val ? onOpen() : onClose());
+  const onErrorOpenChange = (val: boolean) => (val ? onErrorOpen() : onErrorClose());
+  const onSuccessOpenChange = (val: boolean) => (val ? onSuccessOpen() : onSuccessClose());
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,115 +115,101 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          <Input
+          <TextField
             isRequired
             isReadOnly
-            label="Email"
-            placeholder="Enter your email"
             name="email"
             type="email"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2! bg-default-100",
-            }}
             value={formData.email}
-            onValueChange={handleChange("email")}
-          />
+            onChange={handleChange("email")}
+          >
+            <Label>Email</Label>
+            <Input placeholder="Enter your email" />
+          </TextField>
 
-          <Input
+          <TextField
             isRequired
-            label="First Name"
-            placeholder="Enter your first name"
             name="firstName"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.firstName}
-            onValueChange={handleChange("firstName")}
+            onChange={handleChange("firstName")}
             isDisabled={loading}
-          />
+          >
+            <Label>First Name</Label>
+            <Input placeholder="Enter your first name" />
+          </TextField>
 
-          <Input
+          <TextField
             isRequired
-            label="Last Name"
-            placeholder="Enter your last name"
             name="lastName"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.lastName}
-            onValueChange={handleChange("lastName")}
+            onChange={handleChange("lastName")}
             isDisabled={loading}
-          />
+          >
+            <Label>Last Name</Label>
+            <Input placeholder="Enter your last name" />
+          </TextField>
 
-          <Input
-            label="Middle Name"
-            placeholder="Enter your middle name (optional)"
+          <TextField
             name="middleName"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.middleName}
-            onValueChange={handleChange("middleName")}
+            onChange={handleChange("middleName")}
             isDisabled={loading}
-          />
+          >
+            <Label>Middle Name</Label>
+            <Input placeholder="Enter your middle name (optional)" />
+          </TextField>
 
           <Select
-            disableAnimation
             isRequired
-            label="Gender"
-            placeholder="Select your gender"
             name="gender"
-            variant="bordered"
-            classNames={{
-              base: "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            selectedKeys={formData.gender ? [formData.gender] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0];
-              handleChange("gender")(selected ? String(selected) : "");
+            placeholder="Select your gender"
+            value={formData.gender || null}
+            onChange={(key) => handleChange("gender")(key ? String(key) : "")}
+            isDisabled={loading}
+          >
+            <Label>Gender</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {GENDERS.map((gender) => (
+                  <ListBox.Item
+                    key={gender}
+                    id={gender}
+                    textValue={gender}
+                    className="data-[hovered=true]:bg-light-blue!"
+                  >
+                    {gender}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <TextField
+            isRequired
+            name="mobileNumber"
+            type="tel"
+            value={formData.mobileNumber}
+            onChange={(val) => {
+              const digits = val.replace(/\D/g, "").slice(0, 11);
+              handleChange("mobileNumber")(digits);
             }}
             isDisabled={loading}
           >
-            {GENDERS.map((gender) => (
-              <SelectItem key={gender} className="data-[hover=true]:bg-light-blue!">
-                {gender}
-              </SelectItem>
-            ))}
-          </Select>
-
-          <Input
-            isRequired
-            label="Mobile Number"
-            placeholder="Enter your mobile number"
-            name="mobileNumber"
-            type="tel"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            value={formData.mobileNumber}
-            onValueChange={handleChange("mobileNumber")}
-            isDisabled={loading}
-          />
+            <Label>Mobile Number</Label>
+            <Input placeholder="Enter your mobile number" inputMode="numeric" />
+          </TextField>
 
           <DatePicker
-            label="Birth Date"
-            name="birth_date"
-            variant="bordered"
+            name="birthDate"
             isRequired
-            showMonthAndYearPickers
+            isDisabled={loading}
             onChange={(value) => {
               setFormData((prev) => ({
                 ...prev,
@@ -222,12 +217,62 @@ export default function SignUpForm() {
               }));
               if (error) setError(null);
             }}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            isDisabled={loading}
-          />
+          >
+            <Label>Birth Date</Label>
+            <DateField.Group fullWidth className="border border-grey-300">
+              <DateField.Input>
+                {(segment) => (
+                  <DateField.Segment
+                    segment={segment}
+                    className="data-[placeholder=true]:text-foreground/40 text-foreground"
+                  />
+                )}
+              </DateField.Input>
+              <DateField.Suffix>
+                <DatePicker.Trigger>
+                  <DatePicker.TriggerIndicator className="text-grey-500" />
+                </DatePicker.Trigger>
+              </DateField.Suffix>
+            </DateField.Group>
+
+            <DatePicker.Popover>
+              <Calendar aria-label="Birth Date">
+                <Calendar.Header>
+                  <Calendar.YearPickerTrigger>
+                    <Calendar.YearPickerTriggerHeading />
+                    <Calendar.YearPickerTriggerIndicator className="text-grey-500" />
+                  </Calendar.YearPickerTrigger>
+
+                  <Calendar.NavButton slot="previous" className="text-grey-500" />
+                  <Calendar.NavButton slot="next" className="text-grey-500" />
+                </Calendar.Header>
+                <Calendar.Grid>
+                  <Calendar.GridHeader>
+                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                  </Calendar.GridHeader>
+                  <Calendar.GridBody>
+                    {(date) => (
+                      <Calendar.Cell
+                        date={date}
+                        className="data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.GridBody>
+                </Calendar.Grid>
+
+                <Calendar.YearPickerGrid>
+                  <Calendar.YearPickerGridBody>
+                    {(yearProps) => (
+                      <Calendar.YearPickerCell
+                        year={yearProps.year}
+                        className="data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.YearPickerGridBody>
+                </Calendar.YearPickerGrid>
+              </Calendar>
+            </DatePicker.Popover>
+          </DatePicker>
         </div>
 
         {/* Address Information */}
@@ -236,102 +281,102 @@ export default function SignUpForm() {
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          <Input
+          <TextField
             isRequired
-            label="Street Address"
-            placeholder="Enter your street address"
             name="streetAddress"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.streetAddress}
-            onValueChange={handleChange("streetAddress")}
+            onChange={handleChange("streetAddress")}
             isDisabled={loading}
-          />
+          >
+            <Label>Street Address</Label>
+            <Input placeholder="Enter your street address" />
+          </TextField>
 
-          <Input
+          <TextField
             isRequired
-            label="Barangay"
-            placeholder="Enter your barangay"
             name="barangay"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.barangay}
-            onValueChange={handleChange("barangay")}
+            onChange={handleChange("barangay")}
             isDisabled={loading}
-          />
+          >
+            <Label>Barangay</Label>
+            <Input placeholder="Enter your barangay" />
+          </TextField>
 
-          <Input
+          <TextField
             isRequired
-            label="City"
-            placeholder="Enter your city"
             name="city"
             type="text"
-            variant="bordered"
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             value={formData.city}
-            onValueChange={handleChange("city")}
+            onChange={handleChange("city")}
             isDisabled={loading}
-          />
+          >
+            <Label>City</Label>
+            <Input placeholder="Enter your city" />
+          </TextField>
 
           <Select
             isRequired
             placeholder="Select your state/province"
             name="stateProvince"
-            label="State/Province"
-            variant="bordered"
-            classNames={{
-              trigger:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
             className="w-full"
-            selectedKeys={formData.stateProvince ? [formData.stateProvince] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0];
-              handleChange("stateProvince")(selected ? String(selected) : "");
+            value={formData.stateProvince || null}
+            onChange={(key) => {
+              handleChange("stateProvince")(key ? String(key) : "");
             }}
             isDisabled={loading}
           >
-            {PROVINCES.map((province) => (
-              <SelectItem key={province} className="data-[hover=true]:bg-light-blue!">
-                {province}
-              </SelectItem>
-            ))}
+            <Label>State/Province</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {PROVINCES.map((province) => (
+                  <ListBox.Item
+                    key={province}
+                    id={province}
+                    textValue={province}
+                    className="data-[hovered=true]:bg-light-blue!"
+                  >
+                    {province}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <NumberInput
+          <TextField
             isRequired
-            label="Postal Code"
-            placeholder="Enter your postal code"
             name="postalCode"
-            variant="bordered"
-            hideStepper
-            maxValue={9999}
-            minValue={1000}
-            formatOptions={{ useGrouping: false }}
-            classNames={{
-              inputWrapper:
-                "data-[focus=true]:border-primary! data-[focus=true]:border-2!",
-            }}
-            value={formData.postalCode}
-            onValueChange={(val) =>
+            value={formData.postalCode !== undefined ? String(formData.postalCode) : ""}
+            onChange={(val) => {
+              const digits = val.replace(/\D/g, "").slice(0, 4);
               setFormData((prev) => ({
                 ...prev,
-                postalCode: val === undefined ? undefined : Number(val),
-              }))
-            }
+                postalCode: digits ? Number(digits) : undefined,
+              }));
+              if (error) setError(null);
+            }}
+            validate={(val) => {
+              if (!val) return "Postal code is required.";
+              if (!/^\d{4}$/.test(val)) return "Enter a valid 4-digit postal code.";
+              const num = Number(val);
+              if (num < 1000 || num > 9999) return "Postal code must be between 1000 and 9999.";
+              return true;
+            }}
             isDisabled={loading}
-          />
+          >
+            <Label>Postal Code</Label>
+            <Input
+              placeholder="Enter your postal code"
+              inputMode="numeric"
+            />
+            <FieldError />
+          </TextField>
         </div>
 
         {/* Password */}
@@ -345,7 +390,6 @@ export default function SignUpForm() {
             label="Password"
             placeholder="Create a password"
             name="password"
-            variant="bordered"
             value={formData.password}
             onChange={handleChange("password")}
           />
@@ -355,7 +399,6 @@ export default function SignUpForm() {
             label="Confirm Password"
             placeholder="Confirm your password"
             name="confirmPassword"
-            variant="bordered"
             value={formData.confirmPassword}
             onChange={handleChange("confirmPassword")}
           />
@@ -367,12 +410,11 @@ export default function SignUpForm() {
         </div>
 
         <Button
-          color="primary"
-          className="w-full mt-5 md:max-w-[300px] md:self-end"
+          variant="primary"
+          className="w-full mt-5 md:max-w-[300px] md:self-end rounded-full"
           size="lg"
-          radius="full"
           type="submit"
-          isLoading={loading}
+          isPending={loading}
           isDisabled={loading}
         >
           {loading ? "Creating Account..." : "Sign Up"}

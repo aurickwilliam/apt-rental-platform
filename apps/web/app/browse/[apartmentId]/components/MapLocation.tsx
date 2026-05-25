@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Modal, ModalContent, ModalBody, ModalHeader, Button } from "@heroui/react";
+import { Modal, Button } from "@heroui/react";
 import { Expand, Navigation } from "lucide-react";
 
 
@@ -186,22 +186,21 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
         <div id="map-preview" className="w-full h-full rounded-lg z-0" />
         <div className="absolute bottom-3 right-3 z-1000 flex gap-2">
           <Button
-            className="bg-white shadow-md"
-            radius="full"
+            className="shadow-sm"
             size="sm"
-            title="Get Directions"
             onPress={handleOpenDirections}
-            startContent={<Navigation size={16} />}
+            variant="tertiary"
           >
+            <Navigation size={16} />
             <p>Get Directions</p>
           </Button>
+          
           <Button
             isIconOnly
-            className="bg-white shadow-md"
-            radius="full"
+            className="shadow-md"
             size="sm"
-            title="Expand Map"
             onPress={() => setIsExpandOpen(true)}
+            variant="tertiary"
           >
             <Expand size={16} />
           </Button>
@@ -209,50 +208,69 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
       </div>
 
       {/* Expand modal */}
-      <Modal
-        isOpen={isExpandOpen}
-        onOpenChange={setIsExpandOpen}
-        size="5xl"
-        scrollBehavior="inside"
-        classNames={{ wrapper: "z-[2000]", backdrop: "z-[1999]" }}
-      >
-        <ModalContent>
-          <ModalBody className="p-0">
-            <div id="map-modal" className="w-full h-[80vh] rounded-lg z-0" />
-          </ModalBody>
-        </ModalContent>
+      <Modal>
+        <Modal.Backdrop
+          isOpen={isExpandOpen}
+          onOpenChange={setIsExpandOpen}
+          className="z-1999"
+        >
+          <Modal.Container 
+            size="cover" 
+            scroll="inside" 
+            className="z-2000 bg-transparent p-0 shadow-none"
+          >
+            <Modal.Dialog className="bg-transparent h-full flex flex-col justify-center">
+              {/* Close Button */}
+              <Modal.CloseTrigger className="absolute top-4 right-4 z-10 text-black" />
+
+              <Modal.Body className="p-0 h-full flex items-center justify-center">
+                <div className="w-2/3 bg-white p-4 rounded-3xl overflow-hidden shadow-xl">
+                  <div id="map-modal" className="w-full h-[80vh] z-0 rounded-xl" />
+                </div>
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
 
       {/* Directions modal */}
-      <Modal
-        isOpen={isDirectionsOpen}
-        onOpenChange={setIsDirectionsOpen}
-        size="sm"
-        classNames={{ wrapper: "z-[2000]", backdrop: "z-[1999]" }}
-      >
-        <ModalContent>
-          <ModalHeader className="text-lg font-semibold">
-            Get Directions
-          </ModalHeader>
-          <ModalBody className="pb-6 flex flex-col gap-3">
-            <p className="text-sm text-default-500">
-              Choose how you want to get there. Opens in Google Maps.
-            </p>
-            <div className="flex flex-col gap-2">
-              {MODES.map((mode) => (
-                <Button
-                  key={mode.id}
-                  variant="bordered"
-                  className="justify-start gap-3"
-                  fullWidth
-                  onPress={() => openInGoogleMaps(mode)}
-                >
-                  <span>{mode.label}</span>
-                </Button>
-              ))}
-            </div>
-          </ModalBody>
-        </ModalContent>
+      <Modal>
+        <Modal.Backdrop
+          isOpen={isDirectionsOpen}
+          onOpenChange={setIsDirectionsOpen}
+          className="z-1999"
+        >
+          <Modal.Container size="sm" className="z-2000">
+            <Modal.Dialog>
+              <Modal.CloseTrigger className="text-black" />
+              <Modal.Header>
+                <Modal.Heading className="text-lg font-semibold">
+                  Get Directions
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="pb-2 flex flex-col gap-3">
+                <p className="text-sm text-grey-500">
+                  Choose how you want to get there. Opens in Google Maps.
+                </p>
+                <div className="flex flex-col gap-2">
+                  {MODES.map((mode) => (
+                    <Button
+                      key={mode.id}
+                      variant="tertiary"
+                      className="justify-start gap-3 text-black"
+                      fullWidth
+                      onPress={() => openInGoogleMaps(mode)}
+                    >
+                      <span>
+                        {mode.label}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );

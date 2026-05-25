@@ -1,26 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
+import { TextField, Label, InputGroup, FieldError, Button } from "@heroui/react";
 
-import { Button, Input } from "@heroui/react"
-
-import {
-  Eye,
-  EyeClosed,
-} from "lucide-react"
+import { Eye, EyeOff } from "lucide-react";
 
 interface PasswordFieldProps {
-  label: string
-  name: string
-  value?: string
-  onChange?: (value: string) => void
-  variant?: "bordered" | "underlined" | "flat" | "faded" | undefined
-  errorMessage?: string
-  labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | undefined
-  isRequired?: boolean
-  placeholder?: string
-  size?: "sm" | "md" | "lg" | undefined
-  className?: string
+  label: string;
+  name: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  errorMessage?: string;
+  isRequired?: boolean;
+  placeholder?: string;
+  className?: string;
 }
 
 export default function PasswordField({
@@ -28,66 +21,48 @@ export default function PasswordField({
   name,
   value,
   onChange,
-  variant = "bordered",
   errorMessage = "Please enter a valid password",
-  labelPlacement = "inside",
   isRequired = false,
   placeholder = "Enter your password",
-  size = "md",
   className,
 }: PasswordFieldProps) {
-
   const [isVisible, setIsVisible] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <Input
-      isRequired={isRequired}
-      errorMessage={errorMessage}
-      label={label}
-      labelPlacement={labelPlacement}
-      placeholder={placeholder}
+    <TextField
       name={name}
       value={value}
-      size={size}
-      onValueChange={onChange}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
-      type={isVisible ? "text" : "password"}
-      variant={variant}
-      classNames={{
-        inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-      }}
+      isRequired={isRequired}
+      onChange={onChange}
       className={className}
-      endContent={
-        isFocused && (
+    >
+      <Label>{label}</Label>
+
+      <InputGroup className="rounded-xl border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+        <InputGroup.Input
+          placeholder={placeholder}
+          type={isVisible ? "text" : "password"}
+        />
+
+        <InputGroup.Suffix>
           <Button
             isIconOnly
-            variant="light"
-            radius="full"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setIsVisible((v) => !v)}
+            className="text-muted focus:outline-none cursor-pointer placeholder:text-gray-400"
+            aria-label={isVisible ? "Hide password" : "Show password"}
+            size="sm"
+            variant="ghost"
           >
-            {
-              isVisible ? (
-                <EyeClosed
-                  className="text-gray-500"
-                  onMouseDown={(e) => {
-                    e.preventDefault(); // Prevents input from losing focus
-                    setIsVisible(false)
-                  }}
-                />
-              ) : (
-                <Eye
-                  className="text-gray-500"
-                  onMouseDown={(e) => {
-                    e.preventDefault(); // Prevents input from losing focus
-                    setIsVisible(true)
-                  }}
-                />
-              )
+            {isVisible 
+              ? <EyeOff size={18} className="text-gray-400" /> 
+              : <Eye size={18} className="text-gray-400" />
             }
           </Button>
-        )
-      }
-    />
+        </InputGroup.Suffix>
+      </InputGroup>
+
+      <FieldError>{errorMessage}</FieldError>
+    </TextField>
   );
 }

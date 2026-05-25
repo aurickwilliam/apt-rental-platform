@@ -289,11 +289,10 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto py-6 px-4">
+      <div className="max-w-3xl mx-auto py-6">
         <Button
           onPress={router.back}
-          radius="full"
-          variant="light"
+          variant="outline"
         >
           <ArrowLeft size={20} />
           Back
@@ -363,8 +362,7 @@ export default function CreateApartmentPage() {
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-10 pt-6 border-t border-grey-200">
             <Button
-              variant="flat"
-              radius="full"
+              variant="tertiary"
               onPress={handleBack}
               isDisabled={step === 1}
               className="px-6"
@@ -373,9 +371,6 @@ export default function CreateApartmentPage() {
             </Button>
             {step < 5 ? (
               <Button
-                variant="solid"
-                color="primary"
-                radius="full"
                 onPress={handleNext}
                 className="px-8"
               >
@@ -383,11 +378,8 @@ export default function CreateApartmentPage() {
               </Button>
             ) : (
               <Button
-                variant="solid"
-                color="primary"
-                radius="full"
                 onPress={handleSubmit}
-                isLoading={isSubmitting}
+                isPending={isSubmitting}
                 className="px-8"
               >
                 Submit Listing

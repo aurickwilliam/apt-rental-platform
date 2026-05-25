@@ -6,9 +6,8 @@ import { Share } from "lucide-react";
 export default function ShareBtn() {
   return (
     <Button
-      variant="light"
+      variant="tertiary"
       size="md"
-      radius="full"
       isIconOnly
     >
       <Share size={20} />

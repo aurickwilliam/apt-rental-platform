@@ -1,4 +1,3 @@
-// hooks/usePublishApartment.ts
 import { useState } from 'react'
 import { supabase } from '@repo/supabase'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
@@ -41,7 +40,9 @@ export function usePublishApartment() {
   const store = useApartmentFormStore()
   const { profile } = useProfile()
 
-  const publish = async (): Promise<boolean> => {
+  const clearError = () => setError(null);
+
+  const publish = async (): Promise<string | null> => {
     setLoading(true)
     setError(null)
 
@@ -110,12 +111,7 @@ export function usePublishApartment() {
 
         if (uploadError) throw uploadError
 
-        const { data: signedData, error: signedError } = await supabase.storage
-          .from('lease-agreements')
-          .createSignedUrl(fileName, 60 * 60 * 24 * 365)
-
-        if (signedError) throw signedError
-        leaseAgreementUrl = signedData.signedUrl
+        leaseAgreementUrl = fileName
       }
 
       // 5. Update apartment with lease URL
@@ -147,14 +143,14 @@ export function usePublishApartment() {
       // 7. Reset form store
       store.reset()
 
-      return true
+      return apartment.id
     } catch (err: any) {
       setError(err.message ?? 'Something went wrong.')
-      return false
+      return null
     } finally {
       setLoading(false)
     }
   }
 
-  return { publish, loading, error }
+  return { publish, loading, error, clearError }
 }

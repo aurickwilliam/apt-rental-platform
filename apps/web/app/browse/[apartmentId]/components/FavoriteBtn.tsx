@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@heroui/react";
-import { addToast } from "@heroui/toast";
+import { Button, toast } from "@heroui/react";
 import { Heart } from "lucide-react";
 
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
+
 import { useFavorites } from "@/hooks/use-favorites";
 
 interface FavoriteBtnProps {
@@ -24,11 +24,11 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
 
     try {
       const nextValue = await toggleFavorite(apartmentId);
-      addToast({
-        title: nextValue ? "Saved to favorites" : "Removed from favorites",
-        severity: nextValue ? "success" : "default",
-        color: nextValue ? "primary" : "default",
-      });
+      if (nextValue) {
+        toast.success("Saved to favorites");
+      } else {
+        toast("Removed from favorites");
+      }
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
 
@@ -38,19 +38,11 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
       }
 
       if (error?.code === "NOT_TENANT") {
-        addToast({
-          title: error?.message ?? "Only tenants can save favorites",
-          severity: "warning",
-          color: "warning",
-        });
+        toast.warning(error?.message ?? "Only tenants can save favorites");
         return;
       }
 
-      addToast({
-        title: error?.message ?? "Unable to update favorites",
-        severity: "danger",
-        color: "danger",
-      });
+      toast.danger(error?.message ?? "Unable to update favorites");
     } finally {
       setIsSaving(false);
     }
@@ -59,11 +51,10 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
   return (
     <>
       <Button
-        variant="light"
+        variant="tertiary"
         size="md"
-        radius="full"
         isIconOnly
-        isLoading={isSaving}
+        isPending={isSaving}
         isDisabled={loading}
         onPress={handleToggleFavorite}
       >

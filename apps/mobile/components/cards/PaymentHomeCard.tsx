@@ -41,7 +41,7 @@ export default function PaymentHomeCard({
         />
 
         {/* Apartment Name */}
-        <Text className='text-white text-xl font-poppinsSemiBold'>
+        <Text className='text-white text-xl font-interSemiBold'>
           {apartmentName}
         </Text>
       </View>
@@ -61,7 +61,7 @@ export default function PaymentHomeCard({
         </View>
 
         {/* Amount */}
-        <Text className='text-white text-4xl font-poppinsSemiBold'>
+        <Text className='text-white text-4xl font-interSemiBold'>
           ₱ {formattedAmountDue}
         </Text>
 

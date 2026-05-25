@@ -15,7 +15,7 @@ export default function UploadSelfie() {
     >
       
       <View className='flex-1 items-center justify-center'>
-        <Text className='text-3xl font-poppinsMedium text-center text-primary'>
+        <Text className='text-3xl font-interSemiBold text-center text-primary'>
           Take a Selfie
         </Text>
 

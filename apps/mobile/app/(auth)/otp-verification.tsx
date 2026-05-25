@@ -1,103 +1,72 @@
-import { View, Text, Pressable, TouchableOpacity } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
-import { TextInput } from 'react-native-gesture-handler'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import PillButton from 'components/buttons/PillButton'
 
 import { COLORS } from '@repo/constants'
 
-import { IconChevronLeft } from '@tabler/icons-react-native'
+import { IconChevronLeft, IconAlertCircle } from '@tabler/icons-react-native'
 
-import { supabase } from '@repo/supabase';
-
+import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/store/useRegistrationStore'
 
+import {
+  CloseButton,
+  InputOTP,
+  REGEXP_ONLY_DIGITS,
+  type InputOTPRef,
+  Button,
+  Dialog,
+} from 'heroui-native'
+
 export default function OTPVerification() {
-  const router = useRouter();
-  const { email } = useLocalSearchParams();
+  const router = useRouter()
+  const { email } = useLocalSearchParams()
 
-  const { data, reset } = useRegistrationStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data, reset } = useRegistrationStore()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false)
 
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
-  const [countdown, setCountdown] = useState<number>(30);
-  const inputRefs = useRef<TextInput[]>([]);
+  const [otp, setOtp] = useState('')
+  const [countdown, setCountdown] = useState(30)
+  const otpRef = useRef<InputOTPRef>(null)
 
-  const emailValue = Array.isArray(email) ? email[0] : email;
+  const emailValue = Array.isArray(email) ? email[0] : email
 
-  // Countdown timer
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
     }
-  }, [countdown]);
+  }, [countdown])
 
-  // Handle the OTP Input Change
-  const handleChange = (index: number, text: string) => {
-    // Handle paste — if user pastes a full OTP string
-    if (text.length > 1) {
-      const digits = text.replace(/\D/g, '').slice(0, 6).split('');
-      const newOTP = Array(6).fill('');
-      digits.forEach((d, i) => { newOTP[i] = d; });
-      setOtp(newOTP);
-      // Focus on the last filled box or the last box
-      const focusIndex = Math.min(digits.length, 5);
-      inputRefs.current[focusIndex]?.focus();
-      return;
-    }
-
-    // Check if the input is a number
-    if (text && !/^\d+$/.test(text)) return;
-
-    const newOTP = [...otp];
-    newOTP[index] = text;
-    setOtp(newOTP);
-
-    // Focus on the next input field if it exists — fixed: was index < 3
-    if (index < 5 && text.length === 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  }
-
-  // Handle the OTP if backspace is pressed
-  const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  }
-
-  // Handle resend of OTP
   const handleResend = async () => {
-    setCountdown(30);
-    setOtp(Array(6).fill(''));
-    inputRefs.current[0]?.focus();
+    setCountdown(30)
+    setOtp('')
+    otpRef.current?.clear()
 
     await supabase.auth.resend({
       type: 'signup',
       email: emailValue || data.email!,
-    });
-  };
+    })
+  }
 
   const handleVerify = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
-      // Step 1: Verify the OTP
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
-        token: otp.join(''),
+        token: otp,
         type: 'signup',
-      });
+      })
 
-      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed');
+      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
 
-      // Step 2: Insert full profile into public.users
-      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear();
+      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear()
 
       const { error: insertError } = await supabase.from('users').insert({
         user_id: authData.user.id,
@@ -115,83 +84,85 @@ export default function OTPVerification() {
         city: data.city,
         province: data.province,
         postal_code: parseInt(data.postalCode!, 10),
-      });
+      })
 
-      if (insertError) throw insertError;
+      if (insertError) throw insertError
 
-      const userSide = data.userSide;
-      reset();
+      const userSide = data.userSide
+      reset()
 
-      router.dismissAll();
+      router.dismissAll()
       if (userSide === 'tenant') {
-        router.replace('/personalization/step-one');
+        router.replace('/personalization/step-one')
       } else {
-        router.replace('/(tabs)/(landlord)/dashboard');
+        router.replace('/(tabs)/(landlord)/dashboard')
       }
 
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || 'Something went wrong')
+      setErrorDialogOpen(true)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Hide or mask the email address for privacy
   const maskEmail = (email: string) => {
-    const [username, domain] = email.split("@");
-
-    if (username.length <= 2) {
-      return `${username[0]}***@${domain}`;
-    }
-
-    const maskedUsername = username[0] + "****" + username[username.length - 1];
-    return `${maskedUsername}@${domain}`;
-  };
-
-  const isOtpComplete = otp.every(d => d !== '');
+    const [username, domain] = email.split('@')
+    if (username.length <= 2) return `${username[0]}***@${domain}`
+    return `${username[0]}****${username[username.length - 1]}@${domain}`
+  }
 
   return (
     <ScreenWrapper className='p-5'>
       <View className='flex-1 justify-between'>
         <View>
           {/* Back button */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className="mb-3"
+          <CloseButton
+            variant="ghost"
+            className="-ml-2"
             onPress={router.back}
           >
-            <IconChevronLeft size={30} color={COLORS.text} />
-          </TouchableOpacity>
+            <IconChevronLeft size={26} color={COLORS.text} />
+          </CloseButton>
 
           {/* Title */}
-          <Text className="text-3xl text-text font-poppinsSemiBold my-5">
+          <Text className="text-2xl text-text font-interMedium my-5">
             OTP was Sent!
           </Text>
 
           {/* Description */}
-          <Text className="text-lg text-text font-poppinsRegular mb-5">
+          <Text className="text-base text-text font-inter mb-5">
             We&apos;ve sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
           </Text>
 
-          {/* OTP Input Fields*/}
-          <View className="flex-row items-center justify-between mb-6">
-            {otp.map((digit, index) => (
-              <TextInput
-                key={index}
-                ref={(ref) => {
-                  if (ref) inputRefs.current[index] = ref as TextInput;
-                }}
-                className="size-16 border-2 border-gray-300 rounded-2xl text-center text-4xl text-text font-interMedium"
-                value={digit}
-                onChangeText={(text) => handleChange(index, text)}
-                onKeyPress={(e) => handleKeyPress(e, index)}
-                keyboardType="number-pad"
-                maxLength={6}
-                textContentType="oneTimeCode"   // iOS autofill
-                autoComplete="one-time-code"    // Android autofill
-                selectTextOnFocus
-              />
-            ))}
+          {/* OTP Input */}
+          <View className="items-center mb-6">
+            <InputOTP
+              ref={otpRef}
+              maxLength={6}
+              value={otp}
+              onChange={setOtp}
+              isInvalid={!!error}
+              isDisabled={loading}
+              pattern={REGEXP_ONLY_DIGITS}
+              inputMode="numeric"
+              textInputProps={{
+                textContentType: 'oneTimeCode',
+                autoComplete: 'one-time-code',
+              }}
+            >
+              <InputOTP.Group>
+                <InputOTP.Slot index={0} />
+                <InputOTP.Slot index={1} />
+                <InputOTP.Slot index={2} />
+              </InputOTP.Group>
+              <InputOTP.Separator />
+              <InputOTP.Group>
+                <InputOTP.Slot index={3} />
+                <InputOTP.Slot index={4} />
+                <InputOTP.Slot index={5} />
+              </InputOTP.Group>
+            </InputOTP>
           </View>
 
           {/* Resend Link and Countdown */}
@@ -213,18 +184,47 @@ export default function OTPVerification() {
           </View>
         </View>
 
-        {error && (
-          <Text className="text-red-500 text-sm">{error}</Text>
-        )}
-
-        {/* Create Account Button */}
-        <PillButton
-          label={loading ? 'Creating Account...' : 'Verify & Create Account'}
+        {/* Verify Button */}
+        <Button
           onPress={handleVerify}
-          isFullWidth
-          isDisabled={loading || !isOtpComplete}
-        />
+          isDisabled={loading || otp.length < 6}
+        >
+          <Button.Label>
+            {loading ? 'Creating Account...' : 'Verify & Create Account'}
+          </Button.Label>
+        </Button>
       </View>
+
+      {/* Error Dialog */}
+      <Dialog isOpen={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close variant="ghost" className="absolute top-3 right-3" />
+            <View className="mb-5 gap-1.5">
+              <View className="flex-row items-center gap-2">
+                <IconAlertCircle size={20} color={COLORS.lightRedHead} />
+                <Dialog.Title className="text-redHead-100">
+                  Something went wrong
+                </Dialog.Title>
+              </View>
+              <Dialog.Description className="text-redHead-100">
+                {error}
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end">
+              <Button 
+                size="sm" 
+                onPress={() => setErrorDialogOpen(false)}
+                variant="secondary"
+              >
+                <Button.Label>Dismiss</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+
     </ScreenWrapper>
   )
 }

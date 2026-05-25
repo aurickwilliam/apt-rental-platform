@@ -98,7 +98,7 @@ export default function ReviewInformation() {
 
         {/* Summary */}
         <View className='flex-1'>
-          <Text className='text-xl font-poppinsSemiBold text-text'>
+          <Text className='text-xl font-interSemiBold text-text'>
             Summary of Application
           </Text>
           <Text className='text-sm font-inter text-text mt-1'>

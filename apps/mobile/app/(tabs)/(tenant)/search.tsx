@@ -21,7 +21,8 @@ export default function Search() {
     error,
     fetchApartments,
     filters,
-    filterSheetRef,
+    isFilterSheetOpen,
+    setIsFilterSheetOpen,
     handleApplyFilters,
     handleClearFilters,
     handleToggleFavorite,
@@ -43,7 +44,7 @@ export default function Search() {
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}`);
 
   return (
-    <ScreenWrapper className='pt-5' backgroundColor={COLORS.darkerWhite} noBottomPadding>
+    <ScreenWrapper backgroundColor={COLORS.darkerWhite} noBottomPadding>
       <SearchHeader
         cities={cities}
         selectedCity={selectedCity}
@@ -79,7 +80,8 @@ export default function Search() {
 
       {/* ── Filter Bottom Sheet ── */}
       <FilterBottomSheet
-        bottomSheetRef={filterSheetRef}
+        isOpen={isFilterSheetOpen}
+        onOpenChange={setIsFilterSheetOpen}
         resultCount={resultCount}
         initialFilters={filters ?? DEFAULT_FILTERS}
         onApply={handleApplyFilters}

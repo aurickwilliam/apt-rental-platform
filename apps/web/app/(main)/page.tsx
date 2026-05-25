@@ -2,7 +2,7 @@ import ApartmentCarousel from "./components/ApartmentCarousel";
 import DiscoverNowBtn from "./components/DiscoverNowBtn";
 import HeroSection from "./components/HeroSection";
 
-import { Divider } from "@heroui/react";
+import { Separator, Surface } from "@heroui/react";
 
 import { redirect } from "next/navigation";
 
@@ -76,7 +76,7 @@ export default async function Home() {
 
           {/* Why Us */}
           <section className="mt-10">
-            <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
+            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
               Why Us?
             </h2>
 
@@ -89,7 +89,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <KeyRound className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Tenants
                 </h3>
 
@@ -101,8 +101,8 @@ export default async function Home() {
                 </p>
               </div>
 
-              <Divider className="my-3 md:hidden" />
-              <Divider
+              <Separator className="my-3 md:hidden" />
+              <Separator
                 className="mx-2 hidden md:block self-stretch h-auto"
                 orientation="vertical"
               />
@@ -110,7 +110,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <Building2 className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Owners
                 </h3>
 
@@ -121,8 +121,8 @@ export default async function Home() {
                 </p>
               </div>
 
-              <Divider className="my-3 md:hidden" />
-              <Divider
+              <Separator className="my-3 md:hidden" />
+              <Separator
                 className="mx-2 hidden md:block self-stretch h-auto"
                 orientation="vertical"
               />
@@ -130,7 +130,7 @@ export default async function Home() {
               <div className="flex flex-col gap-3">
                 <ClipboardCheck className="text-primary" size={48} />
 
-                <h3 className="text-2xl font-poppins font-medium">
+                <h3 className="text-2xl font-inter font-semibold">
                   For Management
                 </h3>
 
@@ -149,11 +149,11 @@ export default async function Home() {
             <ApartmentCarousel apartment={mapped} />
           </section>
 
-          <Divider className="my-10" />
+          <Separator className="my-10" />
 
           {/* How it Works */}
           <section className="md:mt-10 mb-10">
-            <h2 className="text-3xl text-primary text-center font-poppins font-semibold mb-4 md:text-5xl">
+            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
               How it Works?
             </h2>
 
@@ -164,10 +164,10 @@ export default async function Home() {
 
             <div className="flex flex-col md:flex-row gap-5 mt-5 md:mt-10">
               {/* Discover */}
-              <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
+              <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
                 <Map size={48} className="text-primary" />
 
-                <h2 className="text-3xl text-primary font-poppins font-semibold">
+                <h2 className="text-3xl text-primary font-inter font-semibold">
                   Discover
                 </h2>
 
@@ -205,14 +205,14 @@ export default async function Home() {
                 <div className="mt-5">
                   <DiscoverNowBtn />
                 </div>
-              </div>
+              </Surface>
 
               {/* Apply & Pay */}
               <div className="flex flex-col gap-5 md:w-1/2">
-                <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <FileCheckCorner size={48} className="text-primary" />
 
-                  <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  <h2 className="text-3xl text-primary font-inter font-semibold">
                     Apply & Sign
                   </h2>
 
@@ -222,12 +222,12 @@ export default async function Home() {
                     sign securely using digital e-signing, eliminating paperwork
                     and unnecessary delays.
                   </p>
-                </div>
+                </Surface>
 
-                <div className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <BanknoteArrowUp size={48} className="text-primary" />
 
-                  <h2 className="text-3xl text-primary font-poppins font-semibold">
+                  <h2 className="text-3xl text-primary font-inter font-semibold">
                     Live & Pay
                   </h2>
 
@@ -237,7 +237,7 @@ export default async function Home() {
                     updates, and communicate with owners or management, all
                     conveniently from your mobile device.
                   </p>
-                </div>
+                </Surface>
               </div>
             </div>
           </section>

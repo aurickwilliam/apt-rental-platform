@@ -10,6 +10,17 @@ export type TenancyApartment = {
   city: string;
   province: string;
   monthly_rent: number;
+  type: string;
+  no_bedrooms: number;
+  no_bathrooms: number;
+  area_sqm: number;
+  amenities: string[] | null;
+  description: string;
+  furnished_type: string | null;
+  floor_level: string | null;
+  max_occupants: number | null;
+  lease_duration: string | null;
+  lease_agreement_url: string | null;
 };
 
 export type TenancyLandlord = {
@@ -78,7 +89,10 @@ export function useTenancy() {
           monthly_rent,
           status,
           apartment:apartments (
-            id, name, street_address, barangay, city, province, monthly_rent
+            id, name, street_address, barangay, city, province, monthly_rent,
+            type, no_bedrooms, no_bathrooms, area_sqm, amenities, description,
+            furnished_type, floor_level, max_occupants, lease_duration,
+            lease_agreement_url
           ),
           landlord:users!tenancies_landlord_id_fkey (
             id, first_name, last_name, email, mobile_number, avatar_url

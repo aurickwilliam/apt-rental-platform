@@ -63,12 +63,9 @@ export default function MessageInput({ onSend, onTypingChange }: MessageInputPro
         onKeyDown={handleKeyDown}
         placeholder="Type your message..."
         fullWidth
-        variant="faded"
-        radius="full"
+        className="rounded-full"
       />
       <Button
-        color="primary"
-        radius="full"
         className="px-8 font-medium"
         onPress={handleSend}
         isDisabled={!value.trim()}

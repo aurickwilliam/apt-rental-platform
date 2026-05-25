@@ -4,14 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import SearchField from '@/components/inputs/SearchField'
 import Divider from '@/components/display/Divider'
-import PerkButton from '../../components/PerkButton'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button, Chip, SearchField } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
 import { PERKS } from '@/constants/perks'
 import { supabase } from '@repo/supabase'
+import Ionicons from '@expo/vector-icons/build/Ionicons'
 
 export default function EditPerks() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
@@ -129,12 +129,13 @@ export default function EditPerks() {
           contentContainerStyle={{ paddingBottom: 16 }}
           keyboardShouldPersistTaps='handled'
         >
-          <SearchField
-            searchPlaceholder='Search a perk'
-            onChangeSearch={setSearchValue}
-            searchValue={searchValue}
-            backgroundColor={COLORS.darkerWhite}
-          />
+          <SearchField value={searchValue} onChange={setSearchValue}>
+            <SearchField.Group className="bg-darkerWhite">
+              <SearchField.SearchIcon />
+              <SearchField.Input placeholder="Search a perk" />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
 
           {amenities.length === 0 && (
             <Text className='text-red-500 text-sm font-inter mt-2'>
@@ -145,18 +146,22 @@ export default function EditPerks() {
           <Divider />
 
           {filteredSelected.length > 0 && (
-            <View className='flex gap-3'>
-              <Text className='text-text text-lg font-interMedium'>
-                Added Perks ({amenities.length})
-              </Text>
-              <View className='flex-row flex-wrap gap-5'>
+              <View className='flex gap-3'>
+                <Text className='text-text text-base font-interMedium'>
+                  Added Perks ({amenities.length})
+                </Text>
+              <View className='flex-row flex-wrap gap-3'>
                 {filteredSelected.map((perk) => (
-                  <PerkButton
+                  <Chip
                     key={perk.id}
-                    perkId={perk.id}
-                    isSelected
+                    variant='secondary'
+                    color='accent'
                     onPress={() => toggleAmenity(perk.id)}
-                  />
+                  >
+                    <perk.icon size={16} color={COLORS.primary} />
+                    <Chip.Label>{perk.name}</Chip.Label>
+                    <Ionicons name='close' size={12} />
+                  </Chip>
                 ))}
               </View>
             </View>
@@ -168,16 +173,21 @@ export default function EditPerks() {
 
           {filteredUnselected.length > 0 ? (
             <View className='flex gap-3 mt-3'>
-              <Text className='text-text text-lg font-interMedium'>
+              <Text className='text-text text-base font-interMedium'>
                 All Perks
               </Text>
-              <View className='flex-row flex-wrap gap-5'>
+              <View className='flex-row flex-wrap gap-3'>
                 {filteredUnselected.map((perk) => (
-                  <PerkButton
+                  <Chip
                     key={perk.id}
-                    perkId={perk.id}
+                    variant='secondary'
                     onPress={() => toggleAmenity(perk.id)}
-                  />
+                  >
+                    <perk.icon size={16} color={COLORS.text} />
+                    <Chip.Label className='text-text'>
+                      {perk.name}
+                    </Chip.Label>
+                  </Chip>
                 ))}
               </View>
             </View>
@@ -191,13 +201,15 @@ export default function EditPerks() {
         </ScrollView>
 
         <View className='p-5 border-t border-gray-100 bg-white'>
-          <PillButton
-            label={isSaving ? 'Saving…' : 'Save Changes'}
+          <Button
             onPress={handleSave}
             isDisabled={amenities.length === 0 || isSaving}
-          />
+          >
+            <Button.Label>
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button.Label>
+          </Button>
         </View>
-
       </View>
     </ScreenWrapper>
   )

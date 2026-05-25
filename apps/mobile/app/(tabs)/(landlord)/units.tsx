@@ -7,7 +7,6 @@ import PillButton from '@/components/buttons/PillButton'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import Divider from '@/components/display/Divider'
 import QuickActionButton from '@/components/buttons/QuickActionButton'
-import SearchField from '@/components/inputs/SearchField'
 import PropertyCard from '@/components/cards/PropertyCard'
 
 import {
@@ -25,7 +24,9 @@ import { supabase } from '@repo/supabase'
 
 import { formatCurrency } from '@repo/utils'
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+import { Button, SearchField } from "heroui-native"
+
+type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
 
 type Apartment = {
   id: string
@@ -43,7 +44,7 @@ function EmptyProperties({ onAdd }: { onAdd: () => void }) {
         <IconBuildingOff size={48} color={COLORS.grey} />
       </View>
       <View className='items-center gap-1'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           No properties yet
         </Text>
         <Text className='text-gray-400 text-sm font-inter text-center px-8'>
@@ -163,9 +164,14 @@ export default function Units() {
         const images = apt.apartment_images ?? []
         const cover = images.find((img) => img.is_cover) ?? images[0] ?? null
 
-        const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified']
-        const status = validStatuses.includes(apt.status as ApartmentStatus)
-          ? (apt.status as ApartmentStatus)
+        const rawStatus = apt.status
+          ? apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
+          : 'Unverified'
+
+        const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified', 'Verified']
+
+        const status = validStatuses.includes(rawStatus as ApartmentStatus)
+          ? (rawStatus as ApartmentStatus)
           : 'Unverified'
 
         return {
@@ -228,15 +234,17 @@ export default function Units() {
   return (
     <ScreenWrapper className='p-5' scrollable bottomPadding={50}>
       {/* Header */}
-      <Text className='text-secondary text-4xl font-dmserif'>My Properties</Text>
+      <Text className='text-secondary text-3xl font-nunitoSemiBold'>
+        My Properties
+      </Text>
 
       {/* Property Stats */}
       <View className='flex gap-3 mt-5'>
         <View className='bg-primary p-4 rounded-xl flex gap-2'>
-          <Text className='text-white text-base font-poppinsMedium'>
+          <Text className='text-white text-base font-interSemiBold'>
             {currentMonthLabel} Total Profit
           </Text>
-          <Text className='text-white text-4xl font-poppinsMedium'>
+          <Text className='text-white text-4xl font-interSemiBold'>
             {loading
               ? '—'
               : monthlyProfit === null
@@ -262,18 +270,22 @@ export default function Units() {
           </View>
         </View>
 
-        <PillButton
-          label='Budget Analytics'
-          leftIconName={IconChartDonut3}
-          onPress={() => {}}
-        />
+        <Button>
+          <IconChartDonut3 size={20} color={COLORS.white} />
+          <Button.Label>
+            Budget Analytics
+          </Button.Label>
+        </Button>
       </View>
 
       <Divider marginVertical={20} />
 
       {/* Property Actions */}
       <View className='flex gap-5'>
-        <Text className='text-text text-lg font-poppinsMedium'>Property Actions</Text>
+        <Text className='text-text text-base font-interMedium'>
+          Property 
+        </Text>
+
         <View className='flex-row flex-wrap'>
           <QuickActionButton
             label={'Add Property'}
@@ -288,16 +300,18 @@ export default function Units() {
 
       {/* List of Properties */}
       <View className='mt-5'>
-        <Text className='text-primary text-3xl font-dmserif'>List of Properties</Text>
+        <Text className='text-primary text-lg font-interMedium'>
+          List of Properties
+        </Text>
 
-        <View className='mt-3'>
-          <SearchField
-            searchPlaceholder='Search a Property'
-            onChangeSearch={(text) => setSearchQuery(text)}
-            searchValue={searchQuery}
-            backgroundColor={COLORS.darkerWhite}
-            showFilterButton
-          />
+        <View className="mt-3">
+          <SearchField value={searchQuery} onChange={setSearchQuery}>
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input placeholder="Search a Property" />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
         </View>
 
         <Divider />
@@ -313,7 +327,7 @@ export default function Units() {
             <EmptyProperties onAdd={() => router.push('/manage-apartment/add-apartment/')} />
           ) : (
             <View className='items-center py-12 gap-2'>
-              <Text className='text-gray-400 font-poppinsMedium'>No properties match your search.</Text>
+              <Text className='text-gray-400 font-interSemiBold'>No properties match your search.</Text>
             </View>
           )
         ) : (

@@ -80,7 +80,7 @@ export default function MaintenanceIssue() {
       {/* Maintenance Issue Form */}
       <View className='flex gap-3'>
         {/* Title */}
-        <Text className='text-text text-xl font-poppinsMedium'>
+        <Text className='text-text text-xl font-interSemiBold'>
           Maintenance Details
         </Text>
 

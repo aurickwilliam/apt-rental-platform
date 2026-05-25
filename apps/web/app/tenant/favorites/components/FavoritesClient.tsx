@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardBody, Spinner } from "@heroui/react";
-import { addToast } from "@heroui/toast";
+import { Button, Card, Spinner, toast } from "@heroui/react";
 import { LayoutGrid, LayoutList } from "lucide-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
@@ -79,16 +78,18 @@ export default function FavoritesClient() {
 
       try {
         const nextValue = await toggleFavorite(id);
-        addToast({
-          title: nextValue ? "Saved to favorites" : "Removed from favorites",
-          severity: nextValue ? "success" : "default",
-        });
+
+        if (nextValue) {
+          toast.success("Saved to favorites");
+        } else {
+          toast("Removed from favorites");
+        }
+        
       } catch (err: unknown) {
+
         const error = err as { message?: string };
-        addToast({
-          title: error?.message ?? "Unable to update favorites",
-          severity: "danger",
-        });
+        toast.danger(error?.message ?? "Unable to update favorites");
+
       } finally {
         setActiveFavoriteId(null);
       }
@@ -109,18 +110,14 @@ export default function FavoritesClient() {
         <div className="flex items-center gap-2">
           <Button
             isIconOnly
-            radius="full"
-            variant={viewMode === "grid" ? "solid" : "flat"}
-            color={viewMode === "grid" ? "primary" : "default"}
+            variant={viewMode === "grid" ? "primary" : "ghost"}
             onPress={() => setViewMode("grid")}
           >
             <LayoutGrid size={16} />
           </Button>
           <Button
             isIconOnly
-            radius="full"
-            variant={viewMode === "list" ? "solid" : "flat"}
-            color={viewMode === "list" ? "primary" : "default"}
+            variant={viewMode === "list" ? "primary" : "ghost"}
             onPress={() => setViewMode("list")}
           >
             <LayoutList size={16} />
@@ -130,19 +127,19 @@ export default function FavoritesClient() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Spinner color="primary" />
+          <Spinner color="accent" />
         </div>
       ) : combinedError ? (
-        <Card shadow="none" className="border border-default-200">
-          <CardBody className="text-center text-sm text-danger">
+        <Card className="border border-default-200">
+          <Card.Content className="text-center text-sm text-danger">
             {combinedError}
-          </CardBody>
+          </Card.Content>
         </Card>
       ) : apartments.length === 0 ? (
-        <Card shadow="none" className="border border-default-200">
-          <CardBody className="text-center text-sm text-default-500">
+        <Card className="border border-default-200">
+          <Card.Content className="text-center text-sm text-default-500">
             No favorite apartments yet.
-          </CardBody>
+          </Card.Content>
         </Card>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-5">

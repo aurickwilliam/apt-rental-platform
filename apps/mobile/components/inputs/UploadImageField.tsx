@@ -39,7 +39,7 @@ export default function UploadImageField({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       allowsMultipleSelection: !single,
-      quality: 0.8,
+      quality: 0.75,
     })
     setLoading(false)
 
@@ -92,7 +92,7 @@ export default function UploadImageField({
           onPress={pickImage}
           disabled={loading}
           className={[
-            'flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-[18px]',
+            'flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4.5',
             error
               ? 'border-red-500 bg-red-50'
               : 'border-slate-300 bg-slate-50',

@@ -7,6 +7,7 @@ import MessageInput from "./MessageInput";
 import { Contact, Message } from "./types";
 
 import { createClient } from "@repo/supabase/browser";
+import { MessageSquare } from "lucide-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -175,7 +176,7 @@ export default function ConversationView({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact, apartmentId, currentUserId, supabase]);
+  }, [activeContact, apartmentId, currentUserId, supabase, onConversationRead]);
 
   // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {
@@ -221,14 +222,20 @@ export default function ConversationView({
   // Empty State
   if (!activeContact) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-4">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-          <span className="text-2xl">
-            💬
-          </span>
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16">
+        {/* Icon cluster */}
+        <div className="relative mb-8">
+          <div className="w-18 h-18 rounded-full bg-primary/20 border border-gray-200 flex items-center justify-center">
+            <MessageSquare className="w-7 h-7 text-primary" />
+          </div>
         </div>
-        <p>
-          Select a conversation from the sidebar to start messaging
+
+        {/* Copy */}
+        <p className="text-sm font-medium text-gray-900 mb-1.5">
+          No conversation selected
+        </p>
+        <p className="text-xs text-gray-400 max-w-60 leading-relaxed mb-8">
+          Pick a thread from the sidebar to continue where you left off.
         </p>
       </div>
     );
@@ -237,27 +244,27 @@ export default function ConversationView({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
-        <Avatar
-          src={activeContact.avatar}
-          alt={activeContact.name}
-          size="lg"
-          name={activeContact.name}
-          showFallback
-          getInitials={(name) =>
-            name
+      <div className="p-3 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
+        <Avatar size="lg">
+          <Avatar.Image
+            src={activeContact.avatar}
+            alt={activeContact.name}
+          />
+          <Avatar.Fallback>
+            {activeContact.name
               .split(" ")
               .filter(Boolean)
               .slice(0, 2)
               .map((part) => part[0]?.toUpperCase() ?? "")
-              .join("")
-          }
-        />
+              .join("")}
+          </Avatar.Fallback>
+        </Avatar>
+
         <div>
-          <h2 className="text-lg font-bold text-gray-800 leading-tight">
+          <h2 className="text-base font-bold text-gray-800 leading-tight">
             {activeContact.name}
           </h2>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-xs text-gray-500 font-medium">
             {activeContact.apartment}
           </p>
         </div>
@@ -270,14 +277,18 @@ export default function ConversationView({
       >
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <Spinner size="md" color="primary" />
+            <Spinner size="md" color="accent" />
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
-                <p className="text-sm font-medium text-foreground">No messages yet</p>
-                <p className="text-xs text-default-500">Say hi to start the conversation.</p>
+              <div className="flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
+                <p className="text-sm font-medium text-foreground">
+                  No messages yet
+                </p>
+                <p className="text-xs text-default-500">
+                  Say hi to start the conversation.
+                </p>
               </div>
             ) : (
               messages.map((msg) => {

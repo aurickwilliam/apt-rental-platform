@@ -1,12 +1,17 @@
 "use client";
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Divider, Button, Card, CardHeader, CardBody, CardFooter } from "@heroui/react";
-import { formatCurrency } from "@repo/utils";
-import { House, BedDouble, Bath, Expand, Flag, Users, Layers, CalendarClock, Armchair } from "lucide-react";
-import { PERKS } from "../../../../components/inputs/perks";
-import type { ApartmentFormData } from "../page";
 import NextImage from "next/image";
+
+import { formatCurrency } from "@repo/utils";
+
+import { Separator, Button, Card } from "@heroui/react";
+
+import { House, BedDouble, Bath, Expand, Flag, Users, Layers, CalendarClock, Armchair } from "lucide-react";
+
+import { PERKS } from "../../../../components/inputs/perks";
+
+import type { ApartmentFormData } from "../page";
 
 // Dynamically imported — Leaflet requires a browser environment (no SSR)
 const MapPreview = dynamic(() => import("./MapPreview"), {
@@ -132,7 +137,7 @@ export default function Step5Preview({ formData }: Props) {
               ))}
             </div>
 
-            <Divider className="my-6" />
+            <Separator className="my-6" />
 
             {/* Description */}
             <div>
@@ -147,7 +152,7 @@ export default function Step5Preview({ formData }: Props) {
             {/* Amenities */}
             {amenityList.length > 0 && (
               <>
-                <Divider className="my-6" />
+                <Separator className="my-6" />
                 <div>
                   <h3 className="text-lg font-medium mb-3">Amenities</h3>
                   <ul className="grid grid-cols-2 gap-3">
@@ -167,7 +172,8 @@ export default function Step5Preview({ formData }: Props) {
             )}
 
             {/* Map */}
-            <Divider className="my-6" />
+            <Separator className="my-6" />
+            
             <div>
               <h3 className="text-lg font-medium mb-3">Location</h3>
               <MapPreview
@@ -180,17 +186,15 @@ export default function Step5Preview({ formData }: Props) {
 
           {/* Right column — price card */}
           <div className="w-1/3 flex flex-col gap-5">
-            <Card
-              shadow="none"
-              classNames={{ base: "border border-grey-300" }}
-            >
-              <CardHeader>
+            <Card className="border border-grey-300">
+              <Card.Header>
                 <h2 className="text-3xl font-noto-serif font-medium text-primary">
                   ₱ {formatCurrency(formData.monthly_rent)}
                   <span className="text-xl">/month</span>
                 </h2>
-              </CardHeader>
-              <CardBody>
+              </Card.Header>
+
+              <Card.Content>
                 <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-lg">
                   {/* Header */}
                   <span className="text-sm font-semibold text-grey-800">
@@ -210,7 +214,7 @@ export default function Step5Preview({ formData }: Props) {
                   ))}
 
                   {/* Divider + Total */}
-                  <Divider />
+                  <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="font-bold text-grey-800">Total</span>
                     <span className="font-bold text-primary">
@@ -222,28 +226,17 @@ export default function Step5Preview({ formData }: Props) {
                     </span>
                   </div>
                 </div>
-              </CardBody>
-              <CardFooter className="flex flex-col gap-2">
-                <Button
-                  variant="solid"
-                  radius="full"
-                  color="primary"
-                  fullWidth
-                  isDisabled
-                >
+              </Card.Content>
+
+              <Card.Footer className="flex flex-col gap-2">
+                <Button fullWidth isDisabled>
                   Apply Now
                 </Button>
-                <Button
-                  variant="light"
-                  radius="full"
-                  color="danger"
-                  fullWidth
-                  isDisabled
-                  startContent={<Flag size={16} />}
-                >
+                <Button variant="tertiary" fullWidth isDisabled>
+                  <Flag size={16} />
                   Report
                 </Button>
-              </CardFooter>
+              </Card.Footer>
             </Card>
           </div>
         </div>

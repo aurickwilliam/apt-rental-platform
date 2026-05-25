@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity, Image, Alert, Linking } from "react-native";
+import { View, Text, Alert, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar, Button } from "heroui-native";
 
 import { COLORS } from "@repo/constants";
 import { DEFAULT_IMAGES } from "constants/images";
@@ -49,51 +50,59 @@ export default function ChatHeader({
   };
 
   return (
-    <View className="flex-row items-center justify-between bg-primary px-4 py-5"  style={{ paddingTop: insets.top + 20 }}>
+    <View
+      className="flex-row items-center justify-between bg-primary px-4 py-3"
+      style={{ paddingTop: insets.top }}
+    >
 
       {/* Left Back Button */}
       <View className="w-10 items-start justify-center">
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={handleBack} 
-          className="p-1 -ml-1"
+        <Button
+          isIconOnly
+          variant="ghost"
+          size="sm"
+          onPress={handleBack}
+          className="-ml-1"
         >
-          <IconChevronLeft 
-            size={24} 
-            color={COLORS.white} 
-          />
-        </TouchableOpacity>
+          <IconChevronLeft size={24} color={COLORS.white} />
+        </Button>
       </View>
 
       {/* Center (Title) */}
       <View className="flex-1 flex-row items-center justify-start ml-2">
-        <View className="size-12 overflow-hidden rounded-full mr-3 border border-secondary">
-          <Image 
-            source={profilePicture ? { uri: profilePicture } : DEFAULT_IMAGES.defaultProfilePicture}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
+        <Avatar size="sm" className="mr-3 border border-secondary">
+          <Avatar.Image
+            source={
+              profilePicture
+                ? { uri: profilePicture }
+                : DEFAULT_IMAGES.defaultProfilePicture
+            }
           />
-        </View>
+          <Avatar.Fallback delayMs={200}>
+            {name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase()}
+          </Avatar.Fallback>
+        </Avatar>
 
-        <Text className="text-lg text-white font-interMedium">
+        <Text className="text-base text-white font-interMedium">
           {name}
         </Text>
       </View>
 
       {/* Right Side Call Button */}
       <View className="w-10 items-end justify-center">
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={handleCall} 
-          className="p-1 -ml-1"
+        <Button
+          isIconOnly
+          variant="ghost"
+          size="sm"
+          onPress={handleCall}
         >
-          <IconPhone 
-            size={24}
-            color={COLORS.white}
-          />
-        </TouchableOpacity>
+          <IconPhone size={24} color={COLORS.white} />
+        </Button>
       </View>
     </View>
   );

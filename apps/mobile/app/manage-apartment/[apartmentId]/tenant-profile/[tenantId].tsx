@@ -80,10 +80,10 @@ export default function TenantProfile() {
       backgroundColor={COLORS.darkerWhite}
     >
       {/* Header Information */}
-      <View className='relative h-[20rem]'>
+      <View className='relative h-80'>
         {/* Background Photo */}
         <View
-          className='w-full h-[10rem]'
+          className='w-full h-40'
           style={{ backgroundColor: backgroundColor }}
         >
           {
@@ -112,7 +112,7 @@ export default function TenantProfile() {
 
           {/* Name and Email */}
           <View className='flex items-center justify-center'>
-            <Text className='text-text text-2xl font-poppinsMedium'>
+            <Text className='text-text text-2xl font-interSemiBold'>
               {tenantData.fullName}
             </Text>
             <Text className='text-grey-500 text-lg font-inter'>
@@ -138,7 +138,7 @@ export default function TenantProfile() {
         </View>
 
         <View
-          className='w-[1px] h-full bg-grey-300'
+          className='w-px h-full bg-grey-300'
         />
 
         <View className='flex items-center gap-1 w-1/3'>
@@ -154,7 +154,7 @@ export default function TenantProfile() {
         </View>
 
         <View
-          className='w-[1px] h-full bg-grey-300'
+          className='w-px h-full bg-grey-300'
         />
 
         <View className='flex items-center gap-1 w-1/3'>
@@ -210,7 +210,7 @@ export default function TenantProfile() {
 
       {/* Past/Previous Apartments */}
       <View className='m-5'>
-        <Text className='text-text text-xl font-poppinsMedium'>
+        <Text className='text-text text-xl font-interSemiBold'>
           {getFirstName(tenantData.fullName)}&apos;s Listings
         </Text>
 

@@ -6,7 +6,7 @@ import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
 
 export default function ThirdPartySignIn() {
-  const { role } = useAuth();
+  const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,21 +75,17 @@ export default function ThirdPartySignIn() {
         </div>
       )}
       <Button
-        variant="flat"
-        isIconOnly
-        radius="full"
-        className="size-12 p-1 bg-darker-white"
-        isLoading={loading}
+        variant="outline"
+        className="w-full h-11 border border-default-300 bg-white font-medium"
+        isPending={loading}
         onPress={handleGoogleSignIn}
       >
-        {!loading && (
-          <Image
-            src="/third-party/google-logo.svg"
-            alt="Google"
-            width={45}
-            height={45}
-          />
-        )}
+        {
+          !loading && (
+            <Image src="/third-party/google-logo.svg" alt="Google" width={20} height={20} />
+          )
+        }
+        Sign {type === 'sign-in' ? 'in' : 'up'} with Google
       </Button>
     </div>
   );

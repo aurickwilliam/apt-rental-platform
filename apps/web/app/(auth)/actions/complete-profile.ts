@@ -8,7 +8,6 @@ export type CompleteProfileState = {
 };
 
 function calculateAgeFromBirthDate(birthDateValue: string): number | null {
-  // Use only the date portion to avoid timezone-based day shifts.
   const isoDate = birthDateValue?.slice(0, 10);
   if (!isoDate) return null;
 
@@ -49,10 +48,6 @@ export async function completeProfile(
   const gender = formData.get("gender") as string;
   const mobileNumber = formData.get("mobile_number") as string;
   const birthDate = formData.get("birth_date") as string;
-  const age = calculateAgeFromBirthDate(birthDate);
-
-  if (age === null) return { error: "Invalid birth date." };
-
   const streetAddress = formData.get("street_address") as string;
   const barangay = formData.get("barangay") as string;
   const city = formData.get("city") as string;
@@ -65,6 +60,29 @@ export async function completeProfile(
   const postalCode = formData.get("postal_code")
     ? Number(formData.get("postal_code"))
     : null;
+
+  const requiredFields: Record<string, string> = {
+    "First Name": firstName,
+    "Last Name": lastName,
+    "Gender": gender,
+    "Mobile Number": mobileNumber,
+    "Birth Date": birthDate,
+    "Street Address": streetAddress,
+    "Barangay": barangay,
+    "City": city,
+    "Province": province,
+  };
+
+  const missingField = Object.entries(requiredFields).find(
+    ([, value]) => !value?.trim()
+  );
+  if (missingField) {
+    return { error: `${missingField[0]} is required.` };
+  }
+
+  const age = calculateAgeFromBirthDate(birthDate);
+  if (age === null) return { error: "Invalid birth date." };
+  if (age < 18) return { error: "You must be at least 18 years old to register." };
 
   const { error } = await supabase
     .from("users")

@@ -134,7 +134,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
           {/* Apartment Details*/}
           <View pointerEvents='none'>
-            <Text className='text-white font-poppinsSemiBold text-2xl'>
+            <Text className='text-white font-interSemiBold text-2xl'>
               {apartmentDetails.name}
             </Text>
 
@@ -223,7 +223,7 @@ Serious tenants only. Please message me for viewing and inquiries.`,
 
             {/* Monthly Rent */}
             <View className='mt-5 mb-10' pointerEvents='none'>
-              <Text className='text-white font-poppinsSemiBold text-2xl'>
+              <Text className='text-white font-interSemiBold text-2xl'>
                 ₱ {formattedMonthlyRent}/month
               </Text>
             </View>

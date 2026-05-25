@@ -34,7 +34,7 @@ export default function Failed() {
           strokeWidth={2}
         />
 
-        <Text className='text-redHead-200 text-center text-2xl font-poppinsSemiBold mt-5'>
+        <Text className='text-redHead-200 text-center text-2xl font-interSemiBold mt-5'>
           Payment Failed!
         </Text>
       </View>

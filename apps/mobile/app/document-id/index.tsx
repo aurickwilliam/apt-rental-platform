@@ -69,7 +69,7 @@ export default function Index() {
       {/* User ID upon account validation */}
       <View>
         <View className='flex gap-1'>
-          <Text className='text-text text-xl font-poppinsMedium'>
+          <Text className='text-text text-xl font-interSemiBold'>
             Valid ID/Government ID
           </Text>
           <Text className='text-grey-500 text-lg font-inter'>
@@ -97,7 +97,7 @@ export default function Index() {
         uploadedDocuments.length <= 0 ? (
           <>
             <View>
-              <Text className='text-text text-xl font-poppinsMedium mt-5 mb-3'>
+              <Text className='text-text text-xl font-interSemiBold mt-5 mb-3'>
                 Other Documents
               </Text>
 
@@ -136,7 +136,7 @@ export default function Index() {
           </>
         ) : (
           <>
-            <Text className='text-text text-xl font-poppinsMedium mt-8 mb-3'>
+            <Text className='text-text text-xl font-interSemiBold mt-8 mb-3'>
               Uploaded Documents
             </Text>
 

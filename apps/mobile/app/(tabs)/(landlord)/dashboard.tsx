@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, Image, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { IMAGES } from '@/constants/images'
@@ -14,6 +14,8 @@ import ProfitTrendCard from '@/components/cards/ProfitTrendCard'
 import ProfitByPropertyCard from '@/components/cards/ProfitByPropertyCard'
 
 import { useProfile } from '@/hooks/useProfile'
+
+import { Button } from "heroui-native"
 
 type DashboardStats = {
   totalProperties: number
@@ -121,11 +123,18 @@ export default function Dashboard() {
       <View className='flex-row items-center justify-between mb-5'>
         <View className='flex-row gap-3 items-center'>
           <Image source={IMAGES.logo} className='size-9' resizeMode='contain' />
-          <Text className='text-secondary text-4xl font-dmserif'>Dashboard</Text>
+          <Text className='text-secondary text-3xl font-nunitoSemiBold mt-1'>
+            Dashboard
+          </Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/landlord-notif')}>
+
+        <Button 
+          onPress={() => router.push('/landlord-notif')} 
+          variant="ghost"
+          isIconOnly
+        >
           <IconBell size={26} color={COLORS.grey} />
-        </TouchableOpacity>
+        </Button>
       </View>
 
       {/* Grid Stats */}
@@ -169,7 +178,7 @@ export default function Dashboard() {
 
       {/* Upcoming Payment Due Date */}
       <View className='flex gap-5 mt-5'>
-        <Text className='text-text text-lg font-poppinsMedium'>Upcoming Rent Due</Text>
+        <Text className='text-text text-lg font-interSemiBold'>Upcoming Rent Due</Text>
         <View className='flex gap-3'>
           {upcomingRentDue.map((rent) => (
             <RentDueCard

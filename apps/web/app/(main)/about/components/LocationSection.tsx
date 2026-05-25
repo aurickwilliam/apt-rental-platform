@@ -28,14 +28,14 @@ export default function LocationSection() {
     >
       {/* Heading */}
       <motion.div variants={fadeUp}>
-        <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+        <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
           Location
         </p>
-        <h2 className="text-2xl font-poppins tracking-tight mb-1">
+        <h2 className="text-2xl font-inter font-semibold tracking-tight mb-1">
           Where we <em className="text-primary not-italic">work</em>
         </h2>
         <p className="text-sm text-default-700 mb-5">
-          We're based in Caloocan and work remotely across the CAMANAVA.
+          We&apos;re based in Caloocan and work remotely across the CAMANAVA.
         </p>
       </motion.div>
 
