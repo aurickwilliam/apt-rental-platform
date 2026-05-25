@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Divider } from "@heroui/react";
+import { Button, Card, Separator } from "@heroui/react";
 import { CheckCircle2, ChevronDown } from "lucide-react";
 import { features } from "./Data";
 
@@ -28,7 +28,7 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto">
         <div className="max-w-xl mb-12">
           <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
-            What's inside APT
+            What&apos;s inside APT
           </p>
           <h2 className="text-3xl font-bold mb-3">Everything in one place.</h2>
           <p className="text-default-500 text-sm leading-relaxed">
@@ -54,19 +54,17 @@ export default function FeaturesSection() {
                     className="cursor-pointer"
                   >
                     <Card
-                      shadow="none"
-                      classNames={{
-                        base: `border bg-white transition-all duration-300 ${
-                          isExpanded
-                            ? "border-primary shadow-md shadow-primary/10"
-                            : "border-default-200 hover:border-primary/40 hover:shadow-sm"
-                        }`,
-                      }}
+                      variant="default"
+                      className={`border transition-all duration-300 bg-white ${
+                        isExpanded
+                          ? "border-primary shadow-md shadow-primary/10"
+                          : "border-default-200 hover:border-primary/40 hover:shadow-sm"
+                      }`}
                     >
-                      <CardHeader className="px-6 pt-6 pb-5 flex items-start justify-between gap-4 min-h-[110px]">
+                      <Card.Header className="px-6 pt-6 pb-5 flex items-start justify-between gap-4 min-h-[110px]">
                         <div className="flex items-start gap-4">
                           <div
-                            className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
+                            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200 ${
                               isExpanded
                                 ? "bg-primary text-white"
                                 : "bg-primary/8 text-primary"
@@ -75,16 +73,16 @@ export default function FeaturesSection() {
                             <Icon size={19} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-default-900 mb-1 leading-snug">
+                            <Card.Title className="text-sm font-semibold text-default-900 mb-1 leading-snug">
                               {feature.title}
-                            </h3>
-                            <p className="text-xs text-default-400 leading-relaxed">
+                            </Card.Title>
+                            <Card.Description className="text-xs text-default-400 leading-relaxed">
                               {feature.description}
-                            </p>
+                            </Card.Description>
                           </div>
                         </div>
                         <div
-                          className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 mt-0.5 ${
+                          className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 mt-0.5 ${
                             isExpanded
                               ? "bg-primary text-white rotate-180"
                               : "bg-default-100 text-default-400"
@@ -92,12 +90,13 @@ export default function FeaturesSection() {
                         >
                           <ChevronDown size={14} />
                         </div>
-                      </CardHeader>
+                      </Card.Header>
 
                       {isExpanded && (
                         <>
-                          <Divider />
-                          <CardBody className="px-6 pt-4 pb-5">
+                          <Separator className="my-4" />
+
+                          <Card.Content className="px-6 pt-4 pb-5">
                             <p className="text-[10px] uppercase tracking-widest font-semibold text-default-400 mb-3">
                               What you get
                             </p>
@@ -107,14 +106,14 @@ export default function FeaturesSection() {
                                   key={benefit}
                                   className="flex items-center gap-2 bg-primary/5 rounded-lg px-3 py-2"
                                 >
-                                  <CheckCircle2 size={13} className="text-primary flex-shrink-0" />
+                                  <CheckCircle2 size={13} className="text-primary shrink-0" />
                                   <span className="text-xs text-default-600 font-medium">
                                     {benefit}
                                   </span>
                                 </div>
                               ))}
                             </div>
-                          </CardBody>
+                          </Card.Content>
                         </>
                       )}
                     </Card>
@@ -127,17 +126,14 @@ export default function FeaturesSection() {
 
         <div className="flex justify-start mt-6">
           <Button
-            variant="light"
-            color="primary"
+            variant="outline"
             size="sm"
-            endContent={
-              <ChevronDown
-                size={15}
-                className={`transition-transform duration-200 ${showAll ? "rotate-180" : ""}`}
-              />
-            }
             onPress={() => setShowAll(!showAll)}
           >
+            <ChevronDown
+              size={15}
+              className={`transition-transform duration-200 ${showAll ? "rotate-180" : ""}`}
+            />
             {showAll ? "Show less" : `See all ${features.length} features`}
           </Button>
         </div>
