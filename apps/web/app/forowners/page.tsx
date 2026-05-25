@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Card, CardBody, Avatar, Chip } from "@heroui/react";
+import { Button, Card, Avatar, Chip } from "@heroui/react";
+import Link from "next/link";
 import {
   Building2,
   ArrowRight,
@@ -18,28 +19,26 @@ export default function ForOwners() {
       <section className="relative px-4 py-24 md:px-12 bg-primary overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-white/[0.07] translate-x-1/2 -translate-y-1/3" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-white/[0.04] -translate-x-1/2 translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-white/4 -translate-x-1/2 translate-y-1/2" />
         </div>
         <div className="max-w-7xl mx-auto relative z-10">
-            <Chip
-            startContent={<Building2 size={11} />}
-            variant="flat"
-            color="primary"
+          <Chip
+            variant="soft"
+            color="accent"
             size="sm"
-            classNames={{
-              base: "bg-white/15 border border-white/20 mb-8",
-              content:
-                "text-white text-[11px] font-semibold tracking-widest uppercase",
-            }}
+            className="bg-white/15 border border-white/20 mb-8"
           >
-            For Rental Owners
+            <Building2 size={11} />
+            <Chip.Label className="text-white text-[11px] font-semibold tracking-widest uppercase">
+              For Rental Owners
+            </Chip.Label>
           </Chip>
           <div className="md:grid md:grid-cols-5 md:gap-16 md:items-end">
             <div className="md:col-span-3 mb-10 md:mb-0">
               <h1 className="text-4xl md:text-[56px] font-bold text-white leading-[1.1] tracking-tight mb-6">
                 You built this rental.{" "}
                 <span className="text-white/45">
-                  You shouldn't have to chase it every month.
+                  You shouldn&apos;t have to chase it every month.
                 </span>
               </h1>
               <p className="text-base md:text-[15px] text-white/60 leading-relaxed max-w-md mb-8">
@@ -47,26 +46,25 @@ export default function ForOwners() {
                 communication — so owning a rental feels less like a second job.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  className="bg-white text-primary font-semibold"
-                  radius="full"
-                  size="lg"
-                  endContent={<ArrowRight size={16} />}
-                  href="/sign-up"
-                  as="a"
-                >
-                  Get Started for Free
-                </Button>
-                <Button
-                  variant="bordered"
-                  className="border-white/25 text-white hover:bg-white/10"
-                  radius="full"
-                  size="lg"
-                  href="/browse"
-                  as="a"
-                >
-                  Browse Listings
-                </Button>
+                <Link href="/sign-up">
+                  <Button
+                    size="lg"
+                    className="bg-white text-primary font-semibold hover:bg-white/10"
+                  >
+                    <ArrowRight size={16} />
+                    Get Started for Free
+                  </Button>
+                </Link>
+                
+                <Link href="/browse">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-white/25 text-white hover:bg-white/10"
+                  >
+                    Browse Listings
+                  </Button>
+                </Link>
               </div>
             </div>
             <div className="md:col-span-2 flex flex-col divide-y divide-white/10">
@@ -97,7 +95,7 @@ export default function ForOwners() {
                     &ldquo;{item.pain}&rdquo;
                   </p>
                   <div className="flex items-start gap-2">
-                    <CheckCircle2 size={14} className="text-primary mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
                     <p className="text-sm text-default-700 leading-relaxed font-medium">
                       {item.relief}
                     </p>
@@ -112,24 +110,20 @@ export default function ForOwners() {
               <h2 className="text-3xl md:text-4xl font-bold leading-snug mb-4">
                 Owning a rental is rewarding.{" "}
                 <span className="text-default-400">
-                  Managing one shouldn't be exhausting.
+                  Managing one shouldn&apos;t be exhausting.
                 </span>
               </h2>
               <p className="text-default-500 text-sm leading-relaxed mb-6">
                 You invested in property to build something — not to spend evenings
                 chasing payments. APT takes that load off.
               </p>
-              <Button
-                color="primary"
-                variant="flat"
-                radius="full"
-                size="md"
-                endContent={<ArrowRight size={14} />}
-                href="/sign-up"
-                as="a"
-              >
-                Start managing smarter
-              </Button>
+ 
+              <Link href="/sign-up">
+                <Button size="md" variant="tertiary">
+                  <ArrowRight size={14} />
+                  Start managing smarter
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -168,7 +162,7 @@ export default function ForOwners() {
               <h2 className="text-3xl font-bold">Up and running in an afternoon.</h2>
             </div>
             <p className="text-default-400 text-sm max-w-xs leading-relaxed">
-              No technical setup. Four steps and you're collecting rent online.
+              No technical setup. Four steps and you&apos;re collecting rent online.
             </p>
           </div>
           <div className="relative">
@@ -204,8 +198,8 @@ export default function ForOwners() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {testimonials.map((t) => (
-              <Card key={t.name} shadow="none" classNames={{ base: "border border-default-200 bg-white" }}>
-                <CardBody className="p-6 flex flex-col justify-between gap-5">
+              <Card key={t.name} variant="default" className="border border-default-200 bg-white">
+                <Card.Content className="p-6 flex flex-col justify-between gap-5">
                   <div>
                     <div className="flex gap-0.5 mb-4">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -220,18 +214,15 @@ export default function ForOwners() {
                     <p className="text-sm text-default-600 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
                   </div>
                   <div className="flex items-center gap-3 pt-4 border-t border-default-100">
-                    <Avatar
-                      name={t.initials}
-                      color="primary"
-                      size="sm"
-                      classNames={{ base: "flex-shrink-0 text-xs" }}
-                    />
+                    <Avatar size="sm" color="accent" className="shrink-0">
+                      <Avatar.Fallback className="text-xs">{t.initials}</Avatar.Fallback>
+                    </Avatar>
                     <div>
                       <p className="text-xs font-semibold text-default-700">{t.name}</p>
                       <p className="text-xs text-default-400">{t.role}</p>
                     </div>
                   </div>
-                </CardBody>
+                </Card.Content>
               </Card>
             ))}
           </div>
@@ -248,26 +239,25 @@ export default function ForOwners() {
             Free to start. No technical setup. No credit card.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              className="bg-white text-primary font-semibold"
-              radius="full"
-              size="lg"
-              endContent={<ArrowRight size={16} />}
-              href="/sign-up"
-              as="a"
-            >
-              Create Your Owner Account
-            </Button>
-            <Button
-              variant="bordered"
-              className="border-white/30 text-white"
-              radius="full"
-              size="lg"
-              href="/contact"
-              as="a"
-            >
-              Talk to the Team
-            </Button>
+            <Link href="/sign-up">
+              <Button
+                className="bg-white text-primary font-semibold"
+                size="lg"
+              >
+                <ArrowRight size={16} />
+                Create Your Owner Account
+              </Button>
+            </Link>
+            
+            <Link href="/contact">
+              <Button
+                variant="outline"
+                className="border-white/30 text-white"
+                size="lg"
+              >
+                Talk to the Team
+              </Button>
+            </Link>
           </div>
           <p className="text-white/40 text-xs mt-5">
             Free for up to 2 properties. No credit card needed.
