@@ -8,6 +8,7 @@ export default function LandlordLayout() {
       }}
     >
       <Stack.Screen name="maintenance-requests" />
+      <Stack.Screen name="maintenance-requests/[requestId]" />
       <Stack.Screen name="visit-requests" />
       <Stack.Screen name="visit-requests/pending" />
       <Stack.Screen name="visit-requests/[requestId]" />
