@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Avatar, Dropdown, Button, Label } from "@heroui/react";
-import { buttonVariants } from "@heroui/styles";
 import { Building2, Search, Menu, X } from "lucide-react";
 
 import ThemeToggle from "./ThemeToggle";

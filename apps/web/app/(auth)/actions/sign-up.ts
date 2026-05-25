@@ -46,7 +46,7 @@ export async function signUp(
 
     const parsedBirthDate = new Date(`${mapped.birthDate}T00:00:00`);
     const calculatedAge = calculateAgeFromBirthDate(parsedBirthDate);
-    const parsedPostalCode = Number(mapped.postalCode);
+    const parsedPostalCode = mapped.postalCode ?? null;
 
     const supabase = await createClient();
 

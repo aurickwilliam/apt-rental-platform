@@ -1,16 +1,9 @@
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-} from "@heroui/react";
+import { Modal, Button } from "@heroui/react";
 import { CircleAlert } from "lucide-react";
 
 interface ErrorModalProps {
   isOpen: boolean;
-  onOpenChange: () => void;
+  onOpenChange: (isOpen: boolean) => void;
   error: string | null;
 }
 
@@ -20,39 +13,39 @@ export default function ErrorModal({
   error,
 }: ErrorModalProps) {
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      placement="center"
-      backdrop="blur"
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              Something went wrong
-            </ModalHeader>
-            <ModalBody className="flex flex-col items-center gap-4 py-4">
+    <Modal>
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        variant="blur"
+      >
+        <Modal.Container placement="center">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Something went wrong</Modal.Heading>
+            </Modal.Header>
+
+            <Modal.Body className="flex flex-col items-center gap-4 py-4">
               <div className="rounded-full bg-danger-100 p-3">
                 <CircleAlert size={32} className="text-danger" />
               </div>
               <p className="text-center text-sm text-default-500">{error}</p>
-            </ModalBody>
-            <ModalFooter>
+            </Modal.Body>
+
+            <Modal.Footer>
               <Button
-                color="danger"
-                variant="flat"
-                radius="full"
+                variant="danger-soft"
                 size="lg"
                 className="w-full"
-                onPress={onClose}
+                slot="close"
               >
                 Close
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

@@ -1,16 +1,20 @@
 "use client";
 
 import {
+  TextField,
   Input,
+  Label,
   Select,
-  SelectItem,
+  ListBox,
   Button,
-  Divider,
-  NumberInput,
+  Separator,
+  Spinner,
   DatePicker,
+  DateField,
+  Calendar,
 } from "@heroui/react";
-import { useActionState } from "react";
 
+import { useActionState, useState } from "react";
 import { completeProfile } from "../../actions/complete-profile";
 import { GENDERS, PROVINCES } from "@repo/constants";
 
@@ -27,10 +31,8 @@ export default function CompleteProfileForm({
   lastName,
   role,
 }: Props) {
-  const [state, action, isPending] = useActionState(
-    completeProfile,
-    {}
-  );
+  const [state, action, isPending] = useActionState(completeProfile, {});
+  const [postalCode, setPostalCode] = useState(""); 
 
   return (
     <form action={action} className="flex flex-col gap-8">
@@ -43,76 +45,108 @@ export default function CompleteProfileForm({
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input
-            label="Email"
-            name="email"
-            defaultValue={email}
-            isReadOnly
-            variant="bordered"
-            classNames={{
-              inputWrapper: "bg-default-100",
-            }}
-          />
+          <TextField name="email" isReadOnly defaultValue={email} fullWidth>
+            <Label>Email</Label>
+            <Input />
+          </TextField>
 
-          <Input
-            label="First Name"
-            name="first_name"
-            placeholder="Enter your first name"
-            defaultValue={firstName}
-            variant="bordered"
-            isRequired
-          />
+          <TextField name="first_name" isRequired defaultValue={firstName} fullWidth>
+            <Label>First Name</Label>
+            <Input placeholder="Enter your first name" />
+          </TextField>
 
-          <Input
-            label="Last Name"
-            name="last_name"
-            placeholder="Enter your last name"
-            defaultValue={lastName}
-            variant="bordered"
-            isRequired
-          />
+          <TextField name="last_name" isRequired defaultValue={lastName} fullWidth>
+            <Label>Last Name</Label>
+            <Input placeholder="Enter your last name" />
+          </TextField>
 
-          <Input
-            label="Middle Name"
-            name="middle_name"
-            placeholder="Enter your middle name (optional)"
-            variant="bordered"
-          />
+          <TextField name="middle_name" fullWidth>
+            <Label>Middle Name</Label>
+            <Input placeholder="Enter your middle name (optional)" />
+          </TextField>
 
-          <Select
-            label="Gender"
-            name="gender"
-            placeholder="Select your gender"
-            variant="bordered"
-            isRequired
-          >
-            {GENDERS.map((gender) => (
-              <SelectItem key={gender}>
-                {gender}
-              </SelectItem>
-            ))}
+          <Select name="gender" isRequired fullWidth placeholder="Select your gender">
+            <Label>Gender</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {GENDERS.map((gender) => (
+                  <ListBox.Item key={gender} id={gender} textValue={gender}>
+                    {gender}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <Input
-            label="Mobile Number"
-            name="mobile_number"
-            placeholder="Enter your mobile number"
-            variant="bordered"
-            type="tel"
-            isRequired
-          />
+          <TextField name="mobile_number" isRequired fullWidth>
+            <Label>Mobile Number</Label>
+            <Input type="tel" placeholder="Enter your mobile number" />
+          </TextField>
 
-          <DatePicker
-            label="Birth Date"
-            name="birth_date"
-            variant="bordered"
-            showMonthAndYearPickers
-            isRequired
-          />
+          <DatePicker name="birth_date" isRequired>
+            <Label>Birth Date</Label>
+            <DateField.Group fullWidth className="border border-grey-300">
+              <DateField.Input>
+                {(segment) => (
+                  <DateField.Segment
+                    segment={segment}
+                    className="data-[placeholder=true]:text-foreground/40 text-foreground"
+                  />
+                )}
+              </DateField.Input>
+              <DateField.Suffix>
+                <DatePicker.Trigger>
+                  <DatePicker.TriggerIndicator className="text-grey-500" />
+                </DatePicker.Trigger>
+              </DateField.Suffix>
+            </DateField.Group>
+
+            <DatePicker.Popover>
+              <Calendar aria-label="Birth Date">
+                <Calendar.Header>
+                  <Calendar.YearPickerTrigger>
+                    <Calendar.YearPickerTriggerHeading />
+                    <Calendar.YearPickerTriggerIndicator className="text-grey-500" />
+                  </Calendar.YearPickerTrigger>
+                  
+                  <Calendar.NavButton slot="previous" className="text-grey-500" />
+                  <Calendar.NavButton slot="next" className="text-grey-500" />
+                </Calendar.Header>
+                <Calendar.Grid>
+                  <Calendar.GridHeader>
+                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                  </Calendar.GridHeader>
+                  <Calendar.GridBody>
+                    {(date) => (
+                      <Calendar.Cell
+                        date={date}
+                        className="data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.GridBody>
+                </Calendar.Grid>
+
+                <Calendar.YearPickerGrid>
+                  <Calendar.YearPickerGridBody>
+                    {(yearProps) => (
+                      <Calendar.YearPickerCell
+                        year={yearProps.year}
+                        className="data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.YearPickerGridBody>
+                </Calendar.YearPickerGrid>
+              </Calendar>
+            </DatePicker.Popover>
+          </DatePicker>
         </div>
       </section>
 
-      <Divider />
+      <Separator />
 
       {/* Address Information */}
       <section className="flex flex-col gap-4">
@@ -121,74 +155,76 @@ export default function CompleteProfileForm({
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input
-            label="Street Address"
-            name="street_address"
-            placeholder="Enter your street address"
-            variant="bordered"
-            isRequired
-          />
+          <TextField name="street_address" isRequired fullWidth>
+            <Label>Street Address</Label>
+            <Input placeholder="Enter your street address" />
+          </TextField>
 
-          <Input
-            label="Barangay"
-            name="barangay"
-            placeholder="Enter your barangay"
-            variant="bordered"
-            isRequired
-          />
+          <TextField name="barangay" isRequired fullWidth>
+            <Label>Barangay</Label>
+            <Input placeholder="Enter your barangay" />
+          </TextField>
 
-          <Input
-            label="City"
-            name="city"
-            placeholder="Enter your city"
-            variant="bordered"
-            isRequired
-          />
+          <TextField name="city" isRequired fullWidth>
+            <Label>City</Label>
+            <Input placeholder="Enter your city" />
+          </TextField>
 
-          <Select
-            label="Province"
-            name="province"
-            placeholder="Select your province"
-            variant="bordered"
-            isRequired
-          >
-            {PROVINCES.map((province) => (
-              <SelectItem key={province}>
-                {province}
-              </SelectItem>
-            ))}
+          <Select name="province" isRequired fullWidth placeholder="Select your province">
+            <Label>Province</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {PROVINCES.map((province) => (
+                  <ListBox.Item key={province} id={province} textValue={province}>
+                    {province}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <NumberInput
-            label="Postal Code"
+          <TextField
             name="postal_code"
-            placeholder="Enter your postal code"
-            variant="bordered"
-            hideStepper
-            formatOptions={{
-              useGrouping: false,
-            }}
-          />
+            isRequired
+            fullWidth
+            value={postalCode}
+            onChange={(val) => setPostalCode(val.replace(/\D/g, ""))}
+          >
+            <Label>Postal Code</Label>
+            <Input
+              placeholder="Enter your postal code"
+              inputMode="numeric"
+              maxLength={4}
+            />
+          </TextField>
         </div>
       </section>
 
       {state?.error && (
         <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
-          <p className="text-center text-sm text-danger">
-            {state.error}
-          </p>
+          <p className="text-center text-sm text-danger">{state.error}</p>
         </div>
       )}
 
       <Button
         type="submit"
-        color="primary"
+        variant="primary"
         size="lg"
-        radius="full"
         className="w-full font-semibold"
-        isLoading={isPending}
+        isDisabled={isPending}
       >
-        Complete Profile
+        {isPending ? (
+          <>
+            <Spinner size="sm" />
+            Completing Profile...
+          </>
+        ) : (
+          "Complete Profile"
+        )}
       </Button>
     </form>
   );
