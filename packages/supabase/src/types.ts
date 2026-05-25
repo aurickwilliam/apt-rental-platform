@@ -501,9 +501,9 @@ export type Database = {
           created_at: string
           id: string
           landlord_id: string | null
+          lease_end: string | null
+          lease_start: string
           monthly_rent: number | null
-          move_in_date: string
-          move_out_date: string | null
           notes: string | null
           security_deposit: number | null
           status: string
@@ -516,9 +516,9 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id?: string | null
+          lease_end?: string | null
+          lease_start: string
           monthly_rent?: number | null
-          move_in_date: string
-          move_out_date?: string | null
           notes?: string | null
           security_deposit?: number | null
           status?: string
@@ -531,9 +531,9 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id?: string | null
+          lease_end?: string | null
+          lease_start?: string
           monthly_rent?: number | null
-          move_in_date?: string
-          move_out_date?: string | null
           notes?: string | null
           security_deposit?: number | null
           status?: string

@@ -244,13 +244,13 @@ export default function MyRental() {
                 <div>
                   <p className="text-xs text-zinc-400">Lease start</p>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {formatShortDate(tenancy.move_in_date)}
+                    {formatShortDate(tenancy.lease_start)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-zinc-400">Lease end</p>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {tenancy.move_out_date ? formatShortDate(tenancy.move_out_date) : "Ongoing"}
+                    {tenancy.lease_end ? formatShortDate(tenancy.lease_end) : "Ongoing"}
                   </p>
                 </div>
                 <div>

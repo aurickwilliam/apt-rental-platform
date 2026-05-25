@@ -201,10 +201,10 @@ export default function Rentals() {
         <ApartmentDescriptionCard
           apartmentName={apartment.name}
           apartmentAddress={formatAddress(apartment)}
-          leaseStartMonth={formatMonth(tenancy.move_in_date)}
-          leaseStartYear={formatYear(tenancy.move_in_date)}
-          leaseEndMonth={tenancy.move_out_date ? formatMonth(tenancy.move_out_date) : 'Ongoing'}
-          leaseEndYear={tenancy.move_out_date ? formatYear(tenancy.move_out_date) : ''}
+          leaseStartMonth={formatMonth(tenancy.lease_start)}
+          leaseStartYear={formatYear(tenancy.lease_start)}
+          leaseEndMonth={tenancy.lease_end ? formatMonth(tenancy.lease_end) : 'Ongoing'}
+          leaseEndYear={tenancy.lease_end ? formatYear(tenancy.lease_end) : ''}
           monthlyRent={monthlyRent}
           onPressViewMore={handleViewMoreDetails}
         />
