@@ -50,14 +50,19 @@ export default function Chat() {
 
       const { data: tenancyRows, error: tenancyError } = await supabase
         .from('tenancies')
-        .select('tenant_id')
+        .select('tenant_id, apartment_id')
         .eq('landlord_id', profile.id)
         .eq('status', 'active');
 
       if (tenancyError) throw tenancyError;
 
-      const activeTenantIds = new Set(
-        (tenancyRows ?? []).map((row) => row.tenant_id as string)
+      const activeTenantConversations = new Set(
+        (tenancyRows ?? []).map((row) =>
+          getConversationMetaKey(
+            row.tenant_id as string,
+            (row.apartment_id as string | null) ?? null
+          )
+        )
       );
 
       const data = await getConversations(profile.id);
@@ -84,16 +89,21 @@ export default function Chat() {
         }
       }
 
-      const conversationsWithMeta = data.map((conv) => ({
-        ...conv,
-        conversation_type: activeTenantIds.has(conv.other_user_id)
-          ? 'tenant'
-          : 'inquiry',
-        last_sender_is_me:
-          lastSenderIsMeByConversation[
-            getConversationMetaKey(conv.other_user_id, conv.apartment_id)
-          ] ?? false,
-      }));
+      const conversationsWithMeta = data.map((conv) => {
+        const conversationKey = getConversationMetaKey(
+          conv.other_user_id,
+          conv.apartment_id
+        );
+
+        return {
+          ...conv,
+          conversation_type: activeTenantConversations.has(conversationKey)
+            ? 'tenant'
+            : 'inquiry',
+          last_sender_is_me:
+            lastSenderIsMeByConversation[conversationKey] ?? false,
+        };
+      });
 
       setConversations(conversationsWithMeta as ConversationWithMeta[]);
     } catch (err) {
