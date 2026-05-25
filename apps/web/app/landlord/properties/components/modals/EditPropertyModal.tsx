@@ -22,9 +22,9 @@ import {
   FURNISHED_TYPES,
   FLOOR_LEVELS, 
   LEASE_DURATIONS,
+  PROVINCES,
 } from "@repo/constants";
 
-import { CITIES } from "../propertyConstants";
 import type { Property } from "../propertyTypes";
 
 function SectionTitle({ children }: { children: string }) {
@@ -345,36 +345,35 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                       </TextField>
 
-                      <Select 
-                        value={form.city ?? null} 
-                        onChange={(v) => updateForm("city", (v as string) ?? null)} 
-                        placeholder="Select one"
-                      >
+                      <TextField>
                         <Label>
                           City
                         </Label>
+                        <Input
+                          value={form.city ?? ""}
+                          onChange={(e) => updateForm("city", e.target.value)}
+                          placeholder="e.g. Caloocan"
+                        />
+                      </TextField>
+
+                      <Select
+                        value={form.province ?? null}
+                        onChange={(v) => updateForm("province", (v as string) ?? null)}
+                        placeholder="Select one"
+                      >
+                        <Label>Province</Label>
                         <Select.Trigger>
                           <Select.Value />
                           <Select.Indicator />
                         </Select.Trigger>
-
                         <Select.Popover>
                           <ListBox>
-                            {CITIES.map((c) => <ListBox.Item key={c} id={c}>{c}</ListBox.Item>)}
+                            {PROVINCES.map((p) => (
+                              <ListBox.Item key={p} id={p}>{p}</ListBox.Item>
+                            ))}
                           </ListBox>
                         </Select.Popover>
                       </Select>
-
-                      <TextField>
-                        <Label>
-                          Province
-                        </Label>
-
-                        <Input 
-                          value={form.province ?? ""} 
-                          onChange={(e) => updateForm("province", e.target.value)} 
-                        />
-                      </TextField>
                       
                       <TextField>
                         <Label>
