@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback } from "react";
-import { Input, Select, SelectItem, NumberInput, Checkbox } from "@heroui/react";
-import type { ApartmentFormData, FormErrors } from "../page";
 import dynamic from "next/dynamic";
+
+import { Input, Select, Checkbox, Label, ListBox, FieldError, NumberField, TextField, Description } from "@heroui/react";
+
+import type { ApartmentFormData, FormErrors } from "../page";
+
 import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
 
 const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
@@ -41,165 +44,190 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <p className="text-sm font-semibold text-grey-700">Property Details</p>
         <div className="grid grid-cols-2 gap-4">
           <Select
-            label="Property Type"
-            selectedKeys={formData.type ? new Set([formData.type]) : new Set()}
-            onSelectionChange={(keys) =>
-              updateForm({ type: Array.from(keys)[0] as string })
-            }
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
-            }}
+            value={formData.type ?? null}
+            onChange={(value) => updateForm({ type: value as string })}
             isInvalid={!!errors.type}
-            errorMessage={errors.type}
             isRequired
+            className="w-full"
           >
-            {APARTMENT_TYPES.map((t) => (
-              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
-                {t}
-              </SelectItem>
-            ))}
+            <Label>Property Type</Label>
+            <Select.Trigger className="rounded-lg border border-border data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <FieldError>{errors.type}</FieldError>
+            <Select.Popover>
+              <ListBox>
+                {APARTMENT_TYPES.map((t) => (
+                  <ListBox.Item key={t} id={t} textValue={t} className="hover:bg-light-blue!">
+                    {t}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
           <Select
-            label="Furnished Type"
-            selectedKeys={
-              formData.furnished_type
-                ? new Set([formData.furnished_type])
-                : new Set()
-            }
-            onSelectionChange={(keys) =>
-              updateForm({ furnished_type: Array.from(keys)[0] as string })
-            }
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
-            }}
+            value={formData.furnished_type ?? null}
+            onChange={(value) => updateForm({ furnished_type: value as string })}
             isInvalid={!!errors.furnished_type}
-            errorMessage={errors.furnished_type}
             isRequired
+            className="w-full"
           >
-            {FURNISHED_TYPES.map((t) => (
-              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
-                {t}
-              </SelectItem>
-            ))}
+            <Label>Furnished Type</Label>
+            <Select.Trigger className="rounded-lg border border-border data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <FieldError>{errors.furnished_type}</FieldError>
+            <Select.Popover>
+              <ListBox>
+                {FURNISHED_TYPES.map((t) => (
+                  <ListBox.Item key={t} id={t} textValue={t} className="hover:bg-light-blue!">
+                    {t}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <NumberInput
-            label="No. of Bedrooms"
-            type="number"
+          <NumberField
             minValue={1}
             value={formData.no_bedrooms}
-            onValueChange={(value) => updateForm({ no_bedrooms: value })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
+            onChange={(value) => updateForm({ no_bedrooms: value })}
             isInvalid={!!errors.no_bedrooms}
-            errorMessage={errors.no_bedrooms}
-            isRequired
-          />
-
-          <NumberInput
-            label="No. of Bathrooms"
-            type="number"
-            minValue={1}
-            value={formData.no_bathrooms}
-            onValueChange={(value) => updateForm({ no_bathrooms: value })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
-            isInvalid={!!errors.no_bathrooms}
-            errorMessage={errors.no_bathrooms}
-            isRequired
-          />
-
-          <NumberInput
-            label="Floor Area (sqm)"
-            type="number"
-            min={0}
-            value={formData.area_sqm}
-            onValueChange={(value) => updateForm({ area_sqm: value })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
-            isInvalid={!!errors.area_sqm}
-            errorMessage={errors.area_sqm}
-            isRequired
-          />
-
-          <NumberInput
-            label="Max Occupants"
-            type="number"
-            minValue={1}
-            value={formData.max_occupants}
-            onValueChange={(value) => updateForm({ max_occupants: value })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
-            isInvalid={!!errors.max_occupants}
-            errorMessage={errors.max_occupants}
-            isRequired
-          />
-
-          <Select
-            label="Floor Level"
-            selectedKeys={
-              formData.floor_level ? new Set([formData.floor_level]) : new Set()
-            }
-            onSelectionChange={(keys) =>
-              updateForm({ floor_level: Array.from(keys)[0] as string })
-            }
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
-            }}
-            isInvalid={!!errors.floor_level}
-            errorMessage={errors.floor_level}
             isRequired
           >
-            {FLOOR_LEVELS.map((t) => (
-              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
-                {t}
-              </SelectItem>
-            ))}
+            <Label>No. of Bedrooms</Label>
+
+            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              
+              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
+              
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
+              
+              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+              
+            </NumberField.Group>
+            <FieldError className="text-xs text-red-500 mt-1">{errors.no_bedrooms}</FieldError>
+          </NumberField>
+
+          <NumberField
+            minValue={1}
+            value={formData.no_bathrooms}
+            onChange={(value) => updateForm({ no_bathrooms: value })}
+            isInvalid={!!errors.no_bathrooms}
+            isRequired
+          >
+            <Label>No. of Bathrooms</Label>
+            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            </NumberField.Group>
+            <FieldError className="text-xs text-red-500 mt-1">{errors.no_bathrooms}</FieldError>
+          </NumberField>
+
+          <NumberField
+            minValue={0}
+            value={formData.area_sqm}
+            onChange={(value) => updateForm({ area_sqm: value })}
+            isInvalid={!!errors.area_sqm}
+            isRequired
+          >
+            <Label>Floor Area (sqm)</Label>
+            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            </NumberField.Group>
+            <FieldError className="text-xs text-red-500 mt-1">{errors.area_sqm}</FieldError>
+          </NumberField>
+
+          <NumberField
+            minValue={1}
+            value={formData.max_occupants}
+            onChange={(value) => updateForm({ max_occupants: value })}
+            isInvalid={!!errors.max_occupants}
+            isRequired
+          >
+            <Label>Max Occupants</Label>
+            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            </NumberField.Group>
+            <FieldError className="text-xs text-red-500 mt-1">{errors.max_occupants}</FieldError>
+          </NumberField>
+
+          <Select
+            placeholder="Select floor level"
+            value={formData.floor_level || null}
+            onChange={(key) => updateForm({ floor_level: key as string })}
+            isInvalid={!!errors.floor_level}
+            isRequired
+            className="w-full"
+          >
+            <Label>Floor Level</Label>
+            
+            <Select.Trigger 
+              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
+            >
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+
+            <FieldError>{errors.floor_level}</FieldError>
+
+            <Select.Popover>
+              <ListBox>
+                {FLOOR_LEVELS.map((t) => (
+                  <ListBox.Item 
+                    key={t} 
+                    id={t} 
+                    textValue={t}
+                    className="hover:bg-light-blue!"
+                  >
+                    {t}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
           <Select
-            label="Lease Duration"
-            selectedKeys={
-              formData.lease_duration
-                ? new Set([formData.lease_duration])
-                : new Set()
-            }
-            onSelectionChange={(keys) =>
-              updateForm({ lease_duration: Array.from(keys)[0] as string })
-            }
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
-            }}
+            placeholder="Select lease duration"
+            value={formData.lease_duration || null}
+            onChange={(key) => updateForm({ lease_duration: key as string })}
             isInvalid={!!errors.lease_duration}
-            errorMessage={errors.lease_duration}
             isRequired
+            className="w-full"
           >
-            {LEASE_DURATIONS.map((t) => (
-              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
-                {t}
-              </SelectItem>
-            ))}
+            <Label>Lease Duration</Label>
+            
+            <Select.Trigger 
+              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
+            >
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+
+            <FieldError>{errors.lease_duration}</FieldError>
+
+            <Select.Popover>
+              <ListBox>
+                {LEASE_DURATIONS.map((t) => (
+                  <ListBox.Item 
+                    key={t} 
+                    id={t} 
+                    textValue={t}
+                    className="hover:bg-light-blue!"
+                  >
+                    {t}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
         </div>
       </div>
@@ -208,88 +236,96 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
       <div className="flex flex-col gap-4">
         <p className="text-sm font-semibold text-grey-700">Address</p>
 
-        <Input
-          label="Street Address"
-          placeholder="e.g. 123 Rizal Ave."
-          value={formData.street_address}
-          onValueChange={(v) => updateForm({ street_address: v })}
-          radius="lg"
-          variant="bordered"
-          classNames={{
-            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-          }}
+        <TextField 
+          isRequired 
           isInvalid={!!errors.street_address}
-          errorMessage={errors.street_address}
-          isRequired
-        />
+        >
+          <Label>Street Address</Label>
+          <Input
+            placeholder="e.g. 123 Rizal Ave."
+            value={formData.street_address}
+            onChange={(e) => updateForm({ street_address: e.target.value })}
+          />
+          <FieldError>{errors.street_address}</FieldError>
+        </TextField>
 
         <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Barangay"
-            value={formData.barangay}
-            onValueChange={(v) => updateForm({ barangay: v })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
+          <TextField 
+            isRequired 
             isInvalid={!!errors.barangay}
-            errorMessage={errors.barangay}
-            isRequired
-          />
-          <Input
-            label="City"
-            value={formData.city}
-            onValueChange={(v) => updateForm({ city: v })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
+          >
+            <Label>Barangay</Label>
+            <Input
+              value={formData.barangay}
+              onChange={(e) => updateForm({ barangay: e.target.value })}
+            />
+            <FieldError>{errors.barangay}</FieldError>
+          </TextField>
+
+          <TextField 
+            isRequired 
             isInvalid={!!errors.city}
-            errorMessage={errors.city}
-            isRequired
-          />
+          >
+            <Label>City</Label>
+            <Input
+              value={formData.city}
+              onChange={(e) => updateForm({ city: e.target.value })}
+            />
+            <FieldError>{errors.city}</FieldError>
+          </TextField>
 
           <Select
-            label="Province"
-            selectedKeys={
-              formData.province
-                ? new Set([formData.province])
-                : new Set()
-            }
-            onSelectionChange={(keys) =>
-              updateForm({ province: Array.from(keys)[0] as string })
-            }
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              trigger: "cursor-pointer data-[focus=true]:border-primary data-[open=true]:border-primary",
-            }}
+            placeholder="Select province"
+            value={formData.province || null}
+            onChange={(key) => updateForm({ province: key as string })}
             isInvalid={!!errors.province}
-            errorMessage={errors.province}
             isRequired
+            className="w-full"
           >
-            {PROVINCES.map((t) => (
-              <SelectItem key={t} className="data-[hover=true]:bg-light-blue!">
-                {t}
-              </SelectItem>
-            ))}
+            <Label>Province</Label>
+            
+            <Select.Trigger 
+              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
+            >
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+
+            <FieldError>{errors.province}</FieldError>
+
+            <Select.Popover>
+              <ListBox>
+                {PROVINCES.map((t) => (
+                  <ListBox.Item 
+                    key={t} 
+                    id={t} 
+                    textValue={t}
+                    className="hover:bg-light-blue!"
+                  >
+                    {t}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <Input
-            label="Zip Code"
-            value={formData.zip_code}
-            onValueChange={(v) => updateForm({ zip_code: v })}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
+          <TextField 
+            isRequired 
             isInvalid={!!errors.zip_code}
-            errorMessage={errors.zip_code}
-            isRequired
-          />
+          >
+            <Label>Zip Code</Label>
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={formData.zip_code}
+              onChange={(e) => {
+                const onlyNums = e.target.value.replace(/[^0-9]/g, "");
+                updateForm({ zip_code: onlyNums });
+              }}
+            />
+            <FieldError>{errors.zip_code}</FieldError>
+          </TextField>
         </div>
       </div>
 
@@ -302,43 +338,43 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <NumberInput
-            label="Latitude"
-            type="number"
-            placeholder="e.g. 14.5995"
-            value={formData.latitude !== null ? formData.latitude : 0}
-            onValueChange={(value) => {
-              updateForm({ latitude: value ? value : null, isPinConfirmed: false });
-            }}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
-            hideStepper
+          <NumberField
+            isRequired
             isInvalid={!!errors.latitude}
-            errorMessage={errors.latitude}
-            isRequired
-          />
+            value={formData.latitude !== null ? formData.latitude : 0}
+            onChange={(value) => {
+              updateForm({ latitude: value !== undefined ? value : null, isPinConfirmed: false });
+            }}
+            className="flex flex-col gap-1.5 w-full"
+          >
+            <Label className="text-sm font-medium text-default-700">Latitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-white rounded-xl border border-grey-300 transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+              <NumberField.Input 
+                placeholder="e.g. 14.5995"
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-default-900 outline-none placeholder:text-default-400" 
+              />
+            </NumberField.Group>
+            <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
+          </NumberField>
 
-          <NumberInput
-            label="Longitude"
-            type="number"
-            placeholder="e.g. 120.9842"
-            value={formData.longitude !== null ? formData.longitude : 0}
-            onValueChange={(value) => {
-              updateForm({ longitude: value ? value : null, isPinConfirmed: false });
-            }}
-            radius="lg"
-            variant="bordered"
-            classNames={{
-              inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-            }}
-            hideStepper
-            isInvalid={!!errors.longitude}
-            errorMessage={errors.longitude}
+          <NumberField
             isRequired
-          />
+            isInvalid={!!errors.longitude}
+            value={formData.longitude !== null ? formData.longitude : 0}
+            onChange={(value) => {
+              updateForm({ longitude: value !== undefined ? value : null, isPinConfirmed: false });
+            }}
+            className="flex flex-col gap-1.5 w-full"
+          >
+            <Label className="text-sm font-medium text-default-700">Longitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-white rounded-xl border border-grey-300 transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+              <NumberField.Input 
+                placeholder="e.g. 120.9842"
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-default-900 outline-none placeholder:text-default-400" 
+              />
+            </NumberField.Group>
+            <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>
+          </NumberField>
         </div>
 
         <MapPicker
@@ -352,16 +388,22 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         {formData.latitude !== null && formData.longitude !== null && (
           <Checkbox
             isSelected={formData.isPinConfirmed ?? false}
-            onValueChange={(checked) => updateForm({ isPinConfirmed: checked })}
+            onChange={(checked) => updateForm({ isPinConfirmed: checked })}
             isInvalid={!!errors.isPinConfirmed}
-            radius="sm"
           >
-            <span className="text-sm text-grey-700">
-              I confirm that the pin location on the map is correct
-            </span>
-            {errors.isPinConfirmed && (
-              <p className="text-xs text-danger mt-0.5">{errors.isPinConfirmed}</p>
-            )}
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content>
+              <Label className="text-sm text-grey-700">
+                I confirm that the pin location on the map is correct
+              </Label>
+              {errors.isPinConfirmed && (
+                <Description className="text-xs text-danger mt-0.5">
+                  {errors.isPinConfirmed}
+                </Description>
+              )}
+            </Checkbox.Content>
           </Checkbox>
         )}
       </div>

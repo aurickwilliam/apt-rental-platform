@@ -289,10 +289,10 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto py-6 px-4">
+      <div className="max-w-3xl mx-auto py-6">
         <Button
           onPress={router.back}
-          variant="tertiary"
+          variant="outline"
         >
           <ArrowLeft size={20} />
           Back
