@@ -16,7 +16,7 @@ export function TabBar({
   const icons = userType === 'tenant' ? TENANTICONS : LANDLORDICONS;
 
   return (
-    <View className='flex-row pb-10 bg-white border-t-[1px] border-grey-100'>
+    <View className='flex-row pb-10 bg-white border-t border-grey-100'>
 
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
