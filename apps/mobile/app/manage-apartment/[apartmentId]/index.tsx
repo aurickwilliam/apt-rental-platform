@@ -212,8 +212,8 @@ export default function Index() {
         .from('tenancies')
         .select(`
           id,
-          move_in_date,
-          move_out_date,
+          lease_start,
+          lease_end,
           tenant:users!tenancies_tenant_id_fkey (
             id,
             first_name,
@@ -242,8 +242,8 @@ export default function Index() {
           email: t.email ?? '—',
           mobileNumber: t.mobile_number,
           avatarUrl: t.avatar_url,
-          leaseStartMonthYear: formatMonthYear(tenancyData.move_in_date),
-          leaseEndMonthYear: formatMonthYear(tenancyData.move_out_date),
+          leaseStartMonthYear: formatMonthYear(tenancyData.lease_start),
+          leaseEndMonthYear: formatMonthYear(tenancyData.lease_end),
         })
       } else {
         setTenant(null)

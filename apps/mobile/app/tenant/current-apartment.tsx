@@ -111,14 +111,14 @@ export default function CurrentApartmentDetails() {
         <View className="flex w-1/2">
           <Text className="text-text text-xs font-inter">Lease Start</Text>
           <Text className="text-text text-base font-interMedium">
-            {formatDateToMonthYear(tenancy.move_in_date)}
+            {formatDateToMonthYear(tenancy.lease_start)}
           </Text>
         </View>
         <View className="flex w-1/2">
           <Text className="text-text text-xs font-inter">Lease End</Text>
           <Text className="text-text text-base font-interMedium">
-            {tenancy.move_out_date
-              ? formatDateToMonthYear(tenancy.move_out_date)
+            {tenancy.lease_end
+              ? formatDateToMonthYear(tenancy.lease_end)
               : 'Ongoing'}
           </Text>
         </View>
