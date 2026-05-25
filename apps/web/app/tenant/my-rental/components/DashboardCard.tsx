@@ -10,7 +10,7 @@ type DashboardCardProps = {
 
 export default function DashboardCard({ children, className = "" }: DashboardCardProps) {
   return (
-    <Card className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl ${className}`}>
+    <Card className={`bg-white/90 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-sm ${className}`}>
       <Card.Content className="p-4">
         {children}
       </Card.Content>
