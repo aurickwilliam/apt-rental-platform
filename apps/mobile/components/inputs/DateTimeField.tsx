@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Platform } from "react-native";
+import { View, Text, Pressable, Platform, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -24,9 +24,9 @@ export default function DateTimeField({
   error,
   required = false,
 }: DateTimeFieldProps) {
-
   const [show, setShow] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(value ?? new Date());
 
   const displayValue = value
     ? value.toISOString().split("T")[0]
@@ -36,62 +36,105 @@ export default function DateTimeField({
     if (Platform.OS === "android") {
       setShow(false);
       setIsFocused(false);
+      if (selectedDate) onChange?.(selectedDate);
+      return;
     }
-
-    if (selectedDate) {
-      onChange?.(selectedDate);
-    }
+    // iOS: stage into tempDate, commit on Done
+    if (selectedDate) setTempDate(selectedDate);
   };
 
   const openDatePicker = () => {
     if (!disabled) {
+      setTempDate(value ?? new Date());
       setShow(true);
       setIsFocused(true);
     }
   };
 
+  const handleDone = () => {
+    onChange?.(tempDate);
+    setShow(false);
+    setIsFocused(false);
+  };
+
+  const handleCancel = () => {
+    setShow(false);
+    setIsFocused(false);
+  };
+
   return (
     <View className="w-full flex-col gap-2">
       {label && (
-        <Text className="text-md text-text font-interMedium">
+        <Text className={`text-base font-interMedium ${error ? 'text-redHead-200' : 'text-text'}`}>
           {label} {required && <Text className="text-redHead-200">*</Text>}
         </Text>
       )}
 
-      <View
-        className={`bg-white border-2 rounded-2xl pl-2 pr-4 h-16 flex-row 
-        items-center justify-between
-        ${error ? "border-redHead-200" : isFocused ? "border-primary" : "border-grey-200"}`}
+      <Pressable
+        onPress={openDatePicker}
+        disabled={disabled}
+        style={{ justifyContent: "space-between" }}
+        className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-12 flex-row 
+          items-center justify-between
+          ${error ? "border-redHead-200" : isFocused ? "border-primary" : "border-grey-200"}`}
       >
-        <Text
-          className={`text-lg font-inter ${
-            value ? "text-text" : "text-grey-300"
-          }`}
-        >
+        <Text className={`font-inter ${value ? "text-text" : "text-grey-500"}`}>
           {displayValue}
         </Text>
-
-        <Pressable onPress={openDatePicker} disabled={disabled}>
-          <Ionicons
-            name="calendar-outline"
-            size={24}
-            color={COLORS.mediumGrey}
-          />
-        </Pressable>
-      </View>
+        <Ionicons name="calendar-outline" size={24} color={COLORS.mediumGrey} />
+      </Pressable>
 
       {error && (
-        <Text className="text-md text-redHead-200 font-inter mt-1">
-          {error}
-        </Text>
+        <Text className="text-md text-redHead-200 font-inter mt-1">{error}</Text>
       )}
 
-      {/* Date Picker */}
-      {show && (
+      {/* iOS Modal */}
+      {Platform.OS === "ios" && (
+        <Modal
+          visible={show}
+          transparent
+          animationType="fade"
+          onRequestClose={handleCancel}
+        >
+          {/* Backdrop */}
+          <Pressable
+            onPress={handleCancel}
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }}
+          />
+
+          {/* Sheet */}
+          <View className="bg-white rounded-t-3xl pb-8">
+            {/* Toolbar */}
+            <View className="flex-row justify-between items-center px-4 pt-4 pb-2 border-b border-grey-200">
+              <Pressable onPress={handleCancel} className="py-1 px-2">
+                <Text className="text-base text-grey-500 font-inter">Cancel</Text>
+              </Pressable>
+              <Text className="text-base font-interMedium text-text">
+                {label ?? "Select Date"}
+              </Text>
+              <Pressable onPress={handleDone} className="py-1 px-2">
+                <Text className="text-base text-primary font-interMedium">Done</Text>
+              </Pressable>
+            </View>
+
+            {/* Picker */}
+            <DateTimePicker
+              value={tempDate}
+              mode="date"
+              display="spinner"
+              onChange={handleChange}
+              style={{ height: 200, alignSelf: "center" }}
+            />
+          </View>
+        </Modal>
+      )}
+
+      {/* Android inline picker */}
+      {Platform.OS === "android" && show && (
         <DateTimePicker
           value={value ?? new Date()}
           mode="date"
-          display={"default"}
+          display="default"
           onChange={handleChange}
         />
       )}

@@ -79,7 +79,7 @@ export default function CardForm() {
       }
     >
       <View className='flex'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           Debit/Credit Card Form
         </Text>
 

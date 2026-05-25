@@ -22,7 +22,7 @@ export default function ApartmentHorizontalListCard({
     <View className='mt-8'>
       {/* Title */}
       <View className='flex-row items-center justify-between mb-4 px-5'>
-        <Text className='text-text text-lg font-poppinsSemiBold'>
+        <Text className='text-text text-lg font-interSemiBold'>
           {label}
         </Text>
 
@@ -30,7 +30,7 @@ export default function ApartmentHorizontalListCard({
           activeOpacity={0.7}
           onPress={onSeeAllPress}
         >
-          <Text className='text-primary text-base font-poppins'>
+          <Text className='text-primary text-base font-interSemiBold'>
             See All
           </Text>
         </TouchableOpacity>

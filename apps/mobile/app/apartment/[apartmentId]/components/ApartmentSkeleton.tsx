@@ -3,8 +3,6 @@ import { Animated, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import IconButton from 'components/buttons/IconButton';
-import { IconChevronLeft, IconHeart } from '@tabler/icons-react-native';
 
 type ApartmentSkeletonProps = {
   onBackPress: () => void;
@@ -56,7 +54,7 @@ export default function ApartmentSkeleton({
   return (
     <View className='flex-1'>
       <ScreenWrapper scrollable bottomPadding={100} noTopPadding>
-        <View className='h-[42rem] bg-darkerWhite p-5 justify-end'>
+        <View className='h-168 bg-darkerWhite p-5 justify-end'>
           <View className='gap-3'>
             <SkeletonBlock className='h-8 w-3/4' />
             <SkeletonBlock className='h-5 w-11/12' />
@@ -129,14 +127,6 @@ export default function ApartmentSkeleton({
           </View>
         </SafeAreaView>
       </View>
-
-      <SafeAreaView className='absolute left-4 top-5' edges={['top']}>
-        <IconButton iconName={IconChevronLeft} onPress={onBackPress} />
-      </SafeAreaView>
-
-      <SafeAreaView className='absolute right-4 top-5' edges={['top']}>
-        <IconButton iconName={IconHeart} onPress={onFavoritePress} />
-      </SafeAreaView>
     </View>
   );
 }

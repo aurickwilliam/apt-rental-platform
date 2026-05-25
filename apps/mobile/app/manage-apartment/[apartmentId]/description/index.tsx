@@ -8,7 +8,8 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
 import PerkItem from 'components/display/PerkItem'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from "heroui-native"
 
 import {
   IconHome,
@@ -205,25 +206,9 @@ export default function Index() {
     if (!apartment?.lease_agreement_url) return
 
     try {
-      // List the actual files under this apartment's folder in storage
-      // instead of trusting the stored path, which may be stale or mismatched
-      const { data: files, error: listError } = await supabase.storage
-        .from('lease-agreements')
-        .list(apartmentId)
-
-      if (listError) throw listError
-
-      if (!files?.length) {
-        Alert.alert('Not Found', 'No lease agreement file found in storage.')
-        return
-      }
-
-      // Use the first file found (there should only ever be one)
-      const storagePath = `${apartmentId}/${files[0].name}`
-
       const { data, error } = await supabase.storage
         .from('lease-agreements')
-        .createSignedUrl(storagePath, 3600)
+        .createSignedUrl(apartment.lease_agreement_url, 3600)
 
       if (error || !data?.signedUrl) throw error
 
@@ -269,7 +254,7 @@ export default function Index() {
       }
     >
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-lg font-interSemiBold'>
           Main Information
         </Text>
         <TouchableOpacity
@@ -280,30 +265,30 @@ export default function Index() {
       </View>
 
       <View className='mt-3'>
-        <Text className='text-2xl font-interSemiBold text-text'>
+        <Text className='text-xl font-interSemiBold text-text'>
           {apartment?.name ?? '—'}
         </Text>
-        <Text className='text-base text-text'>
+        <Text className='text-sm text-text'>
           {fullAddress}
         </Text>
       </View>
 
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>Landlord</Text>
-        <Text className='text-text text-lg font-interMedium'>{landlordName}</Text>
+        <Text className='text-text text-xs font-inter'>Landlord</Text>
+        <Text className='text-text text-base font-interMedium'>{landlordName}</Text>
       </View>
 
       {tenancy && (
         <View className='flex-row mt-5'>
           <View className='flex w-1/2'>
-            <Text className='text-text text-sm font-inter'>Lease Start</Text>
-            <Text className='text-text text-lg font-interMedium'>
+            <Text className='text-text text-xs font-inter'>Lease Start</Text>
+            <Text className='text-text text-base font-interMedium'>
               {formatDate(tenancy.move_in_date)}
             </Text>
           </View>
           <View className='flex w-1/2'>
-            <Text className='text-text text-sm font-inter'>Lease End</Text>
-            <Text className='text-text text-lg font-interMedium'>
+            <Text className='text-text text-xs font-inter'>Lease End</Text>
+            <Text className='text-text text-base font-interMedium'>
               {formatDate(tenancy.move_out_date)}
             </Text>
           </View>
@@ -312,20 +297,20 @@ export default function Index() {
 
       <View className='flex-row flex-wrap'>
         <View className='mt-5 flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>Monthly Rent</Text>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-xs font-inter'>Monthly Rent</Text>
+          <Text className='text-text text-base font-interMedium'>
             {formatCurrency(effectiveRent)}
           </Text>
         </View>
         <View className='mt-5 flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>Security Deposit</Text>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-xs font-inter'>Security Deposit</Text>
+          <Text className='text-text text-base font-interMedium'>
             {formatCurrency(apartment?.security_deposit ?? 0)}
           </Text>
         </View>
         <View className='mt-5 flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>Advance Rent</Text>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-text text-xs font-inter'>Advance Rent</Text>
+          <Text className='text-text text-base font-interMedium'>
             {formatCurrency(apartment?.advance_rent ?? 0)}
           </Text>
         </View>
@@ -334,7 +319,7 @@ export default function Index() {
       <Divider />
 
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium'>
+        <Text className='text-text text-base font-interSemiBold'>
           Apartment Full Description
         </Text>
         <TouchableOpacity
@@ -345,13 +330,13 @@ export default function Index() {
       </View>
 
       <View className='mt-3 bg-darkerWhite p-4 rounded-2xl'>
-        <Text className='text-text text-base font-inter'>
+        <Text className='text-text text-sm font-inter'>
           {apartment?.description ?? '—'}
         </Text>
       </View>
 
       <View className='flex-row items-center justify-between'>
-        <Text className='text-text text-lg font-poppinsMedium mt-5'>
+        <Text className='text-text text-base font-interSemiBold mt-5'>
           Room/Unit Details
         </Text>
         <TouchableOpacity
@@ -407,7 +392,7 @@ export default function Index() {
       {(apartment?.amenities?.length ?? 0) > 0 && (
         <>
           <View className='flex-row items-center justify-between'>
-            <Text className='text-text text-lg font-poppinsMedium mt-5'>
+            <Text className='text-text text-base font-interSemiBold mt-5'>
               Included Perks
             </Text>
             <TouchableOpacity
@@ -430,22 +415,26 @@ export default function Index() {
       <Divider />
 
       <View className='mt-5 gap-3'>
-        <PillButton
-          label='View Lease Agreement'
-          isFullWidth
-          type='outline'
-          leftIconName={IconFileText}
+        <Button
+          variant='tertiary'
           isDisabled={!apartment?.lease_agreement_url}
           onPress={handleViewLease}
-        />
+        >
+          <IconFileText size={20} color={COLORS.grey} />
+          <Button.Label>
+            View Lease Agreement
+          </Button.Label>
+        </Button>
 
-        <PillButton
-          label={uploading ? 'Uploading...' : 'Upload Lease Agreement'}
-          isFullWidth
-          leftIconName={IconUpload}
+        <Button
           isDisabled={uploading}
           onPress={handleUploadLease}
-        />
+        >
+          <IconUpload size={20} color={COLORS.white} />
+          <Button.Label>
+            {uploading ? 'Uploading...' : 'Upload Lease Agreement'}
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )

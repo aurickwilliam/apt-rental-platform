@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 import { APARTMENT_TYPES, FLOOR_LEVELS, FURNISHED_TYPES, LEASE_DURATIONS } from '@repo/constants';
 import { supabase } from '@repo/supabase';
 
 import { useFavorites } from '@/hooks/useFavorites';
+
 import { type FilterState } from 'components/display/FilterBottomSheet';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
@@ -32,11 +32,8 @@ export default function useSearchLogic() {
 
   const pageRef = useRef(0);
 
-  const filterSheetRef = useRef<BottomSheetModal>(null!);
-
-  const openFilterSheet = useCallback(() => {
-    filterSheetRef.current?.present();
-  }, []);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const openFilterSheet = useCallback(() => setIsFilterSheetOpen(true), []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
@@ -318,7 +315,9 @@ export default function useSearchLogic() {
     error,
     fetchApartments,
     filters,
-    filterSheetRef,
+    isFilterSheetOpen,
+    setIsFilterSheetOpen,
+    openFilterSheet,
     handleApplyFilters,
     handleClearFilters,
     handleToggleFavorite,
@@ -327,7 +326,6 @@ export default function useSearchLogic() {
     loading,
     loadingMore,
     loadMore,
-    openFilterSheet,
     refreshing,
     resultCount,
     searchQuery,

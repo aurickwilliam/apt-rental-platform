@@ -4,10 +4,10 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/display/ApplicationHeader'
-import NumberField from '@/components/inputs/NumberField'
 import Divider from '@/components/display/Divider'
-import UploadFileField from '@/components/inputs/UploadFileField'   // ← swapped
-import PillButton from '@/components/buttons/PillButton'
+import UploadFileField from '@/components/inputs/UploadFileField' 
+
+import { Input, Label, TextField, FieldError, Button } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/store/useApartmentFormStore'
@@ -78,39 +78,47 @@ export default function ThirdStep() {
 
       <View className='p-5 flex-1'>
         <View className='flex gap-3'>
-          <NumberField
-            label='Monthly Rent:'
-            placeholder='Enter monthly rent'
-            required
-            value={monthlyRent}
-            error={errors.monthlyRent}
-            onChange={(value) => {
-              setField('monthlyRent', value)
-              clearError('monthlyRent')
-            }}
-          />
+          <TextField isRequired isInvalid={!!errors.monthlyRent}>
+            <Label>Monthly Rent:</Label>
+            <Input
+              placeholder="Enter monthly rent"
+              value={monthlyRent}
+              keyboardType="numeric"
+              onChangeText={(value) => {
+                setField('monthlyRent', value)
+                clearError('monthlyRent')
+              }}
+            />
+            {errors.monthlyRent && <FieldError>{errors.monthlyRent}</FieldError>}
+          </TextField>
 
-          <NumberField
-            label='Security Deposit:'
-            placeholder='Enter security deposit'
-            value={securityDeposit}
-            error={errors.securityDeposit}
-            onChange={(value) => {
-              setField('securityDeposit', value)
-              clearError('securityDeposit')
-            }}
-          />
+          <TextField isInvalid={!!errors.securityDeposit}>
+            <Label>Security Deposit:</Label>
+            <Input
+              placeholder="Enter security deposit"
+              value={securityDeposit}
+              keyboardType="numeric"
+              onChangeText={(value) => {
+                setField('securityDeposit', value)
+                clearError('securityDeposit')
+              }}
+            />
+            {errors.securityDeposit && <FieldError>{errors.securityDeposit}</FieldError>}
+          </TextField>
 
-          <NumberField
-            label='Advance Rent:'
-            placeholder='Enter advance rent'
-            value={advanceRent}
-            error={errors.advanceRent}
-            onChange={(value) => {
-              setField('advanceRent', value)
-              clearError('advanceRent')
-            }}
-          />
+          <TextField isInvalid={!!errors.advanceRent}>
+            <Label>Advance Rent:</Label>
+            <Input
+              placeholder="Enter advance rent"
+              value={advanceRent}
+              keyboardType="numeric"
+              onChangeText={(value) => {
+                setField('advanceRent', value)
+                clearError('advanceRent')
+              }}
+            />
+            {errors.advanceRent && <FieldError>{errors.advanceRent}</FieldError>}
+          </TextField>
 
           {/* Total Move-in Cost */}
           {!!monthlyRent && (
@@ -180,21 +188,24 @@ export default function ThirdStep() {
 
         {/* Back or Next Button */}
         <View className='flex-row mt-10 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Back'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={handleNext}
-            />
-          </View>
+          <Button
+            variant="outline"
+            onPress={() => router.back()}
+            className="flex-1"
+          >
+            <Button.Label>
+              Back
+            </Button.Label>
+          </Button>
+
+          <Button
+            onPress={handleNext}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>

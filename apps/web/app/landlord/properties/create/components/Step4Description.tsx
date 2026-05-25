@@ -1,5 +1,5 @@
 "use client";
-import { Textarea } from "@heroui/react";
+import { Description, FieldError, Label, TextArea, TextField } from "@heroui/react";
 import { PERKS } from "../../../../components/inputs/perks";
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -30,22 +30,27 @@ export default function Step4Description({ formData, updateForm, errors }: Props
         </p>
       </div>
 
-      <Textarea
-        label="Description"
-        placeholder="Tell tenants about the property — location highlights, nearby establishments, house rules, what's included, etc."
-        value={formData.description}
-        onValueChange={(v) => updateForm({ description: v })}
-        radius="lg"
-        variant="bordered"
-        minRows={6}
-        maxRows={12}
-        description={`${formData.description.length} characters`}
-        isInvalid={!!errors.description}
-        errorMessage={errors.description}
-        classNames={{
-          inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-        }}
-      />
+      <TextField 
+        isInvalid={!!errors.description} 
+        className="w-full"
+      >
+        <Label>Description</Label>
+        
+        <TextArea
+          placeholder="Tell tenants about the property — location highlights, nearby establishments, house rules, what's included, etc."
+          value={formData.description}
+          onChange={(e) => updateForm({ description: e.target.value })}
+          variant="primary"
+          rows={6}
+          className="w-full rounded-lg border border-grey-300 shadow-none outline-none ring-0 focus:border-grey-300 focus:ring-0 data-[focus-visible=true]:border-grey-300 data-[focus-visible=true]:ring-0"
+        />
+
+        {/* Description / Character counter slot */}
+        <Description>{`${formData.description.length} characters`}</Description>
+        
+        {/* Error feedback slot */}
+        <FieldError>{errors.description}</FieldError>
+      </TextField>
 
       {/* Amenities picker */}
       <div>

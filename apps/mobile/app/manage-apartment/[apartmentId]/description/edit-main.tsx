@@ -4,14 +4,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 
 import DropdownField from '@/components/inputs/DropdownField'
-import NumberField from '@/components/inputs/NumberField'
-import TextField from '@/components/inputs/TextField'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
-import PillButton from '@/components/buttons/PillButton'
 import UploadImageField from '@/components/inputs/UploadImageField'
 import UploadFileField from '@/components/inputs/UploadFileField'
+
+import { TextField, Label, Input, Button} from "heroui-native"
 
 import {
   updateApartmentMain,
@@ -236,34 +235,42 @@ export default function EditMain() {
       scrollable
     >
       <View className="flex gap-3">
-        <TextField
-          label="Apartment Name:"
-          required
-          placeholder="Enter apartment name"
-          value={info.name}
-          onChangeText={(v) => setInfo({ ...info, name: v })}
-        />
-        <TextField
-          label="Street Address:"
-          required
-          placeholder="Enter street address"
-          value={info.street_address}
-          onChangeText={(v) => setInfo({ ...info, street_address: v })}
-        />
-        <TextField
-          label="Barangay:"
-          required
-          placeholder="Enter barangay"
-          value={info.barangay}
-          onChangeText={(v) => setInfo({ ...info, barangay: v })}
-        />
-        <TextField
-          label="City:"
-          required
-          placeholder="Enter city"
-          value={info.city}
-          onChangeText={(v) => setInfo({ ...info, city: v })}
-        />
+        <TextField isRequired>
+          <Label>Apartment Name</Label>
+          <Input
+            placeholder="Enter apartment name"
+            value={info.name}
+            onChangeText={(v) => setInfo({ ...info, name: v })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Street Address</Label>
+          <Input
+            placeholder="Enter street address"
+            value={info.street_address}
+            onChangeText={(v) => setInfo({ ...info, street_address: v })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Barangay</Label>
+          <Input
+            placeholder="Enter barangay"
+            value={info.barangay}
+            onChangeText={(v) => setInfo({ ...info, barangay: v })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>City</Label>
+          <Input
+            placeholder="Enter city"
+            value={info.city}
+            onChangeText={(v) => setInfo({ ...info, city: v })}
+          />
+        </TextField>
+
         <DropdownField
           label="Province:"
           required
@@ -273,27 +280,36 @@ export default function EditMain() {
           onSelect={(v) => setInfo({ ...info, province: v })}
           value={info.province}
         />
-        <NumberField
-          label="Monthly Rent:"
-          required
-          placeholder="Enter monthly rent"
-          value={info.monthly_rent.toString()}
-          onChange={(v) => setInfo({ ...info, monthly_rent: parseInt(v) || 0 })}
-        />
-        <NumberField
-          label="Security Deposit:"
-          required
-          placeholder="Enter security deposit"
-          value={info.security_deposit?.toString()}
-          onChange={(v) => setInfo({ ...info, security_deposit: parseInt(v) || 0 })}
-        />
-        <NumberField
-          label="Advance Rent:"
-          required
-          placeholder="Enter advance rent"
-          value={info.advance_rent?.toString()}
-          onChange={(v) => setInfo({ ...info, advance_rent: parseInt(v) || 0 })}
-        />
+
+        <TextField isRequired>
+          <Label>Monthly Rent</Label>
+          <Input
+            placeholder="Enter monthly rent"
+            keyboardType="numeric"
+            value={info.monthly_rent.toString()}
+            onChangeText={(v) => setInfo({ ...info, monthly_rent: parseInt(v) || 0 })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Security Deposit</Label>
+          <Input
+            placeholder="Enter security deposit"
+            keyboardType="numeric"
+            value={info.security_deposit?.toString()}
+            onChangeText={(v) => setInfo({ ...info, security_deposit: parseInt(v) || 0 })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Advance Rent</Label>
+          <Input
+            placeholder="Enter advance rent"
+            keyboardType="numeric"
+            value={info.advance_rent?.toString()}
+            onChangeText={(v) => setInfo({ ...info, advance_rent: parseInt(v) || 0 })}
+          />
+        </TextField>
       </View>
 
       <Divider marginVertical={30} />
@@ -335,7 +351,11 @@ export default function EditMain() {
       {saving ? (
         <ActivityIndicator size="large" />
       ) : (
-        <PillButton label="Save Changes" size="md" onPress={handleSaveChanges} />
+        <Button onPress={handleSaveChanges}>
+          <Button.Label>
+            Save Changes
+          </Button.Label>
+        </Button>
       )}
     </ScreenWrapper>
   )

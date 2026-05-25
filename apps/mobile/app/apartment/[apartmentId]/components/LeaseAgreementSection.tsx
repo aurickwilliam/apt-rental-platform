@@ -3,6 +3,9 @@ import { useRouter } from 'expo-router';
 import { IconFileDescription } from '@tabler/icons-react-native';
 
 import PillButton from 'components/buttons/PillButton';
+
+import { Button } from "heroui-native"
+
 import { COLORS } from '@repo/constants';
 import { supabase } from '@repo/supabase';
 
@@ -44,22 +47,25 @@ export default function LeaseAgreementSection({
     <View className='mt-10 px-5 flex gap-2'>
       <View className='flex-row items-center gap-2'>
         <IconFileDescription size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           Lease Agreement & Rules
         </Text>
       </View>
 
-      <Text className='text-text text-base font-inter'>
+      <Text className='text-text text-sm font-inter'>
         Please review the rental owner’s property rules before applying.
       </Text>
 
-      <PillButton
-        label='View Full Lease Agreement'
-        type='outline'
-        size='sm'
-        isDisabled={!leaseAgreementUrl}
+      <Button
+        size="sm"
+        variant="tertiary"
         onPress={handleLeaseAgreementNavigation}
-      />
+        isDisabled={!leaseAgreementUrl}
+      >
+        <Button.Label>
+          View Full Lease Agreement
+        </Button.Label>
+      </Button>
     </View>
   );
 }

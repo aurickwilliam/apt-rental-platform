@@ -62,10 +62,10 @@ export default function RangeSlider({
       {/* Label + range display */}
       {showLabelRange && (
         <View className="flex-row items-center justify-between mb-1">
-          <Text className="font-poppinsMedium text-base text-text mb-3">
+          <Text className="font-interSemiBold text-base text-text mb-3">
             {label}
           </Text>
-          <Text className="font-poppinsMedium text-[13px] text-primary">
+          <Text className="font-interSemiBold text-[13px] text-primary">
             {format(values[0])} – {format(values[1])}
           </Text>
         </View>

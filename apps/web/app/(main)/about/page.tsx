@@ -1,16 +1,18 @@
 "use client";
-
 import {
   Breadcrumbs,
   BreadcrumbItem,
   Card,
   CardBody,
   Chip,
-  Divider,
+  Separator,
 } from "@heroui/react";
-import { Users, Target, Eye } from "lucide-react";
 import { motion } from "framer-motion";
+
+import { Users, Target, Eye } from "lucide-react";
+
 import { stats } from "./data/AboutData";
+
 import TeamSection from "./components/TeamSection";
 import LocationSection from "./components/LocationSection";
 
@@ -74,10 +76,10 @@ export default function AboutUs() {
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-5xl font-poppins leading-tight tracking-tight mb-4"
+            className="text-4xl md:text-5xl font-inter font-semibold leading-tight tracking-tight mb-4"
           >
             Meet the people{" "}
-            <em className="text-primary not-italic font-poppins">behind</em> APT
+            <em className="text-primary not-italic font-inter font-semibold">behind</em> APT
           </motion.h1>
 
           <motion.p
@@ -184,9 +186,12 @@ export default function AboutUs() {
           </motion.div>
         </motion.div>
 
-        <Divider className="mb-14" />
+        <Separator className="mb-14" />
+
         <TeamSection />
-        <Divider className="my-10" />
+
+        <Separator className="my-10" />
+
         <LocationSection />
       </div>
     </div>

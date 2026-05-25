@@ -1,10 +1,12 @@
 import { View } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import TextBox from '@/components/inputs/TextBox'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button, TextArea, TextField, Label, FieldError } from "heroui-native"
+
 import { supabase } from '@repo/supabase'
 
 export default function EditDescription() {
@@ -81,23 +83,27 @@ export default function EditDescription() {
       className='p-5'
       header={<StandardHeader title='Edit Description' />}
     >
-      <TextBox
-        label='Description:'
-        placeholder='Enter apartment description'
-        boxHeight={500}
-        required
-        value={description}
-        onChangeText={(text) => {
-          setDescription(text);
-          if (error) setError('');
-        }}
-        error={error}
-      />
+      <TextField isRequired isInvalid={!!error}>
+        <Label>Description:</Label>
+        <TextArea
+          placeholder="Enter apartment description"
+          className="h-125"
+          value={description}
+          onChangeText={(text) => {
+            setDescription(text);
+            if (error) setError('');
+          }}
+        />
+        <FieldError>{error}</FieldError>
+      </TextField>
+
       <View className='flex-1' />
-      <PillButton
-        label={loading ? 'Saving...' : 'Save Changes'}
-        onPress={handleSaveChanges}
-      />
+
+      <Button onPress={handleSaveChanges} isDisabled={loading}>
+        <Button.Label>
+          {loading ? 'Saving...' : 'Save Changes'}
+        </Button.Label>
+      </Button>
     </ScreenWrapper>
   );
 }

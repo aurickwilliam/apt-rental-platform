@@ -4,7 +4,7 @@ import ImageHeader from "./components/ImageHeader";
 import RatingSection from "./components/RatingsSection";
 import MapLocation from "./components/MapLocation";
 
-import { Divider } from "@heroui/react";
+import { Separator } from "@heroui/react";
 
 import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } from "lucide-react";
 
@@ -44,20 +44,8 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     .eq('id', apartmentId)
     .single();
 
-  let leaseUrl: string | null = null;
-  if (apartment?.lease_agreement_url) {
-    const { data: signed } = await supabase.storage
-      .from('lease-agreements')
-      .createSignedUrl(apartment.lease_agreement_url, 60 * 60);
-    
-    if (signed?.signedUrl) {
-      const isPdf = apartment.lease_agreement_url.toLowerCase().endsWith('.pdf');
-      
-      leaseUrl = isPdf
-        ? signed.signedUrl // Opens PDF directly in browser
-        : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(signed.signedUrl)}`;
-    }
-  }
+  // Fetch Lease Agreement URL if it exists
+  const leaseUrl = apartment?.lease_agreement_url ?? null;
 
   // Fetch landlord details if landlord_id exists
   const { data: landlord } = apartment?.landlord_id
@@ -120,7 +108,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         <div className="w-2/3">
           {/* Name and Address */}
           <div>
-            <h1 className="text-3xl font-medium font-noto-serif text-primary">
+            <h1 className="text-3xl font-medium text-primary">
               {apartment.name}
             </h1>
             <h3>
@@ -157,7 +145,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
             <div className="flex gap-2 items-center">
               <Building2 size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
-                {apartment.floor_level} Floor
+                {apartment.floor_level}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
@@ -180,22 +168,22 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
             </div>
           </div>
 
-          <Divider className="my-8" />
+          <Separator className="my-8" />
 
           <ExpandableDescription text={apartment.description || ""} />
 
-          <Divider className="my-8" />
+          <Separator className="my-8" />
 
           <Amenities apartmentPerks={apartment.amenities ?? []} />
 
-          <Divider className="my-8" />
+          <Separator className="my-8" />
 
           <div>
             <h3 className="text-lg font-medium mb-2">View on Map</h3>
             <MapLocation latitude={apartment.latitude} longitude={apartment.longitude} />
           </div>
 
-          <Divider className="my-8" />
+          <Separator className="my-8" />
 
           <RatingSection
             overallRate={apartment.average_rating ?? 0}

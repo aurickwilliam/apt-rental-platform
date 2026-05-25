@@ -40,7 +40,7 @@ export default function PerkItem({
         />
       )}
       <Text 
-        className='text-text text-base font-inter mt-1'
+        className='text-text text-sm font-inter mt-1'
         style={{ fontSize: textSize }}
       >
         {text}

@@ -1,11 +1,12 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { View, Text, Image } from 'react-native'
+import { Card, PressableFeedback } from 'heroui-native'
 import { COLORS } from '@repo/constants'
 
 interface PropertyCardProps {
   apartmentName: string
   barangay: string
   city: string
-  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified'
+  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
   thumbnailUrl: string | undefined
   onPress: () => void
 }
@@ -21,70 +22,81 @@ export default function PropertyCard({
 
   const STATUS_STYLES = {
     'Occupied': {
-      backgroundColor: COLORS.lightGreen,   
-      color: COLORS.greenHulk,              
+      backgroundColor: COLORS.lightGreen,
+      color: COLORS.greenHulk,
     },
     'Under Maintenance': {
       backgroundColor: COLORS.lightYellowish,
-      color: COLORS.yellowish,               
+      color: COLORS.yellowish,
     },
     'Available': {
-      backgroundColor: COLORS.lightBlue,    
-      color: COLORS.primary,                
+      backgroundColor: COLORS.lightBlue,
+      color: COLORS.primary,
     },
     'Unverified': {
-      backgroundColor: COLORS.lightLightLightGrey, 
-      color: COLORS.grey,                          
+      backgroundColor: COLORS.lightLightLightGrey,
+      color: COLORS.grey,
     },
+    'Verified': {
+      backgroundColor: COLORS.lightGreen,
+      color: COLORS.greenHulk,
+    }
   }
 
   return (
-    <TouchableOpacity
-      className='bg-white rounded-2xl border border-grey-200 flex-row overflow-hidden'
-      activeOpacity={0.7}
-      onPress={onPress}
-    >
-      {/* Image */}
-      <View className='size-32 shrink-0'>
+    <PressableFeedback onPress={onPress}>
+      <PressableFeedback.Highlight />
+      <Card
+        className='flex-row overflow-hidden border border-grey-300 p-0 shadow-none'
+      >
+        {/* Image — fills full height, left corners rounded to match card */}
         <Image
           source={{ uri: thumbnailUrl }}
-          style={{ width: '100%', height: '100%' }}
+          className='w-30 shrink-0'
+          style={{
+            aspectRatio: 1,
+            borderTopLeftRadius: 16,
+            borderBottomLeftRadius: 16,
+          }}
+          resizeMode='cover'
         />
-      </View>
 
-      {/* Content */}
-      <View className='p-3 flex-1 min-w-0'>
-        <View className='mb-2'>
-          <Text
-            className='text-lg font-interMedium text-text'
-            numberOfLines={1}
-            ellipsizeMode='tail'
+        {/* Content */}
+        <Card.Body className='px-3 py-2 min-w-0 justify-between flex-1'>
+          <View>
+            <Card.Title
+              className='text-base font-interMedium text-text leading-snug'
+              numberOfLines={1}
+              ellipsizeMode='tail'
+            >
+              {apartmentName}
+            </Card.Title>
+
+            <Card.Description
+              className='text-grey-500 text-sm font-inter'
+              numberOfLines={2}
+              ellipsizeMode='tail'
+            >
+              {barangay}, {city}
+            </Card.Description>
+          </View>
+
+          <View
+            className='px-2 py-1 rounded-full self-start border'
+            style={{
+              backgroundColor: STATUS_STYLES[status].backgroundColor,
+              borderColor: STATUS_STYLES[status].color,
+            }}
           >
-            {apartmentName}
-          </Text>
-
-          <Text
-            className='text-grey-500 text-base font-inter'
-            numberOfLines={2}
-            ellipsizeMode='tail'
-          >
-            {barangay}, {city}
-          </Text>
-        </View>
-
-        <View
-          className='px-2 py-1 rounded-full self-start mt-auto border'
-          style={{ backgroundColor: STATUS_STYLES[status].backgroundColor, borderColor: STATUS_STYLES[status].color }}
-
-        >
-          <Text
-            className='text-sm font-inter'
-            style={{ color: STATUS_STYLES[status].color }}
-          >
-            {status}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+            <Text
+              className='text-xs font-inter'
+              style={{ color: STATUS_STYLES[status].color }}
+            >
+              {status}
+            </Text>
+          </View>
+        </Card.Body>
+      </Card>
+    </PressableFeedback>
   )
 }

@@ -18,7 +18,7 @@ export default function PersonalizationRadioButton({
   return (
     <Pressable
       onPress={onPress}
-      className={`w-[48%] rounded-2xl border-2 p-5 mb-4
+      className={`w-[48%] rounded-2xl border-2 p-3 mb-4 flex gap-3
         ${selected ? "border-primary bg-lightBlue" : "border-grey-300 bg-white"}`}
     >
       {/* Circle / Check */}
@@ -36,7 +36,7 @@ export default function PersonalizationRadioButton({
       </View>
 
       {/* Label */}
-      <Text className="text-xl font-interMedium text-text">
+      <Text className="text-lg font-interMedium text-text">
         {label}
       </Text>
     </Pressable>

@@ -17,7 +17,7 @@ export default function PerksSection({ amenities }: PerksSectionProps) {
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <IconSquareCheck size={26} color={COLORS.text} />
-            <Text className='font-poppinsSemiBold text-xl text-text'>
+            <Text className='font-interSemiBold text-lg text-text'>
               Included Perks
             </Text>
           </View>

@@ -3,11 +3,9 @@
 import {
   Button,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
 } from "@heroui/react";
+
+import Link from "next/link";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
@@ -27,46 +25,44 @@ export default function AuthPromptModal({
   signUpHref = "/sign-up",
 }: AuthPromptModalProps) {
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      placement="center"
-      backdrop="blur"
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
-            <ModalBody className="text-sm text-default-500">
-              {description}
-            </ModalBody>
-            <ModalFooter className="flex flex-col gap-2">
-              <Button
-                color="primary"
-                radius="full"
-                size="lg"
-                className="w-full"
-                as="a"
-                href={signInHref}
-                onPress={onClose}
-              >
-                Sign in
-              </Button>
-              <Button
-                variant="light"
-                radius="full"
-                size="lg"
-                className="w-full"
-                as="a"
-                href={signUpHref}
-                onPress={onClose}
-              >
-                Sign up
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+    <Modal>
+      <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
+        <Modal.Container>
+          <Modal.Dialog>
+            {({ close }) => (
+              <>
+                <Modal.Header>
+                  <Modal.Heading>{title}</Modal.Heading>
+                </Modal.Header>
+                <Modal.Body className="text-sm text-muted">
+                  {description}
+                </Modal.Body>
+                <Modal.Footer className="flex-col gap-2">
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onPress={close}
+                  >
+                    <Link href={signInHref}> 
+                      Sign in
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    size="lg"
+                    className="w-full"
+                    onPress={close}
+                  >
+                    <Link href={signUpHref}>
+                      Sign up
+                    </Link>
+                  </Button>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

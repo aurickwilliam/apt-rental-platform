@@ -24,7 +24,7 @@ export default function LandlordSection({
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <IconUser size={26} color={COLORS.text} />
-        <Text className='font-poppinsSemiBold text-xl text-text'>
+        <Text className='font-interSemiBold text-lg text-text'>
           Meet Your Rental Owner
         </Text>
       </View>

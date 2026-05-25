@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { Pagination } from "@heroui/react";
-import { addToast } from "@heroui/toast";
+import { Pagination, toast } from "@heroui/react";
 
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
@@ -45,11 +44,11 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
 
     try {
       const nextValue = await toggleFavorite(apartmentId);
-      addToast({
-        title: nextValue ? "Saved to favorites" : "Removed from favorites",
-        severity: nextValue ? "success" : "default",
-        color: nextValue ? "primary" : "default",
-      });
+      if (nextValue) {
+        toast.success("Saved to favorites");
+      } else {
+        toast("Removed from favorites");
+      }
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
 
@@ -59,19 +58,11 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       }
 
       if (error?.code === "NOT_TENANT") {
-        addToast({
-          title: error?.message ?? "Only tenants can save favorites",
-          severity: "warning",
-          color: "warning",
-        });
+        toast.warning(error?.message ?? "Only tenants can save favorites");
         return;
       }
 
-      addToast({
-        title: error?.message ?? "Unable to update favorites",
-        severity: "danger",
-        color: "danger",
-      });
+      toast.danger(error?.message ?? "Unable to update favorites");
     } finally {
       setActiveFavoriteId(null);
     }
@@ -107,17 +98,40 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
 
       {totalPages > 1 && (
         <div className="flex justify-center mt-4">
-          <Pagination
-            total={totalPages}
-            page={page}
-            onChange={handlePageChange}
-            color="primary"
-            radius="full"
-            showControls
-            classNames={{
-              wrapper: "gap-3"
-            }}
-          />
+          <Pagination className="justify-center">
+            <Pagination.Content>
+              <Pagination.Item>
+                <Pagination.Previous
+                  isDisabled={page === 1}
+                  onPress={() => handlePageChange(page - 1)}
+                >
+                  <Pagination.PreviousIcon />
+                  <span>Previous</span>
+                </Pagination.Previous>
+              </Pagination.Item>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Pagination.Item key={p}>
+                  <Pagination.Link
+                    isActive={p === page}
+                    onPress={() => handlePageChange(p)}
+                  >
+                    {p}
+                  </Pagination.Link>
+                </Pagination.Item>
+              ))}
+
+              <Pagination.Item>
+                <Pagination.Next
+                  isDisabled={page === totalPages}
+                  onPress={() => handlePageChange(page + 1)}
+                >
+                  <span>Next</span>
+                  <Pagination.NextIcon />
+                </Pagination.Next>
+              </Pagination.Item>
+            </Pagination.Content>
+          </Pagination>
         </div>
       )}
 

@@ -1,3 +1,92 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'uniwind';
+
+@import 'heroui-native/styles';
+
+/* HeroUI Native component source */
+@source '../node_modules/heroui-native/lib';
+
+/* Components outside the app/ directory */
+@source '../components';
+
+/* Shared monorepo packages */
+@source '../../../packages/constants/src';
+@source '../../../packages/utils/src';
+
+@theme {
+  /* Font families — single font only, no fallbacks in React Native */
+  --font-inter: 'Inter_24pt-Regular';
+  --font-interMedium: 'Inter_24pt-Medium';
+  --font-interSemiBold: 'Inter_24pt-SemiBold';
+  --font-nunito: 'Nunito-Regular';
+  --font-nunitoMedium: 'Nunito-Medium';
+  --font-nunitoSemiBold: 'Nunito-SemiBold';
+  --font-nunitoBold: 'Nunito-Bold';
+
+  /* Colors */
+  --color-primary: #376BF5;
+  --color-lightBlue: #EFF6FF;
+  --color-secondary: #FFA500;
+  --color-darkerWhite: #F8F9FA;
+  --color-text: #333333;
+
+  --color-grey-100: #E5E7EB;
+  --color-grey-200: #D1D5DB;
+  --color-grey-300: #BDBDBD;
+  --color-grey-400: #9CA3AF;
+  --color-grey-500: #6C757D;
+
+  --color-greenHulk-100: #E6F4EA;
+  --color-greenHulk-200: #22C55E;
+
+  --color-redHead-50: #FDA4AF;
+  --color-redHead-100: #FF4B4B;
+  --color-redHead-200: #E50914;
+
+  --color-yellowish-100: #FFF8E1;
+  --color-yellowish-200: #FACC15;
+}
+
+@layer theme {
+  @variant light {
+    --accent: var(--color-primary);
+    --accent-foreground: oklch(1 0 0);
+
+    --secondary: var(--color-secondary);
+    --secondary-foreground: oklch(1 0 0);
+
+    --warning: var(--color-secondary);
+    --warning-foreground: oklch(1 0 0);
+
+    --field-border: oklch(0.88 0.005 264);
+
+    --danger: var(--color-redHead-200);
+    --danger-foreground: oklch(1 0 0);
+
+    --success: var(--color-greenHulk-200);
+    --success-foreground: oklch(1 0 0);
+
+    --focus: var(--color-primary);
+  }
+
+  @variant dark {
+    --accent: var(--color-primary);
+    --accent-foreground: oklch(1 0 0);
+
+    --secondary: var(--color-secondary);
+    --secondary-foreground: oklch(0.2 0 0);
+
+    --warning: var(--color-secondary);
+    --warning-foreground: oklch(0.2 0 0);
+
+    --field-border: oklch(0.35 0.02 264);
+
+    --danger: var(--color-redHead-200);
+    --danger-foreground: oklch(1 0 0);
+
+    --success: var(--color-greenHulk-200);
+    --success-foreground: oklch(1 0 0);
+
+    --focus: var(--color-primary);
+  }
+}

@@ -79,11 +79,11 @@ export default function RatingsPage() {
     >
       {/* Overall Rating */}
       <View className='flex items-center justify-center'>
-        <Text className='text-grey-500 text-lg font-poppinsMedium'>
+        <Text className='text-grey-500 text-lg font-interSemiBold'>
           Overall Rating
         </Text>
 
-        <Text className='text-secondary text-9xl font-dmserif mt-5 leading-tight'>
+        <Text className='text-secondary text-9xl font-nunito mt-5 leading-tight'>
           {ratings.overallRating}
         </Text>
 
@@ -106,7 +106,7 @@ export default function RatingsPage() {
           ))}
         </View>
 
-        <Text className='text-grey-500 text-lg font-poppins mt-3'>
+        <Text className='text-grey-500 text-lg font-interSemiBold mt-3'>
           based on {ratings.totalReviews} Reviews
         </Text>
       </View>
@@ -129,7 +129,7 @@ export default function RatingsPage() {
 
       {/* Title */}
       <View className='mt-10 flex-row items-center justify-between'>
-        <Text className='text-text text-base font-poppinsMedium'>
+        <Text className='text-text text-base font-interSemiBold'>
           Tenant Reviews
         </Text>
 

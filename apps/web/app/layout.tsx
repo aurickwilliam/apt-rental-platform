@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Poppins, Noto_Serif } from "next/font/google";
+import { Inter, Nunito } from "next/font/google";
 import { Providers } from "./providers";
 
 const inter = Inter({
@@ -8,16 +8,10 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const poppins = Poppins({
+const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-});
-
-const notoSerif = Noto_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-noto-serif",
+  variable: "--font-nunito",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${poppins.variable} ${notoSerif.variable}`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${nunito.variable}`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

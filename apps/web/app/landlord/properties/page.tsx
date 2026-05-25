@@ -1,6 +1,6 @@
 import { createClient } from "@repo/supabase/server";
 import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
-import PropertiesTable from "./components/PropertiesTable";
+import PropertiesTableSection from "./components/PropertiesTableSection";
 import AddPropertyBtn from "./components/AddPropertyBtn";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,8 @@ export default async function Properties() {
           name, 
           description, 
           monthly_rent, 
+          security_deposit,
+          advance_rent,
           type,
           street_address, 
           barangay, 
@@ -57,6 +59,8 @@ export default async function Properties() {
     name:           apt.name,
     description:    apt.description,
     monthly_rent:   apt.monthly_rent,
+    security_deposit: apt.security_deposit,
+    advance_rent:   apt.advance_rent,
     type:           apt.type,
     street_address: apt.street_address,
     barangay:       apt.barangay,
@@ -138,8 +142,8 @@ export default async function Properties() {
       </div>
 
       {/* Properties Table */}
-      <div className="mt-2 bg-white border border-grey-300 rounded-xl p-4">
-        <PropertiesTable properties={mapped} />
+      <div className="mt-2">
+        <PropertiesTableSection properties={mapped} />
       </div>
     </div>
   );

@@ -3,8 +3,9 @@ import { useRouter } from 'expo-router';
 import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import PillButton from "components/buttons/PillButton";
 import PersonalizationRadioButton from "components/buttons/PersonalizationRadioButton";
+
+import { Button } from "heroui-native";
 
 export default function StepThree() {
   const router = useRouter();
@@ -40,19 +41,19 @@ export default function StepThree() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             {/* Question */}
-            <Text className="text-secondary text-3xl font-dmserif">
+            <Text className="text-secondary text-2xl font-nunitoMedium">
               How many bedrooms are you looking for?
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-lg font-inter">
+            <Text className="text-text text-base font-inter">
               Select the number of bedrooms you prefer so we can filter properties
               that fit your needs.
             </Text>
           </View>
 
           {/* Bedroom Radio Buttons */}
-          <View className="flex-row flex-wrap justify-between">
+          <View className="flex-row flex-wrap justify-between gap-y-1">
             {
               selectedBedroomCount.map((bedroom, index) => (
                 <PersonalizationRadioButton
@@ -67,11 +68,11 @@ export default function StepThree() {
         </View>
 
         {/* Next Button*/}
-        <PillButton
-          label={"Next"}
-          onPress={handleNext}
-          isFullWidth
-        />
+        <Button onPress={handleNext}>
+          <Button.Label>
+            Next
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   );

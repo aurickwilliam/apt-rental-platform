@@ -1,9 +1,67 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@plugin './hero.ts';
-@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
+
+@layer components {
+  .button--primary {
+    @apply bg-primary text-white hover:bg-[#2554d4];
+  }
+
+  .button--secondary {
+    @apply bg-secondary text-white hover:bg-[#e59400];
+  }
+
+  .button--tertiary {
+    @apply bg-muted text-muted-foreground hover:bg-[#d1d5db];
+  }
+
+  .input, .textarea {
+    @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
+  }
+
+  .input:hover, .input[data-hovered="true"],
+  .textarea:hover, .textarea[data-hovered="true"] {
+    @apply border-gray-400;
+  }
+
+  .input:focus-visible, .input[data-focus-visible="true"],
+  .textarea:focus-visible, .textarea[data-focus-visible="true"] {
+    @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  }
+
+  .toggle-button[data-selected="true"] {
+    @apply bg-blue-500 text-white border-blue-500;
+  }
+
+  .select__trigger {
+    @apply rounded-xl border border-gray-300 bg-white transition-all;
+  }
+
+  /* Placeholder text color — targets the value slot */
+  .select__value[data-placeholder="true"] {
+    @apply text-gray-400;
+  }
+
+  /* Hover */
+  .select__trigger:hover,
+  .select__trigger[data-hovered="true"] {
+    @apply border-gray-400;
+  }
+
+  /* Focus */
+  .select__trigger[data-focus-visible="true"] {
+    @apply outline-none;
+    border-color: #376BF5 !important;
+    box-shadow: 0 0 0 2px rgb(55 107 245 / 0.15) !important;
+  }
+
+  /* Disabled */
+  .select__trigger[data-disabled="true"] {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
 
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
 body[data-scroll-locked] [data-slot="popover"],
@@ -14,8 +72,8 @@ body[data-scroll-locked] [role="option"] {
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-poppins: var(--font-poppins), ui-sans-serif, sans-serif;
-  --font-noto-serif: var(--font-noto-serif), ui-serif, serif;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
@@ -35,6 +93,11 @@ body[data-scroll-locked] [role="option"] {
   --color-red-600: #E50914;
   --color-red-400: #FF4B4B;
   --color-red-200: #FDA4AF;
+
+  --heroui-primary: var(--primary);
+  --heroui-secondary: var(--secondary);
+
+  --heroui-focus: var(--primary);
 }
 
 @theme inline {

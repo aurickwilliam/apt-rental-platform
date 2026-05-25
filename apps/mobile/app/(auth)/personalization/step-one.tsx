@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import PillButton from "components/buttons/PillButton";
 import CityCheckBox from "components/inputs/CityCheckBox";
+
+import { Button } from "heroui-native";
 
 export default function StepOne() {
   const router = useRouter();
@@ -39,21 +40,21 @@ export default function StepOne() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
-          {/* Question and Descriptio */}
+          {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             {/* Question */}
-            <Text className="text-secondary text-3xl font-dmserif">
+            <Text className="text-secondary text-2xl font-nunitoMedium">
               Which city or area would you like to explore?
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-lg font-inter">
+            <Text className="text-text text-base font-inter">
               Enter your target city or neighborhood to narrow down property searches.
             </Text>
           </View>
 
           {/* Cities Checkbox */}
-          <View className="flex-row flex-wrap justify-between">
+          <View className="flex-row flex-wrap justify-between gap-y-3">
             {
               selectedCities.map((city, index) => (
                 <CityCheckBox
@@ -68,11 +69,11 @@ export default function StepOne() {
         </View>
 
         {/* Next Button*/}
-        <PillButton
-          label={"Next"}
-          onPress={handleNext}
-          isFullWidth
-        />
+        <Button onPress={handleNext}>
+          <Button.Label>
+            Next
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   );

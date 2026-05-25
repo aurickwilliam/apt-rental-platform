@@ -1,18 +1,22 @@
 "use client";
 
-import { Button, Link } from '@heroui/react'
+import Link from 'next/link';
+
+import { Button } from '@heroui/react'
+
+import { SearchIcon } from 'lucide-react';
 
 export default function StartBrowsingBtn() {
   return (
-    <Button
-      variant="solid"
-      color="primary"
-      radius="full"
+    <Button 
+      variant="primary"
       className="mt-6"
-      as={Link}
-      href="/browse"
     >
-      Start Browsing
+      <SearchIcon />
+
+      <Link href="/browse">
+        Start Browsing
+      </Link>
     </Button>
   )
 }

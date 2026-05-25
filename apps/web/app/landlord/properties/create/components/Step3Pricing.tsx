@@ -1,6 +1,6 @@
 "use client";
 import { useRef } from "react";
-import { NumberInput, Button } from "@heroui/react";
+import { NumberField, Button, Label, Description, FieldError } from "@heroui/react";
 import { Upload, X, FileText } from "lucide-react";
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -32,65 +32,56 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <NumberInput
-          label="Monthly Rent"
-          type="number"
+        <NumberField
           minValue={0}
           value={formData.monthly_rent}
-          onValueChange={(value) => updateForm({ monthly_rent: value })}
-          radius="lg"
-          variant="bordered"
-          startContent={
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-          }
-          description="The base monthly rental rate tenants will see on the listing."
-          hideStepper
+          onChange={(value) => updateForm({ monthly_rent: value })}
           isInvalid={!!errors.monthly_rent}
-          errorMessage={errors.monthly_rent}
-          classNames={{
-            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-          }}
-        />
+        >
+          <Label>Monthly Rent</Label>
+          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
+            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
+            <NumberField.Input className="w-full" />
+          </NumberField.Group>
+          <Description className="text-grey-500">
+            The base monthly rental rate tenants will see on the listing.
+          </Description>
+          <FieldError>{errors.monthly_rent}</FieldError>
+        </NumberField>
 
-        <NumberInput
-          label="Security Deposit"
-          type="number"
+        <NumberField
           minValue={0}
           value={formData.security_deposit}
-          onValueChange={(value) => updateForm({ security_deposit: value })}
-          radius="lg"
-          variant="bordered"
-          startContent={
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-          }
-          description="Typically 1–2 months of rent. Refundable upon move-out."
-          hideStepper
+          onChange={(value) => updateForm({ security_deposit: value })}
           isInvalid={!!errors.security_deposit}
-          errorMessage={errors.security_deposit}
-          classNames={{
-            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-          }}
-        />
+        >
+          <Label>Security Deposit</Label>
+          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
+            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
+            <NumberField.Input className="w-full" />
+          </NumberField.Group>
+          <Description className="text-grey-500">
+            Typically 1–2 months of rent. Refundable upon move-out.
+          </Description>
+          <FieldError>{errors.security_deposit}</FieldError>
+        </NumberField>
 
-        <NumberInput
-          label="Advance Rent"
-          type="number"
+        <NumberField
           minValue={0}
           value={formData.advance_rent}
-          onValueChange={(value) => updateForm({ advance_rent: value })}
-          radius="lg"
-          variant="bordered"
-          startContent={
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-          }
-          description="Payment made upfront, typically applied to the first or last month(s) of the lease."
-          hideStepper
+          onChange={(value) => updateForm({ advance_rent: value })}
           isInvalid={!!errors.advance_rent}
-          errorMessage={errors.advance_rent}
-          classNames={{
-            inputWrapper: "data-[focus=true]:border-primary! data-[focus=true]:border-2!"
-          }}
-        />
+        >
+          <Label>Advance Rent</Label>
+          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
+            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
+            <NumberField.Input className="w-full" />
+          </NumberField.Group>
+          <Description className=" text-grey-500">
+            Payment made upfront, typically applied to the first or last month(s) of the lease.
+          </Description>
+          <FieldError>{errors.advance_rent}</FieldError>
+        </NumberField>
       </div>
 
       {/* Move-in cost summary — only show when values are set */}
@@ -163,19 +154,16 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                variant="light"
+                variant="tertiary"
                 onPress={() => leaseAgreementRef.current?.click()}
-                radius="full"
               >
                 Change
               </Button>
               <Button
                 isIconOnly
                 size="sm"
-                color="danger"
-                variant="light"
+                variant="danger-soft"
                 onPress={() => updateForm({ lease_agreement: null })}
-                radius="full"
               >
                 <X size={16} />
               </Button>

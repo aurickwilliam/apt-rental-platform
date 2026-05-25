@@ -18,7 +18,7 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
       <View className='px-5 mt-10 flex-row items-center justify-between'>
         <View className='flex-row items-center gap-2'>
           <IconStar size={26} color={COLORS.text} />
-          <Text className='font-poppinsSemiBold text-xl text-text'>Ratings</Text>
+          <Text className='font-interSemiBold text-lg text-text'>Ratings</Text>
         </View>
 
         {hasReviews && onSeeAll && (

@@ -119,7 +119,7 @@ export default function EditProfile() {
             color={COLORS.text}
           />
 
-          <Text className='text-text text-lg font-poppinsMedium'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Personal Information
           </Text>
         </View>
@@ -168,7 +168,7 @@ export default function EditProfile() {
             size={24} 
             color={COLORS.text}
           />
-          <Text className='text-text text-lg font-poppinsMedium'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Contact Information
           </Text>
         </View>
@@ -197,7 +197,7 @@ export default function EditProfile() {
             size={24} 
             color={COLORS.text}
           />
-          <Text className='text-text text-lg font-poppinsMedium'>
+          <Text className='text-text text-lg font-interSemiBold'>
             Address Information
           </Text>
         </View>
