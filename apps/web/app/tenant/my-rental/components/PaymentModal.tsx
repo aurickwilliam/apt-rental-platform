@@ -1,16 +1,28 @@
 "use client";
 
 import { Button, Modal, useOverlayState } from "@heroui/react";
-import { PENDING_PAYMENT } from "../constants";
+import type { PaymentBreakdownItem } from "../types";
 import { peso } from "../utils";
 
 type PaymentModalProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  total: number;
+  breakdown: PaymentBreakdownItem[];
+  periodLabel: string;
+  dueDateLabel: string;
 };
 
-export default function PaymentModal({ isOpen, onOpenChange, onConfirm }: PaymentModalProps) {
+export default function PaymentModal({
+  isOpen,
+  onOpenChange,
+  onConfirm,
+  total,
+  breakdown,
+  periodLabel,
+  dueDateLabel,
+}: PaymentModalProps) {
   const state = useOverlayState({ isOpen, onOpenChange });
 
   return (
@@ -26,8 +38,8 @@ export default function PaymentModal({ isOpen, onOpenChange, onConfirm }: Paymen
 
                 <Modal.Body>
                   <div className="space-y-2">
-                    {PENDING_PAYMENT.breakdown.map((item) => (
-                      <div key={item.label} className="flex justify-between text-sm">
+                    {breakdown.map((item) => (
+                      <div key={item.key} className="flex justify-between text-sm">
                         <span className="text-zinc-500">{item.label}</span>
                         <span className="text-zinc-900 dark:text-zinc-100">
                           {peso(item.amount)}
@@ -38,11 +50,11 @@ export default function PaymentModal({ isOpen, onOpenChange, onConfirm }: Paymen
 
                   <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 flex justify-between text-sm font-medium">
                     <span>Total</span>
-                    <span>{peso(PENDING_PAYMENT.total)}</span>
+                    <span>{peso(total)}</span>
                   </div>
 
                   <p className="text-xs text-zinc-500">
-                    Payment for {PENDING_PAYMENT.month} · Due {PENDING_PAYMENT.dueDate}
+                    Payment for {periodLabel} · Due {dueDateLabel}
                   </p>
                 </Modal.Body>
 
@@ -57,7 +69,7 @@ export default function PaymentModal({ isOpen, onOpenChange, onConfirm }: Paymen
                       close();
                     }}
                   >
-                    Confirm & pay {peso(PENDING_PAYMENT.total)}
+                    Confirm & pay {peso(total)}
                   </Button>
                 </Modal.Footer>
 

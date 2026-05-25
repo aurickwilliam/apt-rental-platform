@@ -1,36 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@heroui/react";
-
+import { useMemo, useState } from "react";
+import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
 import {
-  FileText,
-  Download,
   CreditCard,
-  Wrench,
+  FileText,
   MessageCircle,
+  Receipt,
+  Wrench,
   CheckCircle2,
   Clock,
-  ArrowRight,
-  ChevronRight,
+  House,
 } from "lucide-react";
 
-import {
-  APP_STEPS,
-  MAINTENANCE_ITEMS,
-  MESSAGES,
-  PAYMENT_HISTORY,
-  PENDING_PAYMENT,
-} from "./constants";
-
-import type { MaintenanceStatus, PaymentStatus } from "./types";
 import { formatCurrency } from "@repo/utils";
+
+import { useTenancy } from "@/hooks/use-tenancy";
+import Footer from "@/app/components/layout/Footer";
+
+import { DEFAULT_PAYMENT_BREAKDOWN, MAINTENANCE_ITEMS } from "./constants";
+import type { MaintenanceStatus, PaymentStatus, PaymentHistoryItem } from "./types";
 
 import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
 import PaymentModal from "./components/PaymentModal";
 import MiniCalendar from "./components/MiniCalendar";
-import Footer from "@/app/components/layout/Footer";
+import TenancyEmptyState from "./components/TenancyEmptyState";
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function normalizePaymentStatus(status?: string | null): PaymentStatus {
+  const value = status?.toLowerCase() ?? "";
+  if (value === "paid" || value === "completed") return "paid";
+  if (value === "late" || value === "overdue") return "late";
+  return "pending";
+}
 
 function statusBadge(status: PaymentStatus) {
   if (status === "paid") return <StatusChip variant="success">Paid</StatusChip>;
@@ -44,218 +48,388 @@ function maintenanceBadge(status: MaintenanceStatus) {
   return <StatusChip variant="neutral">Pending</StatusChip>;
 }
 
+function formatHeaderDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatMonthYear(dateStr: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(dateStr));
+}
+
+function formatShortDate(dateStr: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(dateStr));
+}
+
+function formatShortMonthDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatAddress(apartment: {
+  street_address: string;
+  barangay: string;
+  city: string;
+  province: string;
+}) {
+  return [
+    apartment.street_address,
+    apartment.barangay,
+    apartment.city,
+    apartment.province,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase())
+    .slice(0, 2)
+    .join("");
+}
+
 export default function MyRental() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const { tenancy, payments, currentPayment, loading, error } = useTenancy();
+
+  const today = useMemo(() => new Date(), []);
+  const headerDate = useMemo(() => formatHeaderDate(today), [today]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-6xl mx-auto px-4 py-20 flex justify-center">
+          <Spinner color="accent" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!tenancy) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <TenancyEmptyState description={error ?? undefined} />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const apartment = tenancy.apartment;
+  const landlord = tenancy.landlord;
+  const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
+  const paymentStatus = normalizePaymentStatus(currentPayment?.status);
+
+  const dueDate = currentPayment?.due_date ? new Date(currentPayment.due_date) : null;
+  const dueDays = dueDate
+    ? Math.ceil((dueDate.getTime() - today.getTime()) / MS_PER_DAY)
+    : null;
+  const dueLabel = dueDays === null
+    ? "Due soon"
+    : dueDays < 0
+      ? `Overdue by ${Math.abs(dueDays)} days`
+      : `Due in ${dueDays} days`;
+
+  const paymentPeriodLabel = currentPayment?.period_start
+    ? formatMonthYear(currentPayment.period_start)
+    : formatMonthYear(today.toISOString());
+
+  const breakdown = monthlyRent
+    ? [{ key: "base_rent", label: "Monthly rent", amount: monthlyRent }]
+    : DEFAULT_PAYMENT_BREAKDOWN;
+
+  const breakdownTotal = breakdown.reduce((total, item) => total + item.amount, 0);
+  const amountDue = currentPayment?.amount ?? breakdownTotal;
+
+  const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
+    const paymentDate = payment.date ?? payment.period_start ?? payment.period_end ?? today.toISOString();
+    const description = payment.period_start
+      ? `${formatMonthYear(payment.period_start)} - Monthly rent`
+      : "Monthly rent";
+
+    return {
+      id: payment.id,
+      date: formatShortDate(paymentDate),
+      description,
+      amount: payment.amount ?? monthlyRent,
+      status: normalizePaymentStatus(payment.status),
+    };
+  });
+
+  const actions = [
+    {
+      label: "View Description",
+      icon: House,
+    },
+    {
+      label: "View lease",
+      icon: FileText,
+    },
+    {
+      label: "View receipts",
+      icon: Receipt,
+    },
+    {
+      label: "Maintenance",
+      icon: Wrench,
+      href: "/tenant/maintenance",
+    },
+  ];
+
+  const landlordName = landlord
+    ? `${landlord.first_name ?? ""} ${landlord.last_name ?? ""}`.trim() || "Landlord"
+    : "Landlord";
+
+  const openMaintenanceCount = MAINTENANCE_ITEMS.filter(
+    (item) => item.status !== "resolved"
+  ).length;
 
   return (
-    <>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
-
-        {/* Header */}
-        <div className="mb-6">
-          <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Thursday, April 24</p>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Good morning, Juan</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Unit 3B · Caloocan Heights, Caloocan City</p>
-        </div>
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-3 gap-2.5">
-          <DashboardCard>
-            <p className="text-[11px] text-zinc-400 uppercase tracking-wider mb-1">Next payment</p>
-            <p className="text-xl font-medium text-zinc-900 dark:text-zinc-100">{formatCurrency(8500)}</p>
-            <div className="mt-1.5"><StatusChip variant="warning">Due in 7 days</StatusChip></div>
-          </DashboardCard>
-          <DashboardCard>
-            <p className="text-[11px] text-zinc-400 uppercase tracking-wider mb-1">Lease ends</p>
-            <p className="text-base font-medium text-zinc-900 dark:text-zinc-100">Dec 31, 2025</p>
-            <p className="text-xs text-zinc-500 mt-1">8 months remaining</p>
-          </DashboardCard>
-          <DashboardCard>
-            <p className="text-[11px] text-zinc-400 uppercase tracking-wider mb-1">Open requests</p>
-            <p className="text-xl font-medium text-zinc-900 dark:text-zinc-100">2</p>
-            <p className="text-xs text-zinc-500 mt-1">1 in progress</p>
-          </DashboardCard>
-        </div>
-
-        {/* Payment + Calendar */}
-        <div className="grid grid-cols-3 gap-2.5">
-          <DashboardCard className="col-span-2">
-            <p className="text-[11px] text-zinc-400 uppercase tracking-wider mb-1">Pending payment</p>
-            <p className="text-3xl font-medium text-primary dark:text-zinc-100 mt-1">₱{formatCurrency(PENDING_PAYMENT.total)}<span className="text-sm font-normal text-zinc-400">.00</span></p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <StatusChip variant="neutral">Monthly rent</StatusChip>
-              <StatusChip variant="neutral">{PENDING_PAYMENT.month}</StatusChip>
-              <StatusChip variant="warning">Due {PENDING_PAYMENT.dueDate}</StatusChip>
-            </div>
-            <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid grid-cols-2 gap-x-6 gap-y-3">
-              {PENDING_PAYMENT.breakdown.map((item) => (
-                <div key={item.label}>
-                  <p className="text-xs text-zinc-400">{item.label}</p>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">₱{formatCurrency(item.amount)}</p>
-                </div>
-              ))}
-            </div>
-            <Button
-              className="mt-5 w-fit"
-              onPress={() => setShowPaymentModal(true)}
-            >
-              <CreditCard size={14} />
-              Pay now
-            </Button>
-          </DashboardCard>
-          <MiniCalendar />
-        </div>
-
-        {/* Maintenance + Messages */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <DashboardCard>
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
-              Maintenance updates
-            </h2>
-            <div className="space-y-0">
-              {MAINTENANCE_ITEMS.map((item) => (
-                <div key={item.id} className="flex items-start gap-2.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    item.status === "in_progress" ? "bg-blue-50 dark:bg-blue-950" :
-                    item.status === "resolved" ? "bg-green-50 dark:bg-green-950" :
-                    "bg-zinc-100 dark:bg-zinc-800"
-                  }`}>
-                    {item.status === "resolved" ? <CheckCircle2 size={12} className="text-green-600" /> :
-                    item.status === "in_progress" ? <Wrench size={12} className="text-blue-600" /> :
-                    <Clock size={12} className="text-zinc-400" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 leading-tight">{item.title}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">{item.subtitle}</p>
-                  </div>
-                  {maintenanceBadge(item.status)}
-                </div>
-              ))}
-            </div>
-          </DashboardCard>
-
-          <DashboardCard>
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
-              Messages{" "}
-              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 ml-1 align-middle" />
-            </h2>
-            <div className="space-y-0">
-              {MESSAGES.map((msg) => (
-                <div key={msg.id} className="flex items-center gap-2.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-                    msg.unread ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
-                  }`}>
-                    {msg.initials}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1 leading-tight">
-                      {msg.sender}
-                      {msg.unread && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
-                    </p>
-                    <p className="text-xs text-zinc-500 truncate">{msg.preview}</p>
-                  </div>
-                  <span className="text-[11px] text-zinc-400 shrink-0">{msg.time}</span>
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="ghost"
-              className="mt-3 w-full justify-between text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-            >
-              <ChevronRight size={13} />
-              <span className="flex items-center gap-1.5"><MessageCircle size={13} />View all messages</span>
-            </Button>
-          </DashboardCard>
-        </div>
-
-        {/* Application status + Lease */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <DashboardCard>
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
-              Application status
-            </h2>
-            <div className="flex items-center gap-2 mb-4">
-              <StatusChip variant="warning">Under review</StatusChip>
-              <span className="text-xs text-zinc-400">Unit 5A · Submitted Apr 20</span>
-            </div>
+        <div className="flex flex-col gap-3">
+          <p className="text-xs text-zinc-400 uppercase tracking-wider">{headerDate}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              {APP_STEPS.map((step, i) => (
-                <div key={step.label}>
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0 ${
-                      step.status === "done" ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" :
-                      step.status === "active" ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300" :
-                      "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"
-                    }`}>
-                      {step.status === "done" ? "✓" : step.status === "active" ? <ArrowRight size={9} /> : i + 1}
-                    </div>
-                    <span className={`text-sm ${
-                      step.status === "done" ? "text-zinc-900 dark:text-zinc-100" :
-                      step.status === "active" ? "text-amber-700 dark:text-amber-300 font-medium" :
-                      "text-zinc-400"
-                    }`}>
-                      {step.label}
-                    </span>
-                    {step.status === "active" && (
-                      <span className="ml-auto text-[11px] text-zinc-400">In progress</span>
-                    )}
-                  </div>
-                  {i < APP_STEPS.length - 1 && (
-                    <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 ml-2.5 my-0.5" />
+              <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
+                {apartment.name}
+              </h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                {formatAddress(apartment)}
+              </p>
+            </div>
+            <StatusChip variant="success">Active lease</StatusChip>
+          </div>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          <DashboardCard className="lg:col-span-2">
+            <div className="flex h-full flex-col">
+              <p className="text-xs text-zinc-400 uppercase tracking-wider">Payment due</p>
+              <div className="flex items-end gap-2 mt-2">
+                <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
+                  ₱{formatCurrency(amountDue)}
+                </p>
+                <span className="text-sm text-zinc-400">.00</span>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {paymentStatus === "paid" ? (
+                  <StatusChip variant="success">Paid</StatusChip>
+                ) : (
+                  <StatusChip variant={paymentStatus === "late" ? "danger" : "warning"}>
+                    {dueLabel}
+                  </StatusChip>
+                )}
+                <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
+                <StatusChip variant="neutral">Monthly rent</StatusChip>
+              </div>
+              <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-zinc-400">Lease start</p>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {formatShortDate(tenancy.move_in_date)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400">Lease end</p>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {tenancy.move_out_date ? formatShortDate(tenancy.move_out_date) : "Ongoing"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400">Monthly rent</p>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    ₱{formatCurrency(monthlyRent)}
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="mt-10 w-fit md:mt-auto"
+                onPress={() => setShowPaymentModal(true)}
+                isDisabled={paymentStatus === "paid"}
+              >
+                <CreditCard size={14} />
+                Pay now
+              </Button>
+            </div>
+          </DashboardCard>
+
+          <MiniCalendar
+            focusDate={dueDate ?? today}
+            highlightDate={dueDate}
+            highlightLabel="Rent due"
+          />
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-[2fr_1fr] items-stretch">
+          <DashboardCard>
+            <p className="text-xs text-zinc-400 uppercase tracking-wider">Quick actions</p>
+            <div className="mt-4 grid gap-2.5 grid-cols-2 sm:grid-cols-4">
+              {actions.map((action) => {
+                const Icon = action.icon;
+
+                if (action.href) {
+                  return (
+                    <Link key={action.label} href={action.href} className="w-full no-underline">
+                      <Button
+                        variant="tertiary"
+                        className="h-20 w-full flex-col gap-2 bg-zinc-100/80 dark:bg-zinc-900/70 border border-zinc-200/70 dark:border-zinc-800/80"
+                      >
+                        <Icon size={18} />
+                        <span className="text-xs font-medium">{action.label}</span>
+                      </Button>
+                    </Link>
+                  );
+                }
+
+                return (
+                  <Button
+                    key={action.label}
+                    variant="tertiary"
+                    className="h-20 w-full flex-col gap-2 bg-zinc-100/80 dark:bg-zinc-900/70 border border-zinc-200/70 dark:border-zinc-800/80"
+                    isDisabled
+                  >
+                    <Icon size={18} />
+                    <span className="text-xs font-medium">{action.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </DashboardCard>
+
+          <DashboardCard className="h-full">
+            <p className="text-xs text-zinc-400 uppercase tracking-wider">Landlord</p>
+            <div className="mt-4 flex items-center gap-3">
+              <Avatar size="lg">
+                {landlord?.avatar_url && (
+                  <Avatar.Image src={landlord.avatar_url} alt={landlordName} />
+                )}
+                <Avatar.Fallback className="bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                  {getInitials(landlordName)}
+                </Avatar.Fallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  {landlordName}
+                </p>
+                <p className="text-xs text-zinc-500">
+                  {landlord?.email ?? "No email provided"}
+                </p>
+              </div>
+            </div>
+            <Link href="/tenant/messages" className="mt-4 w-full no-underline">
+              <Button variant="outline" className="w-full justify-center">
+                <MessageCircle size={14} />
+                Send a message
+              </Button>
+            </Link>
+          </DashboardCard>
+        </div>
+
+        <DashboardCard>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Maintenance
+            </h2>
+            <StatusChip variant="warning">{openMaintenanceCount} open</StatusChip>
+          </div>
+          <div className="space-y-0">
+            {MAINTENANCE_ITEMS.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-start gap-2.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0"
+              >
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  item.status === "in_progress"
+                    ? "bg-amber-100/70 dark:bg-amber-900/40"
+                    : item.status === "resolved"
+                      ? "bg-green-100/70 dark:bg-green-900/40"
+                      : "bg-zinc-100 dark:bg-zinc-800"
+                }`}>
+                  {item.status === "resolved" ? (
+                    <CheckCircle2 size={12} className="text-green-600" />
+                  ) : item.status === "in_progress" ? (
+                    <Wrench size={12} className="text-amber-600" />
+                  ) : (
+                    <Clock size={12} className="text-zinc-400" />
                   )}
                 </div>
-              ))}
-            </div>
-          </DashboardCard>
-
-          <DashboardCard className="flex flex-col">
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
-              Lease agreement
-            </h2>
-            <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg px-3 py-2.5 mb-3">
-              <p className="text-[11px] text-zinc-400 mb-0.5">Active lease</p>
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Unit 3B — 1 year term</p>
-              <p className="text-xs text-zinc-500">Jan 1 – Dec 31, 2025</p>
-            </div>
-            <Button variant="ghost" className="w-full justify-start">
-              <FileText size={14} />
-              View lease PDF
-            </Button>
-            <Button variant="ghost" className="mt-2 w-full justify-start">
-              <Download size={14} />
-              Download copy
-            </Button>
-            <div className="mt-auto pt-3 flex items-center gap-2">
-              <StatusChip variant="success">Active</StatusChip>
-              <span className="text-[11px] text-zinc-400">Signed Jan 1, 2025</span>
-            </div>
-          </DashboardCard>
-        </div>
-
-        {/* Payment history */}
-        <DashboardCard>
-          <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
-            Payment history
-          </h2>
-          <div className="space-y-0">
-            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-center text-[11px] text-zinc-400 font-medium uppercase tracking-wider pb-2 border-b border-zinc-100 dark:border-zinc-800">
-              <span>Date</span>
-              <span>Description</span>
-              <span className="text-right">Amount</span>
-              <span className="text-right">Status</span>
-            </div>
-            {PAYMENT_HISTORY.map((row) => (
-              <div key={row.id} className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 text-sm">
-                <span className="text-zinc-400 text-xs min-w-20">{row.date}</span>
-                <span className="text-zinc-700 dark:text-zinc-300 text-xs">{row.description}</span>
-                <span className="text-zinc-900 dark:text-zinc-100 font-medium text-right">₱{formatCurrency(row.amount)}</span>
-                <div className="text-right">{statusBadge(row.status)}</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 leading-tight">
+                    {item.title}
+                  </p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{item.subtitle}</p>
+                </div>
+                {maintenanceBadge(item.status)}
               </div>
             ))}
           </div>
         </DashboardCard>
 
-        {/* Payment modal */}
+        <DashboardCard>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Payment history
+            </h2>
+            <p className="text-xs text-zinc-400">Last updated {formatShortMonthDate(today)}</p>
+          </div>
+          <Table className="bg-darker-white">
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Payment history" className="bg-darker-white">
+                <Table.Header className="bg-darker-white text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
+                  <Table.Column className="text-black font-medium">Date</Table.Column>
+                  <Table.Column className="text-black font-medium">Description</Table.Column>
+                  <Table.Column className="text-right text-black font-medium">Amount</Table.Column>
+                  <Table.Column className="text-right text-black font-medium">Status</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  {paymentHistory.length === 0 ? (
+                    <Table.Row key="empty">
+                      <Table.Cell colSpan={4} className="text-center text-sm text-zinc-400 py-6">
+                        No payments recorded yet.
+                      </Table.Cell>
+                    </Table.Row>
+                  ) : (
+                    paymentHistory.slice(0, 5).map((row) => (
+                      <Table.Row key={row.id} id={row.id} className="border-b border-zinc-100 dark:border-zinc-800">
+                        <Table.Cell className="text-xs text-zinc-500">
+                          {row.date}
+                        </Table.Cell>
+                        <Table.Cell className="text-xs text-zinc-700 dark:text-zinc-300">
+                          {row.description}
+                        </Table.Cell>
+                        <Table.Cell className="text-right text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          ₱{formatCurrency(row.amount)}
+                        </Table.Cell>
+                        <Table.Cell className="text-right">
+                          {statusBadge(row.status)}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  )}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
+        </DashboardCard>
+
         <PaymentModal
           isOpen={showPaymentModal}
           onOpenChange={setShowPaymentModal}
@@ -263,11 +437,14 @@ export default function MyRental() {
             setShowPaymentModal(false);
             // TODO: trigger Supabase payment flow
           }}
+          total={amountDue}
+          breakdown={breakdown}
+          periodLabel={paymentPeriodLabel}
+          dueDateLabel={dueDate ? formatShortDate(dueDate.toISOString()) : "TBD"}
         />
       </div>
 
-      {/* Footer */}
       <Footer />
-    </>
+    </div>
   );
 }
