@@ -114,16 +114,18 @@ export default function FilterContainer({ resultCount }: Props) {
     current.delete("page");
 
     // Locations
-    if (filters.locations.length > 0) current.set("locations", filters.locations.join(","));
+    if (filters.locations.length > 0 && filters.locations.length < LOCATIONS.length)
+      current.set("locations", filters.locations.join(","));
 
     // Price range
-    current.set("price_min", String(filters.priceRange[0]));
-    if (filters.priceRange[1] < MAX_BUDGET) {
+    if (filters.priceRange[0] > MIN_BUDGET)
+      current.set("price_min", String(filters.priceRange[0]));
+    if (filters.priceRange[1] < MAX_BUDGET)
       current.set("price_max", String(filters.priceRange[1]));
-    }
 
     // Apartment types
-    if (filters.aptTypes.length > 0) current.set("apt_types", filters.aptTypes.join(","));
+    if (filters.aptTypes.length > 0 && filters.aptTypes.length < APARTMENT_TYPES.length)
+      current.set("apt_types", filters.aptTypes.join(","));
 
     // Bedrooms
     if (filters.bedroom !== "Any") current.set("bedrooms", filters.bedroom);
@@ -132,8 +134,10 @@ export default function FilterContainer({ resultCount }: Props) {
     if (filters.bathroom !== "Any") current.set("bathrooms", filters.bathroom);
 
     // Size range
-    current.set("size_min", String(filters.sizeRange[0]));
-    current.set("size_max", String(filters.sizeRange[1]));
+    if (filters.sizeRange[0] > MIN_SIZE)
+      current.set("size_min", String(filters.sizeRange[0]));
+    if (filters.sizeRange[1] < MAX_SIZE)
+      current.set("size_max", String(filters.sizeRange[1]));
 
     // Furnishing
     if (filters.furnishing.length < FURNISHED_TYPES.length)

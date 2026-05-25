@@ -24,8 +24,8 @@ export default function HeroSection() {
           </h1>
 
           <p className="text-base text-default-500 font-medium max-w-md leading-relaxed">
-            From high-res tours to automated rent payments, we&lsquo;ve simplified
-            the entire rental journey — for tenants and landlords alike.
+            Discover homes, connect with landlords, and manage
+            rent payments with confidence and convenience.
           </p>
         </div>
 
