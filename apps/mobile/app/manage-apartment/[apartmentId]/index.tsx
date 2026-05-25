@@ -362,6 +362,41 @@ export default function Index() {
     router.push(`/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
   }
 
+  const handleMessageTenant = async () => {
+    if (!tenant || !apartmentId) return
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) return
+
+    const landlordId = profile.id
+    const tenantId = tenant.id
+
+    // Mirror the LEAST/GREATEST logic from get_conversations
+    const userA = landlordId < tenantId ? landlordId : tenantId
+    const userB = landlordId < tenantId ? tenantId : landlordId
+    const conversationId = `${userA}-${userB}-${apartmentId}`
+
+    router.push({
+      pathname: '/chat/[conversationId]',
+      params: {
+        conversationId,
+        otherUserId: tenantId,
+        otherUserName: tenant.fullName,
+        otherUserAvatar: tenant.avatarUrl ?? '',
+        otherUserPhoneNumber: tenant.mobileNumber,
+        apartmentId,
+      },
+    })
+  }
+
   const isOccupied = apartment?.status === 'Occupied'
 
   return (
@@ -561,6 +596,7 @@ export default function Index() {
                       onPress={() => handleTenantProfilePress(tenant.id)}
                       leaseStartMonthYear={tenant.leaseStartMonthYear}
                       leaseEndMonthYear={tenant.leaseEndMonthYear}
+                      onMessagePress={handleMessageTenant}  
                     />
                   </View>
                 )}
