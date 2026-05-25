@@ -212,8 +212,8 @@ export default function Index() {
         .from('tenancies')
         .select(`
           id,
-          move_in_date,
-          move_out_date,
+          lease_start,
+          lease_end,
           tenant:users!tenancies_tenant_id_fkey (
             id,
             first_name,
@@ -242,8 +242,8 @@ export default function Index() {
           email: t.email ?? '—',
           mobileNumber: t.mobile_number,
           avatarUrl: t.avatar_url,
-          leaseStartMonthYear: formatMonthYear(tenancyData.move_in_date),
-          leaseEndMonthYear: formatMonthYear(tenancyData.move_out_date),
+          leaseStartMonthYear: formatMonthYear(tenancyData.lease_start),
+          leaseEndMonthYear: formatMonthYear(tenancyData.lease_end),
         })
       } else {
         setTenant(null)
@@ -360,6 +360,41 @@ export default function Index() {
 
   const handleTenantProfilePress = (tenantId: string) => {
     router.push(`/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
+  }
+
+  const handleMessageTenant = async () => {
+    if (!tenant || !apartmentId) return
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) return
+
+    const landlordId = profile.id
+    const tenantId = tenant.id
+
+    // Mirror the LEAST/GREATEST logic from get_conversations
+    const userA = landlordId < tenantId ? landlordId : tenantId
+    const userB = landlordId < tenantId ? tenantId : landlordId
+    const conversationId = `${userA}-${userB}-${apartmentId}`
+
+    router.push({
+      pathname: '/chat/[conversationId]',
+      params: {
+        conversationId,
+        otherUserId: tenantId,
+        otherUserName: tenant.fullName,
+        otherUserAvatar: tenant.avatarUrl ?? '',
+        otherUserPhoneNumber: tenant.mobileNumber,
+        apartmentId,
+      },
+    })
   }
 
   const isOccupied = apartment?.status === 'Occupied'
@@ -561,6 +596,7 @@ export default function Index() {
                       onPress={() => handleTenantProfilePress(tenant.id)}
                       leaseStartMonthYear={tenant.leaseStartMonthYear}
                       leaseEndMonthYear={tenant.leaseEndMonthYear}
+                      onMessagePress={handleMessageTenant}  
                     />
                   </View>
                 )}

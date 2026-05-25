@@ -292,9 +292,21 @@ export default function Units() {
             icon={IconCirclePlus}
             onPress={() => router.push('/manage-apartment/add-apartment/')}
           />
-          <QuickActionButton label={'Maintenance Request'} icon={IconTool} />
-          <QuickActionButton label={'Visit Request'} icon={IconHome} />
-          <QuickActionButton label={'Tenant Applications'} icon={IconFileText} />
+          <QuickActionButton 
+            label={'Maintenance Request'} 
+            icon={IconTool} 
+            onPress={() => router.push('/landlord/maintenance-requests')}
+          />
+          <QuickActionButton 
+            label={'Visit Request'} 
+            icon={IconHome} 
+            onPress={() => router.push('/landlord/visit-requests')}
+          />
+          <QuickActionButton 
+            label={'Tenant Applications'} 
+            icon={IconFileText} 
+            onPress={() => router.push('/landlord/tenant-applications')}
+          />
         </View>
       </View>
 

@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { Image, View } from 'react-native'
+import { Card, PressableFeedback } from 'heroui-native'
 
 interface PastApartmentCardProps {
   apartmentName: string
@@ -25,37 +26,41 @@ export default function PastApartmentCard({
 }: PastApartmentCardProps) {
 
   return (
-    <TouchableOpacity
-      className='bg-white rounded-2xl border border-grey-200 flex-row'
-      activeOpacity={0.7}
-      onPress={onPress}
-    >
-      {/* Image */}
-      <View className='overflow-hidden size-32 rounded-2xl'>
-        <Image 
+    <PressableFeedback onPress={onPress} className='rounded-2xl p-0 shadow-none border border-grey-300'>
+      <PressableFeedback.Ripple />
+      <Card className='flex-row p-0 rounded-2xl'>
+        {/* Image */}
+        <Image
           source={{ uri: thumbnailUrl }}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          className='size-30 rounded-2xl'
         />
-      </View>
 
-      <View className='p-3 flex-1 justify-between'>
-        <View className='flex-1'> 
-          <Text className='text-text text-lg font-interMedium'>
-            {apartmentName}
-          </Text>
+        <Card.Body className='p-3 justify-between'>
+          <View>
+            <Card.Title
+              className='text-base font-interMedium text-text leading-snug'
+              numberOfLines={1}
+              ellipsizeMode='tail'
+            >
+              {apartmentName}
+            </Card.Title>
 
-          <Text className='text-grey-500 text-base font-inter'>
-            {barangay}, {city}
-          </Text>
-        </View>
+            <Card.Description
+              className='text-grey-500 text-sm font-inter'
+              numberOfLines={2}
+              ellipsizeMode='tail'
+            >
+              {barangay}, {city}
+            </Card.Description>
+          </View>
 
-        <Text className='text-sm text-grey-500 font-inter'>
-          {leaseStartMonth} {leaseStartYear} - {leaseEndMonth} {leaseEndYear}
-        </Text>
-      </View>
-    </TouchableOpacity>
+          <Card.Footer className='p-0'>
+            <Card.Description className='text-xs text-grey-500 font-inter'>
+              {leaseStartMonth} {leaseStartYear} - {leaseEndMonth} {leaseEndYear}
+            </Card.Description>
+          </Card.Footer>
+        </Card.Body>
+      </Card>
+    </PressableFeedback>
   )
 }
