@@ -6,15 +6,15 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Avatar, Dropdown, Button, Label } from "@heroui/react";
-import { Building2, Search, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import ThemeToggle from "./ThemeToggle";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 
 const NAV_LINKS = [
-  { label: "For Owners", icon: Building2, href: "#" },
-  { label: "Browse",     icon: Search,    href: "/browse" },
+  { label: "For Owners", href: "/forowners" },
+  { label: "Browse", href: "/browse" },
 ];
 
 const getInitials = (value: string) => {
