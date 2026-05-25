@@ -7,6 +7,7 @@ import MessageInput from "./MessageInput";
 import { Contact, Message } from "./types";
 
 import { createClient } from "@repo/supabase/browser";
+import { ArrowLeft, MessageSquare, Pencil, Type } from "lucide-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -221,15 +222,36 @@ export default function ConversationView({
   // Empty State
   if (!activeContact) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-4">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-          <span className="text-2xl">
-            💬
-          </span>
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16">
+        {/* Icon cluster */}
+        <div className="relative mb-8">
+          <div className="w-18 h-18 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+            <MessageSquare className="w-7 h-7 text-gray-400" />
+          </div>
+          <div className="absolute -bottom-0.5 -right-1.5 w-6.5 h-6.5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+            <Type className="w-3 h-3 text-gray-500" />
+          </div>
         </div>
-        <p>
-          Select a conversation from the sidebar to start messaging
+
+        {/* Copy */}
+        <p className="text-sm font-medium text-gray-900 mb-1.5">
+          No conversation selected
         </p>
+        <p className="text-xs text-gray-400 max-w-60 leading-relaxed mb-8">
+          Pick a thread from the sidebar to continue where you left off.
+        </p>
+
+        {/* Hint pills */}
+        <div className="flex flex-col gap-2 w-full max-w-[280px]">
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-gray-200 bg-gray-50">
+            <ArrowLeft className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span className="text-xs text-gray-500">Choose a conversation on the left</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-gray-200 bg-gray-50">
+            <Pencil className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span className="text-xs text-gray-500">Or start a new one from scratch</span>
+          </div>
+        </div>
       </div>
     );
   }
