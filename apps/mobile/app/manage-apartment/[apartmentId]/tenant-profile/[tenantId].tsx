@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState, useCallback } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 
@@ -70,9 +70,12 @@ function ProfileSkeleton() {
 }
 
 export default function TenantProfile() {
-  const { tenantId } = useLocalSearchParams<{
-    tenantId: string
+  const { tenantId, apartmentId } = useLocalSearchParams<{
+    tenantId: string,
+    apartmentId: string
   }>()
+
+  const router = useRouter()
 
   const [loading, setLoading] = useState(true)
   const [tenantData, setTenantData] = useState<TenantData | null>(null)
@@ -175,6 +178,38 @@ export default function TenantProfile() {
       setLoading(false)
     }
   }, [tenantId])
+
+  const handleMessageTenant = async () => {
+    if (!tenantData || !tenantId || !apartmentId) return
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) return
+
+    const landlordId = profile.id
+    const userA = landlordId < tenantId ? landlordId : tenantId
+    const userB = landlordId < tenantId ? tenantId : landlordId
+    const conversationId = `${userA}-${userB}-${apartmentId}`
+
+    router.push({
+      pathname: '/chat/[conversationId]',
+      params: {
+        conversationId,
+        otherUserId: tenantId,
+        otherUserName: tenantData.fullName,
+        otherUserAvatar: tenantData.avatarUrl ?? '',
+        otherUserPhoneNumber: tenantData.phoneNumber,
+        apartmentId,
+      },
+    })
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -291,10 +326,7 @@ export default function TenantProfile() {
               <Button
                 size="sm"
                 variant="outline"
-                onPress={() => {
-                  // TODO: wire up to the chat screen (same logic as handleMessageTenant)
-                  console.log('Message was Pressed')
-                }}
+                onPress={handleMessageTenant}
               >
                 <IconMessage size={20} color={COLORS.grey} />
                 <Button.Label>Message</Button.Label>
