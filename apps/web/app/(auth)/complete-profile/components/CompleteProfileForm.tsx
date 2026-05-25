@@ -33,6 +33,7 @@ export default function CompleteProfileForm({
 }: Props) {
   const [state, action, isPending] = useActionState(completeProfile, {});
   const [postalCode, setPostalCode] = useState(""); 
+  const [mobileNumber, setMobileNumber] = useState("");
 
   return (
     <form action={action} className="flex flex-col gap-8">
@@ -82,9 +83,15 @@ export default function CompleteProfileForm({
             </Select.Popover>
           </Select>
 
-          <TextField name="mobile_number" isRequired fullWidth>
+          <TextField
+            name="mobile_number"
+            isRequired
+            fullWidth
+            value={mobileNumber}
+            onChange={(val) => setMobileNumber(val.replace(/\D/g, "").slice(0, 11))}
+          >
             <Label>Mobile Number</Label>
-            <Input type="tel" placeholder="Enter your mobile number" />
+            <Input inputMode="numeric" placeholder="Enter your mobile number" />
           </TextField>
 
           <DatePicker name="birth_date" isRequired>
@@ -192,7 +199,7 @@ export default function CompleteProfileForm({
             isRequired
             fullWidth
             value={postalCode}
-            onChange={(val) => setPostalCode(val.replace(/\D/g, ""))}
+            onChange={(val) => setPostalCode(val.replace(/\D/g, "").slice(0, 4))}
           >
             <Label>Postal Code</Label>
             <Input
