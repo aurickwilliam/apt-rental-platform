@@ -21,16 +21,20 @@ export default function ErrorModal({
       >
         <Modal.Container placement="center">
           <Modal.Dialog>
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="text-black" />
             <Modal.Header>
-              <Modal.Heading>Something went wrong</Modal.Heading>
+              <Modal.Heading>
+                Something went wrong
+              </Modal.Heading>
             </Modal.Header>
 
             <Modal.Body className="flex flex-col items-center gap-4 py-4">
               <div className="rounded-full bg-danger-100 p-3">
-                <CircleAlert size={32} className="text-danger" />
+                <CircleAlert size={45} className="text-danger" />
               </div>
-              <p className="text-center text-sm text-default-500">{error}</p>
+              <p className="text-center text-sm text-black">
+                {error}
+              </p>
             </Modal.Body>
 
             <Modal.Footer>
