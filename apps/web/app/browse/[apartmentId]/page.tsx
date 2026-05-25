@@ -44,20 +44,8 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     .eq('id', apartmentId)
     .single();
 
-  let leaseUrl: string | null = null;
-  if (apartment?.lease_agreement_url) {
-    const { data: signed } = await supabase.storage
-      .from('lease-agreements')
-      .createSignedUrl(apartment.lease_agreement_url, 60 * 60);
-    
-    if (signed?.signedUrl) {
-      const isPdf = apartment.lease_agreement_url.toLowerCase().endsWith('.pdf');
-      
-      leaseUrl = isPdf
-        ? signed.signedUrl // Opens PDF directly in browser
-        : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(signed.signedUrl)}`;
-    }
-  }
+  // Fetch Lease Agreement URL if it exists
+  const leaseUrl = apartment?.lease_agreement_url ?? null;
 
   // Fetch landlord details if landlord_id exists
   const { data: landlord } = apartment?.landlord_id

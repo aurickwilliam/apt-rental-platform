@@ -6,7 +6,6 @@ import Link from "next/link";
 
 import {
   Button,
-  Card,
   Separator,
   Modal,
 } from "@heroui/react";
