@@ -56,8 +56,8 @@ type Apartment = {
 }
 
 type ActiveTenancy = {
-  move_in_date: string
-  move_out_date: string | null
+  lease_start: string
+  lease_end: string | null
   monthly_rent: number | null
   tenant: {
     first_name: string
@@ -113,7 +113,7 @@ export default function Index() {
     const { data: tenancyData, error: tenancyError } = await supabase
       .from('tenancies')
       .select(`
-        move_in_date, move_out_date, monthly_rent,
+        lease_start, lease_end, monthly_rent,
         tenant:users!tenant_id (
           first_name,
           last_name
@@ -283,13 +283,13 @@ export default function Index() {
           <View className='flex w-1/2'>
             <Text className='text-text text-xs font-inter'>Lease Start</Text>
             <Text className='text-text text-base font-interMedium'>
-              {formatDate(tenancy.move_in_date)}
+              {formatDate(tenancy.lease_start)}
             </Text>
           </View>
           <View className='flex w-1/2'>
             <Text className='text-text text-xs font-inter'>Lease End</Text>
             <Text className='text-text text-base font-interMedium'>
-              {formatDate(tenancy.move_out_date)}
+              {formatDate(tenancy.lease_end)}
             </Text>
           </View>
         </View>

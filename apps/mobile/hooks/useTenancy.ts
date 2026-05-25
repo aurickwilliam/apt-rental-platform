@@ -43,8 +43,8 @@ export type TenancyPayment = {
 
 export type CurrentTenancy = {
   id: string;
-  move_in_date: string;
-  move_out_date: string | null;
+  lease_start: string;
+  lease_end: string | null;
   monthly_rent: number | null;
   status: string;
   apartment: TenancyApartment;
@@ -84,8 +84,8 @@ export function useTenancy() {
         .from('tenancies')
         .select(`
           id,
-          move_in_date,
-          move_out_date,
+          lease_start,
+          lease_end,
           monthly_rent,
           status,
           apartment:apartments (
