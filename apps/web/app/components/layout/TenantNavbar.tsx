@@ -40,7 +40,7 @@ const getInitials = (value: string) => {
 export default function TenantNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { user, loading, profile } = useUser();
+  const { loading, profile } = useUser();
 
   const displayName =
     `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||

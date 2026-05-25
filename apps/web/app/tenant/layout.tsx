@@ -1,4 +1,6 @@
-import TenantNavbar from "../components/layout/TenantNavbar";
+import dynamic from "next/dynamic";
+
+const TenantNavbar = dynamic(() => import("../components/layout/TenantNavbar"));
 
 export default function TenantLayout({
   children,

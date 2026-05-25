@@ -29,17 +29,17 @@ export default function SuccessModal({
               <div className="rounded-full bg-green-100 p-4">
                 <CircleCheck size={48} className="text-green-600" />
               </div>
-              <h2 className="font-noto-serif text-center text-2xl font-semibold">
+              <h2 className="font-nunitoSemiBold text-black text-center text-2xl font-semibold">
                 Account Created!
               </h2>
-              <p className="max-w-xs text-center text-sm text-default-500">
+              <p className="max-w-xs text-center text-sm text-black">
                 Your account has been created successfully. You can now sign in
                 with your email and password.
               </p>
             </Modal.Body>
 
             <Modal.Footer>
-              <Link href={role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"}>
+              <Link className="w-full" href={role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"}>
                 <Button
                   size="lg"
                   variant="primary"
