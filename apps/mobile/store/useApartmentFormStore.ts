@@ -17,7 +17,7 @@ export interface ApartmentFormData {
   mapConfirmed: boolean
   furnishingType: string
   floorArea: string
-  floorLevel: string
+  floorLevel: string | null
   bedrooms: number
   bathrooms: number
   maxOccupants: number
@@ -59,7 +59,7 @@ const initialState: ApartmentFormData = {
   mapConfirmed: false,
   furnishingType: '',
   floorArea: '',
-  floorLevel: '',
+  floorLevel: null,
   bedrooms: 1,
   bathrooms: 1,
   maxOccupants: 1,

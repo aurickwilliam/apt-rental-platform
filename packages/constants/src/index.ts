@@ -18,3 +18,6 @@ export { APARTMENT_TYPES } from './apartment-types';
 export { FLOOR_LEVELS } from './floor-level';
 export { LEASE_DURATIONS } from './lease-duration';
 export { FURNISHED_TYPES } from './furnished-types';
+export { APARTMENT_FLOOR_AREA } from './apartment-floor-area';
+export { APARTMENT_ROOM_LIMITS } from './apartment-room-limits';
+export { CITIES } from './cities';

@@ -43,6 +43,7 @@ interface DropdownFieldProps {
   error?: string;
   enableSearch?: boolean;
   searchPlaceholder?: string;
+  disabled?: boolean;
 }
 
 export default function DropdownField({
@@ -56,9 +57,11 @@ export default function DropdownField({
   error,
   enableSearch = false,
   searchPlaceholder = 'Search...',
+  disabled = false,
 }: DropdownFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const isDisabled = !!disabled;
 
   const filteredOptions = useMemo(() => {
     if (!enableSearch || !searchQuery.trim()) return options;
@@ -68,6 +71,10 @@ export default function DropdownField({
   }, [options, searchQuery, enableSearch]);
 
   const handleOpenChange = (open: boolean) => {
+    if (isDisabled) {
+      if (open) setIsOpen(false);
+      return;
+    }
     setIsOpen(open);
     if (!open) setSearchQuery('');
   };
@@ -83,17 +90,24 @@ export default function DropdownField({
 
         <BottomSheet.Trigger asChild>
           <Pressable
+            disabled={isDisabled}
             style={{ alignItems: 'center' }} 
-            className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
+            className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
               justify-between shadow-xs ${
-                error
-                  ? 'border-redHead-200'
+                isDisabled
+                  ? 'bg-gray-100 border-gray-200'
+                  : error
+                  ? 'bg-white border-redHead-200'
                   : isOpen
-                  ? 'border-primary'
-                  : 'border-gray-200'
+                  ? 'bg-white border-primary'
+                  : 'bg-white border-gray-200'
               }`}
           >
-            <Text className={`font-inter ${value ? 'text-text' : 'text-gray-500'}`}>
+            <Text
+              className={`font-inter ${
+                isDisabled ? 'text-gray-400' : value ? 'text-text' : 'text-gray-500'
+              }`}
+            >
               {value || placeholder}
             </Text>
 
