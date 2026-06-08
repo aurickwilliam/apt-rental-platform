@@ -8,6 +8,7 @@ import { COLORS } from "@repo/constants";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
 import RoleTab from "./components/RoleTab";
+import AuthButton from "./components/AuthButton";
 
 import {
   Button, 
@@ -26,9 +27,9 @@ import {
 } from "lucide-react-native";
 
 import { supabase } from "@repo/supabase";
-
 import { useGoogleAuth } from "hooks/useGoogleAuth";
-import AuthButton from "./components/AuthButton";
+
+import { isValidEmail } from "@repo/utils";
 
 export default function SignIn() {
   const router = useRouter();
@@ -69,6 +70,12 @@ export default function SignIn() {
       setError("Please enter your email address.");
       return;
     }
+
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     if (!password.trim()) {
       setError("Please enter your password.");
       return;
