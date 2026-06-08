@@ -40,7 +40,7 @@ export function useGoogleAuth() {
       const userId = data.session.user.id;
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .select("role, created_at")
+        .select("role, created_at, mobile_number")
         .eq("user_id", userId)
         .single();
 
@@ -69,6 +69,14 @@ export function useGoogleAuth() {
       }
 
       setLoading(false);
+
+      // If the profile is incomplete, redirect to complete profile page first
+      const isProfileComplete = !!profile.mobile_number;
+
+      if (!isProfileComplete) {
+        router.replace("../(auth)/auth-complete-profile");
+        return;
+      }
 
       // Route the user based on their role
       router.replace(

@@ -12,6 +12,7 @@ export default function _Layout() {
       <Stack.Screen name="sign-up" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="complete-profile" />
+      <Stack.Screen name="auth-complete-profile" />
       <Stack.Screen name="verify-mobile" />
       <Stack.Screen name="otp-verification" />
       <Stack.Screen name="personalization" />
