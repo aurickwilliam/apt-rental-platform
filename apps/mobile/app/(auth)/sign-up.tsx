@@ -12,6 +12,8 @@ import { IMAGES } from "constants/images";
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 import { supabase } from "@repo/supabase"
 
+import { isValidEmail } from "@repo/utils";
+
 import { 
   Text, 
   TextField, 
@@ -21,12 +23,6 @@ import {
   Button,
   Input, 
 } from "heroui-native";
-
-// TODO: Make this a util function and reuse in sign-in page as well
-const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
 
 export default function SignUp() {
   const router = useRouter();
