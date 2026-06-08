@@ -275,6 +275,14 @@ export default function SignIn() {
           <Button.Label className="font-interMedium">
             {loading ? "Signing In..." : "Sign In"}
           </Button.Label>
+          
+          {loading && (
+            <Spinner
+              size="sm"
+              color={COLORS.white}
+              className="ml-2"
+            />
+          )}
         </Button>
       </View>
 

@@ -1,6 +1,8 @@
 import { Image, ImageSourcePropType } from "react-native";
 
-import { Button } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
+
+import { COLORS } from "@repo/constants";
 
 type AuthButtonProps = {
   onPress?: () => void;
@@ -30,6 +32,14 @@ export default function AuthButton({
       <Button.Label className="font-interMedium text-text">
         {label}
       </Button.Label>
+
+      {isDisabled && (
+        <Spinner
+          size="sm"
+          color={COLORS.text}
+          className="ml-2"
+        />
+      )}
     </Button>
   );
 }
