@@ -8,6 +8,7 @@ import RoleTab from "./components/RoleTab";
 import AuthButton from "./components/AuthButton";
 
 import { IMAGES } from "constants/images";
+import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 import { supabase } from "@repo/supabase"
@@ -23,17 +24,20 @@ import {
   Button,
   Input, 
   Dialog,
+  Spinner,
 } from "heroui-native";
 
 export default function SignUp() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
 
-  const [email, setEmail] = useState<string>("");
-  const [emailError, setEmailError] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
   const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
-
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+
+  // Keep these strictly separated:
+  const [emailError, setEmailError] = useState<string>("");
+  const [serverError, setServerError] = useState<string>("");
 
   useEffect(() => {
     setUserSide(userType === "landlord" ? "landlord" : "tenant");
@@ -55,14 +59,18 @@ export default function SignUp() {
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
     if (emailError) setEmailError("");
+    if (serverError) setServerError("");
   };
 
   const handleSignUp = async () => {
+    setEmailError("");
+    setServerError("");
+
     if (!email.trim()) {
       setEmailError("Email address is required.");
       return;
-    }
-
+    } 
+    
     if (!isValidEmail(email)) {
       setEmailError("Please enter a valid email address.");
       return;
@@ -77,12 +85,12 @@ export default function SignUp() {
         .eq("email", email.trim().toLowerCase());
 
       if (error) {
-        setEmailError("Something went wrong. Please try again.");
+        setServerError("Something went wrong. Please try again.");
         return;
       }
 
       if (count && count > 0) {
-        setEmailError("This email is already registered. Please sign in instead.");
+        setServerError("This email is already registered. Please sign in instead.");
         return;
       }
 
@@ -95,7 +103,7 @@ export default function SignUp() {
       });
 
     } catch {
-      setEmailError("Something went wrong. Please try again.");
+      setServerError("Something went wrong. Please try again.");
     } finally {
       setCheckingEmail(false);
     }
@@ -138,7 +146,7 @@ export default function SignUp() {
       <View className="mt-8">
         <TextField
           isRequired
-          isInvalid={!!emailError && !email.trim()}
+          isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
           <Input 
@@ -147,8 +155,8 @@ export default function SignUp() {
             onChangeText={handleEmailTextChange}
           />
 
-          {!!emailError && !email.trim() && (
-              <FieldError>Please enter your email address.</FieldError>
+          {!!emailError && (
+              <FieldError>{emailError}</FieldError>
           )}
         </TextField>
       </View>
@@ -162,6 +170,13 @@ export default function SignUp() {
           <Button.Label className="font-interMedium">
             {checkingEmail ? "Please wait..." : "Continue"}
           </Button.Label>
+          {checkingEmail && (
+            <Spinner
+              size="sm"
+              color={COLORS.white}
+              className="ml-2"
+            />
+          )}
         </Button>
       </View>
 
@@ -199,10 +214,10 @@ export default function SignUp() {
       </View>
 
       <Dialog
-        isOpen={!!(emailError || googleError)}
+        isOpen={!!(serverError || googleError)}
         onOpenChange={(open) => {
           if (!open) {
-            setEmailError("");
+            setServerError("");
             resetGoogleError(); 
           }
         }}
@@ -216,14 +231,14 @@ export default function SignUp() {
             <View className="my-4 gap-1.5">
               <Dialog.Title>Something went wrong</Dialog.Title>
               <Dialog.Description>
-                {googleError || emailError}
+                {googleError || serverError}
               </Dialog.Description>
             </View>
             <View className="flex-row justify-end">
               <Button
                 size="sm"
                 onPress={() => {
-                  setEmailError("");
+                  setServerError("");
                   resetGoogleError();
                 }}
               >
