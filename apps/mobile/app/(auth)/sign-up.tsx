@@ -9,24 +9,34 @@ import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
-
 import { supabase } from "@repo/supabase"
 
-import { Tabs, Text, TextField, LinkButton, Label, FieldError, Button, Separator} from "heroui-native";
+import { 
+  Tabs, 
+  Text, 
+  TextField, 
+  LinkButton, 
+  Label, 
+  FieldError, 
+  Button, 
+  Separator
+} from "heroui-native";
 
+// TODO: Make this a util function and reuse in sign-in page as well
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
 export default function SignUp() {
-  const [email, setEmail] = useState<string>("");
-  const [emailError, setEmailError] = useState<string>("");
-  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
-  const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
-
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
+
+  const [email, setEmail] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
+  const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
+
+  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
 
   const {
     signInWithGoogle,
@@ -74,8 +84,12 @@ export default function SignUp() {
 
       router.push({
         pathname: "/(auth)/complete-profile",
-        params: { email: email.trim().toLowerCase(), userSide },
+        params: { 
+          email: email.trim().toLowerCase(), 
+          userSide 
+        },
       });
+
     } catch {
       setEmailError("Something went wrong. Please try again.");
     } finally {
@@ -170,12 +184,6 @@ export default function SignUp() {
 
       {/* Sign In Button */}
       <View className="mt-5">
-        {/* <PillButton
-          label={checkingEmail ? "Please wait..." : "Continue"}
-          isFullWidth={true}
-          onPress={handleSignUp}
-          isDisabled={checkingEmail}
-        /> */}
         <Button
           onPress={handleSignUp}
           isDisabled={checkingEmail}
@@ -187,6 +195,9 @@ export default function SignUp() {
       </View>
 
       {/* Divider */}
+      {/* 
+        // TODO: Make a reusable component for this divider with "or sign in with" text in the middle and use in both sign-in and sign-up pages
+      */}
       <View className="flex-row justify-center items-center my-5">
         <Separator orientation="horizontal" className="flex-1" />
 
@@ -199,6 +210,9 @@ export default function SignUp() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
+        {/* 
+          // TODO: Make a reusable component for Google sign-in button and use in both sign-in and sign-up pages. Should handle loading and error states as well.
+        */}
         <Button
           variant="outline"
           onPress={() => signInWithGoogle(userSide)}
@@ -216,9 +230,9 @@ export default function SignUp() {
         </Button>
       </View>
 
-      {/* Footer links */}
       <View className="flex-1" />
 
+      {/* Footer links */}
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
