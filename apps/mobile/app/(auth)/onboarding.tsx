@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import { Link } from 'expo-router';
+
 import {
   View,
   Dimensions,
@@ -7,13 +9,11 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { Link } from 'expo-router';
 
 import { SLIDES } from './data/onboarding-data';
 import { USER_ROLES } from './data/user-role';
 
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
-import PillButton from 'components/buttons/PillButton';
 
 import { Button } from "heroui-native"
 
