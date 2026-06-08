@@ -22,6 +22,7 @@ import {
   FieldError, 
   Button,
   Input, 
+  Dialog,
 } from "heroui-native";
 
 export default function SignUp() {
@@ -42,10 +43,12 @@ export default function SignUp() {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    resetError: resetGoogleError,
   } = useGoogleAuth();
 
   const handleGoogleSignIn = () => {
     if (emailError) setEmailError("");
+    if (googleError) resetGoogleError();
     void signInWithGoogle(userSide);
   };
 
@@ -131,14 +134,6 @@ export default function SignUp() {
         }}
       />
 
-      {googleError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <Text className="text-sm text-red-600 font-inter">
-            {googleError}
-          </Text>
-        </View>
-      ) : null}
-
       {/* Form inputs */}
       <View className="mt-8">
         <TextField
@@ -202,6 +197,42 @@ export default function SignUp() {
           </LinkButton>
         </View>
       </View>
+
+      <Dialog
+        isOpen={!!(emailError || googleError)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEmailError("");
+            resetGoogleError(); 
+          }
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay />
+
+          <Dialog.Content>
+            <Dialog.Close />
+
+            <View className="my-4 gap-1.5">
+              <Dialog.Title>Something went wrong</Dialog.Title>
+              <Dialog.Description>
+                {googleError || emailError}
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end">
+              <Button
+                size="sm"
+                onPress={() => {
+                  setEmailError("");
+                  resetGoogleError();
+                }}
+              >
+                <Button.Label>Got it</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScreenWrapper>
   );
 }

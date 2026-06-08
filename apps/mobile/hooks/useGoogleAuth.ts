@@ -178,9 +178,12 @@ export function useGoogleAuth() {
     }
   };
 
+  const resetError = () => setError("");
+
   return { 
     signInWithGoogle, 
     loading, 
-    error 
+    error,
+    resetError,
   };
 }

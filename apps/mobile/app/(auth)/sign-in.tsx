@@ -18,7 +18,9 @@ import {
   FieldError, 
   LinkButton,
   Input,
-  InputGroup
+  InputGroup,
+  Dialog,
+  Spinner,
 } from 'heroui-native';
 
 import { 
@@ -42,44 +44,57 @@ export default function SignIn() {
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
   
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [emailError, setEmailError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    resetError: resetGoogleError,
   } = useGoogleAuth();
 
   const handleGoogleSignIn = () => {
     if (error) setError("");
+    if (googleError) resetGoogleError();
     void signInWithGoogle(userSide);
   };
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
+    if (emailError) setEmailError("");
     if (error) setError("");
   };
 
   const handlePasswordTextChange = (text: string) => {
     setPassword(text);
+    if (passwordError) setPasswordError("");
     if (error) setError("");
   };
 
   const handleSignIn = async () => {
-    if (!email.trim()) {
-      setError("Please enter your email address.");
-      return;
-    }
+    setEmailError("");
+    setPasswordError("");
+    setError("");
 
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address.");
-      return;
+    let isValid = true;
+
+    if (!email.trim()) {
+      setEmailError("Please enter your email address.");
+      isValid = false;
+    } else if (!isValidEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      isValid = false;
     }
 
     if (!password.trim()) {
-      setError("Please enter your password.");
-      return;
+      setPasswordError("Please enter your password.");
+      isValid = false;
     }
+
+    if (!isValid) return;
 
     setLoading(true);
     setError("");
@@ -182,27 +197,11 @@ export default function SignIn() {
         }}
       />
 
-      {/* Google Error message */}
-      {googleError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <Text className="text-sm text-red-600 font-inter">
-            {googleError}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* General Error Message */}
-      {error && email.trim() && password.trim() ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <Text className="text-sm text-red-600 font-inter">{error}</Text>
-        </View>
-      ) : null}
-
       {/* Form inputs */}
       <View className="mt-8 flex gap-4">
         <TextField
             isRequired
-            isInvalid={!!error && !email.trim()}
+            isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
           <Input 
@@ -214,14 +213,14 @@ export default function SignIn() {
             autoCorrect={false}
           />
 
-          {!!error && !email.trim() && (
-              <FieldError>Please enter your email address.</FieldError>
+          {!!emailError && (
+              <FieldError>{emailError}</FieldError>
           )}
         </TextField>
 
         <TextField 
           isRequired 
-          isInvalid={!!error && !password.trim()}
+          isInvalid={!!passwordError}
         >
           <Label>Password:</Label>
 
@@ -251,8 +250,8 @@ export default function SignIn() {
             )}
           </InputGroup>
 
-          {!!error && !password.trim() && (
-            <FieldError>Please enter your password.</FieldError>
+          {!!passwordError && (
+            <FieldError>{passwordError}</FieldError>
           )}
         </TextField>
       </View>
@@ -311,6 +310,37 @@ export default function SignIn() {
           </LinkButton>
         </View>
       </View>
+
+      <Dialog
+        isOpen={!!(error || googleError)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setError("");
+            resetGoogleError(); 
+          }
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close />
+            <View className="my-4 gap-1.5">
+              <Dialog.Title>Something went wrong</Dialog.Title>
+              <Dialog.Description>
+                {googleError || error}
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end">
+              <Button
+                size="sm"
+                onPress={() => setError("")}
+              >
+                <Button.Label>Got it</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScreenWrapper>
   );
 }
