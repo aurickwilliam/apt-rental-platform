@@ -6,17 +6,18 @@ import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import AppInput from "components/inputs/AppInput";
 import AuthDivider from "./components/AuthDivider";
+import RoleTab from "./components/RoleTab";
 
 import {
   Button, 
   Text, 
-  Tabs, 
   TextField, 
   Label, 
   FieldError, 
-  LinkButton
+  LinkButton,
+  Input,
+  InputGroup
 } from 'heroui-native';
 
 import { 
@@ -27,13 +28,14 @@ import {
 import { supabase } from "@repo/supabase";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
+import AuthButton from "./components/AuthButton";
 
 export default function SignIn() {
   const router = useRouter();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-
+  const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
@@ -165,39 +167,13 @@ export default function SignIn() {
       </View>
 
       {/* Tab Group User Side */}
-      <Tabs
-        value={userSide}
+      <RoleTab 
+        userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
           if (error) setError("");
         }}
-        variant="primary"
-        className="mt-5"
-      >
-        <Tabs.List className="w-full">
-          <Tabs.Indicator />
-
-          <Tabs.Trigger value="tenant" className="flex-1">
-            {({ isSelected }) => (
-                <Tabs.Label
-                    style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
-                >
-                  Tenant
-                </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-
-          <Tabs.Trigger value="landlord" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                  style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
-              >
-                Landlord
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs>
+      />
 
       {/* Google Error message */}
       {googleError ? (
@@ -222,7 +198,7 @@ export default function SignIn() {
             isInvalid={!!error && !email.trim()}
         >
           <Label>Email Address:</Label>
-          <AppInput
+          <Input 
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
@@ -236,27 +212,38 @@ export default function SignIn() {
           )}
         </TextField>
 
-        <TextField isRequired isInvalid={!!error && !password.trim()}>
+        <TextField 
+          isRequired 
+          isInvalid={!!error && !password.trim()}
+        >
           <Label>Password:</Label>
-          <View className="w-full flex-row items-center">
-            <AppInput
+
+          <InputGroup>
+            <InputGroup.Input
               placeholder="Enter your password"
               value={password}
               onChangeText={handlePasswordTextChange}
               secureTextEntry={!showPassword}
-              className="flex-1 pr-10"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setTimeout(() => setIsFocused(false), 150)}
             />
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-3"
-            >
-              {showPassword ? (
-                <EyeOff size={18} color={COLORS.grey} />
-              ) : (
-                <Eye size={18} color={COLORS.grey} />
-              )}
-            </Pressable>
-          </View>
+
+            {isFocused && (
+              <InputGroup.Suffix>
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={20}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} color={COLORS.grey} />
+                  ) : (
+                    <Eye size={18} color={COLORS.grey} />
+                  )}
+                </Pressable>
+              </InputGroup.Suffix>
+            )}
+          </InputGroup>
+
           {!!error && !password.trim() && (
             <FieldError>Please enter your password.</FieldError>
           )}
@@ -290,21 +277,12 @@ export default function SignIn() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        <Button
-          variant="outline"
+        <AuthButton 
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
-          className="flex-1"
-        >
-          <Image
-            source={IMAGES.googleLogo}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-          <Button.Label className="font-interMedium text-text">
-            Continue with Google
-          </Button.Label>
-        </Button>
+          imageSource={IMAGES.googleLogo}
+          label="Continue with Google"
+        />
       </View>
 
       {/* Footer links */}
