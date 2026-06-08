@@ -3,24 +3,24 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import AppInput from "components/inputs/AppInput";
+import AuthDivider from "./components/AuthDivider";
+import RoleTab from "./components/RoleTab";
+import AuthButton from "./components/AuthButton";
 
 import { IMAGES } from "constants/images";
-import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 import { supabase } from "@repo/supabase"
 
 import { 
-  Tabs, 
   Text, 
   TextField, 
   LinkButton, 
   Label, 
   FieldError, 
-  Button, 
+  Button,
+  Input, 
 } from "heroui-native";
-import AuthDivider from "./components/AuthDivider";
 
 // TODO: Make this a util function and reuse in sign-in page as well
 const isValidEmail = (email: string): boolean => {
@@ -38,15 +38,20 @@ export default function SignUp() {
 
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
 
+  useEffect(() => {
+    setUserSide(userType === "landlord" ? "landlord" : "tenant");
+  }, [userType]);
+
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
   } = useGoogleAuth();
 
-  useEffect(() => {
-    setUserSide(userType === "landlord" ? "landlord" : "tenant");
-  }, [userType]);
+  const handleGoogleSignIn = () => {
+    if (emailError) setEmailError("");
+    void signInWithGoogle(userSide);
+  };
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
@@ -122,38 +127,13 @@ export default function SignUp() {
       </View>
 
       {/* Tab Group User Side */}
-      <Tabs
-        value={userSide}
+      <RoleTab 
+        userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
+          if (emailError) setEmailError("");
         }}
-        variant="primary"
-        className="mt-5"
-      >
-        <Tabs.List className="w-full">
-          <Tabs.Indicator />
-
-          <Tabs.Trigger value="tenant" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
-              >
-                Tenant
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-
-          <Tabs.Trigger value="landlord" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
-              >
-                Landlord
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs>
+      />
 
       {googleError ? (
         <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -170,7 +150,7 @@ export default function SignUp() {
           isInvalid={!!emailError && !email.trim()}
         >
           <Label>Email Address:</Label>
-          <AppInput 
+          <Input 
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
@@ -199,24 +179,12 @@ export default function SignUp() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        {/* 
-          // TODO: Make a reusable component for Google sign-in button and use in both sign-in and sign-up pages. Should handle loading and error states as well.
-        */}
-        <Button
-          variant="outline"
-          onPress={() => signInWithGoogle(userSide)}
+        <AuthButton 
+          onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
-          className="flex-1"
-        >
-          <Image
-            source={IMAGES.googleLogo}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-          <Button.Label className="font-interMedium text-text">
-            Continue with Google
-          </Button.Label>
-        </Button>
+          imageSource={IMAGES.googleLogo}
+          label="Continue with Google"
+        />
       </View>
 
       <View className="flex-1" />
