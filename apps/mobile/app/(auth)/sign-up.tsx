@@ -19,8 +19,8 @@ import {
   Label, 
   FieldError, 
   Button, 
-  Separator
 } from "heroui-native";
+import AuthDivider from "./components/AuthDivider";
 
 // TODO: Make this a util function and reuse in sign-in page as well
 const isValidEmail = (email: string): boolean => {
@@ -195,18 +195,7 @@ export default function SignUp() {
       </View>
 
       {/* Divider */}
-      {/* 
-        // TODO: Make a reusable component for this divider with "or sign in with" text in the middle and use in both sign-in and sign-up pages
-      */}
-      <View className="flex-row justify-center items-center my-5">
-        <Separator orientation="horizontal" className="flex-1" />
-
-        <Text className="mx-3 text-grey-400 font-inter">
-          or sign up with
-        </Text>
-
-        <Separator orientation="horizontal" className="flex-1" />
-      </View>
+      <AuthDivider middleText="or sign up with" />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">

@@ -7,33 +7,50 @@ import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import AppInput from "components/inputs/AppInput";
+import AuthDivider from "./components/AuthDivider";
 
-import {Button, Text, Tabs, TextField, Label, FieldError, LinkButton, Separator} from 'heroui-native';
+import {
+  Button, 
+  Text, 
+  Tabs, 
+  TextField, 
+  Label, 
+  FieldError, 
+  LinkButton
+} from 'heroui-native';
 
-import { Eye, EyeOff } from "lucide-react-native";
+import { 
+  Eye, 
+  EyeOff 
+} from "lucide-react-native";
 
 import { supabase } from "@repo/supabase";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 
 export default function SignIn() {
+  const router = useRouter();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
+  const [showPassword, setShowPassword] = useState(false);
   
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
   
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const router = useRouter();
-
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
   } = useGoogleAuth();
+
+  const handleGoogleSignIn = () => {
+    if (error) setError("");
+    void signInWithGoogle(userSide);
+  };
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
@@ -43,11 +60,6 @@ export default function SignIn() {
   const handlePasswordTextChange = (text: string) => {
     setPassword(text);
     if (error) setError("");
-  };
-
-  const handleGoogleSignIn = () => {
-    if (error) setError("");
-    void signInWithGoogle(userSide);
   };
 
   const handleSignIn = async () => {
@@ -274,15 +286,7 @@ export default function SignIn() {
       </View>
 
       {/* Divider */}
-      <View className="flex-row justify-center items-center my-5">
-        <Separator orientation="horizontal" className="flex-1" />
-
-        <Text className="mx-3 text-grey-400 font-inter">
-          or sign in with
-        </Text>
-
-        <Separator orientation="horizontal" className="flex-1" />
-      </View>
+      <AuthDivider middleText="or sign in with" />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
