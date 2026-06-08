@@ -10,8 +10,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 
-import { SLIDES } from './data/onboarding-data';
-import { USER_ROLES } from './data/user-role';
+import { SLIDES } from '../../constants/onboarding-data/onboarding-data';
+import { USER_ROLES } from '../../constants/onboarding-data/user-role';
 
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
 
