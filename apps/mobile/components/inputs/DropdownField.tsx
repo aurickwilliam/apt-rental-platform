@@ -121,9 +121,9 @@ export default function DropdownField({
             </Text>
 
             {isOpen ? (
-              <ChevronUp size={24} color={COLORS.text} />
+              <ChevronUp size={20} color={COLORS.text} />
             ) : (
-              <ChevronDown size={24} color={COLORS.text} />
+              <ChevronDown size={20} color={COLORS.text} />
             )}
           </Pressable>
         </BottomSheet.Trigger>

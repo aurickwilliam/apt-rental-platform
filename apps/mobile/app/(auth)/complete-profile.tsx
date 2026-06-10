@@ -13,7 +13,7 @@ import {
 } from "@repo/constants";
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import DateTimeField from 'components/inputs/DateTimeField';
+import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
 
 import { 
@@ -353,7 +353,7 @@ export default function CompleteProfile() {
         />
 
         {/* Date of Birth Field */}
-        <DateTimeField
+        <DateField
           label="Date of Birth:"
           placeholder="Select your date of birth"
           required
