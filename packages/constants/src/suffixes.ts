@@ -1,5 +1,4 @@
 export const SUFFIXES = [
-  "None",
   "Jr.",
   "Sr.",
   "II",

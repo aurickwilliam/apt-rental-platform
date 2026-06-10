@@ -308,17 +308,10 @@ export default function CompleteProfile() {
         </TextField>
 
         {/* Suffix Name Field */}
-        {/* <TextField>
-          <Label>Suffix Name:</Label>
-          <Input
-            placeholder="Enter your suffix name"
-            onChangeText={(value) => updateField('suffixName', value)}
-          />
-        </TextField> */}
         <DropdownField 
           label="Suffix Name:"
           bottomSheetLabel="Select your suffix name"
-          placeholder="Select your suffix name"
+          placeholder="No suffix"
           options={SUFFIXES}
           value={profileForm.suffixName}
           onSelect={(value) => updateField('suffixName', value)}
