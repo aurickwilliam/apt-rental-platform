@@ -1,6 +1,5 @@
-import { View, Text } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
 import {
@@ -36,9 +35,16 @@ import {
   Separator,
   Spinner,
   Dialog,
+  InputGroup,
 } from 'heroui-native';
 
-import { IconAlertCircle } from '@tabler/icons-react-native';
+import { 
+  Eye, 
+  EyeOff,
+  CircleCheck,
+  Minus,
+  CircleAlert
+} from "lucide-react-native";
 
 type ProfileForm = {
   email: string;
@@ -86,6 +92,9 @@ export default function CompleteProfile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [profileForm, setProfileForm] = useState<ProfileForm>({
     email: emailValue || "",
@@ -467,15 +476,30 @@ export default function CompleteProfile() {
         {/* Password Field */}
         <TextField isRequired isInvalid={!!getError("password")}>
           <Label>Password:</Label>
-          <Input
-            placeholder="Create a password"
-            secureTextEntry
-            value={password}
-            onChangeText={(value) => {
-              setPassword(value);
-              updateField("password", value);
-            }}
-          />
+          <InputGroup>
+            <InputGroup.Input
+              placeholder="Create a password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value);
+                updateField("password", value);
+              }}
+            />
+
+            <InputGroup.Suffix>
+              <Pressable
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={20}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.grey} />
+                ) : (
+                  <Eye size={20} color={COLORS.grey} />
+                )}
+              </Pressable>
+            </InputGroup.Suffix>
+          </InputGroup>
           {getError("password") && (
             <FieldError>{getError("password")}</FieldError>
           )}
@@ -484,15 +508,31 @@ export default function CompleteProfile() {
         {/* Confirm Password Field */}
         <TextField isRequired isInvalid={!!getError("confirmPassword")}>
           <Label>Confirm Password:</Label>
-          <Input
-            placeholder="Confirm your password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={(value) => {
-              setConfirmPassword(value);
-              updateField("confirmPassword", value);
-            }}
-          />
+          <InputGroup>
+            <InputGroup.Input
+              placeholder="Confirm your password"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={(value) => {
+                setConfirmPassword(value);
+                updateField("confirmPassword", value);
+              }}
+            />
+
+            <InputGroup.Suffix>
+              <Pressable
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                hitSlop={20}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color={COLORS.grey} />
+                ) : (
+                  <Eye size={20} color={COLORS.grey} />
+                )}
+              </Pressable>
+            </InputGroup.Suffix>
+          </InputGroup>
+
           {getError("confirmPassword") && (
             <FieldError>{getError("confirmPassword")}</FieldError>
           )}
@@ -506,35 +546,23 @@ export default function CompleteProfile() {
 
           {/* Minimum Length of 8 Char */}
           <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.minLength ? "checkmark-circle" : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.minLength
-                  ? COLORS.greenHulk
-                  : COLORS.lightGrey
-              }
-            />
+            {passwordRequirements.minLength ? (
+              <CircleCheck size={20} color={COLORS.greenHulk} />
+            ) : (
+              <Minus size={20} color={COLORS.lightGrey} />
+            )}
+
             <Text className="text-text font-inter">At least 8 characters</Text>
           </View>
 
           {/* At least one lowercase letter (a–z) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasLowercase
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasLowercase
-                  ? COLORS.greenHulk
-                  : COLORS.lightGrey
-              }
-            />
+            {passwordRequirements.hasLowercase ? (
+              <CircleCheck size={20} color={COLORS.greenHulk} />
+            ) : (
+              <Minus size={20} color={COLORS.lightGrey} />
+            )}
+
             <Text className="text-text font-inter">
               At least one lowercase letter (a–z)
             </Text>
@@ -542,19 +570,12 @@ export default function CompleteProfile() {
 
           {/* At least one uppercase letter (A–Z) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasUppercase
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasUppercase
-                  ? COLORS.greenHulk
-                  : COLORS.lightGrey
-              }
-            />
+            {passwordRequirements.hasUppercase ? (
+              <CircleCheck size={20} color={COLORS.greenHulk} />
+            ) : (
+              <Minus size={20} color={COLORS.lightGrey} />
+            )}
+
             <Text className="text-text font-inter">
               At least one uppercase letter (A–Z)
             </Text>
@@ -562,17 +583,12 @@ export default function CompleteProfile() {
 
           {/* At least one number (0–9) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasNumber ? "checkmark-circle" : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasNumber
-                  ? COLORS.greenHulk
-                  : COLORS.lightGrey
-              }
-            />
+            {passwordRequirements.hasNumber ? (
+              <CircleCheck size={20} color={COLORS.greenHulk} />
+            ) : (
+              <Minus size={20} color={COLORS.lightGrey} />
+            )}
+
             <Text className="text-text font-inter">
               At least one number (0–9)
             </Text>
@@ -580,19 +596,11 @@ export default function CompleteProfile() {
 
           {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
           <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasSpecialChar
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasSpecialChar
-                  ? COLORS.greenHulk
-                  : COLORS.lightGrey
-              }
-            />
+            {passwordRequirements.hasSpecialChar ? (
+              <CircleCheck size={20} color={COLORS.greenHulk} />
+            ) : (
+              <Minus size={20} color={COLORS.lightGrey} />
+            )}
             <Text className="text-text font-inter">
               at least one special character (e.g. ! @ # $ % ^ & *)
             </Text>
@@ -619,7 +627,7 @@ export default function CompleteProfile() {
 
             <View className="mb-5 gap-1.5">
               <View className="flex-row items-center gap-2">
-                <IconAlertCircle size={20} color={COLORS.lightRedHead} />
+                <CircleAlert size={20} color={COLORS.lightRedHead} />
                 <Dialog.Title className="text-redHead-100">
                   Something went wrong
                 </Dialog.Title>

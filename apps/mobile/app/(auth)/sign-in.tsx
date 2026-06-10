@@ -247,9 +247,9 @@ export default function SignIn() {
                   hitSlop={20}
                 >
                   {showPassword ? (
-                    <EyeOff size={18} color={COLORS.grey} />
+                    <EyeOff size={20} color={COLORS.grey} />
                   ) : (
-                    <Eye size={18} color={COLORS.grey} />
+                    <Eye size={20} color={COLORS.grey} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>
