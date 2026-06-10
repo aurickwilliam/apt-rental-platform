@@ -28,9 +28,15 @@ export default function DateTimeField({
   const [isFocused, setIsFocused] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(value ?? new Date());
 
-  const displayValue = value
-    ? value.toISOString().split("T")[0]
-    : placeholder;
+  const formatDate = (date: Date) => {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${month}/${day}/${year}`;
+  };
+
+  const displayValue = value ? formatDate(value) : placeholder;
 
   const handleChange = (_: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
@@ -85,7 +91,7 @@ export default function DateTimeField({
       </Pressable>
 
       {error && (
-        <Text className="text-md text-redHead-200 font-inter mt-1">{error}</Text>
+        <Text className="text-md text-redHead-200 font-inter">{error}</Text>
       )}
 
       {/* iOS Modal */}

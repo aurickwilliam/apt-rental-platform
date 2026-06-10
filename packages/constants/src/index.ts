@@ -21,3 +21,4 @@ export { FURNISHED_TYPES } from './furnished-types';
 export { APARTMENT_FLOOR_AREA } from './apartment-floor-area';
 export { APARTMENT_ROOM_LIMITS } from './apartment-room-limits';
 export { CITIES } from './cities';
+export { SUFFIXES } from './suffixes';

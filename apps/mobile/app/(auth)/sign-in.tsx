@@ -75,10 +75,12 @@ export default function SignIn() {
   };
 
   const handleSignIn = async () => {
+    // Clear the errors
     setEmailError("");
     setPasswordError("");
     setError("");
 
+    // Check the inputs and show errors if invalid
     let isValid = true;
 
     if (!email.trim()) {
@@ -100,12 +102,15 @@ export default function SignIn() {
     setError("");
 
     try {
+      // Attempt to sign in with Supabase
+      // Using email and password
       const { data: authData, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
-
+      
+      // Check if there is an error during sign-in and handle it
       if (signInError) {
         if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
@@ -126,6 +131,7 @@ export default function SignIn() {
         .eq("user_id", authData.user!.id)
         .single();
 
+        
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");
         return;
