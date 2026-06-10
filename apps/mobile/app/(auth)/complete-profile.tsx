@@ -3,7 +3,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-import { COLORS , PROVINCES , GENDERS, SUFFIXES } from '@repo/constants';
+import {
+  COLORS,
+  PROVINCES,
+  GENDERS,
+  SUFFIXES,
+  getCitiesByProvince,
+  getBarangaysByCity,
+  getPostalCode
+} from "@repo/constants";
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import DateTimeField from 'components/inputs/DateTimeField';
@@ -40,13 +48,11 @@ type ProfileForm = {
   suffixName: string;
   gender: string;
   birthDate: string;
-  mobileNumber: string;
 
-  currentAddress: string;
-  barangay: string;
-  city: string;
   province: string;
-  postalCode: string;
+  city: string;
+  barangay: string;
+  streetAddress: string;
 
   password: string;
   confirmPassword: string;
@@ -57,13 +63,11 @@ const requiredFields: (keyof ProfileForm)[] = [
   'lastName',
   'gender',
   'birthDate',
-  'mobileNumber',
 
-  'currentAddress',
-  'barangay',
-  'city',
   'province',
-  'postalCode',
+  'city',
+  'barangay',
+  'streetAddress',
 
   'password',
   'confirmPassword',
@@ -91,13 +95,11 @@ export default function CompleteProfile() {
     suffixName: "",
     gender: "",
     birthDate: "",
-    mobileNumber: data.mobileNumber || "",
 
-    currentAddress: "",
-    barangay: "",
-    city: "",
     province: "",
-    postalCode: "",
+    city: "",
+    barangay: "",
+    streetAddress: "",
 
     password: "",
     confirmPassword: ""
@@ -118,6 +120,7 @@ export default function CompleteProfile() {
   // Validates that a PH postal code is exactly 4 digits with proper blur/change handling
   const {
     value: postalCode,
+    setValue: setPostalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
@@ -153,16 +156,6 @@ export default function CompleteProfile() {
     if (submitted && field === 'confirmPassword' && profileForm.confirmPassword && password !== confirmPassword) {
       return 'Passwords do not match';
     }
-
-    // Postal code validation error
-    if (field === 'postalCode' && postalCode && postalCodeError) {
-      return postalCodeError;
-    }
-
-    // Mobile number validation error
-    if (field === 'mobileNumber' && mobileNumber && mobileValidation.errorMessage) {
-      return mobileValidation.errorMessage;
-    }
     
     // Birth Date Validation
     if (field === 'birthDate' && profileForm.birthDate) {
@@ -183,14 +176,17 @@ export default function CompleteProfile() {
     return undefined;
   };
 
+
+  // Handle Form Submission and Sign Up with Supabase
   const handleSubmit = async () => {
     setSubmitted(true);
 
+    // set up validation checks for all fields on submit
     const isPostalCodeValidOnSubmit = validatePostalCode();
     const isMobileValidOnSubmit = validateMobileNumber();
-
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
+    // if any validation fails, return early and show errors
     if (
       !isPasswordValid || 
       emptyFields.length > 0 || 
@@ -204,6 +200,7 @@ export default function CompleteProfile() {
     setLoading(true);
 
     try {
+      // Sign up the user with Supabase Auth using email and password
       const { error } = await supabase.auth.signUp({
         email: emailValue!,
         password,
@@ -211,14 +208,16 @@ export default function CompleteProfile() {
       });
       if (error) throw error;
 
-    setData({
-      ...rest,
-      postalCode,
-      password,
-      mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
-      userSide: userSide as 'tenant' | 'landlord',
-    });
+      // Set the data to the registration store for the OTP verification step
+      setData({
+        ...rest,
+        postalCode,
+        password,
+        mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
+        userSide: userSide as 'tenant' | 'landlord',
+      });
 
+      // Navigate to OTP verification screen with email as param
       router.push({ pathname: '/(auth)/otp-verification', params: { email: emailValue } });
     } catch (err: any) {
       setError(err.message);
@@ -233,21 +232,42 @@ export default function CompleteProfile() {
     router.back();
   }
 
-  return (
-    <ScreenWrapper
-      scrollable
-      className='p-5'
-    >
+  const handleCityChange = (city: string | null) => {
+    if (!city) return;
 
+    updateField('city', city);
+    updateField('barangay', '');
+
+    const code = getPostalCode(city);
+    if (code) {
+      setPostalCode(code);
+    }
+  };
+
+  const handleProvinceChange = (province: string | null) => {
+    if (!province) return;
+    updateField('province', province);
+    updateField('city', '');
+    updateField('barangay', '');
+    setPostalCode('');
+  };
+
+  const citiesForSelectedProvince = profileForm.province
+    ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
+    : [];
+  const barangaysForSelectedCity = profileForm.city ? getBarangaysByCity(profileForm.city) : [];
+
+  return (
+    <ScreenWrapper scrollable className="p-5">
       {/* Back button */}
-      <CloseButton 
-        onPress={handleBackToSignUp} 
+      <CloseButton
+        onPress={handleBackToSignUp}
         iconProps={{ size: 20, color: COLORS.text }}
       />
 
       {/* Title */}
       <Text className="text-2xl text-text font-interSemiBold my-5">
-        Complete Your {userSide === 'landlord' ? "Landlord " : "Tenant"} Profile
+        Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
       {/* Form Inputs */}
@@ -269,33 +289,27 @@ export default function CompleteProfile() {
         </Text>
 
         {/* First Name Field */}
-        <TextField 
-          isRequired 
-          isInvalid={!!getError('firstName')}
-        >
+        <TextField isRequired isInvalid={!!getError("firstName")}>
           <Label>First Name:</Label>
           <Input
             placeholder="Enter your first name"
-            onChangeText={(value) => updateField('firstName', value)}
+            onChangeText={(value) => updateField("firstName", value)}
           />
-          {getError('firstName') && 
-            <FieldError>{getError('firstName')}</FieldError>
-          }
+          {getError("firstName") && (
+            <FieldError>{getError("firstName")}</FieldError>
+          )}
         </TextField>
 
         {/* Last Name Field */}
-        <TextField 
-          isRequired 
-          isInvalid={!!getError('lastName')}
-        >
+        <TextField isRequired isInvalid={!!getError("lastName")}>
           <Label>Last Name:</Label>
           <Input
             placeholder="Enter your last name"
-            onChangeText={(value) => updateField('lastName', value)}
+            onChangeText={(value) => updateField("lastName", value)}
           />
-          {getError('lastName') && 
-            <FieldError>{getError('lastName')}</FieldError>
-          }
+          {getError("lastName") && (
+            <FieldError>{getError("lastName")}</FieldError>
+          )}
         </TextField>
 
         {/* Middle Name Field */}
@@ -303,18 +317,18 @@ export default function CompleteProfile() {
           <Label>Middle Name:</Label>
           <Input
             placeholder="Enter your middle name"
-            onChangeText={(value) => updateField('middleName', value)}
+            onChangeText={(value) => updateField("middleName", value)}
           />
         </TextField>
 
         {/* Suffix Name Field */}
-        <DropdownField 
+        <DropdownField
           label="Suffix Name:"
           bottomSheetLabel="Select your suffix name"
           placeholder="No suffix"
           options={SUFFIXES}
           value={profileForm.suffixName}
-          onSelect={(value) => updateField('suffixName', value)}
+          onSelect={(value) => updateField("suffixName", value)}
         />
 
         {/* Gender Field */}
@@ -324,29 +338,26 @@ export default function CompleteProfile() {
           placeholder="Select your gender"
           options={GENDERS}
           value={profileForm.gender}
-          onSelect={(value) => updateField('gender', value)}
+          onSelect={(value) => updateField("gender", value)}
           required
-          error={getError('gender')}
+          error={getError("gender")}
         />
 
         {/* Date of Birth Field */}
         <DateTimeField
-          label='Date of Birth:'
-          placeholder='Select your date of birth'
+          label="Date of Birth:"
+          placeholder="Select your date of birth"
           required
           value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
           onChange={(date) => {
             const formattedDate = date.toISOString().split("T")[0];
-            updateField('birthDate', formattedDate);
+            updateField("birthDate", formattedDate);
           }}
-          error={getError('birthDate')}
+          error={getError("birthDate")}
         />
 
         {/* Mobile Number Field */}
-        <TextField 
-          isRequired 
-          isInvalid={!!getError('mobileNumber')}
-        >
+        <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
           <Label>Mobile Number:</Label>
           <Input
             placeholder="Enter your mobile number"
@@ -355,12 +366,11 @@ export default function CompleteProfile() {
             value={mobileNumber}
             onChangeText={(value) => {
               onMobileChange(value);
-              updateField('mobileNumber', value);
             }}
           />
-          {getError('mobileNumber') && 
-            <FieldError>{getError('mobileNumber')}</FieldError>
-          }
+          {mobileValidation.errorMessage && (
+            <FieldError>{mobileValidation.errorMessage}</FieldError>
+          )}
         </TextField>
 
         <Separator />
@@ -372,36 +382,6 @@ export default function CompleteProfile() {
           Address Information
         </Text>
 
-        {/* Current Address Field */}
-        <TextField isRequired isInvalid={!!getError('currentAddress')}>
-          <Label>Current Address:</Label>
-          <Input
-            placeholder="Enter your current address"
-            onChangeText={(value) => updateField('currentAddress', value)}
-          />
-          {getError('currentAddress') && <FieldError>{getError('currentAddress')}</FieldError>}
-        </TextField>
-
-        {/* Barangay Field */}
-        <TextField isRequired isInvalid={!!getError('barangay')}>
-          <Label>Barangay:</Label>
-          <Input
-            placeholder="Enter your barangay"
-            onChangeText={(value) => updateField('barangay', value)}
-          />
-          {getError('barangay') && <FieldError>{getError('barangay')}</FieldError>}
-        </TextField>
-
-        {/* City Field */}
-        <TextField isRequired isInvalid={!!getError('city')}>
-          <Label>City:</Label>
-          <Input
-            placeholder="Enter your city"
-            onChangeText={(value) => updateField('city', value)}
-          />
-          {getError('city') && <FieldError>{getError('city')}</FieldError>}
-        </TextField>
-
         {/* Province Field */}
         <DropdownField
           label="Province:"
@@ -409,16 +389,46 @@ export default function CompleteProfile() {
           placeholder="Select your province"
           options={PROVINCES}
           value={profileForm.province}
-          onSelect={(value) => updateField('province', value)}
+          onSelect={handleProvinceChange}
           enableSearch
           searchPlaceholder="Search provinces..."
           required
-          error={getError('province')}
+          error={getError("province")}
+        />
+
+        {/* City Field */}
+        <DropdownField
+          label="City:"
+          bottomSheetLabel="Select your city"
+          placeholder="Select your city"
+          options={profileForm.province ? citiesForSelectedProvince : []}
+          value={profileForm.city}
+          onSelect={handleCityChange}
+          required
+          error={getError("city")}
+          enableSearch
+          searchPlaceholder="Search cities..."
+          disabled={!profileForm.province}
+        />
+
+        {/* Barangay Field */}
+        <DropdownField
+          label="Barangay:"
+          bottomSheetLabel="Select your barangay"
+          placeholder="Select your barangay"
+          options={profileForm.city ? barangaysForSelectedCity : []}
+          value={profileForm.barangay}
+          onSelect={(value) => updateField("barangay", value)}
+          required
+          error={getError("barangay")}
+          enableSearch
+          searchPlaceholder="Search barangays..."
+          disabled={!profileForm.city}
         />
 
         {/* Postal Code Field */}
-        <TextField isRequired isInvalid={!!getError('postalCode')}>
-          <Label>Postal Code</Label>
+        <TextField isRequired isInvalid={!!postalCodeError}>
+          <Label>Postal Code:</Label>
           <Input
             placeholder="Enter your postal code"
             keyboardType="numeric"
@@ -426,26 +436,36 @@ export default function CompleteProfile() {
             value={postalCode}
             onChangeText={(value) => {
               handlePostalCodeChange(value);
-              updateField('postalCode', value);
             }}
             onBlur={handlePostalCodeBlur}
           />
-          {getError('postalCode') && (
-            <FieldError>{getError('postalCode')}</FieldError>
+          {postalCodeError && (
+            <FieldError>{postalCodeError}</FieldError>
+          )}
+        </TextField>
+
+        {/* Street Address Field */}
+        <TextField isRequired isInvalid={!!getError("streetAddress")}>
+          <Label>Street Address:</Label>
+          <Input
+            className="shadow-none"
+            placeholder="Enter your street address"
+            onChangeText={(value) => updateField("streetAddress", value)}
+          />
+          {getError("streetAddress") && (
+            <FieldError>{getError("streetAddress")}</FieldError>
           )}
         </TextField>
 
         <Separator />
-        
+
         {/* 
           ===== Account Security Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">
-          Account Security
-        </Text>
+        <Text className="text-xl font-interMedium mt-3">Account Security</Text>
 
         {/* Password Field */}
-        <TextField isRequired isInvalid={!!getError('password')}>
+        <TextField isRequired isInvalid={!!getError("password")}>
           <Label>Password:</Label>
           <Input
             placeholder="Create a password"
@@ -453,14 +473,16 @@ export default function CompleteProfile() {
             value={password}
             onChangeText={(value) => {
               setPassword(value);
-              updateField('password', value);
+              updateField("password", value);
             }}
           />
-          {getError('password') && <FieldError>{getError('password')}</FieldError>}
+          {getError("password") && (
+            <FieldError>{getError("password")}</FieldError>
+          )}
         </TextField>
 
         {/* Confirm Password Field */}
-        <TextField isRequired isInvalid={!!getError('confirmPassword')}>
+        <TextField isRequired isInvalid={!!getError("confirmPassword")}>
           <Label>Confirm Password:</Label>
           <Input
             placeholder="Confirm your password"
@@ -468,36 +490,52 @@ export default function CompleteProfile() {
             value={confirmPassword}
             onChangeText={(value) => {
               setConfirmPassword(value);
-              updateField('confirmPassword', value);
+              updateField("confirmPassword", value);
             }}
           />
-          {getError('confirmPassword') && <FieldError>{getError('confirmPassword')}</FieldError>}
+          {getError("confirmPassword") && (
+            <FieldError>{getError("confirmPassword")}</FieldError>
+          )}
         </TextField>
 
         {/* Password Checker */}
         <View className="flex-col gap-1">
-          <Text className='text-text font-interMedium mb-2'>
+          <Text className="text-text font-interMedium mb-2">
             Your password must contain:
           </Text>
 
           {/* Minimum Length of 8 Char */}
           <View className="flex-row items-center gap-2">
             <Ionicons
-              name={passwordRequirements.minLength ? "checkmark-circle" : "remove"}
+              name={
+                passwordRequirements.minLength ? "checkmark-circle" : "remove"
+              }
               size={24}
-              color={passwordRequirements.minLength ? COLORS.greenHulk : COLORS.lightGrey}
+              color={
+                passwordRequirements.minLength
+                  ? COLORS.greenHulk
+                  : COLORS.lightGrey
+              }
             />
-            <Text className='text-text font-inter'>At least 8 characters</Text>
+            <Text className="text-text font-inter">At least 8 characters</Text>
           </View>
 
           {/* At least one lowercase letter (a–z) */}
           <View className="flex-row items-center gap-2">
             <Ionicons
-              name={passwordRequirements.hasLowercase ? "checkmark-circle" : "remove"}
+              name={
+                passwordRequirements.hasLowercase
+                  ? "checkmark-circle"
+                  : "remove"
+              }
               size={24}
-              color={passwordRequirements.hasLowercase ? COLORS.greenHulk : COLORS.lightGrey}
+              color={
+                passwordRequirements.hasLowercase
+                  ? COLORS.greenHulk
+                  : COLORS.lightGrey
+              }
             />
-            <Text className='text-text font-inter'>
+            <Text className="text-text font-inter">
               At least one lowercase letter (a–z)
             </Text>
           </View>
@@ -505,11 +543,19 @@ export default function CompleteProfile() {
           {/* At least one uppercase letter (A–Z) */}
           <View className="flex-row items-center gap-2">
             <Ionicons
-              name={passwordRequirements.hasUppercase ? "checkmark-circle" : "remove"}
+              name={
+                passwordRequirements.hasUppercase
+                  ? "checkmark-circle"
+                  : "remove"
+              }
               size={24}
-              color={passwordRequirements.hasUppercase ? COLORS.greenHulk : COLORS.lightGrey}
+              color={
+                passwordRequirements.hasUppercase
+                  ? COLORS.greenHulk
+                  : COLORS.lightGrey
+              }
             />
-            <Text className='text-text font-inter'>
+            <Text className="text-text font-inter">
               At least one uppercase letter (A–Z)
             </Text>
           </View>
@@ -517,11 +563,17 @@ export default function CompleteProfile() {
           {/* At least one number (0–9) */}
           <View className="flex-row items-center gap-2">
             <Ionicons
-              name={passwordRequirements.hasNumber ? "checkmark-circle" : "remove"}
+              name={
+                passwordRequirements.hasNumber ? "checkmark-circle" : "remove"
+              }
               size={24}
-              color={passwordRequirements.hasNumber ? COLORS.greenHulk : COLORS.lightGrey}
+              color={
+                passwordRequirements.hasNumber
+                  ? COLORS.greenHulk
+                  : COLORS.lightGrey
+              }
             />
-            <Text className='text-text font-inter'>
+            <Text className="text-text font-inter">
               At least one number (0–9)
             </Text>
           </View>
@@ -529,11 +581,19 @@ export default function CompleteProfile() {
           {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
           <View className="flex-row items-center gap-2">
             <Ionicons
-              name={passwordRequirements.hasSpecialChar ? "checkmark-circle" : "remove"}
+              name={
+                passwordRequirements.hasSpecialChar
+                  ? "checkmark-circle"
+                  : "remove"
+              }
               size={24}
-              color={passwordRequirements.hasSpecialChar ? COLORS.greenHulk : COLORS.lightGrey}
+              color={
+                passwordRequirements.hasSpecialChar
+                  ? COLORS.greenHulk
+                  : COLORS.lightGrey
+              }
             />
-            <Text className='text-text font-inter'>
+            <Text className="text-text font-inter">
               at least one special character (e.g. ! @ # $ % ^ & *)
             </Text>
           </View>
@@ -543,16 +603,10 @@ export default function CompleteProfile() {
       {/* Submit Button */}
       <View className="mt-16 mb-0">
         <Button onPress={handleSubmit} isDisabled={loading}>
-          <Button.Label>
-            {loading ? 'Please wait...' : 'Submit'}
-          </Button.Label>
-          {loading && 
-            <Spinner 
-              size="sm" 
-              color={COLORS.white} 
-              className="ml-2" 
-            />
-          }
+          <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
+          {loading && (
+            <Spinner size="sm" color={COLORS.white} className="ml-2" />
+          )}
         </Button>
       </View>
 
@@ -579,15 +633,12 @@ export default function CompleteProfile() {
                 onPress={() => setErrorDialogOpen(false)}
                 variant="secondary"
               >
-                <Button.Label>
-                  Dismiss
-                </Button.Label>
+                <Button.Label>Dismiss</Button.Label>
               </Button>
             </View>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog>
-
     </ScreenWrapper>
-  )
+  );
 }

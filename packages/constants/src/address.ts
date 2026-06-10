@@ -237,3 +237,11 @@ export const CITIES = {
     "Turtle Islands",
   ],
 };
+
+export type Province = keyof typeof CITIES;
+
+export const PROVINCES = Object.keys(CITIES) as Province[];
+
+export function getCitiesByProvince(province: Province): string[] {
+  return CITIES[province] ?? [];
+}

@@ -18,6 +18,8 @@ function lookupLocation(zip: string): PHLocation | null {
 interface UsePHPostalCodeReturn {
   /** Current input value */
   value: string;
+  /** Imperatively set the value (e.g. for resetting) */
+  setValue: (value: string) => void;
   /** True when the 4-digit zip passes format AND range check */
   isValid: boolean;
   /** True after the user has blurred the field at least once */
@@ -59,7 +61,6 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
     if (!/^\d+$/.test(value)) return "ZIP code must contain numbers only.";
     if (value.length !== 4) return "ZIP code must be exactly 4 digits.";
     if (!isValid) return "Invalid Philippine ZIP code (valid range: 1000–9999).";
-    if (value.length === 4 && !location) return "ZIP code not found in Philippine database.";
     return null;
   })();
 
@@ -89,6 +90,7 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
 
   return {
     value,
+    setValue,
     isValid,
     isTouched,
     error,
