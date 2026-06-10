@@ -79,6 +79,8 @@ export function useGoogleAuth() {
           params: {
             email: data.session.user.email ?? "",
             userSide: role,
+            firstName: data.session.user.user_metadata?.full_name?.split(" ")[0] ?? "",
+            lastName: data.session.user.user_metadata?.full_name?.split(" ")[1] ?? "",
           },
         });
         return;

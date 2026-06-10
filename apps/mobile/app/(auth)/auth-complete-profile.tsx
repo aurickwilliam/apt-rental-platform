@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
+import { useEffect, useRef, useState } from 'react';
+
 
 import {
   COLORS,
@@ -28,7 +29,6 @@ import { useRegistrationStore } from '@/store/useRegistrationStore';
 import { getProfileSubmitError } from '@repo/utils';
 
 import { 
-  CloseButton,
   TextField,
   Label,
   Input,
@@ -66,11 +66,17 @@ const requiredFields: (keyof ProfileForm)[] = [
 
 export default function AuthCompleteProfile() {
   const router = useRouter();
+  const navigation = useNavigation();
 
-  const { email, userSide } = useLocalSearchParams();
-  const { setData, reset, data } = useRegistrationStore();
+  const canLeave = useRef(false);
+
+  const { email, userSide, firstName, lastName } = useLocalSearchParams();
 
   const emailValue = Array.isArray(email) ? email[0] : email;
+  const firstNameValue = Array.isArray(firstName) ? firstName[0] : (firstName ?? "");
+  const lastNameValue = Array.isArray(lastName) ? lastName[0] : (lastName ?? "");
+
+  const { setData, data } = useRegistrationStore();
 
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
@@ -78,8 +84,8 @@ export default function AuthCompleteProfile() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
   const [profileForm, setProfileForm] = useState<ProfileForm>({
-    firstName: "",
-    lastName: "",
+    firstName: firstNameValue,
+    lastName: lastNameValue,
     middleName: "",
     suffixName: "",
     gender: "",
@@ -108,6 +114,14 @@ export default function AuthCompleteProfile() {
     onChange: onMobileChange,
     validate: validateMobileNumber,
   } = usePHMobileValidation(data.mobileNumber ?? "");
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (canLeave.current) return; 
+      e.preventDefault(); // block all back navigation
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
     setProfileForm(prev => ({ ...prev, [key]: value }));
@@ -191,7 +205,8 @@ export default function AuthCompleteProfile() {
         mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
         userSide: userSide as 'tenant' | 'landlord',
       });
-
+      
+      canLeave.current = true;
       router.replace(
         userSide === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
@@ -203,11 +218,6 @@ export default function AuthCompleteProfile() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBack = () => {
-    reset();
-    router.back();
   };
 
   const handleCityChange = (city: string | null) => {
@@ -235,12 +245,6 @@ export default function AuthCompleteProfile() {
 
   return (
     <ScreenWrapper scrollable className="p-5">
-      {/* Back button */}
-      <CloseButton
-        onPress={handleBack}
-        iconProps={{ size: 20, color: COLORS.text }}
-      />
-
       {/* Title */}
       <Text className="text-2xl text-text font-interSemiBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
@@ -267,6 +271,7 @@ export default function AuthCompleteProfile() {
           <Label>First Name:</Label>
           <Input
             placeholder="Enter your first name"
+            value={profileForm.firstName}
             onChangeText={(value) => updateField("firstName", value)}
           />
           {getError("firstName") && (
@@ -279,6 +284,7 @@ export default function AuthCompleteProfile() {
           <Label>Last Name:</Label>
           <Input
             placeholder="Enter your last name"
+            value={profileForm.lastName}
             onChangeText={(value) => updateField("lastName", value)}
           />
           {getError("lastName") && (
@@ -291,6 +297,7 @@ export default function AuthCompleteProfile() {
           <Label>Middle Name:</Label>
           <Input
             placeholder="Enter your middle name"
+            value={profileForm.middleName}
             onChangeText={(value) => updateField("middleName", value)}
           />
         </TextField>
