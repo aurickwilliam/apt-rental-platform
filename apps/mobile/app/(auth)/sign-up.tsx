@@ -6,6 +6,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
 import RoleTab from "./components/RoleTab";
 import AuthButton from "./components/AuthButton";
+import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
@@ -23,7 +24,6 @@ import {
   FieldError, 
   Button,
   Input, 
-  Dialog,
   Spinner,
 } from "heroui-native";
 
@@ -221,41 +221,15 @@ export default function SignUp() {
         </View>
       </View>
 
-      <Dialog
+      {/* Error Dialog */}
+      <ErrorDialog 
         isOpen={!!(serverError || googleError)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setServerError("");
-            resetGoogleError(); 
-          }
+        onClose={() => {
+          setServerError("");
+          resetGoogleError(); 
         }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay />
-
-          <Dialog.Content>
-            <Dialog.Close />
-
-            <View className="my-4 gap-1.5">
-              <Dialog.Title>Something went wrong</Dialog.Title>
-              <Dialog.Description>
-                {googleError || serverError}
-              </Dialog.Description>
-            </View>
-            <View className="flex-row justify-end">
-              <Button
-                size="sm"
-                onPress={() => {
-                  setServerError("");
-                  resetGoogleError();
-                }}
-              >
-                <Button.Label>Got it</Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+        message={googleError || serverError || "Something went wrong. Please try again."}
+      />
     </ScreenWrapper>
   );
 }
