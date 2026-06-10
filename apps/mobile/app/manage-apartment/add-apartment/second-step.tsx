@@ -297,7 +297,7 @@ export default function SecondStep() {
               value={apartmentType}
               error={errors.apartmentType}
               onSelect={(value) => {
-                setField('apartmentType', value)
+                setField('apartmentType', value || '')
                 clearError('apartmentType')
               }}
             />
@@ -339,7 +339,7 @@ export default function SecondStep() {
               value={furnishingType}
               error={errors.furnishingType}
               onSelect={(value) => {
-                setField('furnishingType', value)
+                setField('furnishingType', value || '')
                 clearError('furnishingType')
               }}
             />
@@ -354,7 +354,7 @@ export default function SecondStep() {
               disabled={isFloorLevelDisabled}
               error={errors.floorLevel}
               onSelect={(value) => {
-                setField('floorLevel', value)
+                setField('floorLevel', value || '')
                 clearError('floorLevel')
               }}
             />
@@ -371,7 +371,7 @@ export default function SecondStep() {
               value={leaseDuration}
               error={errors.leaseDuration}
               onSelect={(value) => {
-                setField('leaseDuration', value)
+                setField('leaseDuration', value || '')
                 clearError('leaseDuration')
               }}
             />
@@ -525,7 +525,7 @@ export default function SecondStep() {
                 setField('city', '')
                 clearError('city')
               }
-              setField('province', value)
+              setField('province', value || '')
               clearError('province')
             }}
             enableSearch
@@ -542,7 +542,7 @@ export default function SecondStep() {
             options={cityOptions}
             value={city}
             onSelect={(value) => {
-              setField('city', value)
+              setField('city', value || '')
               clearError('city')
             }}
             enableSearch
