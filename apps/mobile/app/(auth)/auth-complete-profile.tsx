@@ -15,6 +15,7 @@ import {
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
+import ErrorDialog from '@/components/display/ErrorDialog';
 
 import { 
   usePHMobileValidation, 
@@ -23,6 +24,8 @@ import {
 
 import { supabase } from "@repo/supabase";
 import { useRegistrationStore } from '@/store/useRegistrationStore';
+
+import { getProfileSubmitError } from '@repo/utils';
 
 import { 
   CloseButton,
@@ -33,12 +36,7 @@ import {
   Button,
   Separator,
   Spinner,
-  Dialog,
 } from 'heroui-native';
-
-import { 
-  CircleAlert
-} from "lucide-react-native";
 
 type ProfileForm = {
   firstName: string;
@@ -200,7 +198,7 @@ export default function AuthCompleteProfile() {
           : "../(tabs)/(tenant)/rentals",
       );
     } catch (err: any) {
-      setError(err.message);
+      setError(getProfileSubmitError(err));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);
@@ -445,34 +443,11 @@ export default function AuthCompleteProfile() {
       </View>
 
       {/* Error Dialog */}
-      <Dialog isOpen={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <Dialog.Close variant="ghost" className="absolute top-3 right-3" />
-
-            <View className="mb-5 gap-1.5">
-              <View className="flex-row items-center gap-2">
-                <CircleAlert size={20} color={COLORS.lightRedHead} />
-                <Dialog.Title className="text-redHead-100">
-                  Something went wrong
-                </Dialog.Title>
-              </View>
-              <Dialog.Description>{error}</Dialog.Description>
-            </View>
-
-            <View className="flex-row justify-end">
-              <Button
-                size="sm"
-                onPress={() => setErrorDialogOpen(false)}
-                variant="secondary"
-              >
-                <Button.Label>Dismiss</Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      <ErrorDialog 
+        isOpen={errorDialogOpen}
+        onClose={() => setErrorDialogOpen(false)}
+        message={error}
+      />
     </ScreenWrapper>
   );
 }
