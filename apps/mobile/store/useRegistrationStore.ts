@@ -6,17 +6,21 @@ type RegistrationData = {
   firstName: string;
   lastName: string;
   middleName: string;
+  suffixName: string;
   gender: string;
+  birthDate: string;
+
   currentAddress: string;
   barangay: string;
   city: string;
   province: string;
   postalCode: string;
-  birthDate: string;
+
   password: string;
+  
   userSide: string;
 
-  // From  VerifyMobile
+  // From VerifyMobile
   mobileNumber: string;
 }
 

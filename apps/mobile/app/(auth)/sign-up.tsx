@@ -31,14 +31,15 @@ export default function SignUp() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
 
-    const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
 
-  // Keep these strictly separated:
   const [emailError, setEmailError] = useState<string>("");
   const [serverError, setServerError] = useState<string>("");
 
+
+  // Change the User Side when tabs are switched, default to tenant
   useEffect(() => {
     setUserSide(userType === "landlord" ? "landlord" : "tenant");
   }, [userType]);
@@ -63,9 +64,11 @@ export default function SignUp() {
   };
 
   const handleSignUp = async () => {
+    // Clear errors before validating
     setEmailError("");
     setServerError("");
 
+    // Check for basic validation of email
     if (!email.trim()) {
       setEmailError("Email address is required.");
       return;
@@ -79,21 +82,26 @@ export default function SignUp() {
     try {
       setCheckingEmail(true);
 
+      // Check if the email has already been registered
       const { count, error } = await supabase
         .from("users")
         .select("id", { count: "exact", head: true })
         .eq("email", email.trim().toLowerCase());
-
+      
+      // Display Error if there's an issue with the query
       if (error) {
         setServerError("Something went wrong. Please try again.");
         return;
       }
 
+      // If the email is already registered, show an error
       if (count && count > 0) {
         setServerError("This email is already registered. Please sign in instead.");
         return;
       }
 
+      // If the email is not registered, proceed to Complete Profile page
+      // With email and user side as params
       router.push({
         pathname: "/(auth)/complete-profile",
         params: { 
