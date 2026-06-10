@@ -1,11 +1,12 @@
 import { View, Text, Pressable, Platform, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 
 import { COLORS } from "@repo/constants";
 
-interface DateTimeFieldProps {
+import { Calendar } from "lucide-react-native";
+
+interface DateFieldProps {
   label?: string;
   placeholder?: string;
   value?: Date | null;
@@ -15,7 +16,7 @@ interface DateTimeFieldProps {
   required?: boolean;
 }
 
-export default function DateTimeField({
+export default function DateField({
   label,
   placeholder = "Select date",
   value,
@@ -23,7 +24,7 @@ export default function DateTimeField({
   disabled = false,
   error,
   required = false,
-}: DateTimeFieldProps) {
+}: DateFieldProps) {
   const [show, setShow] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(value ?? new Date());
@@ -87,7 +88,7 @@ export default function DateTimeField({
         <Text className={`font-inter ${value ? "text-text" : "text-grey-500"}`}>
           {displayValue}
         </Text>
-        <Ionicons name="calendar-outline" size={24} color={COLORS.mediumGrey} />
+        <Calendar size={20} color={COLORS.mediumGrey} />
       </Pressable>
 
       {error && (

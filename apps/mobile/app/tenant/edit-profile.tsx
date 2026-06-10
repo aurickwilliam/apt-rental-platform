@@ -7,7 +7,7 @@ import PillButton from 'components/buttons/PillButton'
 import Divider from 'components/display/Divider'
 import DropdownField from 'components/inputs/DropdownField'
 import TextField from 'components/inputs/TextField'
-import DateTimeField from 'components/inputs/DateTimeField'
+import DateTimeField from '@/components/inputs/DateField'
 import NumberField from 'components/inputs/NumberField'
 
 import { SAMPLE_IMAGES } from 'constants/images'

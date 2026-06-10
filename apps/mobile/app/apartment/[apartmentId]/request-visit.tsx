@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import DateTimeField from 'components/inputs/DateTimeField'
+import DateTimeField from '@/components/inputs/DateField'
 import DropdownButton from 'components/buttons/DropdownButton'
 import TextBox from 'components/inputs/TextBox'
 import PillButton from 'components/buttons/PillButton'
