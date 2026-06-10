@@ -18,6 +18,8 @@ import * as WebBrowser from "expo-web-browser";
 
 import { COLORS } from "@repo/constants";
 
+import { supabase } from "@repo/supabase";
+
 if (typeof global.crypto !== "object") {
   global.crypto = {} as any;
 }
@@ -46,14 +48,36 @@ export default function RootLayout() {
 
   // Check if the fonts have loaded or if there was an error
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    if (fontsLoaded || fontError) return;
+    
+    SplashScreen.hideAsync();
 
-      // if (__DEV__) {
-      //   router.replace('/manage-apartment/add-apartment/success');
-      // }
-    }
-  }, [fontsLoaded, fontError]);
+    // if (__DEV__) {
+    //   router.replace('/manage-apartment/add-apartment/success');
+    // }
+
+     // Redirect incomplete profiles on every app open
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role, mobile_number')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profile && !profile.mobile_number) {
+        router.replace({
+          pathname: '/(auth)/auth-complete-profile',
+          params: {
+            email: session.user.email ?? '',
+            userSide: profile.role ?? 'tenant',
+          },
+        });
+      }
+    })();
+  }, [fontsLoaded, fontError, router]);
 
   if (!fontsLoaded && !fontError) {
     return null;
