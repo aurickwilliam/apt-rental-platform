@@ -74,7 +74,13 @@ export function useGoogleAuth() {
       const isProfileComplete = !!profile.mobile_number;
 
       if (!isProfileComplete) {
-        router.replace("../(auth)/auth-complete-profile");
+        router.replace({
+          pathname: "../(auth)/auth-complete-profile",
+          params: {
+            email: data.session.user.email ?? "",
+            userSide: role,
+          },
+        });
         return;
       }
 
