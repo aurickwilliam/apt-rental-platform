@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import { IMAGES } from "constants/images";
-import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
@@ -29,12 +28,15 @@ import {
 } from "lucide-react-native";
 
 import { supabase } from "@repo/supabase";
+
 import { useGoogleAuth } from "hooks/useGoogleAuth";
+import { useColors } from "hooks/useTheme";
 
 import { isValidEmail } from "@repo/utils";
 
 export default function SignIn() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -183,11 +185,11 @@ export default function SignIn() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className="text-4xl text-text font-nunitoSemiBold">
+        <Text className="text-4xl text-foreground font-nunitoSemiBold">
           Welcome Back!
         </Text>
 
-        <Text className="text-base text-text font-interMedium">
+        <Text className="text-base text-muted font-interMedium">
           {userSide === "tenant"
             ? "Log in to continue your apartment journey."
             : "Access your listings and manage your tenants easily."}
@@ -247,9 +249,9 @@ export default function SignIn() {
                   hitSlop={20}
                 >
                   {showPassword ? (
-                    <EyeOff size={20} color={COLORS.light.gray400} />
+                    <EyeOff size={20} color={colors.gray400} />
                   ) : (
-                    <Eye size={20} color={COLORS.light.gray400} />
+                    <Eye size={20} color={colors.gray400} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>
@@ -285,7 +287,7 @@ export default function SignIn() {
           {loading && (
             <Spinner
               size="sm"
-              color={COLORS.light.white}
+              color={colors.white}
               className="ml-2"
             />
           )}
@@ -310,7 +312,7 @@ export default function SignIn() {
 
       <View className="mb-8 mt-10 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
+          <Text className="text-foreground font-inter">
             New here?
           </Text>
 
@@ -318,7 +320,7 @@ export default function SignIn() {
             onPress={() => router.replace("/sign-up")}
             className="p-0"
           >
-            <LinkButton.Label className="text-primary font-interMedium underline">
+            <LinkButton.Label className="text-accent font-interMedium underline">
               Sign Up
             </LinkButton.Label>
           </LinkButton>

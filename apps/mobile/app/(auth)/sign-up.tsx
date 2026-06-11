@@ -9,9 +9,10 @@ import AuthButton from "./components/AuthButton";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { IMAGES } from "constants/images";
-import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
+import { useColors } from "hooks/useTheme";
+
 import { supabase } from "@repo/supabase"
 
 import { isValidEmail } from "@repo/utils";
@@ -30,6 +31,8 @@ import {
 export default function SignUp() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
+
+  const { colors } = useColors();
 
   const [email, setEmail] = useState<string>("");
   const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
@@ -130,11 +133,11 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className="text-3xl text-text font-nunitoSemiBold">
+        <Text className="text-3xl text-foreground font-nunitoSemiBold">
           Create Your Account
         </Text>
 
-        <Text className="text-base text-text font-interMedium">
+        <Text className="text-base text-muted font-interMedium">
           {userSide === "tenant"
             ? "Join as tenant to start renting."
             : "Join us and start listing your properties in minutes."}
@@ -181,7 +184,7 @@ export default function SignUp() {
           {checkingEmail && (
             <Spinner
               size="sm"
-              color={COLORS.white}
+              color={colors.white}
               className="ml-2"
             />
           )}
@@ -206,7 +209,7 @@ export default function SignUp() {
       {/* Footer links */}
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
-          <Text className="text-text font-inter">
+          <Text className="text-foreground font-inter">
             Already have an account?
           </Text>
 
@@ -214,7 +217,7 @@ export default function SignUp() {
             onPress={() => router.replace("/sign-in")}
             className="p-0"
           >
-            <LinkButton.Label className="text-primary font-interMedium underline">
+            <LinkButton.Label className="text-accent font-interMedium underline">
               Sign In
             </LinkButton.Label>
           </LinkButton>
