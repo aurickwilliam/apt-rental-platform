@@ -9,7 +9,7 @@ import { Button } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
 
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 setAccessToken(null)
 

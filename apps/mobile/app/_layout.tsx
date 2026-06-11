@@ -20,6 +20,19 @@ import { COLORS } from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
 
+import { Appearance } from "react-native";         
+import { useThemeStore } from "../stores/useThemeStore";
+
+function ThemeInitializer() {
+  const { themeMode } = useThemeStore();
+
+  useEffect(() => {
+    Appearance.setColorScheme(themeMode === "system" ? null : themeMode);
+  }, [themeMode]);
+
+  return null;
+}
+
 if (typeof global.crypto !== "object") {
   global.crypto = {} as any;
 }
@@ -45,6 +58,7 @@ export default function RootLayout() {
     "Nunito-SemiBold": require("../assets/fonts/Nunito-SemiBold.ttf"),
     "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
   });
+
 
   // Check if the fonts have loaded or if there was an error
   useEffect(() => {
@@ -87,9 +101,10 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeInitializer />
       <HeroUINativeProvider>
         <PortalProvider>
-          <StatusBar style="light" backgroundColor={COLORS.primary} />
+          <StatusBar style="light" backgroundColor={COLORS.light.primary} />
           <BottomSheetModalProvider>
             <Stack
               screenOptions={{

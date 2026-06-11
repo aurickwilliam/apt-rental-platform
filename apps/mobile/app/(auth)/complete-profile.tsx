@@ -24,7 +24,7 @@ import {
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
-import { useRegistrationStore } from '@/store/useRegistrationStore';
+import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
 import { 
   CloseButton,

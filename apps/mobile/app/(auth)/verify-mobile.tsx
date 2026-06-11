@@ -10,7 +10,7 @@ import { IconChevronLeft, IconAlertCircle } from "@tabler/icons-react-native";
 
 import { usePHMobileValidation } from "@repo/hooks";
 
-import { useRegistrationStore } from "@/store/useRegistrationStore";
+import { useRegistrationStore } from "@/stores/useRegistrationStore";
 
 import { supabase } from "@repo/supabase";
 

@@ -11,7 +11,7 @@ export default function AuthDivider({ middleText }: AuthDividerProps) {
     <View className="flex-row justify-center items-center my-5">
       <Separator orientation="horizontal" className="flex-1" />
 
-      <Text className="mx-3 text-grey-400 font-inter">
+      <Text className="mx-3 text-gray-400 font-inter">
         {middleText}
       </Text>
 

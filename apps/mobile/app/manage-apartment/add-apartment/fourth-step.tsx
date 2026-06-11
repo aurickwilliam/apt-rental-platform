@@ -9,7 +9,7 @@ import PerkButton from '../components/PerkButton'
 import { TextField, Label, TextArea, FieldError, Button, Chip } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { PERKS } from '@/constants/perks'
 
 export default function FourthStep() {

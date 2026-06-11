@@ -9,7 +9,7 @@ import UploadImageField from '@/components/inputs/UploadImageField'
 import { Button, TextField, Label, Input, FieldError } from "heroui-native"
 
 import { COLORS } from '@repo/constants'
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 interface FormErrors {
   name?: string

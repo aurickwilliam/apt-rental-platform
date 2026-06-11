@@ -10,7 +10,7 @@ import UploadFileField from '@/components/inputs/UploadFileField'
 import { Input, Label, TextField, FieldError, Button } from 'heroui-native'
 
 import { COLORS } from '@repo/constants'
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 type FieldErrors = {
   monthlyRent?: string
