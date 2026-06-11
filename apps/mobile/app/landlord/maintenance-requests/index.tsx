@@ -16,13 +16,13 @@ import { formatDate } from "@repo/utils";
 import {
   STATUS_ORDER,
   useMaintenanceRequestsStore,
-} from "@/store/useMaintenanceRequestsStore";
+} from "@/stores/useMaintenanceRequestsStore";
 
 function EmptyMaintenanceRequests() {
   return (
     <View className="flex-1 items-center justify-center py-20">
       <View className="bg-white rounded-full p-5 mb-4">
-        <IconTool size={32} color={COLORS.grey} />
+        <IconTool size={32} color={COLORS.light.gray400} />
       </View>
       <Text className="text-text text-lg font-interSemiBold">
         No maintenance requests
@@ -67,7 +67,7 @@ export default function MaintenanceRequests() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Maintenance Requests" />}
-      backgroundColor={COLORS.darkerWhite}
+      backgroundColor={COLORS.light.surface}
       scrollable={false}
     >
       <FlatList

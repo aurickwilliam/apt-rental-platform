@@ -247,9 +247,9 @@ export default function SignIn() {
                   hitSlop={20}
                 >
                   {showPassword ? (
-                    <EyeOff size={20} color={COLORS.grey} />
+                    <EyeOff size={20} color={COLORS.light.gray400} />
                   ) : (
-                    <Eye size={20} color={COLORS.grey} />
+                    <Eye size={20} color={COLORS.light.gray400} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>
@@ -285,7 +285,7 @@ export default function SignIn() {
           {loading && (
             <Spinner
               size="sm"
-              color={COLORS.white}
+              color={COLORS.light.white}
               className="ml-2"
             />
           )}

@@ -24,7 +24,7 @@ import {
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native'
 
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 // Suppress the missing API key warning since we're using free OSM tiles
 setAccessToken(null);

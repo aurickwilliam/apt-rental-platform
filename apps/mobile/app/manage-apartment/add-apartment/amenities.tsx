@@ -10,7 +10,7 @@ import Ionicons from '@expo/vector-icons/build/Ionicons'
 
 import { COLORS } from '@repo/constants'
 import { PERKS } from '@/constants/perks'
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 export default function Amenities() {
   const [searchValue, setSearchValue] = useState('')

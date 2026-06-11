@@ -10,7 +10,7 @@ import { COLORS } from '@repo/constants'
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import { supabase } from '@repo/supabase'
-import { useRegistrationStore } from '@/store/useRegistrationStore'
+import { useRegistrationStore } from '@/stores/useRegistrationStore'
 
 import { getProfileSubmitError } from '@repo/utils'
 

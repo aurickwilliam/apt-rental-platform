@@ -31,7 +31,7 @@ import {
   IconCalendar,
 } from '@tabler/icons-react-native'
 
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 import { formatCurrency } from '@repo/utils'
 
