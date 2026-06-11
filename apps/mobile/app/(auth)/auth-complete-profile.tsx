@@ -236,6 +236,7 @@ export default function AuthCompleteProfile() {
     setPostalCode('');
   };
 
+  // Get the options depending on the province selected
   const citiesForSelectedProvince = profileForm.province
     ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
     : [];
