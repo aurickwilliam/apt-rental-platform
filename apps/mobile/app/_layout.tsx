@@ -56,27 +56,29 @@ export default function RootLayout() {
     //   router.replace('/manage-apartment/add-apartment/success');
     // }
 
-     // Redirect incomplete profiles on every app open
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    // REMOVED: Force redirect to complete profile if mobile number is missing
+    
+    // Redirect incomplete profiles on every app open
+    // (async () => {
+    //   const { data: { session } } = await supabase.auth.getSession();
+    //   if (!session) return;
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('role, mobile_number')
-        .eq('user_id', session.user.id)
-        .single();
+    //   const { data: profile } = await supabase
+    //     .from('users')
+    //     .select('role, mobile_number')
+    //     .eq('user_id', session.user.id)
+    //     .single();
 
-      if (profile && !profile.mobile_number) {
-        router.replace({
-          pathname: '/(auth)/auth-complete-profile',
-          params: {
-            email: session.user.email ?? '',
-            userSide: profile.role ?? 'tenant',
-          },
-        });
-      }
-    })();
+    //   if (profile && !profile.mobile_number) {
+    //     router.replace({
+    //       pathname: '/(auth)/auth-complete-profile',
+    //       params: {
+    //         email: session.user.email ?? '',
+    //         userSide: profile.role ?? 'tenant',
+    //       },
+    //     });
+    //   }
+    // })();
   }, [fontsLoaded, fontError, router]);
 
   if (!fontsLoaded && !fontError) {
