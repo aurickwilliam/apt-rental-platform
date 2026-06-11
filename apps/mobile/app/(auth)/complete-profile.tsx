@@ -241,20 +241,20 @@ export default function CompleteProfile() {
   }
 
   const handleCityChange = (city: string | null) => {
-    if (!city) return;
-
-    updateField('city', city);
+    updateField('city', city ?? '');
     updateField('barangay', '');
 
-    const code = getPostalCode(city);
-    if (code) {
-      setPostalCode(code);
+    if (city) {
+      const code = getPostalCode(city);
+      if (code) setPostalCode(code);
+    } else {
+      setPostalCode('');
     }
   };
 
+
   const handleProvinceChange = (province: string | null) => {
-    if (!province) return;
-    updateField('province', province);
+    updateField('province', province ?? '');
     updateField('city', '');
     updateField('barangay', '');
     setPostalCode('');
