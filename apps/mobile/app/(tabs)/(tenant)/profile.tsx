@@ -57,6 +57,7 @@ export default function Profile() {
         email={profile?.email}
         avatarInitials={avatarInitials}
         loading={loading}
+        role={profile?.role}
       />
 
       {!profile?.mobile_number && (

@@ -1,7 +1,9 @@
 import { Image, View } from 'react-native'
-import { Avatar, Text } from 'heroui-native';
+import { Avatar, Chip, Text } from 'heroui-native';
 
 import { COLORS } from "@repo/constants";
+
+import { Home, Building2 } from 'lucide-react-native';
 
 type ProfileHeaderProps = {
   backgroundPhotoUri?: string | null
@@ -11,6 +13,7 @@ type ProfileHeaderProps = {
   email?: string | null
   avatarInitials?: string
   loading?: boolean
+  role?: string | null
 }
 
 export function ProfileHeader({
@@ -21,13 +24,41 @@ export function ProfileHeader({
   email,
   avatarInitials,
   loading = false,
+  role,
 }: ProfileHeaderProps) {
   
-  const fullName = loading ? '...' : `${firstName} ${lastName}`
-  const displayEmail = loading ? '...' : email
+  const fullName = loading ? '...' : `${firstName} ${lastName}`;
+  const displayEmail = loading ? '...' : email;
+
+  type RoleConfig = {
+    [key: string]: {
+      icon: React.ComponentType<{ size: number, color: string }>;
+      iconColor: string;
+      className: string;
+      label: string;
+      labelColor: string;
+    }
+  };
+
+  const roleConfig: RoleConfig = {
+    tenant: {
+      icon: Home,
+      iconColor: COLORS.primary,
+      className: "bg-blue-200",
+      label: "Tenant",
+      labelColor: "text-primary"
+    },
+    landlord: {
+      icon: Building2,
+      iconColor: COLORS.secondary,
+      className: "bg-amber-200",
+      label: "Landlord",
+      labelColor: "text-secondary"
+    },
+  };
 
   return (
-    <View className='relative h-90'>
+    <View className='relative h-98'>
       {/* Background Photo */}
       <View 
         className='w-full h-60 rounded-b-3xl overflow-hidden' 
@@ -61,9 +92,30 @@ export function ProfileHeader({
             {fullName}
           </Text>
 
-          <Text className='text-grey-500 text-lg font-inter'>
+          <Text className='text-grey-500 text-base font-inter'>
             {displayEmail}
           </Text>
+
+          {role && (() => {
+            const {
+              icon: Icon,
+              iconColor,
+              className,
+              label,
+              labelColor,
+            } = roleConfig[role];
+
+            return (
+              <View className='items-center mt-2'>
+                <Chip className={className} variant='soft'>
+                  <Icon size={18} color={iconColor} />
+                  <Chip.Label className={`font-interMedium ${labelColor}`}>
+                    {label}
+                  </Chip.Label>
+                </Chip>
+              </View>
+            );
+          })()}
         </View>
       </View>
     </View>
