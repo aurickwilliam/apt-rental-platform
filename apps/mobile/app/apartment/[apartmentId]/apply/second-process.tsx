@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from 'components/display/ApplicationHeader'
-import DateTimeField from 'components/inputs/DateTimeField'
+import DateTimeField from '@/components/inputs/DateField'
 import DropdownField from 'components/inputs/DropdownField'
 import NumberField from 'components/inputs/NumberField'
 import TextBox from 'components/inputs/TextBox'

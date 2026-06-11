@@ -10,6 +10,7 @@ type UserProfile = {
   avatar_url: string | null;
   account_status: string;
   background_url: string | null;
+  role: string | null;
 };
 
 export function useProfile() {
@@ -22,9 +23,10 @@ export function useProfile() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, email, mobile_number, avatar_url, account_status, background_url')
-        .eq('user_id', user.id)
+        .from("users")
+        .select(
+          "id, first_name, last_name, email, mobile_number, avatar_url, account_status, background_url, role",)
+        .eq("user_id", user.id)
         .single();
 
       if (error) console.error(error);

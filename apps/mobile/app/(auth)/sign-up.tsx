@@ -3,52 +3,77 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import AppInput from "components/inputs/AppInput";
+import AuthDivider from "./components/AuthDivider";
+import RoleTab from "./components/RoleTab";
+import AuthButton from "./components/AuthButton";
+import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
 import { useGoogleAuth } from "hooks/useGoogleAuth";
-
 import { supabase } from "@repo/supabase"
 
-import { Tabs, Text, TextField, LinkButton, Label, FieldError, Button, Separator} from "heroui-native";
+import { isValidEmail } from "@repo/utils";
 
-const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+import { 
+  Text, 
+  TextField, 
+  LinkButton, 
+  Label, 
+  FieldError, 
+  Button,
+  Input, 
+  Spinner,
+} from "heroui-native";
 
 export default function SignUp() {
-  const [email, setEmail] = useState<string>("");
-  const [emailError, setEmailError] = useState<string>("");
-  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
-  const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
-
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType: string }>();
+
+  const [email, setEmail] = useState<string>("");
+  const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
+  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+
+  const [emailError, setEmailError] = useState<string>("");
+  const [serverError, setServerError] = useState<string>("");
+
+
+  // Change the User Side when tabs are switched, default to tenant
+  useEffect(() => {
+    setUserSide(userType === "landlord" ? "landlord" : "tenant");
+  }, [userType]);
 
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    resetError: resetGoogleError,
   } = useGoogleAuth();
 
-  useEffect(() => {
-    setUserSide(userType === "landlord" ? "landlord" : "tenant");
-  }, [userType]);
+  const handleGoogleSignIn = () => {
+    if (emailError) setEmailError("");
+    if (googleError) resetGoogleError();
+    void signInWithGoogle(userSide);
+  };
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
     if (emailError) setEmailError("");
+    if (serverError) setServerError("");
   };
 
   const handleSignUp = async () => {
+    // Clear errors before validating
+    setEmailError("");
+    setServerError("");
+
+    // Check for basic validation of email
     if (!email.trim()) {
       setEmailError("Email address is required.");
       return;
-    }
-
+    } 
+    
     if (!isValidEmail(email)) {
       setEmailError("Please enter a valid email address.");
       return;
@@ -57,27 +82,36 @@ export default function SignUp() {
     try {
       setCheckingEmail(true);
 
+      // Check if the email has already been registered
       const { count, error } = await supabase
         .from("users")
         .select("id", { count: "exact", head: true })
         .eq("email", email.trim().toLowerCase());
-
+      
+      // Display Error if there's an issue with the query
       if (error) {
-        setEmailError("Something went wrong. Please try again.");
+        setServerError("Something went wrong. Please try again.");
         return;
       }
 
+      // If the email is already registered, show an error
       if (count && count > 0) {
-        setEmailError("This email is already registered. Please sign in instead.");
+        setServerError("This email is already registered. Please sign in instead.");
         return;
       }
 
+      // If the email is not registered, proceed to Complete Profile page
+      // With email and user side as params
       router.push({
         pathname: "/(auth)/complete-profile",
-        params: { email: email.trim().toLowerCase(), userSide },
+        params: { 
+          email: email.trim().toLowerCase(), 
+          userSide 
+        },
       });
+
     } catch {
-      setEmailError("Something went wrong. Please try again.");
+      setServerError("Something went wrong. Please try again.");
     } finally {
       setCheckingEmail(false);
     }
@@ -108,74 +142,35 @@ export default function SignUp() {
       </View>
 
       {/* Tab Group User Side */}
-      <Tabs
-        value={userSide}
+      <RoleTab 
+        userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
+          if (emailError) setEmailError("");
         }}
-        variant="primary"
-        className="mt-5"
-      >
-        <Tabs.List className="w-full">
-          <Tabs.Indicator />
-
-          <Tabs.Trigger value="tenant" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
-              >
-                Tenant
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-
-          <Tabs.Trigger value="landlord" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
-              >
-                Landlord
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs>
-
-      {googleError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <Text className="text-sm text-red-600 font-inter">
-            {googleError}
-          </Text>
-        </View>
-      ) : null}
+      />
 
       {/* Form inputs */}
       <View className="mt-8">
         <TextField
           isRequired
-          isInvalid={!!emailError && !email.trim()}
+          isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
-          <AppInput 
+          <Input 
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
           />
 
-          {!!emailError && !email.trim() && (
-              <FieldError>Please enter your email address.</FieldError>
+          {!!emailError && (
+              <FieldError>{emailError}</FieldError>
           )}
         </TextField>
       </View>
 
       {/* Sign In Button */}
       <View className="mt-5">
-        {/* <PillButton
-          label={checkingEmail ? "Please wait..." : "Continue"}
-          isFullWidth={true}
-          onPress={handleSignUp}
-          isDisabled={checkingEmail}
-        /> */}
         <Button
           onPress={handleSignUp}
           isDisabled={checkingEmail}
@@ -183,42 +178,32 @@ export default function SignUp() {
           <Button.Label className="font-interMedium">
             {checkingEmail ? "Please wait..." : "Continue"}
           </Button.Label>
+          {checkingEmail && (
+            <Spinner
+              size="sm"
+              color={COLORS.white}
+              className="ml-2"
+            />
+          )}
         </Button>
       </View>
 
       {/* Divider */}
-      <View className="flex-row justify-center items-center my-5">
-        <Separator orientation="horizontal" className="flex-1" />
-
-        <Text className="mx-3 text-grey-400 font-inter">
-          or sign up with
-        </Text>
-
-        <Separator orientation="horizontal" className="flex-1" />
-      </View>
+      <AuthDivider middleText="or sign up with" />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        <Button
-          variant="outline"
-          onPress={() => signInWithGoogle(userSide)}
+        <AuthButton 
+          onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
-          className="flex-1"
-        >
-          <Image
-            source={IMAGES.googleLogo}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-          <Button.Label className="font-interMedium text-text">
-            Continue with Google
-          </Button.Label>
-        </Button>
+          imageSource={IMAGES.googleLogo}
+          label="Continue with Google"
+        />
       </View>
 
-      {/* Footer links */}
       <View className="flex-1" />
 
+      {/* Footer links */}
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-text font-inter">
@@ -235,6 +220,16 @@ export default function SignUp() {
           </LinkButton>
         </View>
       </View>
+
+      {/* Error Dialog */}
+      <ErrorDialog 
+        isOpen={!!(serverError || googleError)}
+        onClose={() => {
+          setServerError("");
+          resetGoogleError(); 
+        }}
+        message={googleError || serverError || "Something went wrong. Please try again."}
+      />
     </ScreenWrapper>
   );
 }

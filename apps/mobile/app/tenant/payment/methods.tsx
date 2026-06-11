@@ -10,7 +10,7 @@ import PillButton from '@/components/buttons/PillButton'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Divider from '@/components/display/Divider'
 import TextField from '@/components/inputs/TextField'
-import DateTimeField from 'components/inputs/DateTimeField'
+import DateTimeField from '@/components/inputs/DateField'
 import CheckBox from '@/components/buttons/CheckBox'
 import NumberField from '@/components/inputs/NumberField'
 

@@ -1,20 +1,8 @@
-export { COLORS } from './colors';
-export { GENDERS } from './gender';
-export { LANGUAGES } from './languages';
-export { PETS } from './pets';
-export { PROVINCES } from './provinces';
-export { REGIONS } from './regions';
-export { FONT_FAMILIES, THEME_FONTS, THEME_FONTS_WEB } from './typography';
-export { PH_ZIP_DATABASE } from './ph-zip-constants';
-export type { PHLocation } from './ph-zip-constants';
-export { PH_MOBILE_PREFIXES } from './ph-mobile-prefixes';
-export { MAINTENANCE_CATEGORIES } from './maintenance-categories';
-export { DOCUMENT_TYPES } from './document-types';
-export { MONTHS } from './months';
-export { YEARS } from './years';
-export { PAYMENT_STATUS } from './payment-status';
-export { VALID_IDS, SECONDARY_IDS } from './valid-ids';
-export { APARTMENT_TYPES } from './apartment-types';
-export { FLOOR_LEVELS } from './floor-level';
-export { LEASE_DURATIONS } from './lease-duration';
-export { FURNISHED_TYPES } from './furnished-types';
+export * from "./address";
+export * from "./apartment";
+export * from "./user";
+
+export { COLORS } from "./colors";
+export { MONTHS } from "./months";
+export { YEARS } from "./years";
+export { FONT_FAMILIES, THEME_FONTS, THEME_FONTS_WEB } from "./typography";

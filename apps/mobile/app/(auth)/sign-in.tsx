@@ -6,70 +6,111 @@ import { IMAGES } from "constants/images";
 import { COLORS } from "@repo/constants";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import AppInput from "components/inputs/AppInput";
+import AuthDivider from "./components/AuthDivider";
+import RoleTab from "./components/RoleTab";
+import AuthButton from "./components/AuthButton";
+import ErrorDialog from "@/components/display/ErrorDialog";
 
-import {Button, Text, Tabs, TextField, Label, FieldError, LinkButton, Separator} from 'heroui-native';
+import {
+  Button, 
+  Text, 
+  TextField, 
+  Label, 
+  FieldError, 
+  LinkButton,
+  Input,
+  InputGroup,
+  Spinner,
+} from 'heroui-native';
 
-import { Eye, EyeOff } from "lucide-react-native";
+import { 
+  Eye, 
+  EyeOff 
+} from "lucide-react-native";
 
 import { supabase } from "@repo/supabase";
-
 import { useGoogleAuth } from "hooks/useGoogleAuth";
 
+import { isValidEmail } from "@repo/utils";
+
 export default function SignIn() {
+  const router = useRouter();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
   
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [emailError, setEmailError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
   const [error, setError] = useState<string>("");
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  const router = useRouter();
 
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    resetError: resetGoogleError,
   } = useGoogleAuth();
+
+  const handleGoogleSignIn = () => {
+    if (error) setError("");
+    if (googleError) resetGoogleError();
+    void signInWithGoogle(userSide);
+  };
 
   const handleEmailTextChange = (text: string) => {
     setEmail(text);
+    if (emailError) setEmailError("");
     if (error) setError("");
   };
 
   const handlePasswordTextChange = (text: string) => {
     setPassword(text);
+    if (passwordError) setPasswordError("");
     if (error) setError("");
-  };
-
-  const handleGoogleSignIn = () => {
-    if (error) setError("");
-    void signInWithGoogle(userSide);
   };
 
   const handleSignIn = async () => {
+    // Clear the errors
+    setEmailError("");
+    setPasswordError("");
+    setError("");
+
+    // Check the inputs and show errors if invalid
+    let isValid = true;
+
     if (!email.trim()) {
-      setError("Please enter your email address.");
-      return;
+      setEmailError("Please enter your email address.");
+      isValid = false;
+    } else if (!isValidEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      isValid = false;
     }
+
     if (!password.trim()) {
-      setError("Please enter your password.");
-      return;
+      setPasswordError("Please enter your password.");
+      isValid = false;
     }
+
+    if (!isValid) return;
 
     setLoading(true);
     setError("");
 
     try {
+      // Attempt to sign in with Supabase
+      // Using email and password
       const { data: authData, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
-
+      
+      // Check if there is an error during sign-in and handle it
       if (signInError) {
         if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
@@ -90,6 +131,7 @@ export default function SignIn() {
         .eq("user_id", authData.user!.id)
         .single();
 
+        
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");
         return;
@@ -153,64 +195,22 @@ export default function SignIn() {
       </View>
 
       {/* Tab Group User Side */}
-      <Tabs
-        value={userSide}
+      <RoleTab 
+        userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
           if (error) setError("");
         }}
-        variant="primary"
-        className="mt-5"
-      >
-        <Tabs.List className="w-full">
-          <Tabs.Indicator />
-
-          <Tabs.Trigger value="tenant" className="flex-1">
-            {({ isSelected }) => (
-                <Tabs.Label
-                    style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
-                >
-                  Tenant
-                </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-
-          <Tabs.Trigger value="landlord" className="flex-1">
-            {({ isSelected }) => (
-              <Tabs.Label
-                  style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
-              >
-                Landlord
-              </Tabs.Label>
-            )}
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs>
-
-      {/* Google Error message */}
-      {googleError ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <Text className="text-sm text-red-600 font-inter">
-            {googleError}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* General Error Message */}
-      {error && email.trim() && password.trim() ? (
-        <View className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <Text className="text-sm text-red-600 font-inter">{error}</Text>
-        </View>
-      ) : null}
+      />
 
       {/* Form inputs */}
       <View className="mt-8 flex gap-4">
         <TextField
             isRequired
-            isInvalid={!!error && !email.trim()}
+            isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
-          <AppInput
+          <Input 
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
@@ -219,34 +219,45 @@ export default function SignIn() {
             autoCorrect={false}
           />
 
-          {!!error && !email.trim() && (
-              <FieldError>Please enter your email address.</FieldError>
+          {!!emailError && (
+              <FieldError>{emailError}</FieldError>
           )}
         </TextField>
 
-        <TextField isRequired isInvalid={!!error && !password.trim()}>
+        <TextField 
+          isRequired 
+          isInvalid={!!passwordError}
+        >
           <Label>Password:</Label>
-          <View className="w-full flex-row items-center">
-            <AppInput
+
+          <InputGroup>
+            <InputGroup.Input
               placeholder="Enter your password"
               value={password}
               onChangeText={handlePasswordTextChange}
               secureTextEntry={!showPassword}
-              className="flex-1 pr-10"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setTimeout(() => setIsFocused(false), 150)}
             />
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-3"
-            >
-              {showPassword ? (
-                <EyeOff size={18} color={COLORS.grey} />
-              ) : (
-                <Eye size={18} color={COLORS.grey} />
-              )}
-            </Pressable>
-          </View>
-          {!!error && !password.trim() && (
-            <FieldError>Please enter your password.</FieldError>
+
+            {isFocused && (
+              <InputGroup.Suffix>
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={20}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color={COLORS.grey} />
+                  ) : (
+                    <Eye size={20} color={COLORS.grey} />
+                  )}
+                </Pressable>
+              </InputGroup.Suffix>
+            )}
+          </InputGroup>
+
+          {!!passwordError && (
+            <FieldError>{passwordError}</FieldError>
           )}
         </TextField>
       </View>
@@ -270,37 +281,28 @@ export default function SignIn() {
           <Button.Label className="font-interMedium">
             {loading ? "Signing In..." : "Sign In"}
           </Button.Label>
+          
+          {loading && (
+            <Spinner
+              size="sm"
+              color={COLORS.white}
+              className="ml-2"
+            />
+          )}
         </Button>
       </View>
 
       {/* Divider */}
-      <View className="flex-row justify-center items-center my-5">
-        <Separator orientation="horizontal" className="flex-1" />
-
-        <Text className="mx-3 text-grey-400 font-inter">
-          or sign in with
-        </Text>
-
-        <Separator orientation="horizontal" className="flex-1" />
-      </View>
+      <AuthDivider middleText="or sign in with" />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        <Button
-          variant="outline"
+        <AuthButton 
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
-          className="flex-1"
-        >
-          <Image
-            source={IMAGES.googleLogo}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-          <Button.Label className="font-interMedium text-text">
-            Continue with Google
-          </Button.Label>
-        </Button>
+          imageSource={IMAGES.googleLogo}
+          label="Continue with Google"
+        />
       </View>
 
       {/* Footer links */}
@@ -322,6 +324,16 @@ export default function SignIn() {
           </LinkButton>
         </View>
       </View>
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={!!(error || googleError)}
+        onClose={() => {
+          setError("");
+          resetGoogleError();
+        }}
+        message={googleError || error}
+      />
     </ScreenWrapper>
   );
 }

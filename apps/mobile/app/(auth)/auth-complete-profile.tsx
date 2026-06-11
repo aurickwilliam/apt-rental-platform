@@ -1,6 +1,7 @@
-import { View, Text, Pressable } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react';
+import { View, Text } from 'react-native'
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
+import { useEffect, useRef, useState } from 'react';
+
 
 import {
   COLORS,
@@ -18,7 +19,6 @@ import DropdownField from 'components/inputs/DropdownField';
 import ErrorDialog from '@/components/display/ErrorDialog';
 
 import { 
-  usePasswordValidation, 
   usePHMobileValidation, 
   usePHPostalCode 
 } from '@repo/hooks';
@@ -26,8 +26,9 @@ import {
 import { supabase } from "@repo/supabase";
 import { useRegistrationStore } from '@/store/useRegistrationStore';
 
+import { getProfileSubmitError } from '@repo/utils';
+
 import { 
-  CloseButton,
   TextField,
   Label,
   Input,
@@ -35,18 +36,9 @@ import {
   Button,
   Separator,
   Spinner,
-  InputGroup,
 } from 'heroui-native';
 
-import { 
-  Eye, 
-  EyeOff,
-  CircleCheck,
-  Minus,
-} from "lucide-react-native";
-
 type ProfileForm = {
-  email: string;
   firstName: string;
   lastName: string;
   middleName: string;
@@ -58,9 +50,6 @@ type ProfileForm = {
   city: string;
   barangay: string;
   streetAddress: string;
-
-  password: string;
-  confirmPassword: string;
 }
 
 const requiredFields: (keyof ProfileForm)[] = [
@@ -73,32 +62,30 @@ const requiredFields: (keyof ProfileForm)[] = [
   'city',
   'barangay',
   'streetAddress',
-
-  'password',
-  'confirmPassword',
 ]
 
-export default function CompleteProfile() {
+export default function AuthCompleteProfile() {
   const router = useRouter();
+  const navigation = useNavigation();
 
-  const { email, userSide } = useLocalSearchParams();
-  const { setData, reset, data } = useRegistrationStore();
+  const canLeave = useRef(false);
 
-  // Handle case where email might be an array
+  const { email, userSide, firstName, lastName } = useLocalSearchParams();
+
   const emailValue = Array.isArray(email) ? email[0] : email;
+  const firstNameValue = Array.isArray(firstName) ? firstName[0] : (firstName ?? "");
+  const lastNameValue = Array.isArray(lastName) ? lastName[0] : (lastName ?? "");
+
+  const { setData } = useRegistrationStore();
 
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [profileForm, setProfileForm] = useState<ProfileForm>({
-    email: emailValue || "",
-    firstName: "",
-    lastName: "",
+    firstName: firstNameValue,
+    lastName: lastNameValue,
     middleName: "",
     suffixName: "",
     gender: "",
@@ -108,24 +95,9 @@ export default function CompleteProfile() {
     city: "",
     barangay: "",
     streetAddress: "",
-
-    password: "",
-    confirmPassword: ""
   });
 
-  // Password validation hook
-  // Tracks password strength requirements separately from the form state
-  const {
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    passwordRequirements,
-    isPasswordValid,
-  } = usePasswordValidation();
-
   // Postal code hook
-  // Validates that a PH postal code is exactly 4 digits with proper blur/change handling
   const {
     value: postalCode,
     setValue: setPostalCode,
@@ -141,31 +113,25 @@ export default function CompleteProfile() {
     validation: mobileValidation,
     onChange: onMobileChange,
     validate: validateMobileNumber,
-  } = usePHMobileValidation(data.mobileNumber ?? "");
+  } = usePHMobileValidation();
 
-  // Update individual field in profile form
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (canLeave.current) return; 
+      e.preventDefault(); // block all back navigation
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
     setProfileForm(prev => ({ ...prev, [key]: value }));
   };
 
-  // Return error message if field is required and not filled out after form submission
   const getError = (field: keyof ProfileForm) => {
-    // Required field check
     if (submitted && requiredFields.includes(field) && !profileForm[field]?.trim()) {
       return 'This field is required';
     }
 
-    // Password validation errors
-    if (submitted && field === 'password' && profileForm.password && !isPasswordValid) {
-      return 'Password does not meet the requirements or password does not match';
-    }
-
-    // Confirm password match check
-    if (submitted && field === 'confirmPassword' && profileForm.confirmPassword && password !== confirmPassword) {
-      return 'Passwords do not match';
-    }
-    
-    // Birth Date Validation
     if (field === 'birthDate' && profileForm.birthDate) {
       const birth = new Date(profileForm.birthDate);
       const today = new Date();
@@ -184,101 +150,106 @@ export default function CompleteProfile() {
     return undefined;
   };
 
-
-  // Handle Form Submission and Sign Up with Supabase
   const handleSubmit = async () => {
     setSubmitted(true);
 
-    // set up validation checks for all fields on submit
     const isPostalCodeValidOnSubmit = validatePostalCode();
     const isMobileValidOnSubmit = validateMobileNumber();
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
-    // if any validation fails, return early and show errors
     if (
-      !isPasswordValid || 
       emptyFields.length > 0 || 
       !isPostalCodeValidOnSubmit || 
       !isMobileValidOnSubmit.isValid
     ) return;
 
-    // exclude confirmPassword
-    const { confirmPassword, ...rest } = profileForm; 
-
     setLoading(true);
 
     try {
-      // Sign up the user with Supabase Auth using email and password
-      const { error } = await supabase.auth.signUp({
-        email: emailValue!,
-        password,
-        options: { data: { full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}` } }
-      });
-      if (error) throw error;
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error('No authenticated user found.');
 
-      // Set the data to the registration store for the OTP verification step
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          full_name: `${profileForm.firstName} ${profileForm.lastName}${profileForm.suffixName ? ` ${profileForm.suffixName}` : ''}`,
+        }
+      });
+      if (updateError) throw updateError;
+
+      // Write profile data to users table
+      const { error: profileUpdateError } = await supabase
+        .from('users')
+        .update({
+          first_name: profileForm.firstName,
+          last_name: profileForm.lastName,
+          middle_name: profileForm.middleName || null,
+          suffix: profileForm.suffixName || null,
+          gender: profileForm.gender,
+          birth_date: profileForm.birthDate,
+          mobile_number: mobileValidation.formattedNumber ?? mobileNumber,
+          province: profileForm.province,
+          city: profileForm.city,
+          barangay: profileForm.barangay,
+          postal_code: postalCode ? parseInt(postalCode, 10) : null,
+          street_address: profileForm.streetAddress,
+          role: Array.isArray(userSide) ? userSide[0] : userSide,
+        })
+        .eq('user_id', user.id);
+
+      if (profileUpdateError) throw profileUpdateError;
+
       setData({
-        ...rest,
+        ...profileForm,
         postalCode,
-        password,
         mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
         userSide: userSide as 'tenant' | 'landlord',
       });
-
-      // Navigate to OTP verification screen with email as param
-      router.push({ pathname: '/(auth)/otp-verification', params: { email: emailValue } });
+      
+      canLeave.current = true;
+      router.replace(
+        userSide === "landlord"
+          ? "../(tabs)/(landlord)/dashboard"
+          : "../(tabs)/(tenant)/rentals",
+      );
     } catch (err: any) {
-      setError(err.message);
+      setError(getProfileSubmitError(err));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);
     }
-  }
-
-  const handleBackToSignUp = () => {
-    reset();
-    router.back();
-  }
-
-  const handleCityChange = (city: string | null) => {
-    updateField('city', city ?? '');
-    updateField('barangay', '');
-
-    if (city) {
-      const code = getPostalCode(city);
-      if (code) setPostalCode(code);
-    } else {
-      setPostalCode('');
-    }
   };
 
+  const handleCityChange = (city: string | null) => {
+    if (!city) return;
+    updateField('city', city);
+    updateField('barangay', '');
+    const code = getPostalCode(city);
+    if (code) setPostalCode(code);
+  };
 
   const handleProvinceChange = (province: string | null) => {
-    updateField('province', province ?? '');
+    if (!province) return;
+    updateField('province', province);
     updateField('city', '');
     updateField('barangay', '');
     setPostalCode('');
   };
 
+  // Get the options depending on the province selected
   const citiesForSelectedProvince = profileForm.province
     ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
     : [];
-  const barangaysForSelectedCity = profileForm.city ? getBarangaysByCity(profileForm.city) : [];
+  const barangaysForSelectedCity = profileForm.city
+    ? getBarangaysByCity(profileForm.city)
+    : [];
 
   return (
     <ScreenWrapper scrollable className="p-5">
-      {/* Back button */}
-      <CloseButton
-        onPress={handleBackToSignUp}
-        iconProps={{ size: 20, color: COLORS.text }}
-      />
-
       {/* Title */}
       <Text className="text-2xl text-text font-interSemiBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
-
-      {/* Form Inputs */}
 
       <View className="flex gap-4">
         {/* Email Address Field */}
@@ -301,6 +272,7 @@ export default function CompleteProfile() {
           <Label>First Name:</Label>
           <Input
             placeholder="Enter your first name"
+            value={profileForm.firstName}
             onChangeText={(value) => updateField("firstName", value)}
           />
           {getError("firstName") && (
@@ -313,6 +285,7 @@ export default function CompleteProfile() {
           <Label>Last Name:</Label>
           <Input
             placeholder="Enter your last name"
+            value={profileForm.lastName}
             onChangeText={(value) => updateField("lastName", value)}
           />
           {getError("lastName") && (
@@ -325,6 +298,7 @@ export default function CompleteProfile() {
           <Label>Middle Name:</Label>
           <Input
             placeholder="Enter your middle name"
+            value={profileForm.middleName}
             onChangeText={(value) => updateField("middleName", value)}
           />
         </TextField>
@@ -464,147 +438,6 @@ export default function CompleteProfile() {
             <FieldError>{getError("streetAddress")}</FieldError>
           )}
         </TextField>
-
-        <Separator />
-
-        {/* 
-          ===== Account Security Section =====
-        */}
-        <Text className="text-xl font-interMedium mt-3">Account Security</Text>
-
-        {/* Password Field */}
-        <TextField isRequired isInvalid={!!getError("password")}>
-          <Label>Password:</Label>
-          <InputGroup>
-            <InputGroup.Input
-              placeholder="Create a password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-                updateField("password", value);
-              }}
-            />
-
-            <InputGroup.Suffix>
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={20}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color={COLORS.grey} />
-                ) : (
-                  <Eye size={20} color={COLORS.grey} />
-                )}
-              </Pressable>
-            </InputGroup.Suffix>
-          </InputGroup>
-          {getError("password") && (
-            <FieldError>{getError("password")}</FieldError>
-          )}
-        </TextField>
-
-        {/* Confirm Password Field */}
-        <TextField isRequired isInvalid={!!getError("confirmPassword")}>
-          <Label>Confirm Password:</Label>
-          <InputGroup>
-            <InputGroup.Input
-              placeholder="Confirm your password"
-              secureTextEntry={!showConfirmPassword}
-              value={confirmPassword}
-              onChangeText={(value) => {
-                setConfirmPassword(value);
-                updateField("confirmPassword", value);
-              }}
-            />
-
-            <InputGroup.Suffix>
-              <Pressable
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hitSlop={20}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color={COLORS.grey} />
-                ) : (
-                  <Eye size={20} color={COLORS.grey} />
-                )}
-              </Pressable>
-            </InputGroup.Suffix>
-          </InputGroup>
-
-          {getError("confirmPassword") && (
-            <FieldError>{getError("confirmPassword")}</FieldError>
-          )}
-        </TextField>
-
-        {/* Password Checker */}
-        <View className="flex-col gap-1">
-          <Text className="text-text font-interMedium mb-2">
-            Your password must contain:
-          </Text>
-
-          {/* Minimum Length of 8 Char */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.minLength ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
-            ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
-            )}
-
-            <Text className="text-text font-inter">At least 8 characters</Text>
-          </View>
-
-          {/* At least one lowercase letter (a–z) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasLowercase ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
-            ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
-            )}
-
-            <Text className="text-text font-inter">
-              At least one lowercase letter (a–z)
-            </Text>
-          </View>
-
-          {/* At least one uppercase letter (A–Z) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasUppercase ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
-            ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
-            )}
-
-            <Text className="text-text font-inter">
-              At least one uppercase letter (A–Z)
-            </Text>
-          </View>
-
-          {/* At least one number (0–9) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasNumber ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
-            ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
-            )}
-
-            <Text className="text-text font-inter">
-              At least one number (0–9)
-            </Text>
-          </View>
-
-          {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasSpecialChar ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
-            ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
-            )}
-            <Text className="text-text font-inter">
-              at least one special character (e.g. ! @ # $ % ^ & *)
-            </Text>
-          </View>
-        </View>
       </View>
 
       {/* Submit Button */}
