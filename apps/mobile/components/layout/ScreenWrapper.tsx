@@ -60,7 +60,6 @@ export default function ScreenWrapper({
           extraHeight={Platform.OS === 'ios' ? 50 : 100}
           enableOnAndroid={true}
           enableAutomaticScroll={true}
-          extraScrollHeight={Platform.OS === "ios" ? 50 : 80}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           refreshControl={

@@ -567,7 +567,6 @@ export type Database = {
       users: {
         Row: {
           account_status: string
-          age: number | null
           avatar_url: string | null
           background_url: string | null
           barangay: string | null
@@ -585,12 +584,12 @@ export type Database = {
           province: string | null
           role: string
           street_address: string | null
+          suffix: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           account_status?: string
-          age?: number | null
           avatar_url?: string | null
           background_url?: string | null
           barangay?: string | null
@@ -608,12 +607,12 @@ export type Database = {
           province?: string | null
           role?: string
           street_address?: string | null
+          suffix?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Update: {
           account_status?: string
-          age?: number | null
           avatar_url?: string | null
           background_url?: string | null
           barangay?: string | null
@@ -631,6 +630,7 @@ export type Database = {
           province?: string | null
           role?: string
           street_address?: string | null
+          suffix?: string | null
           updated_at?: string | null
           user_id?: string
         }

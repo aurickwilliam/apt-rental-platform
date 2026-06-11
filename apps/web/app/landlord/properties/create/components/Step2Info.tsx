@@ -318,9 +318,10 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
+              maxLength={4}
               value={formData.zip_code}
               onChange={(e) => {
-                const onlyNums = e.target.value.replace(/[^0-9]/g, "");
+                const onlyNums = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
                 updateForm({ zip_code: onlyNums });
               }}
             />

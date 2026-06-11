@@ -58,6 +58,7 @@
     --warning: var(--color-secondary);
     --warning-foreground: oklch(1 0 0);
 
+    --field-shadow: none;
     --field-border: oklch(0.88 0.005 264);
 
     --danger: var(--color-redHead-200);
@@ -67,6 +68,7 @@
     --success-foreground: oklch(1 0 0);
 
     --focus: var(--color-primary);
+
   }
 
   @variant dark {
@@ -79,6 +81,7 @@
     --warning: var(--color-secondary);
     --warning-foreground: oklch(0.2 0 0);
 
+    --field-shadow: none;
     --field-border: oklch(0.35 0.02 264);
 
     --danger: var(--color-redHead-200);
@@ -88,5 +91,6 @@
     --success-foreground: oklch(1 0 0);
 
     --focus: var(--color-primary);
+
   }
 }

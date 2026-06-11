@@ -26,7 +26,7 @@ interface UsePhilippineMobileValidationReturn {
 function normalize(input: string): string {
   const stripped = input.trim().replace(/[\s\-().]/g, "");
 
-  if (/^\+639\d{9}$/.test(stripped)) return "0" + stripped.slice(2);  // +639XXXXXXXXX → 09XXXXXXXXX
+  if (/^\+639\d{9}$/.test(stripped)) return "0" + stripped.slice(3);  // +639XXXXXXXXX → 09XXXXXXXXX
   if (/^639\d{9}$/.test(stripped))  return "0" + stripped.slice(2);   // 639XXXXXXXXX  → 09XXXXXXXXX
   if (/^9\d{9}$/.test(stripped))    return "0" + stripped;            // 9XXXXXXXXX    → 09XXXXXXXXX
   if (/^09\d{9}$/.test(stripped))   return stripped;                  // Already 09XXXXXXXXX

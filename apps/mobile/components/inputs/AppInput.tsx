@@ -9,7 +9,7 @@ export default function AppInput({ className, style, ...props }: AppInputProps) 
   return (
     <Input
       className={cn(
-        inputClassNames.input({ variant: "primary", isInvalid }),
+        inputClassNames.input({ isInvalid }),
         className
       )}
       style={[{ shadowOpacity: 0, elevation: 0 }, style]}

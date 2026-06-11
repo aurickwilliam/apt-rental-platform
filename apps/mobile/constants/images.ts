@@ -18,13 +18,6 @@ export const EMPTY_STATE_IMAGES = {
   emptySearch: require("../assets/images/empty-states/search-empty.png"),
 }
 
-export const ONBOARDING_IMAGES = {
-  onboardingImage1: require("../assets/images/splash-image/welcome.png"),
-  onboardingImage2: require("../assets/images/splash-image/explore-rentals.png"),
-  onboardingImage3: require("../assets/images/splash-image/secure-transactions.png"),
-  onboardingImage4: require("../assets/images/splash-image/verified-listing.png"),
-}
-
 export const SAMPLE_IMAGES = {
   sampleBackgroundPhoto: require("../assets/images/sample-bg-photo.png"),
   sampleProfilePicture: require("../assets/images/sample-profile-pic.jpg"),
