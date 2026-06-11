@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { COLORS } from "@repo/constants";
+import { useColors } from "hooks/useTheme";
 
 interface ScreenWrapperProps {
   children: ReactNode;
@@ -36,7 +36,7 @@ const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
 export default function ScreenWrapper({
   children,
   className = "",
-  backgroundColor = COLORS.light.white,
+  backgroundColor,
   header,
   footer,
   scrollable = false,
@@ -48,6 +48,9 @@ export default function ScreenWrapper({
   dismissKeyboardOnTouch = true,
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
+
+  const { colors } = useColors();
+  backgroundColor = backgroundColor || colors.white;
 
   const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 
@@ -67,8 +70,8 @@ export default function ScreenWrapper({
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                tintColor={COLORS.light.primary}
-                colors={[COLORS.light.primary]}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
               />
             ) : undefined
           }

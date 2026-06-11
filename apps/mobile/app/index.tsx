@@ -3,10 +3,13 @@ import { useEffect } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
+import { useColors } from "hooks/useTheme";
+
 export default function Index() {  
+  const {colors} = useColors();
+
   useEffect(() => {
     const checkOnboarding = async () => {
       const hasLaunched = await AsyncStorage.getItem("hasLaunched");
@@ -56,7 +59,7 @@ export default function Index() {
 
   return (
     <View className="flex-1 justify-center items-center">
-      <ActivityIndicator size="large" color={COLORS.primary} />
+      <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );
 }
