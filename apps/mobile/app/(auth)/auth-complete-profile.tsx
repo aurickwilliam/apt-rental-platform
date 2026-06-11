@@ -76,7 +76,7 @@ export default function AuthCompleteProfile() {
   const firstNameValue = Array.isArray(firstName) ? firstName[0] : (firstName ?? "");
   const lastNameValue = Array.isArray(lastName) ? lastName[0] : (lastName ?? "");
 
-  const { setData, data } = useRegistrationStore();
+  const { setData } = useRegistrationStore();
 
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
@@ -113,7 +113,7 @@ export default function AuthCompleteProfile() {
     validation: mobileValidation,
     onChange: onMobileChange,
     validate: validateMobileNumber,
-  } = usePHMobileValidation(data.mobileNumber ?? "");
+  } = usePHMobileValidation();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
