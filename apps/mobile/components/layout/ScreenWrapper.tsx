@@ -36,7 +36,7 @@ const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
 export default function ScreenWrapper({
   children,
   className = "",
-  backgroundColor = COLORS.white,
+  backgroundColor = COLORS.light.white,
   header,
   footer,
   scrollable = false,
@@ -67,8 +67,8 @@ export default function ScreenWrapper({
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                tintColor={COLORS.primary}
-                colors={[COLORS.primary]}
+                tintColor={COLORS.light.primary}
+                colors={[COLORS.light.primary]}
               />
             ) : undefined
           }
