@@ -10,7 +10,7 @@ type RegistrationData = {
   gender: string;
   birthDate: string;
 
-  currentAddress: string;
+  streetAddress: string;
   barangay: string;
   city: string;
   province: string;

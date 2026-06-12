@@ -1,6 +1,9 @@
 import { View } from 'react-native'
+
 import { CircleAlert } from 'lucide-react-native'
-import { COLORS } from '@repo/constants'
+
+import { useColors } from 'hooks/useTheme';
+
 import {
   Dialog,
   Button,
@@ -19,6 +22,8 @@ export default function ErrorDialog({
   message,
   title = "Something went wrong",
 }: ErrorDialogProps) {
+  const { colors } = useColors();
+
   return (
     <Dialog isOpen={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -28,12 +33,14 @@ export default function ErrorDialog({
 
           <View className="mb-5 gap-1.5">
             <View className="flex-row items-center gap-2">
-              <CircleAlert size={20} color={COLORS.lightRedHead} />
-              <Dialog.Title className="text-redHead-100">
+              <CircleAlert size={20} color={colors.danger} />
+              <Dialog.Title className="text-danger">
                 {title}
               </Dialog.Title>
             </View>
-            <Dialog.Description>{message}</Dialog.Description>
+            <Dialog.Description className="text-foreground">
+              {message}
+            </Dialog.Description>
           </View>
 
           <View className="flex-row justify-end">

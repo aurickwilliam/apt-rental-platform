@@ -5,14 +5,15 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ErrorDialog from '@/components/display/ErrorDialog'
 
-import { COLORS } from '@repo/constants'
-
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import { supabase } from '@repo/supabase'
+
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 
 import { getProfileSubmitError } from '@repo/utils'
+
+import { useColors } from 'hooks/useTheme'
 
 import {
   CloseButton,
@@ -22,9 +23,13 @@ import {
   Button,
 } from 'heroui-native'
 
+const OTP_VALIDITY_DURATION = 60 // seconds
+
 export default function OTPVerification() {
   const router = useRouter()
   const { email } = useLocalSearchParams()
+
+  const { colors } = useColors();
 
   const { data, reset } = useRegistrationStore()
   const [loading, setLoading] = useState(false)
@@ -32,11 +37,14 @@ export default function OTPVerification() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
 
   const [otp, setOtp] = useState('')
-  const [countdown, setCountdown] = useState(30)
+  const [countdown, setCountdown] = useState(OTP_VALIDITY_DURATION)
+  const [otpExpired, setOtpExpired] = useState(false)
+
   const otpRef = useRef<InputOTPRef>(null)
 
   const emailValue = Array.isArray(email) ? email[0] : email
 
+  // Function to handle countdown for OTP validity
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -44,8 +52,11 @@ export default function OTPVerification() {
     }
   }, [countdown])
 
+  // Reset all the OTP and error
+  // Then resend the OTP to the user email
   const handleResend = async () => {
-    setCountdown(30)
+    setCountdown(OTP_VALIDITY_DURATION)
+    setOtpExpired(false)
     setOtp('')
     otpRef.current?.clear()
 
@@ -55,6 +66,8 @@ export default function OTPVerification() {
     })
   }
 
+  // Check the OTP code and create the user account, 
+  // then insert the user profile to the database
   const handleVerify = async () => {
     setLoading(true)
     setError(null)
@@ -68,8 +81,6 @@ export default function OTPVerification() {
 
       if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
 
-      const age = new Date().getFullYear() - new Date(data.birthDate!).getFullYear()
-
       const { error: insertError } = await supabase.from('users').insert({
         user_id: authData.user.id,
         email: emailValue || data.email!,
@@ -77,11 +88,11 @@ export default function OTPVerification() {
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,
-        age,
+        suffix: data.suffixName ?? null,
         gender: data.gender,
         mobile_number: data.mobileNumber,
         birth_date: data.birthDate,
-        street_address: data.currentAddress,
+        street_address: data.streetAddress,
         barangay: data.barangay,
         city: data.city,
         province: data.province,
@@ -101,8 +112,28 @@ export default function OTPVerification() {
       }
 
     } catch (err: any) {
-      setError(getProfileSubmitError(err))
-      setErrorDialogOpen(true)
+      const msg: string = (err as any)?.message ?? ''
+      const isOtpExpired =
+        msg.includes('Token has expired') ||
+        msg.includes('otp_expired') ||
+        msg.includes('Email link is invalid or has expired')
+      
+      if (isOtpExpired) {
+        // OTP expired before verify succeeded — no auth user was created, safe to skip signOut
+        setOtpExpired(true)
+        setOtp('')
+        otpRef.current?.clear()
+
+        setError('Your verification code has expired. Please request a new one.')
+        setErrorDialogOpen(true)
+      } else {
+        // Sign out the user if verification succeeded but inserting profile failed, 
+        // to prevent inconsistent state where user is authenticated but has no profile
+        await supabase.auth.signOut()
+
+        setError(getProfileSubmitError(err))
+        setErrorDialogOpen(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -124,16 +155,16 @@ export default function OTPVerification() {
             className="-ml-2"
             onPress={router.back}
           >
-            <IconChevronLeft size={26} color={COLORS.text} />
+            <IconChevronLeft size={26} color={colors.textPrimary} />
           </CloseButton>
 
           {/* Title */}
-          <Text className="text-2xl text-text font-interMedium my-5">
+          <Text className="text-2xl text-foreground font-interMedium my-5">
             OTP was Sent!
           </Text>
 
           {/* Description */}
-          <Text className="text-base text-text font-inter mb-5">
+          <Text className="text-base text-foreground font-inter mb-5">
             We&apos;ve sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
           </Text>
 
@@ -172,14 +203,15 @@ export default function OTPVerification() {
             <Text className="text-gray-600 text-base">
               Didn&apos;t get the code?{' '}
             </Text>
-            {countdown > 0 ? (
-              <Text className="text-blue-500 text-base font-medium">
+
+            {countdown > 0 && !otpExpired ? (
+              <Text className="text-accent text-base font-medium">
                 Resend in {countdown}s
               </Text>
             ) : (
               <Pressable onPress={handleResend}>
-                <Text className="text-blue-500 text-base font-medium">
-                  Resend
+                <Text className="text-accent text-base font-medium">
+                  {otpExpired ? 'Code expired — Resend' : 'Resend'}
                 </Text>
               </Pressable>
             )}

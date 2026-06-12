@@ -88,6 +88,7 @@
     /* Brand */
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
+    --color-secondary-light: #FFF3E0; 
 
     /* Semantic */
     --success: var(--color-success);
