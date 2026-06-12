@@ -8,11 +8,13 @@ export const COLORS = {
     primary: '#376BF5',
     primaryLight: '#EFF6FF',
     secondary: '#FFA500',
+    secondaryForeground: '#FFFFFF',
     secondaryLight: '#FFF3E0',
 
     // Text & Neutral
     textPrimary: '#333333',
-    textSecondary: '#6C757D',
+    textSecondary: '#6C757D', 
+    gray500: '#6C757D',       
     gray400: '#9CA3AF',
     gray300: '#BDBDBD',
     gray200: '#D1D5DB',
@@ -30,23 +32,25 @@ export const COLORS = {
 
   dark: {
     // Base
-    white: '#121212',        // page background
-    surface: '#1E1E1E',      // cards, inputs, bottom sheets
-    surfaceRaised: '#2A2A2A', // modals, dropdowns, elevated cards
+    white: '#121212',
+    surface: '#1E1E1E',
+    surfaceRaised: '#2A2A2A',
 
     // Brand
-    primary: '#5B8BF7',      // lightened for dark bg contrast
-    primaryLight: '#1A2340', // deep navy tint
-    secondary: '#FFA500',    // unchanged — holds well on dark
-    secondaryLight: '#2E2212', // deep warm brown tint
+    primary: '#5B8BF7',
+    primaryLight: '#1A2340',
+    secondary: '#FFA500',
+    secondaryForeground: '#FFFFFF',
+    secondaryLight: '#2E2212',
 
     // Text & Neutral
     textPrimary: '#F0F0F0',
-    textSecondary: '#9CA3AF',
+    textSecondary: '#9CA3AF',  
+    gray500: '#6B7280',       
     gray400: '#6B7280',
-    gray300: '#3D3D3D',      // subtle dividers
-    gray200: '#2A2A2A',      // borders
-    gray100: '#1E1E1E',      // lowest contrast surface
+    gray300: '#3D3D3D',
+    gray200: '#2A2A2A',
+    gray100: '#1E1E1E',
 
     // Semantic
     success: '#4ADE80',

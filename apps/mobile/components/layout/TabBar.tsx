@@ -1,8 +1,9 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 
-import { COLORS } from '@repo/constants';
 import { TENANTICONS, LANDLORDICONS } from '../../constants/tab-icons';
+
+import { useColors } from 'hooks/useTheme';
 
 import TabBarIcon from './TabBarIcon';
 
@@ -13,10 +14,12 @@ export function TabBar({
   userType = 'tenant'
 }: BottomTabBarProps & { userType?: 'tenant' | 'landlord' }) {
 
+  const { colors } = useColors();
+
   const icons = userType === 'tenant' ? TENANTICONS : LANDLORDICONS;
 
   return (
-    <View className='flex-row pb-10 bg-white border-t border-grey-100'>
+    <View className='flex-row pb-10 bg-background border-t border-gray-200'>
 
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -55,7 +58,7 @@ export function TabBar({
             onLongPress={onLongPress}
             isFocused={isFocused}
             routeName={route.name}
-            color={isFocused ? COLORS.primary : COLORS.text}
+            color={isFocused ? colors.primary : colors.gray500}
             label={label}
             icon={icons}
           />
