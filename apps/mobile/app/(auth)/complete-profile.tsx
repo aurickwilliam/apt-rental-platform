@@ -214,7 +214,11 @@ export default function CompleteProfile() {
       const { error } = await supabase.auth.signUp({
         email: emailValue!,
         password,
-        options: { data: { full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}` } }
+        options: {
+          data: {
+            full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}`,
+          },
+        },
       });
       if (error) throw error;
 
