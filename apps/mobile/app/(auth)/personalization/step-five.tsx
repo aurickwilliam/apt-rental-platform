@@ -7,22 +7,20 @@ import DropdownField from "components/inputs/DropdownField";
 import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
 
-import { PETS } from "@repo/constants";
+import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
-import { RadioGroup, Radio, Label, Checkbox, Button } from "heroui-native";
+import { RadioGroup, Radio, Label, Checkbox, Button, ControlField } from "heroui-native";
 
 type rentalPreferenceType = {
   hasPets: boolean;
   kindOfPets: string;
   nameOfPets: string | null;
   hasParking: boolean;
-  noOfParkingSpots: number | 0;
+  noOfParkingSpots: number;
   hasSmoker: boolean;
   hasDisability: boolean;
   listOfVehicles: string[];
 };
-
-const vehicleOptions = ["Car", "Motorcycle", "Bicycle", "Other"];
 
 export default function StepFive() {
   const router = useRouter();
@@ -33,13 +31,13 @@ export default function StepFive() {
       kindOfPets: "",
       nameOfPets: null,
       hasParking: false,
-      noOfParkingSpots: 0,
+      noOfParkingSpots: 1,
       hasSmoker: false,
       hasDisability: false,
       listOfVehicles: [],
     });
 
-  const parkingOptions = Array.from({ length: 6 }, (_, i) => `${i}`);
+  const NO_PARKING_OPTIONS = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
   const updateRentalPreference = (
     key: keyof rentalPreferenceType,
@@ -76,7 +74,7 @@ export default function StepFive() {
             <Text className="text-secondary text-2xl font-nunitoMedium">
               What is your rental preferences?
             </Text>
-            <Text className="text-text text-base font-inter">
+            <Text className="text-foreground text-base font-inter">
               Fill-up the form and select the appropriate response to curate the
               properties that will fit for you.
             </Text>
@@ -85,7 +83,7 @@ export default function StepFive() {
           {/* Pets */}
           <View className="flex gap-5">
             <View className="flex gap-3">
-              <Text className="text-text text-base font-interMedium">
+              <Text className="text-foreground text-base font-interMedium">
                 Do you have any pets?
               </Text>
 
@@ -149,7 +147,7 @@ export default function StepFive() {
           {/* Parking */}
           <View className="flex gap-5">
             <View className="flex gap-3">
-              <Text className="text-text text-lg font-interMedium">
+              <Text className="text-foreground text-lg font-interMedium">
                 Do you need a parking space?
               </Text>
 
@@ -185,9 +183,9 @@ export default function StepFive() {
                 label="If yes, how many cars or motorcycles do you have?"
                 bottomSheetLabel="Select your Parking"
                 placeholder="Select the number of parking you need"
-                options={parkingOptions}
+                options={NO_PARKING_OPTIONS}
                 onSelect={(value) =>
-                  updateRentalPreference("noOfParkingSpots", value)
+                  updateRentalPreference("noOfParkingSpots", value ? Number(value) : 1)
                 }
                 value={String(rentalPreference.noOfParkingSpots)}
                 required
@@ -197,21 +195,22 @@ export default function StepFive() {
             {rentalPreference.hasParking &&
               rentalPreference.noOfParkingSpots > 0 && (
                 <View className="flex gap-3">
-                  <Text className="text-text text-base font-interMedium">
+                  <Text className="text-foreground text-base font-interMedium">
                     Select the kinds of vehicles you have:
                   </Text>
 
-                  {vehicleOptions.map((vehicle) => (
-                    <View key={vehicle} className="flex-row items-center gap-2">
-                      <Checkbox
-                        isSelected={rentalPreference.listOfVehicles.includes(
-                          vehicle,
-                        )}
-                        onSelectedChange={() => toggleVehicle(vehicle)}
-                        className="border border-grey-400 shadow-none"
-                      />
+                  {VEHICLE_OPTIONS.map((vehicle) => (
+                    <ControlField
+                      key={vehicle}
+                      isSelected={rentalPreference.listOfVehicles.includes(vehicle)}
+                      onSelectedChange={() => toggleVehicle(vehicle)}
+                    >
+                      <ControlField.Indicator>
+                        <Checkbox className="border border-grey-400 shadow-none" />
+                      </ControlField.Indicator>
+                      
                       <Label>{vehicle}</Label>
-                    </View>
+                    </ControlField>
                   ))}
                 </View>
               )}
@@ -221,7 +220,7 @@ export default function StepFive() {
 
           {/* Smoker */}
           <View className="flex gap-3">
-            <Text className="text-text text-lg font-interMedium">
+            <Text className="text-foreground text-lg font-interMedium">
               Is anyone in your household a smoker?
             </Text>
 
@@ -256,7 +255,7 @@ export default function StepFive() {
 
           {/* Disability */}
           <View className="flex gap-3">
-            <Text className="text-text text-lg font-interMedium">
+            <Text className="text-foreground text-lg font-interMedium">
               Do you have any household members with a disability?
             </Text>
 
@@ -290,9 +289,7 @@ export default function StepFive() {
 
         {/* Next Button*/}
         <Button onPress={handleNext}>
-          <Button.Label>
-            Let&apos;s find your place!
-          </Button.Label>
+          <Button.Label>Let&apos;s find your place!</Button.Label>
         </Button>
       </View>
     </ScreenWrapper>

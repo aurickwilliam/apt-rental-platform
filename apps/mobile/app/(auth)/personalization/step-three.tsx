@@ -46,7 +46,7 @@ export default function StepThree() {
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-base font-inter">
+            <Text className="text-foreground text-base font-inter">
               Select the number of bedrooms you prefer so we can filter properties
               that fit your needs.
             </Text>
