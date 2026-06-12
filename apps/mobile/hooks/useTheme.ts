@@ -19,7 +19,9 @@ export function useTheme() {
   // Appearance.setColorScheme is what Uniwind reads from under the hood.
   // It accepts 'light' | 'dark' | null — null means "follow system".
   useEffect(() => {
-    Appearance.setColorScheme(themeMode === "system" ? null : themeMode);
+    if (themeMode !== "system") {
+      Appearance.setColorScheme(themeMode);
+    }
   }, [themeMode]);
 
   const toggleTheme = () => setThemeMode(isDark ? "light" : "dark");
