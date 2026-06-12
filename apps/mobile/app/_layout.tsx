@@ -62,13 +62,13 @@ export default function RootLayout() {
 
   // Check if the fonts have loaded or if there was an error
   useEffect(() => {
-    if (fontsLoaded || fontError) return;
-    
-    SplashScreen.hideAsync();
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
 
-    // if (__DEV__) {
-    //   router.replace('/manage-apartment/add-apartment/success');
-    // }
+      // if (__DEV__) {
+      //   router.replace('/(auth)/personalization/step-one');
+      // }
+    }
 
     // REMOVED: Force redirect to complete profile if mobile number is missing
     

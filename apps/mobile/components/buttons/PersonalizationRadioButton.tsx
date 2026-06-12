@@ -1,7 +1,8 @@
-import { Ionicons } from '@expo/vector-icons'
 import { View, Text, Pressable } from 'react-native'
 
-import { COLORS } from '@repo/constants'
+import { Check } from 'lucide-react-native';
+
+import { useColors } from 'hooks/useTheme';
 
 interface PersonalizationRadioButtonProps{
   label: string,
@@ -15,28 +16,29 @@ export default function PersonalizationRadioButton({
   selected = false,
 }: PersonalizationRadioButtonProps) {
 
+  const { colors } = useColors();
+
   return (
     <Pressable
       onPress={onPress}
       className={`w-[48%] rounded-2xl border-2 p-3 mb-4 flex gap-3
-        ${selected ? "border-primary bg-lightBlue" : "border-grey-300 bg-white"}`}
+        ${selected ? "border-accent bg-surface-tertiary" : "border-field-border bg-surface"}`}
     >
       {/* Circle / Check */}
       <View
         className={`w-10 h-10 rounded-full border-2 items-center justify-center mb-4
-          ${selected ? "border-primary" : "border-grey-300"}`}
+          ${selected ? "border-accent" : "border-field-border"}`}
       >
         {selected && (
-          <Ionicons 
-            name="ellipse" 
+          <Check
             size={22} 
-            color={ COLORS.primary } 
+            color={ colors.primary } 
           />
         )}
       </View>
 
       {/* Label */}
-      <Text className="text-lg font-interMedium text-text">
+      <Text className="text-lg font-interMedium text-foreground mt-2">
         {label}
       </Text>
     </Pressable>

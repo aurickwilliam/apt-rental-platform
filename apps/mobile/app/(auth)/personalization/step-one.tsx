@@ -48,7 +48,7 @@ export default function StepOne() {
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-base font-inter">
+            <Text className="text-foreground text-base font-inter">
               Enter your target city or neighborhood to narrow down property searches.
             </Text>
           </View>
