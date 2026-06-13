@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
 
-import PillButton from 'components/buttons/PillButton'
-import { COLORS } from '@repo/constants'
 import { IconFileUpload, IconFile, IconX } from '@tabler/icons-react-native'
+
+import { useColors } from '@/hooks/useTheme'
 
 import { Button } from "heroui-native"
 
@@ -33,6 +33,8 @@ export default function UploadFileField({
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ],
 }: UploadFileFieldProps) {
+  const { colors } = useColors();
+
   const [fileName, setFileName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -69,11 +71,11 @@ export default function UploadFileField({
     <View className="w-full flex-col gap-2">
       {/* Label */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-interMedium text-text flex-1">
+        <Text className="text-base font-interMedium text-foreground flex-1">
           {label}
         </Text>
         {required && (
-          <Text className="text-base font-inter text-redHead-200">
+          <Text className="text-base font-inter text-danger">
             *Required
           </Text>
         )}
@@ -87,10 +89,10 @@ export default function UploadFileField({
         className={[
           'w-full h-52 rounded-xl border items-center justify-center',
           hasFile
-            ? 'bg-white border-gray-300'
-            : 'bg-white border-gray-300',
+            ? 'bg-surface border-border'
+            : 'bg-surface border-gray-400 border-dashed',
           error
-            ? 'border-redHead-200 bg-red-50'
+            ? 'border-danger bg-danger-light'
             : '',
           disabled
             ? 'opacity-50'
@@ -102,11 +104,11 @@ export default function UploadFileField({
           <View className="flex-col gap-3 items-center justify-center px-6">
             <IconFile
               size={56}
-              color={COLORS.primary}
+              color={colors.primary}
               strokeWidth={1}
             />
             <Text
-              className="text-center text-text font-interMedium text-sm"
+              className="text-center text-foreground font-interMedium text-sm"
               numberOfLines={2}
             >
               {displayName}
@@ -120,10 +122,10 @@ export default function UploadFileField({
           <View className="flex gap-3 items-center justify-center px-6">
             <IconFileUpload
               size={64}
-              color={COLORS.mediumGrey}
+              color={colors.textSecondary}
               strokeWidth={1}
             />
-            <Text className="text-center text-grey-400 font-interMedium">
+            <Text className="text-center text-gray-400 font-interMedium">
               {placeholder ?? 'No documents uploaded yet.'}
             </Text>
           </View>
@@ -132,7 +134,7 @@ export default function UploadFileField({
 
       {/* Error Message */}
       {!!error && (
-        <Text className="text-base text-redHead-200 font-inter mt-1">
+        <Text className="text-base text-danger font-inter mt-1">
           {error}
         </Text>
       )}
@@ -146,7 +148,7 @@ export default function UploadFileField({
           className="flex-1"
           variant="secondary"
         >
-          <IconFileUpload size={16} color={COLORS.primary} />
+          <IconFileUpload size={16} color={colors.primary} />
           <Button.Label>
             {hasFile ? 'Replace File' : 'Upload a File'}
           </Button.Label>
@@ -159,7 +161,7 @@ export default function UploadFileField({
           className="flex-1"
           variant="danger-soft"
         >
-          <IconX size={16} color={COLORS.lightRedHead} />
+          <IconX size={16} color={colors.danger} />
           <Button.Label>
             Remove File
           </Button.Label>
