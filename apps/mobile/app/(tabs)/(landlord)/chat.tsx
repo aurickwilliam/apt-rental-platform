@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import Divider from '@/components/display/Divider'
-import MessageCard from '@/components/cards/MessageCard'
+import MessageCard from '@/app/(tabs)/components/chat/MessageCard'
 
 import { SearchField, Tabs } from 'heroui-native'
 
