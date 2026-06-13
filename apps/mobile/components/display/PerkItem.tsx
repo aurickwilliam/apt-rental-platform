@@ -1,12 +1,10 @@
-import { Text, View } from 'react-native'
+import { Text, View } from "react-native";
 
-import { COLORS } from '@repo/constants'
-import { PERKS } from 'constants/perks';
+import { PERKS } from "constants/perks";
 
-import {
-  IconProps,
-  IconQuestionMark
-} from '@tabler/icons-react-native';
+import { useColors } from "hooks/useTheme";
+
+import { LucideIcon, CircleQuestionMark } from "lucide-react-native";
 
 type BasePerkItemProps = {
   iconColor?: string;
@@ -14,37 +12,51 @@ type BasePerkItemProps = {
   textSize?: number;
 };
 
-type PerkItemProps = BasePerkItemProps & (
-  | { perkId: string; customIcon?: never; customText?: never }
-  | { perkId?: never; customIcon: React.ComponentType<IconProps>; customText: string }
-);
+type PerkItemProps = BasePerkItemProps &
+  (
+    | {
+        perkId: string;
+        customIcon?: never;
+        customText?: never;
+      }
+    | {
+        perkId?: never;
+        customIcon: LucideIcon;
+        customText: string;
+      }
+  );
 
 export default function PerkItem({
-  iconColor = COLORS.primary,
+  iconColor,
   iconSize = 26,
   textSize = 16,
   ...props
 }: PerkItemProps) {
-  const perk = 'perkId' in props && props.perkId ? PERKS[props.perkId] : undefined;
+  const { colors } = useColors();
+
+  const perk =
+    "perkId" in props && props.perkId ? PERKS[props.perkId] : undefined;
+  iconColor = iconColor || colors.primary;
 
   // Icon and text with fallbacks
-  const Icon = ('customIcon' in props ? props.customIcon : undefined) || perk?.icon || IconQuestionMark;
-  const text = ('customText' in props ? props.customText : undefined) || perk?.name || 'Unknown perk';
+  const Icon =
+    ("customIcon" in props ? props.customIcon : undefined) ||
+    perk?.icon ||
+    CircleQuestionMark;
+  const text =
+    ("customText" in props ? props.customText : undefined) ||
+    perk?.name ||
+    "Unknown perk";
 
   return (
-    <View className='flex-row items-center gap-3'>
-      {Icon && (
-        <Icon
-          size={iconSize}
-          color={iconColor}
-        />
-      )}
-      <Text 
-        className='text-text text-sm font-inter mt-1'
+    <View className="flex-row items-center gap-3">
+      {Icon && <Icon size={iconSize} color={iconColor} />}
+      <Text
+        className="text-foreground text-sm font-inter mt-1"
         style={{ fontSize: textSize }}
       >
         {text}
       </Text>
     </View>
-  )
+  );
 }

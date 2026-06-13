@@ -29,8 +29,7 @@ import {
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useFavorites } from '@/hooks/useFavorites';
-
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 import { Button } from "heroui-native"
 
@@ -39,6 +38,7 @@ export default function ApartmentScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { colors } = useColors();
   const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -206,7 +206,7 @@ export default function ApartmentScreen() {
           variant="tertiary" 
           isIconOnly
         >
-          <IconChevronLeft size={24} color={COLORS.text} />
+          <IconChevronLeft size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
 
@@ -221,9 +221,9 @@ export default function ApartmentScreen() {
           isIconOnly
         >
           {isFavorite(apartmentId) ? (
-            <IconHeartFilled size={24} color={COLORS.lightRedHead} />
+            <IconHeartFilled size={24} color={colors.danger} />
           ) : (
-            <IconHeart size={24} color={COLORS.text} />
+            <IconHeart size={24} color={colors.gray400} />
           )}
         </Button>
       </View>

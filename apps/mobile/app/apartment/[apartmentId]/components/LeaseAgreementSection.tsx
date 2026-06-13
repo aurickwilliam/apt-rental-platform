@@ -1,13 +1,13 @@
 import { View, Text, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { IconFileDescription } from '@tabler/icons-react-native';
 
-import PillButton from 'components/buttons/PillButton';
+import { IconFileDescription } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
-import { COLORS } from '@repo/constants';
 import { supabase } from '@repo/supabase';
+
+import { useColors } from '@/hooks/useTheme';
 
 type LeaseAgreementSectionProps = {
   apartmentId: string;
@@ -19,6 +19,7 @@ export default function LeaseAgreementSection({
   leaseAgreementUrl,
 }: LeaseAgreementSectionProps) {
   const router = useRouter();
+  const { colors } = useColors();
 
   const handleLeaseAgreementNavigation = async () => {
     if (!leaseAgreementUrl) {
@@ -46,13 +47,13 @@ export default function LeaseAgreementSection({
   return (
     <View className='mt-10 px-5 flex gap-2'>
       <View className='flex-row items-center gap-2'>
-        <IconFileDescription size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconFileDescription size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           Lease Agreement & Rules
         </Text>
       </View>
 
-      <Text className='text-text text-sm font-inter'>
+      <Text className='text-muted text-sm font-inter'>
         Please review the rental owner’s property rules before applying.
       </Text>
 

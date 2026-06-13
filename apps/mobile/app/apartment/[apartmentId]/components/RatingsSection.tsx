@@ -1,8 +1,10 @@
 import { View, Text, TouchableOpacity } from 'react-native';
+  
 import { IconStar } from '@tabler/icons-react-native';
 
 import SmallRatingCard from 'components/cards/SmallRatingCard';
-import { COLORS } from '@repo/constants';
+
+import { useColors } from '@/hooks/useTheme';
 import type { ReviewWithTenant } from '@/hooks/useApartmentDetails';
 
 type RatingsSectionProps = {
@@ -11,19 +13,23 @@ type RatingsSectionProps = {
 };
 
 export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProps) {
+  const {colors} = useColors();
+
   const hasReviews = reviews.length > 0;
 
   return (
     <>
       <View className='px-5 mt-10 flex-row items-center justify-between'>
         <View className='flex-row items-center gap-2'>
-          <IconStar size={26} color={COLORS.text} />
-          <Text className='font-interSemiBold text-lg text-text'>Ratings</Text>
+          <IconStar size={26} color={colors.textPrimary} />
+          <Text className='font-interSemiBold text-lg text-foreground'>
+            Ratings
+          </Text>
         </View>
 
         {hasReviews && onSeeAll && (
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
-            <Text className='font-interMedium text-base text-primary'>
+            <Text className='font-interMedium text-base text-accent'>
               See All
             </Text>
           </TouchableOpacity>
@@ -47,8 +53,8 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
           ))
         ) : (
           <View className='items-center py-8 opacity-70'>
-            <IconStar size={32} color={COLORS.grey} />
-            <Text className='mt-2 text-grey-500 font-interMedium'>
+            <IconStar size={32} color={colors.gray500} />
+            <Text className='mt-2 text-gray-500 font-interMedium'>
               No ratings yet
             </Text>
           </View>

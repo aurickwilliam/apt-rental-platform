@@ -19,8 +19,7 @@ import {
   IconMaximize,
 } from '@tabler/icons-react-native';
 
-import { COLORS } from '@repo/constants';
-
+import { useColors } from '@/hooks/useTheme';
 import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
 
 type ApartmentImage = {
@@ -38,7 +37,11 @@ export default function ApartmentHeroSection({
   images,
 }: ApartmentHeroSectionProps) {
   const { width } = Dimensions.get('window');
+
   const scrollX = useRef(new Animated.Value(0)).current;
+
+  const { colors } = useColors();
+
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
 
@@ -97,39 +100,39 @@ export default function ApartmentHeroSection({
           </Text>
 
           <View className='flex-row items-center mt-2 gap-2'>
-            <IconMapPin size={24} color={COLORS.lightLightLightGrey} />
-            <Text className='text-grey-100 font-interMedium text-base'>
+            <IconMapPin size={24} color={colors.gray500} />
+            <Text className='text-gray-500 font-interMedium text-base'>
               {location || 'No location provided'}
             </Text>
           </View>
 
           <View className='flex-row items-center mt-5 gap-2'>
-            <IconStarFilled size={20} color={COLORS.secondary} />
-            <Text className='text-grey-100 font-interMedium text-base'>
+            <IconStarFilled size={20} color={colors.secondary} />
+            <Text className='text-gray-500 font-interMedium text-base'>
               No ratings yet
             </Text>
           </View>
 
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
-              <IconBed size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-sm'>
+              <IconBed size={24} color={colors.gray500} />
+              <Text className='text-gray-500 font-interMedium text-sm'>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
               </Text>
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <IconBath size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-sm'>
+              <IconBath size={24} color={colors.gray500} />
+              <Text className='text-gray-500 font-interMedium text-sm'>
                 {apartment?.no_bathrooms}{' '}
                 {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
               </Text>
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-sm'>
+              <IconMaximize size={24} color={colors.gray500} />
+              <Text className='text-gray-500 font-interMedium text-sm'>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
               </Text>
             </View>
@@ -159,7 +162,7 @@ export default function ApartmentHeroSection({
             return (
               <Animated.View
                 key={index}
-                className='h-2 bg-darkerWhite rounded mx-1'
+                className='h-2 bg-gray-500 rounded mx-1'
                 style={[
                   {
                     width: dotWidth,
