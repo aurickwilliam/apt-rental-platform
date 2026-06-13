@@ -1,6 +1,8 @@
 import { View, Text, Image } from 'react-native'
+
 import { Card, PressableFeedback } from 'heroui-native'
-import { COLORS } from '@repo/constants'
+
+import { useColors } from '@/hooks/useTheme'
 
 interface PropertyCardProps {
   apartmentName: string
@@ -19,27 +21,28 @@ export default function PropertyCard({
   thumbnailUrl,
   onPress,
 }: PropertyCardProps) {
+  const { colors } = useColors();
 
   const STATUS_STYLES = {
     'Occupied': {
-      backgroundColor: COLORS.lightGreen,
-      color: COLORS.greenHulk,
+      backgroundColor: colors.successLight,
+      color: colors.success,
     },
     'Under Maintenance': {
-      backgroundColor: COLORS.lightYellowish,
-      color: COLORS.yellowish,
+      backgroundColor: colors.warningLight,
+      color: colors.warning,
     },
     'Available': {
-      backgroundColor: COLORS.lightBlue,
-      color: COLORS.primary,
+      backgroundColor: colors.primaryLight,
+      color: colors.primary,
     },
     'Unverified': {
-      backgroundColor: COLORS.lightLightLightGrey,
-      color: COLORS.grey,
+      backgroundColor: colors.gray200,
+      color: colors.gray500,
     },
     'Verified': {
-      backgroundColor: COLORS.lightGreen,
-      color: COLORS.greenHulk,
+      backgroundColor: colors.successLight,
+      color: colors.success,
     }
   }
 
@@ -47,7 +50,7 @@ export default function PropertyCard({
     <PressableFeedback onPress={onPress}>
       <PressableFeedback.Highlight />
       <Card
-        className='flex-row overflow-hidden border border-grey-300 p-0 shadow-none'
+        className='flex-row overflow-hidden rounded-2xl border border-border p-0 shadow-none'
       >
         {/* Image — fills full height, left corners rounded to match card */}
         <Image
@@ -65,7 +68,7 @@ export default function PropertyCard({
         <Card.Body className='px-3 py-2 min-w-0 justify-between flex-1'>
           <View>
             <Card.Title
-              className='text-base font-interMedium text-text leading-snug'
+              className='text-base font-interMedium text-foreground leading-snug'
               numberOfLines={1}
               ellipsizeMode='tail'
             >
@@ -73,7 +76,7 @@ export default function PropertyCard({
             </Card.Title>
 
             <Card.Description
-              className='text-grey-500 text-sm font-inter'
+              className='text-muted text-sm font-inter'
               numberOfLines={2}
               ellipsizeMode='tail'
             >

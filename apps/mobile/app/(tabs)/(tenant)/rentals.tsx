@@ -6,7 +6,7 @@ import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCa
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import Divider from 'components/display/Divider';
-import QuickActionButton from '@/app/(tabs)/components/rentals/QuickActionButton';
+import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 
 import {
