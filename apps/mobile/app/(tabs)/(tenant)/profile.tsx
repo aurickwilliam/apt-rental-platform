@@ -1,23 +1,23 @@
 import { View, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router';
 
-import { COLORS } from "@repo/constants";
-
 import { supabase } from '@repo/supabase';
 
 import {
-  IconUser,
-  IconFileText,
-  IconHeart,
-  IconClock,
-  IconCreditCard,
-  IconSettings,
-  IconLogout
-} from '@tabler/icons-react-native';
+  User,
+  Heart,
+  FileText,
+  Clock,
+  CreditCard,
+  Settings,
+  LogOut,
+  LucideIcon,
+} from 'lucide-react-native';
 
 import { Button, ListGroup, Separator } from "heroui-native";
 
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from 'hooks/useProfile';
+import { useColors } from 'hooks/useTheme';
 
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { VerificationStatus } from '../components/profile/VerificationStatus';
@@ -26,6 +26,7 @@ import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 export default function Profile() {
   const router = useRouter();
   const { profile, loading } = useProfile();
+  const { colors } = useColors();
   
   const avatarInitials =
     `${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase();
@@ -42,11 +43,50 @@ export default function Profile() {
     router.replace('/(auth)/sign-in');
   };
 
+  type ListItem = {
+    title: string;
+    icon: LucideIcon;
+    onPress: () => void;
+  }
+
+  const listItems: ListItem[] = [
+    {
+      title: 'Edit Profile',
+      icon: User,
+      onPress: () => router.push('/tenant/edit-profile')
+    },
+    {
+      title: 'Document & IDs',
+      icon: FileText,
+      onPress: () => router.push('/document-id')
+    },
+    {
+      title: 'Favorites',
+      icon: Heart,
+      onPress: () => router.push('/tenant/favorites')
+    },
+    {
+      title: 'Payment History',
+      icon: Clock,
+      onPress: () => router.push('/tenant/payment/history')
+    },
+    {
+      title: 'Payment Methods',
+      icon: CreditCard,
+      onPress: () => router.push('/tenant/payment/saved-methods')
+    },
+    {
+      title: 'Settings',
+      icon: Settings,
+      onPress: () => router.push('/settings')
+    },
+  ];
+
   return (
     <ScrollView 
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      className='bg-darkerWhite flex-1'
+      className='bg-background flex-1'
     >
 
       <ProfileHeader 
@@ -79,75 +119,23 @@ export default function Profile() {
       {/* Profile Options */}
       <View className='mt-5 px-5'>
         <ListGroup className="shadow-none">
-          <ListGroup.Item onPress={() => router.push('/tenant/edit-profile')}>
-            <ListGroup.ItemPrefix>
-              <IconUser size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Edit Profile</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
-
-          <Separator className='mx-4' />
-
-          <ListGroup.Item onPress={() => router.push('/document-id')}>
-            <ListGroup.ItemPrefix>
-              <IconFileText size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Document & IDs</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
-
-          <Separator className='mx-4' />
-
-          <ListGroup.Item onPress={() => router.push('/tenant/favorites')}>
-            <ListGroup.ItemPrefix>
-              <IconHeart size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Favorites</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
-
-          <Separator className='mx-4' />
-
-          <ListGroup.Item onPress={() => router.push('/tenant/payment/history')}>
-            <ListGroup.ItemPrefix>
-              <IconClock size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Payment History</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
-
-          <Separator className='mx-4' />
-
-          <ListGroup.Item onPress={() => router.push('/tenant/payment/saved-methods')}>
-            <ListGroup.ItemPrefix>
-              <IconCreditCard size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Payment Methods</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
-
-          <Separator className='mx-4' />
-
-          <ListGroup.Item onPress={() => router.push('/settings')}>
-            <ListGroup.ItemPrefix>
-              <IconSettings size={22} color={COLORS.text} />
-            </ListGroup.ItemPrefix>
-            <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className='font-interMedium'>Settings</ListGroup.ItemTitle>
-            </ListGroup.ItemContent>
-            <ListGroup.ItemSuffix />
-          </ListGroup.Item>
+          {listItems.map((item, index) => (
+            <>
+              <ListGroup.Item key={index} onPress={item.onPress}>
+                <ListGroup.ItemPrefix>
+                  <item.icon size={22} color={colors.textPrimary} />
+                </ListGroup.ItemPrefix>
+                <ListGroup.ItemContent>
+                  <ListGroup.ItemTitle className='font-interMedium'>{item.title}</ListGroup.ItemTitle>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix />
+              </ListGroup.Item>
+              
+              {index < listItems.length - 1 && (
+                <Separator key={`sep-${index}`} className='mx-4' />
+              )}
+            </>
+          ))}
         </ListGroup>
       </View>
 
@@ -157,7 +145,7 @@ export default function Profile() {
           variant='danger'
           size='md'
         >
-          <IconLogout size={16} color='white' />
+          <LogOut size={16} color='white' />
           <Button.Label>
             Logout
           </Button.Label>
