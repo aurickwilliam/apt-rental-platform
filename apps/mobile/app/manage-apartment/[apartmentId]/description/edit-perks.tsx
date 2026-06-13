@@ -8,14 +8,18 @@ import Divider from '@/components/display/Divider'
 
 import { Button, Chip, SearchField } from "heroui-native"
 
-import { COLORS } from '@repo/constants'
 import { PERKS } from '@/constants/perks'
+
 import { supabase } from '@repo/supabase'
+
 import Ionicons from '@expo/vector-icons/build/Ionicons'
+
+import { useColors } from '@/hooks/useTheme'
 
 export default function EditPerks() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
   const router = useRouter()
+  const { colors } = useColors()
 
   const [searchValue, setSearchValue] = useState('')
   const [amenities, setAmenities] = useState<string[]>([])
@@ -100,7 +104,7 @@ export default function EditPerks() {
     return (
       <ScreenWrapper header={<StandardHeader title='Edit Perks' />}>
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator color={COLORS.primary} />
+          <ActivityIndicator color={colors.primary} />
         </View>
       </ScreenWrapper>
     )
@@ -110,7 +114,7 @@ export default function EditPerks() {
     return (
       <ScreenWrapper header={<StandardHeader title='Edit Perks' />}>
         <View className='flex-1 items-center justify-center px-5'>
-          <Text className='text-red-500 text-sm font-inter text-center'>
+          <Text className='text-danger text-sm font-inter text-center'>
             Failed to load amenities. Please try again.
           </Text>
         </View>
@@ -138,7 +142,7 @@ export default function EditPerks() {
           </SearchField>
 
           {amenities.length === 0 && (
-            <Text className='text-red-500 text-sm font-inter mt-2'>
+            <Text className='text-danger text-sm font-inter mt-2'>
               Please select at least one amenity.
             </Text>
           )}
@@ -147,7 +151,7 @@ export default function EditPerks() {
 
           {filteredSelected.length > 0 && (
               <View className='flex gap-3'>
-                <Text className='text-text text-base font-interMedium'>
+                <Text className='text-foreground text-base font-interMedium'>
                   Added Perks ({amenities.length})
                 </Text>
               <View className='flex-row flex-wrap gap-3'>
@@ -158,9 +162,9 @@ export default function EditPerks() {
                     color='accent'
                     onPress={() => toggleAmenity(perk.id)}
                   >
-                    <perk.icon size={16} color={COLORS.primary} />
+                    <perk.icon size={16} color={colors.primary} />
                     <Chip.Label>{perk.name}</Chip.Label>
-                    <Ionicons name='close' size={12} />
+                    <Ionicons name='close' size={12} color={colors.textPrimary} />
                   </Chip>
                 ))}
               </View>
@@ -173,7 +177,7 @@ export default function EditPerks() {
 
           {filteredUnselected.length > 0 ? (
             <View className='flex gap-3 mt-3'>
-              <Text className='text-text text-base font-interMedium'>
+              <Text className='text-foreground text-base font-interMedium'>
                 All Perks
               </Text>
               <View className='flex-row flex-wrap gap-3'>
@@ -183,8 +187,8 @@ export default function EditPerks() {
                     variant='secondary'
                     onPress={() => toggleAmenity(perk.id)}
                   >
-                    <perk.icon size={16} color={COLORS.text} />
-                    <Chip.Label className='text-text'>
+                    <perk.icon size={16} color={colors.textPrimary} />
+                    <Chip.Label className='text-foreground'>
                       {perk.name}
                     </Chip.Label>
                   </Chip>
@@ -200,7 +204,7 @@ export default function EditPerks() {
           )}
         </ScrollView>
 
-        <View className='p-5 border-t border-gray-100 bg-white'>
+        <View className='p-5'>
           <Button
             onPress={handleSave}
             isDisabled={amenities.length === 0 || isSaving}
