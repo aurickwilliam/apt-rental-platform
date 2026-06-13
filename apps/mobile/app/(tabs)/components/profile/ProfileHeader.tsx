@@ -83,8 +83,12 @@ export function ProfileHeader({
           alt={fullName}
         >
           <Avatar.Image source={{ uri: avatarUrl ?? '' }} />
-          <Avatar.Fallback delayMs={200}>
-            {avatarInitials ?? ''}
+          <Avatar.Fallback delayMs={200} className="justify-center items-center">
+            <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
+              {/* mt-3 compensates for font-interMedium's vertical metrics 
+              so the initials sit centered in the circle */}
+              {avatarInitials ?? ''}
+            </Text>
           </Avatar.Fallback>
         </Avatar>
 
