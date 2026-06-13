@@ -24,9 +24,9 @@ export default function MessageCard({
 }: MessageCardProps) {
 
   return (
-    <PressableFeedback onPress={onPress} className='rounded-2xl overflow-hidden border border-border'>
+    <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden border border-border'>
       <PressableFeedback.Highlight />
-      <Card className='flex-row gap-4 shadow-none rounded-2xl'>
+      <Card className='flex-row gap-4 shadow-none rounded-3xl'>
 
         {/* Profile Picture */}
         <View className='relative'>

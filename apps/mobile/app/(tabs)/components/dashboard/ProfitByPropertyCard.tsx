@@ -58,7 +58,7 @@ export default function ProfitByPropertyCard() {
   const maxValue = Math.max(...chartData.map((d) => d.value))
 
   return (
-    <View className='w-full border border-border p-4 rounded-2xl bg-surface-secondary'>
+    <View className='w-full border border-border p-4 rounded-3xl bg-surface-secondary'>
       {/* HEADER */}
       <View className='flex-row items-center justify-between'>
         <View className='flex'>

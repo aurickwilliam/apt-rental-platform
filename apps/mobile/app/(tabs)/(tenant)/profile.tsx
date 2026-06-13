@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@repo/supabase';
 
 import {
-  User,
+  UserPen,
   Heart,
   FileText,
   Clock,
@@ -52,7 +52,7 @@ export default function Profile() {
   const listItems: ListItem[] = [
     {
       title: 'Edit Profile',
-      icon: User,
+      icon: UserPen,
       onPress: () => router.push('/tenant/edit-profile')
     },
     {
@@ -120,8 +120,8 @@ export default function Profile() {
       <View className='mt-5 px-5'>
         <ListGroup className="shadow-none">
           {listItems.map((item, index) => (
-            <>
-              <ListGroup.Item key={index} onPress={item.onPress}>
+            <View key={index}>
+              <ListGroup.Item onPress={item.onPress}>
                 <ListGroup.ItemPrefix>
                   <item.icon size={22} color={colors.textPrimary} />
                 </ListGroup.ItemPrefix>
@@ -134,7 +134,7 @@ export default function Profile() {
               {index < listItems.length - 1 && (
                 <Separator key={`sep-${index}`} className='mx-4' />
               )}
-            </>
+            </View>
           ))}
         </ListGroup>
       </View>

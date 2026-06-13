@@ -282,7 +282,7 @@ export default function Units() {
 
       {/* Property Stats */}
       <View className="flex gap-3 mt-5">
-        <View className="bg-accent p-4 rounded-xl flex gap-2">
+        <View className="bg-accent p-4 rounded-3xl flex gap-2">
           <Text className="text-gray-100 text-base font-interSemiBold">
             {currentMonthLabel} Total Profit
           </Text>
@@ -296,7 +296,7 @@ export default function Units() {
         </View>
 
         <View className="flex-row gap-3">
-          <View className="flex-1 bg-surface-secondary rounded-2xl p-4 gap-1 border border-border justify-center">
+          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
             <Text className="text-sm text-gray-500 font-interMedium">
               Total Properties
             </Text>
@@ -305,7 +305,7 @@ export default function Units() {
             </Text>
           </View>
 
-          <View className="flex-1 bg-surface-secondary rounded-2xl p-4 gap-1 border border-border justify-center">
+          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
             <Text className="text-sm text-gray-500 font-interMedium">
               Units Occupied
             </Text>
