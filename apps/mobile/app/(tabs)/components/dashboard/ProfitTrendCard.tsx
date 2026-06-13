@@ -45,7 +45,7 @@ export default function ProfitTrendCard() {
   const maxValue = Math.max(...chartData.map((d) => d.value))
 
   return (
-    <View className='w-full border border-border p-4 rounded-3xl bg-surface-secondary'>
+    <View className='w-full border border-border p-4 rounded-3xl bg-surface'>
       {/* HEADER */}
       <View className='flex-row items-center justify-between'>
         <View className='flex'>

@@ -26,7 +26,7 @@ export default function RentDueCard({
 
   return (
     <TouchableOpacity 
-      className='bg-surface-secondary rounded-3xl p-4 border border-border'
+      className='bg-surface rounded-3xl p-4 border border-border'
       activeOpacity={0.7}
       onPress={onPress}
     >

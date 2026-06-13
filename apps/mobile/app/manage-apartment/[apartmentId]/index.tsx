@@ -30,9 +30,11 @@ import {
   IconBuildingCommunity,
 } from '@tabler/icons-react-native'
 
-import { COLORS } from '@repo/constants'
 import { IMAGES } from '@/constants/images'
+
 import { supabase } from '@repo/supabase'
+
+import { useColors } from '@/hooks/useTheme'
 
 type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
 
@@ -103,15 +105,15 @@ function DetailSkeleton() {
     <View className="flex gap-5 mt-3">
       <View className="flex-row gap-3 mb-3">
         {[1, 2].map((i) => (
-          <View key={i} className="rounded-2xl w-48 h-60 bg-gray-200" />
+          <View key={i} className="rounded-2xl w-48 h-60 bg-surface" />
         ))}
       </View>
-      <View className="h-8 bg-gray-200 rounded-full w-2/3" />
-      <View className="h-4 bg-gray-100 rounded-full w-1/2" />
-      <View className="h-5 bg-gray-200 rounded-full w-1/3" />
+      <View className="h-8 bg-surface rounded-full w-2/3" />
+      <View className="h-4 bg-surface rounded-full w-1/2" />
+      <View className="h-5 bg-surface rounded-full w-1/3" />
       <View className="flex-row gap-3">
         {[1, 2, 3].map((i) => (
-          <View key={i} className="h-4 bg-gray-100 rounded-full w-1/4" />
+          <View key={i} className="h-4 bg-surface-secondary rounded-full w-1/4" />
         ))}
       </View>
     </View>
@@ -121,6 +123,7 @@ function DetailSkeleton() {
 export default function Index() {
   const router = useRouter()
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
+  const { colors } = useColors();
 
   const [imageIndex, setImageIndex] = useState(0)
   const [isImageViewVisible, setIsImageViewVisible] = useState(false)
@@ -445,33 +448,33 @@ export default function Index() {
             {/* Property Details */}
             <View className="flex gap-5">
               <View className="flex gap-1">
-                <Text className="text-primary text-2xl font-nunito">
+                <Text className="text-accent text-2xl font-nunito">
                   {apartment.name}
                 </Text>
-                <Text className="text-text font-inter">
+                <Text className="text-foreground font-inter">
                   {apartment.street_address}, {apartment.barangay}, {apartment.city}
                   {apartment.province ? `, ${apartment.province}` : ''} {apartment.zip_code ? `, ${apartment.zip_code}` : ''}
                 </Text>
               </View>
 
               {/* Monthly Rent */}
-              <Text className="text-text text-lg font-interMedium">
+              <Text className="text-accent text-lg font-interMedium">
                 ₱ {apartment.monthlyRent.toLocaleString()}
-                <Text className="text-grey-500 font-inter text-base">/month</Text>
+                <Text className="text-gray-500 font-inter text-base">/month</Text>
               </Text>
 
               {/* Apartment Type and Lease Duration */}
               <View className='flex-row flex-wrap'>
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconHome size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconHome size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.type}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconCalendar size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconCalendar size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.leaseDuration}
                   </Text>
                 </View>
@@ -480,15 +483,15 @@ export default function Index() {
               {/* Bedrooms and Bathrooms */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBed size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconBed size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.noBedrooms} Bedroom{apartment.noBedrooms !== 1 ? 's' : ''}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBath size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconBath size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.noBathrooms} Bathroom{apartment.noBathrooms !== 1 ? 's' : ''}
                   </Text>
                 </View>
@@ -497,15 +500,15 @@ export default function Index() {
               {/* Furnished Type and Floor Level */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconArmchair size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconArmchair size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.furnishedType}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBuildingCommunity size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconBuildingCommunity size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.floorLevel}
                   </Text>
                 </View>
@@ -514,49 +517,49 @@ export default function Index() {
               {/* Max Occupants and Square Footage */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconUsers size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconUsers size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     Max {apartment.maxOccupants} Occupant{apartment.maxOccupants !== 1 ? 's' : ''}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconMaximize size={24} color={COLORS.text} />
-                  <Text className="text-grey-500 text-base">
+                  <IconMaximize size={24} color={colors.gray500} />
+                  <Text className="text-foreground text-base">
                     {apartment.areaSqm} Sqm
                   </Text>
                 </View>
               </View>
 
               {/* Stats Row */}
-              <View className="mt-5 p-2 border-t border-b border-grey-300 flex-row items-center justify-between">
+              <View className="mt-5 p-2 border-t border-b border-gray-300 flex-row items-center justify-between">
                 <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-grey-500 font-inter">Ratings</Text>
+                  <Text className="text-base text-foreground font-inter">Ratings</Text>
                   <Text className="text-3xl text-secondary font-interMedium">
                     {apartment.averageRating !== null ? `${apartment.averageRating}/5` : '—'}
                   </Text>
-                  <Text className="text-base text-grey-500 font-interMedium">Average</Text>
+                  <Text className="text-base text-foreground font-interMedium">Average</Text>
                 </View>
 
-                <View className="w-px h-full bg-grey-300" />
+                <View className="w-px h-full bg-gray-300" />
 
                 <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-grey-500 font-inter">Reviews</Text>
-                  <Text className="text-3xl text-text font-interMedium">
+                  <Text className="text-base text-foreground font-inter">Reviews</Text>
+                  <Text className="text-3xl text-foreground font-interMedium">
                     {apartment.noRatings}
                   </Text>
-                  <Text className="text-base text-grey-500 font-interMedium">Total</Text>
+                  <Text className="text-base text-foreground font-interMedium">Total</Text>
                 </View>
 
-                <View className="w-px h-full bg-grey-300" />
+                <View className="w-px h-full bg-gray-300" />
 
                 <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-grey-500 font-inter">Status</Text>
+                  <Text className="text-base text-foreground font-inter">Status</Text>
                   <IconCircleCheckFilled
                     size={32}
-                    color={isOccupied ? COLORS.greenHulk : COLORS.grey}
+                    color={isOccupied ? colors.success : colors.primary}
                   />
-                  <Text className="text-base text-grey-500 font-interMedium">
+                  <Text className="text-base text-foreground font-interMedium">
                     {apartment.status}
                   </Text>
                 </View>
@@ -582,8 +585,8 @@ export default function Index() {
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
-                      <IconUser size={26} color={COLORS.text} />
-                      <Text className="text-text text-lg font-interSemiBold">
+                      <IconUser size={26} color={colors.textPrimary} />
+                      <Text className="text-foreground text-lg font-interSemiBold">
                         Tenant Information
                       </Text>
                     </View>
@@ -646,21 +649,21 @@ export default function Index() {
               </>
             ) : (
               // Empty State of Vacant Unit
-              <View className="bg-white border border-grey-200 flex gap-5 items-center p-4 rounded-2xl mt-5">
+              <View className="bg-surface border border-border flex gap-5 items-center p-4 rounded-2xl mt-5">
                 <View className="flex items-center gap-1">
                   <Image
                     source={IMAGES.userError}
                     className="size-20"
                     resizeMode="contain"
                   />
-                  <Text className="text-redHead-200 text-lg font-interMedium">
+                  <Text className="text-danger text-lg font-interMedium">
                     This property is currently vacant.
                   </Text>
                 </View>
 
                 <Button 
                   size="sm"
-                  variant="outline"
+                  variant="tertiary"
                 >
                   <Button.Label>
                     View Applications
@@ -688,7 +691,7 @@ export default function Index() {
         ) : (
           // Error State
           <View className="flex-1 items-center justify-center py-24 gap-4">
-            <IconBuildingOff size={48} color={COLORS.grey} />
+            <IconBuildingOff size={48} color={colors.gray400} />
             <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
@@ -701,11 +704,11 @@ export default function Index() {
       <Menu>
         <Menu.Trigger asChild>
           <Button
-            className="absolute bottom-8 right-6 rounded-full bg-primary
+            className="absolute bottom-8 right-6 rounded-full bg-accent
               items-center justify-center shadow-lg active:opacity-80"
             isIconOnly
           >
-            <IconDotsVertical size={26} color={COLORS.white} />
+            <IconDotsVertical size={26} color={colors.secondaryForeground} />
           </Button>
 
         </Menu.Trigger>
@@ -719,12 +722,12 @@ export default function Index() {
             width={200}
           >
             <Menu.Item onPress={handleVacateUnit}>
-              <IconLogout2 size={20} color={COLORS.text} />
+              <IconLogout2 size={20} color={colors.textPrimary} />
               <Menu.ItemTitle>Vacate</Menu.ItemTitle>
             </Menu.Item>
 
             <Menu.Item variant="danger" onPress={() => { setOpen(false); setIsRemoveDialogOpen(true) }}>
-              <IconCircleX size={20} color={COLORS.lightRedHead} />
+              <IconCircleX size={20} color={colors.danger} />
               <Menu.ItemTitle>Remove Unit</Menu.ItemTitle>
             </Menu.Item>
           </Menu.Content>

@@ -1,7 +1,8 @@
 import { View, Text, Image } from "react-native";
+
 import { Button, Card, PressableFeedback } from "heroui-native";
 
-import { COLORS } from "@repo/constants";
+import { useColors } from "@/hooks/useTheme";
 
 import {
   IconFileText,
@@ -47,16 +48,18 @@ export default function TenantCard({
   onMessagePress,
   onDocumentsPress,
 }: TenantCardProps) {
+  const { colors } = useColors();
+
   return (
     <PressableFeedback onPress={onPress}>
       <PressableFeedback.Highlight />
-      <Card className="border border-grey-300 shadow-none rounded-3xl">
+      <Card className="border border-border shadow-none rounded-3xl">
         <Card.Body className="gap-3">
 
           {/* Row 1: Avatar + Name/Email */}
           <View className="flex-row items-center gap-3">
             {profilePictureUrl ? (
-              <View className="size-12 rounded-full overflow-hidden border border-grey-300 shrink-0">
+              <View className="size-12 rounded-full overflow-hidden border border-border shrink-0">
                 <Image
                   source={{ uri: profilePictureUrl }}
                   style={{ width: "100%", height: "100%" }}
@@ -67,25 +70,25 @@ export default function TenantCard({
             )}
 
             <View className="flex-1">
-              <Text className="text-text font-interSemiBold text-base" numberOfLines={1}>
+              <Text className="text-foreground font-interSemiBold text-base" numberOfLines={1}>
                 {fullName}
               </Text>
-              <Text className="text-grey-400 font-inter text-xs" numberOfLines={1}>
+              <Text className="text-muted font-inter text-xs" numberOfLines={1}>
                 {email}
               </Text>
             </View>
           </View>
 
           {/* Row 2: Lease Start / Lease End */}
-          <View className="flex-row rounded-xl border border-grey-200 overflow-hidden">
+          <View className="flex-row rounded-xl border border-border overflow-hidden">
             <View className="flex-1 items-center py-2.5 gap-0.5">
-              <Text className="text-grey-400 font-inter text-xs">Lease Start</Text>
-              <Text className="text-text font-interMedium text-sm">{leaseStartMonthYear}</Text>
+              <Text className="text-muted font-inter text-xs">Lease Start</Text>
+              <Text className="text-foreground font-interMedium text-sm">{leaseStartMonthYear}</Text>
             </View>
-            <View className="w-px bg-grey-200" />
+            <View className="w-px bg-border" />
             <View className="flex-1 items-center py-2.5 gap-0.5">
-              <Text className="text-grey-400 font-inter text-xs">Lease End</Text>
-              <Text className="text-text font-interMedium text-sm">{leaseEndMonthYear}</Text>
+              <Text className="text-muted font-inter text-xs">Lease End</Text>
+              <Text className="text-foreground font-interMedium text-sm">{leaseEndMonthYear}</Text>
             </View>
           </View>
 
@@ -96,19 +99,22 @@ export default function TenantCard({
               className="flex-1"
               onPress={onDocumentsPress}
               isDisabled={!onDocumentsPress}
+              size="sm"
             >
-              <IconFileText size={16} color={COLORS.primary} />
+              <IconFileText size={16} color={colors.primary} />
               <Button.Label>
                 Documents
               </Button.Label>
             </Button>
+            
             <Button
               variant="tertiary"
               className="flex-1"
               onPress={onMessagePress}
               isDisabled={!onMessagePress}
+              size="sm"
             >
-              <IconMessage size={16} color={COLORS.primary} />
+              <IconMessage size={16} color={colors.primary} />
               <Button.Label>
                 Message
               </Button.Label>
