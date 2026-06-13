@@ -25,7 +25,7 @@ export default function QuickActionButton({
         activeOpacity={0.7}
       >
         {/* Icon Label */}
-        <View className="aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-xl">
+        <View className="aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-2xl">
           <Icon
             size={26}
             color={colors.gray500}
