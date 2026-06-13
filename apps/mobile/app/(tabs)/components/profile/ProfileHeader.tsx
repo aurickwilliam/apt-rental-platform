@@ -79,7 +79,7 @@ export function ProfileHeader({
         <Avatar
           size="lg"
           color="accent"
-          className="size-36 border-4 border-darkerWhite mb-1"
+          className="size-36 border-4 border-background mb-1"
           alt={fullName}
         >
           <Avatar.Image source={{ uri: avatarUrl ?? '' }} />
