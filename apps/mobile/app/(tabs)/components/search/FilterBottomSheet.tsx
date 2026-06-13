@@ -17,10 +17,10 @@ import {
   FURNISHED_TYPES,
   FLOOR_LEVELS,
   LEASE_DURATIONS,
-  COLORS,
 } from "@repo/constants";
-
 import { PERKS } from "@/constants/perks";
+
+import { useColors } from "hooks/useTheme";
 
 const MAX_SIZE = 300;
 const MIN_BUDGET = 1000;
@@ -74,6 +74,8 @@ export default function FilterBottomSheet({
 }: Props) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [amenitySearch, setAmenitySearch] = useState("");
+
+  const { colors } = useColors();
 
   const toggleArrayItem = useCallback(
     (key: keyof FilterState, item: string) => {
@@ -136,17 +138,17 @@ export default function FilterBottomSheet({
           enableDynamicSizing={false}
           contentContainerClassName="h-full"
           handleIndicatorClassName="bg-[#D0D0D0] w-10"
-          backgroundClassName="bg-white rounded-t-[20px]"
+          backgroundClassName="bg-surface rounded-t-[20px]"
         >
           {/* Sticky Header */}
-          <View className="border-b border-[#F0F0F0]">
+          <View className="border-b border-border">
             <View className="flex-row items-center justify-between">
-              <Text className="font-interSemiBold text-base text-text mb-3">
+              <Text className="font-interSemiBold text-base text-foreground mb-3">
                 Filters
               </Text>
 
               {resultCount !== undefined && (
-                <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
+                <Text className="text-muted font-interSemiBold text-[13px]">
                   {resultCount} results found
                 </Text>
               )}
@@ -173,12 +175,12 @@ export default function FilterBottomSheet({
               step={500}
             >
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-interSemiBold text-base text-text">
+                <Text className="font-interSemiBold text-base text-foreground">
                   Budget
                 </Text>
                 <Slider.Output>
                   {({ state }) => (
-                    <Text className="font-interSemiBold text-sm text-primary">
+                    <Text className="font-interSemiBold text-sm text-accent">
                       ₱ {state.values[0].toLocaleString()} –{" "}
                       {state.values[1] >= MAX_BUDGET
                         ? `₱ ${MAX_BUDGET.toLocaleString()}+`
@@ -198,10 +200,10 @@ export default function FilterBottomSheet({
                 )}
               </Slider.Track>
               <View className="flex-row justify-between mt-1">
-                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                <Text className="text-muted text-xs font-interRegular">
                   ₱ 1,000
                 </Text>
-                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                <Text className="text-muted text-xs font-interRegular">
                   ₱ 50,000+
                 </Text>
               </View>
@@ -220,12 +222,12 @@ export default function FilterBottomSheet({
               step={5}
             >
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-interSemiBold text-base text-text">
+                <Text className="font-interSemiBold text-base text-foreground">
                   Size Range
                 </Text>
                 <Slider.Output>
                   {({ state }) => (
-                    <Text className="font-interSemiBold text-sm text-primary">
+                    <Text className="font-interSemiBold text-sm text-accent">
                       {state.values[0]} sqm – {state.values[1]} sqm
                     </Text>
                   )}
@@ -242,10 +244,10 @@ export default function FilterBottomSheet({
                 )}
               </Slider.Track>
               <View className="flex-row justify-between mt-1">
-                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                <Text className="text-muted text-xs font-interRegular">
                   10 sqm
                 </Text>
-                <Text className="text-[#9E9E9E] text-xs font-interRegular">
+                <Text className="text-muted text-xs font-interRegular">
                   300 sqm
                 </Text>
               </View>
@@ -254,7 +256,7 @@ export default function FilterBottomSheet({
             <Separator className="my-4" />
 
             {/* Sort By */}
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Sort By
             </Text>
             <TagGroup
@@ -277,7 +279,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Bedrooms
             </Text>
             <TagGroup
@@ -296,7 +298,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Bathrooms
             </Text>
             <TagGroup
@@ -315,7 +317,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Unit Type
             </Text>
             <TagGroup
@@ -334,7 +336,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Furnishing
             </Text>
             <TagGroup
@@ -353,7 +355,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Floor Level
             </Text>
             <TagGroup
@@ -372,7 +374,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Lease Duration
             </Text>
             <TagGroup
@@ -391,7 +393,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-text mb-3">
+            <Text className="font-interSemiBold text-base text-foreground mb-3">
               Amenities
             </Text>
             <SearchField value={amenitySearch} onChange={setAmenitySearch}>
@@ -415,14 +417,14 @@ export default function FilterBottomSheet({
                     color={isSelected ? 'accent' : 'default'}
                     onPress={() => toggleArrayItem('amenities', perk.id)}
                   >
-                    <Icon size={14} color={isSelected ? COLORS.primary : '#555555'} />
+                    <Icon size={14} color={isSelected ? colors.primary : colors.gray400} />
                     <Chip.Label>{perk.name}</Chip.Label>
                   </Chip>
                 );
               })}
 
               {filteredPerks.length === 0 && (
-                <Text className="text-[#9E9E9E] font-interSemiBold text-[13px]">
+                <Text className="text-foreground font-interSemiBold text-[13px]">
                   No amenities match your search.
                 </Text>
               )}
@@ -430,7 +432,7 @@ export default function FilterBottomSheet({
           </BottomSheetScrollView>
 
           {/* Sticky Footer */}
-          <View className="border-t border-[#F0F0F0] pt-3">
+          <View className="border-t border-border pt-3">
             <View className="flex-row items-center justify-between mb-3 gap-5">
               <Button className="flex-1" onPress={handleApply} size="sm">
                 <Button.Label>Apply Filters</Button.Label>
