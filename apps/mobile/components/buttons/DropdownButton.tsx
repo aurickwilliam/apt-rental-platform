@@ -1,13 +1,14 @@
-import { Select, useSelect } from 'heroui-native';
-import { TouchableOpacity, Text } from 'react-native';
+import { Select, useSelect } from "heroui-native";
+import { TouchableOpacity, Text } from "react-native";
 
 import {
-  IconCaretDownFilled,
-  IconCaretUpFilled,
-  type IconProps,
-} from "@tabler/icons-react-native";
+  LucideIcon,
+  LucideProps,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from "hooks/useTheme";
 
 interface DropdownButtonProps {
   bottomSheetLabel: string;
@@ -16,20 +17,9 @@ interface DropdownButtonProps {
   onSelect: (value: string) => void;
   buttonClassName?: string;
   textClassName?: string;
-  iconProps?: IconProps;
-  openIcon?: React.ComponentType<IconProps>;
-  closeIcon?: React.ComponentType<IconProps>;
-}
-
-// Inner component — must live inside <Select> to access context
-function TriggerIcon({
-  openIcon: OpenIcon = IconCaretUpFilled,
-  closeIcon: CloseIcon = IconCaretDownFilled,
-  iconProps = { size: 26, color: COLORS.text },
-}: Pick<DropdownButtonProps, 'openIcon' | 'closeIcon' | 'iconProps'>) {
-  const { isOpen } = useSelect();
-  const Icon = isOpen ? OpenIcon : CloseIcon;
-  return <Icon {...iconProps} />;
+  iconProps?: LucideProps;
+  openIcon?: LucideIcon;
+  closeIcon?: LucideIcon;
 }
 
 export default function DropdownButton({
@@ -39,20 +29,36 @@ export default function DropdownButton({
   onSelect,
   buttonClassName,
   textClassName,
-  iconProps = { size: 26, color: COLORS.text },
-  openIcon = IconCaretUpFilled,
-  closeIcon = IconCaretDownFilled,
+  iconProps,
+  openIcon = ChevronUp,
+  closeIcon = ChevronDown,
 }: DropdownButtonProps) {
+  const { colors } = useColors();
+
+  const resolvedIconProps: Partial<LucideProps> = {
+    size: 26,
+    color: colors.textPrimary,
+    ...iconProps,
+  };
+
+  // Inner component — must live inside <Select> to access context
+  function TriggerIcon({
+    openIcon: OpenIcon = ChevronUp,
+    closeIcon: CloseIcon = ChevronDown,
+    iconProps,
+  }: Pick<DropdownButtonProps, "openIcon" | "closeIcon" | "iconProps">) {
+    const { isOpen } = useSelect();
+    const Icon = isOpen ? OpenIcon : CloseIcon;
+    return <Icon {...iconProps} />;
+  }
 
   // HeroUI Select expects SelectOption ({ value, label })
   // Since options are plain strings, value === label
-  const selectedOption = value
-    ? { value, label: value }
-    : undefined;
+  const selectedOption = value ? { value, label: value } : undefined;
 
   const defaultButtonClassName =
-    'bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1';
-  const defaultTextClassName = 'text-text text-base font-interMedium';
+    "bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1";
+  const defaultTextClassName = "text-text text-base font-interMedium";
 
   return (
     <Select
@@ -67,13 +73,11 @@ export default function DropdownButton({
       {/* Custom trigger button */}
       <Select.Trigger variant="unstyled" asChild>
         <TouchableOpacity className={buttonClassName || defaultButtonClassName}>
-          <Text className={textClassName || defaultTextClassName}>
-            {value}
-          </Text>
+          <Text className={textClassName || defaultTextClassName}>{value}</Text>
           <TriggerIcon
             openIcon={openIcon}
             closeIcon={closeIcon}
-            iconProps={iconProps}
+            iconProps={resolvedIconProps}
           />
         </TouchableOpacity>
       </Select.Trigger>
@@ -82,10 +86,10 @@ export default function DropdownButton({
         <Select.Overlay />
         <Select.Content
           presentation="bottom-sheet"
-          snapPoints={['50%', '75%']}
+          snapPoints={["50%", "75%"]}
           contentContainerClassName="px-4 pt-4 pb-20"
         >
-          <Select.ListLabel className="text-lg text-center text-text font-interMedium border-b border-grey-200 pb-3 mb-4">
+          <Select.ListLabel className="text-lg text-center text-foreground font-interMedium border-b border-gray-200 pb-3 mb-4">
             {bottomSheetLabel}
           </Select.ListLabel>
 
@@ -94,7 +98,9 @@ export default function DropdownButton({
               key={option}
               value={option}
               label={option}
-              className="p-4 rounded-lg bg-darkerWhite mb-2"
+              className={`p-4 rounded-xl mb-2 ${
+                option === value ? "bg-accent/10" : "bg-darkerWhite"
+              }`}
             />
           ))}
         </Select.Content>

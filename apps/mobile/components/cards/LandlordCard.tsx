@@ -54,7 +54,7 @@ export default function LandlordCard({
   return (
     <PressableFeedback onPress={onPress}>
       <PressableFeedback.Highlight />
-      <Card className="border border-gray-100 shadow-none rounded-3xl">
+      <Card className="border border-border shadow-none rounded-3xl">
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (
@@ -70,7 +70,7 @@ export default function LandlordCard({
 
           {/* Name + Email */}
           <View className="flex-1">
-            <Text className="text-text font-interSemiBold text-base" numberOfLines={1}>
+            <Text className="text-foreground font-interSemiBold text-base" numberOfLines={1}>
               {fullName}
             </Text>
             <Text className="text-gray-500 font-inter text-xs" numberOfLines={1}>

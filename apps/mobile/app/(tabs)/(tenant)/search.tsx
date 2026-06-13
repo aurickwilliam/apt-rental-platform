@@ -3,10 +3,7 @@ import { useRouter } from 'expo-router';
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import FilterBottomSheet, {
   DEFAULT_FILTERS,
-} from 'components/display/FilterBottomSheet';
-
-import { COLORS } from '@repo/constants';
-
+} from '@/app/(tabs)/components/search/FilterBottomSheet';
 import ApartmentsList from '../components/search/ApartmentsList';
 import SearchFiltersBar from '../components/search/SearchFiltersBar';
 import SearchHeader from '../components/search/SearchHeader';
@@ -14,6 +11,7 @@ import useSearchLogic from '../components/search/useSearchLogic';
 
 export default function Search() {
   const router = useRouter();
+
   const {
     apartments,
     activeFilterCount,
@@ -44,7 +42,7 @@ export default function Search() {
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}`);
 
   return (
-    <ScreenWrapper backgroundColor={COLORS.darkerWhite} noBottomPadding>
+    <ScreenWrapper noBottomPadding>
       <SearchHeader
         cities={cities}
         selectedCity={selectedCity}

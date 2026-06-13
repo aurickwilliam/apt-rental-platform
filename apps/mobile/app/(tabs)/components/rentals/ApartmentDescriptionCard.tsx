@@ -28,7 +28,7 @@ export default function ApartmentDescriptionCard({
   const formattedMonthlyRent = formatCurrency(monthlyRent);
 
   return (
-    <View className='w-full bg-surface rounded-3xl p-4 border border-gray-100'>
+    <View className='w-full bg-surface rounded-3xl p-4 border border-border'>
       {/* Name and Address */}
       <View>
         <Text className='text-lg font-interSemiBold text-foreground'>
