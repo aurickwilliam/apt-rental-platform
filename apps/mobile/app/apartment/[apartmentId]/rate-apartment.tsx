@@ -9,14 +9,13 @@ import DropdownButton from 'components/buttons/DropdownButton'
 import PillButton from 'components/buttons/PillButton'
 import TextBox from 'components/inputs/TextBox'
 
-import { COLORS, YEARS, MONTHS } from '@repo/constants'
+import { YEARS, MONTHS } from '@repo/constants'
 import { DEFAULT_IMAGES } from 'constants/images'
 
 import {
   IconStar,
   IconStarFilled,
 } from '@tabler/icons-react-native';
-
 
 export default function RateApartment() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
