@@ -26,7 +26,6 @@ interface ScreenWrapperProps {
   dismissKeyboardOnTouch?: boolean;
 }
 
-// This wraps the content so tapping empty space closes the keyboard
 const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
   <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     {children}
@@ -48,14 +47,15 @@ export default function ScreenWrapper({
   dismissKeyboardOnTouch = true,
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
-
   const { colors } = useColors();
-  backgroundColor = backgroundColor || colors.white;
+
+  const containerStyle = backgroundColor ? { flex: 1, backgroundColor } : { flex: 1 };
+  const containerClassName = backgroundColor ? "" : "bg-background";
 
   const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 
   return (
-    <View style={{ flex: 1, backgroundColor }}>
+    <View style={containerStyle} className={containerClassName}>
       {header && header}
 
       {scrollable ? (
@@ -75,7 +75,6 @@ export default function ScreenWrapper({
               />
             ) : undefined
           }
-
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: paddingTop,
@@ -96,19 +95,19 @@ export default function ScreenWrapper({
         </KeyboardAwareScrollView>
       ) : (
         dismissKeyboardOnTouch ? (
-        <WrapWithDismiss>
-          <View
-            style={{
-              flex: 1,
-              paddingTop: paddingTop,
-              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
-            }}
-          >
-            <View className={`flex-1 relative ${className}`}>
-              {children}
+          <WrapWithDismiss>
+            <View
+              style={{
+                flex: 1,
+                paddingTop: paddingTop,
+                paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+              }}
+            >
+              <View className={`flex-1 relative ${className}`}>
+                {children}
+              </View>
             </View>
-          </View>
-        </WrapWithDismiss>
+          </WrapWithDismiss>
         ) : (
           <View
             style={{

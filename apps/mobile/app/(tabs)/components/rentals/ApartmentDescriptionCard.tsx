@@ -28,13 +28,13 @@ export default function ApartmentDescriptionCard({
   const formattedMonthlyRent = formatCurrency(monthlyRent);
 
   return (
-    <View className='w-full bg-darkerWhite rounded-3xl p-4'>
+    <View className='w-full bg-surface rounded-3xl p-4 border border-gray-100'>
       {/* Name and Address */}
       <View>
-        <Text className='text-lg font-interSemiBold text-text'>
+        <Text className='text-lg font-interSemiBold text-foreground'>
           {apartmentName}
         </Text>
-        <Text className='text-sm text-text'>
+        <Text className='text-sm font-inter text-foreground'>
           {apartmentAddress}
         </Text>
       </View>
@@ -43,20 +43,20 @@ export default function ApartmentDescriptionCard({
       <View className='flex-row mt-5'>
         {/* Start */}
         <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
+          <Text className='text-muted text-sm font-inter'>
             Lease Start
           </Text>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             {`${leaseStartMonth} ${leaseStartYear}`}
           </Text>
         </View>
 
         {/* End */}
         <View className='flex w-1/2'>
-          <Text className='text-text text-sm font-inter'>
+          <Text className='text-muted text-sm font-inter'>
             Lease End
           </Text>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             {`${leaseEndMonth} ${leaseEndYear}`}
           </Text>
         </View>
@@ -64,10 +64,10 @@ export default function ApartmentDescriptionCard({
 
       {/* Monthly Rent */}
       <View className='mt-5'>
-        <Text className='text-text text-sm font-inter'>
+        <Text className='text-muted text-sm font-inter'>
           Monthly Rent
         </Text>
-        <Text className='text-text text-base font-interMedium'>
+        <Text className='text-foreground text-base font-interMedium'>
           {`₱ ${formattedMonthlyRent}`}
         </Text>
       </View>

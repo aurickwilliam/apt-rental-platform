@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import PillButton from '@/components/buttons/PillButton'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import Divider from '@/components/display/Divider'
-import QuickActionButton from '@/components/buttons/QuickActionButton'
+import QuickActionButton from '@/app/(tabs)/components/rentals/QuickActionButton'
 import PropertyCard from '@/components/cards/PropertyCard'
 
 import {

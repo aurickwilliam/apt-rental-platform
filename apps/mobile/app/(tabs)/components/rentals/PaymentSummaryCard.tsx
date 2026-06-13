@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from 'hooks/useTheme';
 
 import { Button, Chip } from 'heroui-native';
 
@@ -26,10 +26,12 @@ export default function PaymentSummaryCard({
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
 
+  const { colors } = useColors();
+
   const isPending = status === 'Pending';
 
   return (
-    <View className='bg-primary rounded-3xl p-4'>
+    <View className='bg-accent rounded-3xl p-4'>
       {/* Title Header */}
       <View className='flex-row items-center justify-between'>
         <Text className='text-white text-xl font-interSemiBold'>
@@ -38,13 +40,13 @@ export default function PaymentSummaryCard({
 
         {/* Status */}
         <Chip
-          size="sm"
+          size="md"
           variant="soft"
-          style={{ backgroundColor: isPending ? COLORS.yellowish : COLORS.greenHulk }}
+          style={{ backgroundColor: isPending ? colors.warningLight : colors.successLight }}
         >
           <Chip.Label
             className='font-interMedium'
-            style={{ color: isPending ? '#78350f' : '#052e16' }}
+            style={{ color: isPending ? colors.warning : colors.success }}
           >
             {status}
           </Chip.Label>
@@ -55,7 +57,7 @@ export default function PaymentSummaryCard({
       <View className='flex-1 flex-row items-center mt-5'>
         {/* Month Period */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-sm font-inter'>
+          <Text className='text-gray-100 text-sm font-inter'>
             Period
           </Text>
 
@@ -66,7 +68,7 @@ export default function PaymentSummaryCard({
 
         {/* Total Rent */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-sm font-inter'>
+          <Text className='text-gray-100 text-sm font-inter'>
             Total Rent
           </Text>
 
@@ -79,7 +81,7 @@ export default function PaymentSummaryCard({
       <View className='flex-1 flex-row items-center mt-5'>
         {/* Balance Left */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-sm font-inter'>
+          <Text className='text-gray-100 text-sm font-inter'>
             Balance Left
           </Text>
 
@@ -90,7 +92,7 @@ export default function PaymentSummaryCard({
 
         {/* Balance Paid */}
         <View className='flex w-1/2'>
-          <Text className='text-darkerWhite text-sm font-inter'>
+          <Text className='text-gray-100 text-sm font-inter'>
             Paid
           </Text>
 
@@ -105,7 +107,7 @@ export default function PaymentSummaryCard({
         <Button
           size="sm"
           onPress={onPayNowPress}
-          className='flex-1 bg-secondary text-white'
+          className='flex-1 bg-secondary text-secondary-foreground'
         >
           <Button.Label>
             Pay Now
