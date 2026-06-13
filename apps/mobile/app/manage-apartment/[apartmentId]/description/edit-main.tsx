@@ -277,7 +277,7 @@ export default function EditMain() {
           placeholder="Select province"
           bottomSheetLabel="Select Province"
           options={PROVINCES}
-          onSelect={(v) => setInfo({ ...info, province: v })}
+          onSelect={(v) => setInfo({ ...info, province: v ? v : '' })}
           value={info.province}
         />
 
