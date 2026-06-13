@@ -227,7 +227,7 @@ export default function Rentals() {
       <Divider />
 
       <Button onPress={handleRequestMaintenance}>
-        <Hammer size={20} color={colors.white} />
+        <Hammer size={20} color={colors.secondaryForeground} />
         <Button.Label>
           Request Maintenance Issue
         </Button.Label>

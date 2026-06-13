@@ -1,13 +1,13 @@
-import { View, Text } from 'react-native';
+import { View, Text } from "react-native";
 
-import { useColors } from 'hooks/useTheme';
+import { useColors } from "hooks/useTheme";
 
-import { Button, Chip } from 'heroui-native';
+import { Button, Chip } from "heroui-native";
 
 interface PaymentSummaryCardProps {
   periodMonth?: string;
   periodYear?: string;
-  status?: 'Pending' | 'Paid';
+  status?: "Pending" | "Paid";
   totalRent?: number;
   balanceLeft?: number;
   balancePaid?: number;
@@ -16,25 +16,26 @@ interface PaymentSummaryCardProps {
 }
 
 export default function PaymentSummaryCard({
-  periodMonth = 'Month',
-  periodYear = 'Year',
-  status = 'Pending',
+  periodMonth = "Month",
+  periodYear = "Year",
+  status = "Pending",
   totalRent = 0,
   balanceLeft = 0,
   balancePaid = 0,
   onPayNowPress,
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
+  const { colors, isDark } = useColors();
 
-  const { colors } = useColors();
-
-  const isPending = status === 'Pending';
+  const isPending = status === "Pending";
 
   return (
-    <View className='bg-accent rounded-3xl p-4'>
+    <View
+      className={`${isDark ? "bg-surface-secondary" : "bg-accent"} rounded-3xl p-4 border border-border`}
+    >
       {/* Title Header */}
-      <View className='flex-row items-center justify-between'>
-        <Text className='text-white text-xl font-interSemiBold'>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-white text-xl font-interSemiBold">
           Payment Summary
         </Text>
 
@@ -42,10 +43,14 @@ export default function PaymentSummaryCard({
         <Chip
           size="md"
           variant="soft"
-          style={{ backgroundColor: isPending ? colors.warningLight : colors.successLight }}
+          style={{
+            backgroundColor: isPending
+              ? colors.warningLight
+              : colors.successLight,
+          }}
         >
           <Chip.Label
-            className='font-interMedium'
+            className="font-interMedium"
             style={{ color: isPending ? colors.warning : colors.success }}
           >
             {status}
@@ -54,75 +59,63 @@ export default function PaymentSummaryCard({
       </View>
 
       {/* Payment Details */}
-      <View className='flex-1 flex-row items-center mt-5'>
+      <View className="flex-1 flex-row items-center mt-5">
         {/* Month Period */}
-        <View className='flex w-1/2'>
-          <Text className='text-gray-100 text-sm font-inter'>
-            Period
-          </Text>
+        <View className="flex w-1/2">
+          <Text className="text-gray-100 text-sm font-inter">Period</Text>
 
-          <Text className='text-white text-base font-interMedium'>
+          <Text className="text-white text-base font-interMedium">
             {periodMonth} {periodYear}
           </Text>
         </View>
 
         {/* Total Rent */}
-        <View className='flex w-1/2'>
-          <Text className='text-gray-100 text-sm font-inter'>
-            Total Rent
-          </Text>
+        <View className="flex w-1/2">
+          <Text className="text-gray-100 text-sm font-inter">Total Rent</Text>
 
-          <Text className='text-white text-base font-interMedium'>
+          <Text className="text-white text-base font-interMedium">
             ₱ {totalRent}
           </Text>
         </View>
       </View>
 
-      <View className='flex-1 flex-row items-center mt-5'>
+      <View className="flex-1 flex-row items-center mt-5">
         {/* Balance Left */}
-        <View className='flex w-1/2'>
-          <Text className='text-gray-100 text-sm font-inter'>
-            Balance Left
-          </Text>
+        <View className="flex w-1/2">
+          <Text className="text-gray-100 text-sm font-inter">Balance Left</Text>
 
-          <Text className='text-white text-base font-interMedium'>
+          <Text className="text-white text-base font-interMedium">
             ₱ {balanceLeft}
           </Text>
         </View>
 
         {/* Balance Paid */}
-        <View className='flex w-1/2'>
-          <Text className='text-gray-100 text-sm font-inter'>
-            Paid
-          </Text>
+        <View className="flex w-1/2">
+          <Text className="text-gray-100 text-sm font-inter">Paid</Text>
 
-          <Text className='text-white text-base font-interMedium'>
+          <Text className="text-white text-base font-interMedium">
             ₱ {balancePaid}
           </Text>
         </View>
       </View>
 
       {/* Action Buttons */}
-      <View className='flex-row flex-1 mt-5 gap-5'>
+      <View className="flex-row flex-1 mt-5 gap-5">
         <Button
           size="sm"
           onPress={onPayNowPress}
-          className='flex-1 bg-secondary text-secondary-foreground'
+          className={`flex-1 ${isDark ? "" : "bg-secondary text-secondary-foreground"}`}
         >
-          <Button.Label>
-            Pay Now
-          </Button.Label>
+          <Button.Label>Pay Now</Button.Label>
         </Button>
 
         <Button
           size="sm"
           variant="secondary"
           onPress={onViewHistoryPress}
-          className='flex-1'
+          className="flex-1"
         >
-          <Button.Label>
-            View History
-          </Button.Label>
+          <Button.Label>View History</Button.Label>
         </Button>
       </View>
     </View>

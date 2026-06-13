@@ -30,7 +30,7 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
       : parts[0]?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <View className="size-12 rounded-full border border-gray-300 bg-primary items-center justify-center">
+    <View className="size-12 rounded-full border border-border bg-primary items-center justify-center">
       <Text className="text-white font-interMedium text-lg">
         {initials}
       </Text>
@@ -58,7 +58,7 @@ export default function LandlordCard({
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (
-            <View className="size-12 rounded-full overflow-hidden border border-gray-300 shrink-0">
+            <View className="size-12 rounded-full overflow-hidden border border-border shrink-0">
               <Image
                 source={{ uri: profilePictureUrl }}
                 style={{ width: "100%", height: "100%" }}
