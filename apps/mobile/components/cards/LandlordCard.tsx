@@ -52,7 +52,7 @@ export default function LandlordCard({
   const { colors } = useColors();
 
   return (
-    <PressableFeedback onPress={onPress}>
+    <PressableFeedback onPress={onPress} className="rounded-3xl">
       <PressableFeedback.Highlight />
       <Card className="border border-border shadow-none rounded-3xl">
         <Card.Body className="flex-row items-center gap-3">

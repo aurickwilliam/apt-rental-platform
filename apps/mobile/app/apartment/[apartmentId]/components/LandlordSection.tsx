@@ -3,8 +3,7 @@ import { IconUser } from '@tabler/icons-react-native';
 
 import LandlordCard from 'components/cards/LandlordCard';
 
-import { COLORS } from '@repo/constants';
-
+import { useColors } from '@/hooks/useTheme';
 import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
 
 type LandlordSectionProps = {
@@ -20,11 +19,13 @@ export default function LandlordSection({
   onPress,
   onMessagePress,
 }: LandlordSectionProps) {
+  const { colors } = useColors();
+
   return (
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconUser size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconUser size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           Meet Your Rental Owner
         </Text>
       </View>

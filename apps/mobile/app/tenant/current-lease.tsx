@@ -6,13 +6,16 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
 import { supabase } from '@repo/supabase'
-import { COLORS } from '@repo/constants'
-import { useTenancy } from 'hooks/useTenancy'
 
-import { IconAlertCircle } from '@tabler/icons-react-native'
+import { useTenancy } from 'hooks/useTenancy'
+import { useColors } from 'hooks/useTheme'
+
+import { AlertCircle } from 'lucide-react-native'
 
 export default function CurrentLease() {
-  const { tenancy, loading: tenancyLoading } = useTenancy()
+  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { colors } = useColors();
+
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [urlLoading, setUrlLoading] = useState(false)
   const [webViewLoading, setWebViewLoading] = useState(true)
@@ -50,8 +53,8 @@ export default function CurrentLease() {
     return (
       <ScreenWrapper header={<StandardHeader title="Current Lease" />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text className="text-text text-sm font-inter mt-3">
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text className="text-foreground text-sm font-inter mt-3">
             Loading lease agreement...
           </Text>
         </View>
@@ -63,11 +66,11 @@ export default function CurrentLease() {
     return (
       <ScreenWrapper header={<StandardHeader title="Current Lease" />}>
         <View className="flex-1 items-center justify-center px-6">
-          <IconAlertCircle size={40} color={COLORS.mediumGrey} />
-          <Text className="text-text text-base font-interSemiBold mt-3 text-center">
+          <AlertCircle size={40} color={colors.gray300} />
+          <Text className="text-foreground text-base font-interSemiBold mt-3 text-center">
             No Lease Agreement
           </Text>
-          <Text className="text-mediumGrey text-sm font-inter mt-1 text-center">
+          <Text className="text-muted text-sm font-inter mt-1 text-center">
             {error ?? 'Your landlord has not uploaded a lease agreement yet.'}
           </Text>
         </View>
@@ -81,13 +84,13 @@ export default function CurrentLease() {
     <ScreenWrapper header={<StandardHeader title="Current Lease" />}>
       {webViewLoading && (
         <View className="absolute inset-0 items-center justify-center z-10">
-          <ActivityIndicator color={COLORS.primary} />
+          <ActivityIndicator color={colors.primary} />
         </View>
       )}
       <WebView
         source={{ uri: viewerUrl }}
         onLoadEnd={() => setWebViewLoading(false)}
-        className="flex-1"
+        className="flex-1 bg-background"
       />
     </ScreenWrapper>
   )
