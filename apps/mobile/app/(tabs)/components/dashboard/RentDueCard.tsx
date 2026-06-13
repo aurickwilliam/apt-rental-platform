@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
-import { IconBuildings } from "@tabler/icons-react-native"
+import { Building } from 'lucide-react-native';
 
-import { COLORS } from '@repo/constants'
 import { formatCurrency } from '@repo/utils';
+
+import { useColors } from '@/hooks/useTheme';
 
 interface RentDueCardProps {
   tenantName: string;
@@ -20,33 +21,33 @@ export default function RentDueCard({
   amount,
   onPress
 }: RentDueCardProps){
-
+  const { colors } = useColors();
   const formattedAmount = formatCurrency(amount);
 
   return (
     <TouchableOpacity 
-      className='bg-white rounded-2xl p-4 border border-grey-200'
+      className='bg-surface-secondary rounded-2xl p-4 border border-border'
       activeOpacity={0.7}
       onPress={onPress}
     >
-      <View className='flex-row gap-2 items-center'>
-        <IconBuildings 
-          size={24} 
-          color={COLORS.grey} 
+      <View className='flex-row gap-1 items-center'>
+        <Building 
+          size={22} 
+          color={colors.gray500} 
         />
-        <Text className='text-text font-interSemiBold'>
+        <Text className='text-foreground font-interSemiBold'>
           {propertyName}
         </Text>
       </View>
 
-      <Text className='text-grey-500 font-interMedium mt-1'>
+      <Text className='text-muted font-interMedium mt-1'>
         {tenantName}
       </Text>
       <View className='flex-row justify-between items-center mt-2'>
-        <Text className='text-text font-inter text-sm'>
+        <Text className='text-foreground font-inter text-sm'>
           Due: {dueDate}
         </Text>
-        <Text className='text-primary text-base font-interSemiBold'>
+        <Text className='text-accent text-base font-interSemiBold'>
           ₱ {formattedAmount}
         </Text>
       </View>

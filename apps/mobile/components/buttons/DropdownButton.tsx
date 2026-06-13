@@ -36,7 +36,7 @@ export default function DropdownButton({
   const { colors } = useColors();
 
   const resolvedIconProps: Partial<LucideProps> = {
-    size: 26,
+    size: 24,
     color: colors.textPrimary,
     ...iconProps,
   };
@@ -57,8 +57,8 @@ export default function DropdownButton({
   const selectedOption = value ? { value, label: value } : undefined;
 
   const defaultButtonClassName =
-    "bg-darkerWhite px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1";
-  const defaultTextClassName = "text-text text-base font-interMedium";
+    "bg-surface-secondary px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1";
+  const defaultTextClassName = "text-foreground text-base font-interMedium";
 
   return (
     <Select
@@ -99,7 +99,7 @@ export default function DropdownButton({
               value={option}
               label={option}
               className={`p-4 rounded-xl mb-2 ${
-                option === value ? "bg-accent/10" : "bg-darkerWhite"
+                option === value ? "bg-accent/10" : ""
               }`}
             />
           ))}
