@@ -174,7 +174,7 @@ export default function Dashboard() {
               </Text>
             </View>
 
-            <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
+            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
               <Text className="text-sm text-muted font-interMedium">
                 Units Occupied
               </Text>
@@ -185,7 +185,7 @@ export default function Dashboard() {
           </View>
 
           <View className="flex-row gap-3">
-            <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
+            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
               <Text className="text-sm text-muted font-interMedium">
                 Pending Payments
               </Text>
@@ -194,7 +194,7 @@ export default function Dashboard() {
               </Text>
             </View>
 
-            <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
+            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
               <Text className="text-sm text-muted font-interMedium">
                 Maintenance Requests
               </Text>
