@@ -33,7 +33,7 @@ export default function MoveInCostFooter({
 
   return (
     <>
-      <View className='absolute bottom-0 left-0 right-0 bg-surface-secondary z-10 px-5 py-4 border-t border-muted'>
+      <View className='absolute bottom-0 left-0 right-0 bg-surface-secondary z-10 px-5 py-4 border-t border-border'>
         <SafeAreaView
           className='flex items-start justify-between gap-3'
           edges={['bottom']}
@@ -45,7 +45,7 @@ export default function MoveInCostFooter({
               onPress={() => setIsMoveInCostModalVisible(true)}
             >
               <View className='flex-row items-baseline'>
-                <Text className='text-2xl font-interSemiBold text-primary'>
+                <Text className='text-2xl font-interSemiBold text-accent'>
                   ₱ {formatCurrency(monthlyRent)}
                 </Text>
                 <Text className='text-sm font-interMedium text-muted ml-1'>
@@ -79,7 +79,7 @@ export default function MoveInCostFooter({
       >
         <TouchableOpacity
           activeOpacity={1}
-          className='flex-1 bg-black/40 justify-center px-6'
+          className='flex-1 bg-backdrop justify-center px-6'
           onPress={() => setIsMoveInCostModalVisible(false)}
         >
           <TouchableOpacity
@@ -89,7 +89,7 @@ export default function MoveInCostFooter({
           >
             <TouchableOpacity
               activeOpacity={0.7}
-              className='absolute top-4 right-4 z-10 bg-muted p-1.5 rounded-full'
+              className='absolute top-4 right-4 z-10 bg-surface-tertiary p-1.5 rounded-full'
               onPress={() => setIsMoveInCostModalVisible(false)}
             >
               <IconX size={20} color={colors.textPrimary} />

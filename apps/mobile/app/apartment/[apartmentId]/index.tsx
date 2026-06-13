@@ -9,10 +9,9 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PillButton from 'components/buttons/PillButton';
 
 import {
-  IconChevronLeft,
-  IconHeart,
-  IconHeartFilled,
-} from "@tabler/icons-react-native";
+  Heart,
+  ChevronLeft
+} from 'lucide-react-native';
 
 import {
   ApartmentHeroSection,
@@ -206,7 +205,7 @@ export default function ApartmentScreen() {
           variant="tertiary" 
           isIconOnly
         >
-          <IconChevronLeft size={24} color={colors.secondaryForeground} />
+          <ChevronLeft size={24} color={colors.textPrimary} />
         </Button>
       </View>
 
@@ -221,9 +220,9 @@ export default function ApartmentScreen() {
           isIconOnly
         >
           {isFavorite(apartmentId) ? (
-            <IconHeartFilled size={24} color={colors.danger} />
+            <Heart size={24} color={colors.danger} fill={colors.danger} />
           ) : (
-            <IconHeart size={24} color={colors.gray400} />
+            <Heart size={24} color={colors.gray400} />
           )}
         </Button>
       </View>

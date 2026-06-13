@@ -4,7 +4,8 @@ import {
   Users,
   Building,
   House,
-  Calendar
+  Calendar,
+  LucideIcon,
 } from 'lucide-react-native';
 
 import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
@@ -20,7 +21,7 @@ export default function ApartmentDetailsSection({
   const { colors } = useColors();
 
   type DetailBlockProps = {
-    Icon: React.ElementType;
+    Icon: LucideIcon;
     value: string;
   }
 
@@ -30,7 +31,7 @@ export default function ApartmentDetailsSection({
     value,
   }: DetailBlockProps){
     return (
-      <View className='flex-row items-center gap-2 bg-surface-secondary p-3 rounded-2xl mb-2'>
+      <View className='flex-row items-center gap-2 bg-surface p-3 rounded-2xl mb-2 border border-border'>
         <Icon size={24} color={colors.gray500} />
         <Text className='text-foreground font-interMedium text-sm'>
           {value}

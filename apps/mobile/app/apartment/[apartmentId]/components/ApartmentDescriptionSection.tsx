@@ -29,7 +29,7 @@ export default function ApartmentDescriptionSection({
         </Text>
       </View>
 
-      <View className='mt-3 mx-5 p-4 bg-surface-secondary rounded-2xl'>
+      <View className='mt-3 mx-5 p-4 bg-surface rounded-2xl border border-border'>
         <Text
           numberOfLines={isReadMore ? undefined : 10}
           ellipsizeMode='tail'
