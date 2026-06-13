@@ -59,11 +59,12 @@ export function ProfileHeader({
   };
 
   return (
-    <View className='relative h-98'>
+    <View className='relative h-80'>
       {/* Background Photo */}
       <View 
-        className='w-full h-60 rounded-b-3xl overflow-hidden' 
-        style={{ backgroundColor: backgroundPhotoUri ? 'transparent' : colors.surface }}
+        className={`w-full h-45 rounded-b-3xl overflow-hidden ${
+          backgroundPhotoUri ? 'bg-transparent' : 'bg-surface-tertiary'
+        }`}
       >
         {backgroundPhotoUri && (
           <Image
@@ -74,11 +75,11 @@ export function ProfileHeader({
       </View>
 
       {/* Profile Picture */}
-      <View className='absolute top-32 left-0 right-0 items-center'>
+      <View className='absolute top-18 left-0 right-0 items-center'>
         <Avatar
           size="lg"
           color="accent"
-          className="size-36 border-4 border-darkerWhite mb-3"
+          className="size-36 border-4 border-darkerWhite mb-1"
           alt={fullName}
         >
           <Avatar.Image source={{ uri: avatarUrl ?? '' }} />
