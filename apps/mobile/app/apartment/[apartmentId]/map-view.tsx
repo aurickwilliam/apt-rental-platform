@@ -6,12 +6,10 @@ import { MapView as LibreMapView, Camera, ShapeSource, CircleLayer, setAccessTok
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import IconButton from 'components/buttons/IconButton';
-import PillButton from 'components/buttons/PillButton';
 
 import { Dialog, Button } from "heroui-native"
 
-import { COLORS } from '@repo/constants'
-
+import { useColors } from '@/hooks/useTheme';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 
 import {
@@ -60,6 +58,7 @@ type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 export default function ApartmentMapViewScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { apartment } = useApartmentDetails(apartmentId);
+  const { colors } = useColors();
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
   const cameraRef = useRef<any>(null);
@@ -189,40 +188,40 @@ export default function ApartmentMapViewScreen() {
       }
     >
       {/* Apartment Name and Address */}
-      <View className='flex-row items-center justify-between bg-white px-5 py-3 gap-1'>
-        <View className='flex-1 gap-1'>
-          <Text className='text-lg font-interSemiBold text-primary'>
+      <View className='flex-row items-center justify-between bg-background px-5 py-3 gap-1'>
+        <View className='flex-1 shrink gap-1'>
+          <Text
+            className='text-lg font-interSemiBold text-accent'
+            numberOfLines={1}
+          >
             {apartmentName}
           </Text>
-          <Text className='text-sm text-grey-500'>
+          <Text
+            className='text-sm text-muted'
+            numberOfLines={2}
+            ellipsizeMode='tail'
+          >
             {apartmentAddress}
           </Text>
         </View>
 
-        <View className='flex-row items-center gap-3'>
+        <View className='flex-row items-center gap-3 shrink-0'>
           <TouchableOpacity
             activeOpacity={0.7}
-            className='bg-darkerWhite p-2 rounded-xl'
+            className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleOpenInMaps}
           >
-            <IconMap2
-              size={24}
-              color={COLORS.text}
-            />
+            <IconMap2 size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.7}
-            className='bg-darkerWhite p-2 rounded-xl'
+            className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleGetDirections}
           >
-            <IconSTurnUp
-              size={24}
-              color={COLORS.text}
-            />
+            <IconSTurnUp size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
-
       </View>
 
       <View className='flex-1 relative'>
@@ -261,7 +260,7 @@ export default function ApartmentMapViewScreen() {
                 id='apartment-pin-dot'
                 style={{
                   circleRadius: 7,
-                  circleColor: COLORS.primary,
+                  circleColor: colors.primary,
                 }}
               />
             </ShapeSource>
@@ -288,18 +287,18 @@ export default function ApartmentMapViewScreen() {
       >
         <Dialog.Portal>
           {/* Overlay handles the background dimming and centers the content */}
-          <Dialog.Overlay className="bg-black/40 items-center justify-center px-6" />
+          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
 
-          <Dialog.Content className="w-full bg-white rounded-2xl p-5">
+          <Dialog.Content className="w-full bg-surface-secondary rounded-2xl p-5">
             {/* Top-Right Close Button */}
             <Dialog.Close variant="ghost" className="absolute top-4 right-4 z-50" />
 
             {/* Header */}
             <View>
-              <Text className="text-text font-interSemiBold text-lg">
+              <Text className="text-foreground font-interSemiBold text-lg">
                 Choose Route Type
               </Text>
-              <Text className="text-grey-500 font-inter mt-1">
+              <Text className="text-muted font-inter mt-1">
                 Select how you want to get there.
               </Text>
             </View>
