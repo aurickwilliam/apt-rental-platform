@@ -1,9 +1,9 @@
 import { Image, View } from 'react-native'
 import { Avatar, Chip, Text } from 'heroui-native';
 
-import { COLORS } from "@repo/constants";
+import { Home, Building2, LucideIcon } from 'lucide-react-native';
 
-import { Home, Building2 } from 'lucide-react-native';
+import { useColors } from 'hooks/useTheme';
 
 type ProfileHeaderProps = {
   backgroundPhotoUri?: string | null
@@ -26,13 +26,14 @@ export function ProfileHeader({
   loading = false,
   role,
 }: ProfileHeaderProps) {
+  const { colors } = useColors();
   
   const fullName = loading ? '...' : `${firstName} ${lastName}`;
   const displayEmail = loading ? '...' : email;
 
   type RoleConfig = {
     [key: string]: {
-      icon: React.ComponentType<{ size: number, color: string }>;
+      icon: LucideIcon;
       iconColor: string;
       className: string;
       label: string;
@@ -43,14 +44,14 @@ export function ProfileHeader({
   const roleConfig: RoleConfig = {
     tenant: {
       icon: Home,
-      iconColor: COLORS.primary,
+      iconColor: colors.primary,
       className: "bg-blue-200",
       label: "Tenant",
       labelColor: "text-primary"
     },
     landlord: {
       icon: Building2,
-      iconColor: COLORS.secondary,
+      iconColor: colors.secondary,
       className: "bg-amber-200",
       label: "Landlord",
       labelColor: "text-secondary"
@@ -62,7 +63,7 @@ export function ProfileHeader({
       {/* Background Photo */}
       <View 
         className='w-full h-60 rounded-b-3xl overflow-hidden' 
-        style={{ backgroundColor: backgroundPhotoUri ? 'transparent' : COLORS.grey }}
+        style={{ backgroundColor: backgroundPhotoUri ? 'transparent' : colors.surface }}
       >
         {backgroundPhotoUri && (
           <Image
@@ -88,11 +89,11 @@ export function ProfileHeader({
 
         {/* Name and Email */}
         <View className='flex items-center justify-center'>
-          <Text className='text-text text-xl font-interSemiBold'>
+          <Text className='text-foreground text-xl font-interSemiBold'>
             {fullName}
           </Text>
 
-          <Text className='text-grey-500 text-base font-inter'>
+          <Text className='text-gray-500 text-base font-inter'>
             {displayEmail}
           </Text>
 
@@ -108,7 +109,7 @@ export function ProfileHeader({
             return (
               <View className='items-center mt-2'>
                 <Chip className={className} variant='soft'>
-                  <Icon size={18} color={iconColor} />
+                  <Icon size={18} color={iconColor} strokeWidth={2.5} />
                   <Chip.Label className={`font-interMedium ${labelColor}`}>
                     {label}
                   </Chip.Label>

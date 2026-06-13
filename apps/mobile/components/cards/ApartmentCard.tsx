@@ -44,7 +44,7 @@ export default function ApartmentCard({
     <View style={{ width: cardWidth, alignSelf: isGrid ? 'auto' : 'center' }}>
       <PressableFeedback
         onPress={onPress}
-        className='rounded-2xl overflow-hidden'
+        className='rounded-2xl overflow-hidden border border-border'
       >
         <PressableFeedback.Ripple />
 
