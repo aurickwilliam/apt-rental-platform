@@ -66,7 +66,7 @@ export default function Profile() {
     <ScrollView
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      className='bg-darkerWhite flex-1'
+      className='bg-background flex-1'
     >
       <ProfileHeader
         backgroundPhotoUri={backgroundPhotoUri}
