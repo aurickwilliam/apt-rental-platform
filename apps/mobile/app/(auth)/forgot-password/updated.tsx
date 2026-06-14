@@ -22,11 +22,11 @@ export default function Updated() {
         />
 
         <View>
-          <Text className='text-primary text-2xl font-nunitoBold text-center'>
+          <Text className='text-accent text-2xl font-nunitoBold text-center'>
             Password Updated
           </Text>
 
-          <Text className='text-text text-base font-inter mt-2 text-center'>
+          <Text className='text-foreground text-base font-inter mt-2 text-center'>
             Great! Your new password is ready to use.
           </Text>
         </View>
