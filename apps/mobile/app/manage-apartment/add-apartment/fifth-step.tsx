@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
 import PerkItem from 'components/display/PerkItem'
 import LandlordCard from 'components/cards/LandlordCard'
 

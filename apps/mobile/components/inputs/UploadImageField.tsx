@@ -107,7 +107,7 @@ export default function UploadImageField({
           ) : (
             <>
               <Ionicons name="cloud-upload-outline" size={22} color={colors.primary} />
-              <Text className="text-sm font-medium text-slate-500">
+              <Text className="text-sm font-medium text-danger-foreground">
                 {single ? 'Choose photo' : 'Add photos'}
               </Text>
             </>
