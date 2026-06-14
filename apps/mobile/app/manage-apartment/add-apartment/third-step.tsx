@@ -4,12 +4,10 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
-import Divider from '@/components/display/Divider'
 import UploadFileField from '@/components/inputs/UploadFileField' 
 
-import { Input, Label, TextField, FieldError, Button } from 'heroui-native'
+import { Input, Label, TextField, FieldError, Button, Separator } from 'heroui-native'
 
-import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 type FieldErrors = {
@@ -44,6 +42,7 @@ function validate(values: {
 
 export default function ThirdStep() {
   const router = useRouter()
+
   const [errors, setErrors] = useState<FieldErrors>({})
 
   const {
@@ -68,7 +67,7 @@ export default function ThirdStep() {
   }
 
   return (
-    <ScreenWrapper scrollable backgroundColor={COLORS.darkerWhite}>
+    <ScreenWrapper scrollable>
       <ApplicationHeader
         currentTitle='Pricing & Terms'
         nextTitle='Description & Amenities'
@@ -122,45 +121,45 @@ export default function ThirdStep() {
 
           {/* Total Move-in Cost */}
           {!!monthlyRent && (
-            <View className='flex gap-1 bg-white rounded-xl border border-gray-200  px-4 py-3'>
+            <View className='flex gap-1 bg-surface rounded-xl border border-border  px-4 py-3'>
               {/* Monthly Rent */}
               <View className='flex-row items-center justify-between'>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   Monthly Rent:
                 </Text>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   ₱ {(Number(monthlyRent) || 0).toLocaleString()}
                 </Text>
               </View>
 
               {/* Security Deposit */}
               <View className='flex-row items-center justify-between'>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   Security Deposit:
                 </Text>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   ₱ {(Number(securityDeposit) || 0).toLocaleString()}
                 </Text>
               </View>
 
               {/* Advance Rent */}
               <View className='flex-row items-center justify-between'>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   Advance Rent:
                 </Text>
-                <Text className='text-base font-inter text-text'>
+                <Text className='text-base font-inter text-foreground'>
                   ₱ {(Number(advanceRent) || 0).toLocaleString()}
                 </Text>
               </View>
 
-              <Divider marginVertical={10} />
+              <Separator className='my-4' />
 
               {/* Total Move-in Cost */}
               <View className='flex-row items-center justify-between'>
-                <Text className='text-base font-interMedium text-text'>
+                <Text className='text-base font-interMedium text-foreground'>
                   Total Move-in Cost:
                 </Text>
-                <Text className='text-base font-interMedium text-primary'>
+                <Text className='text-base font-interMedium text-accent'>
                   ₱ {(
                     (Number(monthlyRent) || 0) +
                     (Number(securityDeposit) || 0) +
@@ -172,7 +171,7 @@ export default function ThirdStep() {
           )}
         </View>
 
-        <Divider />
+        <Separator className='my-4' />
 
         <UploadFileField
           label='Lease Agreement:'
