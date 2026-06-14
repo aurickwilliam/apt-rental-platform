@@ -18,12 +18,9 @@ import PerkItem from "components/display/PerkItem";
 import { Button } from "heroui-native";
 
 import {
-  IconFileText,
-  IconEdit,
-  IconUpload,
-} from "@tabler/icons-react-native";
-
-import {
+  FileText,
+  SquarePen,
+  Upload,
   House,
   BedDouble,
   Bath,
@@ -284,7 +281,7 @@ export default function Index() {
             )
           }
         >
-          <IconEdit size={24} color={colors.primary} />
+          <SquarePen size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -353,7 +350,7 @@ export default function Index() {
             )
           }
         >
-          <IconEdit size={24} color={colors.primary} />
+          <SquarePen size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -374,7 +371,7 @@ export default function Index() {
             )
           }
         >
-          <IconEdit size={24} color={colors.primary} />
+          <SquarePen size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -454,7 +451,7 @@ export default function Index() {
                 )
               }
             >
-              <IconEdit size={24} color={colors.primary} />
+              <SquarePen size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -476,12 +473,12 @@ export default function Index() {
           isDisabled={!apartment?.lease_agreement_url}
           onPress={handleViewLease}
         >
-          <IconFileText size={20} color={colors.textPrimary} />
+          <FileText size={20} color={colors.textPrimary} />
           <Button.Label>View Lease Agreement</Button.Label>
         </Button>
 
         <Button isDisabled={uploading} onPress={handleUploadLease}>
-          <IconUpload size={20} color={colors.secondaryForeground} />
+          <Upload size={20} color={colors.secondaryForeground} />
           <Button.Label>
             {uploading ? "Uploading..." : "Upload Lease Agreement"}
           </Button.Label>

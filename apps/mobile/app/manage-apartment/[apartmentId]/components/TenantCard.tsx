@@ -4,10 +4,7 @@ import { Button, Card, PressableFeedback } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
 
-import {
-  IconFileText,
-  IconMessage,
-} from "@tabler/icons-react-native";
+import { FileText, MessageCircleMore } from "lucide-react-native";
 
 interface TenantCardProps {
   fullName: string;
@@ -29,8 +26,8 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
       : parts[0]?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <View className="size-12 rounded-full border border-grey-300 bg-primary items-center justify-center">
-      <Text className="text-white font-interMedium text-lg">
+    <View className="size-12 rounded-full border border-grey-300 bg-accent items-center justify-center">
+      <Text className="text-secondary-foreground font-interMedium text-lg">
         {initials}
       </Text>
     </View>
@@ -101,7 +98,7 @@ export default function TenantCard({
               isDisabled={!onDocumentsPress}
               size="sm"
             >
-              <IconFileText size={16} color={colors.primary} />
+              <FileText size={16} color={colors.primary} />
               <Button.Label>
                 Documents
               </Button.Label>
@@ -114,7 +111,7 @@ export default function TenantCard({
               isDisabled={!onMessagePress}
               size="sm"
             >
-              <IconMessage size={16} color={colors.primary} />
+              <MessageCircleMore size={16} color={colors.primary} />
               <Button.Label>
                 Message
               </Button.Label>

@@ -8,7 +8,7 @@ import DropdownField from "@/components/inputs/DropdownField";
 
 import { Input, Label, TextField, FieldError, Button, Separator } from "heroui-native";
 
-import { IconCirclePlus, IconCircleMinus } from "@tabler/icons-react-native";
+import { CircleMinus, CirclePlus } from 'lucide-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -212,13 +212,13 @@ export default function EditSpecs() {
             disabled={bathrooms <= minValue}
             style={{ opacity: bathrooms <= minValue ? 0.3 : 1 }}
           >
-            <IconCircleMinus size={30} color={colors.textPrimary} />
+            <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text className="text-foreground text-xl font-interMedium">
             {bathrooms}
           </Text>
           <TouchableOpacity onPress={() => handleAdd("bathrooms")}>
-            <IconCirclePlus size={30} color={colors.textPrimary} />
+            <CirclePlus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -232,11 +232,11 @@ export default function EditSpecs() {
             disabled={bedrooms <= minValue}
             style={{ opacity: bedrooms <= minValue ? 0.3 : 1 }}
           >
-            <IconCircleMinus size={30} color={colors.textPrimary} />
+            <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text className="text-foreground text-xl font-interMedium">{bedrooms}</Text>
           <TouchableOpacity onPress={() => handleAdd("bedrooms")}>
-            <IconCirclePlus size={30} color={colors.textPrimary} />
+            <CirclePlus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -252,13 +252,13 @@ export default function EditSpecs() {
             disabled={maxOccupants <= minValue}
             style={{ opacity: maxOccupants <= minValue ? 0.3 : 1 }}
           >
-            <IconCircleMinus size={30} color={colors.textPrimary} />
+            <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text className="text-foreground text-xl font-interMedium">
             {maxOccupants}
           </Text>
           <TouchableOpacity onPress={() => handleAdd("maxOccupants")}>
-            <IconCirclePlus size={30} color={colors.textPrimary} />
+            <CirclePlus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>

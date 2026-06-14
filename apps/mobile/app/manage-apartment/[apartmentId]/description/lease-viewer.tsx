@@ -6,13 +6,14 @@ import { WebView } from 'react-native-webview'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 
-import { COLORS } from '@repo/constants'
+import { useColors } from '@/hooks/useTheme'
 
 export default function LeaseViewer() {
   const router = useRouter()
   const { fileUrl } = useLocalSearchParams<{
     fileUrl: string
   }>()
+  const { colors } = useColors()
 
   const [loading, setLoading] = useState(true)
 
@@ -30,7 +31,7 @@ export default function LeaseViewer() {
     >
       {loading && (
         <View className="absolute inset-0 items-center justify-center z-10">
-          <ActivityIndicator color={COLORS.primary} />
+          <ActivityIndicator color={colors.primary} />
         </View>
       )}
       
