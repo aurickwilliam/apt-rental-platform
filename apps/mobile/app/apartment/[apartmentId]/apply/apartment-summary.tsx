@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import IconButton from 'components/buttons/IconButton';
+import IconButton from '@/app/apartment/[apartmentId]/components/IconButton';
 import PillButton from 'components/buttons/PillButton';
 
 import { DEFAULT_IMAGES } from 'constants/images';

@@ -40,7 +40,7 @@ export default function SelectDocument() {
       </View>
 
       <View className='mt-5'>
-        <Text className='text-grey-500 text-sm font-inter text-center'>
+        <Text className='text-gray-500 text-sm font-inter text-center'>
           Make sure your document is clear and not expired.
         </Text>
       </View>

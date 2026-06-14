@@ -2,7 +2,7 @@ import { View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
+import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
 import UploadImageField from 'components/inputs/UploadImageField'
 import UploadGeneralFile from '@/components/inputs/UploadFileField'
 import PillButton from 'components/buttons/PillButton'

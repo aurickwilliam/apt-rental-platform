@@ -7,8 +7,6 @@ import PerkItem from 'components/display/PerkItem'
 
 import { formatCurrency } from '@repo/utils'
 
-import { useColors } from 'hooks/useTheme'
-
 import { Button, Separator } from 'heroui-native'
 
 import {
@@ -24,6 +22,7 @@ import {
   AlertCircle,
 } from 'lucide-react-native';
 
+import { useColors } from 'hooks/useTheme'
 import { useTenancy } from 'hooks/useTenancy'
 
 const MONTHS = [

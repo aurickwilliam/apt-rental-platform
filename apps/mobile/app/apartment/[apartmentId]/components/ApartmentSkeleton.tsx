@@ -4,15 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 
-type ApartmentSkeletonProps = {
-  onBackPress: () => void;
-  onFavoritePress: () => void;
-};
-
-export default function ApartmentSkeleton({
-  onBackPress,
-  onFavoritePress,
-}: ApartmentSkeletonProps) {
+export default function ApartmentSkeleton() {
   const skeletonOpacity = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {

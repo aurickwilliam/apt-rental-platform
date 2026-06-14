@@ -3,10 +3,10 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconHome,
-} from "@tabler/icons-react-native";
+  ChevronLeft,
+  ChevronRight,
+  House,
+} from 'lucide-react-native';
 
 import { Button, Card, SearchField } from "heroui-native";
 
@@ -14,10 +14,11 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "@/components/cards/VisitRequestCard";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
 
 import { VISIT_REQUESTS } from "./mockData";
+
+import { useColors } from "@/hooks/useTheme";
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -50,15 +51,16 @@ const formatMonthLabel = (date: Date) =>
   date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
 function EmptyApproved() {
+  const { colors } = useColors();
   return (
     <View className="flex-1 items-center justify-center py-12">
       <View className="bg-white rounded-full p-5 mb-4">
-        <IconHome size={28} color={COLORS.grey} />
+        <House size={28} color={colors.gray500} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         No approved visits
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-muted text-sm font-inter text-center mt-1">
         Approved visit requests will appear here.
       </Text>
     </View>
@@ -67,6 +69,8 @@ function EmptyApproved() {
 
 export default function VisitRequests() {
   const router = useRouter();
+  const { colors } = useColors();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() =>
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -123,7 +127,6 @@ export default function VisitRequests() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Visit Requests" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable={false}
     >
       <FlatList
@@ -150,10 +153,10 @@ export default function VisitRequests() {
                       onPress={() => handleChangeMonth(-1)}
                       className="p-2 rounded-full"
                     >
-                      <IconChevronLeft size={20} color={COLORS.grey} />
+                      <ChevronLeft size={20} color={colors.gray500} />
                     </Pressable>
 
-                    <Text className="text-text text-base font-interSemiBold">
+                    <Text className="text-foreground text-base font-interSemiBold">
                       {formatMonthLabel(currentMonth)}
                     </Text>
 
@@ -161,7 +164,7 @@ export default function VisitRequests() {
                       onPress={() => handleChangeMonth(1)}
                       className="p-2 rounded-full"
                     >
-                      <IconChevronRight size={20} color={COLORS.grey} />
+                      <ChevronRight size={20} color={colors.gray500} />
                     </Pressable>
                   </View>
 
@@ -169,7 +172,7 @@ export default function VisitRequests() {
                     {DAYS.map((day) => (
                       <Text
                         key={day}
-                        className="text-grey-500 text-xs font-inter"
+                        className="text-muted text-xs font-inter"
                         style={{ width: 32, textAlign: "center" }}
                       >
                         {day}
@@ -209,12 +212,12 @@ export default function VisitRequests() {
                               height: 28,
                               borderWidth: isSelected || isToday ? 1 : 0,
                               borderColor: isSelected
-                                ? COLORS.primary
+                                ? colors.primary
                                 : isToday
-                                ? COLORS.primary
+                                ? colors.primary
                                 : "transparent",
                               backgroundColor: isSelected
-                                ? COLORS.primary
+                                ? colors.primary
                                 : "transparent",
                               opacity: isPast ? 0.4 : 1,
                             }}
@@ -223,12 +226,12 @@ export default function VisitRequests() {
                               className="text-xs font-inter"
                               style={{
                                 color: isSelected
-                                  ? COLORS.white
+                                  ? colors.white
                                   : isRequestDay
-                                  ? COLORS.primary
+                                  ? colors.primary
                                   : isAvailable
-                                  ? COLORS.text
-                                  : COLORS.grey,
+                                  ? colors.textPrimary
+                                  : colors.gray500,
                               }}
                             >
                               {date.getDate()}
@@ -242,8 +245,8 @@ export default function VisitRequests() {
                                   height: 6,
                                   borderRadius: 999,
                                   backgroundColor: isSelected
-                                    ? COLORS.white
-                                    : COLORS.primary,
+                                    ? colors.white
+                                    : colors.primary,
                                 }}
                               />
                             ) : isAvailable ? (
@@ -253,7 +256,7 @@ export default function VisitRequests() {
                                   height: 6,
                                   borderRadius: 999,
                                   borderWidth: 1,
-                                  borderColor: COLORS.lightGrey,
+                                  borderColor: colors.gray400,
                                 }}
                               />
                             ) : (
@@ -272,10 +275,10 @@ export default function VisitRequests() {
                           width: 8,
                           height: 8,
                           borderRadius: 999,
-                          backgroundColor: COLORS.primary,
+                          backgroundColor: colors.primary,
                         }}
                       />
-                      <Text className="text-xs text-grey-500 font-inter">
+                      <Text className="text-xs text-gray-500 font-inter">
                         Visit requests
                       </Text>
                     </View>
@@ -286,10 +289,10 @@ export default function VisitRequests() {
                           height: 8,
                           borderRadius: 999,
                           borderWidth: 1,
-                          borderColor: COLORS.lightGrey,
+                          borderColor: colors.gray400,
                         }}
                       />
-                      <Text className="text-xs text-grey-500 font-inter">
+                      <Text className="text-xs text-gray-500 font-inter">
                         Available dates
                       </Text>
                     </View>
@@ -306,10 +309,10 @@ export default function VisitRequests() {
 
             <View className="gap-3 mb-3">
               <View className="flex-row items-center justify-between">
-                <Text className="text-text text-base font-interSemiBold">
+                <Text className="text-foreground text-base font-interSemiBold">
                   Approved Visit Requests
                 </Text>
-                <Text className="text-grey-500 text-xs font-inter">
+                <Text className="text-gray-500 text-xs font-inter">
                   Total: {filteredApproved.length}
                 </Text>
               </View>
