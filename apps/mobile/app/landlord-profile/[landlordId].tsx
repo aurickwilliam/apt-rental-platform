@@ -9,17 +9,16 @@ import ApartmentCard from 'components/cards/ApartmentCard'
 
 import { Button, Avatar } from "heroui-native"
 
-import { COLORS } from '@repo/constants'
-
 import { supabase } from '@repo/supabase'
 
+import { useColors } from '@/hooks/useTheme'
 import { useLandlordStats } from '@/hooks/useLandlordStats'
 
 import {
-  IconRosetteDiscountCheckFilled,
-  IconMessage,
-  IconFlag,
-} from '@tabler/icons-react-native';
+  Flag,
+  MessageCircleMore,
+  BadgeCheck,
+} from 'lucide-react-native';
 
 type LandlordProfileData = {
   id: string;
@@ -44,6 +43,7 @@ export default function LandlordProfile() {
     apartmentId?: string | string[],
   }>();
   const router = useRouter();
+  const { colors } = useColors();
 
   const resolvedLandlordId = useMemo(
     () => (Array.isArray(landlordId) ? landlordId[0] : landlordId),
@@ -209,7 +209,7 @@ export default function LandlordProfile() {
     });
   }
 
-  const backgroundColor = backgroundPhotoUri ? COLORS.transparent : COLORS.primary;
+  const backgroundColor = backgroundPhotoUri ? colors.surface : colors.primary;
   const isVerified = profile?.account_status === 'verified';
   const isLoading = profileLoading || listingsLoading || statsLoading;
 
@@ -219,168 +219,150 @@ export default function LandlordProfile() {
   return (
     <ScreenWrapper
       scrollable
-      header={
-        <StandardHeader title="Landlord Profile" />
-      }
-      backgroundColor={COLORS.darkerWhite}
+      header={<StandardHeader title="Landlord Profile" />}
     >
       {/* Header Information */}
-      <View className='relative h-80'>
+      <View className="relative h-80">
         {/* Background Photo */}
         <View
-          className='w-full h-40'
+          className="w-full h-40"
           style={{ backgroundColor: backgroundColor }}
         >
-          {
-            backgroundPhotoUri && (
-              <Image
-                source={backgroundPhotoUri}
-                style={{ width: '100%', height: '100%' }}
-              />
-            )
-          }
+          {backgroundPhotoUri && (
+            <Image
+              source={backgroundPhotoUri}
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
         </View>
 
         {/* Profile Picture */}
-        <View className='absolute top-8 left-0 right-0 items-center'>
+        <View className="absolute top-8 left-0 right-0 items-center">
           <Avatar
             size="lg"
             color="accent"
-            className='size-50 border-[6px] border-secondary mb-5'
+            className="size-50 border-4 border-surface mb-5"
             alt={`${profile?.first_name} ${profile?.last_name}`}
           >
-            <Avatar.Image source={{ uri: profile?.avatar_url ?? '' }} />
+            <Avatar.Image source={{ uri: profile?.avatar_url ?? "" }} />
             <Avatar.Fallback delayMs={200}>
-              <Text className='text-primary text-3xl font-interMedium'>
-                {avatarInitials || 'U'}
+              <Text className="text-accent text-3xl font-interMedium">
+                {avatarInitials || "U"}
               </Text>
             </Avatar.Fallback>
           </Avatar>
 
           {/* Name and Email */}
-          <View className='flex items-center justify-center'>
-            <Text className='text-text text-2xl font-interSemiBold'>
+          <View className="flex items-center justify-center">
+            <Text className="text-foreground text-2xl font-interSemiBold">
               {fullName}
             </Text>
-            <Text className='text-grey-500 text-lg font-inter'>
-              {profile?.email ?? 'N/A'}
+            <Text className="text-gray-500 text-lg font-inter">
+              {profile?.email ?? "N/A"}
             </Text>
           </View>
         </View>
       </View>
 
       {/* Landlord Stats */}
-      <View className='mx-5 mt-5 p-4 border-t border-b border-grey-300 flex-row items-center justify-between'>
+      <View className="mx-5 mt-5 p-4 border-t border-b border-gray-300 flex-row items-center justify-between">
         {/* No. of Properties */}
-        <View className='flex items-center gap-1 w-1/3'>
-          <Text className='text-base text-grey-500 font-inter'>
-            No. of
-          </Text>
-          <Text className='text-3xl text-text font-interMedium'>
+        <View className="flex items-center gap-1 w-1/3">
+          <Text className="text-base text-gray-500 font-inter">No. of</Text>
+          <Text className="text-3xl text-foreground font-interMedium">
             {stats.totalProperties}
           </Text>
-          <Text className='text-base text-grey-500 font-interMedium'>
+          <Text className="text-base text-gray-500 font-interMedium">
             Properties
           </Text>
         </View>
 
-        <View
-          className='w-px h-full bg-grey-300'
-        />
+        <View className="w-px h-full bg-gray-300" />
 
-        <View className='flex items-center gap-1 w-1/3'>
-          <Text className='text-base text-grey-500 font-inter'>
-            Ratings
-          </Text>
-          <Text className='text-3xl text-secondary font-interMedium'>
+        <View className="flex items-center gap-1 w-1/3">
+          <Text className="text-base text-gray-500 font-inter">Ratings</Text>
+          <Text className="text-3xl text-secondary font-interMedium">
             {stats.averageRating}/5
           </Text>
-          <Text className='text-base text-grey-500 font-interMedium'>
+          <Text className="text-base text-gray-500 font-interMedium">
             Average
           </Text>
         </View>
 
-        <View
-          className='w-px h-full bg-grey-300'
-        />
+        <View className="w-px h-full bg-grey-300" />
 
-        <View className='flex items-center gap-1 w-1/3'>
-          <Text className='text-base text-grey-500 font-inter'>
-            Identity
-          </Text>
-          <IconRosetteDiscountCheckFilled
+        <View className="flex items-center gap-1 w-1/3">
+          <Text className="text-base text-gray-500 font-inter">Identity</Text>
+          <BadgeCheck
             size={32}
-            color={isVerified ? COLORS.primary : COLORS.grey}
+            color={isVerified ? colors.primary : colors.gray500}
           />
 
-          <Text className='text-base text-grey-500 font-interMedium'>
-            {isVerified ? 'Verified' : 'Unverified'}
+          <Text className="text-base text-gray-500 font-interMedium">
+            {isVerified ? "Verified" : "Unverified"}
           </Text>
         </View>
       </View>
 
       {/* Personal Information */}
-      <View className='mt-8 mx-5'>
-        <View className='flex'>
-          <Text className='text-xs text-grey-500 font-inter'>
+      <View className="mt-8 mx-5">
+        <View className="flex">
+          <Text className="text-xs text-gray-500 font-inter">
             Location/Based In
           </Text>
 
-          <Text className='text-base text-text font-interMedium'>
-            {[profile?.city, profile?.province]
-              .filter(Boolean)
-              .join(', ') || 'N/A'}
+          <Text className="text-base text-foreground font-interMedium">
+            {[profile?.city, profile?.province].filter(Boolean).join(", ") ||
+              "N/A"}
           </Text>
         </View>
 
-        <View className='flex-row items-center mt-5'>
-          <View className='flex w-1/2'>
-            <Text className='text-xs text-grey-500 font-inter'>
+        <View className="flex-row items-center mt-5">
+          <View className="flex w-1/2">
+            <Text className="text-xs text-gray-500 font-inter">
               Contact Number
             </Text>
-            <Text className='text-base text-text font-interMedium'>
-              {profile?.mobile_number ?? 'N/A'}
+            <Text className="text-base text-foreground font-interMedium">
+              {profile?.mobile_number ?? "N/A"}
             </Text>
           </View>
 
-          <View className='flex w-1/2'>
-            <Text className='text-xs text-grey-500 font-inter'>
+          <View className="flex w-1/2">
+            <Text className="text-xs text-gray-500 font-inter">
               Member Since
             </Text>
-            <Text className='text-base text-text font-interMedium'>
+            <Text className="text-base text-foreground font-interMedium">
               {memberSince}
             </Text>
           </View>
         </View>
 
-        <View className='mt-5'>
+        <View className="mt-5">
           <Button
             size="sm"
             variant="outline"
             onPress={handleMessageLandlord}
             isDisabled={!resolvedLandlordId}
           >
-            <IconMessage size={20} color={COLORS.grey} />
-            <Button.Label>
-              Message
-            </Button.Label>
+            <MessageCircleMore size={20} color={colors.gray500} />
+            <Button.Label>Message</Button.Label>
           </Button>
         </View>
       </View>
 
       {/* Listings */}
-      <View className='mt-8'>
-        <Text className='text-text text-xl font-interSemiBold mx-5'>
+      <View className="mt-8">
+        <Text className="text-foreground text-xl font-interSemiBold mx-5">
           {getFirstName(fullName)}&apos;s Listings
         </Text>
 
         {isLoading ? (
-          <View className='items-center justify-center py-6'>
-            <ActivityIndicator size='large' color={COLORS.primary} />
+          <View className="items-center justify-center py-6">
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : landlordListings.length === 0 ? (
-          <View className='py-6'>
-            <Text className='text-grey-500 font-inter'>No listings yet.</Text>
+          <View className="py-6">
+            <Text className="text-gray-500 font-inter">No listings yet.</Text>
           </View>
         ) : (
           <FlatList
@@ -389,7 +371,11 @@ export default function LandlordProfile() {
             numColumns={2}
             scrollEnabled={false}
             columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
-            contentContainerStyle={{ paddingBottom: 16, gap: 16, marginTop: 12 }}
+            contentContainerStyle={{
+              paddingBottom: 16,
+              gap: 16,
+              marginTop: 12,
+            }}
             renderItem={({ item }) => (
               <ApartmentCard
                 {...item}
@@ -402,23 +388,21 @@ export default function LandlordProfile() {
       </View>
 
       {/* Report Button */}
-      <View className='mt-20 mx-5 flex items-center justify-center
-      '>
+      <View
+        className="mt-20 mx-5 flex items-center justify-center
+      "
+      >
         <TouchableOpacity
           activeOpacity={0.7}
-          className='flex-row items-center justify-center gap-2'
+          className="flex-row items-center justify-center gap-2"
           onPress={handleReportLandlord}
         >
-          <IconFlag
-            size={26}
-            color={COLORS.lightRedHead}
-          />
-          <Text className='text-redHead-100 text-lg font-interMedium'>
+          <Flag size={26} color={colors.danger} />
+          <Text className="text-danger text-lg font-interMedium">
             Report {getFirstName(fullName)}
           </Text>
         </TouchableOpacity>
       </View>
-
     </ScreenWrapper>
-  )
+  );
 }

@@ -11,7 +11,7 @@ import { DEFAULT_IMAGES } from '@/constants/images'
 
 import { supabase } from '@repo/supabase'
 
-import { IconMessage, IconRosetteDiscountCheckFilled } from '@tabler/icons-react-native'
+import { MessageCircleMore, BadgeCheck } from 'lucide-react-native'
 
 import { Button, Avatar } from 'heroui-native'
 
@@ -318,7 +318,7 @@ export default function TenantProfile() {
                 Identity
               </Text>
 
-              <IconRosetteDiscountCheckFilled
+              <BadgeCheck
                 size={32}
                 color={tenantData.isVerified ? colors.primary : colors.gray500}
               />
@@ -357,7 +357,7 @@ export default function TenantProfile() {
                 variant="tertiary"
                 onPress={handleMessageTenant}
               >
-                <IconMessage size={20} color={colors.textPrimary} />
+                <MessageCircleMore size={20} color={colors.textPrimary} />
                 <Button.Label>Message</Button.Label>
               </Button>
             </View>

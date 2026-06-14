@@ -14,21 +14,20 @@ import MaintenanceRequestCard from './components/MaintenanceRequestCard'
 import { Button, Menu, Dialog } from 'heroui-native'
 
 import {
-  IconBath,
-  IconBed,
-  IconHome,
-  IconMaximize,
-  IconUser,
-  IconCircleCheckFilled,
-  IconLogout2,
-  IconCircleX,
-  IconDotsVertical,
-  IconBuildingOff,
-  IconArmchair,
-  IconCalendar,
-  IconUsers,
-  IconBuildingCommunity,
-} from '@tabler/icons-react-native'
+  Bath,
+  BedDouble,
+  House,
+  Maximize,
+  User,
+  CircleCheck,
+  LogOut,
+  CircleX,
+  EllipsisVertical,
+  Armchair,
+  Calendar,
+  Users,
+  Building,
+} from 'lucide-react-native';
 
 import { IMAGES } from '@/constants/images'
 
@@ -470,14 +469,14 @@ export default function Index() {
               {/* Apartment Type and Lease Duration */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconHome size={24} color={colors.gray500} />
+                  <House size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.type}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconCalendar size={24} color={colors.gray500} />
+                  <Calendar size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.leaseDuration}
                   </Text>
@@ -487,7 +486,7 @@ export default function Index() {
               {/* Bedrooms and Bathrooms */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBed size={24} color={colors.gray500} />
+                  <BedDouble size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.noBedrooms} Bedroom
                     {apartment.noBedrooms !== 1 ? "s" : ""}
@@ -495,7 +494,7 @@ export default function Index() {
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBath size={24} color={colors.gray500} />
+                  <Bath size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.noBathrooms} Bathroom
                     {apartment.noBathrooms !== 1 ? "s" : ""}
@@ -506,14 +505,14 @@ export default function Index() {
               {/* Furnished Type and Floor Level */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconArmchair size={24} color={colors.gray500} />
+                  <Armchair size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.furnishedType}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconBuildingCommunity size={24} color={colors.gray500} />
+                  <Building size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.floorLevel}
                   </Text>
@@ -523,7 +522,7 @@ export default function Index() {
               {/* Max Occupants and Square Footage */}
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconUsers size={24} color={colors.gray500} />
+                  <Users size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     Max {apartment.maxOccupants} Occupant
                     {apartment.maxOccupants !== 1 ? "s" : ""}
@@ -531,7 +530,7 @@ export default function Index() {
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <IconMaximize size={24} color={colors.gray500} />
+                  <Maximize size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
                     {apartment.areaSqm} Sqm
                   </Text>
@@ -579,7 +578,7 @@ export default function Index() {
                     Status
                   </Text>
 
-                  <IconCircleCheckFilled
+                  <CircleCheck
                     size={32}
                     color={isOccupied ? colors.success : colors.primary}
                   />
@@ -610,7 +609,7 @@ export default function Index() {
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
-                      <IconUser size={26} color={colors.textPrimary} />
+                      <User size={26} color={colors.textPrimary} />
                       <Text className="text-foreground text-lg font-interSemiBold">
                         Tenant Information
                       </Text>
@@ -717,7 +716,7 @@ export default function Index() {
         ) : (
           // Error State
           <View className="flex-1 items-center justify-center py-24 gap-4">
-            <IconBuildingOff size={48} color={colors.gray400} />
+            <Building size={48} color={colors.gray400} />
             <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
@@ -738,7 +737,7 @@ export default function Index() {
               items-center justify-center shadow-lg active:opacity-80"
             isIconOnly
           >
-            <IconDotsVertical size={26} color={colors.secondaryForeground} />
+            <EllipsisVertical size={26} color={colors.secondaryForeground} />
           </Button>
         </Menu.Trigger>
 
@@ -751,7 +750,7 @@ export default function Index() {
             width={200}
           >
             <Menu.Item onPress={handleVacateUnit}>
-              <IconLogout2 size={20} color={colors.textPrimary} />
+              <LogOut size={20} color={colors.textPrimary} />
               <Menu.ItemTitle>Vacate</Menu.ItemTitle>
             </Menu.Item>
 
@@ -762,7 +761,7 @@ export default function Index() {
                 setIsRemoveDialogOpen(true);
               }}
             >
-              <IconCircleX size={20} color={colors.danger} />
+              <CircleX size={20} color={colors.danger} />
               <Menu.ItemTitle>Remove Unit</Menu.ItemTitle>
             </Menu.Item>
           </Menu.Content>
@@ -805,7 +804,10 @@ export default function Index() {
           <Dialog.Content>
             <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
             <View className="mb-5 gap-1.5">
-              <Dialog.Title>Vacate Unit</Dialog.Title>
+              <Dialog.Title>
+                Vacate Unit
+              </Dialog.Title>
+              
               <Dialog.Description>
                 Are you sure you want to mark this unit as vacant? The current
                 tenant&apos;s lease will be ended and the unit will be listed as

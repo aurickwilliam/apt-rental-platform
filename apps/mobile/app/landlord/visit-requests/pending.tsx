@@ -36,7 +36,6 @@ function EmptyPending() {
 
 export default function PendingVisitRequests() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
 
