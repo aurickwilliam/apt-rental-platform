@@ -6,8 +6,9 @@ import { IMAGES } from "@/constants/images";
 
 import { supabase } from "@repo/supabase";
 
+import { Bell } from "lucide-react-native";
+
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import { IconBell } from "@tabler/icons-react-native";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
 import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
@@ -151,7 +152,7 @@ export default function Dashboard() {
           variant="ghost"
           isIconOnly
         >
-          <IconBell size={26} color={colors.gray400} />
+          <Bell size={26} color={colors.gray500} />
         </Button>
       </View>
 
