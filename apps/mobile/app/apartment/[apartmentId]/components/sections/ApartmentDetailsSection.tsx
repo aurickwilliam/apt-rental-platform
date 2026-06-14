@@ -8,8 +8,8 @@ import {
   LucideIcon,
 } from 'lucide-react-native';
 
-import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
-import { useColors } from '@/hooks/useTheme';
+import type { ApartmentDetails } from 'hooks/useApartmentDetails';
+import { useColors } from 'hooks/useTheme';
 
 type ApartmentDetailsSectionProps = {
   apartment: ApartmentDetails | null;

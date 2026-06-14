@@ -5,7 +5,7 @@ import { Building } from 'lucide-react-native';
 
 import { Button } from "heroui-native"
 
-import { useColors } from '@/hooks/useTheme';
+import { useColors } from 'hooks/useTheme';
 
 type ApartmentDescriptionSectionProps = {
   description?: string | null;

@@ -12,15 +12,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
 import {
-  IconMapPin,
-  IconStarFilled,
-  IconBed,
-  IconBath,
-  IconMaximize,
-} from '@tabler/icons-react-native';
+  MapPin,
+  Star,
+  Bed,
+  Bath,
+  Maximize,
+} from 'lucide-react-native';
 
-import { useColors } from '@/hooks/useTheme';
-import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
+import { useColors } from 'hooks/useTheme';
+import type { ApartmentDetails } from 'hooks/useApartmentDetails';
 
 type ApartmentImage = {
   id: string;
@@ -40,7 +40,7 @@ export default function ApartmentHeroSection({
 
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  const { colors, isDark } = useColors();
+  const { colors } = useColors();
 
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
@@ -100,14 +100,14 @@ export default function ApartmentHeroSection({
           </Text>
 
           <View className='flex-row items-center mt-2 gap-2'>
-            <IconMapPin size={24} color={colors.secondaryForeground} />
+            <MapPin size={24} color={colors.secondaryForeground} />
             <Text className={`text-white font-interMedium text-base`}>
               {location || 'No location provided'}
             </Text>
           </View>
 
           <View className='flex-row items-center mt-5 gap-2'>
-            <IconStarFilled size={20} color={colors.secondary} />
+            <Star size={20} color={colors.secondary} fill={colors.secondary} />
             <Text className={`text-white font-interMedium text-base`}>
               No ratings yet
             </Text>
@@ -115,7 +115,7 @@ export default function ApartmentHeroSection({
 
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
-              <IconBed size={24} color={colors.secondaryForeground} />
+              <Bed size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-interMedium text-sm`}>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
@@ -123,7 +123,7 @@ export default function ApartmentHeroSection({
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <IconBath size={24} color={colors.secondaryForeground} />
+              <Bath size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-interMedium text-sm`}>
                 {apartment?.no_bathrooms}{' '}
                 {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
@@ -131,7 +131,7 @@ export default function ApartmentHeroSection({
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <IconMaximize size={24} color={colors.secondaryForeground} />
+              <Maximize size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-interMedium text-sm`}>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
               </Text>
