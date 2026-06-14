@@ -3,13 +3,14 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
 import UploadImageField from '@/components/inputs/UploadImageField'
 
 import { Button, TextField, Label, Input, FieldError } from "heroui-native"
 
-import { COLORS } from '@repo/constants'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
+
+import { useColors } from '@/hooks/useTheme'
 
 interface FormErrors {
   name?: string
@@ -20,7 +21,9 @@ interface FormErrors {
 const MIN_ADDITIONAL_PHOTOS = 3
 
 export default function Index() {
-  const router = useRouter()
+  const router = useRouter();
+  const { colors } = useColors();
+
   const [errors, setErrors] = useState<FormErrors>({})
 
   const name = useApartmentFormStore((s) => s.name)
@@ -67,7 +70,7 @@ export default function Index() {
   }
 
   return (
-    <ScreenWrapper scrollable backgroundColor={COLORS.darkerWhite}>
+    <ScreenWrapper scrollable>
       <ApplicationHeader
         currentTitle='Photos & Title'
         nextTitle='Basic Info'

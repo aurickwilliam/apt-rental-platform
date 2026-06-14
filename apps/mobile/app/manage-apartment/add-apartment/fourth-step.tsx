@@ -3,7 +3,7 @@ import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
 import PerkButton from '../components/PerkButton'
 
 import { TextField, Label, TextArea, FieldError, Button, Chip } from 'heroui-native'
