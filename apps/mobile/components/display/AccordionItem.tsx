@@ -14,7 +14,7 @@ import Animated, {
 
 import { IconChevronDown } from '@tabler/icons-react-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from 'hooks/useTheme';
 
 interface AccordionItemProps {
   title: string;
@@ -27,6 +27,8 @@ export default function AccordionItem({
   children,
   isLast = false,
 }: AccordionItemProps) {
+  const { colors } = useColors();
+
   const [expanded, setExpanded] = useState(false);
   const rotation = useSharedValue(0);
   const underlineScale = useSharedValue(0);
@@ -69,14 +71,14 @@ export default function AccordionItem({
           {title}
         </Text>
         <Animated.View style={animatedChevronStyle}>
-          <IconChevronDown size={22} color={COLORS.grey} />
+          <IconChevronDown size={22} color={colors.gray500} />
         </Animated.View>
       </TouchableOpacity>
 
       <Animated.View 
         style={[{ 
           height: 2, 
-          backgroundColor: COLORS.secondary, 
+          backgroundColor: colors.secondary, 
           borderRadius: 2 
         }, animatedUnderlineStyle]} 
       />

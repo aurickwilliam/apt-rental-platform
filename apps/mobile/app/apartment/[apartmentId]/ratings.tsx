@@ -10,17 +10,17 @@ import Divider from 'components/display/Divider'
 import RatingCard from 'components/cards/RatingCard'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '@repo/constants'
+import { useColors } from 'hooks/useTheme'
 
 import {
-  IconStarFilled,
-  IconStar,
-  IconCirclePlus,
-} from '@tabler/icons-react-native';
+  Star,
+  CirclePlus,
+} from 'lucide-react-native';
 
 export default function RatingsPage() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
+  const { colors } = useColors();
 
   const [selectedFilter, setSelectedFilter] = useState<'Most Recent' | 'Highest Rating' | 'Lowest Rating'>('Most Recent');
 
@@ -79,7 +79,7 @@ export default function RatingsPage() {
     >
       {/* Overall Rating */}
       <View className='flex items-center justify-center'>
-        <Text className='text-grey-500 text-lg font-interSemiBold'>
+        <Text className='text-muted text-lg font-interSemiBold'>
           Overall Rating
         </Text>
 
@@ -91,22 +91,22 @@ export default function RatingsPage() {
         <View className='flex-row gap-2'>
           {[1, 2, 3, 4, 5].map((star) => (
             star <= Math.round(ratings.overallRating) ? (
-              <IconStarFilled
+              <Star
                 key={star}
                 size={35}
-                color={COLORS.secondary}
+                color={colors.secondary}
               />
             ) : (
-              <IconStar
+              <Star
                 key={star}
                 size={35}
-                color={COLORS.secondary}
+                color={colors.secondary}
               />
             )
           ))}
         </View>
 
-        <Text className='text-grey-500 text-lg font-interSemiBold mt-3'>
+        <Text className='text-muted text-lg font-interSemiBold mt-3'>
           based on {ratings.totalReviews} Reviews
         </Text>
       </View>
@@ -137,7 +137,7 @@ export default function RatingsPage() {
           bottomSheetLabel={'Sort Reviews By'}
           options={['Most Recent', 'Highest Rating', 'Lowest Rating']}
           value={selectedFilter}
-          onSelect={(value) => setSelectedFilter(value)}
+          onSelect={(value) => setSelectedFilter(value as typeof selectedFilter)}
         />
       </View>
 
@@ -164,7 +164,7 @@ export default function RatingsPage() {
         <PillButton
           label='Write a Review'
           onPress={handleWriteReview}
-          leftIconName={IconCirclePlus}
+          leftIconName={CirclePlus}
         />
       </View>
     </ScreenWrapper>

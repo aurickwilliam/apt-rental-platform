@@ -4,15 +4,22 @@ import { useEffect, useRef, useState } from "react";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
-import { Button, CloseButton, InputOTP, type InputOTPRef, REGEXP_ONLY_DIGITS } from "heroui-native";
+import {
+  Button,
+  CloseButton,
+  InputOTP,
+  type InputOTPRef,
+  REGEXP_ONLY_DIGITS,
+} from "heroui-native";
 
-import { IconChevronLeft } from "@tabler/icons-react-native";
+import { ChevronLeft } from 'lucide-react-native';
 
-import { COLORS } from "@repo/constants";
+import { useColors } from "@/hooks/useTheme";
 
 export default function OTPVerification() {
   const { method } = useLocalSearchParams();
   const router = useRouter();
+  const { colors } = useColors();
 
   const [value, setValue] = useState("");
   const ref = useRef<InputOTPRef>(null);
@@ -48,16 +55,16 @@ export default function OTPVerification() {
     <ScreenWrapper className="px-5">
       <View>
         <CloseButton onPress={() => router.back()} className="my-5">
-          <IconChevronLeft size={26} color={COLORS.text} />
+          <ChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
 
       <View className="flex gap-3">
-        <Text className="text-text text-2xl font-interSemiBold">
+        <Text className="text-foreground text-2xl font-interSemiBold">
           OTP was Sent!
         </Text>
 
-        <Text className="text-base text-text font-inter mb-5">
+        <Text className="text-base text-foreground font-inter mb-5">
           We&apos;ve sent a 4-digit code to your{" "}
           {method === "sms" ? "phone number" : "email"}. Please enter the code
           sent to your {userInfo}.
@@ -88,16 +95,16 @@ export default function OTPVerification() {
         </View>
 
         <View className="flex-row items-center">
-          <Text className="text-gray-600 text-base">
+          <Text className="text-muted text-base">
             Didn&apos;t get the code?{" "}
           </Text>
           {countdown > 0 ? (
-            <Text className="text-blue-500 text-base font-medium">
+            <Text className="text-accent text-base font-medium">
               Resend in {countdown}s
             </Text>
           ) : (
             <Pressable onPress={handleResend}>
-              <Text className="text-blue-500 text-base font-medium">
+              <Text className="text-accent text-base font-medium">
                 Resend
               </Text>
             </Pressable>

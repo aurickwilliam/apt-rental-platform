@@ -1,0 +1,578 @@
+import { View, Text, ScrollView, TouchableOpacity, Image, Animated, Dimensions, ActivityIndicator } from 'react-native'
+import ImageViewing from 'react-native-image-viewing'
+import { useRef, useState } from 'react'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
+import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
+
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
+import PerkItem from 'components/display/PerkItem'
+import LandlordCard from 'components/cards/LandlordCard'
+
+import { Button, Dialog } from "heroui-native"
+
+import {
+  MapPin,
+  Map,
+  House,
+  Star,
+  BedDouble,
+  Bath,
+  Maximize,
+  Building,
+  SquareCheck,
+  User,
+  FileText,
+  Users,
+  Building2,
+  Calendar,
+} from 'lucide-react-native'
+
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
+
+import { formatCurrency } from '@repo/utils'
+
+import { useProfile } from 'hooks/useProfile'
+import { useLandlordStats } from 'hooks/useLandlordStats'
+import { usePublishApartment } from 'hooks/usePublishApartment'
+import { useColors } from 'hooks/useTheme'
+
+setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
+
+const MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+}
+
+const DEFAULT_COORDS = {
+  latitude: 14.6700,
+  longitude: 120.9600,
+}
+
+
+export default function FifthStep() {
+  const router = useRouter();
+  const { colors } = useColors();
+
+  const [isReadMore, setIsReadMore] = useState<boolean>(false);
+  const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
+  const [imageIndex, setImageIndex] = useState<number>(0);
+
+  const { profile, loading: profileLoading } = useProfile()
+  const { loading: statsLoading } = useLandlordStats(profile?.id)
+
+  const { 
+    publish, 
+    loading: publishing, 
+    error: publishError,
+    clearError: clearPublishError,
+  } = usePublishApartment()
+
+  const isLoading = profileLoading || statsLoading;
+
+  const { width } = Dimensions.get('window');
+
+  // Refs for ScrollView
+  const imageScrollViewRef = useRef<ScrollView>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  // Pull data from Zustand store
+  const {
+    name,
+    thumbnail,
+    additionalPhotos,
+    apartmentType,
+    streetName,
+    barangay,
+    city,
+    province,
+    bedrooms,
+    bathrooms,
+    floorArea,
+    amenities,
+    description,
+    monthlyRent,
+    latitude,
+    longitude,
+    maxOccupants,
+    floorLevel,
+    leaseDuration,
+  } = useApartmentFormStore();
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    { useNativeDriver: false }
+  );
+
+  // Build image list from thumbnail + additionalPhotos
+  const apartmentImages = [
+    ...(thumbnail ? [{ id: 'thumbnail', uri: thumbnail.uri }] : []),
+    ...additionalPhotos.map((photo, index) => ({ id: `photo-${index}`, uri: photo.uri })),
+  ];
+
+  // Build location string from address fields
+  const locationString = [streetName, barangay, city, province]
+    .filter(Boolean)
+    .join(', ');
+
+  const handleViewFullImage = (index: number) => {
+    setImageIndex(index);
+    setIsImageViewVisible(true);
+  }
+
+  const toggleReadMoreDescription = () => {
+    setIsReadMore(!isReadMore);
+  }
+
+  const handlePublish = async () => {
+    const result = await publish()
+    if (result) {
+      router.replace(`/manage-apartment/add-apartment/success?apartmentId=${result}`)
+    }
+  }
+
+  return (
+    <ScreenWrapper
+      scrollable
+    >
+      <ApplicationHeader
+        currentTitle={'Preview & Publish'}
+        nextTitle={'Publish the Apartment'}
+        step={5}
+        totalSteps={5}
+      />
+
+      <View className='h-168 bg-background relative'>
+        {/* Image Carousel */}
+        <ScrollView
+          ref={imageScrollViewRef}
+          horizontal
+          pagingEnabled
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          showsHorizontalScrollIndicator={false}
+        >
+          {apartmentImages.map((item, index) => (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              className='w-screen h-full'
+              key={item.id}
+              onPress={() => handleViewFullImage(index)}
+            >
+              <Image
+                source={{ uri: item.uri }}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Text Details on top of the Carousel */}
+        {/* Linear Gradient Overlay */}
+        <LinearGradient
+          colors={['transparent', '#000000']}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'flex-end',
+            padding: 20,
+          }}
+          pointerEvents='none'
+        >
+          {/* Apartment Details */}
+          <View className="mb-5">
+            <Text className='text-white font-interSemiBold text-2xl'>
+              {name || 'Unnamed Apartment'}
+            </Text>
+
+            <View className='flex-row items-center mt-2 gap-2'>
+              <MapPin size={24} color={colors.secondaryForeground} />
+              <Text className='text-white font-interMedium text-base'>
+                {locationString || 'No location provided'}
+              </Text>
+            </View>
+
+            <View className='flex-row items-center mt-5 gap-2'>
+              <Star size={20} color={colors.secondary} fill={colors.secondary} />
+              <Text className='text-white font-interMedium text-base'>
+                No ratings yet
+              </Text>
+            </View>
+
+            <View className='flex-row items-center justify-between mt-5 gap-6'>
+              <View className='flex-row items-center gap-2'>
+                <BedDouble size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
+                  {bedrooms} {bedrooms === 1 ? 'Bed' : 'Beds'}
+                </Text>
+              </View>
+
+              <View className='flex-row items-center gap-2'>
+                <Bath size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
+                  {bathrooms} {bathrooms === 1 ? 'Bath' : 'Baths'}
+                </Text>
+              </View>
+
+              <View className='flex-row items-center gap-2'>
+                <Maximize size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
+                  {floorArea ? `${floorArea} Sqm` : 'N/A'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Pagination Dots */}
+          <View className='flex-row justify-center items-center'>
+            {apartmentImages.map((_, index) => {
+              const inputRange = [
+                (index - 1) * width,
+                index * width,
+                (index + 1) * width,
+              ];
+
+              const dotWidth = scrollX.interpolate({
+                inputRange,
+                outputRange: [8, 24, 8],
+                extrapolate: 'clamp',
+              });
+
+              const opacity = scrollX.interpolate({
+                inputRange,
+                outputRange: [0.3, 1, 0.3],
+                extrapolate: 'clamp',
+              });
+
+              return (
+                <Animated.View
+                  key={index}
+                  className='h-2 bg-white rounded mx-1'
+                  style={[{ width: dotWidth, opacity }]}
+                />
+              );
+            })}
+          </View>
+        </LinearGradient>
+      </View>
+
+      <View className='mt-5 px-5'>
+        <View className='flex-row gap-6'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <Users size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
+              Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
+            </Text>
+          </View>
+
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <Building2 size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
+              {floorLevel ? `${floorLevel}` : 'N/A'}
+            </Text>
+          </View>
+        </View>
+
+        <View className='flex-row mt-4 mb-5 gap-6'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <House size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
+              {apartmentType || 'N/A'}
+            </Text>
+          </View>
+
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <Calendar size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
+              {leaseDuration || 'N/A'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Apartment Description */}
+      <View className='mt-5 px-5 flex-row items-center gap-2'>
+        <Building size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
+          Everything About Your Apartment
+        </Text>
+      </View>
+
+      <View className='mt-3 mx-5 p-4 bg-surface rounded-2xl border border-border'>
+        <Text className='text-foreground text-base font-inter'>
+          {description
+            ? isReadMore
+              ? description
+              : `${description.slice(0, 500)}${description.length > 500 ? '...' : ''}`
+            : 'No description provided.'}
+        </Text>
+
+        {description.length > 500 && (
+          <View className='mt-5'>
+            <Button
+              size="sm"
+              variant="tertiary"
+              onPress={toggleReadMoreDescription}
+            >
+              <Button.Label>
+                {isReadMore ? 'Read Less' : 'Read More'}
+              </Button.Label>
+            </Button>
+          </View>
+        )}
+      </View>
+
+      {/* Included Perks */}
+      <View className='mt-10 px-5 flex gap-2'>
+        <View className='flex-row items-center justify-between'>
+          <View className='flex-row items-center gap-2'>
+            <SquareCheck size={26} color={colors.textPrimary} />
+            <Text className='font-interSemiBold text-lg text-foreground'>
+              Included Perks
+            </Text>
+          </View>
+        </View>
+
+        <Text className='text-muted font-inter'>
+          These are already included in your rent.
+        </Text>
+      </View>
+
+      {/* List of Perks */}
+      <View className='flex-row flex-wrap px-5 mt-5'>
+        {amenities.length > 0
+          ? amenities.map(perkId => (
+              <View key={perkId} className='w-1/2 mb-4'>
+                <PerkItem perkId={perkId} />
+              </View>
+            ))
+          : (
+            <Text className='text-foreground font-inter'>No amenities selected.</Text>
+          )
+        }
+      </View>
+
+      {/* Map View */}
+      <View className='flex-row items-center gap-2 mt-10 px-5'>
+        <Map size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
+          View on Map
+        </Text>
+      </View>
+
+      {/* Map */}
+      <View className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'>
+        <View style={{ flex: 1 }} pointerEvents='none'>
+          <MapView
+            style={{ flex: 1 }}
+            mapStyle={MAP_STYLE}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+          >
+            <Camera
+              centerCoordinate={[
+                longitude ?? DEFAULT_COORDS.longitude,
+                latitude ?? DEFAULT_COORDS.latitude
+              ]}
+              zoomLevel={15}
+              animationDuration={0}
+              maxZoomLevel={19}
+            />
+
+            {latitude && longitude && (
+              <ShapeSource
+                id='pin-source'
+                shape={{
+                  type: 'Feature',
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [longitude, latitude],
+                  },
+                  properties: {},
+                }}
+              >
+                <CircleLayer
+                  id='pin-ring'
+                  style={{
+                    circleRadius: 10,
+                    circleColor: '#ffffff',
+                  }}
+                />
+                <CircleLayer
+                  id='pin-dot'
+                  style={{
+                    circleRadius: 7,
+                    circleColor: colors.primary,
+                  }}
+                />
+              </ShapeSource>
+            )}
+          </MapView>
+        </View>
+      </View>
+
+      {/* Landlord Card */}
+      <View className='flex-row items-center gap-2 mt-10 px-5'>
+        <User size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
+          Meet Your Rental Owner
+        </Text>
+      </View>
+
+      <View className='px-5 mt-3'>
+        {isLoading ? (
+          <View className='h-40 items-center justify-center'>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : profile ? (
+          <LandlordCard
+            fullName={`${profile.first_name} ${profile.last_name}`}
+            email={profile.email ?? ''}
+            phoneNumber={profile.mobile_number ?? ''}
+            profilePictureUrl={profile.avatar_url}
+          />
+        ) : null}
+      </View>
+
+      {/* Lease Agreement */}
+      <View className='mt-10 px-5 flex gap-2'>
+        <View className='flex-row items-center gap-2'>
+          <FileText size={26} color={colors.textPrimary} />
+          <Text className='font-interSemiBold text-lg text-foreground'>
+            Lease Agreement & Rules
+          </Text>
+        </View>
+
+        <Text className='text-foreground text-base font-inter'>
+          Please review the rental owner&apos;s property rules before applying.
+        </Text>
+
+        <Button
+          size="sm"
+          variant="tertiary"
+          className="mt-3"
+          isDisabled
+        >
+          <Button.Label>
+            View Full Lease Agreement
+          </Button.Label>
+        </Button>
+      </View>
+
+      {/* Footer */}
+      <View className='bg-surface-secondary mt-20 px-5 py-4 border-t border-border'>
+        <View className='flex-row gap-5 items-center'>
+          <View className="flex-col">
+            <View className='flex-row items-baseline'>
+              <Text className='text-2xl font-interSemiBold text-accent'>
+                ₱ {formatCurrency(Number(monthlyRent))}
+              </Text>
+              <Text className='text-sm font-interMedium text-muted ml-1'>
+                /month
+              </Text>
+            </View>
+            <Text className='text-xs font-inter text-muted mt-1 underline'>
+              Move-in cost breakdown
+            </Text>
+          </View>
+
+          <Button isDisabled className="flex-1">
+            <Button.Label>
+              Apply Now
+            </Button.Label>
+          </Button>
+        </View>
+      </View>
+
+      <View className='flex-row w-full gap-4 p-5'>
+        <Button
+          variant="outline"
+          onPress={() => router.back()}
+          className="flex-1"
+        >
+          <Button.Label>
+            Back
+          </Button.Label>
+        </Button>
+
+        <Button
+          isDisabled={publishing}
+          onPress={handlePublish}
+          className="flex-1"
+        >
+          <Button.Label>
+            {publishing ? 'Publishing...' : 'Publish'}
+          </Button.Label>
+        </Button>
+      </View>
+
+      {/* Optionally show the error */}
+      <Dialog isOpen={!!publishError} onOpenChange={(open) => { if (!open) clearPublishError(); }}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <Dialog.Close variant='ghost' className='absolute top-4 right-4' />
+            <View className='mb-4 gap-1.5'>
+              <Dialog.Title>Publish Failed</Dialog.Title>
+              <Dialog.Description>{publishError}</Dialog.Description>
+            </View>
+            <View className='flex-row justify-end'>
+              <Button
+                size='sm'
+                variant='ghost'
+                onPress={() => clearPublishError()}
+              >
+                Dismiss
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+
+      {/* Image Viewer */}
+      <ImageViewing
+        key={imageIndex}
+        images={apartmentImages.map(img => ({ uri: img.uri }))}
+        imageIndex={imageIndex}
+        visible={isImageViewVisible}
+        onRequestClose={() => setIsImageViewVisible(false)}
+        FooterComponent={({ imageIndex }) => (
+          <View className='p-10 items-center'>
+            <Text className='text-white font-interMedium'>
+              {imageIndex + 1} / {apartmentImages.length}
+            </Text>
+          </View>
+        )}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.9)'
+      />
+    </ScreenWrapper>
+  )
+}

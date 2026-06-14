@@ -7,43 +7,26 @@ import { Button, Card, Chip } from "heroui-native";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
 
 import { DEFAULT_IMAGES } from "constants/images";
 
 import { VISIT_REQUESTS } from "./mockData";
 
-const STATUS_STYLES = {
-  Pending: {
-    backgroundColor: COLORS.lightYellowish,
-    textColor: COLORS.yellowish,
-  },
-  Approved: {
-    backgroundColor: COLORS.lightGreen,
-    textColor: COLORS.greenHulk,
-  },
-  Rejected: {
-    backgroundColor: COLORS.lightLightRedHead,
-    textColor: COLORS.lightRedHead,
-  },
-  Rescheduled: {
-    backgroundColor: COLORS.lightBlue,
-    textColor: COLORS.primary,
-  },
-};
+import { useColors } from "@/hooks/useTheme";
 
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <View className="gap-1 flex-1">
-      <Text className="text-grey-500 text-xs font-inter">{label}</Text>
-      <Text className="text-text text-sm font-interMedium">{value}</Text>
+      <Text className="text-gray-500 text-xs font-inter">{label}</Text>
+      <Text className="text-foreground text-sm font-interMedium">{value}</Text>
     </View>
   );
 }
 
 export default function VisitRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
+  const { colors } = useColors();
 
   const request = useMemo(() => {
     return VISIT_REQUESTS.find((item) => item.id === requestId);
@@ -53,19 +36,37 @@ export default function VisitRequestDetails() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Visit Request" />}
-        backgroundColor={COLORS.darkerWhite}
       >
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-text text-base font-interSemiBold">
+          <Text className="text-foreground text-base font-interSemiBold">
             Visit request not found
           </Text>
-          <Text className="text-grey-500 text-sm font-inter text-center mt-2">
+          <Text className="text-gray-500 text-sm font-inter text-center mt-2">
             Please return to the visit request list.
           </Text>
         </View>
       </ScreenWrapper>
     );
   }
+
+  const STATUS_STYLES = {
+    Pending: {
+      backgroundColor: colors.warningLight,
+      textColor: colors.warning,
+    },
+    Approved: {
+      backgroundColor: colors.successLight,
+      textColor: colors.success,
+    },
+    Rejected: {
+      backgroundColor: colors.dangerLight,
+      textColor: colors.danger,
+    },
+    Rescheduled: {
+      backgroundColor: colors.primaryLight,
+      textColor: colors.primary,
+    },
+  };
 
   const statusStyle = STATUS_STYLES[request.status];
   const scheduleLabel = `${formatDate(request.visit_date, "long")} • ${
@@ -75,7 +76,6 @@ export default function VisitRequestDetails() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Visit Request" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable
       className="px-5 py-5"
     >
@@ -92,13 +92,13 @@ export default function VisitRequestDetails() {
           />
         </View>
 
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="gap-5">
             <View className="gap-1">
-              <Text className="text-text text-lg font-interSemiBold">
+              <Text className="text-foreground text-lg font-interSemiBold">
                 {request.apartment_name}
               </Text>
-              <Text className="text-grey-500 text-sm font-inter">
+              <Text className="text-muted text-sm font-inter">
                 {request.apartment_address}
               </Text>
             </View>
@@ -116,7 +116,7 @@ export default function VisitRequestDetails() {
             <View className="flex-row items-start justify-between gap-4">
               <DetailField label="Requested Date" value={scheduleLabel} />
               <View className="items-end gap-1">
-                <Text className="text-grey-500 text-xs font-inter">Status</Text>
+                <Text className="text-muted text-xs font-inter">Status</Text>
                 <Chip
                   size="sm"
                   variant="soft"
@@ -133,10 +133,10 @@ export default function VisitRequestDetails() {
             </View>
 
             <View className="gap-2">
-              <Text className="text-grey-500 text-xs font-inter">
+              <Text className="text-muted text-xs font-inter">
                 Notes/Message
               </Text>
-              <Text className="text-text text-sm font-inter">
+              <Text className="text-foreground text-sm font-inter">
                 {request.notes ?? "No additional notes provided."}
               </Text>
             </View>

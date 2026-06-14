@@ -4,13 +4,14 @@ import { useLocalSearchParams } from "expo-router";
 
 import { Button, Card, Chip } from "heroui-native";
 
-import { IconTool } from "@tabler/icons-react-native";
+import { Hammer } from "lucide-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
+
+import { useColors } from "@/hooks/useTheme";
 
 import {
   STATUS_STYLES,
@@ -20,22 +21,24 @@ import {
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <View className="gap-1 flex-1">
-      <Text className="text-grey-500 text-xs font-inter">{label}</Text>
-      <Text className="text-text text-sm font-interMedium">{value}</Text>
+      <Text className="text-gray-500 text-xs font-inter">{label}</Text>
+      <Text className="text-foreground text-sm font-interMedium">{value}</Text>
     </View>
   );
 }
 
 function RequestNotFound() {
+  const { colors } = useColors();
+
   return (
     <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <IconTool size={32} color={COLORS.grey} />
+      <View className="bg-surface rounded-full p-5 mb-4">
+        <Hammer size={32} color={colors.gray500} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         Request not found
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
         This maintenance request may have been removed.
       </Text>
     </View>
@@ -51,6 +54,8 @@ export default function MaintenanceRequestDetails() {
     (state) => state.advanceStatus
   );
 
+  const { colors } = useColors();
+
   const resolvedId = useMemo(
     () => (Array.isArray(requestId) ? requestId[0] : requestId),
     [requestId]
@@ -65,7 +70,6 @@ export default function MaintenanceRequestDetails() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Maintenance Request" />}
-        backgroundColor={COLORS.darkerWhite}
         scrollable
         className="p-5"
       >
@@ -91,16 +95,15 @@ export default function MaintenanceRequestDetails() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Maintenance Request" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable
       className="px-5 py-5"
     >
       <View className="gap-5 pb-6">
         <View className="flex-row items-center gap-2">
-          <View className="bg-white rounded-full p-2">
-            <IconTool size={18} color={COLORS.primary} />
+          <View className="bg-surface rounded-full p-2">
+            <Hammer size={18} color={colors.primary} />
           </View>
-          <Text className="text-text text-sm font-interSemiBold">
+          <Text className="text-foreground text-sm font-interSemiBold">
             Maintenance Information
           </Text>
         </View>
@@ -122,7 +125,7 @@ export default function MaintenanceRequestDetails() {
             <View className="flex-row items-start justify-between gap-4">
               <DetailField label="Urgency" value={request.urgency} />
               <View className="items-end gap-1">
-                <Text className="text-grey-500 text-xs font-inter">Status</Text>
+                <Text className="text-gray-500 text-xs font-inter">Status</Text>
                 <Chip
                   size="sm"
                   variant="soft"
@@ -142,11 +145,11 @@ export default function MaintenanceRequestDetails() {
 
         <Card className="shadow-none border border-grey-200">
           <Card.Body className="gap-2">
-            <Text className="text-text text-sm font-interSemiBold">
+            <Text className="text-foreground text-sm font-interSemiBold">
               Issue Description
             </Text>
-            <View className="bg-darkerWhite rounded-2xl p-3">
-              <Text className="text-grey-500 text-sm font-inter">
+            <View className="bg-surface rounded-2xl p-3">
+              <Text className="text-gray-500 text-sm font-inter">
                 {request.description}
               </Text>
             </View>
@@ -154,7 +157,7 @@ export default function MaintenanceRequestDetails() {
         </Card>
 
         <View className="gap-3">
-          <Text className="text-text text-sm font-interSemiBold">
+          <Text className="text-foreground text-sm font-interSemiBold">
             Issue Photos
           </Text>
           <ScrollView

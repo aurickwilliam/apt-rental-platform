@@ -1,11 +1,17 @@
 import { useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import { MapView as LibreMapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
+import {
+  MapView as LibreMapView,
+  Camera,
+  ShapeSource,
+  CircleLayer,
+  setAccessToken
+} from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import IconButton from 'components/buttons/IconButton';
+import IconButton from '@/app/apartment/[apartmentId]/components/IconButton';
 
 import { Dialog, Button } from "heroui-native"
 
@@ -13,11 +19,11 @@ import { useColors } from '@/hooks/useTheme';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 
 import {
-  IconSTurnUp,
-  IconMap2,
-  IconCompass,
-  IconNavigation,
-} from '@tabler/icons-react-native';
+  Route,
+  Map,
+  Compass,
+  Navigation,
+} from 'lucide-react-native';
 
 // Suppress the missing API key warning since we're using free OSM tiles
 setAccessToken(null);
@@ -99,7 +105,7 @@ export default function ApartmentMapViewScreen() {
     const iosUrl =
       mode === 'motorcycle'
         ? googleMapsWebUrl
-        : `http://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
+        : `https://maps.apple.com/?daddr=${destination}&dirflg=${iosDirFlag}&q=${label}`;
 
     const androidNavMode = mode === 'walking' ? 'w' : 'd';
 
@@ -211,7 +217,7 @@ export default function ApartmentMapViewScreen() {
             className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleOpenInMaps}
           >
-            <IconMap2 size={24} color={colors.textPrimary} />
+            <Map size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -219,7 +225,7 @@ export default function ApartmentMapViewScreen() {
             className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleGetDirections}
           >
-            <IconSTurnUp size={24} color={colors.textPrimary} />
+            <Route size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -270,12 +276,12 @@ export default function ApartmentMapViewScreen() {
         {/* Floating Action Buttons */}
         <View className='flex items-center gap-5 absolute bottom-5 right-5'>
           <IconButton
-            iconName={IconNavigation}
+            iconName={Navigation}
             onPress={handleNavigationPress}
           />
 
           <IconButton
-            iconName={IconCompass}
+            iconName={Compass}
             onPress={handleCompassPress}
           />
         </View>

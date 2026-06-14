@@ -8,12 +8,12 @@ import DropdownButton from 'components/buttons/DropdownButton'
 import TextBox from 'components/inputs/TextBox'
 import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '@repo/constants'
+import { useColors } from 'hooks/useTheme'
 
 import {
-  IconCirclePlus,
-  IconCircleMinus
-} from '@tabler/icons-react-native';
+  CirclePlus,
+  CircleMinus,
+} from 'lucide-react-native';
 
 type VisitDetails = {
   date: Date | null;
@@ -24,6 +24,7 @@ type VisitDetails = {
 }
 
 export default function RequestVisit() {
+  const { colors } = useColors();
 
   const [visitDetails, setVisitDetails] = useState<VisitDetails>({
     date: null,
@@ -79,7 +80,7 @@ export default function RequestVisit() {
         <View className='flex-1'>
           {/* Description */}
           <View>
-            <Text className='text-text text-base font-inter'>
+            <Text className='text-foreground text-base font-inter'>
               Choose your preferred date and time to schedule a visit.
               The landlord will confirm your request as soon as possible.
             </Text>
@@ -98,7 +99,7 @@ export default function RequestVisit() {
 
             {/* Time */}
             <View className='flex-row items-center gap-3'>
-              <Text className='text-text text-base font-interMedium'>
+              <Text className='text-foreground text-base font-interMedium'>
                 Preferred Visit Time:
               </Text>
 
@@ -119,7 +120,7 @@ export default function RequestVisit() {
 
             {/* Number of Visitors */}
             <View className='flex-row items-center gap-5'>
-              <Text className='text-text text-base font-interMedium'>
+              <Text className='text-foreground text-base font-interMedium'>
                 Number of Visitors:
               </Text>
 
@@ -128,9 +129,9 @@ export default function RequestVisit() {
                   activeOpacity={0.7}
                   onPress={incrementVisitors}
                 >
-                  <IconCirclePlus
+                  <CirclePlus
                     size={30}
-                    color={COLORS.grey}
+                    color={colors.gray400}
                   />
                 </TouchableOpacity>
 
@@ -142,9 +143,9 @@ export default function RequestVisit() {
                   activeOpacity={0.7}
                   onPress={decrementVisitors}
                 >
-                  <IconCircleMinus
+                  <CircleMinus
                     size={30}
-                    color={COLORS.grey}
+                    color={colors.gray400}
                   />
                 </TouchableOpacity>
 

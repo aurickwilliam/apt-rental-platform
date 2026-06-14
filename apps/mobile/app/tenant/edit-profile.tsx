@@ -3,22 +3,28 @@ import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import PillButton from 'components/buttons/PillButton'
-import Divider from 'components/display/Divider'
 import DropdownField from 'components/inputs/DropdownField'
-import TextField from 'components/inputs/TextField'
-import DateTimeField from '@/components/inputs/DateField'
-import NumberField from 'components/inputs/NumberField'
+import DateField from '@/components/inputs/DateField'
 
 import { SAMPLE_IMAGES } from 'constants/images'
-import { COLORS, PROVINCES, GENDERS } from '@repo/constants'
+import { PROVINCES, GENDERS } from '@repo/constants'
 
 import {
-  IconCamera,
-  IconUser,
-  IconAddressBook,
-  IconHome,
-} from '@tabler/icons-react-native';
+  Camera,
+  User,
+  BookUser,
+  Home,
+} from 'lucide-react-native';
+
+import { useColors } from '@/hooks/useTheme'
+
+import {
+  Button,
+  TextField,
+  Input,
+  Separator,
+  Label,
+} from 'heroui-native'
 
 type EditProfileProps = {
   backgroundImageUri: ImageSourcePropType,
@@ -38,6 +44,7 @@ type EditProfileProps = {
 }
 
 export default function EditProfile() {
+  const { colors } = useColors();
 
   // Dummy data for now, replace with actual user data fetching and state management
   const [currentTenantInfo, setCurrentTenantInfo] = useState<EditProfileProps>({
@@ -65,7 +72,6 @@ export default function EditProfile() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={50}
       header={
         <StandardHeader title='Edit Profile' />
       }
@@ -73,7 +79,7 @@ export default function EditProfile() {
     >
       {/* Profile Picture */}
       <View className='flex gap-3'>
-        <View className='size-32 overflow-hidden rounded-full self-center border-2 border-grey-500'>
+        <View className='size-32 overflow-hidden rounded-full self-center border-2 border-border'>
           <Image 
             source={currentTenantInfo.profileImageUri}
             style={{ width: '100%', height: '100%'}}
@@ -82,17 +88,18 @@ export default function EditProfile() {
         </View>
 
         <View className='mx-20'>
-          <PillButton 
-            label='Change Profile Picture'
-            size='sm'
-            leftIconName={IconCamera}
-          />
+          <Button size='sm'>
+            <Camera size={16} color={colors.secondaryForeground} />
+            <Button.Label>
+              Change Profile Picture
+            </Button.Label>
+          </Button>
         </View>
       </View>
       
       {/* Background Picture */}
       <View className='flex gap-3 mt-5'>
-        <View className='w-full h-40 overflow-hidden rounded-2xl self-center border-2 border-grey-500'>
+        <View className='w-full h-40 overflow-hidden rounded-2xl self-center border-2 border-border'>
           <Image 
             source={currentTenantInfo.backgroundImageUri}
             style={{ width: '100%', height: '100%'}}
@@ -101,151 +108,167 @@ export default function EditProfile() {
         </View>
 
         <View className='mx-20'>
-          <PillButton 
-            label='Change Background Picture'
-            size='sm'
-            leftIconName={IconCamera}
-          />
+          <Button size='sm'>
+            <Camera size={16} color={colors.secondaryForeground} />
+            <Button.Label>
+              Change Background Picture
+            </Button.Label>
+          </Button>
         </View>
       </View>
 
-      <Divider />
+      <Separator className='my-5' />
 
       {/* Personal Information */}
       <View className='flex gap-3'>
         <View className='flex-row gap-2'>
-          <IconUser 
+          <User 
             size={24} 
-            color={COLORS.text}
+            color={colors.textPrimary}
           />
 
-          <Text className='text-text text-lg font-interSemiBold'>
+          <Text className='text-foreground text-lg font-interSemiBold'>
             Personal Information
           </Text>
         </View>
 
-        <TextField 
-          label='First Name:'
-          value={currentTenantInfo.firstName}
-          onChangeText={(text) => handleUpdateInfo({ firstName: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>First Name:</Label>
+          <Input
+            value={currentTenantInfo.firstName}
+            onChangeText={(text) => handleUpdateInfo({ firstName: text })}
+          />
+        </TextField>
 
-        <TextField 
-          label='Last Name:'
-          value={currentTenantInfo.lastName}
-          onChangeText={(text) => handleUpdateInfo({ lastName: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Last Name:</Label>
+          <Input
+            value={currentTenantInfo.lastName}
+            onChangeText={(text) => handleUpdateInfo({ lastName: text })}
+          />
+        </TextField>
 
-        <TextField 
-          label='Middle Name:'
-          value={currentTenantInfo.middleName}
-          onChangeText={(text) => handleUpdateInfo({ middleName: text })}
-        />
+        <TextField>
+          <Label>Middle Name:</Label>
+          <Input
+            value={currentTenantInfo.middleName}
+            onChangeText={(text) => handleUpdateInfo({ middleName: text })}
+          />
+        </TextField>
 
         <DropdownField 
           label='Gender:' 
           bottomSheetLabel={'Select Gender'} 
           options={GENDERS} 
           value={currentTenantInfo.gender}
-          onSelect={(value) => handleUpdateInfo({ gender: value })}        
+          onSelect={(value) => handleUpdateInfo({ gender: value ? value : '' })}        
         />
 
-        <DateTimeField 
+        <DateField 
           label='Date of Birth:'
           value={currentTenantInfo.dateOfBirth}
           onChange={(date) => handleUpdateInfo({ dateOfBirth: date })}
         />
       </View>
 
-      <Divider />
+      <Separator className='my-5' />
 
       {/* Contact Information */}
       <View className='flex gap-3'>
         <View className='flex-row gap-2'>
-          <IconAddressBook 
+          <BookUser 
             size={24} 
-            color={COLORS.text}
+            color={colors.textPrimary}
           />
-          <Text className='text-text text-lg font-interSemiBold'>
+          <Text className='text-foreground text-lg font-interSemiBold'>
             Contact Information
           </Text>
         </View>
 
-        <TextField 
-          label='Email Address:'
-          value={currentTenantInfo.email}
-          onChangeText={(text) => handleUpdateInfo({ email: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Email Address:</Label>
+          <Input
+            value={currentTenantInfo.email}
+            onChangeText={(text) => handleUpdateInfo({ email: text })}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </TextField>
 
-        <NumberField 
-          label='Contact Number:'
-          value={currentTenantInfo.contactNumber}
-          onChange={(text) => handleUpdateInfo({ contactNumber: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Contact Number:</Label>
+          <Input
+            value={currentTenantInfo.contactNumber?.toString() ?? ''}
+            onChangeText={(text) => handleUpdateInfo({ contactNumber: text })}
+            keyboardType="phone-pad"
+          />
+        </TextField>
       </View>
 
-      <Divider />
+      <Separator className='my-5' />
 
       {/* Address Information */}
       <View className='flex gap-3'>
         <View className='flex-row gap-2'>
-          <IconHome 
+          <Home 
             size={24} 
-            color={COLORS.text}
+            color={colors.textPrimary}
           />
           <Text className='text-text text-lg font-interSemiBold'>
             Address Information
           </Text>
         </View>
 
-        <TextField 
-          label='Current Address:'
-          value={currentTenantInfo.currentAddress}
-          onChangeText={(text) => handleUpdateInfo({ currentAddress: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Current Address:</Label>
+          <Input
+            value={currentTenantInfo.currentAddress}
+            onChangeText={(text) => handleUpdateInfo({ currentAddress: text })}
+          />
+        </TextField>
 
-        <TextField 
-          label='Barangay:'
-          value={currentTenantInfo.barangay}
-          onChangeText={(text) => handleUpdateInfo({ barangay: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Barangay:</Label>
+          <Input
+            value={currentTenantInfo.barangay}
+            onChangeText={(text) => handleUpdateInfo({ barangay: text })}
+          />
+        </TextField>
 
-        <TextField
-          label='City:'
-          value={currentTenantInfo.city}
-          onChangeText={(text) => handleUpdateInfo({ city: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>City:</Label>
+          <Input
+            value={currentTenantInfo.city}
+            onChangeText={(text) => handleUpdateInfo({ city: text })}
+          />
+        </TextField>
 
         <DropdownField 
           label='Province:' 
           bottomSheetLabel={'Select Province'} 
           options={PROVINCES} 
           value={currentTenantInfo.province}
-          onSelect={(value) => handleUpdateInfo({ province: value })}        
+          onSelect={(value) => handleUpdateInfo({ province: value ? value : '' })}        
           searchPlaceholder='Search for Province...'
           enableSearch
         />
 
-        <NumberField 
-          label='Postal Code:'
-          value={currentTenantInfo.postalCode}
-          onChange={(text) => handleUpdateInfo({ postalCode: text })}
-          required
-        />
+        <TextField isRequired>
+          <Label>Postal Code:</Label>
+          <Input
+            value={currentTenantInfo.postalCode?.toString() ?? ''}
+            onChangeText={(text) => handleUpdateInfo({ postalCode: text })}
+            keyboardType="numeric"
+          />
+        </TextField>
       </View>
 
       <View className='mt-10'>
-        <PillButton
-          label='Save Changes'
-          isFullWidth
-        />
+        <Button>
+          <Button.Label>
+            Save Changes
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )
