@@ -6,13 +6,18 @@ import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
 
 import { Chip, SearchField } from 'heroui-native'
+
 import Ionicons from '@expo/vector-icons/build/Ionicons'
 
-import { COLORS } from '@repo/constants'
 import { PERKS } from '@/constants/perks'
+
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
+import { useColors } from '@/hooks/useTheme'
+
 export default function Amenities() {
+  const { colors } = useColors()
+
   const [searchValue, setSearchValue] = useState('')
 
   const amenities = useApartmentFormStore((s) => s.amenities)
@@ -53,7 +58,7 @@ export default function Amenities() {
       </SearchField>
 
       {amenities.length === 0 && (
-        <Text className='text-red-500 text-sm font-inter mt-2'>
+        <Text className='text-danger text-sm font-inter mt-2'>
           Please select at least one amenity.
         </Text>
       )}
@@ -62,7 +67,7 @@ export default function Amenities() {
 
       {filteredSelected.length > 0 && (
         <View className='flex gap-3'>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             Added Perks ({amenities.length})
           </Text>
           <View className='flex-row flex-wrap gap-3'>
@@ -73,7 +78,7 @@ export default function Amenities() {
                 color='accent'
                 onPress={() => toggleAmenity(perk.id)}
               >
-                <perk.icon size={16} color={COLORS.primary} />
+                <perk.icon size={16} color={colors.primary} />
                 <Chip.Label>{perk.name}</Chip.Label>
                 <Ionicons name='close' size={12} />
               </Chip>
@@ -88,7 +93,7 @@ export default function Amenities() {
 
       {filteredUnselected.length > 0 ? (
         <View className='flex gap-3 mt-3'>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             All Perks
           </Text>
           <View className='flex-row flex-wrap gap-3'>
@@ -98,8 +103,8 @@ export default function Amenities() {
                 variant='secondary'
                 onPress={() => toggleAmenity(perk.id)}
               >
-                <perk.icon size={16} color={COLORS.text} />
-                <Chip.Label className='text-text'>{perk.name}</Chip.Label>
+                <perk.icon size={16} color={colors.textPrimary} />
+                <Chip.Label className='text-foreground'>{perk.name}</Chip.Label>
               </Chip>
             ))}
           </View>
