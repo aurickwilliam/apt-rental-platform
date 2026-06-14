@@ -7,7 +7,7 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 
 import { Button } from 'heroui-native'
 
-import { COLORS } from '@repo/constants'
+import { useColors } from '@/hooks/useTheme'
 
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
@@ -47,6 +47,7 @@ const MAP_STYLE = {
 export default function MapPin() {
   const router = useRouter()
   const { latitude, longitude, setField } = useApartmentFormStore()
+  const { colors } = useColors();
 
   const initialCoords = {
     latitude: latitude ?? DEFAULT_COORDS.latitude,
@@ -75,7 +76,7 @@ export default function MapPin() {
   }
 
   return (
-    <ScreenWrapper backgroundColor={COLORS.darkerWhite}>
+    <ScreenWrapper>
       <View className='flex-1'>
         <MapView
           style={{ flex: 1 }}
@@ -103,7 +104,7 @@ export default function MapPin() {
               style={{
                 width: 20,
                 height: 20,
-                backgroundColor: COLORS.primary,
+                backgroundColor: colors.primary,
                 borderRadius: 10,
                 borderWidth: 2,
                 borderColor: '#ffffff',
@@ -114,23 +115,24 @@ export default function MapPin() {
 
         <View className='p-5 gap-4'>
           <View className='flex-row justify-between'>
-            <Text className='text-text font-interMedium'>Latitude:</Text>
-            <Text className='text-text font-inter'>
+            <Text className='text-foreground font-interMedium'>
+              Latitude:
+            </Text>
+
+            <Text className='text-muted font-inter'>
               {markerCoords.latitude.toFixed(6)}
             </Text>
           </View>
           <View className='flex-row justify-between'>
-            <Text className='text-text font-interMedium'>Longitude:</Text>
-            <Text className='text-text font-inter'>
+            <Text className='text-foreground font-interMedium'>
+              Longitude:
+            </Text>
+
+            <Text className='text-muted font-inter'>
               {markerCoords.longitude.toFixed(6)}
             </Text>
           </View>
 
-          {/* <PillButton
-            label='Confirm Location'
-            isFullWidth
-            onPress={handleConfirm}
-          /> */}
           <Button onPress={handleConfirm}>
             <Button.Label>
               Confirm Location
