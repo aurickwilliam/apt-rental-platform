@@ -3,11 +3,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState, useCallback } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
 import PastApartmentCard from './components/PastApartmentCard'
 
-import { DEFAULT_IMAGES } from '@/constants/images'
+import { DEFAULT_IMAGES } from 'constants/images'
 
 import { supabase } from '@repo/supabase'
 
@@ -15,7 +15,7 @@ import { MessageCircleMore, BadgeCheck } from 'lucide-react-native'
 
 import { Button, Avatar } from 'heroui-native'
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from 'hooks/useTheme'
 
 type TenantData = {
   fullName: string

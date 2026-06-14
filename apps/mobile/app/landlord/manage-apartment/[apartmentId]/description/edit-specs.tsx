@@ -2,15 +2,15 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import StandardHeader from "@/components/layout/StandardHeader";
-import DropdownField from "@/components/inputs/DropdownField";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import StandardHeader from "components/layout/StandardHeader";
+import DropdownField from "components/inputs/DropdownField";
 
 import { Input, Label, TextField, FieldError, Button, Separator } from "heroui-native";
 
 import { CircleMinus, CirclePlus } from 'lucide-react-native';
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 import {
   APARTMENT_TYPES,

@@ -2,7 +2,7 @@ import { TouchableOpacity, View, Text } from "react-native";
 
 import { CalendarDays } from "lucide-react-native";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 interface PaymentHistoryCardProps {
   month: string;

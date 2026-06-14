@@ -5,8 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
 import PerkItem from 'components/display/PerkItem'
 import LandlordCard from 'components/cards/LandlordCard'
 
@@ -33,10 +33,10 @@ import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 import { formatCurrency } from '@repo/utils'
 
-import { useProfile } from '@/hooks/useProfile'
-import { useLandlordStats } from '@/hooks/useLandlordStats'
-import { usePublishApartment } from '@/hooks/usePublishApartment'
-import { useColors } from '@/hooks/useTheme'
+import { useProfile } from 'hooks/useProfile'
+import { useLandlordStats } from 'hooks/useLandlordStats'
+import { usePublishApartment } from 'hooks/usePublishApartment'
+import { useColors } from 'hooks/useTheme'
 
 setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
 

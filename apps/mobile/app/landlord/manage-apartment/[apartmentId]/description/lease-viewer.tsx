@@ -3,10 +3,10 @@ import { View, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { WebView } from 'react-native-webview'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from 'hooks/useTheme'
 
 export default function LeaseViewer() {
   const router = useRouter()

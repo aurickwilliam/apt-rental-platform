@@ -1,9 +1,9 @@
 import { View, Text, Image } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { IMAGES } from "@/constants/images";
+import { IMAGES } from "constants/images";
 
 import { Button } from "heroui-native";
 

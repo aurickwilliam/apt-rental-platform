@@ -2,7 +2,7 @@ import { View, Text, Image } from "react-native";
 
 import { Button, Card, PressableFeedback } from "heroui-native";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 import { FileText, MessageCircleMore } from "lucide-react-native";
 

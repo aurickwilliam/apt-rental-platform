@@ -86,7 +86,7 @@ export default function ApartmentScreen() {
   const handleLandlordProfileNavigation = () => {
     if (apartment?.landlord) {
       router.push({
-        pathname: '/landlord-profile/[landlordId]',
+        pathname: '/landlord/[landlordId]',
         params: {
           landlordId: apartment.landlord.id,
           apartmentId,
