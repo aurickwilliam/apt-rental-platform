@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import { IconTool } from "@tabler/icons-react-native";
+import { Hammer } from "lucide-react-native";
 
 import { SearchField } from "heroui-native";
 
@@ -10,8 +10,9 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import MaintenanceRequestCard from "@/components/cards/MaintenanceRequestCard";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
+
+import { useColors } from "@/hooks/useTheme";
 
 import {
   STATUS_ORDER,
@@ -19,15 +20,17 @@ import {
 } from "@/stores/useMaintenanceRequestsStore";
 
 function EmptyMaintenanceRequests() {
+  const { colors } = useColors();
+
   return (
     <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <IconTool size={32} color={COLORS.light.gray400} />
+      <View className="bg-surface rounded-full p-5 mb-4">
+        <Hammer size={32} color={colors.gray500} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         No maintenance requests
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
         Requests from tenants will appear here.
       </Text>
     </View>
@@ -36,8 +39,9 @@ function EmptyMaintenanceRequests() {
 
 export default function MaintenanceRequests() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
   const requests = useMaintenanceRequestsStore((state) => state.requests);
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRequests = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -67,7 +71,6 @@ export default function MaintenanceRequests() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Maintenance Requests" />}
-      backgroundColor={COLORS.light.surface}
       scrollable={false}
     >
       <FlatList
@@ -94,7 +97,7 @@ export default function MaintenanceRequests() {
               </SearchField.Group>
             </SearchField>
 
-            <Text className="text-grey-500 text-sm font-inter mb-3">
+            <Text className="text-gray-500 text-sm font-inter mb-3">
               Total: {filteredRequests.length}
             </Text>
           </View>

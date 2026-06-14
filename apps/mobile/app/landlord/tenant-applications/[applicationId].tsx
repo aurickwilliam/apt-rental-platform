@@ -9,36 +9,15 @@ import { IconFileText, IconHome } from "@tabler/icons-react-native";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 
-import { COLORS } from "@repo/constants";
 import { formatCurrency, formatDate } from "@repo/utils";
+
+import { useColors } from "@/hooks/useTheme";
 
 import {
   TENANT_APPLICATIONS,
   type TenantApplication,
   type TenantApplicationStatus,
 } from "./mockData";
-
-const STATUS_STYLES: Record<
-  TenantApplicationStatus,
-  { backgroundColor: string; textColor: string }
-> = {
-  Applied: {
-    backgroundColor: COLORS.lightYellowish,
-    textColor: COLORS.yellowish,
-  },
-  "Under Review": {
-    backgroundColor: COLORS.lightBlue,
-    textColor: COLORS.primary,
-  },
-  Approved: {
-    backgroundColor: COLORS.lightGreen,
-    textColor: COLORS.greenHulk,
-  },
-  Rejected: {
-    backgroundColor: COLORS.lightLightRedHead,
-    textColor: COLORS.lightRedHead,
-  },
-};
 
 const getInitials = (value: string) => {
   const trimmed = value.trim();
@@ -58,8 +37,8 @@ const formatDateValue = (value: string) => {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row items-start justify-between gap-4">
-      <Text className="text-grey-500 text-xs font-inter">{label}</Text>
-      <Text className="text-text text-sm font-interMedium text-right flex-1">
+      <Text className="text-muted text-xs font-inter">{label}</Text>
+      <Text className="text-foreground text-sm font-interMedium text-right flex-1">
         {value}
       </Text>
     </View>
@@ -67,15 +46,16 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 function ApplicationNotFound() {
+  const { colors } = useColors();
   return (
     <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <IconFileText size={32} color={COLORS.grey} />
+      <View className="bg-surface rounded-full p-5 mb-4">
+        <IconFileText size={32} color={colors.gray500} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         Application not found
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
         This application may have been removed or is unavailable.
       </Text>
     </View>
@@ -86,6 +66,8 @@ export default function TenantApplicationDetails() {
   const { applicationId } = useLocalSearchParams<{
     applicationId?: string | string[];
   }>();
+
+  const { colors } = useColors();
 
   const resolvedId = useMemo(
     () => (Array.isArray(applicationId) ? applicationId[0] : applicationId),
@@ -101,7 +83,7 @@ export default function TenantApplicationDetails() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Application Details" />}
-        backgroundColor={COLORS.darkerWhite}
+        backgroundColor={colors.surface}
         scrollable
         className="p-5"
       >
@@ -110,17 +92,38 @@ export default function TenantApplicationDetails() {
     );
   }
 
+  const STATUS_STYLES: Record<
+    TenantApplicationStatus,
+    { backgroundColor: string; textColor: string }
+  > = {
+    Applied: {
+      backgroundColor: colors.warningLight,
+      textColor: colors.warning,
+    },
+    "Under Review": {
+      backgroundColor: colors.primaryLight,
+      textColor: colors.primary,
+    },
+    Approved: {
+      backgroundColor: colors.successLight,
+      textColor: colors.success,
+    },
+    Rejected: {
+      backgroundColor: colors.dangerLight,
+      textColor: colors.danger,
+    },
+  };
+
   const statusStyle = STATUS_STYLES[application.status];
 
   return (
     <ScreenWrapper
       header={<StandardHeader title="Application Details" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable
       className="p-5"
     >
       <View className="gap-4">
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="p-4 flex-row items-center gap-3">
             <Avatar size="lg" className="border border-secondary">
               <Avatar.Image source={{ uri: application.tenant_avatar_url ?? "" }} />
@@ -130,13 +133,13 @@ export default function TenantApplicationDetails() {
             </Avatar>
 
             <View className="flex-1 min-w-0">
-              <Text className="text-text text-base font-interSemiBold" numberOfLines={1}>
+              <Text className="text-foreground text-base font-interSemiBold" numberOfLines={1}>
                 {application.tenant_name}
               </Text>
               <View className="flex-row items-center gap-1 mt-1">
-                <IconHome size={14} color={COLORS.grey} />
+                <IconHome size={14} color={colors.gray500} />
                 <Text
-                  className="text-grey-500 text-xs font-inter"
+                  className="text-gray-500 text-xs font-inter"
                   numberOfLines={1}
                 >
                   {application.apartment_name}
@@ -159,9 +162,9 @@ export default function TenantApplicationDetails() {
           </Card.Body>
         </Card>
 
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="p-4 gap-3">
-            <Text className="text-text text-sm font-interSemiBold">
+            <Text className="text-foreground text-sm font-interSemiBold">
               Application Details
             </Text>
             <DetailRow
@@ -186,7 +189,7 @@ export default function TenantApplicationDetails() {
 
         <Card className="shadow-none border border-grey-200">
           <Card.Body className="p-4 gap-3">
-            <Text className="text-text text-sm font-interSemiBold">Employment</Text>
+            <Text className="text-foreground text-sm font-interSemiBold">Employment</Text>
             <DetailRow label="Occupation" value={application.occupation} />
             <DetailRow label="Employer" value={application.employer_name} />
             <DetailRow
@@ -196,9 +199,9 @@ export default function TenantApplicationDetails() {
           </Card.Body>
         </Card>
 
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="p-4 gap-3">
-            <Text className="text-text text-sm font-interSemiBold">Preferences</Text>
+            <Text className="text-foreground text-sm font-interSemiBold">Preferences</Text>
             <DetailRow label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
             <DetailRow
               label="Has Smoker"
@@ -211,9 +214,9 @@ export default function TenantApplicationDetails() {
           </Card.Body>
         </Card>
 
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="p-4 gap-3">
-            <Text className="text-text text-sm font-interSemiBold">
+            <Text className="text-foreground text-sm font-interSemiBold">
               Previous Landlord
             </Text>
             <DetailRow
@@ -227,10 +230,10 @@ export default function TenantApplicationDetails() {
           </Card.Body>
         </Card>
 
-        <Card className="shadow-none border border-grey-200">
+        <Card className="shadow-none border border-border">
           <Card.Body className="p-4 gap-2">
-            <Text className="text-text text-sm font-interSemiBold">Message</Text>
-            <Text className="text-grey-500 text-sm font-inter">
+            <Text className="text-foreground text-sm font-interSemiBold">Message</Text>
+            <Text className="text-gray-500 text-sm font-inter">
               {application.message || "No message provided."}
             </Text>
           </Card.Body>

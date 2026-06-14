@@ -9,9 +9,9 @@ import { DEFAULT_IMAGES } from "constants/images";
 import { useColors } from "@/hooks/useTheme";
 
 import {
-  IconChevronLeft,
-  IconPhone
-} from '@tabler/icons-react-native';
+  ChevronLeft,
+  Phone,
+} from 'lucide-react-native';
 
 interface ChatHeaderProps {
   name: string;
@@ -66,13 +66,13 @@ export default function ChatHeader({
           onPress={handleBack}
           className="-ml-1"
         >
-          <IconChevronLeft size={24} color={colors.secondaryForeground} />
+          <ChevronLeft size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
 
       {/* Center (Title) */}
       <View className="flex-1 flex-row items-center justify-start ml-2">
-        <Avatar size="sm" className="mr-3 border border-secondary">
+        <Avatar size="sm" className="mr-3 border border-white">
           <Avatar.Image
             source={
               profilePicture
@@ -90,7 +90,7 @@ export default function ChatHeader({
           </Avatar.Fallback>
         </Avatar>
 
-        <Text className="text-base text-white font-interMedium">
+        <Text className="text-base text-secondary-foreground font-interMedium">
           {name}
         </Text>
       </View>
@@ -103,7 +103,7 @@ export default function ChatHeader({
           size="sm"
           onPress={handleCall}
         >
-          <IconPhone size={24} color={colors.secondaryForeground} />
+          <Phone size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
     </View>

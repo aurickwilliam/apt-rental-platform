@@ -13,9 +13,8 @@ import { YEARS, MONTHS } from '@repo/constants'
 import { DEFAULT_IMAGES } from 'constants/images'
 
 import {
-  IconStar,
-  IconStarFilled,
-} from '@tabler/icons-react-native';
+  Star
+} from 'lucide-react-native'
 
 import { useColors } from 'hooks/useTheme';
 
@@ -72,12 +71,12 @@ export default function RateApartment() {
         >
           {
             i <= rating ? (
-              <IconStarFilled
+              <Star
                 size={45}
                 color={colors.secondary}
               />
             ) : (
-              <IconStar
+              <Star
                 size={45}
                 color={colors.gray300}
               />
@@ -136,7 +135,7 @@ export default function RateApartment() {
           </Text>
 
           <View className='flex-row gap-2'>
-            <IconStarFilled
+            <Star
               size={20}
               color={colors.secondary}
             />

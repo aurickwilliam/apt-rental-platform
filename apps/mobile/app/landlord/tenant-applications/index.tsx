@@ -10,21 +10,24 @@ import TenantApplicationCard from "@/components/cards/TenantApplicationCard";
 
 import { SearchField } from "heroui-native";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
+
+import { useColors } from "@/hooks/useTheme";
 
 import { TENANT_APPLICATIONS } from "./mockData";
 
 function EmptyApplications() {
+  const { colors } = useColors();
+
   return (
     <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <IconFileText size={32} color={COLORS.grey} />
+      <View className="bg-surface rounded-full p-5 mb-4">
+        <IconFileText size={32} color={colors.gray500} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         No applications yet
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
         New tenant applications will appear here.
       </Text>
     </View>
@@ -54,7 +57,6 @@ export default function TenantApplications() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Tenant Applications" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable={false}
     >
       <FlatList
@@ -81,7 +83,7 @@ export default function TenantApplications() {
               </SearchField.Group>
             </SearchField>
 
-            <Text className="text-grey-500 text-sm font-inter mb-3">
+            <Text className="text-gray-500 text-sm font-inter mb-3">
               Total: {filteredApplications.length}
             </Text>
           </View>
