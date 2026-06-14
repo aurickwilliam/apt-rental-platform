@@ -1,11 +1,11 @@
 import { View, Text, TouchableOpacity } from 'react-native';
   
-import { IconStar } from '@tabler/icons-react-native';
+import { Star } from 'lucide-react-native';
 
 import SmallRatingCard from 'components/cards/SmallRatingCard';
 
-import { useColors } from '@/hooks/useTheme';
-import type { ReviewWithTenant } from '@/hooks/useApartmentDetails';
+import { useColors } from 'hooks/useTheme';
+import type { ReviewWithTenant } from 'hooks/useApartmentDetails';
 
 type RatingsSectionProps = {
   reviews: ReviewWithTenant[];
@@ -21,7 +21,7 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
     <>
       <View className='px-5 mt-10 flex-row items-center justify-between'>
         <View className='flex-row items-center gap-2'>
-          <IconStar size={26} color={colors.textPrimary} />
+          <Star size={26} color={colors.textPrimary} fill={colors.textPrimary} />
           <Text className='font-interSemiBold text-lg text-foreground'>
             Ratings
           </Text>
@@ -53,7 +53,7 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
           ))
         ) : (
           <View className='items-center py-8 opacity-70'>
-            <IconStar size={32} color={colors.gray500} />
+            <Star size={32} color={colors.gray500} fill={colors.gray500} />
             <Text className='mt-2 text-gray-500 font-interMedium'>
               No ratings yet
             </Text>

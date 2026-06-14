@@ -3,8 +3,8 @@ import { IconUser } from '@tabler/icons-react-native';
 
 import LandlordCard from 'components/cards/LandlordCard';
 
-import { useColors } from '@/hooks/useTheme';
-import type { ApartmentDetails } from '@/hooks/useApartmentDetails';
+import { useColors } from 'hooks/useTheme';
+import type { ApartmentDetails } from 'hooks/useApartmentDetails';
 
 type LandlordSectionProps = {
   landlord: ApartmentDetails['landlord'];

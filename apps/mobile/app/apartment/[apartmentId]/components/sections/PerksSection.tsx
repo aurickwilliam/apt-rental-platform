@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native';
 
-import { IconSquareCheck } from '@tabler/icons-react-native';
+import { SquareCheckBig } from 'lucide-react-native';
 
 import PerkItem from 'components/display/PerkItem';
 
-import { useColors } from '@/hooks/useTheme';
+import { useColors } from 'hooks/useTheme';
 
 type PerksSectionProps = {
   amenities?: string[] | null;
@@ -20,7 +20,7 @@ export default function PerksSection({ amenities }: PerksSectionProps) {
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
-            <IconSquareCheck size={26} color={colors.textPrimary} />
+            <SquareCheckBig size={26} color={colors.textPrimary} />
             <Text className='font-interSemiBold text-lg text-foreground'>
               Included Perks
             </Text>

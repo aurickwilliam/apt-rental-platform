@@ -1,13 +1,13 @@
 import { View, Text, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { IconFileDescription } from '@tabler/icons-react-native';
+import { FileText } from 'lucide-react-native';
 
 import { Button } from "heroui-native"
 
 import { supabase } from '@repo/supabase';
 
-import { useColors } from '@/hooks/useTheme';
+import { useColors } from 'hooks/useTheme';
 
 type LeaseAgreementSectionProps = {
   apartmentId: string;
@@ -47,7 +47,7 @@ export default function LeaseAgreementSection({
   return (
     <View className='mt-10 px-5 flex gap-2'>
       <View className='flex-row items-center gap-2'>
-        <IconFileDescription size={26} color={colors.textPrimary} />
+        <FileText size={26} color={colors.textPrimary} />
         <Text className='font-interSemiBold text-lg text-foreground'>
           Lease Agreement & Rules
         </Text>

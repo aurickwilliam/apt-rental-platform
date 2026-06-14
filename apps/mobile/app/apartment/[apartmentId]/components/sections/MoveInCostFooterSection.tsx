@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { IconX } from '@tabler/icons-react-native';
+import { X } from 'lucide-react-native';
 
 import { Button } from "heroui-native"
 
 import { formatCurrency } from '@repo/utils';
 
-import { useColors } from '@/hooks/useTheme';
+import { useColors } from 'hooks/useTheme';
 
 type MoveInCostFooterProps = {
   monthlyRent: number;
@@ -17,7 +17,7 @@ type MoveInCostFooterProps = {
   onApplyNow: () => void;
 };
 
-export default function MoveInCostFooter({
+export default function MoveInCostFooterSection({
   monthlyRent,
   securityDeposit,
   advanceRent,
@@ -92,7 +92,7 @@ export default function MoveInCostFooter({
               className='absolute top-4 right-4 z-10 bg-surface-tertiary p-1.5 rounded-full'
               onPress={() => setIsMoveInCostModalVisible(false)}
             >
-              <IconX size={20} color={colors.textPrimary} />
+              <X size={20} color={colors.textPrimary} />
             </TouchableOpacity>
 
             <Text className='text-foreground font-interSemiBold text-xl pr-8'>
