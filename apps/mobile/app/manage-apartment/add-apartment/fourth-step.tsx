@@ -1,47 +1,57 @@
-import { useState } from 'react'
-import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useState } from "react";
+import { View, Text } from "react-native";
+import { useRouter } from "expo-router";
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
+import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ApplicationHeader from "@/app/manage-apartment/add-apartment/components/ApplicationHeader";
 
-import { TextField, Label, TextArea, FieldError, Button, Chip } from 'heroui-native'
+import {
+  TextField,
+  Label,
+  TextArea,
+  FieldError,
+  Button,
+  Chip,
+} from "heroui-native";
 
-import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
+import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from "@/hooks/useTheme";
 
-import { PERKS } from '@/constants/perks'
+import { PERKS } from "@/constants/perks";
 
 export default function FourthStep() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const description = useApartmentFormStore((s) => s.description)
-  const setDescription = useApartmentFormStore((s) => s.setDescription)
-  const amenities = useApartmentFormStore((s) => s.amenities)
+  const description = useApartmentFormStore((s) => s.description);
+  const setDescription = useApartmentFormStore((s) => s.setDescription);
+  const amenities = useApartmentFormStore((s) => s.amenities);
 
-  const [errors, setErrors] = useState<{ description?: string; amenities?: string }>({})
+  const [errors, setErrors] = useState<{
+    description?: string;
+    amenities?: string;
+  }>({});
 
   const validate = () => {
-    const newErrors: typeof errors = {}
+    const newErrors: typeof errors = {};
 
     if (!description.trim()) {
-      newErrors.description = 'Apartment description is required.'
+      newErrors.description = "Apartment description is required.";
     }
 
     if (amenities.length === 0) {
-      newErrors.amenities = 'Please add at least one amenity.'
+      newErrors.amenities = "Please add at least one amenity.";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleNext = () => {
-    if (!validate()) return
-    router.push('/manage-apartment/add-apartment/fifth-step')
-  }
+    if (!validate()) return;
+    router.push("/manage-apartment/add-apartment/fifth-step");
+  };
 
   return (
     <ScreenWrapper scrollable>

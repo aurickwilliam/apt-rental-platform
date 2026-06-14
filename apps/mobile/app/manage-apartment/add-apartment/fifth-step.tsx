@@ -13,21 +13,21 @@ import LandlordCard from 'components/cards/LandlordCard'
 import { Button, Dialog } from "heroui-native"
 
 import {
-  IconMapPin,
-  IconHome2,
-  IconStarFilled,
-  IconBed,
-  IconBath,
-  IconMaximize,
-  IconBuildingCommunity,
-  IconSquareCheck,
-  IconMap,
-  IconUser,
-  IconFileDescription,
-  IconUsers,
-  IconBuildingSkyscraper,
-  IconCalendar,
-} from '@tabler/icons-react-native'
+  MapPin,
+  Map,
+  House,
+  Star,
+  BedDouble,
+  Bath,
+  Maximize,
+  Building,
+  SquareCheck,
+  User,
+  FileText,
+  Users,
+  Building2,
+  Calendar,
+} from 'lucide-react-native'
 
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
@@ -211,14 +211,14 @@ export default function FifthStep() {
             </Text>
 
             <View className='flex-row items-center mt-2 gap-2'>
-              <IconMapPin size={24} color={colors.secondaryForeground} />
+              <MapPin size={24} color={colors.secondaryForeground} />
               <Text className='text-white font-interMedium text-base'>
                 {locationString || 'No location provided'}
               </Text>
             </View>
 
             <View className='flex-row items-center mt-5 gap-2'>
-              <IconStarFilled size={20} color={colors.secondary} />
+              <Star size={20} color={colors.secondary} fill={colors.secondary} />
               <Text className='text-white font-interMedium text-base'>
                 No ratings yet
               </Text>
@@ -226,21 +226,21 @@ export default function FifthStep() {
 
             <View className='flex-row items-center justify-between mt-5 gap-6'>
               <View className='flex-row items-center gap-2'>
-                <IconBed size={24} color={colors.secondaryForeground} />
+                <BedDouble size={24} color={colors.secondaryForeground} />
                 <Text className='text-white font-interMedium text-base'>
                   {bedrooms} {bedrooms === 1 ? 'Bed' : 'Beds'}
                 </Text>
               </View>
 
               <View className='flex-row items-center gap-2'>
-                <IconBath size={24} color={colors.secondaryForeground} />
+                <Bath size={24} color={colors.secondaryForeground} />
                 <Text className='text-white font-interMedium text-base'>
                   {bathrooms} {bathrooms === 1 ? 'Bath' : 'Baths'}
                 </Text>
               </View>
 
               <View className='flex-row items-center gap-2'>
-                <IconMaximize size={24} color={colors.secondaryForeground} />
+                <Maximize size={24} color={colors.secondaryForeground} />
                 <Text className='text-white font-interMedium text-base'>
                   {floorArea ? `${floorArea} Sqm` : 'N/A'}
                 </Text>
@@ -284,14 +284,14 @@ export default function FifthStep() {
       <View className='mt-5 px-5'>
         <View className='flex-row gap-6'>
           <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
-            <IconUsers size={24} color={colors.textPrimary} />
+            <Users size={24} color={colors.textPrimary} />
             <Text className='text-foreground font-interMedium text-base'>
               Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
             </Text>
           </View>
 
           <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
-            <IconBuildingSkyscraper size={24} color={colors.textPrimary} />
+            <Building2 size={24} color={colors.textPrimary} />
             <Text className='text-foreground font-interMedium text-base'>
               {floorLevel ? `${floorLevel}` : 'N/A'}
             </Text>
@@ -300,14 +300,14 @@ export default function FifthStep() {
 
         <View className='flex-row mt-4 mb-5 gap-6'>
           <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
-            <IconHome2 size={24} color={colors.textPrimary} />
+            <House size={24} color={colors.textPrimary} />
             <Text className='text-foreground font-interMedium text-base'>
               {apartmentType || 'N/A'}
             </Text>
           </View>
 
           <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
-            <IconCalendar size={24} color={colors.textPrimary} />
+            <Calendar size={24} color={colors.textPrimary} />
             <Text className='text-foreground font-interMedium text-base'>
               {leaseDuration || 'N/A'}
             </Text>
@@ -317,7 +317,7 @@ export default function FifthStep() {
 
       {/* Apartment Description */}
       <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <IconBuildingCommunity size={26} color={colors.textPrimary} />
+        <Building size={26} color={colors.textPrimary} />
         <Text className='font-interSemiBold text-lg text-foreground'>
           Everything About Your Apartment
         </Text>
@@ -351,7 +351,7 @@ export default function FifthStep() {
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
-            <IconSquareCheck size={26} color={colors.textPrimary} />
+            <SquareCheck size={26} color={colors.textPrimary} />
             <Text className='font-interSemiBold text-lg text-foreground'>
               Included Perks
             </Text>
@@ -379,7 +379,7 @@ export default function FifthStep() {
 
       {/* Map View */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap size={26} color={colors.textPrimary} />
+        <Map size={26} color={colors.textPrimary} />
         <Text className='font-interSemiBold text-lg text-foreground'>
           View on Map
         </Text>
@@ -440,7 +440,7 @@ export default function FifthStep() {
 
       {/* Landlord Card */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconUser size={26} color={colors.textPrimary} />
+        <User size={26} color={colors.textPrimary} />
         <Text className='font-interSemiBold text-lg text-foreground'>
           Meet Your Rental Owner
         </Text>
@@ -464,7 +464,7 @@ export default function FifthStep() {
       {/* Lease Agreement */}
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center gap-2'>
-          <IconFileDescription size={26} color={colors.textPrimary} />
+          <FileText size={26} color={colors.textPrimary} />
           <Text className='font-interSemiBold text-lg text-foreground'>
             Lease Agreement & Rules
           </Text>
