@@ -70,7 +70,7 @@ export function VerificationStatus({
   const Icon = config.icon;
 
   return (
-    <Card className='mx-5 shadow-none'>
+    <Card className='mx-5 shadow-none border border-border bg-surface'>
       <Card.Header className='flex-row gap-3 items-center pb-0'>
         <IconId size={24} color={colors.textPrimary} />
         <Card.Title className='text-foreground font-interSemiBold'>

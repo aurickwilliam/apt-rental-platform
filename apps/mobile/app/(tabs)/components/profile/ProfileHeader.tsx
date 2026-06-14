@@ -45,14 +45,14 @@ export function ProfileHeader({
     tenant: {
       icon: Home,
       iconColor: colors.primary,
-      className: "bg-blue-200",
+      className: "bg-primary-light border border-primary",
       label: "Tenant",
       labelColor: "text-primary"
     },
     landlord: {
       icon: Building2,
       iconColor: colors.secondary,
-      className: "bg-amber-200",
+      className: "bg-secondary-light border border-secondary",
       label: "Landlord",
       labelColor: "text-secondary"
     },

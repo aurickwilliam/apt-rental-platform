@@ -97,7 +97,7 @@ export default function Profile() {
 
       {/* Profile Options */}
       <View className='mt-5 px-5'>
-        <ListGroup className="shadow-none">
+        <ListGroup className="shadow-none border border-border">
           {listItems.map((item, index) => (
             <View key={index}>
               <ListGroup.Item onPress={item.onPress}>
