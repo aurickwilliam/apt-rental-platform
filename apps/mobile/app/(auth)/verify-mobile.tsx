@@ -4,15 +4,15 @@ import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { COLORS } from "@repo/constants";
-
 import { IconChevronLeft, IconAlertCircle } from "@tabler/icons-react-native";
 
 import { usePHMobileValidation } from "@repo/hooks";
 
-import { useRegistrationStore } from "@/store/useRegistrationStore";
+import { useRegistrationStore } from "@/stores/useRegistrationStore";
 
 import { supabase } from "@repo/supabase";
+
+import { useColors } from "hooks/useTheme";
 
 import {
   CloseButton,
@@ -26,6 +26,8 @@ import {
 
 export default function VerifyMobile() {
   const router = useRouter();
+
+  const { colors } = useColors();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,11 +86,11 @@ export default function VerifyMobile() {
             className="-ml-2"
             onPress={() => router.back()}
           >
-            <IconChevronLeft size={26} color={COLORS.text} />
+            <IconChevronLeft size={26} color={colors.textPrimary} />
           </CloseButton>
 
           {/* Title */}
-          <Text className="text-2xl text-text font-interMedium my-5">
+          <Text className="text-2xl text-foreground font-interMedium my-5">
             Enter Your Mobile Number
           </Text>
 
@@ -124,12 +126,14 @@ export default function VerifyMobile() {
 
             <View className="mb-5 gap-1.5">
               <View className="flex-row items-center gap-2">
-                <IconAlertCircle size={20} color={COLORS.lightRedHead} />
-                <Dialog.Title className="text-redHead-100">
+                <IconAlertCircle size={20} color={colors.danger} />
+                <Dialog.Title className="text-danger">
                   Something went wrong
                 </Dialog.Title>
               </View>
-              <Dialog.Description>{error}</Dialog.Description>
+              <Dialog.Description className="text-foreground">
+                {error}
+              </Dialog.Description>
             </View>
 
             <View className="flex-row justify-end">

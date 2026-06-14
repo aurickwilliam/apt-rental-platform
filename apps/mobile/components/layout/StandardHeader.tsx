@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { ReactNode } from "react";
+
+import { ChevronLeft } from 'lucide-react-native';
 
 interface StandardHeaderProps {
   title: string;
@@ -31,7 +32,7 @@ export default function StandardHeader({
   };
 
   return (
-    <View className="flex-row items-center justify-between bg-primary px-4 pb-5" style={{ paddingTop: insets.top + 20 }}>
+    <View className="flex-row items-center justify-between bg-accent px-4 pb-5" style={{ paddingTop: insets.top + 20 }}>
 
       {/* Left Side (Back Button or Empty Spacer) */}
       <View className="w-10 items-start justify-center">
@@ -41,8 +42,7 @@ export default function StandardHeader({
             onPress={handleBack} 
             className="p-1 -ml-1"
           >
-            <Ionicons 
-              name="chevron-back" 
+            <ChevronLeft 
               size={24} 
               color={textColor === "text-white" ? "white" : "black"} 
             />

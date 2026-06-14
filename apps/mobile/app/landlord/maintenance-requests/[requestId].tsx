@@ -15,7 +15,7 @@ import { formatDate } from "@repo/utils";
 import {
   STATUS_STYLES,
   useMaintenanceRequestsStore,
-} from "@/store/useMaintenanceRequestsStore";
+} from "@/stores/useMaintenanceRequestsStore";
 
 function DetailField({ label, value }: { label: string; value: string }) {
   return (

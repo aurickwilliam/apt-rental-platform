@@ -9,10 +9,9 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PillButton from 'components/buttons/PillButton';
 
 import {
-  IconChevronLeft,
-  IconHeart,
-  IconHeartFilled,
-} from "@tabler/icons-react-native";
+  Heart,
+  ChevronLeft
+} from 'lucide-react-native';
 
 import {
   ApartmentHeroSection,
@@ -29,8 +28,7 @@ import {
 
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useFavorites } from '@/hooks/useFavorites';
-
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 import { Button } from "heroui-native"
 
@@ -39,6 +37,7 @@ export default function ApartmentScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { colors } = useColors();
   const { apartment, reviews, loading, error } = useApartmentDetails(apartmentId);
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -206,7 +205,7 @@ export default function ApartmentScreen() {
           variant="tertiary" 
           isIconOnly
         >
-          <IconChevronLeft size={24} color={COLORS.text} />
+          <ChevronLeft size={24} color={colors.textPrimary} />
         </Button>
       </View>
 
@@ -221,9 +220,9 @@ export default function ApartmentScreen() {
           isIconOnly
         >
           {isFavorite(apartmentId) ? (
-            <IconHeartFilled size={24} color={COLORS.lightRedHead} />
+            <Heart size={24} color={colors.danger} fill={colors.danger} />
           ) : (
-            <IconHeart size={24} color={COLORS.text} />
+            <Heart size={24} color={colors.gray400} />
           )}
         </Button>
       </View>

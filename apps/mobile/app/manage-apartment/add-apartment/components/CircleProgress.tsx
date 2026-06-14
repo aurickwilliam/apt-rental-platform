@@ -1,6 +1,8 @@
 import { View, Text } from 'react-native'
 import Svg, { Circle } from 'react-native-svg';
 
+import { useColors } from '@/hooks/useTheme'
+
 interface CircleProgressProps {
   currentStep: number,
   totalSteps: number,
@@ -14,6 +16,8 @@ export default function CircleProgress({ currentStep, totalSteps }: CircleProgre
   const progress = currentStep / totalSteps;
   const strokeDashoffset = circumference - progress * circumference;
 
+  const { colors } = useColors();
+
   return (
     <View 
       className="relative items-center justify-center"
@@ -25,7 +29,7 @@ export default function CircleProgress({ currentStep, totalSteps }: CircleProgre
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#E5E7EB"
+          stroke={colors.surface}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -34,7 +38,7 @@ export default function CircleProgress({ currentStep, totalSteps }: CircleProgre
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#10B981"
+          stroke={colors.success}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -44,7 +48,7 @@ export default function CircleProgress({ currentStep, totalSteps }: CircleProgre
         />
       </Svg>
       
-      <Text className="text-2xl font-interSemiBold text-text absolute">
+      <Text className="text-2xl font-interSemiBold text-foreground absolute">
         {currentStep} of {totalSteps}
       </Text>
     </View>

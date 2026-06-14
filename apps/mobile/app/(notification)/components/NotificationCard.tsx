@@ -2,15 +2,15 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
 import {
-  IconSettingsExclamation,
-  IconInfoSquareRoundedFilled,
-  IconCashBanknoteFilled,
-  IconMessageFilled,
-  IconTool,
-  IconHomeFilled,
-} from "@tabler/icons-react-native";
+  UserRoundCog,
+  MessageSquareText,
+  BanknoteArrowUp,
+  Hammer,
+  House,
+  Info
+} from 'lucide-react-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 interface NotificationCardProps {
   title: string;
@@ -27,32 +27,33 @@ export default function NotificationCard({
   date = "0/0/0000",
   onPress,
 }: NotificationCardProps) {
+  const { colors } = useColors();
 
   const iconMap = {
-    payment: IconCashBanknoteFilled,
-    message: IconMessageFilled,
-    maintenance: IconTool,
-    apartment: IconHomeFilled,
-    system: IconSettingsExclamation,
+    payment: BanknoteArrowUp,
+    message: MessageSquareText,
+    maintenance: Hammer,
+    apartment: House,
+    system: UserRoundCog,
   }
 
   const colorMap = {
-    payment: COLORS.greenHulk,
-    message: COLORS.primary,
-    maintenance: COLORS.yellowish,
-    apartment: COLORS.primary,
-    system: COLORS.grey,
+    payment: colors.success,
+    message: colors.primary,
+    maintenance: colors.warning,
+    apartment: colors.primary,
+    system: colors.gray500,
   }
 
-  const Icon = iconMap[type] ?? IconInfoSquareRoundedFilled;
-  const iconColor = colorMap[type] ?? COLORS.grey;
+  const Icon = iconMap[type] ?? Info;
+  const iconColor = colorMap[type] ?? colors.gray500;
 
   return (
     <TouchableOpacity 
       activeOpacity={0.7} 
       onPress={onPress}
     >
-      <Card className="bg-white rounded-xl border border-grey-200 p-4 shadow-none">
+      <Card className="bg-surface rounded-3xl border border-border p-4 shadow-none">
         <Card.Header>
           <View className="flex-row items-center gap-2">
             <Icon size={20} color={iconColor} />
@@ -64,13 +65,13 @@ export default function NotificationCard({
         </Card.Header>
 
         <Card.Body className="pt-2">
-          <Card.Description className="text-text font-inter">
+          <Card.Description className="text-foreground font-inter">
             {message}
           </Card.Description>
         </Card.Body>
 
         <Card.Footer className="pt-2">
-          <Text className="text-grey-300 text-sm">
+          <Text className="text-muted text-sm">
             {date}
           </Text>
         </Card.Footer>

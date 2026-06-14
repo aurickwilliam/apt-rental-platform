@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@repo/supabase'
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { File } from 'expo-file-system/next'
 import { useProfile } from './useProfile'

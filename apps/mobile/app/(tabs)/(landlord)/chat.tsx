@@ -4,17 +4,19 @@ import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import Divider from '@/components/display/Divider'
-import MessageCard from '@/components/cards/MessageCard'
+import MessageCard from '@/app/(tabs)/components/chat/MessageCard'
 
-import { SearchField, Tabs } from 'heroui-native'
+import { SearchField, Tabs, Separator } from 'heroui-native'
 
 import { getRelativeTime } from '@repo/utils'
+
 import { supabase } from '@repo/supabase'
+
 import { getConversations, type Conversation } from '@/service/chatService'
 
-import { COLORS } from '@repo/constants'
 import { EMPTY_STATE_IMAGES } from 'constants/images'
+
+import { useColors } from '@/hooks/useTheme'
 
 type ConversationWithMeta = Conversation & {
   last_sender_is_me?: boolean;
@@ -26,6 +28,8 @@ function getConversationMetaKey(otherUserId: string, apartmentId: string | null)
 
 export default function Chat() {
   const router = useRouter();
+  const { colors } = useColors();
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<'Tenant' | 'Inquiries'>('Tenant');
   const [conversations, setConversations] = useState<ConversationWithMeta[]>([]);
@@ -236,7 +240,6 @@ export default function Chat() {
     <ScreenWrapper
       className='p-5'
       scrollable
-      backgroundColor={COLORS.darkerWhite}
       bottomPadding={50}
       refreshing={refreshing}
       onRefresh={handleRefresh}
@@ -266,7 +269,7 @@ export default function Chat() {
       {
         loading ? (
           <View className='flex-1 items-center justify-center mt-20'>
-            <ActivityIndicator color={COLORS.primary} />
+            <ActivityIndicator color={colors.primary} />
           </View>
         ) : conversations.length === 0 ? (
           <View className='flex-1 items-center justify-center'>
@@ -281,16 +284,16 @@ export default function Chat() {
               />
             </View>
 
-            <Text className='text-2xl text-primary font-interSemiBold mb-2 mt-5'>
+            <Text className='text-2xl text-accent font-interSemiBold mb-2 mt-5'>
               No Messages Yet
             </Text>
-            <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+            <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
               Start a conversation with a tenant to see your messages here.
             </Text>
           </View>
         ) : (
           <>
-            <Divider />
+            <Separator className="my-4" />
 
             {/* Group Button */}
             <Tabs
@@ -298,21 +301,22 @@ export default function Chat() {
               onValueChange={(value) => handleMessageToggle(value as 'Tenant' | 'Inquiries')}
               variant="primary"
             >
-              <Tabs.List>
+              <Tabs.List className="w-full">
                 <Tabs.Indicator />
-                <Tabs.Trigger value="Tenant">
+                <Tabs.Trigger value="Tenant" className="w-1/2">
                   {({ isSelected }) => (
                       <Tabs.Label
-                          style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+                          style={{ color: isSelected ? colors.primary : colors.gray500 }}
                       >
                         Tenant
                       </Tabs.Label>
                   )}
                 </Tabs.Trigger>
-                <Tabs.Trigger value="Inquiries">
+
+                <Tabs.Trigger value="Inquiries" className="flex-1">
                   {({ isSelected }) => (
                       <Tabs.Label
-                          style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+                          style={{ color: isSelected ? colors.primary : colors.gray500 }}
                       >
                         Inquiries
                       </Tabs.Label>
@@ -325,19 +329,19 @@ export default function Chat() {
               <View className='flex-1 items-center justify-center mt-10'>
                 {searchQuery.trim().length > 0 ? (
                   <>
-                    <Text className='text-lg text-primary font-interSemiBold mb-2'>
+                    <Text className='text-lg text-accent font-interSemiBold mb-2'>
                       No results found
                     </Text>
-                    <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+                    <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
                       No conversations match &quot;{searchQuery}&quot;. Try a different name, property, or message.
                     </Text>
                   </>
                 ) : (
                   <>
-                    <Text className='text-lg text-primary font-interSemiBold mb-2'>
+                    <Text className='text-lg text-accent font-interSemiBold mb-2'>
                       No {selectedFilter} Messages
                     </Text>
-                    <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+                    <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
                       Try switching filters to view your other conversations.
                     </Text>
                   </>

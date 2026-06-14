@@ -24,9 +24,9 @@ export default function MessageCard({
 }: MessageCardProps) {
 
   return (
-    <PressableFeedback onPress={onPress} className='rounded-2xl overflow-hidden'>
+    <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden border border-border'>
       <PressableFeedback.Highlight />
-      <Card className='flex-row gap-4 shadow-none'>
+      <Card className='flex-row gap-4 shadow-none rounded-3xl'>
 
         {/* Profile Picture */}
         <View className='relative'>
@@ -38,7 +38,7 @@ export default function MessageCard({
           </Avatar>
 
           {unreadCount > 0 && (
-            <View className='absolute -top-1 -right-1 bg-primary rounded-full min-w-5 h-5 px-1 items-center justify-center'>
+            <View className='absolute -top-1 -right-1 bg-accent rounded-full min-w-5 h-5 px-1 items-center justify-center'>
               <Text className='text-white text-xs font-interMedium'>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>
@@ -49,17 +49,17 @@ export default function MessageCard({
         {/* Message Details */}
         <View className='flex-1 justify-between'>
           <View>
-            <Text className='font-interMedium text-sm'>
+            <Text className='font-interMedium text-foreground text-sm'>
               {name}
             </Text>
-            <Text className='text-grey-500 text-xs font-inter'>
+            <Text className='text-gray-500 text-xs font-inter'>
               {apartmentName}
             </Text>
           </View>
 
           <View className='flex-row justify-start items-center gap-2'>
             <Text
-              className='text-text text-xs font-inter flex-1'
+              className='text-foreground text-xs font-inter flex-1'
               numberOfLines={1}
             >
               {isUserLastSender ? `You: ${lastMessage}` : lastMessage}

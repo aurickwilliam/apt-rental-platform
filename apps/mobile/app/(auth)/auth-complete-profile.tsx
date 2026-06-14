@@ -2,9 +2,7 @@ import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
 import { useEffect, useRef, useState } from 'react';
 
-
 import {
-  COLORS,
   PROVINCES,
   GENDERS,
   SUFFIXES,
@@ -24,7 +22,9 @@ import {
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
-import { useRegistrationStore } from '@/store/useRegistrationStore';
+
+import { useColors } from "hooks/useTheme";
+import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
 import { getProfileSubmitError } from '@repo/utils';
 
@@ -67,6 +67,7 @@ const requiredFields: (keyof ProfileForm)[] = [
 export default function AuthCompleteProfile() {
   const router = useRouter();
   const navigation = useNavigation();
+  const { colors } = useColors();
 
   const canLeave = useRef(false);
 
@@ -247,7 +248,7 @@ export default function AuthCompleteProfile() {
   return (
     <ScreenWrapper scrollable className="p-5">
       {/* Title */}
-      <Text className="text-2xl text-text font-interSemiBold my-5">
+      <Text className="text-2xl text-foreground font-interSemiBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
@@ -263,7 +264,7 @@ export default function AuthCompleteProfile() {
         {/* 
           ===== Personal Information Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-interMedium mt-3">
           Personal Information
         </Text>
 
@@ -360,7 +361,7 @@ export default function AuthCompleteProfile() {
         {/* 
           ===== Address Information Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-interMedium mt-3">
           Address Information
         </Text>
 
@@ -445,7 +446,7 @@ export default function AuthCompleteProfile() {
         <Button onPress={handleSubmit} isDisabled={loading}>
           <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
           {loading && (
-            <Spinner size="sm" color={COLORS.white} className="ml-2" />
+            <Spinner size="sm" color={colors.white} className="ml-2" />
           )}
         </Button>
       </View>

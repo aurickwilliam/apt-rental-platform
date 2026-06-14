@@ -1,17 +1,51 @@
-import { Tabs } from 'expo-router'
+import { DynamicColorIOS, Platform } from "react-native";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 
-import { TabBar } from 'components/layout/TabBar'
+import { useColors } from "hooks/useTheme";
+
+
 
 export default function TenantTabLayout() {
+  const { colors } = useColors();
+
+  const tint =
+    Platform.OS === "ios"
+      ? DynamicColorIOS({ dark: colors.primary, light: colors.primary })
+      : colors.primary;
+
   return (
-    <Tabs
-      tabBar={(props) => <TabBar {...props} userType="tenant" />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tabs.Screen name='rentals' options={{title: "Rentals"}}/>
-      <Tabs.Screen name='search' options={{title: "Search"}}/>
-      <Tabs.Screen name='chat' options={{title: "Chat"}}/>
-      <Tabs.Screen name='profile' options={{title: "Profile"}}/>
-    </Tabs>
-  )
+    <NativeTabs tintColor={tint} labelStyle={{ color: tint }}>
+      <NativeTabs.Trigger name="rentals">
+        <NativeTabs.Trigger.Label>Rentals</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "bed.double", selected: "bed.double.fill" }}
+          md="bed"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="search">
+        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "magnifyingglass", selected: "magnifyingglass" }}
+          md="search"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="chat">
+        <NativeTabs.Trigger.Label>Chat</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "bubble.left", selected: "bubble.left.fill" }}
+          md="chat_bubble"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "person", selected: "person.fill" }}
+          md="person"
+        />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
 }

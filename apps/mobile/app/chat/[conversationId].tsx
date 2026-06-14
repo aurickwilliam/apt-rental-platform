@@ -7,16 +7,15 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import ChatHeader from 'components/layout/ChatHeader';
-import ChatBubble from 'components/display/ChatBubble';
-import ChatBox from 'components/inputs/ChatBox';
+import ChatHeader from '@/app/chat/components/ChatHeader';
+import ChatBubble from '@/app/chat/components/ChatBubble';
+import ChatBox from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import ChatEmptyState from './components/ChatEmptyState';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/useChat';
 
 function useRouteParams() {
@@ -45,8 +44,10 @@ function useRouteParams() {
 }
 
 export default function ChatScreen() {
-  const insets = useSafeAreaInsets();
+  const { colors } = useColors();
+
   const flatListRef = useRef<FlatList>(null);
+
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const {
@@ -111,7 +112,7 @@ export default function ChatScreen() {
       >
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={COLORS.primary} />
+            <ActivityIndicator color={colors.primary} />
           </View>
         ) : (
           <View className="flex-1">
@@ -145,10 +146,7 @@ export default function ChatScreen() {
         )}
 
         <View
-          className="bg-white px-3 pt-2"
-          style={{
-            paddingBottom: Math.max(insets.bottom, 8),
-          }}
+          className="px-3 py-2"
         >
           <ChatBox
             chatValue={chatMessage}

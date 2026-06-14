@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native'
+
 import CircleProgress from './CircleProgress'
 
 interface ApplicationHeaderProps {
@@ -16,14 +17,14 @@ export default function ApplicationHeader({
 }: ApplicationHeaderProps) {
 
   return (
-    <View className='w-screen bg-white p-5 flex-row items-center justify-between'>
+    <View className='w-screen bg-surface p-5 flex-row items-center justify-between'>
       {/* Title and Next Title */}
       <View className='flex-1 gap-1'>
-        <Text className='text-2xl font-interSemiBold text-text'>
+        <Text className='text-2xl font-interSemiBold text-foreground'>
           {currentTitle}
         </Text>
 
-        <Text className='text-base font-interMedium text-grey-500'>
+        <Text className='text-base font-interMedium text-gray-500'>
           Next: {nextTitle}
         </Text>
       </View>

@@ -1,16 +1,11 @@
 import { Tabs } from 'heroui-native';
 
-import { COLORS } from "@repo/constants";
-
 type RoleTabProps = {
-  userSide: "tenant" | "landlord";
+  userSide: 'tenant' | 'landlord';
   onValueChange: (value: string) => void;
-}
+};
 
-export default function RoleTab({
-  userSide,
-  onValueChange,
-}: RoleTabProps) {
+export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
   return (
     <Tabs
       value={userSide}
@@ -24,7 +19,11 @@ export default function RoleTab({
         <Tabs.Trigger value="tenant" className="flex-1">
           {({ isSelected }) => (
             <Tabs.Label
-              style={{ color: isSelected ? COLORS.primary : COLORS.grey }}
+              className={
+                isSelected
+                  ? 'text-primary dark:text-dark-primary'
+                  : 'text-gray-500 dark:text-dark-gray-400'
+              }
             >
               Tenant
             </Tabs.Label>
@@ -34,7 +33,11 @@ export default function RoleTab({
         <Tabs.Trigger value="landlord" className="flex-1">
           {({ isSelected }) => (
             <Tabs.Label
-              style={{ color: isSelected ? COLORS.secondary : COLORS.grey }}
+              className={
+                isSelected
+                  ? 'text-secondary dark:text-secondary'
+                  : 'text-gray-500 dark:text-dark-gray-400'
+              }
             >
               Landlord
             </Tabs.Label>
@@ -42,5 +45,5 @@ export default function RoleTab({
         </Tabs.Trigger>
       </Tabs.List>
     </Tabs>
-  )
+  );
 }

@@ -1,8 +1,6 @@
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router';
 
-import { COLORS } from '@repo/constants';
-
 import {
   IconId,
   IconCircleCheckFilled,
@@ -14,6 +12,8 @@ import {
 
 import { Button, Card } from 'heroui-native';
 
+import { useColors } from 'hooks/useTheme';
+
 type AccountStatus = 'verified' | 'pending' | 'rejected' | 'unverified';
 
 type StatusConfig = {
@@ -23,33 +23,6 @@ type StatusConfig = {
     icon: React.ComponentType<IconProps>;
     iconColor: string;
   };
-};
-
-const STATUS_CONFIG: StatusConfig = {
-  verified: {
-    text: 'Verified Tenant',
-    style: 'text-greenHulk-200',
-    icon: IconCircleCheckFilled,
-    iconColor: COLORS.greenHulk,
-  },
-  pending: {
-    text: 'Pending Verification',
-    style: 'text-yellowish-200',
-    icon: IconExclamationCircleFilled,
-    iconColor: COLORS.yellowish,
-  },
-  rejected: {
-    text: 'Rejected',
-    style: 'text-redHead-200',
-    icon: IconXboxXFilled,
-    iconColor: COLORS.redHead,
-  },
-  unverified: {
-    text: 'Not Verified',
-    style: 'text-grey-400',
-    icon: IconExclamationCircleFilled,
-    iconColor: COLORS.grey,
-  },
 };
 
 type VerificationStatusProps = {
@@ -64,14 +37,43 @@ export function VerificationStatus({
   dateVerified,
 }: VerificationStatusProps) {
   const router = useRouter();
+  const { colors } = useColors();
+
+  const STATUS_CONFIG: StatusConfig = {
+    verified: {
+      text: 'Verified Tenant',
+      style: 'text-success',
+      icon: IconCircleCheckFilled,
+      iconColor: colors.success,
+    },
+    pending: {
+      text: 'Pending Verification',
+      style: 'text-warning',
+      icon: IconExclamationCircleFilled,
+      iconColor: colors.warning,
+    },
+    rejected: {
+      text: 'Rejected',
+      style: 'text-danger',
+      icon: IconXboxXFilled,
+      iconColor: colors.danger,
+    },
+    unverified: {
+      text: 'Not Verified',
+      style: 'text-gray-400',
+      icon: IconExclamationCircleFilled,
+      iconColor: colors.gray500,
+    },
+  };
+
   const config = STATUS_CONFIG[accountStatus];
   const Icon = config.icon;
 
   return (
-    <Card className='mx-5 shadow-none'>
+    <Card className='mx-5 shadow-none border border-border bg-surface'>
       <Card.Header className='flex-row gap-3 items-center pb-0'>
-        <IconId size={24} color={COLORS.text} />
-        <Card.Title className='text-text font-interSemiBold'>
+        <IconId size={24} color={colors.textPrimary} />
+        <Card.Title className='text-foreground font-interSemiBold'>
           Verification Status
         </Card.Title>
       </Card.Header>
@@ -86,7 +88,7 @@ export function VerificationStatus({
 
         {accountStatus === 'rejected' && (
           <>
-            <Card.Description className='text-redHead-200 font-inter text-sm'>
+            <Card.Description className='text-danger font-inter text-sm'>
               Reason: {rejectedReason}
             </Card.Description>
             <Button
@@ -102,7 +104,7 @@ export function VerificationStatus({
         )}
 
         {accountStatus === 'pending' && (
-          <Card.Description className='text-grey-400 font-inter text-sm'>
+          <Card.Description className='text-gray-400 font-inter text-sm'>
             Your documents are currently under review. We will notify you once
             the verification process is complete.
           </Card.Description>
@@ -110,12 +112,12 @@ export function VerificationStatus({
 
         {accountStatus === 'verified' && (
           <>
-            <Card.Description className='text-grey-400 font-inter text-sm'>
+            <Card.Description className='text-gray-400 font-inter text-sm'>
               You have successfully been verified as a tenant. You can now apply
               for rental properties on our platform.
             </Card.Description>
             {dateVerified && (
-              <Card.Description className='text-grey-400 font-inter text-sm'>
+              <Card.Description className='text-gray-400 font-inter text-sm'>
                 Last Verified: {dateVerified}
               </Card.Description>
             )}
@@ -124,7 +126,7 @@ export function VerificationStatus({
 
         {accountStatus === 'unverified' && (
           <>
-            <Card.Description className='text-grey-400 font-inter text-sm'>
+            <Card.Description className='text-gray-400 font-inter text-sm'>
               Your account has not been verified yet. Please submit your
               documents to get verified.
             </Card.Description>

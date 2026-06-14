@@ -2,7 +2,7 @@ import { Image, ImageSourcePropType } from "react-native";
 
 import { Button, Spinner } from "heroui-native";
 
-import { COLORS } from "@repo/constants";
+import { useColors } from "hooks/useTheme";
 
 type AuthButtonProps = {
   onPress?: () => void;
@@ -17,6 +17,9 @@ export default function AuthButton({
   imageSource,
   label,
 }: AuthButtonProps) {
+
+  const { colors } = useColors();
+
   return (
     <Button
       variant="outline"
@@ -29,14 +32,14 @@ export default function AuthButton({
         style={{ width: 20, height: 20 }}
         resizeMode="contain"
       />
-      <Button.Label className="font-interMedium text-text">
+      <Button.Label className="font-interMedium text-foreground">
         {label}
       </Button.Label>
 
       {isDisabled && (
         <Spinner
           size="sm"
-          color={COLORS.text}
+          color={colors.primary}
           className="ml-2"
         />
       )}

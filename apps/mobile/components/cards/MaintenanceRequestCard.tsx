@@ -7,7 +7,7 @@ import { COLORS } from "@repo/constants";
 import {
   STATUS_STYLES,
   type MaintenanceRequestStatus,
-} from "@/store/useMaintenanceRequestsStore";
+} from "../../stores/useMaintenanceRequestsStore";
 
 interface MaintenanceRequestCardProps {
   issueTitle: string;
@@ -36,7 +36,7 @@ export default function MaintenanceRequestCard({
           <View className="flex-1 min-w-0 gap-2">
             <View className="flex-row items-start justify-between gap-3">
               <View className="size-8 bg-darkerWhite rounded-full items-center justify-center">
-                <IconTool size={18} color={COLORS.primary} />
+                <IconTool size={18} color={COLORS.light.primary} />
               </View>
 
               <Text

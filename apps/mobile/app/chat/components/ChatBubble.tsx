@@ -12,9 +12,10 @@ export default function ChatBubble({
   isSent = false,
 }: ChatBubbleProps) {
 
+  // User | Sender
   const alignment = isSent ? 'self-end items-end' : 'self-start items-start';
-  const bubbleColor = isSent ? 'bg-primary' : 'bg-darkerWhite';
-  const textColor = isSent ? 'text-white' : 'text-text';
+  const bubbleColor = isSent ? 'bg-accent' : 'bg-surface-tertiary';
+  const textColor = isSent ? 'text-white' : 'text-foreground';
 
   return (
     <View className={`max-w-[80%] mb-4 ${alignment}`}>
@@ -30,7 +31,7 @@ export default function ChatBubble({
       </View>
 
       {/* Timestamp */}
-      <Text className='text-grey-400 text-xs font-inter mt-1'>
+      <Text className='text-gray-300 text-xs font-inter mt-1'>
         {timestamp}
       </Text>
     </View>

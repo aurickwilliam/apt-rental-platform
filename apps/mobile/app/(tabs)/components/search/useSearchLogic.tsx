@@ -5,7 +5,7 @@ import { supabase } from '@repo/supabase';
 
 import { useFavorites } from '@/hooks/useFavorites';
 
-import { type FilterState } from 'components/display/FilterBottomSheet';
+import { type FilterState } from '@/app/(tabs)/components/search/FilterBottomSheet';
 
 const CITIES = ['CAMANAVA', 'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'];
 const PAGE_SIZE = 10;
