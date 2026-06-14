@@ -35,7 +35,10 @@ import {
   CITIES,
 } from "@repo/constants";
 
-import { IconCirclePlus, IconCircleMinus } from "@tabler/icons-react-native";
+import { 
+  CirclePlus,
+  CircleMinus,
+} from 'lucide-react-native';
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
@@ -447,7 +450,7 @@ export default function SecondStep() {
                       opacity: bathrooms <= roomLimits.bathrooms.min ? 0.3 : 1,
                     }}
                   >
-                    <IconCircleMinus size={30} color={colors.textPrimary} />
+                    <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
                   <Text className="text-foreground text-xl font-interMedium">
@@ -461,7 +464,7 @@ export default function SecondStep() {
                       opacity: bathrooms >= roomLimits.bathrooms.max ? 0.3 : 1,
                     }}
                   >
-                    <IconCirclePlus size={30} color={colors.textPrimary} />
+                    <CirclePlus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -495,7 +498,7 @@ export default function SecondStep() {
                       opacity: bedrooms <= roomLimits.bedrooms.min ? 0.3 : 1,
                     }}
                   >
-                    <IconCircleMinus size={30} color={colors.textPrimary} />
+                    <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
                   <Text className="text-foreground text-xl font-interMedium">
@@ -509,7 +512,7 @@ export default function SecondStep() {
                       opacity: bedrooms >= roomLimits.bedrooms.max ? 0.3 : 1,
                     }}
                   >
-                    <IconCirclePlus size={30} color={colors.textPrimary} />
+                    <CirclePlus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -544,7 +547,7 @@ export default function SecondStep() {
                         maxOccupants <= roomLimits.maxOccupants.min ? 0.3 : 1,
                     }}
                   >
-                    <IconCircleMinus size={30} color={colors.textPrimary} />
+                    <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
                   <Text className="text-foreground text-xl font-interMedium">
@@ -559,7 +562,7 @@ export default function SecondStep() {
                         maxOccupants >= roomLimits.maxOccupants.max ? 0.3 : 1,
                     }}
                   >
-                    <IconCirclePlus size={30} color={colors.textPrimary} />
+                    <CirclePlus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
                 </View>
               </View>

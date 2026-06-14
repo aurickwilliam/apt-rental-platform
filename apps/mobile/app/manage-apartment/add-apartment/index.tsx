@@ -10,7 +10,6 @@ import { Button, TextField, Label, Input, FieldError } from "heroui-native"
 
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
-import { useColors } from '@/hooks/useTheme'
 
 interface FormErrors {
   name?: string
@@ -22,7 +21,6 @@ const MIN_ADDITIONAL_PHOTOS = 3
 
 export default function Index() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const [errors, setErrors] = useState<FormErrors>({})
 

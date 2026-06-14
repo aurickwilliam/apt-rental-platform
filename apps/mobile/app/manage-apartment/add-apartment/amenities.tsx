@@ -3,11 +3,12 @@ import { View, Text } from 'react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import Divider from '@/components/display/Divider'
 
-import { Chip, SearchField } from 'heroui-native'
+import { Chip, SearchField, Separator } from 'heroui-native'
 
-import Ionicons from '@expo/vector-icons/build/Ionicons'
+import {
+  X
+} from 'lucide-react-native'
 
 import { PERKS } from '@/constants/perks'
 
@@ -63,7 +64,7 @@ export default function Amenities() {
         </Text>
       )}
 
-      <Divider />
+      <Separator className='my-4' />
 
       {filteredSelected.length > 0 && (
         <View className='flex gap-3'>
@@ -80,7 +81,7 @@ export default function Amenities() {
               >
                 <perk.icon size={16} color={colors.primary} />
                 <Chip.Label>{perk.name}</Chip.Label>
-                <Ionicons name='close' size={12} />
+                <X size={12} />
               </Chip>
             ))}
           </View>
@@ -88,7 +89,7 @@ export default function Amenities() {
       )}
 
       {filteredSelected.length > 0 && filteredUnselected.length > 0 && (
-        <Divider />
+        <Separator className='my-4' />
       )}
 
       {filteredUnselected.length > 0 ? (
