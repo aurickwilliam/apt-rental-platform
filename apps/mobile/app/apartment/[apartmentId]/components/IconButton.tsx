@@ -1,10 +1,11 @@
 import { TouchableOpacity } from 'react-native';
-import { IconProps } from '@tabler/icons-react-native';
 
-import { useColors } from '@/hooks/useTheme';
+import { LucideIcon } from 'lucide-react-native';
+
+import { useColors } from 'hooks/useTheme';
 
 interface IconButtonProps {
-  iconName: React.ComponentType<IconProps>;
+  iconName: LucideIcon;
   buttonColor?: string;
   iconColor?: string;
   onPress?: () => void;
