@@ -46,7 +46,7 @@ export default function ApartmentSkeleton({
     style?: object;
   }) => (
     <Animated.View
-      className={`bg-grey-200 rounded-xl ${className ?? ''}`}
+      className={`bg-gray-200 rounded-xl ${className ?? ''}`}
       style={[{ opacity: skeletonOpacity }, style]}
     />
   );
@@ -54,7 +54,7 @@ export default function ApartmentSkeleton({
   return (
     <View className='flex-1'>
       <ScreenWrapper scrollable bottomPadding={100} noTopPadding>
-        <View className='h-168 bg-darkerWhite p-5 justify-end'>
+        <View className='h-168 bg-surface-secondary p-5 justify-end'>
           <View className='gap-3'>
             <SkeletonBlock className='h-8 w-3/4' />
             <SkeletonBlock className='h-5 w-11/12' />
@@ -75,7 +75,7 @@ export default function ApartmentSkeleton({
 
         <View className='px-5 mt-6 gap-4'>
           <SkeletonBlock className='h-6 w-2/3' />
-          <View className='p-4 bg-darkerWhite rounded-2xl gap-2'>
+          <View className='p-4 bg-surface-tertiary rounded-2xl gap-2'>
             <SkeletonBlock className='h-4 w-full' />
             <SkeletonBlock className='h-4 w-full' />
             <SkeletonBlock className='h-4 w-5/6' />
@@ -114,7 +114,7 @@ export default function ApartmentSkeleton({
         <View className='h-20' />
       </ScreenWrapper>
 
-      <View className='absolute bottom-0 left-0 right-0 bg-white z-10 px-5 py-4 border-t border-grey-200'>
+      <View className='absolute bottom-0 left-0 right-0 bg-surface-secondary z-10 px-5 py-4 border-t border-border'>
         <SafeAreaView
           className='flex items-start justify-between gap-3'
           edges={['bottom']}

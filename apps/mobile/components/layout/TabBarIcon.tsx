@@ -26,7 +26,7 @@ export default function TabBarIcon({
     <PlatformPressable
       onPress={onPress}
       onLongPress={onLongPress}
-      className={`flex-1 justify-center items-center rounded-full gap-[2px] m-2`}
+      className={`flex-1 justify-center items-center rounded-full gap-0.5 m-2`}
     >
       <View>
         {

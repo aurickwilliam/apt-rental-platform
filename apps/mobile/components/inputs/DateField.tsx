@@ -2,9 +2,9 @@ import { View, Text, Pressable, Platform, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 
-import { COLORS } from "@repo/constants";
-
 import { Calendar } from "lucide-react-native";
+
+import { useColors } from "hooks/useTheme"
 
 interface DateFieldProps {
   label?: string;
@@ -25,6 +25,8 @@ export default function DateField({
   error,
   required = false,
 }: DateFieldProps) {
+  const { colors } = useColors();
+
   const [show, setShow] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(value ?? new Date());
@@ -72,8 +74,8 @@ export default function DateField({
   return (
     <View className="w-full flex-col gap-2">
       {label && (
-        <Text className={`text-base font-interMedium ${error ? 'text-redHead-200' : 'text-text'}`}>
-          {label} {required && <Text className="text-redHead-200">*</Text>}
+        <Text className={`text-base font-interMedium ${error ? 'text-danger' : 'text-foreground'}`}>
+          {label} {required && <Text className="text-danger">*</Text>}
         </Text>
       )}
 
@@ -81,18 +83,18 @@ export default function DateField({
         onPress={openDatePicker}
         disabled={disabled}
         style={{ justifyContent: "space-between" }}
-        className={`bg-white border-2 rounded-2xl pl-3 pr-4 h-12 flex-row 
+        className={`bg-surface border-2 rounded-2xl pl-3 pr-4 h-12 flex-row 
           items-center justify-between
-          ${error ? "border-redHead-200" : isFocused ? "border-primary" : "border-grey-200"}`}
+          ${error ? "border-danger" : isFocused ? "border-accent" : "border-field-border"}`}
       >
-        <Text className={`font-inter ${value ? "text-text" : "text-grey-500"}`}>
+        <Text className={`font-inter ${value ? "text-foreground" : "text-gray-500"}`}>
           {displayValue}
         </Text>
-        <Calendar size={20} color={COLORS.mediumGrey} />
+        <Calendar size={20} color={colors.gray400} />
       </Pressable>
 
       {error && (
-        <Text className="text-md text-redHead-200 font-inter">{error}</Text>
+        <Text className="text-md text-danger font-inter">{error}</Text>
       )}
 
       {/* iOS Modal */}
@@ -110,17 +112,17 @@ export default function DateField({
           />
 
           {/* Sheet */}
-          <View className="bg-white rounded-t-3xl pb-8">
+          <View className="bg-surface-secondary rounded-t-3xl pb-8">
             {/* Toolbar */}
-            <View className="flex-row justify-between items-center px-4 pt-4 pb-2 border-b border-grey-200">
+            <View className="flex-row justify-between items-center px-4 pt-4 pb-2 border-b border-field-border">
               <Pressable onPress={handleCancel} className="py-1 px-2">
-                <Text className="text-base text-grey-500 font-inter">Cancel</Text>
+                <Text className="text-base text-gray-500 font-inter">Cancel</Text>
               </Pressable>
-              <Text className="text-base font-interMedium text-text">
+              <Text className="text-base font-interMedium text-foreground">
                 {label ?? "Select Date"}
               </Text>
               <Pressable onPress={handleDone} className="py-1 px-2">
-                <Text className="text-base text-primary font-interMedium">Done</Text>
+                <Text className="text-base text-accent font-interMedium">Done</Text>
               </Pressable>
             </View>
 

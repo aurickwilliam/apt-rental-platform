@@ -8,7 +8,7 @@ import {
 
 import ApartmentCard from 'components/cards/ApartmentCard';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from 'hooks/useTheme';
 
 type ApartmentsListProps = {
   apartments: ApartmentCardProps[];
@@ -37,6 +37,8 @@ export default function ApartmentsList({
   onRefresh,
   onLoadMore,
 }: ApartmentsListProps) {
+  const { colors } = useColors();
+
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
     <ApartmentCard
       {...item}
@@ -51,7 +53,7 @@ export default function ApartmentsList({
 
   const renderEmptyState = () => (
     <View className='flex-1 items-center justify-center py-10'>
-      <Text className='text-lg text-grey-500 font-interSemiBold'>
+      <Text className='text-lg text-gray-500 font-interSemiBold'>
         {error ?? 'No apartments found'}
       </Text>
     </View>
@@ -61,7 +63,7 @@ export default function ApartmentsList({
     if (!loadingMore) return null;
     return (
       <View className='py-4 items-center'>
-        <ActivityIndicator size='small' color={COLORS.primary} />
+        <ActivityIndicator size='small' color={colors.primary} />
       </View>
     );
   };
@@ -69,7 +71,7 @@ export default function ApartmentsList({
   if (loading && !refreshing) {
     return (
       <View className='flex-1 items-center justify-center'>
-        <ActivityIndicator size='large' color={COLORS.primary} />
+        <ActivityIndicator size='large' color={colors.primary} />
       </View>
     );
   }
@@ -91,8 +93,8 @@ export default function ApartmentsList({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={[COLORS.primary]}
-          tintColor={COLORS.primary}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }
     />

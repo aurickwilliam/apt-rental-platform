@@ -6,13 +6,11 @@ import { useRouter } from 'expo-router'
 import { MapView, Camera, ShapeSource, CircleLayer, setAccessToken } from '@maplibre/maplibre-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/components/display/ApplicationHeader'
+import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
 import PerkItem from 'components/display/PerkItem'
 import LandlordCard from 'components/cards/LandlordCard'
 
 import { Button, Dialog } from "heroui-native"
-
-import { COLORS } from '@repo/constants'
 
 import {
   IconMapPin,
@@ -31,13 +29,14 @@ import {
   IconCalendar,
 } from '@tabler/icons-react-native'
 
-import { useApartmentFormStore } from '@/store/useApartmentFormStore'
+import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
 import { formatCurrency } from '@repo/utils'
 
 import { useProfile } from '@/hooks/useProfile'
 import { useLandlordStats } from '@/hooks/useLandlordStats'
 import { usePublishApartment } from '@/hooks/usePublishApartment'
+import { useColors } from '@/hooks/useTheme'
 
 setAccessToken(null)  // Suppress the missing API key warning since we're using free OSM tiles
 
@@ -75,6 +74,7 @@ const DEFAULT_COORDS = {
 
 export default function FifthStep() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const [isReadMore, setIsReadMore] = useState<boolean>(false);
   const [isImageViewVisible, setIsImageViewVisible] = useState<boolean>(false);
@@ -156,7 +156,6 @@ export default function FifthStep() {
   return (
     <ScreenWrapper
       scrollable
-      backgroundColor={COLORS.white}
     >
       <ApplicationHeader
         currentTitle={'Preview & Publish'}
@@ -165,7 +164,7 @@ export default function FifthStep() {
         totalSteps={5}
       />
 
-      <View className='h-168 bg-white relative'>
+      <View className='h-168 bg-background relative'>
         {/* Image Carousel */}
         <ScrollView
           ref={imageScrollViewRef}
@@ -212,37 +211,37 @@ export default function FifthStep() {
             </Text>
 
             <View className='flex-row items-center mt-2 gap-2'>
-              <IconMapPin size={24} color={COLORS.lightLightLightGrey} />
-              <Text className='text-grey-100 font-interMedium text-base'>
+              <IconMapPin size={24} color={colors.secondaryForeground} />
+              <Text className='text-white font-interMedium text-base'>
                 {locationString || 'No location provided'}
               </Text>
             </View>
 
             <View className='flex-row items-center mt-5 gap-2'>
-              <IconStarFilled size={20} color={COLORS.secondary} />
-              <Text className='text-grey-100 font-interMedium text-base'>
+              <IconStarFilled size={20} color={colors.secondary} />
+              <Text className='text-white font-interMedium text-base'>
                 No ratings yet
               </Text>
             </View>
 
             <View className='flex-row items-center justify-between mt-5 gap-6'>
               <View className='flex-row items-center gap-2'>
-                <IconBed size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
+                <IconBed size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
                   {bedrooms} {bedrooms === 1 ? 'Bed' : 'Beds'}
                 </Text>
               </View>
 
               <View className='flex-row items-center gap-2'>
-                <IconBath size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
+                <IconBath size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
                   {bathrooms} {bathrooms === 1 ? 'Bath' : 'Baths'}
                 </Text>
               </View>
 
               <View className='flex-row items-center gap-2'>
-                <IconMaximize size={24} color={COLORS.lightLightLightGrey} />
-                <Text className='text-grey-100 font-interMedium text-base'>
+                <IconMaximize size={24} color={colors.secondaryForeground} />
+                <Text className='text-white font-interMedium text-base'>
                   {floorArea ? `${floorArea} Sqm` : 'N/A'}
                 </Text>
               </View>
@@ -273,7 +272,7 @@ export default function FifthStep() {
               return (
                 <Animated.View
                   key={index}
-                  className='h-2 bg-darkerWhite rounded mx-1'
+                  className='h-2 bg-white rounded mx-1'
                   style={[{ width: dotWidth, opacity }]}
                 />
               );
@@ -284,32 +283,32 @@ export default function FifthStep() {
 
       <View className='mt-5 px-5'>
         <View className='flex-row gap-6'>
-          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
-            <IconUsers size={24} color={COLORS.text} />
-            <Text className='text-text font-interMedium text-base'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <IconUsers size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
               Max {maxOccupants} {maxOccupants === 1 ? 'Occupant' : 'Occupants'}
             </Text>
           </View>
 
-          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
-            <IconBuildingSkyscraper size={24} color={COLORS.text} />
-            <Text className='text-text font-interMedium text-base'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <IconBuildingSkyscraper size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
               {floorLevel ? `${floorLevel}` : 'N/A'}
             </Text>
           </View>
         </View>
 
         <View className='flex-row mt-4 mb-5 gap-6'>
-          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
-            <IconHome2 size={24} color={COLORS.text} />
-            <Text className='text-text font-interMedium text-base'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <IconHome2 size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
               {apartmentType || 'N/A'}
             </Text>
           </View>
 
-          <View className='flex-1 flex-row items-center gap-2 bg-darkerWhite p-3 rounded-2xl'>
-            <IconCalendar size={24} color={COLORS.text} />
-            <Text className='text-text font-interMedium text-base'>
+          <View className='flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border'>
+            <IconCalendar size={24} color={colors.textPrimary} />
+            <Text className='text-foreground font-interMedium text-base'>
               {leaseDuration || 'N/A'}
             </Text>
           </View>
@@ -318,14 +317,14 @@ export default function FifthStep() {
 
       {/* Apartment Description */}
       <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <IconBuildingCommunity size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconBuildingCommunity size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           Everything About Your Apartment
         </Text>
       </View>
 
-      <View className='mt-3 mx-5 p-4 bg-darkerWhite rounded-2xl'>
-        <Text>
+      <View className='mt-3 mx-5 p-4 bg-surface rounded-2xl border border-border'>
+        <Text className='text-foreground text-base font-inter'>
           {description
             ? isReadMore
               ? description
@@ -352,14 +351,16 @@ export default function FifthStep() {
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
-            <IconSquareCheck size={26} color={COLORS.text} />
-            <Text className='font-interSemiBold text-lg text-text'>
+            <IconSquareCheck size={26} color={colors.textPrimary} />
+            <Text className='font-interSemiBold text-lg text-foreground'>
               Included Perks
             </Text>
           </View>
         </View>
 
-        <Text>These are already included in your rent.</Text>
+        <Text className='text-muted font-inter'>
+          These are already included in your rent.
+        </Text>
       </View>
 
       {/* List of Perks */}
@@ -371,15 +372,15 @@ export default function FifthStep() {
               </View>
             ))
           : (
-            <Text className='text-text font-inter'>No amenities selected.</Text>
+            <Text className='text-foreground font-inter'>No amenities selected.</Text>
           )
         }
       </View>
 
       {/* Map View */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconMap size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           View on Map
         </Text>
       </View>
@@ -428,7 +429,7 @@ export default function FifthStep() {
                   id='pin-dot'
                   style={{
                     circleRadius: 7,
-                    circleColor: COLORS.primary,
+                    circleColor: colors.primary,
                   }}
                 />
               </ShapeSource>
@@ -439,8 +440,8 @@ export default function FifthStep() {
 
       {/* Landlord Card */}
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconUser size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconUser size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           Meet Your Rental Owner
         </Text>
       </View>
@@ -448,7 +449,7 @@ export default function FifthStep() {
       <View className='px-5 mt-3'>
         {isLoading ? (
           <View className='h-40 items-center justify-center'>
-            <ActivityIndicator color={COLORS.primary} />
+            <ActivityIndicator color={colors.primary} />
           </View>
         ) : profile ? (
           <LandlordCard
@@ -463,13 +464,13 @@ export default function FifthStep() {
       {/* Lease Agreement */}
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center gap-2'>
-          <IconFileDescription size={26} color={COLORS.text} />
-          <Text className='font-interSemiBold text-lg text-text'>
+          <IconFileDescription size={26} color={colors.textPrimary} />
+          <Text className='font-interSemiBold text-lg text-foreground'>
             Lease Agreement & Rules
           </Text>
         </View>
 
-        <Text className='text-text text-base font-inter'>
+        <Text className='text-foreground text-base font-inter'>
           Please review the rental owner&apos;s property rules before applying.
         </Text>
 
@@ -486,18 +487,18 @@ export default function FifthStep() {
       </View>
 
       {/* Footer */}
-      <View className='bg-white mt-20 px-5 py-4 border border-grey-200'>
+      <View className='bg-surface-secondary mt-20 px-5 py-4 border-t border-border'>
         <View className='flex-row gap-5 items-center'>
           <View className="flex-col">
             <View className='flex-row items-baseline'>
-              <Text className='text-2xl font-interSemiBold text-primary'>
+              <Text className='text-2xl font-interSemiBold text-accent'>
                 ₱ {formatCurrency(Number(monthlyRent))}
               </Text>
-              <Text className='text-sm font-interMedium text-grey-500 ml-1'>
+              <Text className='text-sm font-interMedium text-muted ml-1'>
                 /month
               </Text>
             </View>
-            <Text className='text-xs font-inter text-grey-500 mt-1 underline'>
+            <Text className='text-xs font-inter text-muted mt-1 underline'>
               Move-in cost breakdown
             </Text>
           </View>

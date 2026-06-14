@@ -1,10 +1,12 @@
 import { View, Text, Alert, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { Avatar, Button } from "heroui-native";
 
-import { COLORS } from "@repo/constants";
 import { DEFAULT_IMAGES } from "constants/images";
+
+import { useColors } from "@/hooks/useTheme";
 
 import {
   IconChevronLeft,
@@ -19,12 +21,12 @@ interface ChatHeaderProps {
 }
 
 export default function ChatHeader({ 
-    name, 
-    profilePicture,
-    onBackPress,
-    phoneNumber,
-  }: ChatHeaderProps) {
-
+  name, 
+  profilePicture,
+  onBackPress,
+  phoneNumber,
+}: ChatHeaderProps) {
+  const { colors } = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -51,7 +53,7 @@ export default function ChatHeader({
 
   return (
     <View
-      className="flex-row items-center justify-between bg-primary px-4 py-3"
+      className="flex-row items-center justify-between bg-accent px-4 py-3"
       style={{ paddingTop: insets.top }}
     >
 
@@ -64,7 +66,7 @@ export default function ChatHeader({
           onPress={handleBack}
           className="-ml-1"
         >
-          <IconChevronLeft size={24} color={COLORS.white} />
+          <IconChevronLeft size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
 
@@ -101,7 +103,7 @@ export default function ChatHeader({
           size="sm"
           onPress={handleCall}
         >
-          <IconPhone size={24} color={COLORS.white} />
+          <IconPhone size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
     </View>

@@ -27,14 +27,14 @@ export default function StepTwo() {
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-base font-inter">
+            <Text className="text-foreground text-base font-inter">
               Select your preferred price range to see listings that fit your budget.
             </Text>
           </View>
 
           <View className="flex-1 items-center justify-center gap-10">
             {/* Rent Amount */}
-            <Text className="text-primary text-3xl font-interSemiBold">
+            <Text className="text-primary text-3xl font-nunitoSemiBold">
               ₱ {budgetRange[0].toLocaleString()} - ₱ {budgetRange[1].toLocaleString()}
             </Text>
 

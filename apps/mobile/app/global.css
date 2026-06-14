@@ -14,7 +14,7 @@
 @source '../../../packages/utils/src';
 
 @theme {
-  /* Font families — single font only, no fallbacks in React Native */
+  /* Font families */
   --font-inter: 'Inter_24pt-Regular';
   --font-interMedium: 'Inter_24pt-Medium';
   --font-interSemiBold: 'Inter_24pt-SemiBold';
@@ -23,74 +23,149 @@
   --font-nunitoSemiBold: 'Nunito-SemiBold';
   --font-nunitoBold: 'Nunito-Bold';
 
-  /* Colors */
+  /* Brand */
   --color-primary: #376BF5;
-  --color-lightBlue: #EFF6FF;
+  --color-primary-light: #EFF6FF;
   --color-secondary: #FFA500;
-  --color-darkerWhite: #F8F9FA;
-  --color-text: #333333;
+  --color-secondary-foreground: #FFFFFF;
+  --color-secondary-light: #FFF3E0;
 
-  --color-grey-100: #E5E7EB;
-  --color-grey-200: #D1D5DB;
-  --color-grey-300: #BDBDBD;
-  --color-grey-400: #9CA3AF;
-  --color-grey-500: #6C757D;
+  /* Neutral */
+  --color-gray-100: #E5E7EB;
+  --color-gray-200: #D1D5DB;
+  --color-gray-300: #BDBDBD;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6C757D;
 
-  --color-greenHulk-100: #E6F4EA;
-  --color-greenHulk-200: #22C55E;
+  /* Semantic */
+  --color-success: #22C55E;
+  --color-success-light: #E6F4EA;
+  --color-warning: #FACC15;
+  --color-warning-light: #FFF8E1;
+  --color-danger: #E50914;
+  --color-danger-mid: #FF4B4B;
+  --color-danger-light: #FDA4AF;
 
-  --color-redHead-50: #FDA4AF;
-  --color-redHead-100: #FF4B4B;
-  --color-redHead-200: #E50914;
-
-  --color-yellowish-100: #FFF8E1;
-  --color-yellowish-200: #FACC15;
+  /* Dark mode primitives */
+  --color-dark-bg: #121212;
+  --color-dark-surface: #1E1E1E;
+  --color-dark-surface-raised: #2A2A2A;
+  --color-dark-primary: #5B8BF7;
+  --color-dark-primary-light: #1A2340;
+  --color-dark-secondary-light: #2E2212;
+  --color-dark-gray-100: #1E1E1E;
+  --color-dark-gray-200: #2A2A2A;
+  --color-dark-gray-300: #3D3D3D;
+  --color-dark-gray-400: #6B7280;
+  --color-dark-success: #4ADE80;
+  --color-dark-success-light: #14291E;
+  --color-dark-warning: #FDE047;
+  --color-dark-warning-light: #2A2410;
+  --color-dark-danger: #F87171;
+  --color-dark-danger-mid: #FCA5A5;
+  --color-dark-danger-light: #2D1515;
 }
 
 @layer theme {
   @variant light {
+    /* Background */
+    --background: oklch(0.9702 0 0);
+    --foreground: var(--eclipse);
+
+    /* Surfaces */
+    --surface: var(--white);
+    --surface-foreground: var(--foreground);
+    --surface-secondary: oklch(0.9524 0.0013 286.37);
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: oklch(0.9373 0.0013 286.37);
+    --surface-tertiary-foreground: var(--foreground);
+
+    /* Overlay */
+    --overlay: var(--white);
+    --overlay-foreground: var(--foreground);
+    --backdrop: oklch(0% 0 0 / 20%);
+
+    /* Brand */
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
+    --color-secondary-light: #FFF3E0; 
 
-    --secondary: var(--color-secondary);
-    --secondary-foreground: oklch(1 0 0);
-
-    --warning: var(--color-secondary);
-    --warning-foreground: oklch(1 0 0);
-
-    --field-shadow: none;
-    --field-border: oklch(0.88 0.005 264);
-
-    --danger: var(--color-redHead-200);
+    /* Semantic */
+    --success: var(--color-success);
+    --success-foreground: oklch(1 0 0);
+    --warning: var(--color-warning);
+    --warning-foreground: var(--eclipse);
+    --danger: var(--color-danger);
     --danger-foreground: oklch(1 0 0);
 
-    --success: var(--color-greenHulk-200);
-    --success-foreground: oklch(1 0 0);
+    /* Fields */
+    --field-background: var(--white);
+    --field-foreground: var(--eclipse);
+    --field-placeholder: oklch(0.5517 0.0138 285.94);
+    --field-border: oklch(0.88 0.005 264);
+    --field-shadow: none;
 
+    /* Misc */
+    --muted: oklch(0.5517 0.0138 285.94);
+    --default: oklch(94% 0.001 286.375);
+    --default-foreground: var(--eclipse);
+    --border: oklch(90% 0.004 286.32);
+    --separator: oklch(74% 0.004 286.32);
     --focus: var(--color-primary);
-
+    --link: var(--foreground);
+    --segment: var(--white);
+    --segment-foreground: var(--eclipse);
   }
 
   @variant dark {
-    --accent: var(--color-primary);
+    /* Background */
+    --background: oklch(12% 0.005 285.823);
+    --foreground: var(--snow);
+
+    /* Surfaces */
+    --surface: oklch(0.2103 0.0059 285.89);
+    --surface-foreground: var(--foreground);
+    --surface-secondary: oklch(0.227 0.004 285);
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: oklch(0.26 0.004 285);
+    --surface-tertiary-foreground: var(--foreground);
+
+    /* Overlay */
+    --overlay: oklch(0.2103 0.0059 285.89);
+    --overlay-foreground: var(--foreground);
+    --backdrop: oklch(0% 0 0 / 40%);
+
+    /* Brand */
+    --accent: var(--color-dark-primary);
     --accent-foreground: oklch(1 0 0);
 
-    --secondary: var(--color-secondary);
-    --secondary-foreground: oklch(0.2 0 0);
-
-    --warning: var(--color-secondary);
-    --warning-foreground: oklch(0.2 0 0);
-
-    --field-shadow: none;
-    --field-border: oklch(0.35 0.02 264);
-
-    --danger: var(--color-redHead-200);
+    /* Semantic */
+    --success: var(--color-dark-success);
+    --success-foreground: var(--eclipse);
+    --warning: var(--color-dark-warning);
+    --warning-foreground: var(--eclipse);
+    --danger: var(--color-dark-danger);
     --danger-foreground: oklch(1 0 0);
 
-    --success: var(--color-greenHulk-200);
-    --success-foreground: oklch(1 0 0);
+    /* Fields */
+    --field-background: oklch(0.2103 0.0059 285.89);
+    --field-foreground: var(--foreground);
+    --field-placeholder: oklch(0.55 0.01 285);
+    --field-border: oklch(0.35 0.02 264);
+    --field-shadow: none;
 
-    --focus: var(--color-primary);
+    /* Misc */
+    --muted: oklch(0.55 0.01 285);
+    --default: oklch(27.4% 0.006 286.033);
+    --default-foreground: var(--snow);
+    --border: oklch(28% 0.006 286.033);
+    --separator: oklch(40% 0.006 286.033);
+    --focus: var(--color-dark-primary);
+    --link: var(--foreground);
+    --segment: oklch(0.3964 0.01 285.93);
+    --segment-foreground: var(--foreground);
 
+    /* Override secondary-light for dark mode */
+    --color-secondary-light: #2E2212;
   }
 }

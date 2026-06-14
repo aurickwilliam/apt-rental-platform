@@ -11,10 +11,11 @@ import {
   IconChevronLeft
 } from '@tabler/icons-react-native'
 
-import { COLORS } from '@repo/constants'
+import { useColors } from 'hooks/useTheme';
 
 export default function Index() {
   const router = useRouter();
+  const { colors } = useColors();
 
   // Handle Forgot Password Logic
   const handleForgotPassword = (method: 'sms' | 'email') => {
@@ -34,7 +35,7 @@ export default function Index() {
           onPress={() => router.back()}
           className='my-5'
         >
-          <IconChevronLeft size={26} color={COLORS.text} />
+          <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
       
@@ -43,11 +44,11 @@ export default function Index() {
           Forgot Password
         </Text>
 
-        <Text className='text-text text-base font-inter'>
+        <Text className='text-foreground text-base font-inter'>
           Don’t worry, it happens! We’ll help you reset your password in a few steps.
         </Text>
 
-        <Text className='text-text text-base font-inter'>
+        <Text className='text-foreground text-base font-inter'>
           For your security, please select a verified recovery method.
         </Text>
 
@@ -57,7 +58,7 @@ export default function Index() {
             variant='outline'
             onPress={() => handleForgotPassword('sms')}
           >
-            <IconMessage size={20} color={COLORS.text} />
+            <IconMessage size={20} color={colors.textPrimary} />
             <Button.Label className='font-interMedium'>
               Send via SMS
             </Button.Label>
@@ -68,8 +69,8 @@ export default function Index() {
             variant='outline'
             onPress={() => handleForgotPassword('email')}
           >
-            <IconMail size={20} color={COLORS.text} />
-            <Button.Label className='font-interMedium'>
+            <IconMail size={20} color={colors.textPrimary} />
+            <Button.Label className='font-interMedium text-foreground'>
               Send via Email
             </Button.Label>
           </Button>

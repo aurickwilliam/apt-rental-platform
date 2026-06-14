@@ -1,16 +1,36 @@
-import { TabBar } from 'components/layout/TabBar'
-import { Tabs } from 'expo-router'
+import { DynamicColorIOS, Platform } from 'react-native';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+
+import { useColors } from 'hooks/useTheme';
 
 export default function LandlordTabLayout() {
+  const { colors } = useColors();
+
+  const tint = Platform.OS === 'ios'
+    ? DynamicColorIOS({ dark: colors.primary, light: colors.primary })
+    : colors.primary;
+
   return (
-    <Tabs 
-      tabBar={(props) => <TabBar {...props} userType="landlord"/>}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tabs.Screen name='dashboard' options={{title: "Dashboard"}}/>
-      <Tabs.Screen name='units' options={{title: "Units"}}/>
-      <Tabs.Screen name='chat' options={{title: "Chat"}}/>
-      <Tabs.Screen name='profile' options={{title: "Profile"}}/>
-    </Tabs>
-  )
+    <NativeTabs tintColor={tint} labelStyle={{ color: tint }}>
+      <NativeTabs.Trigger name="dashboard">
+        <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' }} md="dashboard" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="units">
+        <NativeTabs.Trigger.Label>Units</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'building.2', selected: 'building.2.fill' }} md="apartment" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="chat">
+        <NativeTabs.Trigger.Label>Chat</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'bubble.left', selected: 'bubble.left.fill' }} md="chat_bubble" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'person', selected: 'person.fill' }} md="person" />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
 }

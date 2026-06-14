@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react';
 
 import {
-  COLORS,
   PROVINCES,
   GENDERS,
   SUFFIXES,
@@ -24,7 +23,9 @@ import {
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
-import { useRegistrationStore } from '@/store/useRegistrationStore';
+import { useRegistrationStore } from '@/stores/useRegistrationStore';
+
+import { useColors } from 'hooks/useTheme';
 
 import { 
   CloseButton,
@@ -80,6 +81,7 @@ const requiredFields: (keyof ProfileForm)[] = [
 
 export default function CompleteProfile() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const { email, userSide } = useLocalSearchParams();
   const { setData, reset, data } = useRegistrationStore();
@@ -212,7 +214,11 @@ export default function CompleteProfile() {
       const { error } = await supabase.auth.signUp({
         email: emailValue!,
         password,
-        options: { data: { full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}` } }
+        options: {
+          data: {
+            full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}`,
+          },
+        },
       });
       if (error) throw error;
 
@@ -270,11 +276,11 @@ export default function CompleteProfile() {
       {/* Back button */}
       <CloseButton
         onPress={handleBackToSignUp}
-        iconProps={{ size: 20, color: COLORS.text }}
+        iconProps={{ size: 20, color: colors.textPrimary }}
       />
 
       {/* Title */}
-      <Text className="text-2xl text-text font-interSemiBold my-5">
+      <Text className="text-2xl text-foreground font-interSemiBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
@@ -292,7 +298,7 @@ export default function CompleteProfile() {
         {/* 
           ===== Personal Information Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-interMedium mt-3">
           Personal Information
         </Text>
 
@@ -386,7 +392,7 @@ export default function CompleteProfile() {
         {/* 
           ===== Address Information Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-interMedium mt-3">
           Address Information
         </Text>
 
@@ -470,7 +476,9 @@ export default function CompleteProfile() {
         {/* 
           ===== Account Security Section =====
         */}
-        <Text className="text-xl font-interMedium mt-3">Account Security</Text>
+        <Text className="text-xl text-foreground font-interMedium mt-3">
+          Account Security
+        </Text>
 
         {/* Password Field */}
         <TextField isRequired isInvalid={!!getError("password")}>
@@ -492,9 +500,9 @@ export default function CompleteProfile() {
                 hitSlop={20}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.grey} />
+                  <EyeOff size={20} color={colors.gray400} />
                 ) : (
-                  <Eye size={20} color={COLORS.grey} />
+                  <Eye size={20} color={colors.gray400} />
                 )}
               </Pressable>
             </InputGroup.Suffix>
@@ -524,9 +532,9 @@ export default function CompleteProfile() {
                 hitSlop={20}
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color={COLORS.grey} />
+                  <EyeOff size={20} color={colors.gray400} />
                 ) : (
-                  <Eye size={20} color={COLORS.grey} />
+                  <Eye size={20} color={colors.gray400} />
                 )}
               </Pressable>
             </InputGroup.Suffix>
@@ -539,30 +547,30 @@ export default function CompleteProfile() {
 
         {/* Password Checker */}
         <View className="flex-col gap-1">
-          <Text className="text-text font-interMedium mb-2">
+          <Text className="text-foreground font-interMedium mb-2">
             Your password must contain:
           </Text>
 
           {/* Minimum Length of 8 Char */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.minLength ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
+              <CircleCheck size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
+              <Minus size={20} color={colors.gray300} />
             )}
 
-            <Text className="text-text font-inter">At least 8 characters</Text>
+            <Text className="text-foreground font-inter">At least 8 characters</Text>
           </View>
 
           {/* At least one lowercase letter (a–z) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasLowercase ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
+              <CircleCheck size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
+              <Minus size={20} color={colors.gray200} />
             )}
 
-            <Text className="text-text font-inter">
+            <Text className="text-foreground font-inter">
               At least one lowercase letter (a–z)
             </Text>
           </View>
@@ -570,12 +578,12 @@ export default function CompleteProfile() {
           {/* At least one uppercase letter (A–Z) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasUppercase ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
+              <CircleCheck size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
+              <Minus size={20} color={colors.gray300} />
             )}
 
-            <Text className="text-text font-inter">
+            <Text className="text-foreground font-inter">
               At least one uppercase letter (A–Z)
             </Text>
           </View>
@@ -583,12 +591,12 @@ export default function CompleteProfile() {
           {/* At least one number (0–9) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasNumber ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
+              <CircleCheck size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
+              <Minus size={20} color={colors.gray300} />
             )}
 
-            <Text className="text-text font-inter">
+            <Text className="text-foreground font-inter">
               At least one number (0–9)
             </Text>
           </View>
@@ -596,11 +604,11 @@ export default function CompleteProfile() {
           {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasSpecialChar ? (
-              <CircleCheck size={20} color={COLORS.greenHulk} />
+              <CircleCheck size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={COLORS.lightGrey} />
+              <Minus size={20} color={colors.gray300} />
             )}
-            <Text className="text-text font-inter">
+            <Text className="text-foreground font-inter">
               at least one special character (e.g. ! @ # $ % ^ & *)
             </Text>
           </View>
@@ -612,7 +620,7 @@ export default function CompleteProfile() {
         <Button onPress={handleSubmit} isDisabled={loading}>
           <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
           {loading && (
-            <Spinner size="sm" color={COLORS.white} className="ml-2" />
+            <Spinner size="sm" color={colors.white} className="ml-2" />
           )}
         </Button>
       </View>

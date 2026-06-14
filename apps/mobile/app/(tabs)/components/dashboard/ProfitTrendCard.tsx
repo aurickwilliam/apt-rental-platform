@@ -2,8 +2,9 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { LineChart } from 'react-native-gifted-charts'
 
-import DropdownButton from '../buttons/DropdownButton'
-import { COLORS } from '@repo/constants'
+import DropdownButton from '@/components/buttons/DropdownButton'
+
+import { useColors } from '@/hooks/useTheme'
 
 const DUMMY_DATA = {
   Monthly: [
@@ -36,20 +37,22 @@ const DUMMY_DATA = {
 const filterOptions = ['Monthly', 'Quarterly', 'Yearly']
 
 export default function ProfitTrendCard() {
+  const { colors } = useColors();
+
   const [selectedFilter, setSelectedFilter] = useState<keyof typeof DUMMY_DATA>('Monthly')
 
   const chartData = DUMMY_DATA[selectedFilter]
   const maxValue = Math.max(...chartData.map((d) => d.value))
 
   return (
-    <View className='w-full border border-grey-200 p-4 rounded-2xl bg-white'>
+    <View className='w-full border border-border p-4 rounded-3xl bg-surface'>
       {/* HEADER */}
       <View className='flex-row items-center justify-between'>
         <View className='flex'>
-          <Text className='text-primary font-interSemiBold text-xl'>
+          <Text className='text-accent font-interSemiBold text-xl'>
             Profit Trend
           </Text>
-          <Text className='text-grey-500 font-inter text-base'>
+          <Text className='text-muted font-inter'>
             Track your profit over time
           </Text>
         </View>
@@ -69,11 +72,11 @@ export default function ProfitTrendCard() {
           height={180}
           width={280}
           curved
-          color={COLORS.primary}
+          color={colors.primary}
           thickness={2.5}
-          dataPointsColor={COLORS.primary}
+          dataPointsColor={colors.primary}
           dataPointsRadius={4}
-          startFillColor={COLORS.primary}
+          startFillColor={colors.primary}
           endFillColor={'#ffffff'}
           startOpacity={0.2}
           endOpacity={0.01}
@@ -91,9 +94,9 @@ export default function ProfitTrendCard() {
           formatYLabel={(val) => `₱${Number(val) / 1000}k`}
           pointerConfig={{
             pointerStripHeight: 140,
-            pointerStripColor: COLORS.primary,
+            pointerStripColor: colors.primary,
             pointerStripWidth: 1,
-            pointerColor: COLORS.primary,
+            pointerColor: colors.primary,
             radius: 5,
             pointerLabelWidth: 90,
             pointerLabelHeight: 38,
@@ -102,7 +105,7 @@ export default function ProfitTrendCard() {
             pointerLabelComponent: (items: any) => (
               <View
                 style={{
-                  backgroundColor: COLORS.primary,
+                  backgroundColor: colors.primary,
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 4,

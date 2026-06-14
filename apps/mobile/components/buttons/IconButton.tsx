@@ -1,7 +1,7 @@
 import { TouchableOpacity } from 'react-native';
 import { IconProps } from '@tabler/icons-react-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 interface IconButtonProps {
   iconName: React.ComponentType<IconProps>;
@@ -12,10 +12,15 @@ interface IconButtonProps {
 
 export default function IconButton({
   iconName: IconName,
-  buttonColor = COLORS.white,
-  iconColor = COLORS.text,
+  buttonColor,
+  iconColor,
   onPress
 }: IconButtonProps) {
+  const { colors } = useColors();
+
+  buttonColor = buttonColor || colors.surface;
+  iconColor = iconColor || colors.textPrimary;
+
   return (
     <TouchableOpacity
       onPress={onPress}

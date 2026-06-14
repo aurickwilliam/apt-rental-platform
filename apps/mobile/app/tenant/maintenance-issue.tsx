@@ -89,7 +89,7 @@ export default function MaintenanceIssue() {
           bottomSheetLabel={'Select Issue Category'} 
           options={MAINTENANCE_CATEGORIES}
           value={maintenanceDetails.category}
-          onSelect={(value) => setMaintenanceDetails({...maintenanceDetails, category: value})}          
+          onSelect={(value) => setMaintenanceDetails({...maintenanceDetails, category: value ? value : ''})}          
           placeholder='Select a Category'
           required
         />

@@ -3,20 +3,23 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 
 import {
-  IconLayoutGrid,
-  IconLayoutList
-} from "@tabler/icons-react-native";
+  LayoutGrid,
+  Rows3,
+} from 'lucide-react-native';
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from 'components/layout/StandardHeader';
 import ApartmentCard from 'components/cards/ApartmentCard';
 
-import { COLORS } from "@repo/constants";
 import { useFavorites } from '@/hooks/useFavorites';
+import { useColors } from '@/hooks/useTheme';
+
 import { fetchApartmentsByIds, type FavoriteApartment } from '@/service/favoritesService';
 
 export default function TenantFavorites() {
   const router = useRouter();
+  const { colors } = useColors();
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
   const [loadingApartments, setLoadingApartments] = useState(false);
@@ -115,14 +118,14 @@ export default function TenantFavorites() {
       {
         viewMode === 'grid'
           ? (
-            <IconLayoutList 
+            <Rows3 
               size={24}
-              color={COLORS.white}
+              color={colors.secondaryForeground}
             />
           ) : (
-            <IconLayoutGrid
+            <LayoutGrid
               size={24}
-              color={COLORS.white}
+              color={colors.secondaryForeground}
             />
           )
       }
@@ -142,12 +145,11 @@ export default function TenantFavorites() {
           rightComponent={ToggleFavoritesView}
         />
       }
-      backgroundColor={COLORS.darkerWhite}
       noBottomPadding
     >
       {isLoading ? (
         <View className='flex-1 items-center justify-center py-10'>
-          <ActivityIndicator size='large' color={COLORS.primary} />
+          <ActivityIndicator size='large' color={colors.primary} />
         </View>
       ) : (
         <FlatList

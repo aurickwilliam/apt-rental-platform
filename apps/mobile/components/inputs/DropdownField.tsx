@@ -16,7 +16,7 @@ import {
   ChevronUp,
 } from "lucide-react-native"
 
-import { COLORS } from '@repo/constants';
+import { useColors } from "hooks/useTheme";
 
 interface SearchInputProps {
   value: string;
@@ -66,6 +66,8 @@ export default function DropdownField({
   searchPlaceholder = 'Search...',
   disabled = false,
 }: DropdownFieldProps) {
+  const { colors } = useColors();
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isDisabled = !!disabled;
@@ -91,8 +93,8 @@ export default function DropdownField({
   return (
     <View className="w-full flex-col gap-2">
 
-      <Text className={`text-base font-interMedium ${error ? 'text-redHead-200' : 'text-text'}`}>
-        {label} {required && <Text className="text-redHead-200">*</Text>}
+      <Text className={`text-base font-interMedium ${error ? 'text-danger' : 'text-foreground'}`}>
+        {label} {required && <Text className="text-danger">*</Text>}
       </Text>
 
       <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
@@ -100,30 +102,30 @@ export default function DropdownField({
         <BottomSheet.Trigger asChild>
           <Pressable
             disabled={isDisabled}
-            style={{ alignItems: 'center' }} 
-            className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
+            style={{ alignItems: 'center' }}
+            className={`border rounded-2xl pl-3 pr-4 h-12 flex-row items-center
               justify-between shadow-xs ${
                 isDisabled
-                  ? 'bg-gray-100 border-gray-200'
+                  ? 'bg-surface-tertiary border-field-border'
                   : error
-                  ? 'bg-white border-redHead-200'
+                  ? 'bg-surface border-danger'
                   : isOpen
-                  ? 'bg-white border-primary'
-                  : 'bg-white border-gray-200'
+                  ? 'bg-surface border-focus'
+                  : 'bg-surface border-field-border'
               }`}
           >
             <Text
               className={`font-inter ${
-                isDisabled ? 'text-gray-400' : value ? 'text-text' : 'text-gray-500'
+                isDisabled ? 'text-gray-400' : value ? 'text-foreground' : 'text-gray-500'
               }`}
             >
               {value || placeholder}
             </Text>
 
             {isOpen ? (
-              <ChevronUp size={20} color={COLORS.text} />
+              <ChevronUp size={20} color={colors.textPrimary} />
             ) : (
-              <ChevronDown size={20} color={COLORS.text} />
+              <ChevronDown size={20} color={colors.textPrimary} />
             )}
           </Pressable>
         </BottomSheet.Trigger>
@@ -138,7 +140,7 @@ export default function DropdownField({
             keyboardBehavior="extend"
             keyboardBlurBehavior="restore"
             android_keyboardInputMode="adjustResize"
-            backgroundClassName="bg-white"
+            backgroundClassName="bg-surface-secondary"
             handleIndicatorClassName="bg-gray-300 w-10"
           >
             <BottomSheetFlatList
@@ -151,17 +153,17 @@ export default function DropdownField({
                 return (
                   <>
                     <Pressable
-                      className={`p-3 rounded-xl flex-row items-center justify-between ${isSelected ? 'bg-primary/10' : 'bg-transparent'}`}
+                      className={`p-3 rounded-xl flex-row items-center justify-between ${isSelected ? 'bg-accent/10' : 'bg-transparent'}`}
                       onPress={() => {
                         onSelect(isSelected ? null : item);
                         setIsOpen(false);
                       }}
                     >
-                      <Text className="text-base text-text text-left font-inter">
+                      <Text className="text-base text-foreground text-left font-inter">
                         {item}
                       </Text>
 
-                      {isSelected && <Check size={20} color={COLORS.primary} />}
+                      {isSelected && <Check size={20} color={colors.primary} />}
                     </Pressable>
 
                     <Separator className="bg-gray-300 my-1" />
@@ -170,7 +172,7 @@ export default function DropdownField({
               }}
               ListHeaderComponent={
                 <View>
-                  <Text className="text-base text-center text-text font-interMedium border-b border-grey-200 pb-3 mb-4">
+                  <Text className="text-base text-center text-foreground font-interMedium border-b border-gray-200 pb-3 mb-4">
                     {bottomSheetLabel}
                   </Text>
                   {enableSearch && (
@@ -199,7 +201,7 @@ export default function DropdownField({
       </BottomSheet>
 
       {error && (
-        <Text className="text-sm text-redHead-200 font-inter">{error}</Text>
+        <Text className="text-sm text-danger font-inter">{error}</Text>
       )}
 
     </View>

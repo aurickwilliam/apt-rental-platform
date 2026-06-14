@@ -1,11 +1,12 @@
 import { TouchableOpacity, Text, View } from "react-native";
-import { IconProps } from "@tabler/icons-react-native";
 
-import { COLORS } from "@repo/constants";
+import { LucideIcon } from "lucide-react-native";
+
+import { useColors } from "hooks/useTheme";
 
 interface QuickActionButtonProps {
   label: string;
-  icon: React.ComponentType<IconProps>;
+  icon: LucideIcon;
   onPress?: () => void;
 }
 
@@ -14,6 +15,8 @@ export default function QuickActionButton({
   icon: Icon,
   onPress
 }: QuickActionButtonProps) {
+  const { colors } = useColors();
+
   return (
     <View className="w-1/4 px-2 mb-4">
       <TouchableOpacity
@@ -22,16 +25,16 @@ export default function QuickActionButton({
         activeOpacity={0.7}
       >
         {/* Icon Label */}
-        <View className="aspect-square p-4 bg-darkerWhite justify-center items-center rounded-xl">
+        <View className="aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-2xl">
           <Icon
-            size={30}
-            color={COLORS.grey}
+            size={26}
+            color={colors.gray500}
             strokeWidth={2}
           />
         </View>
 
         {/* Text Label */}
-        <Text className="text-center text-[12px] text-grey-500 font-inter">
+        <Text className="text-center text-[12px] text-foreground font-inter">
           {label}
         </Text>
       </TouchableOpacity>

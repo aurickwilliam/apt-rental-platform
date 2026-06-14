@@ -13,7 +13,7 @@ import { IconMap } from '@tabler/icons-react-native';
 
 import { Dialog, Button } from "heroui-native"
 
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 setAccessToken(null);
 
@@ -63,6 +63,8 @@ export default function MapPreviewSection({
   longitude,
   onOpenMap,
 }: MapPreviewSectionProps) {
+  const { colors } = useColors();
+
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] =
     useState(false);
 
@@ -129,8 +131,8 @@ export default function MapPreviewSection({
   return (
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap size={26} color={COLORS.text} />
-        <Text className='font-interSemiBold text-lg text-text'>
+        <IconMap size={26} color={colors.textPrimary} />
+        <Text className='font-interSemiBold text-lg text-foreground'>
           View on Map
         </Text>
       </View>
@@ -182,7 +184,7 @@ export default function MapPreviewSection({
                   id='pin-dot'
                   style={{
                     circleRadius: 7,
-                    circleColor: COLORS.primary,
+                    circleColor: colors.primary,
                   }}
                 />
               </ShapeSource>
@@ -210,9 +212,9 @@ export default function MapPreviewSection({
         onOpenChange={setIsDirectionsModalVisible}
       >
         <Dialog.Portal>
-          <Dialog.Overlay className="bg-black/40 items-center justify-center px-6" />
+          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
           
-          <Dialog.Content className="w-full rounded-2xl bg-white p-5">
+          <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
             <Dialog.Close 
               variant="ghost" 
               className="absolute top-4 right-4 z-50"
@@ -220,10 +222,10 @@ export default function MapPreviewSection({
 
             {/* Header */}
             <View>
-              <Text className="font-interSemiBold text-lg text-text">
+              <Text className="font-interSemiBold text-lg text-foreground">
                 Choose Route Type
               </Text>
-              <Text className="mt-1 font-inter text-grey-500">
+              <Text className="mt-1 font-inter text-muted">
                 Select how you want to get there.
               </Text>
             </View>

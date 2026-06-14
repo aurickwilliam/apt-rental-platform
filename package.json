@@ -27,5 +27,10 @@
     "eslint-plugin-import": "^2.32.0",
     "metro-minify-terser": "^0.83.3"
   },
-  "packageManager": "pnpm@10.25.0"
+  "packageManager": "pnpm@10.25.0",
+  "pnpm": {
+    "overrides": {
+      "react-native-awesome-gallery>react-native-reanimated": "4.2.1"
+    }
+  }
 }

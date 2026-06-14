@@ -1,19 +1,17 @@
 import { View } from 'react-native';
 
 import {
-  IconMapPinFilled,
-  IconChevronDown,
-  IconChevronUp,
-  IconLayoutGrid,
-  IconLayoutList,
-  IconHeart,
-} from '@tabler/icons-react-native';
+  MapPin,
+  LayoutGrid,
+  Rows3,
+  Heart,
+} from 'lucide-react-native';
 
 import DropdownButton from 'components/buttons/DropdownButton';
 
 import { Button } from 'heroui-native';
 
-import { COLORS } from '@repo/constants';
+import { useColors } from 'hooks/useTheme';
 
 type SearchHeaderProps = {
   cities: string[];
@@ -32,20 +30,20 @@ export default function SearchHeader({
   onToggleView,
   onFavoritesPress,
 }: SearchHeaderProps) {
+  const { colors } = useColors();
+
   return (
     <View className='flex-row items-center justify-between mb-3 px-5'>
       <View className='flex-row gap-2'>
-        <IconMapPinFilled size={30} color={COLORS.primary} />
+        <MapPin size={30} color={colors.primary} />
 
         <DropdownButton
           bottomSheetLabel='Select Location'
           options={cities}
           value={selectedCity}
           onSelect={onSelectCity}
-          textClassName='text-xl text-text font-nunitoSemiBold leading-[34px]'
+          textClassName='text-xl text-foreground font-nunitoSemiBold leading-[34px]'
           buttonClassName='bg-transparent flex-row items-center justify-center gap-1'
-          openIcon={IconChevronUp}
-          closeIcon={IconChevronDown}
         />
       </View>
 
@@ -55,7 +53,7 @@ export default function SearchHeader({
           variant='ghost' 
           className='p-0'
         >
-          <IconHeart size={24} color={COLORS.grey} />
+          <Heart size={24} color={colors.gray500} />
         </Button>
 
         <Button
@@ -64,9 +62,9 @@ export default function SearchHeader({
           className='p-0'
         >
           {isGridView ? (
-            <IconLayoutGrid size={26} color={COLORS.grey} />
+            <LayoutGrid size={24} color={colors.gray500} />
           ) : (
-            <IconLayoutList size={26} color={COLORS.grey} />
+            <Rows3 size={24} color={colors.gray500} />
           )}
         </Button>
       </View>

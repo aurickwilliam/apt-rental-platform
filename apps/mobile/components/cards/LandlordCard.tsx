@@ -1,13 +1,14 @@
 import { View, Text, Image } from "react-native";
+
 import { Button, Card, PressableFeedback } from "heroui-native";
 
-import { COLORS } from "@repo/constants";
+import { useColors } from "hooks/useTheme";
 
 import {
-  IconMessage2,
-  IconStarFilled,
-  IconHomeFilled,
-} from "@tabler/icons-react-native";
+  MessageCircleMore,
+  Star,
+  Home,
+} from "lucide-react-native";
 
 interface LandlordCardProps {
   fullName: string;
@@ -29,7 +30,7 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
       : parts[0]?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <View className="size-12 rounded-full border border-grey-300 bg-primary items-center justify-center">
+    <View className="size-12 rounded-full border border-border bg-primary items-center justify-center">
       <Text className="text-white font-interMedium text-lg">
         {initials}
       </Text>
@@ -48,14 +49,16 @@ export default function LandlordCard({
   onPress,
   onMessagePress,
 }: LandlordCardProps) {
+  const { colors } = useColors();
+
   return (
-    <PressableFeedback onPress={onPress}>
+    <PressableFeedback onPress={onPress} className="rounded-3xl">
       <PressableFeedback.Highlight />
-      <Card className="border border-grey-300 shadow-none rounded-3xl">
+      <Card className="border border-border shadow-none rounded-3xl">
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (
-            <View className="size-12 rounded-full overflow-hidden border border-grey-300 shrink-0">
+            <View className="size-12 rounded-full overflow-hidden border border-border shrink-0">
               <Image
                 source={{ uri: profilePictureUrl }}
                 style={{ width: "100%", height: "100%" }}
@@ -67,23 +70,24 @@ export default function LandlordCard({
 
           {/* Name + Email */}
           <View className="flex-1">
-            <Text className="text-text font-interSemiBold text-base" numberOfLines={1}>
+            <Text className="text-foreground font-interSemiBold text-base" numberOfLines={1}>
               {fullName}
             </Text>
-            <Text className="text-grey-400 font-inter text-xs" numberOfLines={1}>
+            <Text className="text-gray-500 font-inter text-xs" numberOfLines={1}>
               {email}
             </Text>
 
             {withRentalInfo && (
               <View className="flex-row items-center gap-4 mt-1">
                 <View className="flex-row items-center gap-1">
-                  <IconStarFilled size={12} color={COLORS.secondary} />
+                  <Star size={12} color={colors.secondary} />
                   <Text className="text-text text-xs font-inter">
                     {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
                   </Text>
                 </View>
+
                 <View className="flex-row items-center gap-1">
-                  <IconHomeFilled size={12} color={COLORS.primary} />
+                  <Home size={12} color={colors.primary} />
                   <Text className="text-text text-xs font-inter">
                     {totalRentals} {totalRentals === 1 ? "Property" : "Properties"}
                   </Text>
@@ -95,11 +99,11 @@ export default function LandlordCard({
           {/* Message Icon Button */}
           <Button
             isIconOnly
-            variant="tertiary"
+            variant="secondary"
             onPress={onMessagePress}
             isDisabled={!onMessagePress}
           >
-            <IconMessage2 size={18} color={COLORS.primary} />
+            <MessageCircleMore size={22} color={colors.primary} />
           </Button>
         </Card.Body>
       </Card>

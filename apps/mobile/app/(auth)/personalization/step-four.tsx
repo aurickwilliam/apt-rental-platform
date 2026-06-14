@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import PillButton from "components/buttons/PillButton";
 import PersonalizationRadioButton from "components/buttons/PersonalizationRadioButton";
 
 import { Button } from "heroui-native";
@@ -49,7 +48,7 @@ export default function StepFour() {
             </Text>
 
             {/* Description */}
-            <Text className="text-text text-base font-inter">
+            <Text className="text-foreground text-base font-inter">
               Help us personalize listings that fit your household.
             </Text>
           </View>

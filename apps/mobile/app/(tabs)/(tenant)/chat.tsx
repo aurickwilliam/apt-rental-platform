@@ -4,9 +4,8 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import MessageCard from '@/components/cards/MessageCard';
+import MessageCard from '@/app/(tabs)/components/chat/MessageCard';
 
-import { COLORS } from '@repo/constants';
 import { EMPTY_STATE_IMAGES } from 'constants/images';
 
 import { getRelativeTime } from '@repo/utils';
@@ -16,6 +15,7 @@ import { supabase } from '@repo/supabase';
 import { getConversations, type Conversation } from '@/service/chatService';
 
 import { useTenancy } from '@/hooks/useTenancy';
+import { useColors } from '@/hooks/useTheme';
 
 import {
   SearchField,
@@ -32,6 +32,8 @@ function getConversationMetaKey(otherUserId: string, apartmentId: string | null)
 
 export default function Chat() {
   const router = useRouter();
+
+  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [conversations, setConversations] = useState<ConversationWithMeta[]>([]);
@@ -223,12 +225,12 @@ export default function Chat() {
     <ScreenWrapper
       scrollable
       className='p-5'
-      backgroundColor={COLORS.darkerWhite}
+      backgroundColor={colors.surface}
       bottomPadding={50}
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >
-      <Text className='text-primary text-3xl font-nunitoSemiBold'>
+      <Text className='text-accent text-3xl font-nunitoSemiBold'>
         Messages
       </Text>
 
@@ -249,7 +251,7 @@ export default function Chat() {
 
       {loading ? (
         <View className='flex-1 items-center justify-center mt-20'>
-          <ActivityIndicator color={COLORS.primary} />
+          <ActivityIndicator color={colors.primary} />
         </View>
       ) : filteredConversations.length === 0 ? (
         <View className='flex-1 items-center justify-center'>
@@ -259,10 +261,10 @@ export default function Chat() {
               style={{ width: '100%', height: '100%' }}
             />
           </View>
-          <Text className='text-2xl text-primary font-interSemiBold mb-2 mt-5'>
+          <Text className='text-2xl text-accent  font-interSemiBold mb-2 mt-5'>
             No Messages Yet
           </Text>
-          <Text className='text-base text-grey-500 font-interSemiBold text-center px-10'>
+          <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
             Start a conversation with a landlord to see your messages here.
           </Text>
         </View>
@@ -273,7 +275,7 @@ export default function Chat() {
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
-              <Text className='text-base font-interMedium text-primary mb-3'>
+              <Text className='text-base font-interMedium text-accent mb-3'>
                 Current Landlord
               </Text>
 
@@ -304,7 +306,7 @@ export default function Chat() {
           {/* Other conversations */}
           {otherConversations.length > 0 && (
             <View className='gap-3'>
-              <Text className='text-base font-interMedium text-grey-500'>
+              <Text className='text-base font-interMedium text-gray-500'>
                 Past Conversations
               </Text>
 

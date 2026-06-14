@@ -8,3 +8,4 @@ export * from "./lease-duration";
 export * from "./maintenance-categories";
 export * from "./payment-status";
 export * from "./pets";
+export * from "./vehicles";
