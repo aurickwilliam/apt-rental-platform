@@ -282,7 +282,7 @@ export default function TenantProfile() {
           {/* ── Stats row ── */}
           <View className="mx-5 p-4 border-t border-b border-border flex-row items-center justify-between">
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-muted font-inter">
+              <Text className="text-base text-foreground font-inter">
                 Reviews
               </Text>
 
@@ -290,7 +290,7 @@ export default function TenantProfile() {
                 {tenantData.noReviews}
               </Text>
 
-              <Text className="text-base text-muted font-inter">
+              <Text className="text-base text-foreground font-inter">
                 Total
               </Text>
             </View>
@@ -298,7 +298,7 @@ export default function TenantProfile() {
             <View className="w-px h-full bg-border" />
 
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-muted font-inter">
+              <Text className="text-base text-foreground font-inter">
                 Member
               </Text>
 
@@ -306,7 +306,7 @@ export default function TenantProfile() {
                 {tenantData.memberSinceYear}
               </Text>
 
-              <Text className="text-base text-muted font-interMedium">
+              <Text className="text-base text-foreground font-interMedium">
                 Since
               </Text>
             </View>
@@ -314,7 +314,7 @@ export default function TenantProfile() {
             <View className="w-px h-full bg-border" />
 
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-muted font-inter">
+              <Text className="text-base text-foreground font-inter">
                 Identity
               </Text>
 
@@ -323,7 +323,7 @@ export default function TenantProfile() {
                 color={tenantData.isVerified ? colors.primary : colors.gray500}
               />
 
-              <Text className="text-base text-muted font-inter">
+              <Text className="text-base text-foreground font-inter">
                 {tenantData.isVerified ? "Verified" : "Unverified"}
               </Text>
             </View>
