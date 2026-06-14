@@ -10,9 +10,9 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import { readAsStringAsync } from "expo-file-system/legacy";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import StandardHeader from "@/components/layout/StandardHeader";
-import Divider from "@/components/display/Divider";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import StandardHeader from "components/layout/StandardHeader";
+import Divider from "components/display/Divider";
 import PerkItem from "components/display/PerkItem";
 
 import { Button } from "heroui-native";
@@ -33,7 +33,7 @@ import {
 
 import { supabase } from "@repo/supabase";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 type Apartment = {
   id: string;

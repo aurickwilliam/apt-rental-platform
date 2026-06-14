@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { View, Text } from 'react-native'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
 
 import { Chip, SearchField, Separator } from 'heroui-native'
 
@@ -10,11 +10,11 @@ import {
   X
 } from 'lucide-react-native'
 
-import { PERKS } from '@/constants/perks'
+import { PERKS } from 'constants/perks'
 
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from 'hooks/useTheme'
 
 export default function Amenities() {
   const { colors } = useColors()

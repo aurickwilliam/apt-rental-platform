@@ -2,9 +2,9 @@ import { View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
-import UploadImageField from '@/components/inputs/UploadImageField'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
+import UploadImageField from 'components/inputs/UploadImageField'
 
 import { Button, TextField, Label, Input, FieldError } from "heroui-native"
 

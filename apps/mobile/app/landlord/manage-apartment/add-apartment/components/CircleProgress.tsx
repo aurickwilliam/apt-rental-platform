@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import Svg, { Circle } from 'react-native-svg';
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from 'hooks/useTheme'
 
 interface CircleProgressProps {
   currentStep: number,

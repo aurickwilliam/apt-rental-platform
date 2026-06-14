@@ -8,7 +8,7 @@ import {
   CircleQuestionMark,
 } from 'lucide-react-native';
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 type BasePerkButtonProps = {
   iconColor?: string;

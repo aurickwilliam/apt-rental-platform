@@ -9,9 +9,9 @@ import {
   setAccessToken,
 } from "@maplibre/maplibre-react-native";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/manage-apartment/add-apartment/components/ApplicationHeader";
-import DropdownField from "@/components/inputs/DropdownField";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
+import DropdownField from "components/inputs/DropdownField";
 
 import {
   TextField,
@@ -42,7 +42,7 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 // Suppress the missing API key warning since we're using free OSM tiles
 setAccessToken(null);

@@ -2,7 +2,7 @@ import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/manage-apartment/add-apartment/components/ApplicationHeader'
+import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
 import Divider from 'components/display/Divider'
 import PillButton from 'components/buttons/PillButton'
 import AccordionItem from 'components/display/AccordionItem'

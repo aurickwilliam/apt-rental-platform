@@ -2,9 +2,9 @@ import { View, Text } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/manage-apartment/add-apartment/components/ApplicationHeader";
-import UploadFileField from "@/components/inputs/UploadFileField";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
+import UploadFileField from "components/inputs/UploadFileField";
 
 import {
   Input,

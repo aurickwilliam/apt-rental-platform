@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 
-import DropdownField from '@/components/inputs/DropdownField'
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import Divider from '@/components/display/Divider'
-import UploadImageField from '@/components/inputs/UploadImageField'
-import UploadFileField from '@/components/inputs/UploadFileField'
+import DropdownField from 'components/inputs/DropdownField'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import Divider from 'components/display/Divider'
+import UploadImageField from 'components/inputs/UploadImageField'
+import UploadFileField from 'components/inputs/UploadFileField'
 
 import { TextField, Label, Input, Button} from "heroui-native"
 

@@ -2,19 +2,19 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import Divider from '@/components/display/Divider'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import Divider from 'components/display/Divider'
 
 import { Button, Chip, SearchField } from "heroui-native"
 
-import { PERKS } from '@/constants/perks'
+import { PERKS } from 'constants/perks'
 
 import { supabase } from '@repo/supabase'
 
 import Ionicons from '@expo/vector-icons/build/Ionicons'
 
-import { useColors } from '@/hooks/useTheme'
+import { useColors } from 'hooks/useTheme'
 
 export default function EditPerks() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()

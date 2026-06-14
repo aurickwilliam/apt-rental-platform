@@ -2,8 +2,8 @@ import { useState } from "react";
 import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/manage-apartment/add-apartment/components/ApplicationHeader";
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
 
 import {
   TextField,
@@ -16,9 +16,9 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
-import { PERKS } from "@/constants/perks";
+import { PERKS } from "constants/perks";
 
 export default function FourthStep() {
   const router = useRouter();

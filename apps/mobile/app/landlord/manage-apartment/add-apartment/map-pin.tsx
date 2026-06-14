@@ -8,11 +8,11 @@ import {
   setAccessToken,
 } from "@maplibre/maplibre-react-native";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper from "components/layout/ScreenWrapper";
 
 import { Button } from "heroui-native";
 
-import { useColors } from "@/hooks/useTheme";
+import { useColors } from "hooks/useTheme";
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
