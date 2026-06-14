@@ -17,8 +17,11 @@ import {
   IconStarFilled,
 } from '@tabler/icons-react-native';
 
+import { useColors } from 'hooks/useTheme';
+
 export default function RateApartment() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { colors } = useColors();
 
   type Month = typeof MONTHS[number];
 
@@ -71,12 +74,12 @@ export default function RateApartment() {
             i <= rating ? (
               <IconStarFilled
                 size={45}
-                color={COLORS.secondary}
+                color={colors.secondary}
               />
             ) : (
               <IconStar
                 size={45}
-                color={COLORS.lightLightGrey}
+                color={colors.gray300}
               />
             )
           }
@@ -106,38 +109,38 @@ export default function RateApartment() {
       <View className='p-5'>
         {/* Apartment Name and Address */}
         <View className='flex gap-1'>
-          <Text className='text-2xl font-interSemiBold text-primary'>
+          <Text className='text-2xl font-interSemiBold text-accent'>
             {apartment.name}
           </Text>
 
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             {apartment.address}
           </Text>
         </View>
 
         {/* Rental Owner */}
         <View className='flex mt-5'>
-          <Text className='text-sm text-grey-500 font-inter'>
+          <Text className='text-sm text-muted font-inter'>
             Rental Owner
           </Text>
 
-          <Text className='text-base text-text font-inter'>
+          <Text className='text-base text-foreground font-inter'>
             {apartment.landlordName}
           </Text>
         </View>
 
         {/* Type and Ratings */}
         <View className='flex-row items-center justify-between mt-5'>
-          <Text className='text-text text-base font-inter'>
+          <Text className='text-muted text-base font-inter'>
             {apartment.apartmentType}
           </Text>
 
           <View className='flex-row gap-2'>
             <IconStarFilled
               size={20}
-              color={COLORS.secondary}
+              color={colors.secondary}
             />
-            <Text className='text-text text-base font-inter'>
+            <Text className='text-foreground text-base font-inter'>
               {apartment.ratings} ({apartment.noRatings} Reviews)
             </Text>
           </View>
@@ -147,7 +150,7 @@ export default function RateApartment() {
 
         {/* Rating Input */}
         <View className='flex items-center'>
-          <Text className='text-text text-lg font-interMedium'>
+          <Text className='text-foreground text-lg font-interMedium'>
             Overall Rating
           </Text>
 
@@ -157,11 +160,11 @@ export default function RateApartment() {
           </View>
 
           <View className='flex-row items-center gap-5'>
-            <Text className='text-grey-500 text-sm font-inter'>
+            <Text className='text-muted text-sm font-inter'>
               1 - Poor
             </Text>
 
-            <Text className='text-grey-500 text-sm font-inter'>
+            <Text className='text-muted text-sm font-inter'>
               5 - Excellent
             </Text>
           </View>
@@ -182,12 +185,12 @@ export default function RateApartment() {
 
         {/* Duration of Stay */}
         <View>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             Duration of Stay:
           </Text>
 
           <View className='flex gap-1 mt-3'>
-            <Text className='text-grey-500 text-base font-inter'>
+            <Text className='text-muted text-base font-inter'>
               From
             </Text>
 
@@ -212,7 +215,7 @@ export default function RateApartment() {
           </View>
 
           <View className='flex gap-1 mt-3'>
-            <Text className='text-grey-500 text-base font-inter'>
+            <Text className='text-muted text-base font-inter'>
               To
             </Text>
 
