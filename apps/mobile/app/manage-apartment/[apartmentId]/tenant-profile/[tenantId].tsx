@@ -5,14 +5,17 @@ import { useFocusEffect } from '@react-navigation/native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
+import PastApartmentCard from './components/PastApartmentCard'
 
-import { COLORS } from '@repo/constants'
 import { DEFAULT_IMAGES } from '@/constants/images'
+
 import { supabase } from '@repo/supabase'
 
 import { IconMessage, IconRosetteDiscountCheckFilled } from '@tabler/icons-react-native'
+
 import { Button, Avatar } from 'heroui-native'
-import PastApartmentCard from './components/PastApartmentCard'
+
+import { useColors } from '@/hooks/useTheme'
 
 type TenantData = {
   fullName: string
@@ -50,18 +53,18 @@ function formatYear(isoDate: string | null): string {
 function ProfileSkeleton() {
   return (
     <View className="flex gap-5 mt-3">
-      <View className="w-full h-40 bg-gray-200 rounded-xl" />
+      <View className="w-full h-40 bg-surface rounded-xl" />
       <View className="items-center gap-2">
-        <View className="size-24 rounded-full bg-gray-200" />
-        <View className="h-6 w-40 bg-gray-200 rounded-full" />
-        <View className="h-4 w-56 bg-gray-100 rounded-full" />
+        <View className="size-24 rounded-full bg-surface" />
+        <View className="h-6 w-40 bg-surface rounded-full" />
+        <View className="h-4 w-56 bg-surface rounded-full" />
       </View>
       <View className="flex-row justify-around mt-3">
         {[1, 2, 3].map((i) => (
           <View key={i} className="items-center gap-2">
-            <View className="h-4 w-16 bg-gray-100 rounded-full" />
-            <View className="h-8 w-10 bg-gray-200 rounded-full" />
-            <View className="h-4 w-12 bg-gray-100 rounded-full" />
+            <View className="h-4 w-16 bg-surface rounded-full" />
+            <View className="h-8 w-10 bg-surface rounded-full" />
+            <View className="h-4 w-12 bg-surface rounded-full" />
           </View>
         ))}
       </View>
@@ -73,9 +76,10 @@ export default function TenantProfile() {
   const { tenantId, apartmentId } = useLocalSearchParams<{
     tenantId: string,
     apartmentId: string
-  }>()
+  }>();
 
-  const router = useRouter()
+  const router = useRouter();
+  const { colors } = useColors();
 
   const [loading, setLoading] = useState(true)
   const [tenantData, setTenantData] = useState<TenantData | null>(null)
@@ -230,7 +234,6 @@ export default function TenantProfile() {
       bottomPadding={50}
       scrollable
       header={<StandardHeader title="Tenant Profile" />}
-      backgroundColor={COLORS.darkerWhite}
     >
       {loading ? (
         <ProfileSkeleton />
@@ -239,31 +242,37 @@ export default function TenantProfile() {
           {/* ── Header: background + avatar + name ── */}
           <View className="relative h-80">
             {/* Background band */}
-            <View className="w-full h-40 bg-primary" />
+            <View className="w-full h-45 bg-surface-tertiary rounded-b-3xl" />
 
             {/* Avatar + name block */}
-            <View className="absolute top-8 left-0 right-0 items-center">
+            <View className="absolute top-18 left-0 right-0 items-center">
               <Avatar
                 size="lg"
                 color="accent"
-                className="size-50 border-[6px] border-primary mb-5"
+                className="size-36 border-4 border-surface mb-1"
                 alt={tenantData.fullName}
               >
-                {tenantData.avatarUrl ? (
+                {tenantData.avatarUrl && (
                   <Avatar.Image source={{ uri: tenantData.avatarUrl }} />
-                ) : null}
-                <Avatar.Fallback delayMs={200}>
-                  <Text className="text-primary text-3xl font-interMedium">
-                    {avatarInitials}
+                )}
+
+                <Avatar.Fallback
+                  delayMs={200}
+                  className="justify-center items-center"
+                >
+                  <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
+                    {/* mt-3 compensates for font-interMedium's vertical metrics 
+                    so the initials sit centered in the circle */}
+                    {avatarInitials ?? ""}
                   </Text>
                 </Avatar.Fallback>
               </Avatar>
 
               <View className="flex items-center justify-center">
-                <Text className="text-text text-2xl font-interSemiBold">
+                <Text className="text-foreground text-xl font-interSemiBold">
                   {tenantData.fullName}
                 </Text>
-                <Text className="text-grey-500 text-lg font-inter">
+                <Text className="text-muted text-base font-inter">
                   {tenantData.email}
                 </Text>
               </View>
@@ -271,35 +280,51 @@ export default function TenantProfile() {
           </View>
 
           {/* ── Stats row ── */}
-          <View className="mx-5 mt-5 p-4 border-t border-b border-grey-300 flex-row items-center justify-between">
+          <View className="mx-5 p-4 border-t border-b border-border flex-row items-center justify-between">
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-grey-500 font-inter">Reviews</Text>
-              <Text className="text-3xl text-text font-interMedium">
+              <Text className="text-base text-muted font-inter">
+                Reviews
+              </Text>
+
+              <Text className="text-3xl text-foreground font-interMedium">
                 {tenantData.noReviews}
               </Text>
-              <Text className="text-base text-grey-500 font-inter">Total</Text>
+
+              <Text className="text-base text-muted font-inter">
+                Total
+              </Text>
             </View>
 
-            <View className="w-px h-full bg-grey-300" />
+            <View className="w-px h-full bg-border" />
 
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-grey-500 font-inter">Member</Text>
-              <Text className="text-2xl text-text font-interMedium">
+              <Text className="text-base text-muted font-inter">
+                Member
+              </Text>
+
+              <Text className="text-2xl text-foreground font-interMedium">
                 {tenantData.memberSinceYear}
               </Text>
-              <Text className="text-base text-grey-500 font-interMedium">Since</Text>
+
+              <Text className="text-base text-muted font-interMedium">
+                Since
+              </Text>
             </View>
 
-            <View className="w-px h-full bg-grey-300" />
+            <View className="w-px h-full bg-border" />
 
             <View className="flex items-center gap-1 w-1/3">
-              <Text className="text-base text-grey-500 font-inter">Identity</Text>
+              <Text className="text-base text-muted font-inter">
+                Identity
+              </Text>
+
               <IconRosetteDiscountCheckFilled
                 size={32}
-                color={tenantData.isVerified ? COLORS.primary : COLORS.grey}
+                color={tenantData.isVerified ? colors.primary : colors.gray500}
               />
-              <Text className="text-base text-grey-500 font-interMedium">
-                {tenantData.isVerified ? 'Verified' : 'Unverified'}
+
+              <Text className="text-base text-muted font-inter">
+                {tenantData.isVerified ? "Verified" : "Unverified"}
               </Text>
             </View>
           </View>
@@ -308,15 +333,19 @@ export default function TenantProfile() {
           <View className="mt-8 mx-5">
             <View className="flex-row items-center">
               <View className="flex w-1/2">
-                <Text className="text-xs text-grey-500 font-inter">Contact Number</Text>
-                <Text className="text-base text-text font-interMedium">
+                <Text className="text-xs text-muted font-inter">
+                  Contact Number
+                </Text>
+                <Text className="text-base text-foreground font-interMedium">
                   {tenantData.phoneNumber}
                 </Text>
               </View>
 
               <View className="flex w-1/2">
-                <Text className="text-xs text-grey-500 font-inter">Location / Based In</Text>
-                <Text className="text-base text-text font-interMedium">
+                <Text className="text-xs text-muted font-inter">
+                  Location / Based In
+                </Text>
+                <Text className="text-base text-foreground font-interMedium">
                   {tenantData.location}
                 </Text>
               </View>
@@ -325,23 +354,23 @@ export default function TenantProfile() {
             <View className="mt-5">
               <Button
                 size="sm"
-                variant="outline"
+                variant="tertiary"
                 onPress={handleMessageTenant}
               >
-                <IconMessage size={20} color={COLORS.grey} />
+                <IconMessage size={20} color={colors.textPrimary} />
                 <Button.Label>Message</Button.Label>
               </Button>
             </View>
           </View>
 
-          {/* ── Past apartments ── */}
+          {/* Past apartments */}
           <View className="m-5">
-            <Text className="text-text text-xl font-interSemiBold">
+            <Text className="text-foreground text-lg font-interSemiBold">
               {getFirstName(tenantData.fullName)}&apos;s Past Listings
             </Text>
 
             {pastApartments.length === 0 ? (
-              <Text className="text-grey-500 font-inter mt-3">
+              <Text className="text-muted font-inter mt-3">
                 No past apartments found.
               </Text>
             ) : (
@@ -357,7 +386,9 @@ export default function TenantProfile() {
                     leaseEndMonth={apartment.leaseEndMonth}
                     leaseEndYear={apartment.leaseEndYear}
                     thumbnailUrl={apartment.thumbnailUrl}
-                    onPress={() => console.log(`Pressed on apartment ${apartment.name}`)}
+                    onPress={() =>
+                      console.log(`Pressed on apartment ${apartment.name}`)
+                    }
                   />
                 ))}
               </View>
@@ -367,7 +398,7 @@ export default function TenantProfile() {
       ) : (
         /* ── Error / not found state ── */
         <View className="flex-1 items-center justify-center py-24 gap-3">
-          <Text className="text-grey-500 font-interSemiBold text-center">
+          <Text className="text-muted font-interSemiBold text-center">
             Could not load tenant profile.
           </Text>
           <Button size="sm" variant="outline" onPress={fetchTenantProfile}>
@@ -376,5 +407,5 @@ export default function TenantProfile() {
         </View>
       )}
     </ScreenWrapper>
-  )
+  );
 }

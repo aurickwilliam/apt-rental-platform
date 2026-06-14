@@ -59,71 +59,76 @@ export function ProfileHeader({
   };
 
   return (
-    <View className='relative h-80'>
+    <View className="relative h-80">
       {/* Background Photo */}
-      <View 
+      <View
         className={`w-full h-45 rounded-b-3xl overflow-hidden ${
-          backgroundPhotoUri ? 'bg-transparent' : 'bg-surface-tertiary'
+          backgroundPhotoUri ? "bg-transparent" : "bg-surface-tertiary"
         }`}
       >
         {backgroundPhotoUri && (
           <Image
             source={{ uri: backgroundPhotoUri }}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: "100%", height: "100%" }}
           />
         )}
       </View>
 
       {/* Profile Picture */}
-      <View className='absolute top-18 left-0 right-0 items-center'>
+      <View className="absolute top-18 left-0 right-0 items-center">
         <Avatar
           size="lg"
           color="accent"
           className="size-36 border-4 border-background mb-1"
           alt={fullName}
         >
-          <Avatar.Image source={{ uri: avatarUrl ?? '' }} />
-          <Avatar.Fallback delayMs={200} className="justify-center items-center">
+          {avatarUrl && <Avatar.Image source={{ uri: avatarUrl }} />}
+          
+          <Avatar.Fallback
+            delayMs={200}
+            className="justify-center items-center"
+          >
             <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
               {/* mt-3 compensates for font-interMedium's vertical metrics 
               so the initials sit centered in the circle */}
-              {avatarInitials ?? ''}
+              {avatarInitials ?? ""}
             </Text>
           </Avatar.Fallback>
         </Avatar>
 
         {/* Name and Email */}
-        <View className='flex items-center justify-center'>
-          <Text className='text-foreground text-xl font-interSemiBold'>
+        <View className="flex items-center justify-center">
+          <Text className="text-foreground text-xl font-interSemiBold">
             {fullName}
           </Text>
 
-          <Text className='text-gray-500 text-base font-inter'>
+          <Text className="text-gray-500 text-base font-inter">
             {displayEmail}
           </Text>
 
-          {role && (() => {
-            const {
-              icon: Icon,
-              iconColor,
-              className,
-              label,
-              labelColor,
-            } = roleConfig[role];
+          {role &&
+            (() => {
+              const {
+                icon: Icon,
+                iconColor,
+                className,
+                label,
+                labelColor,
+              } = roleConfig[role];
 
-            return (
-              <View className='items-center mt-2'>
-                <Chip className={className} variant='soft'>
-                  <Icon size={18} color={iconColor} strokeWidth={2.5} />
-                  <Chip.Label className={`font-interMedium ${labelColor}`}>
-                    {label}
-                  </Chip.Label>
-                </Chip>
-              </View>
-            );
-          })()}
+              return (
+                <View className="items-center mt-2">
+                  <Chip className={className} variant="soft">
+                    <Icon size={18} color={iconColor} strokeWidth={2.5} />
+                    <Chip.Label className={`font-interMedium ${labelColor}`}>
+                      {label}
+                    </Chip.Label>
+                  </Chip>
+                </View>
+              );
+            })()}
         </View>
       </View>
     </View>
-  )
+  );
 }

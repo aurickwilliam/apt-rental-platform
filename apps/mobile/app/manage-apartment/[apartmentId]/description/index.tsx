@@ -18,16 +18,8 @@ import PerkItem from "components/display/PerkItem";
 import { Button } from "heroui-native";
 
 import {
-  IconHome,
-  IconBath,
-  IconBed,
-  IconMaximize,
   IconFileText,
   IconEdit,
-  IconArmchair,
-  IconCalendar,
-  IconUsers,
-  IconBuildingCommunity,
   IconUpload,
 } from "@tabler/icons-react-native";
 
