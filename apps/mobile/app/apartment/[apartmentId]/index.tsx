@@ -105,30 +105,25 @@ export default function ApartmentScreen() {
 
   // Loading State
   if (loading) {
-    return (
-      <ApartmentSkeleton
-        onBackPress={() => router.back()}
-        onFavoritePress={handleFavoriteToggle}
-      />
-    );
+    return <ApartmentSkeleton/>
   }
 
   // Error State
   if (error && !apartment) {
     return (
-      <View className='flex-1 bg-white items-center justify-center px-8'>
-        <Text className='text-text font-interSemiBold text-lg text-center'>
+      <View className='flex-1 bg-background items-center justify-center px-8'>
+        <Text className='text-foreground font-interSemiBold text-lg text-center'>
           Unable to load apartment details
         </Text>
-        <Text className='text-grey-500 font-inter text-center mt-2'>
+        <Text className='text-gray-500 font-inter text-center mt-2'>
           Please try again in a moment.
         </Text>
         <View className='mt-6'>
-          <PillButton
-            label='Go Back'
-            size='sm'
-            onPress={() => router.back()}
-          />
+          <Button size={"sm"} onPress={() => router.back()}>
+            <Button.Label>
+              Go Back
+            </Button.Label>
+          </Button>
         </View>
       </View>
     );

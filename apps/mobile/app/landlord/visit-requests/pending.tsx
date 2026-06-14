@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import { IconCalendarEvent } from "@tabler/icons-react-native";
+import { Calendar } from 'lucide-react-native'; 
 
 import { SearchField } from "heroui-native";
 
@@ -10,21 +10,24 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "@/components/cards/VisitRequestCard";
 
-import { COLORS } from "@repo/constants";
 import { formatDate } from "@repo/utils";
 
 import { VISIT_REQUESTS } from "./mockData";
 
+import { useColors } from "@/hooks/useTheme";
+
 function EmptyPending() {
+  const { colors } = useColors();
+
   return (
     <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <IconCalendarEvent size={30} color={COLORS.grey} />
+      <View className="bg-surface rounded-full p-5 mb-4">
+        <Calendar size={30} color={colors.gray400} />
       </View>
-      <Text className="text-text text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-interSemiBold">
         No pending requests
       </Text>
-      <Text className="text-grey-500 text-sm font-inter text-center mt-1">
+      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
         Pending visit requests will show up here.
       </Text>
     </View>
@@ -33,6 +36,8 @@ function EmptyPending() {
 
 export default function PendingVisitRequests() {
   const router = useRouter();
+  const { colors } = useColors();
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const pendingRequests = useMemo(() => {
@@ -58,7 +63,6 @@ export default function PendingVisitRequests() {
   return (
     <ScreenWrapper
       header={<StandardHeader title="Pending Visit Requests" />}
-      backgroundColor={COLORS.darkerWhite}
       scrollable={false}
     >
       <FlatList
@@ -82,7 +86,7 @@ export default function PendingVisitRequests() {
               </SearchField.Group>
             </SearchField>
 
-            <Text className="text-grey-500 text-sm font-inter mb-3">
+            <Text className="text-gray-500 text-sm font-inter mb-3">
               Total: {filteredPending.length}
             </Text>
           </View>

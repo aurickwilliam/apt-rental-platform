@@ -9,9 +9,10 @@ import PillButton from '@/components/buttons/PillButton'
 import DocumentCard from './components/DocumentCard'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
-import { COLORS } from '@repo/constants'
 
-import { IconHomeQuestion } from '@tabler/icons-react-native'
+import { useColors } from '@/hooks/useTheme'
+
+import { CircleQuestionMark } from 'lucide-react-native';
 
 type UploadedDocument = {
   id: number;
@@ -21,6 +22,7 @@ type UploadedDocument = {
 
 export default function Index() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
 
@@ -69,16 +71,16 @@ export default function Index() {
       {/* User ID upon account validation */}
       <View>
         <View className='flex gap-1'>
-          <Text className='text-text text-xl font-interSemiBold'>
+          <Text className='text-foreground text-xl font-interSemiBold'>
             Valid ID/Government ID
           </Text>
-          <Text className='text-grey-500 text-lg font-inter'>
+          <Text className='text-muted text-lg font-inter'>
             {mainValidId.type}
           </Text>
         </View>
 
         <TouchableOpacity
-          className='w-full h-72 mt-3 border-2 border-primary rounded-2xl'
+          className='w-full h-72 mt-3 border-2 border-accent rounded-2xl'
           activeOpacity={0.7}
           onPress={() => setIsIdVisible(!isIdVisible)}
         >
@@ -97,30 +99,30 @@ export default function Index() {
         uploadedDocuments.length <= 0 ? (
           <>
             <View>
-              <Text className='text-text text-xl font-interSemiBold mt-5 mb-3'>
+              <Text className='text-foreground text-xl font-interSemiBold mt-5 mb-3'>
                 Other Documents
               </Text>
 
               <View>
-                <Text className='text-text text-base font-interMedium'>
+                <Text className='text-foreground text-base font-interMedium'>
                   Upload additional documents such as:
                 </Text>
-                <Text className='text-text text-base font-inter mt-1'>
+                <Text className='text-muted text-base font-inter mt-1'>
                   - Proof of Income (e.g., payslips, bank statements)
                 </Text>
-                <Text className='text-text text-base font-inter mt-1'>
+                <Text className='text-muted text-base font-inter mt-1'>
                   - Proof of Residency (e.g., utility bills, lease agreements)
                 </Text>
-                <Text className='text-text text-base font-inter mt-1'>
+                <Text className='text-muted text-base font-inter mt-1'>
                   - Birth Certificate (if applicable)
                 </Text>
               </View>
 
               <View className='mt-5 flex gap-3'>
-                <Text className='text-text text-base font-interMedium'>
+                <Text className='text-foreground text-base font-interMedium'>
                   Uploading your documents early allows for faster and easier submission when applying for rentals.
                 </Text>
-                <Text className='text-text text-base font-interMedium'>
+                <Text className='text-muted text-base font-interMedium'>
                   Note: Uploaded documents will be securely stored and only shared with landlords during the application process.
                 </Text>
 
@@ -136,7 +138,7 @@ export default function Index() {
           </>
         ) : (
           <>
-            <Text className='text-text text-xl font-interSemiBold mt-8 mb-3'>
+            <Text className='text-foreground text-xl font-interSemiBold mt-8 mb-3'>
               Uploaded Documents
             </Text>
 
@@ -159,7 +161,7 @@ export default function Index() {
       <View className='flex-1'/>
 
       <View className='w-full flex items-center justify-center h-20 '>
-        <Text className='text-text text-base font-interMedium'>
+        <Text className='text-foreground text-base font-interMedium'>
           Need help?
         </Text>
         {
@@ -169,11 +171,11 @@ export default function Index() {
           className='flex-row gap-1 items-center justify-center'
           activeOpacity={0.7}
         >
-          <IconHomeQuestion 
+          <CircleQuestionMark 
             size={20} 
-            color={COLORS.primary} 
+            color={colors.primary} 
           />
-          <Text className='text-primary text-base font-interMedium'>
+          <Text className='text-accent text-base font-interMedium'>
             Contact Support
           </Text>
         </TouchableOpacity>
