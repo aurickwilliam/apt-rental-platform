@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@repo/supabase';
 
 export type UserProfile = {
@@ -14,37 +14,38 @@ export type UserProfile = {
   background_url: string | null;
   role: string | null;
   gender: string | null;
-  birth_date: string | null;   // "YYYY-MM-DD"
+  birth_date: string | null;
   street_address: string | null;
   barangay: string | null;
   city: string | null;
   province: string | null;
-  postal_code: number | null; 
+  postal_code: number | null;
 };
 
 export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, user_id, first_name, last_name, middle_name, email, mobile_number, avatar_url, account_status, background_url, role, gender, birth_date, street_address, barangay, city, province, postal_code')
-        .eq('user_id', user.id)
-        .single();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, user_id, first_name, last_name, middle_name, email, mobile_number, avatar_url, account_status, background_url, role, gender, birth_date, street_address, barangay, city, province, postal_code')
+      .eq('user_id', user.id)
+      .single();
 
-      if (error) console.error('useProfile error:', error);
-      else setProfile(data as UserProfile);
+    if (error) console.error('useProfile error:', error);
+    else setProfile(data as UserProfile);
 
-      setLoading(false);
-    };
-
-    fetchProfile();
+    setLoading(false);
   }, []);
 
-  return { profile, loading };
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  return { profile, loading, refetch: fetchProfile };
 }
