@@ -51,6 +51,7 @@ interface DropdownFieldProps {
   enableSearch?: boolean;
   searchPlaceholder?: string;
   disabled?: boolean;
+  readOnly?: boolean;
 }
 
 export default function DropdownField({
@@ -65,12 +66,14 @@ export default function DropdownField({
   enableSearch = false,
   searchPlaceholder = 'Search...',
   disabled = false,
+  readOnly = false,
 }: DropdownFieldProps) {
   const { colors } = useColors();
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isDisabled = !!disabled;
+  const isReadOnly = !!readOnly;
 
   const filteredOptions = useMemo(() => {
     if (!enableSearch || !searchQuery.trim()) return options;
@@ -98,10 +101,9 @@ export default function DropdownField({
       </Text>
 
       <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
-
         <BottomSheet.Trigger asChild>
           <Pressable
-            disabled={isDisabled}
+            disabled={isDisabled || isReadOnly}
             style={{ alignItems: 'center' }}
             className={`border rounded-2xl pl-3 pr-4 h-12 flex-row items-center
               justify-between shadow-xs ${
@@ -116,16 +118,20 @@ export default function DropdownField({
           >
             <Text
               className={`font-inter ${
-                isDisabled ? 'text-gray-400' : value ? 'text-foreground' : 'text-gray-500'
+                isDisabled 
+                  ? 'text-gray-400' 
+                  : value 
+                  ? 'text-foreground' 
+                  : 'text-gray-500'
               }`}
             >
               {value || placeholder}
             </Text>
 
-            {isOpen ? (
-              <ChevronUp size={20} color={colors.textPrimary} />
-            ) : (
-              <ChevronDown size={20} color={colors.textPrimary} />
+            {!isReadOnly && (
+              isOpen
+                ? <ChevronUp size={20} color={colors.textPrimary} />
+                : <ChevronDown size={20} color={colors.textPrimary} />
             )}
           </Pressable>
         </BottomSheet.Trigger>

@@ -135,6 +135,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>First Name:</Label>
           <Input
+            readOnly
             value={tenantInfo.firstName}
             onChangeText={(text) => handleUpdateInfo({ firstName: text })}
           />
@@ -143,6 +144,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Last Name:</Label>
           <Input
+            readOnly
             value={tenantInfo.lastName}
             onChangeText={(text) => handleUpdateInfo({ lastName: text })}
           />
@@ -151,6 +153,7 @@ export default function EditProfile() {
         <TextField>
           <Label>Middle Name:</Label>
           <Input
+            readOnly
             value={tenantInfo.middleName}
             onChangeText={(text) => handleUpdateInfo({ middleName: text })}
           />
@@ -165,6 +168,7 @@ export default function EditProfile() {
         />
 
         <DateField 
+          readOnly
           label='Date of Birth:'
           value={tenantInfo.dateOfBirth}
           onChange={(date) => handleUpdateInfo({ dateOfBirth: date })}
