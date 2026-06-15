@@ -61,24 +61,53 @@ type actionsTypes = {
 }
 
 const actions: actionsTypes[] = [
-  { id: 1, label: "Chat Landlord", icon: MessageCircleMore },
-    {
-      id: 2,
-      label: "View Lease",
-      icon: FileText,
-      onPress: () => router.push("/tenant/current-lease"),
-    },
-  { id: 3, label: "View Receipts", icon: ReceiptText },
-  { id: 4, label: "Pay Rent", icon: Banknote },
-  { id: 5, label: "Request Maintenance", icon: Hammer },
+  { 
+    id: 1, 
+    label: "Chat Landlord", 
+    icon: MessageCircleMore 
+},
+  {
+    id: 2,
+    label: "View Lease",
+    icon: FileText,
+    onPress: () => router.push("/tenant/current-lease"),
+  },
+  { 
+    id: 3, 
+    label: "View Receipts", 
+    icon: ReceiptText,  
+    onPress: () => router.push("/tenant/payment/history"),
+  },
+  { 
+    id: 4, 
+    label: "Pay Rent", 
+    icon: Banknote,
+    onPress: () => router.push("/tenant/payment"),
+  },
+  { 
+    id: 5, 
+    label: "Request Maintenance", 
+    icon: Hammer,
+    onPress: () => router.push("/tenant/maintenance-issue"),
+  },
   {
     id: 6,
     label: "Property Details",
     icon: House,
     onPress: () => router.push("/tenant/current-apartment"),
   },
-  { id: 7, label: "Settings", icon: Settings },
-  { id: 8, label: "FAQ", icon: CircleQuestionMark },
+  {
+    id: 7,
+    label: "Settings",
+    icon: Settings,
+    onPress: () => router.push("/settings"),
+  },
+  { 
+    id: 8, 
+    label: "FAQ", 
+    icon: CircleQuestionMark,
+    onPress: () => router.push("/settings/faq"),
+  },
 ];
 
 export default function Rentals() {
