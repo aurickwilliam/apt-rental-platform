@@ -18,6 +18,7 @@ import {
   CircleQuestionMark,
   FileText,
   ShieldCheck,
+  UsersRound,
 } from 'lucide-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
@@ -100,18 +101,23 @@ export default function Index() {
         {
           icon: CircleQuestionMark,
           title: 'FAQs',
-          onPress: () => {},
+          onPress: () => router.push('/settings/faq'),
         },
         {
           icon: FileText,
           title: 'Terms and Conditions',
-          onPress: () => {},
+          onPress: () => router.push('/settings/terms'),
         },
         {
           icon: ShieldCheck,
           title: 'Privacy Policy',
-          onPress: () => {},
+          onPress: () => router.push('/settings/privacy-policy'),
         },
+        {
+          icon: UsersRound,
+          title: 'About Us',
+          onPress: () => router.push('/settings/about'),
+        }
       ],
     },
   ]
