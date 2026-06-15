@@ -14,6 +14,7 @@ interface DateFieldProps {
   disabled?: boolean;
   error?: string;
   required?: boolean;
+  readOnly?: boolean;
 }
 
 export default function DateField({
@@ -24,6 +25,7 @@ export default function DateField({
   disabled = false,
   error,
   required = false,
+  readOnly = false,
 }: DateFieldProps) {
   const { colors } = useColors();
 
@@ -53,7 +55,7 @@ export default function DateField({
   };
 
   const openDatePicker = () => {
-    if (!disabled) {
+    if (!disabled && !readOnly) {
       setTempDate(value ?? new Date());
       setShow(true);
       setIsFocused(true);
@@ -74,7 +76,9 @@ export default function DateField({
   return (
     <View className="w-full flex-col gap-2">
       {label && (
-        <Text className={`text-base font-interMedium ${error ? 'text-danger' : 'text-foreground'}`}>
+        <Text
+          className={`text-base font-interMedium ${error ? "text-danger" : "text-foreground"}`}
+        >
           {label} {required && <Text className="text-danger">*</Text>}
         </Text>
       )}
@@ -83,19 +87,26 @@ export default function DateField({
         onPress={openDatePicker}
         disabled={disabled}
         style={{ justifyContent: "space-between" }}
-        className={`bg-surface border-2 rounded-2xl pl-3 pr-4 h-12 flex-row 
-          items-center justify-between
-          ${error ? "border-danger" : isFocused ? "border-accent" : "border-field-border"}`}
+        className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center justify-between
+          ${disabled
+            ? 'bg-surface-tertiary border-field-border'
+            : error
+            ? 'bg-surface border-danger'
+            : isFocused
+            ? 'bg-surface border-accent'
+            : 'bg-surface border-field-border'
+          }`}
       >
-        <Text className={`font-inter ${value ? "text-foreground" : "text-gray-500"}`}>
+        <Text
+          className={`font-inter ${value ? "text-foreground" : "text-gray-500"}`}
+        >
           {displayValue}
         </Text>
-        <Calendar size={20} color={colors.gray400} />
+
+        {!readOnly && <Calendar size={20} color={colors.gray400} />}
       </Pressable>
 
-      {error && (
-        <Text className="text-md text-danger font-inter">{error}</Text>
-      )}
+      {error && <Text className="text-md text-danger font-inter">{error}</Text>}
 
       {/* iOS Modal */}
       {Platform.OS === "ios" && (
@@ -116,13 +127,17 @@ export default function DateField({
             {/* Toolbar */}
             <View className="flex-row justify-between items-center px-4 pt-4 pb-2 border-b border-field-border">
               <Pressable onPress={handleCancel} className="py-1 px-2">
-                <Text className="text-base text-gray-500 font-inter">Cancel</Text>
+                <Text className="text-base text-gray-500 font-inter">
+                  Cancel
+                </Text>
               </Pressable>
               <Text className="text-base font-interMedium text-foreground">
                 {label ?? "Select Date"}
               </Text>
               <Pressable onPress={handleDone} className="py-1 px-2">
-                <Text className="text-base text-accent font-interMedium">Done</Text>
+                <Text className="text-base text-accent font-interMedium">
+                  Done
+                </Text>
               </Pressable>
             </View>
 
