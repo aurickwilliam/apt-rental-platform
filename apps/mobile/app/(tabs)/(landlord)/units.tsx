@@ -270,7 +270,7 @@ export default function Units() {
   ).length;
 
   const handlePropertyPress = (propertyId: string) => {
-    router.push(`/manage-apartment/${propertyId}`);
+    router.push(`/landlord/manage-apartment/${propertyId}`);
   };
 
   return (
@@ -315,7 +315,7 @@ export default function Units() {
           </View>
         </View>
 
-        <Button>
+        <Button onPress={() => router.push("/landlord/analytics")}>
           <ChartPie size={20} color={colors.secondaryForeground} />
           <Button.Label>
             Budget Analytics
@@ -335,7 +335,7 @@ export default function Units() {
           <QuickActionButton
             label={"Add Property"}
             icon={CirclePlus}
-            onPress={() => router.push("/manage-apartment/add-apartment/")}
+            onPress={() => router.push("/landlord/manage-apartment/add-apartment/")}
           />
           <QuickActionButton
             label={"Maintenance Request"}
@@ -384,7 +384,7 @@ export default function Units() {
           // Empty / no results state
           apartments.length === 0 ? (
             <EmptyProperties
-              onAdd={() => router.push("/manage-apartment/add-apartment/")}
+              onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
             />
           ) : (
             <View className="items-center py-12 gap-2">
