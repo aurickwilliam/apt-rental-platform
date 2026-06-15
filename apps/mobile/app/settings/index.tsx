@@ -101,17 +101,17 @@ export default function Index() {
         {
           icon: CircleQuestionMark,
           title: 'FAQs',
-          onPress: () => {},
+          onPress: () => router.push('/settings/faq'),
         },
         {
           icon: FileText,
           title: 'Terms and Conditions',
-          onPress: () => {},
+          onPress: () => router.push('/settings/terms'),
         },
         {
           icon: ShieldCheck,
           title: 'Privacy Policy',
-          onPress: () => {},
+          onPress: () => router.push('/settings/privacy-policy'),
         },
         {
           icon: UsersRound,
