@@ -3,7 +3,6 @@ import {
   Text,
   Image,
   ImageSourcePropType,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { useState, useEffect } from "react";
