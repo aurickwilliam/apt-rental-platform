@@ -18,6 +18,7 @@ import {
   CircleQuestionMark,
   FileText,
   ShieldCheck,
+  UsersRound,
 } from 'lucide-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
@@ -112,6 +113,11 @@ export default function Index() {
           title: 'Privacy Policy',
           onPress: () => {},
         },
+        {
+          icon: UsersRound,
+          title: 'About Us',
+          onPress: () => router.push('/settings/about'),
+        }
       ],
     },
   ]
