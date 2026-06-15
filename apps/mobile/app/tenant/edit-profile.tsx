@@ -291,10 +291,11 @@ export default function EditProfile() {
               resizeMode="cover"
             />
           ) : (
-            <View
-              style={{ backgroundColor: colors.surface }}
-              className="w-full h-full"
-            />
+            <View className="size-32 rounded-full bg-surface flex items-center justify-center">
+              <Text className="text-accent text-4xl font-interMedium">
+                {`${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase()}
+              </Text>
+            </View>
           )}
         </View>
         <View className="mx-20">
