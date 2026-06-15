@@ -150,6 +150,11 @@ export default function CompleteProfile() {
     setProfileForm(prev => ({ ...prev, [key]: value }));
   };
 
+  // Update multiple fields at once (used for province -> city/barangay reset)
+  const updateFields = (updates: Partial<ProfileForm>) => {
+    setProfileForm(prev => ({ ...prev, ...updates }));
+  };
+
   // Return error message if field is required and not filled out after form submission
   const getError = (field: keyof ProfileForm) => {
     // Required field check
@@ -246,24 +251,19 @@ export default function CompleteProfile() {
     router.back();
   }
 
-  const handleCityChange = (city: string | null) => {
-    updateField('city', city ?? '');
-    updateField('barangay', '');
+  const handleProvinceChange = (province: string | null) => {
+    updateFields({ province: province ?? '', city: '', barangay: '' });
+    setPostalCode('');
+  };
 
+  const handleCityChange = (city: string | null) => {
+    updateFields({ city: city ?? '', barangay: '' });
     if (city) {
       const code = getPostalCode(city);
       if (code) setPostalCode(code);
     } else {
       setPostalCode('');
     }
-  };
-
-
-  const handleProvinceChange = (province: string | null) => {
-    updateField('province', province ?? '');
-    updateField('city', '');
-    updateField('barangay', '');
-    setPostalCode('');
   };
 
   const citiesForSelectedProvince = profileForm.province
