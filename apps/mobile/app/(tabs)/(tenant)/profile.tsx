@@ -60,7 +60,7 @@ export default function Profile() {
     {
       title: 'Edit Profile',
       icon: UserPen,
-      onPress: () => router.push('/tenant/edit-profile')
+      onPress: () => router.push('/edit-profile')
     },
     {
       title: 'Document & IDs',
