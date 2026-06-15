@@ -1,5 +1,6 @@
 import { View, ScrollView } from 'react-native'
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 
 import { supabase } from '@repo/supabase';
 
@@ -25,8 +26,14 @@ import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 
 export default function Profile() {
   const router = useRouter();
-  const { profile, loading } = useProfile();
+  const { profile, loading, refetch } = useProfile();
   const { colors } = useColors();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
   
   const avatarInitials =
     `${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase();
@@ -53,7 +60,7 @@ export default function Profile() {
     {
       title: 'Edit Profile',
       icon: UserPen,
-      onPress: () => router.push('/tenant/edit-profile')
+      onPress: () => router.push('/edit-profile')
     },
     {
       title: 'Document & IDs',

@@ -124,8 +124,14 @@ export default function AuthCompleteProfile() {
     return unsubscribe;
   }, [navigation]);
 
+  // Update 1 Field in the form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
     setProfileForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Update multiple fields at once (used for province -> city/barangay reset)
+  const updateFields = (updates: Partial<ProfileForm>) => {
+    setProfileForm(prev => ({ ...prev, ...updates }));
   };
 
   const getError = (field: keyof ProfileForm) => {
@@ -221,22 +227,21 @@ export default function AuthCompleteProfile() {
     }
   };
 
-  const handleCityChange = (city: string | null) => {
-    if (!city) return;
-    updateField('city', city);
-    updateField('barangay', '');
-    const code = getPostalCode(city);
-    if (code) setPostalCode(code);
-  };
-
   const handleProvinceChange = (province: string | null) => {
-    if (!province) return;
-    updateField('province', province);
-    updateField('city', '');
-    updateField('barangay', '');
+    updateFields({ province: province ?? '', city: '', barangay: '' });
     setPostalCode('');
   };
 
+  const handleCityChange = (city: string | null) => {
+    updateFields({ city: city ?? '', barangay: '' });
+    if (city) {
+      const code = getPostalCode(city);
+      if (code) setPostalCode(code);
+    } else {
+      setPostalCode('');
+    }
+  };
+  
   // Get the options depending on the province selected
   const citiesForSelectedProvince = profileForm.province
     ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
