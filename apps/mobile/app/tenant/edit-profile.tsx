@@ -7,12 +7,18 @@ import DropdownField from 'components/inputs/DropdownField'
 import DateField from '@/components/inputs/DateField'
 
 import { SAMPLE_IMAGES } from 'constants/images'
-import { PROVINCES, GENDERS } from '@repo/constants'
+import {
+  PROVINCES,
+  GENDERS,
+  getCitiesByProvince,
+  getBarangaysByCity,
+  getPostalCode,
+  Province
+} from "@repo/constants";
 
 import {
   Camera,
   User,
-  BookUser,
   Home,
 } from 'lucide-react-native';
 
@@ -36,10 +42,10 @@ type EditProfileProps = {
   gender: string,
   dateOfBirth: Date,
   contactNumber: string,
-  currentAddress: string,
+  streetAddress: string,
   barangay: string,
   city: string,
-  province: string,
+  province: Province,
   postalCode: string,
 }
 
@@ -57,10 +63,10 @@ export default function EditProfile() {
     gender: 'Male',
     dateOfBirth: new Date('1990-01-01'),
     contactNumber: '+1234567890',
-    currentAddress: '123 Main St, Cityville',
+    streetAddress: '123 Main St, Cityville',
     barangay: 'Barangay 1',
     city: 'Cityville',
-    province: 'Province',
+    province: PROVINCES[0],
     postalCode: '12345',
   });
 
@@ -68,6 +74,41 @@ export default function EditProfile() {
   const handleUpdateInfo = (value: Partial<EditProfileProps>) => {
     setTenantInfo(prev => ({ ...prev, ...value }));
   }
+
+  // Reset dependent fields and postal code when province changes
+  const handleProvinceChange = (province: Province | null) => {
+    handleUpdateInfo({
+      province: (province ?? '') as Province,
+      city: '',
+      barangay: '',
+      postalCode: '',
+    });
+  };
+
+  // Reset barangay and auto-fill postal code when city changes
+  const handleCityChange = (city: string | null) => {
+    if (!city) {
+      handleUpdateInfo({ city: '', barangay: '', postalCode: '' });
+      return;
+    }
+
+    // Auto-fill postal code based on selected city
+    const code = getPostalCode(city);
+    handleUpdateInfo({
+      city,
+      barangay: '',
+      postalCode: code ? String(code) : '',
+    });
+  };
+
+  // Derive options reactively from current state
+  const cities = tenantInfo.province
+    ? getCitiesByProvince(tenantInfo.province)
+    : [];
+
+  const barangays = tenantInfo.city
+    ? getBarangaysByCity(tenantInfo.city)
+    : [];
 
   return (
     <ScreenWrapper
@@ -136,6 +177,7 @@ export default function EditProfile() {
           <Label>First Name:</Label>
           <Input
             readOnly
+            placeholder='Enter First Name'
             value={tenantInfo.firstName}
             onChangeText={(text) => handleUpdateInfo({ firstName: text })}
           />
@@ -145,6 +187,7 @@ export default function EditProfile() {
           <Label>Last Name:</Label>
           <Input
             readOnly
+            placeholder='Enter Last Name'
             value={tenantInfo.lastName}
             onChangeText={(text) => handleUpdateInfo({ lastName: text })}
           />
@@ -154,6 +197,7 @@ export default function EditProfile() {
           <Label>Middle Name:</Label>
           <Input
             readOnly
+            placeholder='Enter Middle Name'
             value={tenantInfo.middleName}
             onChangeText={(text) => handleUpdateInfo({ middleName: text })}
           />
@@ -161,6 +205,7 @@ export default function EditProfile() {
 
         <DropdownField 
           label='Gender:' 
+          placeholder='Select Gender'
           bottomSheetLabel={'Select Gender'} 
           options={GENDERS} 
           value={tenantInfo.gender}
@@ -169,44 +214,11 @@ export default function EditProfile() {
 
         <DateField 
           readOnly
+          placeholder='Select Date of Birth'
           label='Date of Birth:'
           value={tenantInfo.dateOfBirth}
           onChange={(date) => handleUpdateInfo({ dateOfBirth: date })}
         />
-      </View>
-
-      <Separator className='my-5' />
-
-      {/* Contact Information */}
-      <View className='flex gap-3'>
-        <View className='flex-row gap-2'>
-          <BookUser 
-            size={24} 
-            color={colors.textPrimary}
-          />
-          <Text className='text-foreground text-lg font-interSemiBold'>
-            Contact Information
-          </Text>
-        </View>
-
-        <TextField isRequired>
-          <Label>Email Address:</Label>
-          <Input
-            value={tenantInfo.email}
-            onChangeText={(text) => handleUpdateInfo({ email: text })}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </TextField>
-
-        <TextField isRequired>
-          <Label>Contact Number:</Label>
-          <Input
-            value={tenantInfo.contactNumber?.toString() ?? ''}
-            onChangeText={(text) => handleUpdateInfo({ contactNumber: text })}
-            keyboardType="phone-pad"
-          />
-        </TextField>
       </View>
 
       <Separator className='my-5' />
@@ -218,51 +230,62 @@ export default function EditProfile() {
             size={24} 
             color={colors.textPrimary}
           />
-          <Text className='text-text text-lg font-interSemiBold'>
+          <Text className='text-foreground text-lg font-interSemiBold'>
             Address Information
           </Text>
         </View>
 
-        <TextField isRequired>
-          <Label>Current Address:</Label>
-          <Input
-            value={tenantInfo.currentAddress}
-            onChangeText={(text) => handleUpdateInfo({ currentAddress: text })}
-          />
-        </TextField>
-
-        <TextField isRequired>
-          <Label>Barangay:</Label>
-          <Input
-            value={tenantInfo.barangay}
-            onChangeText={(text) => handleUpdateInfo({ barangay: text })}
-          />
-        </TextField>
-
-        <TextField isRequired>
-          <Label>City:</Label>
-          <Input
-            value={tenantInfo.city}
-            onChangeText={(text) => handleUpdateInfo({ city: text })}
-          />
-        </TextField>
-
         <DropdownField 
           label='Province:' 
+          placeholder='Select Province'
           bottomSheetLabel={'Select Province'} 
           options={PROVINCES} 
           value={tenantInfo.province}
-          onSelect={(value) => handleUpdateInfo({ province: value ? value : '' })}        
+          onSelect={(value) => handleProvinceChange(value as Province | null)}
           searchPlaceholder='Search for Province...'
           enableSearch
+        />
+
+        <DropdownField 
+          label='City:' 
+          placeholder='Select City'
+          bottomSheetLabel={'Select City'} 
+          options={cities}
+          value={tenantInfo.city}
+          onSelect={handleCityChange}
+          searchPlaceholder='Search for City...'
+          enableSearch
+          disabled={!tenantInfo.province}
+        />
+
+        <DropdownField 
+          label='Barangay:' 
+          placeholder='Select Barangay'
+          bottomSheetLabel={'Select Barangay'} 
+          options={barangays}
+          value={tenantInfo.barangay}
+          onSelect={(value) => handleUpdateInfo({ barangay: value ? value : '' })}
+          searchPlaceholder='Search for Barangay...'
+          enableSearch
+          disabled={!tenantInfo.city}
         />
 
         <TextField isRequired>
           <Label>Postal Code:</Label>
           <Input
+            placeholder='Enter Postal Code'
             value={tenantInfo.postalCode?.toString() ?? ''}
             onChangeText={(text) => handleUpdateInfo({ postalCode: text })}
             keyboardType="numeric"
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Street Address:</Label>
+          <Input
+            placeholder='Enter Street Address'
+            value={tenantInfo.streetAddress}
+            onChangeText={(text) => handleUpdateInfo({ streetAddress: text })}
           />
         </TextField>
       </View>
