@@ -47,7 +47,7 @@ export default function EditProfile() {
   const { colors } = useColors();
 
   // Dummy data for now, replace with actual user data fetching and state management
-  const [currentTenantInfo, setCurrentTenantInfo] = useState<EditProfileProps>({
+  const [ landlordInfo, setLandlordInfo] = useState<EditProfileProps>({
     backgroundImageUri: SAMPLE_IMAGES.sampleBackgroundPhoto,
     profileImageUri: SAMPLE_IMAGES.sampleProfilePicture,
     firstName: 'John',
@@ -64,9 +64,9 @@ export default function EditProfile() {
     postalCode: '12345',
   });
 
-  // Handle tenant info update
+  // Handle landlord info update
   const handleUpdateInfo = (value: Partial<EditProfileProps>) => {
-    setCurrentTenantInfo(prev => ({ ...prev, ...value }));
+    setLandlordInfo(prev => ({ ...prev, ...value }));
   }
 
   return (
@@ -81,7 +81,7 @@ export default function EditProfile() {
       <View className='flex gap-3'>
         <View className='size-32 overflow-hidden rounded-full self-center border-2 border-border'>
           <Image 
-            source={currentTenantInfo.profileImageUri}
+            source={landlordInfo.profileImageUri}
             style={{ width: '100%', height: '100%'}}
             resizeMode='cover'
           />
@@ -101,7 +101,7 @@ export default function EditProfile() {
       <View className='flex gap-3 mt-5'>
         <View className='w-full h-40 overflow-hidden rounded-2xl self-center border-2 border-border'>
           <Image 
-            source={currentTenantInfo.backgroundImageUri}
+            source={landlordInfo.backgroundImageUri}
             style={{ width: '100%', height: '100%'}}
             resizeMode='cover'
           />
@@ -135,7 +135,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>First Name:</Label>
           <Input
-            value={currentTenantInfo.firstName}
+            value={landlordInfo.firstName}
             onChangeText={(text) => handleUpdateInfo({ firstName: text })}
           />
         </TextField>
@@ -143,7 +143,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Last Name:</Label>
           <Input
-            value={currentTenantInfo.lastName}
+            value={landlordInfo.lastName}
             onChangeText={(text) => handleUpdateInfo({ lastName: text })}
           />
         </TextField>
@@ -151,7 +151,7 @@ export default function EditProfile() {
         <TextField>
           <Label>Middle Name:</Label>
           <Input
-            value={currentTenantInfo.middleName}
+            value={landlordInfo.middleName}
             onChangeText={(text) => handleUpdateInfo({ middleName: text })}
           />
         </TextField>
@@ -160,13 +160,13 @@ export default function EditProfile() {
           label='Gender:' 
           bottomSheetLabel={'Select Gender'} 
           options={GENDERS} 
-          value={currentTenantInfo.gender}
+          value={landlordInfo.gender}
           onSelect={(value) => handleUpdateInfo({ gender: value ? value : '' })}        
         />
 
         <DateField 
           label='Date of Birth:'
-          value={currentTenantInfo.dateOfBirth}
+          value={landlordInfo.dateOfBirth}
           onChange={(date) => handleUpdateInfo({ dateOfBirth: date })}
         />
       </View>
@@ -188,7 +188,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Email Address:</Label>
           <Input
-            value={currentTenantInfo.email}
+            value={landlordInfo.email}
             onChangeText={(text) => handleUpdateInfo({ email: text })}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -198,7 +198,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Contact Number:</Label>
           <Input
-            value={currentTenantInfo.contactNumber?.toString() ?? ''}
+            value={landlordInfo.contactNumber?.toString() ?? ''}
             onChangeText={(text) => handleUpdateInfo({ contactNumber: text })}
             keyboardType="phone-pad"
           />
@@ -222,7 +222,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Current Address:</Label>
           <Input
-            value={currentTenantInfo.currentAddress}
+            value={landlordInfo.currentAddress}
             onChangeText={(text) => handleUpdateInfo({ currentAddress: text })}
           />
         </TextField>
@@ -230,7 +230,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Barangay:</Label>
           <Input
-            value={currentTenantInfo.barangay}
+            value={landlordInfo.barangay}
             onChangeText={(text) => handleUpdateInfo({ barangay: text })}
           />
         </TextField>
@@ -238,7 +238,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>City:</Label>
           <Input
-            value={currentTenantInfo.city}
+            value={landlordInfo.city}
             onChangeText={(text) => handleUpdateInfo({ city: text })}
           />
         </TextField>
@@ -247,7 +247,7 @@ export default function EditProfile() {
           label='Province:' 
           bottomSheetLabel={'Select Province'} 
           options={PROVINCES} 
-          value={currentTenantInfo.province}
+          value={landlordInfo.province}
           onSelect={(value) => handleUpdateInfo({ province: value ? value : '' })}        
           searchPlaceholder='Search for Province...'
           enableSearch
@@ -256,7 +256,7 @@ export default function EditProfile() {
         <TextField isRequired>
           <Label>Postal Code:</Label>
           <Input
-            value={currentTenantInfo.postalCode?.toString() ?? ''}
+            value={landlordInfo.postalCode?.toString() ?? ''}
             onChangeText={(text) => handleUpdateInfo({ postalCode: text })}
             keyboardType="numeric"
           />
