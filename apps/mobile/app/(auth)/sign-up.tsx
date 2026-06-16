@@ -17,14 +17,14 @@ import { supabase } from "@repo/supabase"
 
 import { isValidEmail } from "@repo/utils";
 
-import { 
-  Text, 
-  TextField, 
-  LinkButton, 
-  Label, 
-  FieldError, 
+import {
+  Text,
+  TextField,
+  LinkButton,
+  Label,
+  FieldError,
   Button,
-  Input, 
+  Input,
   Spinner,
 } from "heroui-native";
 
@@ -75,8 +75,8 @@ export default function SignUp() {
     if (!email.trim()) {
       setEmailError("Email address is required.");
       return;
-    } 
-    
+    }
+
     if (!isValidEmail(email)) {
       setEmailError("Please enter a valid email address.");
       return;
@@ -90,7 +90,7 @@ export default function SignUp() {
         .from("users")
         .select("id", { count: "exact", head: true })
         .eq("email", email.trim().toLowerCase());
-      
+
       // Display Error if there's an issue with the query
       if (error) {
         setServerError("Something went wrong. Please try again.");
@@ -107,9 +107,9 @@ export default function SignUp() {
       // With email and user side as params
       router.push({
         pathname: "/(auth)/complete-profile",
-        params: { 
-          email: email.trim().toLowerCase(), 
-          userSide 
+        params: {
+          email: email.trim().toLowerCase(),
+          userSide
         },
       });
 
@@ -145,7 +145,7 @@ export default function SignUp() {
       </View>
 
       {/* Tab Group User Side */}
-      <RoleTab 
+      <RoleTab
         userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
@@ -160,7 +160,8 @@ export default function SignUp() {
           isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
-          <Input 
+          <Input
+            keyboardType="email-address"
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
@@ -196,7 +197,7 @@ export default function SignUp() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        <AuthButton 
+        <AuthButton
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
           imageSource={IMAGES.googleLogo}
@@ -225,11 +226,11 @@ export default function SignUp() {
       </View>
 
       {/* Error Dialog */}
-      <ErrorDialog 
+      <ErrorDialog
         isOpen={!!(serverError || googleError)}
         onClose={() => {
           setServerError("");
-          resetGoogleError(); 
+          resetGoogleError();
         }}
         message={googleError || serverError || "Something went wrong. Please try again."}
       />

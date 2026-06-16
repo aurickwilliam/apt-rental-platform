@@ -1,34 +1,20 @@
 import { Text, View } from "react-native";
-import { useRouter } from 'expo-router';
-import { useState } from "react";
+import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import PersonalizationRadioButton from "components/buttons/PersonalizationRadioButton";
+import PersonalizationRadioButton from "./components/PersonalizationRadioButton";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { Button } from "heroui-native";
+
+import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
 
 export default function StepThree() {
   const router = useRouter();
 
-  type bedroomType = {
-    bedRoomLabel: string;
-    isSelected: boolean;
-  }
+  const { bedroomCount, setBedroomCount } = usePersonalizationStore();
 
-  const [selectedBedroomCount, setSelectedBedroomCount] = useState<bedroomType[]>([
-    { bedRoomLabel: "1-2 Bedrooms", isSelected: false },
-    { bedRoomLabel: "2-4 Bedrooms", isSelected: false },
-    { bedRoomLabel: "4+ Bedrooms", isSelected: false },
-  ]);
-
-  const toggleBedroomByIndex = (index: number) => {
-    setSelectedBedroomCount(prev =>
-      prev.map((bedroom, i) => ({
-        ...bedroom,
-        isSelected: i === index
-      }))
-    );
-  };
+  const bedroomOptions = ["1-2 Bedrooms", "2-4 Bedrooms", "4+ Bedrooms"];
 
   const handleNext = () => {
     router.replace("/personalization/step-four");
@@ -38,14 +24,14 @@ export default function StepThree() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
+          <PersonalizationProgress currentStep={3} />
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
-            {/* Question */}
             <Text className="text-secondary text-2xl font-nunitoMedium">
               How many bedrooms are you looking for?
             </Text>
 
-            {/* Description */}
             <Text className="text-foreground text-base font-inter">
               Select the number of bedrooms you prefer so we can filter properties
               that fit your needs.
@@ -54,23 +40,21 @@ export default function StepThree() {
 
           {/* Bedroom Radio Buttons */}
           <View className="flex-row flex-wrap justify-between gap-y-1">
-            {
-              selectedBedroomCount.map((bedroom, index) => (
-                <PersonalizationRadioButton
-                  key={index}
-                  label={bedroom.bedRoomLabel}
-                  selected={bedroom.isSelected}
-                  onPress={() => toggleBedroomByIndex(index)}
-                />
-              ))
-            }
+            {bedroomOptions.map((option) => (
+              <PersonalizationRadioButton
+                key={option}
+                label={option}
+                selected={bedroomCount === option}
+                onPress={() => setBedroomCount(option)}
+              />
+            ))}
           </View>
         </View>
 
-        {/* Next Button*/}
+        {/* Next Button */}
         <Button onPress={handleNext}>
           <Button.Label>
-            Next
+            {bedroomCount != null ? "Next" : "Skip"}
           </Button.Label>
         </Button>
       </View>
