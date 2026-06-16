@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { Button, Slider } from "heroui-native";
 
@@ -20,6 +21,8 @@ export default function StepTwo() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View className="flex-1">
+          <PersonalizationProgress currentStep={2} />
+
           {/* Question and Description */}
           <View className="flex gap-3">
             <Text className="text-secondary text-2xl font-nunitoMedium">
