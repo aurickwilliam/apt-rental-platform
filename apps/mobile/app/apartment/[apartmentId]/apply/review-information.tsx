@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, Image, ActivityIndicator } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -10,45 +11,82 @@ import Animated from 'react-native-reanimated';
 import { useColors } from '@/hooks/useTheme';
 
 import { formatCurrency } from '@repo/utils'
+import { supabase } from '@repo/supabase'
+
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+
+type ApartmentSummary = {
+  name: string
+  address: string
+  landlordName: string
+}
 
 export default function ReviewInformation() {
   const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  // Dummy data of Apartment Information
-  const apartmentInfo = {
-    name: "Sunset Residences",
-    address: "123 Main St, Cityville",
-    landlordName: "John Doe",
-  };
+  const { tenantInformation, rentalPreferences, documents } = useApplicationFormStore()
 
-  // Dummy data of Tenant Information
-  const submittedInfo = {
-    fullName: "John Doe",
-    email: "john@email.com",
-    phoneNumber: "+1 (555) 123-4567",
-    dateOfBirth: "January 1, 1990",
-    currentAddress: "456 Elm St, Cityville",
+  const [apartmentInfo, setApartmentInfo] = useState<ApartmentSummary | null>(null)
+  const [isLoadingApartment, setIsLoadingApartment] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
-    occupation: "Software Engineer",
-    employer: "Tech Company Inc.",
-    monthlyIncome: 5000,
-    employmentType: "Full-time",
+  useEffect(() => {
+    if (!apartmentId) return
 
-    previousLandlordName: "Jane Smith",
-    previousLandlordContact: "+1 (555) 987-6543",
+    let isActive = true
 
-    moveInDate: "2024-10-01",
-    durationOfStay: "12 months",
-    noOccupants: 2,
-    isPets: false,
-    isSmoker: false,
-    needParking: true,
-    additionalNotes: "Looking forward to living in this apartment!"
-  };
+    const fetchApartmentInfo = async () => {
+      setIsLoadingApartment(true)
+      setFetchError(null)
 
-  const formattedMonthlyIncome = formatCurrency(submittedInfo.monthlyIncome);
+      const { data, error } = await supabase
+        .from('apartments')
+        .select(`
+          name,
+          street_address,
+          barangay,
+          city,
+          province,
+          landlord:users!apartments_landlord_id_fkey1 ( first_name, last_name )
+        `)
+        .eq('id', apartmentId)
+        .single()
+
+      if (!isActive) return
+
+      if (error || !data) {
+        setFetchError('Unable to load apartment details.')
+        setIsLoadingApartment(false)
+        return
+      }
+
+      const address = [data.street_address, data.barangay, data.city, data.province]
+        .filter(Boolean)
+        .join(', ')
+
+      const landlord = Array.isArray(data.landlord) ? data.landlord[0] : data.landlord
+      const landlordName = landlord
+        ? [landlord.first_name, landlord.last_name].filter(Boolean).join(' ')
+        : 'Unknown'
+
+      setApartmentInfo({
+        name: data.name,
+        address,
+        landlordName,
+      })
+      setIsLoadingApartment(false)
+    }
+
+    fetchApartmentInfo()
+
+    return () => {
+      isActive = false
+    }
+  }, [apartmentId])
+
+  const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome)
 
   return (
     <ScreenWrapper scrollable>
@@ -60,35 +98,40 @@ export default function ReviewInformation() {
 
       <View className="p-5 flex-1">
         {/* Apartment Information */}
-        <View className="flex gap-3">
-          {/* Name */}
-          <View>
-            <Text className="text-sm font-inter text-grey-500">
-              Apartment Name
-            </Text>
-            <Text className="text-lg font-interMedium text-text">
-              {apartmentInfo.name}
-            </Text>
+        {isLoadingApartment ? (
+          <View className="py-6 items-center">
+            <ActivityIndicator size="small" color={colors.primary} />
           </View>
+        ) : fetchError ? (
+          <Text className="text-danger font-inter text-sm">{fetchError}</Text>
+        ) : (
+          <View className="flex gap-3">
+            <View>
+              <Text className="text-sm font-inter text-grey-500">
+                Apartment Name
+              </Text>
+              <Text className="text-lg font-interMedium text-text">
+                {apartmentInfo?.name}
+              </Text>
+            </View>
 
-          {/* Address */}
-          <View>
-            <Text className="text-sm font-inter text-grey-500">Address</Text>
-            <Text className="text-lg font-interMedium text-text">
-              {apartmentInfo.address}
-            </Text>
-          </View>
+            <View>
+              <Text className="text-sm font-inter text-grey-500">Address</Text>
+              <Text className="text-lg font-interMedium text-text">
+                {apartmentInfo?.address}
+              </Text>
+            </View>
 
-          {/* Landlord Name */}
-          <View>
-            <Text className="text-sm font-inter text-grey-500">
-              Rental Owner/Landlord
-            </Text>
-            <Text className="text-lg font-interMedium text-text">
-              {apartmentInfo.landlordName}
-            </Text>
+            <View>
+              <Text className="text-sm font-inter text-grey-500">
+                Rental Owner/Landlord
+              </Text>
+              <Text className="text-lg font-interMedium text-text">
+                {apartmentInfo?.landlordName}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         <Separator className="my-5" />
 
@@ -103,7 +146,6 @@ export default function ReviewInformation() {
             required documents are uploaded.
           </Text>
 
-          {/* Accordion */}
           <Animated.View
             layout={AccordionLayoutTransition}
             className="bg-white rounded-2xl mt-5 overflow-hidden"
@@ -121,31 +163,31 @@ export default function ReviewInformation() {
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Full Name</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.fullName}
+                        {tenantInformation.fullName}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Contact Number</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.phoneNumber}
+                        {tenantInformation.contactNumber}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Email Address</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.email}
+                        {tenantInformation.email}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Date of Birth</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.dateOfBirth}
+                        {tenantInformation.dateOfBirth}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Current Address</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.currentAddress}
+                        {tenantInformation.currentAddress}
                       </Text>
                     </View>
                   </View>
@@ -156,13 +198,13 @@ export default function ReviewInformation() {
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Occupation</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.occupation}
+                        {tenantInformation.occupation}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Employer</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.employer}
+                        {tenantInformation.companyName || '—'}
                       </Text>
                     </View>
                     <View className="flex">
@@ -174,7 +216,7 @@ export default function ReviewInformation() {
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Employment Type</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.employmentType}
+                        {tenantInformation.employmentType}
                       </Text>
                     </View>
                   </View>
@@ -187,7 +229,7 @@ export default function ReviewInformation() {
                         Previous Landlord Name
                       </Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.previousLandlordName}
+                        {tenantInformation.previousLandlordName || '—'}
                       </Text>
                     </View>
                     <View className="flex">
@@ -195,7 +237,7 @@ export default function ReviewInformation() {
                         Previous Landlord Contact
                       </Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.previousLandlordContact}
+                        {tenantInformation.previousLandlordContact || '—'}
                       </Text>
                     </View>
                   </View>
@@ -214,7 +256,9 @@ export default function ReviewInformation() {
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Move-in Date</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.moveInDate}
+                        {rentalPreferences.moveInDate
+                          ? rentalPreferences.moveInDate.toLocaleDateString()
+                          : '—'}
                       </Text>
                     </View>
                     <View className="flex">
@@ -222,7 +266,7 @@ export default function ReviewInformation() {
                         Duration of Stay
                       </Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.durationOfStay}
+                        {rentalPreferences.intendedDuration}
                       </Text>
                     </View>
                     <View className="flex">
@@ -230,25 +274,25 @@ export default function ReviewInformation() {
                         Number of Occupants
                       </Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.noOccupants} Person
+                        {rentalPreferences.noOccupants} Person
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Are there Pets?</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.isPets ? "Yes" : "No"}
+                        {rentalPreferences.hasPets ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Is Smoker?</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.isSmoker ? "Yes" : "No"}
+                        {rentalPreferences.isSmoker ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
                       <Text className="text-sm text-grey-500">Need Parking?</Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.needParking ? "Yes" : "No"}
+                        {rentalPreferences.needParking ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
@@ -256,7 +300,7 @@ export default function ReviewInformation() {
                         Additional Notes
                       </Text>
                       <Text className="text-base text-text font-interMedium">
-                        {submittedInfo.additionalNotes}
+                        {rentalPreferences.additionalNotes || '—'}
                       </Text>
                     </View>
                   </View>
@@ -276,17 +320,50 @@ export default function ReviewInformation() {
                       <Text className="text-base text-text">
                         Valid Government-issued ID
                       </Text>
-                      <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
+                      {documents.govId[0] ? (
+                        <Image
+                          source={{ uri: documents.govId[0].uri }}
+                          className="w-full h-52 rounded-lg"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center">
+                          <Text className="text-sm text-text">Not uploaded</Text>
+                        </View>
+                      )}
                     </View>
 
                     <View className="flex gap-2">
                       <Text className="text-base text-text">Proof of Income</Text>
-                      <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
+                      <View className="bg-surface border border-border w-full rounded-lg p-4">
+                        <Text className="text-sm text-text font-interMedium" numberOfLines={1}>
+                          {documents.proofOfIncome?.name ?? 'Not uploaded'}
+                        </Text>
+                      </View>
                     </View>
 
                     <View className="flex gap-2">
-                      <Text className="text-base text-text">Birth Certificate</Text>
-                      <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
+                      <Text className="text-base text-text">Proof of Billing</Text>
+                      {documents.proofOfBilling[0] ? (
+                        <Image
+                          source={{ uri: documents.proofOfBilling[0].uri }}
+                          className="w-full h-52 rounded-lg"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center">
+                          <Text className="text-sm text-text">Not uploaded</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View className="flex gap-2">
+                      <Text className="text-base text-text">NBI Clearance</Text>
+                      <View className="bg-surface border border-border w-full rounded-lg p-4">
+                        <Text className="text-sm text-text font-interMedium" numberOfLines={1}>
+                          {documents.nbiClearance?.name ?? 'Not uploaded'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </Accordion.Content>
@@ -295,7 +372,6 @@ export default function ReviewInformation() {
           </Animated.View>
         </View>
 
-        {/* Back or Submit Button */}
         <View className="flex-row mt-16 gap-4">
           <Button
             variant="outline"

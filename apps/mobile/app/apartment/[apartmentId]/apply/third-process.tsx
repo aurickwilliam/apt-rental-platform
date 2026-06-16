@@ -1,35 +1,29 @@
-import { useState } from 'react'
 import { View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import * as ImagePicker from 'expo-image-picker'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
+import UploadImageField from '@/components/inputs/UploadImageField';
+import UploadFileField from '@/components/inputs/UploadFileField';
 
 import {
   Button,
 } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
-import UploadImageField from '@/components/inputs/UploadImageField';
-import UploadFileField from '@/components/inputs/UploadFileField';
+
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 export default function ThirdProcess() {
   const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  // Government ID (single image)
-  const [govId, setGovId] = useState<ImagePicker.ImagePickerAsset[]>([]);
-
-  // Proof of Income (file)
-  const [proofOfIncome, setProofOfIncome] = useState<string>('');
-
-  // Proof of Billing (file)
-  const [proofOfBilling, setProofOfBilling] = useState<ImagePicker.ImagePickerAsset[]>([])
-
-  // NBI Clearance (single image, optional)
-  const [nbiClearance, setNbiClearance] = useState<string>('')
+  const { 
+    documents, 
+    updateImageDocument, 
+    updateFileDocument 
+  } = useApplicationFormStore()
 
   return (
     <ScreenWrapper
@@ -44,40 +38,32 @@ export default function ThirdProcess() {
       <View className='p-5'>
         <View className='flex gap-3'>
           <UploadImageField
-            label="Valid Government-issued ID:"
-            required
-            single
-            images={govId}
-            onAdd={(asset) =>
-              setGovId(Array.isArray(asset) ? asset : [asset])
-            }
-            onRemove={() => setGovId([])}
+            images={documents.govId}
+            onAdd={(asset) => updateImageDocument('govId', Array.isArray(asset) ? asset : [asset])}
+            onRemove={(uri) => updateImageDocument('govId', documents.govId.filter(i => i.uri !== uri))}
+            required single label="Valid Government-issued ID:"
           />
 
           <UploadFileField
             label="Proof of Income:"
             placeholder="Upload COE, payslip, or ITR"
-            onChange={(uri) => setProofOfIncome(uri)}
-            value={proofOfIncome}
+            value={documents.proofOfIncome}
+            onChange={(asset) => updateFileDocument('proofOfIncome', asset)}
             required
           />
 
           <UploadImageField
-            label="Proof of Billing:"
-            required
-            single
-            images={proofOfBilling}
-            onAdd={(asset) =>
-              setProofOfBilling(Array.isArray(asset) ? asset : [asset])
-            }
-            onRemove={() => setProofOfBilling([])}
+            images={documents.proofOfBilling}
+            onAdd={(asset) => updateImageDocument('proofOfBilling', Array.isArray(asset) ? asset : [asset])}
+            onRemove={(uri) => updateImageDocument('proofOfBilling', documents.proofOfBilling.filter(i => i.uri !== uri))}
+            required single label="Proof of Billing:"
           />
 
           <UploadFileField
             label="NBI Clearance:"
             placeholder="Upload your NBI clearance"
-            onChange={(uri) => setNbiClearance(uri)}
-            value={nbiClearance}
+            value={documents.nbiClearance}
+            onChange={(asset) => updateFileDocument('nbiClearance', asset)}
           />
         </View>
 

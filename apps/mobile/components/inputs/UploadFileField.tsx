@@ -11,8 +11,8 @@ import { Button } from "heroui-native"
 interface UploadFileFieldProps {
   label: string
   placeholder?: string
-  onChange?: (uri: string) => void
-  value?: string
+  onChange?: (asset: DocumentPicker.DocumentPickerAsset | null) => void
+  value?: DocumentPicker.DocumentPickerAsset | null
   disabled?: boolean
   error?: string
   required?: boolean
@@ -35,7 +35,6 @@ export default function UploadFileField({
 }: UploadFileFieldProps) {
   const { colors } = useColors();
 
-  const [fileName, setFileName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const pickFile = async () => {
@@ -51,21 +50,18 @@ export default function UploadFileField({
 
       if (result.canceled) return
 
-      const asset = result.assets[0]
-      setFileName(asset.name)
-      onChange?.(asset.uri)
+      onChange?.(result.assets[0])
     } finally {
       setLoading(false)
     }
   }
 
   const removeFile = () => {
-    setFileName(null)
-    onChange?.('')
+    onChange?.(null)
   }
 
-  const hasFile = !!fileName || !!value
-  const displayName = fileName ?? value?.split('/').pop() ?? ''
+  const hasFile = !!value
+  const displayName = value?.name ?? ''
 
   return (
     <View className="w-full flex-col gap-2">
@@ -157,7 +153,7 @@ export default function UploadFileField({
         <Button
           size="sm"
           onPress={removeFile}
-          isDisabled={disabled}
+          isDisabled={disabled || !hasFile}
           className="flex-1"
           variant="danger-soft"
         >
