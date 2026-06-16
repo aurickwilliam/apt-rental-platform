@@ -8,6 +8,7 @@ import UploadFileField from '@/components/inputs/UploadFileField';
 
 import {
   Button,
+  Separator,
 } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
@@ -44,6 +45,8 @@ export default function ThirdProcess() {
             required single label="Valid Government-issued ID:"
           />
 
+          <Separator className='my-4' />
+
           <UploadFileField
             label="Proof of Income:"
             placeholder="Upload COE, payslip, or ITR"
@@ -52,12 +55,16 @@ export default function ThirdProcess() {
             required
           />
 
+          <Separator className='my-4' />
+
           <UploadImageField
             images={documents.proofOfBilling}
             onAdd={(asset) => updateImageDocument('proofOfBilling', Array.isArray(asset) ? asset : [asset])}
             onRemove={(uri) => updateImageDocument('proofOfBilling', documents.proofOfBilling.filter(i => i.uri !== uri))}
             required single label="Proof of Billing:"
           />
+
+          <Separator className='my-4' />
 
           <UploadFileField
             label="NBI Clearance:"
@@ -71,11 +78,11 @@ export default function ThirdProcess() {
         <View className='flex-1 flex-row mt-16 gap-4'>
           <Button
             onPress={() => router.back()}
-            variant='danger-soft'
+            variant='tertiary'
             className="flex-1"
           >
             <Button.Label>
-              Cancel
+              Back
             </Button.Label>
           </Button>
 
