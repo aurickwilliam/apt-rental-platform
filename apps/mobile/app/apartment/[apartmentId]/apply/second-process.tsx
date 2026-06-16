@@ -18,46 +18,22 @@ import {
 
 import { useColors } from '@/hooks/useTheme';
 
-type RentalPreferences = {
-  moveInDate: Date | null;
-  intendedDuration: string;
-  noOccupants: number;
-  hasPets: boolean;
-  isSmoker: boolean;
-  needParking: boolean;
-  additionalNotes: string;
-}
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 export default function SecondProcess() {
   const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
+  const { rentalPreferences, updateRentalPreferences } = useApplicationFormStore()
+
   // Duration options for dropdown
-  const durationOptions = [
+  const DURATION_OPTIONS = [
     '6 months',
     '1 year',
     '2 years',
     'More than 2 years',
   ]
-
-  const [rentalPreferences, setRentalPreferences] = useState<RentalPreferences>({
-    moveInDate: null,
-    intendedDuration: '',
-    noOccupants: 0,
-    hasPets: false,
-    isSmoker: false,
-    needParking: false,
-    additionalNotes: '',
-  })
-
-  // Function to update rental preferences
-  const updateRentalPreferences = (field: keyof RentalPreferences, value: string | boolean | Date | null | number) => {
-    setRentalPreferences(prev => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
 
   return (
     <ScreenWrapper scrollable>
@@ -82,9 +58,9 @@ export default function SecondProcess() {
           <DropdownField
             label="Intended Duration:"
             bottomSheetLabel="Select your intended duration"
-            options={durationOptions}
+            options={DURATION_OPTIONS}
             onSelect={(value) =>
-              updateRentalPreferences("intendedDuration", value)
+              updateRentalPreferences("intendedDuration", value ?? "")
             }
             required
           />
