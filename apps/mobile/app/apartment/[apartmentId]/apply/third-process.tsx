@@ -2,21 +2,22 @@ import { View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
-import UploadImageField from 'components/inputs/UploadImageField'
-import UploadGeneralFile from '@/components/inputs/UploadFileField'
-import PillButton from 'components/buttons/PillButton'
+import ApplicationHeader from '@/components/layout/ApplicationHeader'
 
-import { COLORS } from '@repo/constants'
+import { 
+  Button,
+} from 'heroui-native';
+
+import { useColors } from '@/hooks/useTheme';
 
 export default function ThirdProcess() {
+  const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   return (
     <ScreenWrapper
       scrollable
-      backgroundColor={COLORS.darkerWhite}
     >
       <ApplicationHeader
         currentTitle="Upload Required Documents"
@@ -53,23 +54,26 @@ export default function ThirdProcess() {
 
         {/* Back or Next Button */}
         <View className='flex-1 flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Back'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={() => {
-                router.push(`/apartment/${apartmentId}/apply/review-information`);
-              }}
-            />
-          </View>
+          <Button 
+            onPress={() => router.back()} 
+            variant='danger-soft'
+            className="flex-1"
+          >
+            <Button.Label>
+              Cancel
+            </Button.Label>
+          </Button>
+
+          <Button 
+            onPress={() => {
+              router.push(`/apartment/${apartmentId}/apply/review-information`);
+            }}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
