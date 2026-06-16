@@ -581,6 +581,7 @@ export type Database = {
           middle_name: string | null
           mobile_number: string | null
           postal_code: number | null
+          preferences: Json | null
           province: string | null
           role: string
           street_address: string | null
@@ -604,6 +605,7 @@ export type Database = {
           middle_name?: string | null
           mobile_number?: string | null
           postal_code?: number | null
+          preferences?: Json | null
           province?: string | null
           role?: string
           street_address?: string | null
@@ -627,6 +629,7 @@ export type Database = {
           middle_name?: string | null
           mobile_number?: string | null
           postal_code?: number | null
+          preferences?: Json | null
           province?: string | null
           role?: string
           street_address?: string | null
