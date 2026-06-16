@@ -82,7 +82,7 @@ export default function UploadImageField({
                 className="w-full h-full rounded-xl"
                 resizeMode="cover"
               />
-              
+
               <TouchableOpacity
                 className="absolute -top-1.5 -right-1.5 rounded-full bg-surface"
                 onPress={() => onRemove(item.uri)}
@@ -121,7 +121,7 @@ export default function UploadImageField({
                 size={22}
                 color={colors.primary}
               />
-              <Text className="text-sm font-medium text-danger-foreground">
+              <Text className="text-sm font-medium text-foreground">
                 {single ? "Choose photo" : "Add photos"}
               </Text>
             </>

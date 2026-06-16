@@ -12,7 +12,8 @@ import {
   Label,
   FieldError,
   Button,
-  Separator
+  Separator,
+  Dialog,
 } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
@@ -34,6 +35,8 @@ type TenantInformation = {
 export default function FirstProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   // TODO: Fetch tenant information from API and pre-fill the form if data exists. For now, using dummy data.
   // Dummy Tenant Information
@@ -70,9 +73,7 @@ export default function FirstProcess() {
   }
 
   return (
-    <ScreenWrapper
-      scrollable
-    >
+    <ScreenWrapper scrollable>
       {/* Header with Progress Bar */}
       <ApplicationHeader
         currentTitle="Tenant Information"
@@ -80,16 +81,16 @@ export default function FirstProcess() {
         step={1}
       />
 
-      <View className='p-5'>
+      <View className="p-5">
         {/* Personal Information */}
-        <View className='flex gap-3'>
+        <View className="flex gap-3">
           {/* Full Name */}
           <TextField isRequired>
             <Label>Full Name</Label>
             <Input
-              placeholder='Enter your full name'
+              placeholder="Enter your full name"
               value={tenantInformation.fullName}
-              onChangeText={(text) => updateTenantInformation('fullName', text)}
+              onChangeText={(text) => updateTenantInformation("fullName", text)}
             />
           </TextField>
 
@@ -97,9 +98,11 @@ export default function FirstProcess() {
           <TextField isRequired>
             <Label>Contact Number</Label>
             <Input
-              placeholder='Enter your contact number'
+              placeholder="Enter your contact number"
               value={tenantInformation.contactNumber}
-              onChangeText={(text) => updateTenantInformation('contactNumber', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("contactNumber", text)
+              }
             />
           </TextField>
 
@@ -107,9 +110,9 @@ export default function FirstProcess() {
           <TextField isRequired>
             <Label>Email</Label>
             <Input
-              placeholder='Enter your email'
+              placeholder="Enter your email"
               value={tenantInformation.email}
-              onChangeText={(text) => updateTenantInformation('email', text)}
+              onChangeText={(text) => updateTenantInformation("email", text)}
             />
           </TextField>
 
@@ -117,9 +120,11 @@ export default function FirstProcess() {
           <TextField isRequired>
             <Label>Date of Birth</Label>
             <Input
-              placeholder='Enter your date of birth'
+              placeholder="Enter your date of birth"
               value={tenantInformation.dateOfBirth}
-              onChangeText={(text) => updateTenantInformation('dateOfBirth', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("dateOfBirth", text)
+              }
             />
           </TextField>
 
@@ -127,9 +132,11 @@ export default function FirstProcess() {
           <TextField isRequired>
             <Label>Current Address</Label>
             <Input
-              placeholder='Enter your current address'
+              placeholder="Enter your current address"
               value={tenantInformation.currentAddress}
-              onChangeText={(text) => updateTenantInformation('currentAddress', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("currentAddress", text)
+              }
             />
           </TextField>
         </View>
@@ -137,18 +144,20 @@ export default function FirstProcess() {
         <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className='text-foreground text-lg font-interMedium mb-5'>
+        <Text className="text-foreground text-lg font-interMedium mb-5">
           Employment & Income Details
         </Text>
 
-        <View className='flex gap-3'>
+        <View className="flex gap-3">
           {/* Occupation */}
           <TextField isRequired>
             <Label>Occupation/Job Title</Label>
             <Input
-              placeholder='Enter your occupation'
+              placeholder="Enter your occupation"
               value={tenantInformation.occupation}
-              onChangeText={(text) => updateTenantInformation('occupation', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("occupation", text)
+              }
             />
           </TextField>
 
@@ -156,9 +165,11 @@ export default function FirstProcess() {
           <TextField>
             <Label>Company Name</Label>
             <Input
-              placeholder='Enter your company name'
+              placeholder="Enter your company name"
               value={tenantInformation.companyName}
-              onChangeText={(text) => updateTenantInformation('companyName', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("companyName", text)
+              }
             />
           </TextField>
 
@@ -166,21 +177,34 @@ export default function FirstProcess() {
           <TextField isRequired>
             <Label>Monthly Income</Label>
             <Input
-              placeholder='Enter your monthly income'
+              placeholder="Enter your monthly income"
               keyboardType="numeric"
               value={tenantInformation.monthlyIncome.toString()}
-              onChangeText={(text) => updateTenantInformation('monthlyIncome', text === '' ? 0 : parseInt(text))}
+              onChangeText={(text) =>
+                updateTenantInformation(
+                  "monthlyIncome",
+                  text === "" ? 0 : parseInt(text),
+                )
+              }
             />
           </TextField>
 
           {/* Employment Type */}
           <DropdownField
             label="Employment Type"
-            bottomSheetLabel='Select Employment Type'
-            placeholder='Select your employment type'
-            options={['Full-Time', 'Part-Time', 'Self-Employed', 'Unemployed', 'Student']}
+            bottomSheetLabel="Select Employment Type"
+            placeholder="Select your employment type"
+            options={[
+              "Full-Time",
+              "Part-Time",
+              "Self-Employed",
+              "Unemployed",
+              "Student",
+            ]}
             value={tenantInformation.employmentType}
-            onSelect={(value) => updateTenantInformation('employmentType', value ?? "")}
+            onSelect={(value) =>
+              updateTenantInformation("employmentType", value ?? "")
+            }
             required
           />
         </View>
@@ -188,21 +212,23 @@ export default function FirstProcess() {
         <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className='text-foreground text-lg font-interMedium'>
+        <Text className="text-foreground text-lg font-interMedium">
           References
         </Text>
-        <Text className='text-muted font-inter mb-5'>
+        <Text className="text-muted font-inter mb-5">
           Preferred for Fast-Track Review
         </Text>
 
-        <View className='flex gap-3'>
+        <View className="flex gap-3">
           {/* Previous Landlord Name */}
           <TextField>
             <Label>Previous Landlord Name</Label>
             <Input
-              placeholder='Enter your previous landlord name'
+              placeholder="Enter your previous landlord name"
               value={tenantInformation.previousLandlordName}
-              onChangeText={(text) => updateTenantInformation('previousLandlordName', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("previousLandlordName", text)
+              }
             />
           </TextField>
 
@@ -210,37 +236,68 @@ export default function FirstProcess() {
           <TextField>
             <Label>Previous Landlord Contact</Label>
             <Input
-              placeholder='Enter your previous landlord contact'
+              placeholder="Enter your previous landlord contact"
               value={tenantInformation.previousLandlordContact}
-              onChangeText={(text) => updateTenantInformation('previousLandlordContact', text)}
+              onChangeText={(text) =>
+                updateTenantInformation("previousLandlordContact", text)
+              }
             />
           </TextField>
         </View>
 
         {/* Cancel or Next Button */}
-        <View className='flex-1 flex-row mt-16 gap-4'>
-          <Button 
-            onPress={() => router.back()} 
-            variant='danger-soft'
+        <View className="flex-1 flex-row mt-16 gap-4">
+          <Button
+            onPress={() => setIsCancelDialogOpen(true)}
+            variant="danger-soft"
             className="flex-1"
           >
-            <Button.Label>
-              Cancel
-            </Button.Label>
+            <Button.Label>Cancel</Button.Label>
           </Button>
 
-          <Button 
+          <Button
             onPress={() => {
               router.push(`/apartment/${apartmentId}/apply/second-process`);
             }}
             className="flex-1"
           >
-            <Button.Label>
-              Next
-            </Button.Label>
+            <Button.Label>Next</Button.Label>
           </Button>
         </View>
       </View>
+
+      {/* Cancel Dialog if the user wants to discard progress */}
+      <Dialog isOpen={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <View className="mb-5 gap-1.5">
+              <Dialog.Title>Discard Application?</Dialog.Title>
+              <Dialog.Description>
+                Your progress will be lost if you leave now. Are
+                you sure you want to cancel?
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end gap-3">
+              <Button
+                variant="danger-soft"
+                size="sm"
+                onPress={() => router.back()}
+              >
+                <Button.Label>Discard</Button.Label>
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => setIsCancelDialogOpen(false)}
+              >
+                <Button.Label>Keep Editing</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScreenWrapper>
-  )
+  );
 }
