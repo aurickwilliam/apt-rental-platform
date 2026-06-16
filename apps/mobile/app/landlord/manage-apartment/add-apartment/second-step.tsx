@@ -10,7 +10,7 @@ import {
 } from "@maplibre/maplibre-react-native";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
+import ApplicationHeader from "@/components/layout/ApplicationHeader";
 import DropdownField from "components/inputs/DropdownField";
 
 import {
@@ -310,7 +310,7 @@ export default function SecondStep() {
     }
 
     setErrors({});
-    router.push("/manage-apartment/add-apartment/third-step");
+    router.push("/landlord/manage-apartment/add-apartment/third-step");
   };
 
   return (
@@ -681,7 +681,7 @@ export default function SecondStep() {
           <TouchableOpacity
             className="rounded-3xl h-52 w-full overflow-hidden"
             onPress={() =>
-              router.push("/manage-apartment/add-apartment/map-pin")
+              router.push("/landlord/manage-apartment/add-apartment/map-pin")
             }
             activeOpacity={0.85}
           >

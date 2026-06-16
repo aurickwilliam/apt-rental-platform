@@ -2,16 +2,17 @@ import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
-import Divider from 'components/display/Divider'
-import PillButton from 'components/buttons/PillButton'
+import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import AccordionItem from 'components/display/AccordionItem'
 
-import { COLORS } from '@repo/constants'
+import { Button, Separator } from 'heroui-native';
+
+import { useColors } from '@/hooks/useTheme';
 
 import { formatCurrency } from '@repo/utils'
 
 export default function ReviewInformation() {
+  const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
@@ -50,146 +51,124 @@ export default function ReviewInformation() {
   const formattedMonthlyIncome = formatCurrency(submittedInfo.monthlyIncome);
 
   return (
-    <ScreenWrapper
-      scrollable
-      backgroundColor={COLORS.darkerWhite}
-    >
+    <ScreenWrapper scrollable>
       <ApplicationHeader
         currentTitle="Review Application"
         nextTitle="Submit Application"
         step={4}
       />
 
-      <View className='p-5 flex-1'>
+      <View className="p-5 flex-1">
         {/* Apartment Information */}
-        <View className='flex gap-3'>
+        <View className="flex gap-3">
           {/* Name */}
           <View>
-            <Text className='text-sm font-inter text-grey-500'>
+            <Text className="text-sm font-inter text-grey-500">
               Apartment Name
             </Text>
-            <Text className='text-lg font-interMedium text-text'>
+            <Text className="text-lg font-interMedium text-text">
               {apartmentInfo.name}
             </Text>
           </View>
 
           {/* Address */}
           <View>
-            <Text className='text-sm font-inter text-grey-500'>
-              Address
-            </Text>
-            <Text className='text-lg font-interMedium text-text'>
+            <Text className="text-sm font-inter text-grey-500">Address</Text>
+            <Text className="text-lg font-interMedium text-text">
               {apartmentInfo.address}
             </Text>
           </View>
 
           {/* Landlord Name */}
           <View>
-            <Text className='text-sm font-inter text-grey-500'>
+            <Text className="text-sm font-inter text-grey-500">
               Rental Owner/Landlord
             </Text>
-            <Text className='text-lg font-interMedium text-text'>
+            <Text className="text-lg font-interMedium text-text">
               {apartmentInfo.landlordName}
             </Text>
           </View>
         </View>
 
-        <Divider />
+        <Separator className="my-5" />
 
         {/* Summary */}
-        <View className='flex-1'>
-          <Text className='text-xl font-interSemiBold text-text'>
+        <View className="flex-1">
+          <Text className="text-xl font-interSemiBold text-text">
             Summary of Application
           </Text>
-          <Text className='text-sm font-inter text-text mt-1'>
-            Please review the information you have provided before submitting your application.
-            Make sure all details are accurate and all required documents are uploaded.
+          <Text className="text-sm font-inter text-text mt-1">
+            Please review the information you have provided before submitting
+            your application. Make sure all details are accurate and all
+            required documents are uploaded.
           </Text>
 
           {/* Accordion */}
-          <View className='bg-white rounded-2xl mt-5 overflow-hidden'>
+          <View className="bg-white rounded-2xl mt-5 overflow-hidden">
             <AccordionItem title="Tenant Information">
               <View className="flex gap-3">
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Full Name
-                  </Text>
+                  <Text className="text-sm text-grey-500">Full Name</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.fullName}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Contact Number
-                  </Text>
+                  <Text className="text-sm text-grey-500">Contact Number</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.phoneNumber}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Email Address
-                  </Text>
+                  <Text className="text-sm text-grey-500">Email Address</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.email}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Date of Birth
-                  </Text>
+                  <Text className="text-sm text-grey-500">Date of Birth</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.dateOfBirth}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Current Address
-                  </Text>
+                  <Text className="text-sm text-grey-500">Current Address</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.currentAddress}
                   </Text>
                 </View>
               </View>
 
-              <Divider />
+              <Separator className="my-5" />
 
               <View className="flex gap-3">
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Occupation
-                  </Text>
+                  <Text className="text-sm text-grey-500">Occupation</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.occupation}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Employer
-                  </Text>
+                  <Text className="text-sm text-grey-500">Employer</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.employer}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Monthly Income
-                  </Text>
+                  <Text className="text-sm text-grey-500">Monthly Income</Text>
                   <Text className="text-base text-text font-interMedium">
                     ₱ {formattedMonthlyIncome}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Employment Type
-                  </Text>
+                  <Text className="text-sm text-grey-500">Employment Type</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.employmentType}
                   </Text>
                 </View>
               </View>
 
-              <Divider />
+              <Separator className="my-5" />
 
               <View className="flex gap-3 mb-5">
                 <View className="flex">
@@ -214,9 +193,7 @@ export default function ReviewInformation() {
             <AccordionItem title="Rental Preferences">
               <View className="flex gap-3">
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Move-in Date
-                  </Text>
+                  <Text className="text-sm text-grey-500">Move-in Date</Text>
                   <Text className="text-base text-text font-interMedium">
                     {submittedInfo.moveInDate}
                   </Text>
@@ -238,27 +215,21 @@ export default function ReviewInformation() {
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Are there Pets?
-                  </Text>
+                  <Text className="text-sm text-grey-500">Are there Pets?</Text>
                   <Text className="text-base text-text font-interMedium">
-                    {submittedInfo.isPets ? 'Yes' : 'No'}
+                    {submittedInfo.isPets ? "Yes" : "No"}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Is Smoker?
-                  </Text>
+                  <Text className="text-sm text-grey-500">Is Smoker?</Text>
                   <Text className="text-base text-text font-interMedium">
-                    {submittedInfo.isSmoker ? 'Yes' : 'No'}
+                    {submittedInfo.isSmoker ? "Yes" : "No"}
                   </Text>
                 </View>
                 <View className="flex">
-                  <Text className="text-sm text-grey-500">
-                    Need Parking?
-                  </Text>
+                  <Text className="text-sm text-grey-500">Need Parking?</Text>
                   <Text className="text-base text-text font-interMedium">
-                    {submittedInfo.needParking ? 'Yes' : 'No'}
+                    {submittedInfo.needParking ? "Yes" : "No"}
                   </Text>
                 </View>
                 <View className="flex">
@@ -278,24 +249,17 @@ export default function ReviewInformation() {
                   <Text className="text-base text-text">
                     Valid Government-issued ID
                   </Text>
-                  <View className='bg-amber-200 w-full h-52 rounded-lg items-center justify-center'>
-                  </View>
+                  <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
                 </View>
 
                 <View className="flex gap-2">
-                  <Text className="text-base text-text">
-                    Proof of Income
-                  </Text>
-                  <View className='bg-amber-200 w-full h-52 rounded-lg items-center justify-center'>
-                  </View>
+                  <Text className="text-base text-text">Proof of Income</Text>
+                  <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
                 </View>
 
                 <View className="flex gap-2">
-                  <Text className="text-base text-text">
-                    Birth Certificate
-                  </Text>
-                  <View className='bg-amber-200 w-full h-52 rounded-lg items-center justify-center'>
-                  </View>
+                  <Text className="text-base text-text">Birth Certificate</Text>
+                  <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center"></View>
                 </View>
               </View>
             </AccordionItem>
@@ -303,26 +267,29 @@ export default function ReviewInformation() {
         </View>
 
         {/* Back or Submit Button */}
-        <View className='flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Back'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Submit Application'}
-              isFullWidth
-              onPress={() => {
-                router.replace(`/apartment/${apartmentId}/apply/submitted`);
-              }}
-            />
-          </View>
+        <View className="flex-row mt-16 gap-4">
+          <Button
+            variant="outline"
+            onPress={() => router.back()}
+            className="flex-1"
+          >
+            <Button.Label>
+              Back
+            </Button.Label>
+          </Button>
+
+          <Button
+            onPress={() => {
+              router.replace(`/apartment/${apartmentId}/apply/submitted`);
+            }}
+            className="flex-1"
+          >
+            <Button.Label>
+              Submit Application
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
-  )
+  );
 }

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
+import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import UploadImageField from 'components/inputs/UploadImageField'
 
 import { Button, TextField, Label, Input, FieldError } from "heroui-native"
@@ -59,7 +59,7 @@ export default function Index() {
     }
 
     setErrors({})
-    router.push('/manage-apartment/add-apartment/second-step')
+    router.push('/landlord/manage-apartment/add-apartment/second-step')
   }
 
   const handleCancel = () => {

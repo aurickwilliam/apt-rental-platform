@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
+import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DateField from '@/components/inputs/DateField'
 import DropdownField from 'components/inputs/DropdownField'
 
