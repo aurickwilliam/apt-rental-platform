@@ -16,9 +16,9 @@ import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
 import ErrorDialog from '@/components/display/ErrorDialog';
 
-import { 
-  usePHMobileValidation, 
-  usePHPostalCode 
+import {
+  usePHMobileValidation,
+  usePHPostalCode
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
@@ -28,7 +28,7 @@ import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
 import { getProfileSubmitError } from '@repo/utils';
 
-import { 
+import {
   TextField,
   Label,
   Input,
@@ -118,7 +118,7 @@ export default function AuthCompleteProfile() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (canLeave.current) return; 
+      if (canLeave.current) return;
       e.preventDefault(); // block all back navigation
     });
     return unsubscribe;
@@ -165,8 +165,8 @@ export default function AuthCompleteProfile() {
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
     if (
-      emptyFields.length > 0 || 
-      !isPostalCodeValidOnSubmit || 
+      emptyFields.length > 0 ||
+      !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
     ) return;
 
@@ -212,12 +212,12 @@ export default function AuthCompleteProfile() {
         mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
         userSide: userSide as 'tenant' | 'landlord',
       });
-      
+
       canLeave.current = true;
       router.replace(
         userSide === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
-          : "../(tabs)/(tenant)/rentals",
+          : "/personalization/step-one",
       );
     } catch (err: any) {
       setError(getProfileSubmitError(err));
@@ -241,7 +241,7 @@ export default function AuthCompleteProfile() {
       setPostalCode('');
     }
   };
-  
+
   // Get the options depending on the province selected
   const citiesForSelectedProvince = profileForm.province
     ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
@@ -266,7 +266,7 @@ export default function AuthCompleteProfile() {
 
         <Separator />
 
-        {/* 
+        {/*
           ===== Personal Information Section =====
         */}
         <Text className="text-xl text-foreground font-interMedium mt-3">
@@ -363,7 +363,7 @@ export default function AuthCompleteProfile() {
 
         <Separator />
 
-        {/* 
+        {/*
           ===== Address Information Section =====
         */}
         <Text className="text-xl text-foreground font-interMedium mt-3">
@@ -457,7 +457,7 @@ export default function AuthCompleteProfile() {
       </View>
 
       {/* Error Dialog */}
-      <ErrorDialog 
+      <ErrorDialog
         isOpen={errorDialogOpen}
         onClose={() => setErrorDialogOpen(false)}
         message={error}

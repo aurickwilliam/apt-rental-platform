@@ -84,7 +84,7 @@ export default function CompleteProfile() {
   const { colors } = useColors();
 
   const { email, userSide } = useLocalSearchParams();
-  const { setData, reset, data } = useRegistrationStore();
+  const { setData, reset } = useRegistrationStore();
 
   // Handle case where email might be an array
   const emailValue = Array.isArray(email) ? email[0] : email;
@@ -143,7 +143,7 @@ export default function CompleteProfile() {
     validation: mobileValidation,
     onChange: onMobileChange,
     validate: validateMobileNumber,
-  } = usePHMobileValidation(data.mobileNumber ?? "");
+  } = usePHMobileValidation();
 
   // Update individual field in profile form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
