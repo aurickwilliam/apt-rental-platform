@@ -25,7 +25,7 @@ export default function StepThree() {
       <View className="flex-1 justify-between">
         <View>
           <PersonalizationProgress currentStep={3} />
-          
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -53,7 +53,9 @@ export default function StepThree() {
 
         {/* Next Button */}
         <Button onPress={handleNext}>
-          <Button.Label>Next</Button.Label>
+          <Button.Label>
+            {bedroomCount != null ? "Next" : "Skip"}
+          </Button.Label>
         </Button>
       </View>
     </ScreenWrapper>

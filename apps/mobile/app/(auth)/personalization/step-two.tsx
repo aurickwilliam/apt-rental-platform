@@ -67,7 +67,9 @@ export default function StepTwo() {
 
         {/* Next Button */}
         <Button onPress={handleNext}>
-          <Button.Label>Next</Button.Label>
+          <Button.Label>
+            Next
+          </Button.Label>
         </Button>
       </View>
     </ScreenWrapper>
