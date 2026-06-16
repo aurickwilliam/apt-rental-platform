@@ -3,12 +3,20 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import DropdownField from "components/inputs/DropdownField";
-import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
-import { RadioGroup, Radio, Label, Checkbox, Button, ControlField } from "heroui-native";
+import {
+  RadioGroup,
+  Radio,
+  Label,
+  Checkbox,
+  Button,
+  ControlField,
+  Separator,
+} from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
 
@@ -29,13 +37,15 @@ export default function StepFive() {
   const NO_PARKING_OPTIONS = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
   const handleNext = () => {
-    router.replace("/(tabs)/(tenant)/rentals");
+    router.replace("/(tabs)/(tenant)/search");
   };
 
   return (
     <ScreenWrapper scrollable className="p-5">
       <View className="flex-1 justify-between">
         <View className="mb-20">
+          <PersonalizationProgress currentStep={5} />
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -63,7 +73,7 @@ export default function StepFive() {
                   className="flex-row items-center justify-start gap-2"
                 >
                   <Radio>
-                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                    <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
                   <Label>Yes</Label>
                 </RadioGroup.Item>
@@ -72,7 +82,7 @@ export default function StepFive() {
                   className="flex-row items-center justify-start gap-2"
                 >
                   <Radio>
-                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                    <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
                   <Label>No</Label>
                 </RadioGroup.Item>
@@ -102,7 +112,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Parking */}
           <View className="flex gap-5">
@@ -120,7 +130,7 @@ export default function StepFive() {
                   className="flex-row items-center justify-start gap-2"
                 >
                   <Radio>
-                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                    <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
                   <Label>Yes</Label>
                 </RadioGroup.Item>
@@ -129,7 +139,7 @@ export default function StepFive() {
                   className="flex-row items-center justify-start gap-2"
                 >
                   <Radio>
-                    <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                    <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
                   <Label>No</Label>
                 </RadioGroup.Item>
@@ -163,7 +173,7 @@ export default function StepFive() {
                     onSelectedChange={() => toggleVehicle(vehicle)}
                   >
                     <ControlField.Indicator>
-                      <Checkbox className="border border-grey-400 shadow-none" />
+                      <Checkbox className="border border-border shadow-none" />
                     </ControlField.Indicator>
 
                     <Label>{vehicle}</Label>
@@ -173,7 +183,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Smoker */}
           <View className="flex gap-3">
@@ -190,7 +200,7 @@ export default function StepFive() {
                 className="flex-row items-center justify-start gap-2"
               >
                 <Radio>
-                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
                 <Label>Yes</Label>
               </RadioGroup.Item>
@@ -199,14 +209,14 @@ export default function StepFive() {
                 className="flex-row items-center justify-start gap-2"
               >
                 <Radio>
-                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
                 <Label>No</Label>
               </RadioGroup.Item>
             </RadioGroup>
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Disability */}
           <View className="flex gap-3">
@@ -223,7 +233,7 @@ export default function StepFive() {
                 className="flex-row items-center justify-start gap-2"
               >
                 <Radio>
-                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
                 <Label>Yes</Label>
               </RadioGroup.Item>
@@ -232,7 +242,7 @@ export default function StepFive() {
                 className="flex-row items-center justify-start gap-2"
               >
                 <Radio>
-                  <Radio.Indicator className="border border-grey-400 shadow-none rounded-full" />
+                  <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
                 <Label>No</Label>
               </RadioGroup.Item>

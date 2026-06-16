@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import PersonalizationRadioButton from "./components/PersonalizationRadioButton";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { Button } from "heroui-native";
 
@@ -29,6 +30,8 @@ export default function StepFour() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
+          <PersonalizationProgress currentStep={4} />
+          
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">

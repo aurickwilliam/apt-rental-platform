@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import CityCheckBox from "./components/CityCheckBox";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { Button } from "heroui-native";
 
@@ -28,6 +29,8 @@ export default function StepOne() {
     <ScreenWrapper className="p-5">
       <View className="flex-1 justify-between">
         <View>
+          <PersonalizationProgress currentStep={1} />
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -54,7 +57,9 @@ export default function StepOne() {
 
         {/* Next Button */}
         <Button onPress={handleNext}>
-          <Button.Label>Next</Button.Label>
+          <Button.Label>
+            {selectedCities.length > 0 ? "Next" : "Skip"}
+          </Button.Label>
         </Button>
       </View>
     </ScreenWrapper>
