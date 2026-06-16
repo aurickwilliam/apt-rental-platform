@@ -1,15 +1,16 @@
 import { Text, View } from "react-native";
-import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
 import { Button, Slider } from "heroui-native";
 
+import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+
 export default function StepTwo() {
   const router = useRouter();
 
-  const [budgetRange, setBudgetRange] = useState<number[]>([5_000, 100_000]);
+  const { budgetMin, budgetMax, setBudgetRange } = usePersonalizationStore();
 
   const handleNext = () => {
     router.replace("/personalization/step-three");
@@ -21,12 +22,10 @@ export default function StepTwo() {
         <View className="flex-1">
           {/* Question and Description */}
           <View className="flex gap-3">
-            {/* Question */}
             <Text className="text-secondary text-2xl font-nunitoMedium">
               Got a budget in mind for your place?
             </Text>
 
-            {/* Description */}
             <Text className="text-foreground text-base font-inter">
               Select your preferred price range to see listings that fit your budget.
             </Text>
@@ -35,13 +34,16 @@ export default function StepTwo() {
           <View className="flex-1 items-center justify-center gap-10">
             {/* Rent Amount */}
             <Text className="text-primary text-3xl font-nunitoSemiBold">
-              ₱ {budgetRange[0].toLocaleString()} - ₱ {budgetRange[1].toLocaleString()}
+              ₱ {budgetMin.toLocaleString()} - ₱ {budgetMax.toLocaleString()}
             </Text>
 
             {/* Budget Range Slider */}
             <Slider
-              value={budgetRange}
-              onChange={(val) => setBudgetRange(val as number[])}
+              value={[budgetMin, budgetMax]}
+              onChange={(val) => {
+                const [min, max] = val as number[];
+                setBudgetRange(min, max);
+              }}
               minValue={5_000}
               maxValue={100_000}
               step={1_000}
