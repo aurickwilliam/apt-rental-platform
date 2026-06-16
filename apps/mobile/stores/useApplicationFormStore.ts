@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { ImagePickerAsset } from 'expo-image-picker'
+import type { DocumentPickerAsset } from 'expo-document-picker'
 
 // ---------- Types ----------
 
@@ -29,9 +30,9 @@ export type RentalPreferences = {
 
 export type RequiredDocuments = {
   govId: ImagePickerAsset[]
-  proofOfIncome: ImagePickerAsset[]
   proofOfBilling: ImagePickerAsset[]
-  nbiClearance: ImagePickerAsset[]
+  proofOfIncome: DocumentPickerAsset | null
+  nbiClearance: DocumentPickerAsset | null
 }
 
 export type UploadedDocumentPaths = {
@@ -67,9 +68,9 @@ const initialRentalPreferences: RentalPreferences = {
 
 const initialDocuments: RequiredDocuments = {
   govId: [],
-  proofOfIncome: [],
   proofOfBilling: [],
-  nbiClearance: [],
+  proofOfIncome: null,
+  nbiClearance: null,
 }
 
 const initialUploadedPaths: UploadedDocumentPaths = {
@@ -101,7 +102,8 @@ type ApplicationFormState = {
     field: K,
     value: RentalPreferences[K],
   ) => void
-  updateDocument: (field: keyof RequiredDocuments, assets: ImagePickerAsset[]) => void
+  updateImageDocument: (field: 'govId' | 'proofOfBilling', assets: ImagePickerAsset[]) => void
+  updateFileDocument: (field: 'proofOfIncome' | 'nbiClearance', asset: DocumentPickerAsset | null) => void
   setUploadedPath: (field: keyof UploadedDocumentPaths, path: string | null) => void
   setIsSubmitting: (isSubmitting: boolean) => void
 
@@ -137,11 +139,19 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
       },
     })),
 
-  updateDocument: (field, assets) =>
+  updateImageDocument: (field, assets) =>
     set((state) => ({
       documents: {
         ...state.documents,
         [field]: assets,
+      },
+    })),
+
+  updateFileDocument: (field, asset) =>
+    set((state) => ({
+      documents: {
+        ...state.documents,
+        [field]: asset,
       },
     })),
 
