@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native'
-import { useEffect, useState } from 'react'
+import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -16,16 +17,58 @@ import {
   Dialog,
 } from 'heroui-native';
 
-import { useColors } from '@/hooks/useTheme';
+import { useProfile } from '@/hooks/useProfile'
+import { usePHMobileValidation } from '@repo/hooks'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+
+import { formatDate } from '@repo/utils'
+
+const EMPLOYMENT_TYPES = [
+  "Full-Time",
+  "Part-Time",
+  "Self-Employed",
+  "Unemployed",
+  "Student",
+]
+
+type FieldErrors = {
+  fullName?: string
+  contactNumber?: string
+  dateOfBirth?: string
+  currentAddress?: string
+  employmentType?: string
+  occupation?: string
+  monthlyIncome?: string
+  previousLandlordContact?: string
+}
 
 export default function FirstProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { profile } = useProfile();
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-    
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const fieldPositions = useRef<Partial<Record<keyof FieldErrors, number>>>({});
+
+  const registerFieldRef = (field: keyof FieldErrors) => (node: View | null) => {
+    if (!node || !contentRef.current) return;
+    node.measureLayout(
+      contentRef.current,
+      (_x: number, y: number) => {
+        fieldPositions.current[field] = y;
+      },
+      () => {},
+    );
+  };
+
+  const contactNumberValidation = usePHMobileValidation();
+  const previousLandlordContactValidation = usePHMobileValidation();
+
   const {
     tenantInformation,
     updateTenantInformation,
@@ -35,12 +78,105 @@ export default function FirstProcess() {
 
   useEffect(() => {
     if (apartmentId) setApartmentId(apartmentId)
-    // TODO: fetch real tenant info, then call updateTenantInformation for each field
   }, [apartmentId, setApartmentId])
 
+  useEffect(() => {
+    if (!profile) return
+
+    const fullName = [profile.first_name, profile.middle_name, profile.last_name]
+      .filter(Boolean)
+      .join(' ')
+
+    const address = [profile.street_address, profile.barangay, profile.city, profile.province]
+      .filter(Boolean)
+      .join(', ')
+
+    if (fullName) updateTenantInformation('fullName', fullName)
+    if (profile.mobile_number) updateTenantInformation('contactNumber', profile.mobile_number)
+    if (profile.email) updateTenantInformation('email', profile.email)
+    if (profile.birth_date) updateTenantInformation('dateOfBirth', profile.birth_date)
+    if (address) updateTenantInformation('currentAddress', address)
+  }, [profile, updateTenantInformation])
+
+  const validate = (): boolean => {
+    const nextErrors: FieldErrors = {}
+
+    if (!tenantInformation.fullName.trim()) {
+      nextErrors.fullName = 'Full name is required.'
+    }
+
+    const contactResult = contactNumberValidation.validate(tenantInformation.contactNumber)
+    if (!contactResult.isValid) {
+      nextErrors.contactNumber = contactResult.errorMessage ?? 'Invalid contact number.'
+    }
+
+    if (!tenantInformation.dateOfBirth.trim()) {
+      nextErrors.dateOfBirth = 'Date of birth is required.'
+    }
+
+    if (!tenantInformation.currentAddress.trim()) {
+      nextErrors.currentAddress = 'Current address is required.'
+    }
+
+    if (!tenantInformation.employmentType.trim()) {
+      nextErrors.employmentType = 'Employment type is required.'
+    }
+
+    if (!tenantInformation.occupation.trim()) {
+      nextErrors.occupation = 'Occupation is required.'
+    }
+
+    // monthlyIncome only needs to be present; 0 is allowed per product decision
+    if (
+      tenantInformation.monthlyIncome === null ||
+      tenantInformation.monthlyIncome === undefined ||
+      Number.isNaN(tenantInformation.monthlyIncome)
+    ) {
+      nextErrors.monthlyIncome = 'Monthly income is required.'
+    }
+
+    // previousLandlordContact is optional, only validate format if filled in
+    if (tenantInformation.previousLandlordContact.trim()) {
+      const prevContactResult = previousLandlordContactValidation.validate(
+        tenantInformation.previousLandlordContact,
+      )
+      if (!prevContactResult.isValid) {
+        nextErrors.previousLandlordContact =
+          prevContactResult.errorMessage ?? 'Invalid contact number.'
+      }
+    }
+
+    setErrors(nextErrors)
+    const isValid = Object.keys(nextErrors).length === 0
+
+    if (!isValid) {
+      const fieldOrder: (keyof FieldErrors)[] = [
+        'fullName',
+        'dateOfBirth',
+        'contactNumber',
+        'currentAddress',
+        'employmentType',
+        'occupation',
+        'monthlyIncome',
+        'previousLandlordContact',
+      ]
+      const firstInvalidField = fieldOrder.find((field) => nextErrors[field])
+      const y = firstInvalidField ? fieldPositions.current[firstInvalidField] : undefined
+      if (y !== undefined) {
+        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
+      }
+    }
+
+    return isValid
+  }
+
+  const handleNext = () => {
+    if (!validate()) return
+    router.push(`/apartment/${apartmentId}/apply/second-process`);
+  }
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper scrollable ref={scrollRef}>
       {/* Header with Progress Bar */}
       <ApplicationHeader
         currentTitle="Tenant Information"
@@ -48,64 +184,78 @@ export default function FirstProcess() {
         step={1}
       />
 
-      <View className="p-5">
+      <View className="p-5" ref={contentRef}>
         {/* Personal Information */}
         <View className="flex gap-3">
-          {/* Full Name */}
-          <TextField isRequired>
-            <Label>Full Name</Label>
-            <Input
-              placeholder="Enter your full name"
-              value={tenantInformation.fullName}
-              onChangeText={(text) => updateTenantInformation("fullName", text)}
-            />
-          </TextField>
-
-          {/* Contact Number */}
-          <TextField isRequired>
-            <Label>Contact Number</Label>
-            <Input
-              placeholder="Enter your contact number"
-              value={tenantInformation.contactNumber}
-              onChangeText={(text) =>
-                updateTenantInformation("contactNumber", text)
-              }
-            />
-          </TextField>
-
           {/* Email */}
           <TextField isRequired>
             <Label>Email</Label>
             <Input
+              readOnly
               placeholder="Enter your email"
               value={tenantInformation.email}
               onChangeText={(text) => updateTenantInformation("email", text)}
             />
           </TextField>
 
+          {/* Full Name */}
+          <View ref={registerFieldRef('fullName')}>
+            <TextField isRequired isInvalid={!!errors.fullName}>
+              <Label>Full Name</Label>
+              <Input
+                placeholder="Enter your full name"
+                value={tenantInformation.fullName}
+                onChangeText={(text) => updateTenantInformation("fullName", text)}
+              />
+              <FieldError>{errors.fullName}</FieldError>
+            </TextField>
+          </View>
+
           {/* Date of Birth */}
-          <TextField isRequired>
-            <Label>Date of Birth</Label>
-            <Input
-              placeholder="Enter your date of birth"
-              value={tenantInformation.dateOfBirth}
-              onChangeText={(text) =>
-                updateTenantInformation("dateOfBirth", text)
-              }
-            />
-          </TextField>
+          <View ref={registerFieldRef('dateOfBirth')}>
+            <TextField isRequired isInvalid={!!errors.dateOfBirth}>
+              <Label>Date of Birth</Label>
+              <Input
+                placeholder="Enter your date of birth"
+                value={formatDate(tenantInformation.dateOfBirth)}
+                onChangeText={(text) =>
+                  updateTenantInformation("dateOfBirth", text)
+                }
+              />
+              <FieldError>{errors.dateOfBirth}</FieldError>
+            </TextField>
+          </View>
+
+          {/* Contact Number */}
+          <View ref={registerFieldRef('contactNumber')}>
+            <TextField isRequired isInvalid={!!errors.contactNumber}>
+              <Label>Contact Number</Label>
+              <Input
+                placeholder="Enter your contact number"
+                value={tenantInformation.contactNumber}
+                onChangeText={(text) =>
+                  updateTenantInformation("contactNumber", text)
+                }
+                onBlur={() => contactNumberValidation.validate(tenantInformation.contactNumber)}
+              />
+              <FieldError>{errors.contactNumber}</FieldError>
+            </TextField>
+          </View>
 
           {/* Current Address */}
-          <TextField isRequired>
-            <Label>Current Address</Label>
-            <Input
-              placeholder="Enter your current address"
-              value={tenantInformation.currentAddress}
-              onChangeText={(text) =>
-                updateTenantInformation("currentAddress", text)
-              }
-            />
-          </TextField>
+          <View ref={registerFieldRef('currentAddress')}>
+            <TextField isRequired isInvalid={!!errors.currentAddress}>
+              <Label>Current Address</Label>
+              <Input
+                placeholder="Enter your current address"
+                value={tenantInformation.currentAddress}
+                onChangeText={(text) =>
+                  updateTenantInformation("currentAddress", text)
+                }
+              />
+              <FieldError>{errors.currentAddress}</FieldError>
+            </TextField>
+          </View>
         </View>
 
         <Separator className="my-5" />
@@ -116,17 +266,36 @@ export default function FirstProcess() {
         </Text>
 
         <View className="flex gap-3">
-          {/* Occupation */}
-          <TextField isRequired>
-            <Label>Occupation/Job Title</Label>
-            <Input
-              placeholder="Enter your occupation"
-              value={tenantInformation.occupation}
-              onChangeText={(text) =>
-                updateTenantInformation("occupation", text)
+          {/* Employment Type */}
+          <View ref={registerFieldRef('employmentType')}>
+            <DropdownField
+              label="Employment Type"
+              bottomSheetLabel="Select Employment Type"
+              placeholder="Select your employment type"
+              options={EMPLOYMENT_TYPES}
+              value={tenantInformation.employmentType}
+              onSelect={(value) =>
+                updateTenantInformation("employmentType", value ?? "")
               }
+              required
+              error={errors.employmentType}
             />
-          </TextField>
+          </View>
+
+          {/* Occupation */}
+          <View ref={registerFieldRef('occupation')}>
+            <TextField isRequired isInvalid={!!errors.occupation}>
+              <Label>Occupation/Job Title</Label>
+              <Input
+                placeholder="Enter your occupation"
+                value={tenantInformation.occupation}
+                onChangeText={(text) =>
+                  updateTenantInformation("occupation", text)
+                }
+              />
+              <FieldError>{errors.occupation}</FieldError>
+            </TextField>
+          </View>
 
           {/* Company Name */}
           <TextField>
@@ -141,44 +310,28 @@ export default function FirstProcess() {
           </TextField>
 
           {/* Monthly Income */}
-          <TextField isRequired>
-            <Label>Monthly Income</Label>
-            <Input
-              placeholder="Enter your monthly income"
-              keyboardType="numeric"
-              value={tenantInformation.monthlyIncome.toString()}
-              onChangeText={(text) =>
-                updateTenantInformation(
-                  "monthlyIncome",
-                  text === "" ? 0 : parseInt(text),
-                )
-              }
-            />
-          </TextField>
-
-          {/* Employment Type */}
-          <DropdownField
-            label="Employment Type"
-            bottomSheetLabel="Select Employment Type"
-            placeholder="Select your employment type"
-            options={[
-              "Full-Time",
-              "Part-Time",
-              "Self-Employed",
-              "Unemployed",
-              "Student",
-            ]}
-            value={tenantInformation.employmentType}
-            onSelect={(value) =>
-              updateTenantInformation("employmentType", value ?? "")
-            }
-            required
-          />
+          <View ref={registerFieldRef('monthlyIncome')}>
+            <TextField isRequired isInvalid={!!errors.monthlyIncome}>
+              <Label>Monthly Income</Label>
+              <Input
+                placeholder="Enter your monthly income"
+                keyboardType="numeric"
+                value={tenantInformation.monthlyIncome.toString()}
+                onChangeText={(text) =>
+                  updateTenantInformation(
+                    "monthlyIncome",
+                    text === "" ? 0 : parseInt(text),
+                  )
+                }
+              />
+              <FieldError>{errors.monthlyIncome}</FieldError>
+            </TextField>
+          </View>
         </View>
 
         <Separator className="my-5" />
 
-        {/* Employment Information */}
+        {/* References */}
         <Text className="text-foreground text-lg font-interMedium">
           References
         </Text>
@@ -200,16 +353,25 @@ export default function FirstProcess() {
           </TextField>
 
           {/* Previous Landlord Contact */}
-          <TextField>
-            <Label>Previous Landlord Contact</Label>
-            <Input
-              placeholder="Enter your previous landlord contact"
-              value={tenantInformation.previousLandlordContact}
-              onChangeText={(text) =>
-                updateTenantInformation("previousLandlordContact", text)
-              }
-            />
-          </TextField>
+          <View ref={registerFieldRef('previousLandlordContact')}>
+            <TextField isInvalid={!!errors.previousLandlordContact}>
+              <Label>Previous Landlord Contact</Label>
+              <Input
+                placeholder="Enter your previous landlord contact"
+                value={tenantInformation.previousLandlordContact}
+                onChangeText={(text) =>
+                  updateTenantInformation("previousLandlordContact", text)
+                }
+                onBlur={() =>
+                  tenantInformation.previousLandlordContact.trim() &&
+                  previousLandlordContactValidation.validate(
+                    tenantInformation.previousLandlordContact,
+                  )
+                }
+              />
+              <FieldError>{errors.previousLandlordContact}</FieldError>
+            </TextField>
+          </View>
         </View>
 
         {/* Cancel or Next Button */}
@@ -222,12 +384,7 @@ export default function FirstProcess() {
             <Button.Label>Cancel</Button.Label>
           </Button>
 
-          <Button
-            onPress={() => {
-              router.push(`/apartment/${apartmentId}/apply/second-process`);
-            }}
-            className="flex-1"
-          >
+          <Button onPress={handleNext} className="flex-1">
             <Button.Label>Next</Button.Label>
           </Button>
         </View>

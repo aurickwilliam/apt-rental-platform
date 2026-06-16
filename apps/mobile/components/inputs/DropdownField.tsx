@@ -95,7 +95,6 @@ export default function DropdownField({
 
   return (
     <View className="w-full flex-col gap-2">
-
       <Text className={`text-base font-interMedium ${error ? 'text-danger' : 'text-foreground'}`}>
         {label} {required && <Text className="text-danger">*</Text>}
       </Text>
@@ -105,7 +104,7 @@ export default function DropdownField({
           <Pressable
             disabled={isDisabled || isReadOnly}
             style={{ alignItems: 'center' }}
-            className={`border rounded-2xl pl-3 pr-4 h-12 flex-row items-center
+            className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
               justify-between shadow-xs ${
                 isDisabled
                   ? 'bg-surface-tertiary border-field-border'
