@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, forwardRef } from "react";
 import {
   View,
   Platform,
@@ -32,70 +32,88 @@ const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
   </TouchableWithoutFeedback>
 );
 
-export default function ScreenWrapper({
-  children,
-  className = "",
-  backgroundColor,
-  header,
-  footer,
-  scrollable = false,
-  bottomPadding = 0,
-  noTopPadding = false,
-  noBottomPadding = false,
-  refreshing = false,
-  onRefresh,
-  dismissKeyboardOnTouch = true,
-}: ScreenWrapperProps) {
-  const insets = useSafeAreaInsets();
-  const { colors } = useColors();
+const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
+  function ScreenWrapper(
+    {
+      children,
+      className = "",
+      backgroundColor,
+      header,
+      footer,
+      scrollable = false,
+      bottomPadding = 0,
+      noTopPadding = false,
+      noBottomPadding = false,
+      refreshing = false,
+      onRefresh,
+      dismissKeyboardOnTouch = true,
+    },
+    ref,
+  ) {
+    const insets = useSafeAreaInsets();
+    const { colors } = useColors();
 
-  const containerStyle = backgroundColor ? { flex: 1, backgroundColor } : { flex: 1 };
-  const containerClassName = backgroundColor ? "" : "bg-background";
+    const containerStyle = backgroundColor ? { flex: 1, backgroundColor } : { flex: 1 };
+    const containerClassName = backgroundColor ? "" : "bg-background";
 
-  const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
+    const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 
-  return (
-    <View style={containerStyle} className={containerClassName}>
-      {header && header}
+    return (
+      <View style={containerStyle} className={containerClassName}>
+        {header && header}
 
-      {scrollable ? (
-        <KeyboardAwareScrollView
-          extraHeight={Platform.OS === 'ios' ? 50 : 100}
-          enableOnAndroid={true}
-          enableAutomaticScroll={true}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            onRefresh ? (
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
-              />
-            ) : undefined
-          }
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingTop: paddingTop,
-            paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
-          }}
-        >
-          {dismissKeyboardOnTouch ? (
-            <WrapWithDismiss>
+        {scrollable ? (
+          <KeyboardAwareScrollView
+            ref={ref}
+            extraHeight={Platform.OS === 'ios' ? 50 : 100}
+            enableOnAndroid={true}
+            enableAutomaticScroll={true}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              onRefresh ? (
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor={colors.primary}
+                  colors={[colors.primary]}
+                />
+              ) : undefined
+            }
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingTop: paddingTop,
+              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+            }}
+          >
+            {dismissKeyboardOnTouch ? (
+              <WrapWithDismiss>
+                <View className={`flex-1 relative ${className}`}>
+                  {children}
+                </View>
+              </WrapWithDismiss>
+            ) : (
               <View className={`flex-1 relative ${className}`}>
                 {children}
               </View>
+            )}
+          </KeyboardAwareScrollView>
+        ) : (
+          dismissKeyboardOnTouch ? (
+            <WrapWithDismiss>
+              <View
+                style={{
+                  flex: 1,
+                  paddingTop: paddingTop,
+                  paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+                }}
+              >
+                <View className={`flex-1 relative ${className}`}>
+                  {children}
+                </View>
+              </View>
             </WrapWithDismiss>
           ) : (
-            <View className={`flex-1 relative ${className}`}>
-              {children}
-            </View>
-          )}
-        </KeyboardAwareScrollView>
-      ) : (
-        dismissKeyboardOnTouch ? (
-          <WrapWithDismiss>
             <View
               style={{
                 flex: 1,
@@ -107,27 +125,17 @@ export default function ScreenWrapper({
                 {children}
               </View>
             </View>
-          </WrapWithDismiss>
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              paddingTop: paddingTop,
-              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
-            }}
-          >
-            <View className={`flex-1 relative ${className}`}>
-              {children}
-            </View>
-          </View>
-        )
-      )}
+          )
+        )}
 
-      {footer && (
-        <View style={{ paddingBottom: insets.bottom }}>
-          {footer}
-        </View>
-      )}
-    </View>
-  );
-}
+        {footer && (
+          <View style={{ paddingBottom: insets.bottom }}>
+            {footer}
+          </View>
+        )}
+      </View>
+    );
+  },
+);
+
+export default ScreenWrapper;
