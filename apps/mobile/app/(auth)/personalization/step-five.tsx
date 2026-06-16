@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import DropdownField from "components/inputs/DropdownField";
+import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
-import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
+
+import { supabase } from "@repo/supabase";
+import { useProfile } from "hooks/useProfile";
 
 import {
   RadioGroup,
@@ -15,7 +19,7 @@ import {
   Checkbox,
   Button,
   ControlField,
-  Separator,
+  useToast
 } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
@@ -23,6 +27,7 @@ import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
 export default function StepFive() {
   const router = useRouter();
 
+  const personalization = usePersonalizationStore();
   const {
     hasPets, setHasPets,
     kindOfPets, setKindOfPets,
@@ -32,20 +37,74 @@ export default function StepFive() {
     listOfVehicles, toggleVehicle,
     hasSmoker, setHasSmoker,
     hasDisability, setHasDisability,
-  } = usePersonalizationStore();
+    reset,
+  } = personalization;
+
+  const { profile } = useProfile();
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
 
   const NO_PARKING_OPTIONS = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
-  const handleNext = () => {
-    router.replace("/(tabs)/(tenant)/search");
+  const handleNext = async () => {
+    if (!profile?.user_id) {
+      router.replace("/(tabs)/(tenant)/rentals");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({
+          preferences: {
+            selectedCities: personalization.selectedCities,
+            budgetMin: personalization.budgetMin,
+            budgetMax: personalization.budgetMax,
+            bedroomCount: personalization.bedroomCount,
+            householdSize: personalization.householdSize,
+            hasPets: personalization.hasPets,
+            kindOfPets: personalization.kindOfPets,
+            nameOfPets: personalization.nameOfPets,
+            hasParking: personalization.hasParking,
+            noOfParkingSpots: personalization.noOfParkingSpots,
+            listOfVehicles: personalization.listOfVehicles,
+            hasSmoker: personalization.hasSmoker,
+            hasDisability: personalization.hasDisability,
+          },
+        })
+        .eq("user_id", profile.user_id);
+
+      if (error) {
+        console.error("Failed to save preferences:", error);
+        toast.show({
+          variant: "danger",
+          label: "Couldn't save your preferences",
+          description: "Please try again.",
+        });
+        return;
+      }
+
+      reset();
+      router.replace("/(tabs)/(tenant)/rentals");
+    } catch (err) {
+      // Network-level failure (e.g. request never reached Supabase)
+      console.error("Unexpected error saving preferences:", err);
+      toast.show({
+        variant: "danger",
+        label: "Something went wrong",
+        description: "Check your connection and try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <ScreenWrapper scrollable className="p-5">
       <View className="flex-1 justify-between">
         <View className="mb-20">
-          <PersonalizationProgress currentStep={5} />
-
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -112,7 +171,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Separator className="my-5" />
+          <Divider />
 
           {/* Parking */}
           <View className="flex gap-5">
@@ -183,7 +242,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Separator className="my-5" />
+          <Divider />
 
           {/* Smoker */}
           <View className="flex gap-3">
@@ -216,7 +275,7 @@ export default function StepFive() {
             </RadioGroup>
           </View>
 
-          <Separator className="my-5" />
+          <Divider />
 
           {/* Disability */}
           <View className="flex gap-3">
@@ -251,8 +310,10 @@ export default function StepFive() {
         </View>
 
         {/* Next Button */}
-        <Button onPress={handleNext}>
-          <Button.Label>Let&apos;s find your place!</Button.Label>
+        <Button onPress={handleNext} isDisabled={isSaving}>
+          <Button.Label>
+            {isSaving ? "Saving..." : "Let's find your place!"}
+          </Button.Label>
         </Button>
       </View>
     </ScreenWrapper>
