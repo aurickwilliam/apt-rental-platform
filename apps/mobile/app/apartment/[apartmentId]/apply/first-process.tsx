@@ -4,13 +4,18 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
-import TextField from 'components/inputs/TextField'
-import Divider from 'components/display/Divider'
 import DropdownField from 'components/inputs/DropdownField'
-import PillButton from 'components/buttons/PillButton'
-import NumberField from 'components/inputs/NumberField'
 
-import { COLORS } from '@repo/constants'
+import {
+  TextField,
+  Input,
+  Label,
+  FieldError,
+  Button,
+  Separator
+} from 'heroui-native';
+
+import { useColors } from '@/hooks/useTheme';
 
 type TenantInformation = {
   fullName: string;
@@ -67,7 +72,6 @@ export default function FirstProcess() {
   return (
     <ScreenWrapper
       scrollable
-      backgroundColor={COLORS.darkerWhite}
     >
       {/* Header with Progress Bar */}
       <ApplicationHeader
@@ -80,136 +84,161 @@ export default function FirstProcess() {
         {/* Personal Information */}
         <View className='flex gap-3'>
           {/* Full Name */}
-          <TextField
-            label="Full Name"
-            placeholder='Enter your full name'
-            value={tenantInformation.fullName}
-            onChangeText={(text) => updateTenantInformation('fullName', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Full Name</Label>
+            <Input
+              placeholder='Enter your full name'
+              value={tenantInformation.fullName}
+              onChangeText={(text) => updateTenantInformation('fullName', text)}
+            />
+          </TextField>
+
           {/* Contact Number */}
-          <TextField
-            label="Contact Number"
-            placeholder='Enter your contact number'
-            value={tenantInformation.contactNumber}
-            onChangeText={(text) => updateTenantInformation('contactNumber', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Contact Number</Label>
+            <Input
+              placeholder='Enter your contact number'
+              value={tenantInformation.contactNumber}
+              onChangeText={(text) => updateTenantInformation('contactNumber', text)}
+            />
+          </TextField>
+
           {/* Email */}
-          <TextField
-            label="Email"
-            placeholder='Enter your email'
-            value={tenantInformation.email}
-            onChangeText={(text) => updateTenantInformation('email', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Email</Label>
+            <Input
+              placeholder='Enter your email'
+              value={tenantInformation.email}
+              onChangeText={(text) => updateTenantInformation('email', text)}
+            />
+          </TextField>
+
           {/* Date of Birth */}
-          <TextField
-            label="Date of Birth"
-            placeholder='Enter your date of birth'
-            value={tenantInformation.dateOfBirth}
-            onChangeText={(text) => updateTenantInformation('dateOfBirth', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Date of Birth</Label>
+            <Input
+              placeholder='Enter your date of birth'
+              value={tenantInformation.dateOfBirth}
+              onChangeText={(text) => updateTenantInformation('dateOfBirth', text)}
+            />
+          </TextField>
+
           {/* Current Address */}
-          <TextField
-            label="Current Address"
-            placeholder='Enter your current address'
-            value={tenantInformation.currentAddress}
-            onChangeText={(text) => updateTenantInformation('currentAddress', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Current Address</Label>
+            <Input
+              placeholder='Enter your current address'
+              value={tenantInformation.currentAddress}
+              onChangeText={(text) => updateTenantInformation('currentAddress', text)}
+            />
+          </TextField>
         </View>
 
-        <Divider />
+        <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className='text-text text-xl font-interMedium mb-5'>
+        <Text className='text-foreground text-lg font-interMedium mb-5'>
           Employment & Income Details
         </Text>
 
         <View className='flex gap-3'>
           {/* Occupation */}
-          <TextField
-            label="Occupation/Job Title"
-            placeholder='Enter your occupation'
-            value={tenantInformation.occupation}
-            onChangeText={(text) => updateTenantInformation('occupation', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Occupation/Job Title</Label>
+            <Input
+              placeholder='Enter your occupation'
+              value={tenantInformation.occupation}
+              onChangeText={(text) => updateTenantInformation('occupation', text)}
+            />
+          </TextField>
+
           {/* Company Name */}
-          <TextField
-            label="Company Name"
-            placeholder='Enter your company name'
-            value={tenantInformation.companyName}
-            onChangeText={(text) => updateTenantInformation('companyName', text)}
-          />
+          <TextField>
+            <Label>Company Name</Label>
+            <Input
+              placeholder='Enter your company name'
+              value={tenantInformation.companyName}
+              onChangeText={(text) => updateTenantInformation('companyName', text)}
+            />
+          </TextField>
+
           {/* Monthly Income */}
-          <NumberField
-            label="Monthly Income"
-            placeholder='Enter your monthly income'
-            value={tenantInformation.monthlyIncome.toString()}
-            onChange={(value) => updateTenantInformation('monthlyIncome', value === '' ? 0 : parseInt(value))}
-            required
-          />
+          <TextField isRequired>
+            <Label>Monthly Income</Label>
+            <Input
+              placeholder='Enter your monthly income'
+              keyboardType="numeric"
+              value={tenantInformation.monthlyIncome.toString()}
+              onChangeText={(text) => updateTenantInformation('monthlyIncome', text === '' ? 0 : parseInt(text))}
+            />
+          </TextField>
+
           {/* Employment Type */}
           <DropdownField
             label="Employment Type"
             bottomSheetLabel='Select Employment Type'
             placeholder='Select your employment type'
-            options={[ 'Full-Time', 'Part-Time', 'Self-Employed', 'Unemployed', 'Student']}
+            options={['Full-Time', 'Part-Time', 'Self-Employed', 'Unemployed', 'Student']}
             value={tenantInformation.employmentType}
-            onSelect={(value) => updateTenantInformation('employmentType', value)}
+            onSelect={(value) => updateTenantInformation('employmentType', value ?? "")}
             required
           />
         </View>
 
-        <Divider />
+        <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className='text-text text-xl font-interMedium'>
+        <Text className='text-foreground text-lg font-interMedium'>
           References
         </Text>
-        <Text className='text-grey-500 text-base font-inter mb-5'>
+        <Text className='text-muted font-inter mb-5'>
           Preferred for Fast-Track Review
         </Text>
 
         <View className='flex gap-3'>
           {/* Previous Landlord Name */}
-          <TextField
-            label="Previous Landlord Name"
-            placeholder='Enter your previous landlord name'
-            value={tenantInformation.previousLandlordName}
-            onChangeText={(text) => updateTenantInformation('previousLandlordName', text)}
-          />
+          <TextField>
+            <Label>Previous Landlord Name</Label>
+            <Input
+              placeholder='Enter your previous landlord name'
+              value={tenantInformation.previousLandlordName}
+              onChangeText={(text) => updateTenantInformation('previousLandlordName', text)}
+            />
+          </TextField>
+
           {/* Previous Landlord Contact */}
-          <TextField
-            label="Previous Landlord Contact"
-            placeholder='Enter your previous landlord contact'
-            value={tenantInformation.previousLandlordContact}
-            onChangeText={(text) => updateTenantInformation('previousLandlordContact', text)}
-          />
+          <TextField>
+            <Label>Previous Landlord Contact</Label>
+            <Input
+              placeholder='Enter your previous landlord contact'
+              value={tenantInformation.previousLandlordContact}
+              onChangeText={(text) => updateTenantInformation('previousLandlordContact', text)}
+            />
+          </TextField>
         </View>
 
         {/* Cancel or Next Button */}
         <View className='flex-1 flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Cancel'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={() => {
-                router.push(`/apartment/${apartmentId}/apply/second-process`);
-              }}
-            />
-          </View>
+          <Button 
+            onPress={() => router.back()} 
+            variant='danger-soft'
+            className="flex-1"
+          >
+            <Button.Label>
+              Cancel
+            </Button.Label>
+          </Button>
+
+          <Button 
+            onPress={() => {
+              router.push(`/apartment/${apartmentId}/apply/second-process`);
+            }}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
