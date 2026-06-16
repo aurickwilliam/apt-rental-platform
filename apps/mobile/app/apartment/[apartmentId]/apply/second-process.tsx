@@ -4,13 +4,19 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
-import DateTimeField from '@/components/inputs/DateField'
+import DateField from '@/components/inputs/DateField'
 import DropdownField from 'components/inputs/DropdownField'
-import NumberField from 'components/inputs/NumberField'
-import TextBox from 'components/inputs/TextBox'
-import PillButton from 'components/buttons/PillButton'
 
-import { COLORS } from '@repo/constants'
+import {
+  TextField,
+  Input,
+  Label,
+  FieldError,
+  TextArea,
+  Button,
+} from 'heroui-native';
+
+import { useColors } from '@/hooks/useTheme';
 
 type RentalPreferences = {
   moveInDate: Date | null;
@@ -23,6 +29,7 @@ type RentalPreferences = {
 }
 
 export default function SecondProcess() {
+  const { colors } = useColors();
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
@@ -53,51 +60,56 @@ export default function SecondProcess() {
   }
 
   return (
-    <ScreenWrapper
-      scrollable
-      backgroundColor={COLORS.darkerWhite}
-    >
+    <ScreenWrapper scrollable>
       <ApplicationHeader
         currentTitle="Rental Preferences"
         nextTitle="Upload Required Documents"
         step={2}
       />
 
-      <View className='p-5'>
-        <View className='flex gap-3'>
+      <View className="p-5">
+        <View className="flex gap-3">
           {/* Move-In Date */}
-          <DateTimeField
-            label="Preferred Move-In Date"
-            placeholder='Select your preferred move-in date'
+          <DateField
+            label="Preferred Move-In Date:"
+            placeholder="Select your preferred move-in date"
             required
             value={rentalPreferences.moveInDate}
-            onChange={(value) => updateRentalPreferences('moveInDate', value)}
+            onChange={(value) => updateRentalPreferences("moveInDate", value)}
           />
 
           {/* Intended Duration */}
           <DropdownField
-            label="Intended Duration"
+            label="Intended Duration:"
             bottomSheetLabel="Select your intended duration"
             options={durationOptions}
-            onSelect={(value) => updateRentalPreferences('intendedDuration', value)}
+            onSelect={(value) =>
+              updateRentalPreferences("intendedDuration", value)
+            }
             required
           />
 
           {/* Number of Occupants */}
-          <NumberField
-            label="Number of Occupants"
-            placeholder='Enter the number of occupants'
-            value={rentalPreferences.noOccupants.toString()}
-            onChange={(value) => updateRentalPreferences('noOccupants', parseInt(value))}
-            required
-          />
+          <TextField isRequired>
+            <Label>Number of Occupants:</Label>
+            <Input
+              placeholder="Enter the number of occupants"
+              keyboardType="numeric"
+              value={rentalPreferences.noOccupants.toString()}
+              onChangeText={(text) =>
+                updateRentalPreferences("noOccupants", parseInt(text) || 0)
+              }
+            />
+          </TextField>
 
           {/* Has Pets */}
           <DropdownField
             label="Do you have pets?"
             bottomSheetLabel="Select an option"
-            options={['Yes', 'No']}
-            onSelect={(value) => updateRentalPreferences('hasPets', value === 'Yes')}
+            options={["Yes", "No"]}
+            onSelect={(value) =>
+              updateRentalPreferences("hasPets", value === "Yes")
+            }
             required
           />
 
@@ -105,8 +117,10 @@ export default function SecondProcess() {
           <DropdownField
             label="Are you a smoker?"
             bottomSheetLabel="Select an option"
-            options={['Yes', 'No']}
-            onSelect={(value) => updateRentalPreferences('isSmoker', value === 'Yes')}
+            options={["Yes", "No"]}
+            onSelect={(value) =>
+              updateRentalPreferences("isSmoker", value === "Yes")
+            }
             required
           />
 
@@ -114,41 +128,48 @@ export default function SecondProcess() {
           <DropdownField
             label="Do you need parking?"
             bottomSheetLabel="Select an option"
-            options={['Yes', 'No']}
-            onSelect={(value) => updateRentalPreferences('needParking', value === 'Yes')}
+            options={["Yes", "No"]}
+            onSelect={(value) =>
+              updateRentalPreferences("needParking", value === "Yes")
+            }
             required
           />
 
           {/* Additional Notes */}
-          <TextBox
-            label="Additional Notes"
-            placeholder='Enter any additional information or preferences'
-            value={rentalPreferences.additionalNotes}
-            onChangeText={(text) => updateRentalPreferences('additionalNotes', text)}
-          />
+          <TextField>
+            <Label>Additional Notes</Label>
+            <TextArea
+              placeholder="Enter any additional information or preferences"
+              value={rentalPreferences.additionalNotes}
+              onChangeText={(text) => updateRentalPreferences("additionalNotes", text)}
+            />
+          </TextField>
         </View>
 
         {/* Back or Next Button */}
-        <View className='flex-1 flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Back'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={() => {
-                router.push(`/apartment/${apartmentId}/apply/third-process`);
-              }}
-            />
-          </View>
+        <View className="flex-1 flex-row mt-16 gap-4">
+          <Button
+            variant="outline"
+            onPress={() => router.back()}
+            className="flex-1"
+          >
+            <Button.Label>
+              Back
+            </Button.Label>
+          </Button>
+
+          <Button
+            onPress={() => {
+              router.push(`/apartment/${apartmentId}/apply/third-process`);
+            }}
+            className="flex-1"
+          >
+            <Button.Label>
+              Next
+            </Button.Label>
+          </Button>
         </View>
       </View>
     </ScreenWrapper>
-  )
+  );
 }
