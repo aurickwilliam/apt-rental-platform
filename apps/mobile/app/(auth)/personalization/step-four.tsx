@@ -31,7 +31,7 @@ export default function StepFour() {
       <View className="flex-1 justify-between">
         <View>
           <PersonalizationProgress currentStep={4} />
-          
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -58,7 +58,9 @@ export default function StepFour() {
 
         {/* Next Button */}
         <Button onPress={handleNext}>
-          <Button.Label>Continue</Button.Label>
+          <Button.Label>
+            {householdSize !== null ? "Next" : "Skip"}
+          </Button.Label>
         </Button>
       </View>
     </ScreenWrapper>
