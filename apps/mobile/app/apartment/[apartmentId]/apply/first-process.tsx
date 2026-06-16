@@ -212,7 +212,6 @@ export default function FirstProcess() {
               readOnly
               placeholder="Enter your email"
               value={tenantInformation.email}
-              onChangeText={(text) => updateTenantInformation("email", text)}
             />
           </TextField>
 
@@ -298,6 +297,7 @@ export default function FirstProcess() {
                 // Clear company name when switching to a type that has no employer
                 if (value && NO_INCOME_EMPLOYMENT_TYPES.includes(value)) {
                   updateTenantInformation("companyName", "")
+                  clearFieldError('monthlyIncome')
                 }
               }}
               required
@@ -342,7 +342,7 @@ export default function FirstProcess() {
               <Input
                 placeholder={isNoIncomeType ? 'Enter 0 if no income' : 'Enter your monthly income'}
                 keyboardType="numeric"
-                value={tenantInformation.monthlyIncome === 0 ? '' : tenantInformation.monthlyIncome.toString()}
+                value={tenantInformation.monthlyIncome.toString()}
                 onChangeText={(text) => {
                   const parsed = text === '' ? 0 : parseInt(text, 10)
                   updateTenantInformation("monthlyIncome", parsed)

@@ -53,7 +53,9 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
     const insets = useSafeAreaInsets();
     const { colors } = useColors();
 
-    const containerStyle = backgroundColor ? { flex: 1, backgroundColor } : { flex: 1 };
+    const containerStyle = backgroundColor
+      ? { flex: 1, backgroundColor }
+      : { flex: 1 };
     const containerClassName = backgroundColor ? "" : "bg-background";
 
     const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
@@ -65,7 +67,7 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
         {scrollable ? (
           <KeyboardAwareScrollView
             ref={ref}
-            extraHeight={Platform.OS === 'ios' ? 50 : 100}
+            extraHeight={Platform.OS === "ios" ? 50 : 100}
             enableOnAndroid={true}
             enableAutomaticScroll={true}
             keyboardShouldPersistTaps="handled"
@@ -83,7 +85,10 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
             contentContainerStyle={{
               flexGrow: 1,
               paddingTop: paddingTop,
-              paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+              paddingBottom:
+                footer || noBottomPadding
+                  ? bottomPadding
+                  : bottomPadding + insets.bottom,
             }}
           >
             {dismissKeyboardOnTouch ? (
@@ -93,45 +98,41 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
                 </View>
               </WrapWithDismiss>
             ) : (
-              <View className={`flex-1 relative ${className}`}>
-                {children}
-              </View>
+              <View className={`flex-1 relative ${className}`}>{children}</View>
             )}
           </KeyboardAwareScrollView>
-        ) : (
-          dismissKeyboardOnTouch ? (
-            <WrapWithDismiss>
-              <View
-                style={{
-                  flex: 1,
-                  paddingTop: paddingTop,
-                  paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
-                }}
-              >
-                <View className={`flex-1 relative ${className}`}>
-                  {children}
-                </View>
-              </View>
-            </WrapWithDismiss>
-          ) : (
+        ) : dismissKeyboardOnTouch ? (
+          <WrapWithDismiss>
             <View
               style={{
                 flex: 1,
                 paddingTop: paddingTop,
-                paddingBottom: footer || noBottomPadding ? bottomPadding : bottomPadding + insets.bottom,
+                paddingBottom:
+                  footer || noBottomPadding
+                    ? bottomPadding
+                    : bottomPadding + insets.bottom,
               }}
             >
-              <View className={`flex-1 relative ${className}`}>
-                {children}
-              </View>
+              <View className={`flex-1 relative ${className}`}>{children}</View>
             </View>
-          )
+          </WrapWithDismiss>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              paddingTop: paddingTop,
+              paddingBottom:
+                footer || noBottomPadding
+                  ? bottomPadding
+                  : bottomPadding + insets.bottom,
+            }}
+          >
+            <View className={`flex-1 relative ${className}`}>{children}</View>
+          </View>
         )}
 
         {footer && (
-          <View style={{ paddingBottom: insets.bottom }}>
-            {footer}
-          </View>
+          <View style={{ paddingBottom: insets.bottom }}>{footer}</View>
         )}
       </View>
     );
