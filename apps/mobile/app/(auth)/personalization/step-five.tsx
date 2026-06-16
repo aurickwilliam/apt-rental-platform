@@ -4,8 +4,8 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import DropdownField from "components/inputs/DropdownField";
-import Divider from "components/display/Divider";
 import TextField from "components/inputs/TextField";
+import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
@@ -19,7 +19,8 @@ import {
   Checkbox,
   Button,
   ControlField,
-  useToast
+  useToast,
+  Separator
 } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
@@ -105,6 +106,8 @@ export default function StepFive() {
     <ScreenWrapper scrollable className="p-5">
       <View className="flex-1 justify-between">
         <View className="mb-20">
+          <PersonalizationProgress currentStep={5} />
+
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-secondary text-2xl font-nunitoMedium">
@@ -171,7 +174,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Parking */}
           <View className="flex gap-5">
@@ -242,7 +245,7 @@ export default function StepFive() {
             )}
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Smoker */}
           <View className="flex gap-3">
@@ -275,7 +278,7 @@ export default function StepFive() {
             </RadioGroup>
           </View>
 
-          <Divider />
+          <Separator className="my-5" />
 
           {/* Disability */}
           <View className="flex gap-3">

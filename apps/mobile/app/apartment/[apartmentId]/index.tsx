@@ -6,7 +6,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import PillButton from 'components/buttons/PillButton';
 
 import {
   Heart,
@@ -86,7 +85,7 @@ export default function ApartmentScreen() {
   const handleLandlordProfileNavigation = () => {
     if (apartment?.landlord) {
       router.push({
-        pathname: '/landlord/[landlordId]',
+        pathname: '/profile/landlord/[landlordId]',
         params: {
           landlordId: apartment.landlord.id,
           apartmentId,
