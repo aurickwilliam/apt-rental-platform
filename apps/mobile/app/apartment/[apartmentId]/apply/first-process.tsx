@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -18,19 +18,7 @@ import {
 
 import { useColors } from '@/hooks/useTheme';
 
-type TenantInformation = {
-  fullName: string;
-  contactNumber: string;
-  email: string;
-  dateOfBirth: string;
-  currentAddress: string;
-  occupation: string;
-  companyName: string;
-  monthlyIncome: number;
-  employmentType: string;
-  previousLandlordName: string;
-  previousLandlordContact: string;
-}
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 export default function FirstProcess() {
   const router = useRouter();
@@ -39,38 +27,19 @@ export default function FirstProcess() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   // TODO: Fetch tenant information from API and pre-fill the form if data exists. For now, using dummy data.
-  // Dummy Tenant Information
-  const tenantInfo = {
-    fullName: 'John Doe',
-    contactNumber: '123-456-7890',
-    email: 'johndoe@example.com',
-    dateOfBirth: '1990-01-01',
-    currentAddress: '123 Main St, Cityville',
-  }
+  
+  const {
+    tenantInformation,
+    updateTenantInformation,
+    setApartmentId,
+    resetApplicationForm,
+  } = useApplicationFormStore();
 
-  const [tenantInformation, setTenantInformation] = useState<TenantInformation>({
-    fullName: tenantInfo.fullName,
-    contactNumber: tenantInfo.contactNumber,
-    email: tenantInfo.email,
-    dateOfBirth: tenantInfo.dateOfBirth,
-    currentAddress: tenantInfo.currentAddress,
+  useEffect(() => {
+    if (apartmentId) setApartmentId(apartmentId)
+    // TODO: fetch real tenant info, then call updateTenantInformation for each field
+  }, [apartmentId, setApartmentId])
 
-    occupation: '',
-    companyName: '',
-    monthlyIncome: 0,
-    employmentType: '',
-
-    previousLandlordName: '',
-    previousLandlordContact: '',
-  })
-
-  // Function to update tenant information
-  const updateTenantInformation = (field: keyof TenantInformation, value: string | number) => {
-    setTenantInformation(prev => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
 
   return (
     <ScreenWrapper scrollable>
@@ -282,7 +251,10 @@ export default function FirstProcess() {
               <Button
                 variant="danger-soft"
                 size="sm"
-                onPress={() => router.back()}
+                onPress={() => {
+                  resetApplicationForm();
+                  router.back();
+                }}
               >
                 <Button.Label>Discard</Button.Label>
               </Button>
