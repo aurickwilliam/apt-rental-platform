@@ -25,9 +25,7 @@ export default function FirstProcess() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-
-  // TODO: Fetch tenant information from API and pre-fill the form if data exists. For now, using dummy data.
-  
+    
   const {
     tenantInformation,
     updateTenantInformation,

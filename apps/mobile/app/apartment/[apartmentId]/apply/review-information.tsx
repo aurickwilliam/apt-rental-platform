@@ -107,26 +107,26 @@ export default function ReviewInformation() {
         ) : (
           <View className="flex gap-3">
             <View>
-              <Text className="text-sm font-inter text-grey-500">
+              <Text className="text-sm font-inter text-muted">
                 Apartment Name
               </Text>
-              <Text className="text-lg font-interMedium text-text">
+              <Text className="text-base font-interMedium text-foreground">
                 {apartmentInfo?.name}
               </Text>
             </View>
 
             <View>
-              <Text className="text-sm font-inter text-grey-500">Address</Text>
-              <Text className="text-lg font-interMedium text-text">
+              <Text className="text-sm font-inter text-muted">Address</Text>
+              <Text className="text-base font-interMedium text-foreground">
                 {apartmentInfo?.address}
               </Text>
             </View>
 
             <View>
-              <Text className="text-sm font-inter text-grey-500">
+              <Text className="text-sm font-inter text-muted">
                 Rental Owner/Landlord
               </Text>
-              <Text className="text-lg font-interMedium text-text">
+              <Text className="text-base font-interMedium text-foreground">
                 {apartmentInfo?.landlordName}
               </Text>
             </View>
@@ -137,10 +137,10 @@ export default function ReviewInformation() {
 
         {/* Summary */}
         <View className="flex-1">
-          <Text className="text-xl font-interSemiBold text-text">
+          <Text className="text-lg font-interSemiBold text-foreground">
             Summary of Application
           </Text>
-          <Text className="text-sm font-inter text-text mt-1">
+          <Text className="text-sm font-inter text-foreground mt-1">
             Please review the information you have provided before submitting
             your application. Make sure all details are accurate and all
             required documents are uploaded.
@@ -148,12 +148,12 @@ export default function ReviewInformation() {
 
           <Animated.View
             layout={AccordionLayoutTransition}
-            className="bg-white rounded-2xl mt-5 overflow-hidden"
+            className="bg-surface rounded-2xl mt-5 overflow-hidden"
           >
             <Accordion selectionMode="single" defaultValue="tenant">
               <Accordion.Item value="tenant">
                 <Accordion.Trigger>
-                  <Text className="text-base font-interMedium text-text flex-1">
+                  <Text className="text-base font-interMedium text-foreground flex-1">
                     Tenant Information
                   </Text>
                   <Accordion.Indicator />
@@ -161,32 +161,32 @@ export default function ReviewInformation() {
                 <Accordion.Content>
                   <View className="flex gap-3">
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Full Name</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Full Name</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.fullName}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Contact Number</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Contact Number</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.contactNumber}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Email Address</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Email Address</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.email}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Date of Birth</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Date of Birth</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.dateOfBirth}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Current Address</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Current Address</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.currentAddress}
                       </Text>
                     </View>
@@ -196,26 +196,26 @@ export default function ReviewInformation() {
 
                   <View className="flex gap-3">
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Occupation</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Occupation</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.occupation}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Employer</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Employer</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.companyName || '—'}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Monthly Income</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Monthly Income</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         ₱ {formattedMonthlyIncome}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Employment Type</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Employment Type</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.employmentType}
                       </Text>
                     </View>
@@ -225,18 +225,18 @@ export default function ReviewInformation() {
 
                   <View className="flex gap-3 mb-5">
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">
+                      <Text className="text-sm text-muted">
                         Previous Landlord Name
                       </Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.previousLandlordName || '—'}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">
+                      <Text className="text-sm text-muted">
                         Previous Landlord Contact
                       </Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-base text-foreground font-interMedium">
                         {tenantInformation.previousLandlordContact || '—'}
                       </Text>
                     </View>
@@ -246,7 +246,7 @@ export default function ReviewInformation() {
 
               <Accordion.Item value="preferences">
                 <Accordion.Trigger>
-                  <Text className="text-base font-interMedium text-text flex-1">
+                  <Text className="text-base font-interMedium text-foreground flex-1">
                     Rental Preferences
                   </Text>
                   <Accordion.Indicator />
@@ -254,52 +254,52 @@ export default function ReviewInformation() {
                 <Accordion.Content>
                   <View className="flex gap-3">
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Move-in Date</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Move-in Date</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.moveInDate
                           ? rentalPreferences.moveInDate.toLocaleDateString()
                           : '—'}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">
+                      <Text className="text-sm text-muted">
                         Duration of Stay
                       </Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.intendedDuration}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">
+                      <Text className="text-sm text-muted">
                         Number of Occupants
                       </Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.noOccupants} Person
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Are there Pets?</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Are there Pets?</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.hasPets ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Is Smoker?</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Is Smoker?</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.isSmoker ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">Need Parking?</Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-sm text-muted">Need Parking?</Text>
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.needParking ? "Yes" : "No"}
                       </Text>
                     </View>
                     <View className="flex">
-                      <Text className="text-sm text-grey-500">
+                      <Text className="text-sm text-muted">
                         Additional Notes
                       </Text>
-                      <Text className="text-base text-text font-interMedium">
+                      <Text className="text-base text-foreground font-interMedium">
                         {rentalPreferences.additionalNotes || '—'}
                       </Text>
                     </View>
@@ -309,7 +309,7 @@ export default function ReviewInformation() {
 
               <Accordion.Item value="documents">
                 <Accordion.Trigger>
-                  <Text className="text-base font-interMedium text-text flex-1">
+                  <Text className="text-base font-interMedium text-foreground flex-1">
                     Uploaded Documents
                   </Text>
                   <Accordion.Indicator />
@@ -317,7 +317,7 @@ export default function ReviewInformation() {
                 <Accordion.Content>
                   <View className="flex gap-3">
                     <View className="flex gap-2">
-                      <Text className="text-base text-text">
+                      <Text className="text-base text-foreground">
                         Valid Government-issued ID
                       </Text>
                       {documents.govId[0] ? (
@@ -328,22 +328,22 @@ export default function ReviewInformation() {
                         />
                       ) : (
                         <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center">
-                          <Text className="text-sm text-text">Not uploaded</Text>
+                          <Text className="text-sm text-foreground">Not uploaded</Text>
                         </View>
                       )}
                     </View>
 
                     <View className="flex gap-2">
-                      <Text className="text-base text-text">Proof of Income</Text>
+                      <Text className="text-base text-foreground">Proof of Income</Text>
                       <View className="bg-surface border border-border w-full rounded-lg p-4">
-                        <Text className="text-sm text-text font-interMedium" numberOfLines={1}>
+                        <Text className="text-sm text-foreground font-interMedium" numberOfLines={1}>
                           {documents.proofOfIncome?.name ?? 'Not uploaded'}
                         </Text>
                       </View>
                     </View>
 
                     <View className="flex gap-2">
-                      <Text className="text-base text-text">Proof of Billing</Text>
+                      <Text className="text-base text-foreground">Proof of Billing</Text>
                       {documents.proofOfBilling[0] ? (
                         <Image
                           source={{ uri: documents.proofOfBilling[0].uri }}
@@ -352,15 +352,15 @@ export default function ReviewInformation() {
                         />
                       ) : (
                         <View className="bg-amber-200 w-full h-52 rounded-lg items-center justify-center">
-                          <Text className="text-sm text-text">Not uploaded</Text>
+                          <Text className="text-sm text-foreground">Not uploaded</Text>
                         </View>
                       )}
                     </View>
 
                     <View className="flex gap-2">
-                      <Text className="text-base text-text">NBI Clearance</Text>
+                      <Text className="text-base text-foreground">NBI Clearance</Text>
                       <View className="bg-surface border border-border w-full rounded-lg p-4">
-                        <Text className="text-sm text-text font-interMedium" numberOfLines={1}>
+                        <Text className="text-sm text-foreground font-interMedium" numberOfLines={1}>
                           {documents.nbiClearance?.name ?? 'Not uploaded'}
                         </Text>
                       </View>
@@ -374,7 +374,7 @@ export default function ReviewInformation() {
 
         <View className="flex-row mt-16 gap-4">
           <Button
-            variant="outline"
+            variant="tertiary"
             onPress={() => router.back()}
             className="flex-1"
           >
