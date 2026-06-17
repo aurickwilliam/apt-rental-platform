@@ -14,15 +14,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { DEFAULT_IMAGES } from "constants/images";
-
 import { formatCurrency } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
+import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
 
-import { Button } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
 
-import { 
+import {
   ChevronLeft,
   BedDouble,
   Bath,
@@ -38,8 +38,9 @@ export default function ApartmentSummary() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const insets = useSafeAreaInsets();
 
-  // Variable and Functions for the carousel
-  // Refs for ScrollView
+  const { apartment, loading, error } = useApartmentDetails(apartmentId);
+  const { setApartmentId, setMaxOccupants } = useApplicationFormStore();
+
   const imageScrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -50,45 +51,50 @@ export default function ApartmentSummary() {
     { useNativeDriver: false },
   );
 
-  // TODO: Fetch apartment details using the apartmentId from the params and replace the dummy data below
-  // Dummy Data for apartment images
-  const apartmentImages = [
-    { id: 1, image: DEFAULT_IMAGES.defaultThumbnail },
-    { id: 2, image: DEFAULT_IMAGES.defaultProfilePicture },
-    // {id: 3, image: DEFAULT_IMAGES.defaultThumbnail},
-  ];
-
-  // Dummy Data for Apartment Details
-  const apartmentDetails = {
-    name: "Sample Apartment",
-    type: "Condominium",
-    ratings: "4.5",
-    location: "Sample Location",
-    monthlyRent: 1200,
-    noBedroom: 2,
-    noBathroom: 1,
-    areaSqm: 85,
-    perks: ["wifi", "ac", "tv", "kitchen", "parking", "hotwater", "bath"],
-    description: `Good day! I am renting out my 2-bedroom fully furnished apartment located in a safe and accessible area. The unit is on the 5th floor of a well-maintained building with 24/7 security and CCTV.
-
-The apartment includes a spacious living room with sofa set and TV, a dining area, and a modern kitchen equipped with a refrigerator, electric stove, microwave, and cabinets. Both bedrooms are air-conditioned and come with built-in closets. The master bedroom has its own bathroom, while there is also a separate common bathroom for guests.
-
-The unit has a balcony with good ventilation and natural lighting, and a dedicated laundry area with washing machine provision. Water and electricity are individually metered.
-
-The building is near malls, schools, hospitals, and public transportation, making it very convenient for working professionals or small families.
-
-Monthly Rent: ₱25,000
-Terms: 1 month advance + 2 months deposit
-Minimum stay: 6 months
-No pets / No smoking inside the unit
-
-Serious tenants only. Please message me for viewing and inquiries.`,
-    landlordId: 1,
-    landlordName: "John Doe",
-    LandlordProfilePicture: DEFAULT_IMAGES.defaultProfilePicture,
+  const handleContinueApplication = () => {
+    setApartmentId(apartmentId);
+    setMaxOccupants(apartment?.max_occupants ?? null);
+    router.push(`/apartment/${apartmentId}/apply/first-process`);
   };
 
-  const formattedMonthlyRent = formatCurrency(apartmentDetails.monthlyRent);
+  if (loading) {
+    return (
+      <ScreenWrapper noTopPadding>
+        <View className="h-full items-center justify-center bg-background">
+          <Spinner />
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  if (error || !apartment) {
+    return (
+      <ScreenWrapper noTopPadding>
+        <View className="h-full items-center justify-center bg-background p-5">
+          <Text className="text-center text-textPrimary">
+            {error ?? "Apartment not found."}
+          </Text>
+          <Button onPress={() => router.back()} className="mt-4">
+            <Button.Label>Go Back</Button.Label>
+          </Button>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  const sortedImages = [...apartment.apartment_images].sort((a, b) =>
+    a.is_cover === b.is_cover ? 0 : a.is_cover ? -1 : 1
+  );
+
+  const location = [apartment.barangay, apartment.city, apartment.province]
+    .filter(Boolean)
+    .join(", ");
+
+  const landlordName = apartment.landlord
+    ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`
+    : "Unknown";
+
+  const formattedMonthlyRent = formatCurrency(apartment.monthly_rent);
 
   return (
     <ScreenWrapper noTopPadding>
@@ -102,23 +108,24 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           scrollEventThrottle={16}
           showsHorizontalScrollIndicator={false}
         >
-          {/* Render Individual Images */}
-          {apartmentImages.map((item) => (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              className="w-screen h-full"
-              key={item.id}
-            >
-              <Image
-                source={item.image}
-                style={{ height: "100%", width: "100%" }}
-              />
-            </TouchableOpacity>
-          ))}
+          {sortedImages.length > 0 ? (
+            sortedImages.map((item) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                className="w-screen h-full"
+                key={item.id}
+              >
+                <Image
+                  source={{ uri: item.url }}
+                  style={{ height: "100%", width: "100%" }}
+                />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View className="w-screen h-full bg-surface" />
+          )}
         </ScrollView>
 
-        {/* Text Details on top of the Carousel*/}
-        {/* Linear Gradient Overlay*/}
         <LinearGradient
           colors={["transparent", "#000000"]}
           style={{
@@ -132,16 +139,15 @@ Serious tenants only. Please message me for viewing and inquiries.`,
           }}
           pointerEvents="box-none"
         >
-          {/* Apartment Details*/}
           <View pointerEvents="none">
             <Text className="text-white font-interSemiBold text-2xl">
-              {apartmentDetails.name}
+              {apartment.name}
             </Text>
 
             <View className="flex-row items-center mt-2 gap-2">
               <MapPin size={24} color={colors.secondaryForeground} />
               <Text className="text-secondary-foreground font-interMedium text-base">
-                {apartmentDetails.location}
+                {location}
               </Text>
             </View>
 
@@ -149,14 +155,14 @@ Serious tenants only. Please message me for viewing and inquiries.`,
               <View className="flex-row items-center gap-2">
                 <Home size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.type}
+                  {apartment.type}
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <Star size={20} color={colors.secondary} fill={colors.secondary} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.ratings} (70)
+                  {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
                 </Text>
               </View>
             </View>
@@ -168,32 +174,33 @@ Serious tenants only. Please message me for viewing and inquiries.`,
               <View className="flex-row items-center gap-2">
                 <BedDouble size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.noBedroom} Bedrooms
+                  {apartment.no_bedrooms} Bedrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <Bath size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.noBathroom} Bathrooms
+                  {apartment.no_bathrooms} Bathrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <Maximize size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.areaSqm} Sqm
+                  {apartment.area_sqm} Sqm
                 </Text>
               </View>
             </View>
 
-            {/* Landlord Details */}
             <View className="flex-row items-center gap-3" pointerEvents="none">
               <View className="size-16 overflow-hidden rounded-full border border-border">
-                <Image
-                  source={apartmentDetails.LandlordProfilePicture}
-                  style={{ width: "100%", height: "100%" }}
-                />
+                {apartment.landlord?.avatar_url ? (
+                  <Image
+                    source={{ uri: apartment.landlord.avatar_url }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                ) : null}
               </View>
 
               <View className="flex items-start justify-center">
@@ -201,12 +208,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
                   Rental Owner
                 </Text>
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {apartmentDetails.landlordName}
+                  {landlordName}
                 </Text>
               </View>
             </View>
 
-            {/* Monthly Rent */}
             <View className="mt-5 mb-10" pointerEvents="none">
               <Text className="text-secondary-foreground font-interSemiBold text-2xl">
                 ₱ {formattedMonthlyRent}/month
@@ -214,12 +220,11 @@ Serious tenants only. Please message me for viewing and inquiries.`,
             </View>
           </View>
 
-          {/* Pagination Dots */}
           <View
             className="flex-row justify-center items-center"
             pointerEvents="none"
           >
-            {apartmentImages.map((_, index) => {
+            {sortedImages.map((_, index) => {
               const inputRange = [
                 (index - 1) * width,
                 index * width,
@@ -242,32 +247,19 @@ Serious tenants only. Please message me for viewing and inquiries.`,
                 <Animated.View
                   key={index}
                   className="h-2 bg-white rounded mx-1"
-                  style={[
-                    {
-                      width: dotWidth,
-                      opacity,
-                    },
-                  ]}
+                  style={[{ width: dotWidth, opacity }]}
                 />
               );
             })}
           </View>
 
-          {/* Continue Button */}
           <View className="mt-5">
-            <Button 
-              onPress={() => {
-                router.push(`/apartment/${apartmentId}/apply/first-process`);
-              }} 
-            >
-              <Button.Label>
-                Continue Application
-              </Button.Label>
+            <Button onPress={handleContinueApplication}>
+              <Button.Label>Continue Application</Button.Label>
             </Button>
           </View>
         </LinearGradient>
 
-        {/* Back Button */}
         <View className="absolute left-4" style={{ top: insets.top + 8 }}>
           <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
             <ChevronLeft size={24} color={colors.textPrimary} />

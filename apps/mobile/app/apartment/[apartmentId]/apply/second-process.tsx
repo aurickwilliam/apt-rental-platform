@@ -6,7 +6,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DateField from '@/components/inputs/DateField'
-import DropdownField from 'components/inputs/DropdownField'
 
 import {
   TextField,
@@ -15,47 +14,30 @@ import {
   FieldError,
   TextArea,
   Button,
+  RadioGroup,
+  Radio,
+  Separator,
+  Description,
 } from 'heroui-native';
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 type FormErrors = {
   moveInDate?: string
-  intendedDuration?: string
   noOccupants?: string
   hasPets?: string
   isSmoker?: string
   needParking?: string
 }
 
-// Tracks explicit selection for boolean dropdowns — needed because
-// hasPets/isSmoker/needParking default to `false` in the store,
-// so we can't distinguish "unselected" from "user chose No".
-type AnsweredFields = {
-  hasPets: boolean
-  isSmoker: boolean
-  needParking: boolean
-}
-
-const DURATION_OPTIONS = [
-  '6 months',
-  '1 year',
-  '2 years',
-  'More than 2 years',
-]
-
 export default function SecondProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  const { rentalPreferences, updateRentalPreferences } = useApplicationFormStore()
+  const { rentalPreferences, updateRentalPreferences } = useApplicationFormStore();
+  const maxOccupants = useApplicationFormStore((state) => state.maxOccupants);
 
   const [errors, setErrors] = useState<FormErrors>({})
-  const [answered, setAnswered] = useState<AnsweredFields>({
-    hasPets: false,
-    isSmoker: false,
-    needParking: false,
-  })
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null)
   const contentRef = useRef<View>(null)
@@ -80,6 +62,14 @@ export default function SecondProcess() {
     return compareDate < today
   }
 
+  const isToday = (date: Date): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const compareDate = new Date(date)
+    compareDate.setHours(0, 0, 0, 0)
+    return compareDate.getTime() === today.getTime()
+  }
+
   const clearError = (field: keyof FormErrors) =>
     setErrors((prev) => ({ ...prev, [field]: undefined }))
 
@@ -90,20 +80,21 @@ export default function SecondProcess() {
       newErrors.moveInDate = 'Please select your preferred move-in date.'
     else if (isPastDate(rentalPreferences.moveInDate))
       newErrors.moveInDate = 'Move-in date cannot be in the past.'
-
-    if (!rentalPreferences.intendedDuration)
-      newErrors.intendedDuration = 'Please select your intended duration.'
+    else if (isToday(rentalPreferences.moveInDate))
+      newErrors.moveInDate = 'Move-in date cannot be today.'
 
     if (!rentalPreferences.noOccupants || rentalPreferences.noOccupants <= 0)
       newErrors.noOccupants = 'Please enter a valid number of occupants.'
+    else if (maxOccupants !== null && rentalPreferences.noOccupants > maxOccupants)
+      newErrors.noOccupants = `Please enter ${maxOccupants} or fewer occupants.`
 
-    if (!answered.hasPets)
+    if (rentalPreferences.hasPets === undefined)
       newErrors.hasPets = 'Please indicate if you have pets.'
 
-    if (!answered.isSmoker)
+    if (rentalPreferences.isSmoker === undefined)
       newErrors.isSmoker = 'Please indicate if you are a smoker.'
 
-    if (!answered.needParking)
+    if (rentalPreferences.needParking === undefined)
       newErrors.needParking = 'Please indicate if you need parking.'
 
     setErrors(newErrors)
@@ -112,7 +103,6 @@ export default function SecondProcess() {
     if (!isValid) {
       const fieldOrder: (keyof FormErrors)[] = [
         'moveInDate',
-        'intendedDuration',
         'noOccupants',
         'hasPets',
         'isSmoker',
@@ -145,33 +135,17 @@ export default function SecondProcess() {
       <View className="p-5" ref={contentRef}>
         <View className="flex gap-3">
           {/* Move-In Date */}
-          <View ref={registerFieldRef('moveInDate')}>
+          <View ref={registerFieldRef("moveInDate")}>
             <DateField
               label="Preferred Move-In Date:"
               placeholder="Select your preferred move-in date"
               required
               value={rentalPreferences.moveInDate}
               onChange={(value) => {
-                updateRentalPreferences("moveInDate", value)
-                if (value && !isPastDate(value)) clearError('moveInDate')
+                updateRentalPreferences("moveInDate", value);
+                if (value && !isPastDate(value) && !isToday(value)) clearError("moveInDate");
               }}
               error={errors.moveInDate}
-            />
-          </View>
-
-          {/* Intended Duration */}
-          <View ref={registerFieldRef('intendedDuration')}>
-            <DropdownField
-              label="Intended Duration:"
-              bottomSheetLabel="Select your intended duration"
-              options={DURATION_OPTIONS}
-              value={rentalPreferences.intendedDuration || undefined}
-              onSelect={(value) => {
-                updateRentalPreferences("intendedDuration", value ?? "")
-                if (value) clearError('intendedDuration')
-              }}
-              required
-              error={errors.intendedDuration}
             />
           </View>
 
@@ -193,64 +167,146 @@ export default function SecondProcess() {
                   if (parsed > 0) clearError("noOccupants");
                 }}
               />
+              {maxOccupants !== null && (
+                <Description hideOnInvalid>
+                  This unit allows a maximum of {maxOccupants} occupant{maxOccupants === 1 ? '' : 's'}.
+                </Description>
+              )}
               <FieldError>{errors.noOccupants}</FieldError>
             </TextField>
           </View>
 
+          <Separator className="my-3" />
+
           {/* Has Pets */}
-          <View ref={registerFieldRef('hasPets')}>
-            <DropdownField
-              label="Do you have pets?"
-              bottomSheetLabel="Select an option"
-              options={["Yes", "No"]}
-              value={answered.hasPets ? (rentalPreferences.hasPets ? "Yes" : "No") : undefined}
-              onSelect={(value) => {
-                updateRentalPreferences("hasPets", value === "Yes")
-                setAnswered((prev) => ({ ...prev, hasPets: true }))
-                clearError('hasPets')
+          <View
+            ref={registerFieldRef("hasPets")}
+            className="flex flex-col gap-4 mb-3"
+          >
+            <Label>Do you have pets?</Label>
+            <RadioGroup
+              className="flex-row gap-6"
+              value={
+                rentalPreferences.hasPets === undefined
+                  ? undefined
+                  : rentalPreferences.hasPets
+                    ? "yes"
+                    : "no"
+              }
+              onValueChange={(value) => {
+                updateRentalPreferences("hasPets", value === "yes");
+                clearError("hasPets");
               }}
-              required
-              error={errors.hasPets}
-            />
+              isInvalid={!!errors.hasPets}
+            >
+              <RadioGroup.Item
+                value="yes"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>Yes</Label>
+              </RadioGroup.Item>
+              <RadioGroup.Item
+                value="no"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>No</Label>
+              </RadioGroup.Item>
+            </RadioGroup>
+            <FieldError isInvalid={!!errors.hasPets}>
+              {errors.hasPets}
+            </FieldError>
           </View>
 
           {/* Is Smoker */}
-          <View ref={registerFieldRef('isSmoker')}>
-            <DropdownField
-              label="Are you a smoker?"
-              bottomSheetLabel="Select an option"
-              options={["Yes", "No"]}
-              value={answered.isSmoker ? (rentalPreferences.isSmoker ? "Yes" : "No") : undefined}
-              onSelect={(value) => {
-                updateRentalPreferences("isSmoker", value === "Yes")
-                setAnswered((prev) => ({ ...prev, isSmoker: true }))
-                clearError('isSmoker')
+          <View 
+            ref={registerFieldRef("isSmoker")} 
+            className="flex flex-col gap-4 mb-3"
+          >
+            <Label>Are you a smoker?</Label>
+            <RadioGroup
+              className="flex-row items-center justify-start gap-6"
+              value={
+                rentalPreferences.isSmoker === undefined
+                  ? undefined
+                  : rentalPreferences.isSmoker
+                    ? "yes"
+                    : "no"
+              }
+              onValueChange={(value) => {
+                updateRentalPreferences("isSmoker", value === "yes");
+                clearError("isSmoker");
               }}
-              required
-              error={errors.isSmoker}
-            />
+              isInvalid={!!errors.isSmoker}
+            >
+              <RadioGroup.Item
+                value="yes"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>Yes</Label>
+              </RadioGroup.Item>
+              <RadioGroup.Item
+                value="no"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>No</Label>
+              </RadioGroup.Item>
+            </RadioGroup>
+            <FieldError isInvalid={!!errors.isSmoker}>
+              {errors.isSmoker}
+            </FieldError>
           </View>
 
           {/* Need Parking */}
-          <View ref={registerFieldRef('needParking')}>
-            <DropdownField
-              label="Do you need parking?"
-              bottomSheetLabel="Select an option"
-              options={["Yes", "No"]}
-              value={answered.needParking ? (rentalPreferences.needParking ? "Yes" : "No") : undefined}
-              onSelect={(value) => {
-                updateRentalPreferences("needParking", value === "Yes")
-                setAnswered((prev) => ({ ...prev, needParking: true }))
-                clearError('needParking')
+          <View
+            ref={registerFieldRef("needParking")}
+            className="flex flex-col gap-4 mb-3"
+          >
+            <Label>Do you need parking?</Label>
+            <RadioGroup
+              className="flex-row items-center justify-start gap-6"
+              value={
+                rentalPreferences.needParking === undefined
+                  ? undefined
+                  : rentalPreferences.needParking
+                    ? "yes"
+                    : "no"
+              }
+              onValueChange={(value) => {
+                updateRentalPreferences("needParking", value === "yes");
+                clearError("needParking");
               }}
-              required
-              error={errors.needParking}
-            />
+              isInvalid={!!errors.needParking}
+            >
+              <RadioGroup.Item
+                value="yes"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>Yes</Label>
+              </RadioGroup.Item>
+              <RadioGroup.Item
+                value="no"
+                className="flex-row items-center gap-2"
+              >
+                <Radio />
+                <Label>No</Label>
+              </RadioGroup.Item>
+            </RadioGroup>
+
+            <FieldError isInvalid={!!errors.needParking}>
+              {errors.needParking}
+            </FieldError>
           </View>
+
+          <Separator className="my-3" />
 
           {/* Additional Notes (optional) — never errors, no ref needed */}
           <TextField>
-            <Label>Additional Notes</Label>
+            <Label>Additional Notes:</Label>
             <TextArea
               className="h-50 p-3"
               placeholder="Enter any additional information or preferences"

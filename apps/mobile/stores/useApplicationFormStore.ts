@@ -20,11 +20,10 @@ export type TenantInformation = {
 
 export type RentalPreferences = {
   moveInDate: Date | null
-  intendedDuration: string
   noOccupants: number
-  hasPets: boolean
-  isSmoker: boolean
-  needParking: boolean
+  hasPets: boolean | undefined
+  isSmoker: boolean | undefined
+  needParking: boolean | undefined
   additionalNotes: string
 }
 
@@ -58,11 +57,10 @@ const initialTenantInformation: TenantInformation = {
 
 const initialRentalPreferences: RentalPreferences = {
   moveInDate: null,
-  intendedDuration: '',
   noOccupants: 0,
-  hasPets: false,
-  isSmoker: false,
-  needParking: false,
+  hasPets: undefined,
+  isSmoker: undefined,
+  needParking: undefined,
   additionalNotes: '',
 }
 
@@ -84,6 +82,7 @@ const initialUploadedPaths: UploadedDocumentPaths = {
 
 type ApplicationFormState = {
   apartmentId: string | null
+  maxOccupants: number | null
 
   tenantInformation: TenantInformation
   rentalPreferences: RentalPreferences
@@ -94,6 +93,7 @@ type ApplicationFormState = {
 
   // Setters
   setApartmentId: (apartmentId: string) => void
+  setMaxOccupants: (maxOccupants: number | null) => void
   updateTenantInformation: <K extends keyof TenantInformation>(
     field: K,
     value: TenantInformation[K],
@@ -113,6 +113,7 @@ type ApplicationFormState = {
 
 export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
   apartmentId: null,
+  maxOccupants: null,
 
   tenantInformation: initialTenantInformation,
   rentalPreferences: initialRentalPreferences,
@@ -122,6 +123,7 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
   isSubmitting: false,
 
   setApartmentId: (apartmentId) => set({ apartmentId }),
+  setMaxOccupants: (maxOccupants) => set({ maxOccupants }),
 
   updateTenantInformation: (field, value) =>
     set((state) => ({
@@ -168,6 +170,7 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
   resetApplicationForm: () =>
     set({
       apartmentId: null,
+      maxOccupants: null,
       tenantInformation: initialTenantInformation,
       rentalPreferences: initialRentalPreferences,
       documents: initialDocuments,
