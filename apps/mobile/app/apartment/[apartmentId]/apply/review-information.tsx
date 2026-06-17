@@ -38,7 +38,7 @@ export default function ReviewInformation() {
 
   const { submit, isSubmitting } = useSubmitApplication();
 
-  const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome)
+  const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome!)
 
   const totalMoveInCost =
     apartmentContext.monthlyRent! +
