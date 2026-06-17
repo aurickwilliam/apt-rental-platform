@@ -20,8 +20,8 @@ import { Button, ListGroup, Separator } from "heroui-native";
 import { useProfile } from 'hooks/useProfile';
 import { useColors } from 'hooks/useTheme';
 
-import { ProfileHeader } from '../components/profile/ProfileHeader';
-import { VerificationStatus } from '../components/profile/VerificationStatus';
+import ProfileHeader from '../components/profile/ProfileHeader';
+import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 
 export default function Profile() {

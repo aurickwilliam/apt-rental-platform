@@ -37,7 +37,7 @@ type LandlordProfileData = {
 };
 type LandlordListing = ApartmentCardProps;
 
-export default function LandlordProfile() {
+export default function PublicLandlordProfile() {
   const { landlordId, apartmentId } = useLocalSearchParams<{ 
     landlordId?: string | string[],
     apartmentId?: string | string[],
