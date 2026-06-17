@@ -80,10 +80,30 @@ const initialUploadedPaths: UploadedDocumentPaths = {
 
 export type ApartmentContext = {
   maxOccupants: number | null
+  name: string | null
+  address: string | null
+  landlordName: string | null
+  type: string | null
+  furnishedType: string | null
+  floorLevel: string | null
+  monthlyRent: number | null
+  leaseDuration: string | null
+  securityDeposit: number | null
+  advanceRent: number | null
 }
 
 const initialApartmentContext: ApartmentContext = {
   maxOccupants: null,
+  name: null,
+  address: null,
+  landlordName: null,
+  type: null,
+  furnishedType: null,
+  floorLevel: null,
+  monthlyRent: null,
+  leaseDuration: null,
+  securityDeposit: null,
+  advanceRent: null,
 }
 
 // ---------- Store ----------

@@ -51,8 +51,30 @@ export default function ApartmentSummary() {
     { useNativeDriver: false },
   );
 
+  const fullAddress = [
+    apartment?.street_address,
+    apartment?.barangay,
+    apartment?.city,
+    apartment?.province,
+    apartment?.zip_code,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const landlordFullName = apartment?.landlord?.first_name + " " + apartment?.landlord?.last_name;
+
   const handleContinueApplication = () => {
+    setApartmentContext("name", apartment?.name ?? null);
+    setApartmentContext("address", fullAddress ?? null);
+    setApartmentContext("landlordName", landlordFullName ?? null);
+    setApartmentContext("type", apartment?.type ?? null);
     setApartmentContext("maxOccupants", apartment?.max_occupants ?? null);
+    setApartmentContext("furnishedType", apartment?.furnished_type ?? null);
+    setApartmentContext("floorLevel", apartment?.floor_level ?? null);
+    setApartmentContext("monthlyRent", apartment?.monthly_rent ?? null);
+    setApartmentContext("leaseDuration", apartment?.lease_duration ?? null);
+    setApartmentContext("securityDeposit", apartment?.security_deposit ?? null);
+    setApartmentContext("advanceRent", apartment?.advance_rent ?? null);
     router.push(`/apartment/${apartmentId}/apply/first-process`);
   };
 
