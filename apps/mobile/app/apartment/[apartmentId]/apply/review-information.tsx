@@ -34,6 +34,11 @@ export default function ReviewInformation() {
 
   const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome)
 
+  const totalMoveInCost =
+    apartmentContext.monthlyRent! +
+    apartmentContext.securityDeposit! +
+    apartmentContext.advanceRent!;
+
   return (
     <ScreenWrapper scrollable>
       <ApplicationHeader
@@ -43,8 +48,16 @@ export default function ReviewInformation() {
       />
 
       <View className="p-5 flex-1">
+        <Text className="text-lg font-interSemiBold text-foreground">
+          Apartment Information
+        </Text>
+        <Text className="text-sm font-inter text-muted mt-1 mb-5">
+          This is the apartment you are applying for.
+        </Text>
+
         {/* Apartment Information */}
         <View className="flex gap-3">
+          
           <ReviewField
             label="Apartment Name"
             value={apartmentContext.name ?? '—'}
@@ -106,6 +119,10 @@ export default function ReviewInformation() {
                 ? `₱ ${formatCurrency(apartmentContext.advanceRent)}`
                 : '—'
             }
+          />
+          <ReviewField
+            label='Total Move-In Cost'
+            value={`₱ ${formatCurrency(totalMoveInCost)}`}
           />
         </View>
 

@@ -27,7 +27,9 @@ function ThemeInitializer() {
   const { themeMode } = useThemeStore();
 
   useEffect(() => {
-    Appearance.setColorScheme(themeMode === "system" ? null : themeMode);
+    if (themeMode !== "system") {
+      Appearance.setColorScheme(themeMode);
+    }
   }, [themeMode]);
 
   return null;
@@ -117,12 +119,10 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="chat/[conversationId]" />
               <Stack.Screen name="tenant" />
-              <Stack.Screen name="landlord-profile/[landlordId]" />
               <Stack.Screen name="apartment/[apartmentId]" />
               <Stack.Screen name="(notification)" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="document-id" />
-              <Stack.Screen name="manage-apartment/[apartmentId]" />
             </Stack>
           </BottomSheetModalProvider>
           <PortalHost name="root" />

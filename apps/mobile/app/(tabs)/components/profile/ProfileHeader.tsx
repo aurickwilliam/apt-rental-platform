@@ -16,7 +16,7 @@ type ProfileHeaderProps = {
   role?: string | null
 }
 
-export function ProfileHeader({
+export default function ProfileHeader({
   backgroundPhotoUri,
   avatarUrl,
   firstName,
