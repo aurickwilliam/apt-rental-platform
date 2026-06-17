@@ -51,6 +51,10 @@ export default function ApartmentSummary() {
     { useNativeDriver: false },
   );
 
+  const landlordFullName = apartment?.landlord
+    ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`
+    : "Unknown";
+
   const fullAddress = [
     apartment?.street_address,
     apartment?.barangay,
@@ -60,8 +64,6 @@ export default function ApartmentSummary() {
   ]
     .filter(Boolean)
     .join(", ");
-
-  const landlordFullName = apartment?.landlord?.first_name + " " + apartment?.landlord?.last_name;
 
   const handleContinueApplication = () => {
     setApartmentContext("name", apartment?.name ?? null);
@@ -106,14 +108,6 @@ export default function ApartmentSummary() {
   const sortedImages = [...apartment.apartment_images].sort((a, b) =>
     a.is_cover === b.is_cover ? 0 : a.is_cover ? -1 : 1
   );
-
-  const location = [apartment.barangay, apartment.city, apartment.province]
-    .filter(Boolean)
-    .join(", ");
-
-  const landlordName = apartment.landlord
-    ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`
-    : "Unknown";
 
   const formattedMonthlyRent = formatCurrency(apartment.monthly_rent);
 
@@ -168,7 +162,7 @@ export default function ApartmentSummary() {
             <View className="flex-row items-center mt-2 gap-2">
               <MapPin size={24} color={colors.secondaryForeground} />
               <Text className="text-secondary-foreground font-interMedium text-base">
-                {location}
+                {fullAddress}
               </Text>
             </View>
 
@@ -229,7 +223,7 @@ export default function ApartmentSummary() {
                   Rental Owner
                 </Text>
                 <Text className="text-secondary-foreground font-interMedium text-base">
-                  {landlordName}
+                  {landlordFullName}
                 </Text>
               </View>
             </View>
