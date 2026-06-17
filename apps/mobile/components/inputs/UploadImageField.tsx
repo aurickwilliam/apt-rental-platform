@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 
-import { Ionicons } from '@expo/vector-icons'
+import { UploadCloud, XCircle, RefreshCw } from 'lucide-react-native'
 
 import { useColors } from '@/hooks/useTheme'
 
@@ -21,6 +21,8 @@ interface UploadImageFieldProps {
   onRemove: (uri: string) => void
   error?: string
 }
+
+const THUMB_SIZE = 100
 
 export default function UploadImageField({
   label,
@@ -74,12 +76,12 @@ export default function UploadImageField({
           {images.map((item) => (
             <View
               key={item.uri}
-              className="relative flex-1 aspect-square"
-              style={{ minWidth: "30%" }}
+              className="relative"
+              style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
             >
               <Image
                 source={{ uri: item.uri }}
-                className="w-full h-full rounded-xl"
+                className="w-full h-full rounded-2xl border border-border"
                 resizeMode="cover"
               />
 
@@ -88,11 +90,7 @@ export default function UploadImageField({
                 onPress={() => onRemove(item.uri)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Ionicons
-                  name="close-circle"
-                  size={20}
-                  color={colors.textPrimary}
-                />
+                <XCircle size={18} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           ))}
@@ -116,11 +114,7 @@ export default function UploadImageField({
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <>
-              <Ionicons
-                name="cloud-upload-outline"
-                size={22}
-                color={colors.primary}
-              />
+              <UploadCloud size={22} color={colors.primary} />
               <Text className="text-sm font-medium text-foreground">
                 {single ? "Choose photo" : "Add photos"}
               </Text>
@@ -138,7 +132,7 @@ export default function UploadImageField({
           onPress={pickImage}
           className="flex-row items-center gap-1 self-start"
         >
-          <Ionicons name="refresh-outline" size={16} color={colors.primary} />
+          <RefreshCw size={16} color={colors.primary} />
           <Text
             className="text-[13px] font-medium"
             style={{ color: colors.primary }}
