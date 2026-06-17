@@ -31,11 +31,26 @@ const EMPLOYMENT_TYPES = [
   "Student",
 ]
 
-const NO_INCOME_EMPLOYMENT_TYPES = ["Unemployed", "Student"]
+const NO_INCOME_EMPLOYMENT_TYPES = [
+  "Unemployed", 
+  "Student"
+]
+
+const REQUIRES_OCCUPATION_TYPES = [
+  "Full-Time",
+  "Part-Time",
+  "Self-Employed",
+];
+
+const REQUIRES_COMPANY_NAME_TYPES = [
+  "Full-Time",
+  "Part-Time",
+];
 
 type FieldErrors = {
   employmentType?: string
   occupation?: string
+  companyName?: string
   monthlyIncome?: string
   previousLandlordContact?: string
 }
@@ -104,12 +119,27 @@ export default function FirstProcess() {
   const validate = (): boolean => {
     const nextErrors: FieldErrors = {}
 
+    // Employment Type validation
     if (!tenantInformation.employmentType.trim()) {
       nextErrors.employmentType = 'Employment type is required.'
     }
 
-    if (!tenantInformation.occupation.trim()) {
-      nextErrors.occupation = 'Occupation is required.'
+    // Occupation validation
+    if (
+      REQUIRES_OCCUPATION_TYPES.includes(tenantInformation.employmentType) &&
+      !tenantInformation.occupation.trim()
+    ) {
+      nextErrors.occupation = "Occupation is required.";
+    }
+
+    // Company Name validation
+    if (
+      REQUIRES_COMPANY_NAME_TYPES.includes(
+        tenantInformation.employmentType
+      ) &&
+      !tenantInformation.companyName.trim()
+    ) {
+      nextErrors.companyName = "Company name is required.";
     }
 
     // Monthly income: must always be present and non-negative.
@@ -144,6 +174,7 @@ export default function FirstProcess() {
       const fieldOrder: (keyof FieldErrors)[] = [
         'employmentType',
         'occupation',
+        'companyName',
         'monthlyIncome',
         'previousLandlordContact',
       ]
@@ -261,7 +292,10 @@ export default function FirstProcess() {
 
           {/* Occupation */}
           <View ref={registerFieldRef("occupation")}>
-            <TextField isRequired isInvalid={!!errors.occupation}>
+            <TextField 
+              isRequired={!isNoIncomeType}
+              isInvalid={!!errors.occupation}
+            >
               <Label>Occupation/Job Title</Label>
               <Input
                 placeholder="Enter your occupation"
@@ -276,18 +310,31 @@ export default function FirstProcess() {
           </View>
 
           {/* Company Name — disabled for Unemployed / Student */}
-          <TextField isDisabled={isNoIncomeType}>
-            <Label>Company Name</Label>
-            <Input
-              placeholder={
-                isNoIncomeType ? "Not applicable" : "Enter your company name"
-              }
-              value={isNoIncomeType ? "" : tenantInformation.companyName}
-              onChangeText={(text) =>
-                updateTenantInformation("companyName", text)
-              }
-            />
-          </TextField>
+          <View ref={registerFieldRef("companyName")}>
+            <TextField
+              isRequired={REQUIRES_COMPANY_NAME_TYPES.includes(
+                tenantInformation.employmentType
+              )}
+              isDisabled={isNoIncomeType}
+              isInvalid={!!errors.companyName}
+            >
+              <Label>Company Name</Label>
+              <Input
+                placeholder={
+                  isNoIncomeType ? "Not applicable" : "Enter your company name"
+                }
+                value={isNoIncomeType ? "" : tenantInformation.companyName}
+                onChangeText={(text) => {
+                  updateTenantInformation("companyName", text);
+            
+                  if (text.trim()) {
+                    clearFieldError("companyName");
+                  }
+                }}
+              />
+              <FieldError>{errors.companyName}</FieldError>
+            </TextField>
+          </View>
 
           {/* Monthly Income */}
           <View ref={registerFieldRef("monthlyIncome")}>
@@ -300,15 +347,25 @@ export default function FirstProcess() {
                     : "Enter your monthly income"
                 }
                 keyboardType="numeric"
-                value={tenantInformation.monthlyIncome.toString()}
+                value={
+                  tenantInformation.monthlyIncome !== null
+                    ? tenantInformation.monthlyIncome.toString()
+                    : ""
+                }
                 onChangeText={(text) => {
-                  const parsed = text === "" ? 0 : parseInt(text, 10);
+                  const parsed = text === "" ? null : parseInt(text, 10);
+                
                   updateTenantInformation("monthlyIncome", parsed);
-                  const isValid =
-                    !Number.isNaN(parsed) &&
-                    parsed >= 0 &&
-                    (isNoIncomeType || parsed > 0);
-                  if (isValid) clearFieldError("monthlyIncome");
+                
+                  if (parsed !== null) {
+                    const isValid =
+                      parsed >= 0 &&
+                      (isNoIncomeType || parsed > 0);
+                
+                    if (isValid) {
+                      clearFieldError("monthlyIncome");
+                    }
+                  }
                 }}
               />
               <FieldError>{errors.monthlyIncome}</FieldError>

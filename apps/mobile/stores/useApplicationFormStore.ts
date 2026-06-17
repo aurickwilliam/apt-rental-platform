@@ -10,9 +10,10 @@ export type TenantInformation = {
   email: string
   dateOfBirth: string
   currentAddress: string
+
   occupation: string
   companyName: string
-  monthlyIncome: number
+  monthlyIncome: number | null
   employmentType: string
   previousLandlordName: string
   previousLandlordContact: string
@@ -47,9 +48,10 @@ const initialTenantInformation: TenantInformation = {
   email: '',
   dateOfBirth: '',
   currentAddress: '',
+  
   occupation: '',
   companyName: '',
-  monthlyIncome: 0,
+  monthlyIncome: null,
   employmentType: '',
   previousLandlordName: '',
   previousLandlordContact: '',
