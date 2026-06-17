@@ -7,11 +7,13 @@ import { IMAGES } from 'constants/images'
 
 import { Button } from 'heroui-native'
 
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+
 export default function Submitted() {
   const router = useRouter();
+  const { apartmentContext } = useApplicationFormStore();
 
-  // Dummy data for now, will be replaced with real data from backend
-  const apartmentName = 'The Grand Apartments';
+  const apartmentName = apartmentContext.name || 'No Apartment Name'
 
   return (
     <ScreenWrapper
@@ -39,15 +41,10 @@ export default function Submitted() {
       </View>
 
       <View className='flex gap-5'>
-        <Button>
-          <Button.Label>View Application Status</Button.Label>
-        </Button>
-
         <Button 
-          variant="ghost"
           onPress={() => router.navigate(`/(tabs)/(tenant)/rentals`)}
         >
-          <Button.Label>Go Home</Button.Label>
+          <Button.Label>View Application Status</Button.Label>
         </Button>
       </View>
     </ScreenWrapper>
