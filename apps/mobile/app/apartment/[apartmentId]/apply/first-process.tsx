@@ -216,7 +216,7 @@ export default function FirstProcess() {
           </TextField>
 
           {/* Full Name — pre-filled from profile, not editable */}
-          <View ref={registerFieldRef('fullName')}>
+          <View ref={registerFieldRef("fullName")}>
             <TextField isRequired isInvalid={!!errors.fullName}>
               <Label>Full Name</Label>
               <Input
@@ -229,11 +229,15 @@ export default function FirstProcess() {
           </View>
 
           {/* Date of Birth */}
-          <View ref={registerFieldRef('dateOfBirth')}>
+          <View ref={registerFieldRef("dateOfBirth")}>
             <DateField
               label="Date of Birth"
               placeholder="No date of birth on file"
-              value={tenantInformation.dateOfBirth ? new Date(tenantInformation.dateOfBirth) : null}
+              value={
+                tenantInformation.dateOfBirth
+                  ? new Date(tenantInformation.dateOfBirth)
+                  : null
+              }
               required
               readOnly
               error={errors.dateOfBirth}
@@ -241,32 +245,37 @@ export default function FirstProcess() {
           </View>
 
           {/* Contact Number */}
-          <View ref={registerFieldRef('contactNumber')}>
+          <View ref={registerFieldRef("contactNumber")}>
             <TextField isRequired isInvalid={!!errors.contactNumber}>
               <Label>Contact Number</Label>
               <Input
                 placeholder="Enter your contact number"
                 value={tenantInformation.contactNumber}
                 onChangeText={(text) => {
-                  updateTenantInformation("contactNumber", text)
-                  if (contactNumberValidation.validate(text).isValid) clearFieldError('contactNumber')
+                  updateTenantInformation("contactNumber", text);
+                  if (contactNumberValidation.validate(text).isValid)
+                    clearFieldError("contactNumber");
                 }}
-                onBlur={() => contactNumberValidation.validate(tenantInformation.contactNumber)}
+                onBlur={() =>
+                  contactNumberValidation.validate(
+                    tenantInformation.contactNumber,
+                  )
+                }
               />
               <FieldError>{errors.contactNumber}</FieldError>
             </TextField>
           </View>
 
           {/* Current Address */}
-          <View ref={registerFieldRef('currentAddress')}>
+          <View ref={registerFieldRef("currentAddress")}>
             <TextField isRequired isInvalid={!!errors.currentAddress}>
               <Label>Current Address</Label>
               <Input
                 placeholder="Enter your current address"
                 value={tenantInformation.currentAddress}
                 onChangeText={(text) => {
-                  updateTenantInformation("currentAddress", text)
-                  if (text.trim()) clearFieldError('currentAddress')
+                  updateTenantInformation("currentAddress", text);
+                  if (text.trim()) clearFieldError("currentAddress");
                 }}
               />
               <FieldError>{errors.currentAddress}</FieldError>
@@ -283,7 +292,7 @@ export default function FirstProcess() {
 
         <View className="flex gap-3">
           {/* Employment Type */}
-          <View ref={registerFieldRef('employmentType')}>
+          <View ref={registerFieldRef("employmentType")}>
             <DropdownField
               label="Employment Type"
               bottomSheetLabel="Select Employment Type"
@@ -291,13 +300,13 @@ export default function FirstProcess() {
               options={EMPLOYMENT_TYPES}
               value={tenantInformation.employmentType}
               onSelect={(value) => {
-                updateTenantInformation("employmentType", value ?? "")
-                if (value) clearFieldError('employmentType')
+                updateTenantInformation("employmentType", value ?? "");
+                if (value) clearFieldError("employmentType");
 
                 // Clear company name when switching to a type that has no employer
                 if (value && NO_INCOME_EMPLOYMENT_TYPES.includes(value)) {
-                  updateTenantInformation("companyName", "")
-                  clearFieldError('monthlyIncome')
+                  updateTenantInformation("companyName", "");
+                  clearFieldError("monthlyIncome");
                 }
               }}
               required
@@ -306,15 +315,15 @@ export default function FirstProcess() {
           </View>
 
           {/* Occupation */}
-          <View ref={registerFieldRef('occupation')}>
+          <View ref={registerFieldRef("occupation")}>
             <TextField isRequired isInvalid={!!errors.occupation}>
               <Label>Occupation/Job Title</Label>
               <Input
                 placeholder="Enter your occupation"
                 value={tenantInformation.occupation}
                 onChangeText={(text) => {
-                  updateTenantInformation("occupation", text)
-                  if (text.trim()) clearFieldError('occupation')
+                  updateTenantInformation("occupation", text);
+                  if (text.trim()) clearFieldError("occupation");
                 }}
               />
               <FieldError>{errors.occupation}</FieldError>
@@ -326,9 +335,9 @@ export default function FirstProcess() {
             <Label>Company Name</Label>
             <Input
               placeholder={
-                isNoIncomeType ? 'Not applicable' : 'Enter your company name'
+                isNoIncomeType ? "Not applicable" : "Enter your company name"
               }
-              value={isNoIncomeType ? '' : tenantInformation.companyName}
+              value={isNoIncomeType ? "" : tenantInformation.companyName}
               onChangeText={(text) =>
                 updateTenantInformation("companyName", text)
               }
@@ -336,18 +345,25 @@ export default function FirstProcess() {
           </TextField>
 
           {/* Monthly Income */}
-          <View ref={registerFieldRef('monthlyIncome')}>
+          <View ref={registerFieldRef("monthlyIncome")}>
             <TextField isRequired isInvalid={!!errors.monthlyIncome}>
               <Label>Monthly Income</Label>
               <Input
-                placeholder={isNoIncomeType ? 'Enter 0 if no income' : 'Enter your monthly income'}
+                placeholder={
+                  isNoIncomeType
+                    ? "Enter 0 if no income"
+                    : "Enter your monthly income"
+                }
                 keyboardType="numeric"
                 value={tenantInformation.monthlyIncome.toString()}
                 onChangeText={(text) => {
-                  const parsed = text === '' ? 0 : parseInt(text, 10)
-                  updateTenantInformation("monthlyIncome", parsed)
-                  const isValid = !Number.isNaN(parsed) && parsed >= 0 && (isNoIncomeType || parsed > 0)
-                  if (isValid) clearFieldError('monthlyIncome')
+                  const parsed = text === "" ? 0 : parseInt(text, 10);
+                  updateTenantInformation("monthlyIncome", parsed);
+                  const isValid =
+                    !Number.isNaN(parsed) &&
+                    parsed >= 0 &&
+                    (isNoIncomeType || parsed > 0);
+                  if (isValid) clearFieldError("monthlyIncome");
                 }}
               />
               <FieldError>{errors.monthlyIncome}</FieldError>
@@ -379,16 +395,19 @@ export default function FirstProcess() {
           </TextField>
 
           {/* Previous Landlord Contact */}
-          <View ref={registerFieldRef('previousLandlordContact')}>
+          <View ref={registerFieldRef("previousLandlordContact")}>
             <TextField isInvalid={!!errors.previousLandlordContact}>
               <Label>Previous Landlord Contact</Label>
               <Input
                 placeholder="Enter your previous landlord contact"
                 value={tenantInformation.previousLandlordContact}
                 onChangeText={(text) => {
-                  updateTenantInformation("previousLandlordContact", text)
-                  if (!text.trim() || previousLandlordContactValidation.validate(text).isValid) {
-                    clearFieldError('previousLandlordContact')
+                  updateTenantInformation("previousLandlordContact", text);
+                  if (
+                    !text.trim() ||
+                    previousLandlordContactValidation.validate(text).isValid
+                  ) {
+                    clearFieldError("previousLandlordContact");
                   }
                 }}
                 onBlur={() =>
@@ -427,8 +446,8 @@ export default function FirstProcess() {
             <View className="mb-5 gap-1.5">
               <Dialog.Title>Discard Application?</Dialog.Title>
               <Dialog.Description>
-                Your progress will be lost if you leave now. Are
-                you sure you want to cancel?
+                Your progress will be lost if you leave now. Are you sure you
+                want to cancel?
               </Dialog.Description>
             </View>
             <View className="flex-row justify-end gap-3">
