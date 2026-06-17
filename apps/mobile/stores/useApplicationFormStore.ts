@@ -78,11 +78,18 @@ const initialUploadedPaths: UploadedDocumentPaths = {
   nbiClearance: null,
 }
 
+export type ApartmentContext = {
+  maxOccupants: number | null
+}
+
+const initialApartmentContext: ApartmentContext = {
+  maxOccupants: null,
+}
+
 // ---------- Store ----------
 
 type ApplicationFormState = {
-  apartmentId: string | null
-  maxOccupants: number | null
+  apartmentContext: ApartmentContext
 
   tenantInformation: TenantInformation
   rentalPreferences: RentalPreferences
@@ -92,8 +99,10 @@ type ApplicationFormState = {
   isSubmitting: boolean
 
   // Setters
-  setApartmentId: (apartmentId: string) => void
-  setMaxOccupants: (maxOccupants: number | null) => void
+  setApartmentContext: <K extends keyof ApartmentContext>(
+    field: K,
+    value: ApartmentContext[K],
+  ) => void
   updateTenantInformation: <K extends keyof TenantInformation>(
     field: K,
     value: TenantInformation[K],
@@ -112,8 +121,7 @@ type ApplicationFormState = {
 }
 
 export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
-  apartmentId: null,
-  maxOccupants: null,
+  apartmentContext: initialApartmentContext,
 
   tenantInformation: initialTenantInformation,
   rentalPreferences: initialRentalPreferences,
@@ -122,8 +130,13 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
 
   isSubmitting: false,
 
-  setApartmentId: (apartmentId) => set({ apartmentId }),
-  setMaxOccupants: (maxOccupants) => set({ maxOccupants }),
+  setApartmentContext: (field, value) =>
+    set((state) => ({
+      apartmentContext: {
+        ...state.apartmentContext,
+        [field]: value,
+      },
+    })),
 
   updateTenantInformation: (field, value) =>
     set((state) => ({
@@ -169,8 +182,7 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
 
   resetApplicationForm: () =>
     set({
-      apartmentId: null,
-      maxOccupants: null,
+      apartmentContext: initialApartmentContext,
       tenantInformation: initialTenantInformation,
       rentalPreferences: initialRentalPreferences,
       documents: initialDocuments,

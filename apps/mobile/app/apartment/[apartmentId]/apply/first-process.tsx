@@ -82,16 +82,11 @@ export default function FirstProcess() {
   const {
     tenantInformation,
     updateTenantInformation,
-    setApartmentId,
     resetApplicationForm,
   } = useApplicationFormStore();
 
   // Derived flag — drives company name disable + income validation
   const isNoIncomeType = NO_INCOME_EMPLOYMENT_TYPES.includes(tenantInformation.employmentType)
-
-  useEffect(() => {
-    if (apartmentId) setApartmentId(apartmentId)
-  }, [apartmentId, setApartmentId])
 
   useEffect(() => {
     if (!profile) return
