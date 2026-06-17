@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
 
-import { IconFileUpload, IconFile, IconX } from '@tabler/icons-react-native'
+import { FileText, XCircle, UploadCloud, RefreshCw } from 'lucide-react-native'
 
 import { useColors } from '@/hooks/useTheme'
-
-import { Button } from "heroui-native"
 
 interface UploadFileFieldProps {
   label: string
@@ -62,107 +65,89 @@ export default function UploadFileField({
 
   const hasFile = !!value
   const displayName = value?.name ?? ''
+  const showPicker = !hasFile
 
   return (
-    <View className="w-full flex-col gap-2">
+    <View className="gap-2">
       {/* Label */}
-      <View className="flex-row items-center justify-between">
-        <Text className="text-base font-interMedium text-foreground flex-1">
-          {label}
-        </Text>
-        {required && (
-          <Text className="text-base font-inter text-danger">
-            *Required
+      <Text className="text-base font-semibold text-foreground">
+        {label}
+        {required && <Text className="text-danger"> *</Text>}
+      </Text>
+
+      {/* File preview card */}
+      {hasFile && (
+        <View className="flex-row items-center gap-3 rounded-2xl bg-surface border border-border px-4 py-3.5 mt-1">
+          <FileText size={28} color={colors.primary} strokeWidth={1.5} />
+
+          <Text
+            className="flex-1 text-sm font-medium text-foreground"
+            numberOfLines={1}
+          >
+            {displayName}
           </Text>
-        )}
-      </View>
 
-      {/* File Area */}
-      <TouchableOpacity
-        onPress={pickFile}
-        disabled={disabled || loading}
-        activeOpacity={0.8}
-        className={[
-          'w-full h-52 rounded-xl border items-center justify-center',
-          hasFile
-            ? 'bg-surface border-border'
-            : 'bg-surface border-gray-400 border-dashed',
-          error
-            ? 'border-danger bg-danger-light'
-            : '',
-          disabled
-            ? 'opacity-50'
-            : '',
-        ].join(' ')}
-      >
-        {hasFile ? (
-          // File preview
-          <View className="flex-col gap-3 items-center justify-center px-6">
-            <IconFile
-              size={56}
-              color={colors.primary}
-              strokeWidth={1}
+          <TouchableOpacity
+            onPress={removeFile}
+            disabled={disabled}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <XCircle
+              size={20}
+              color={colors.textPrimary}
             />
-            <Text
-              className="text-center text-foreground font-interMedium text-sm"
-              numberOfLines={2}
-            >
-              {displayName}
-            </Text>
-            <Text className="text-xs text-gray-400 font-inter">
-              Tap to replace
-            </Text>
-          </View>
-        ) : (
-          // Empty state
-          <View className="flex gap-3 items-center justify-center px-6">
-            <IconFileUpload
-              size={64}
-              color={colors.textSecondary}
-              strokeWidth={1}
-            />
-            <Text className="text-center text-gray-400 font-interMedium">
-              {placeholder ?? 'No documents uploaded yet.'}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {/* Error Message */}
-      {!!error && (
-        <Text className="text-base text-danger font-inter mt-1">
-          {error}
-        </Text>
+          </TouchableOpacity>
+        </View>
       )}
 
-      {/* Buttons */}
-      <View className="flex-1 flex-row gap-4 mt-3">
-        <Button
-          size="sm"
+      {/* Upload button — hidden once a file is set */}
+      {showPicker && (
+        <TouchableOpacity
           onPress={pickFile}
-          isDisabled={disabled || loading}
-          className="flex-1"
-          variant="secondary"
+          disabled={disabled || loading}
+          className={[
+            "flex-row items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4.5",
+            error
+              ? "border-danger bg-danger-light"
+              : "border-border bg-surface",
+            (disabled || loading) ? "opacity-50" : "opacity-100",
+          ].join(" ")}
         >
-          <IconFileUpload size={16} color={colors.primary} />
-          <Button.Label>
-            {hasFile ? 'Replace File' : 'Upload a File'}
-          </Button.Label>
-        </Button>
+          {loading ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <>
+              <UploadCloud
+                size={22}
+                color={colors.primary}
+              />
+              <Text className="text-sm font-medium text-foreground">
+                {placeholder ?? "Upload a file"}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
 
-        <Button
-          size="sm"
-          onPress={removeFile}
-          isDisabled={disabled || !hasFile}
-          className="flex-1"
-          variant="danger-soft"
+      {/* Error message */}
+      {!!error && <Text className="text-xs text-danger">{error}</Text>}
+
+      {/* Replace button shown when a file is already set */}
+      {hasFile && (
+        <TouchableOpacity
+          onPress={pickFile}
+          disabled={disabled}
+          className="flex-row items-center gap-1 self-start"
         >
-          <IconX size={16} color={colors.danger} />
-          <Button.Label>
-            Remove File
-          </Button.Label>
-        </Button>
-      </View>
+          <RefreshCw size={16} color={colors.primary} />
+          <Text
+            className="text-[13px] font-medium"
+            style={{ color: colors.primary }}
+          >
+            Replace file
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
-  )
+  );
 }
