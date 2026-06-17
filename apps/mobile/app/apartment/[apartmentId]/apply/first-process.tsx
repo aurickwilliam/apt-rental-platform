@@ -52,6 +52,7 @@ type FieldErrors = {
   occupation?: string
   companyName?: string
   monthlyIncome?: string
+  previousLandlordName?: string
   previousLandlordContact?: string
 }
 
@@ -167,6 +168,24 @@ export default function FirstProcess() {
       }
     }
 
+    // Chcek if both reference has a value
+    // Baduy kapag name lang or number lang
+    const hasLandlordName =
+      tenantInformation.previousLandlordName.trim().length > 0
+
+    const hasLandlordContact =
+      tenantInformation.previousLandlordContact.trim().length > 0
+
+    if (hasLandlordName && !hasLandlordContact) {
+      nextErrors.previousLandlordContact =
+        "Contact number is required."
+    }
+
+    if (!hasLandlordName && hasLandlordContact) {
+      nextErrors.previousLandlordName =
+        "Landlord name is required."
+    }
+
     setErrors(nextErrors)
     const isValid = Object.keys(nextErrors).length === 0
 
@@ -176,6 +195,7 @@ export default function FirstProcess() {
         'occupation',
         'companyName',
         'monthlyIncome',
+        'previousLandlordName',
         'previousLandlordContact',
       ]
       const firstInvalidField = fieldOrder.find((field) => nextErrors[field])
@@ -385,16 +405,30 @@ export default function FirstProcess() {
 
         <View className="flex gap-3">
           {/* Previous Landlord Name */}
-          <TextField>
-            <Label>Previous Landlord Name</Label>
-            <Input
-              placeholder="Enter your previous landlord name"
-              value={tenantInformation.previousLandlordName}
-              onChangeText={(text) =>
-                updateTenantInformation("previousLandlordName", text)
-              }
-            />
-          </TextField>
+          <View ref={registerFieldRef('previousLandlordName')}>
+            <TextField isInvalid={!!errors.previousLandlordName}>
+              <Label>Previous Landlord Name</Label>
+
+              <Input
+                placeholder="Enter your previous landlord name"
+                value={tenantInformation.previousLandlordName}
+                onChangeText={(text) => {
+                  updateTenantInformation(
+                    "previousLandlordName",
+                    text
+                  );
+
+                  if (text.trim()) {
+                    clearFieldError("previousLandlordName");
+                  }
+                }}
+              />
+
+              <FieldError>
+                {errors.previousLandlordName}
+              </FieldError>
+            </TextField>
+          </View>
 
           {/* Previous Landlord Contact */}
           <View ref={registerFieldRef("previousLandlordContact")}>
