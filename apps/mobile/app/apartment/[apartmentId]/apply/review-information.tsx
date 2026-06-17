@@ -14,16 +14,20 @@ import {
   Accordion,
   AccordionLayoutTransition,
   Button,
-  Separator
+  Separator,
+  Spinner,
+  useToast,
 } from 'heroui-native';
 
 import { formatCurrency, formatDate } from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+import { useSubmitApplication } from '@/hooks/useSubmitApplication'
 
 export default function ReviewInformation() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { toast } = useToast();
 
   const {
     apartmentContext,
@@ -32,12 +36,29 @@ export default function ReviewInformation() {
     documents
   } = useApplicationFormStore();
 
+  const { submit, isSubmitting } = useSubmitApplication();
+
   const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome)
 
   const totalMoveInCost =
     apartmentContext.monthlyRent! +
     apartmentContext.securityDeposit! +
     apartmentContext.advanceRent!;
+
+  const handleSubmit = async () => {
+    const result = await submit({ apartmentId });
+
+    if (!result.success) {
+      toast.show({
+        variant: 'danger',
+        label: 'Submission failed',
+        description: result.error ?? 'Something went wrong. Please try again.',
+      });
+      return;
+    }
+
+    router.replace(`/apartment/${apartmentId}/apply/submitted`);
+  };
 
   return (
     <ScreenWrapper scrollable>
@@ -262,17 +283,21 @@ export default function ReviewInformation() {
             variant="tertiary"
             onPress={() => router.back()}
             className="flex-1"
+            isDisabled={isSubmitting}
           >
             <Button.Label>Back</Button.Label>
           </Button>
 
           <Button
-            onPress={() => {
-              router.replace(`/apartment/${apartmentId}/apply/submitted`);
-            }}
+            onPress={handleSubmit}
             className="flex-1"
+            isDisabled={isSubmitting}
           >
-            <Button.Label>Submit Application</Button.Label>
+            {isSubmitting ? (
+              <Spinner />
+            ) : (
+              <Button.Label>Submit Application</Button.Label>
+            )}
           </Button>
         </View>
       </View>

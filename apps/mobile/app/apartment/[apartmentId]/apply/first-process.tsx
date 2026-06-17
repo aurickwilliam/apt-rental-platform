@@ -34,10 +34,6 @@ const EMPLOYMENT_TYPES = [
 const NO_INCOME_EMPLOYMENT_TYPES = ["Unemployed", "Student"]
 
 type FieldErrors = {
-  fullName?: string
-  contactNumber?: string
-  dateOfBirth?: string
-  currentAddress?: string
   employmentType?: string
   occupation?: string
   monthlyIncome?: string
@@ -76,7 +72,6 @@ export default function FirstProcess() {
     })
   }
 
-  const contactNumberValidation = usePHMobileValidation();
   const previousLandlordContactValidation = usePHMobileValidation();
 
   const {
@@ -108,23 +103,6 @@ export default function FirstProcess() {
 
   const validate = (): boolean => {
     const nextErrors: FieldErrors = {}
-
-    if (!tenantInformation.fullName.trim()) {
-      nextErrors.fullName = 'Full name is required.'
-    }
-
-    const contactResult = contactNumberValidation.validate(tenantInformation.contactNumber)
-    if (!contactResult.isValid) {
-      nextErrors.contactNumber = contactResult.errorMessage ?? 'Invalid contact number.'
-    }
-
-    if (!tenantInformation.dateOfBirth.trim()) {
-      nextErrors.dateOfBirth = 'Date of birth is required.'
-    }
-
-    if (!tenantInformation.currentAddress.trim()) {
-      nextErrors.currentAddress = 'Current address is required.'
-    }
 
     if (!tenantInformation.employmentType.trim()) {
       nextErrors.employmentType = 'Employment type is required.'
@@ -164,10 +142,6 @@ export default function FirstProcess() {
 
     if (!isValid) {
       const fieldOrder: (keyof FieldErrors)[] = [
-        'fullName',
-        'dateOfBirth',
-        'contactNumber',
-        'currentAddress',
         'employmentType',
         'occupation',
         'monthlyIncome',
@@ -205,77 +179,53 @@ export default function FirstProcess() {
             <Label>Email</Label>
             <Input
               readOnly
-              placeholder="Enter your email"
+              placeholder="No email on file"
               value={tenantInformation.email}
             />
           </TextField>
 
           {/* Full Name — pre-filled from profile, not editable */}
-          <View ref={registerFieldRef("fullName")}>
-            <TextField isRequired isInvalid={!!errors.fullName}>
-              <Label>Full Name</Label>
-              <Input
-                readOnly
-                placeholder="Enter your full name"
-                value={tenantInformation.fullName}
-              />
-              <FieldError>{errors.fullName}</FieldError>
-            </TextField>
-          </View>
+          <TextField isRequired>
+            <Label>Full Name</Label>
+            <Input
+              readOnly
+              placeholder="No Full Name on file"
+              value={tenantInformation.fullName}
+            />
+          </TextField>
 
           {/* Date of Birth */}
-          <View ref={registerFieldRef("dateOfBirth")}>
-            <DateField
-              label="Date of Birth"
-              placeholder="No date of birth on file"
-              value={
-                tenantInformation.dateOfBirth
-                  ? new Date(tenantInformation.dateOfBirth)
-                  : null
-              }
-              required
-              readOnly
-              error={errors.dateOfBirth}
-            />
-          </View>
+          <DateField
+            label="Date of Birth"
+            placeholder="No date of birth on file"
+            value={
+              tenantInformation.dateOfBirth
+                ? new Date(tenantInformation.dateOfBirth)
+                : null
+            }
+            required
+            readOnly
+          />
 
           {/* Contact Number */}
-          <View ref={registerFieldRef("contactNumber")}>
-            <TextField isRequired isInvalid={!!errors.contactNumber}>
-              <Label>Contact Number</Label>
-              <Input
-                placeholder="Enter your contact number"
-                value={tenantInformation.contactNumber}
-                onChangeText={(text) => {
-                  updateTenantInformation("contactNumber", text);
-                  if (contactNumberValidation.validate(text).isValid)
-                    clearFieldError("contactNumber");
-                }}
-                onBlur={() =>
-                  contactNumberValidation.validate(
-                    tenantInformation.contactNumber,
-                  )
-                }
-              />
-              <FieldError>{errors.contactNumber}</FieldError>
-            </TextField>
-          </View>
+          <TextField isRequired>
+            <Label>Contact Number</Label>
+            <Input
+              readOnly
+              placeholder="No contact number on file"
+              value={tenantInformation.contactNumber}
+            />
+          </TextField>
 
           {/* Current Address */}
-          <View ref={registerFieldRef("currentAddress")}>
-            <TextField isRequired isInvalid={!!errors.currentAddress}>
-              <Label>Current Address</Label>
-              <Input
-                placeholder="Enter your current address"
-                value={tenantInformation.currentAddress}
-                onChangeText={(text) => {
-                  updateTenantInformation("currentAddress", text);
-                  if (text.trim()) clearFieldError("currentAddress");
-                }}
-              />
-              <FieldError>{errors.currentAddress}</FieldError>
-            </TextField>
-          </View>
+          <TextField isRequired>
+            <Label>Current Address</Label>
+            <Input
+              placeholder="No current address on file"
+              value={tenantInformation.currentAddress}
+              readOnly
+            />
+          </TextField>
         </View>
 
         <Separator className="my-5" />
