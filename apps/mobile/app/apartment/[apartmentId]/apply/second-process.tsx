@@ -35,7 +35,7 @@ export default function SecondProcess() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   const { rentalPreferences, updateRentalPreferences } = useApplicationFormStore();
-  const maxOccupants = useApplicationFormStore((state) => state.maxOccupants);
+  const maxOccupants = useApplicationFormStore((state) => state.apartmentContext.maxOccupants);
 
   const [errors, setErrors] = useState<FormErrors>({})
 

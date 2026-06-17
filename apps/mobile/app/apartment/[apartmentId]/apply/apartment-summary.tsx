@@ -39,7 +39,7 @@ export default function ApartmentSummary() {
   const insets = useSafeAreaInsets();
 
   const { apartment, loading, error } = useApartmentDetails(apartmentId);
-  const { setApartmentId, setMaxOccupants } = useApplicationFormStore();
+  const { setApartmentContext } = useApplicationFormStore();
 
   const imageScrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -52,8 +52,7 @@ export default function ApartmentSummary() {
   );
 
   const handleContinueApplication = () => {
-    setApartmentId(apartmentId);
-    setMaxOccupants(apartment?.max_occupants ?? null);
+    setApartmentContext("maxOccupants", apartment?.max_occupants ?? null);
     router.push(`/apartment/${apartmentId}/apply/first-process`);
   };
 
