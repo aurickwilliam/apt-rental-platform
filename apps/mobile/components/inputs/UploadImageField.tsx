@@ -105,7 +105,7 @@ export default function UploadImageField({
           className={[
             "flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4.5",
             error
-              ? "border-danger bg-danger-light"
+              ? "border-danger bg-surface"
               : "border-border bg-surface",
             loading ? "opacity-50" : "opacity-100",
           ].join(" ")}

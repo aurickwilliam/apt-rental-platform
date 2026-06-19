@@ -108,7 +108,7 @@ export default function UploadFileField({
           className={[
             "flex-row items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4.5",
             error
-              ? "border-danger bg-danger-light"
+              ? "border-danger bg-surface"
               : "border-border bg-surface",
             (disabled || loading) ? "opacity-50" : "opacity-100",
           ].join(" ")}
