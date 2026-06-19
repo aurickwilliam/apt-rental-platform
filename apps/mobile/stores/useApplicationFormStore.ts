@@ -21,7 +21,7 @@ export type TenantInformation = {
 
 export type RentalPreferences = {
   moveInDate: Date | null
-  noOccupants: number
+  noOccupants: number | null
   hasPets: boolean | undefined
   isSmoker: boolean | undefined
   needParking: boolean | undefined
@@ -59,7 +59,7 @@ const initialTenantInformation: TenantInformation = {
 
 const initialRentalPreferences: RentalPreferences = {
   moveInDate: null,
-  noOccupants: 0,
+  noOccupants: null,
   hasPets: undefined,
   isSmoker: undefined,
   needParking: undefined,

@@ -199,7 +199,10 @@ export default function FirstProcess() {
         'previousLandlordContact',
       ]
       const firstInvalidField = fieldOrder.find((field) => nextErrors[field])
-      const y = firstInvalidField ? fieldPositions.current[firstInvalidField] : undefined
+      const y = 
+        firstInvalidField 
+          ? fieldPositions.current[firstInvalidField] 
+          : undefined
       if (y !== undefined) {
         scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
       }
@@ -297,11 +300,19 @@ export default function FirstProcess() {
               value={tenantInformation.employmentType}
               onSelect={(value) => {
                 updateTenantInformation("employmentType", value ?? "");
-                if (value) clearFieldError("employmentType");
-
-                // Clear company name when switching to a type that has no employer
+              
+                if (value) {
+                  clearFieldError("employmentType");
+                }
+              
+                if (value && !REQUIRES_OCCUPATION_TYPES.includes(value)) {
+                  clearFieldError("occupation");
+                }
+              
                 if (value && NO_INCOME_EMPLOYMENT_TYPES.includes(value)) {
                   updateTenantInformation("companyName", "");
+              
+                  clearFieldError("companyName");
                   clearFieldError("monthlyIncome");
                 }
               }}
