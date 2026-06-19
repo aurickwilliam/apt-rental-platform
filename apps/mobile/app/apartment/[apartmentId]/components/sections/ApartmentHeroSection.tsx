@@ -162,7 +162,7 @@ export default function ApartmentHeroSection({
             return (
               <Animated.View
                 key={index}
-                className='h-2 bg-gray-500 rounded mx-1'
+                className='h-2 bg-white rounded mx-1'
                 style={[
                   {
                     width: dotWidth,

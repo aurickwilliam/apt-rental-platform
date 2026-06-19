@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
+import ApplicationHeader from "@/components/layout/ApplicationHeader";
 
 import {
   TextField,
@@ -50,7 +50,7 @@ export default function FourthStep() {
 
   const handleNext = () => {
     if (!validate()) return;
-    router.push("/manage-apartment/add-apartment/fifth-step");
+    router.push("/landlord/manage-apartment/add-apartment/fifth-step");
   };
 
   return (
@@ -101,7 +101,7 @@ export default function FourthStep() {
                     variant="secondary"
                     color="accent"
                     onPress={() =>
-                      router.push("/manage-apartment/add-apartment/amenities")
+                      router.push("/landlord/manage-apartment/add-apartment/amenities")
                     }
                   >
                     <perk.icon size={16} color={colors.primary} />
@@ -122,7 +122,7 @@ export default function FourthStep() {
             size="sm"
             variant="tertiary"
             onPress={() =>
-              router.push("/manage-apartment/add-apartment/amenities")
+              router.push("/landlord/manage-apartment/add-apartment/amenities")
             }
           >
             <Button.Label>
