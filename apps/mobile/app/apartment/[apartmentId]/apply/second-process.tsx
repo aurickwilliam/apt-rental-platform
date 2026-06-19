@@ -83,10 +83,19 @@ export default function SecondProcess() {
     else if (isToday(rentalPreferences.moveInDate))
       newErrors.moveInDate = 'Move-in date cannot be today.'
 
-    if (!rentalPreferences.noOccupants || rentalPreferences.noOccupants <= 0)
-      newErrors.noOccupants = 'Please enter a valid number of occupants.'
-    else if (maxOccupants !== null && rentalPreferences.noOccupants > maxOccupants)
+    if (
+      rentalPreferences.noOccupants === null ||
+      rentalPreferences.noOccupants <= 0
+    ) {
+      newErrors.noOccupants =
+        "Please enter a valid number of occupants.";
+    }
+    else if (
+      maxOccupants !== null && 
+      rentalPreferences.noOccupants > maxOccupants
+    ) {
       newErrors.noOccupants = `Please enter ${maxOccupants} or fewer occupants.`
+    }
 
     if (rentalPreferences.hasPets === undefined)
       newErrors.hasPets = 'Please indicate if you have pets.'
@@ -110,7 +119,10 @@ export default function SecondProcess() {
       ]
 
       const firstInvalidField = fieldOrder.find((field) => newErrors[field])
-      const y = firstInvalidField ? fieldPositions.current[firstInvalidField] : undefined
+      const y = 
+        firstInvalidField 
+          ? fieldPositions.current[firstInvalidField] 
+          : undefined
       if (y !== undefined) {
         scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
       }
@@ -157,14 +169,23 @@ export default function SecondProcess() {
                 placeholder="Enter the number of occupants"
                 keyboardType="numeric"
                 value={
-                  rentalPreferences.noOccupants === 0
-                    ? ""
-                    : rentalPreferences.noOccupants.toString()
+                  rentalPreferences.noOccupants !== null
+                    ? rentalPreferences.noOccupants.toString()
+                    : ""
                 }
                 onChangeText={(text) => {
-                  const parsed = parseInt(text) || 0;
+                  const parsed = text === "" ? null : parseInt(text, 10);
+                
                   updateRentalPreferences("noOccupants", parsed);
-                  if (parsed > 0) clearError("noOccupants");
+                
+                  if (parsed === null) return;
+              
+                  if (
+                    parsed > 0 &&
+                    (maxOccupants === null || parsed <= maxOccupants)
+                  ) {
+                    clearError("noOccupants");
+                  }
                 }}
               />
               {maxOccupants !== null && (
@@ -308,6 +329,7 @@ export default function SecondProcess() {
           <TextField>
             <Label>Additional Notes:</Label>
             <TextArea
+              maxLength={1000}
               className="h-50 p-3"
               placeholder="Enter any additional information or preferences"
               value={rentalPreferences.additionalNotes}
@@ -315,6 +337,9 @@ export default function SecondProcess() {
                 updateRentalPreferences("additionalNotes", text)
               }
             />
+            <Description>
+              {rentalPreferences.additionalNotes.length}/1000 characters
+            </Description>
           </TextField>
         </View>
 
