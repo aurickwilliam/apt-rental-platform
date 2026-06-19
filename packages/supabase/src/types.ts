@@ -390,7 +390,6 @@ export type Database = {
         Row: {
           apartment_id: string
           created_at: string
-          date_submitted: string
           employer_name: string
           employment_type: string
           gov_id_url: string
@@ -408,6 +407,7 @@ export type Database = {
           prev_landlord_name: string | null
           proof_of_billing_url: string
           proof_of_income_url: string
+          rejected_reason: string | null
           status: string
           tenant_id: string
           updated_at: string | null
@@ -415,7 +415,6 @@ export type Database = {
         Insert: {
           apartment_id: string
           created_at?: string
-          date_submitted: string
           employer_name: string
           employment_type: string
           gov_id_url: string
@@ -433,6 +432,7 @@ export type Database = {
           prev_landlord_name?: string | null
           proof_of_billing_url: string
           proof_of_income_url: string
+          rejected_reason?: string | null
           status?: string
           tenant_id: string
           updated_at?: string | null
@@ -440,7 +440,6 @@ export type Database = {
         Update: {
           apartment_id?: string
           created_at?: string
-          date_submitted?: string
           employer_name?: string
           employment_type?: string
           gov_id_url?: string
@@ -458,6 +457,7 @@ export type Database = {
           prev_landlord_name?: string | null
           proof_of_billing_url?: string
           proof_of_income_url?: string
+          rejected_reason?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string | null

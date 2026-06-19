@@ -23,11 +23,19 @@ type SubmitResult = {
   error?: string
 }
 
-/**
- * Uploads a single asset (image or document) to the application-documents
- * bucket under {tenantId}/{applicationId}/{docKey}-{filename}, returning the
- * storage path (not a public URL — bucket is private, generate signed URLs on read).
- */
+const MIME_MAP: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+}
+
+function getContentType(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
+  return MIME_MAP[ext] ?? 'application/octet-stream'
+}
+
 async function uploadDoc(
   uri: string,
   fileName: string,
@@ -38,11 +46,11 @@ async function uploadDoc(
   const file = new File(uri)
   const bytes = await file.bytes()
 
-  const ext = fileName.split('.').pop() || 'jpg'
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? 'jpg'
   const path = `${tenantId}/${applicationId}/${docKey}-${Date.now()}.${ext}`
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, bytes, {
-    contentType: file.type ?? undefined,
+    contentType: getContentType(fileName),
   })
 
   if (error) throw new Error(`Failed to upload ${docKey}: ${error.message}`)
@@ -74,7 +82,6 @@ export function useSubmitApplication() {
         return { success: false, error: msg }
       }
 
-      // Required docs: govId, proofOfIncome, proofOfBilling. nbiClearance is optional.
       if (documents.govId.length === 0) {
         const msg = 'Government-issued ID is required.'
         setError(msg)
@@ -96,18 +103,28 @@ export function useSubmitApplication() {
         return { success: false, error: msg }
       }
 
+      const monthlyIncome = tenantInformation.monthlyIncome
+      if (monthlyIncome === null) {
+        const msg = 'Monthly income is required.'
+        setError(msg)
+        return { success: false, error: msg }
+      }
+
+      const noOccupants = rentalPreferences.noOccupants
+      if (noOccupants === null || noOccupants <= 0) {
+        const msg = 'Number of occupants is required.'
+        setError(msg)
+        return { success: false, error: msg }
+      }
+
       setIsSubmitting(true)
 
       const tenantId = profile.id
       const applicationId = randomUUID()
 
-      // Track what's been uploaded so far this attempt, for cleanup on failure.
       const uploadedSoFar: string[] = []
 
       try {
-        // govId/proofOfBilling are arrays in the picker but we only persist
-        // the first image per the current store shape (UploadedDocumentPaths
-        // stores a single string per doc, not an array).
         const govIdAsset = documents.govId[0]
         const proofOfBillingAsset = documents.proofOfBilling[0]
         const proofOfIncomeAsset = documents.proofOfIncome
@@ -159,18 +176,16 @@ export function useSubmitApplication() {
         const { error: insertError } = await supabase
           .from('rental_application')
           .insert({
-            id: applicationId,
             tenant_id: tenantId,
             apartment_id: apartmentId,
-            date_submitted: new Date().toISOString().slice(0, 10),
             occupation: tenantInformation.occupation,
             employer_name: tenantInformation.companyName,
-            monthly_income: tenantInformation.monthlyIncome,
+            monthly_income: monthlyIncome,
             employment_type: tenantInformation.employmentType,
             prev_landlord_name: tenantInformation.previousLandlordName || null,
             prev_landlord_contact: tenantInformation.previousLandlordContact || null,
             move_in_date: rentalPreferences.moveInDate.toISOString().slice(0, 10),
-            no_occupants: rentalPreferences.noOccupants,
+            no_occupants: noOccupants,
             has_pets: rentalPreferences.hasPets ?? false,
             has_smoker: rentalPreferences.isSmoker ?? false,
             need_parking: rentalPreferences.needParking ?? false,
@@ -185,13 +200,11 @@ export function useSubmitApplication() {
         if (insertError) throw new Error(insertError.message)
 
         resetApplicationForm()
-        return { success: true, applicationId }
+        return { success: true }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to submit application.'
         setError(msg)
 
-        // Best-effort cleanup of whatever this attempt uploaded.
-        // Failures here are logged, not thrown — they shouldn't mask the original error.
         if (uploadedSoFar.length > 0) {
           const { error: removeError } = await supabase.storage
             .from(BUCKET)
