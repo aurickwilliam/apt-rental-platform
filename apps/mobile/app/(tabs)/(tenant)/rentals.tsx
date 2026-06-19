@@ -5,9 +5,9 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
-import Divider from 'components/display/Divider';
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
+import ApplicationStatusCard from '../components/rentals/ApplicationStatusCard';
 
 import {
   Link,
@@ -22,14 +22,16 @@ import {
   House,
   Settings,
   CircleQuestionMark,
-  LucideIcon
+  LucideIcon,
+  ClipboardList
 } from "lucide-react-native";
 
 import { useTenancy } from '@/hooks/useTenancy';
 import { useColors } from '@/hooks/useTheme';
 
-import { Button } from 'heroui-native';
-import { formatAddress, formatDate } from '@repo/utils';
+import { Button, Separator } from 'heroui-native';
+import { formatAddress, formatDate, formatFullName } from '@repo/utils';
+import { useTenantApplication } from '@/hooks/useTenantApplication';
 
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
@@ -94,16 +96,18 @@ const actions: actionsTypes[] = [
 
 export default function Rentals() {
   const router = useRouter();
-
   const { colors } = useColors();
 
   // Read directly from the store
-  const { tenancy, loading } = useTenancy();
+  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { application, loading: appLoading } = useTenantApplication();
 
   const handleRequestMaintenance = () => router.push('/tenant/maintenance-issue');
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
+
+  const loading = tenancyLoading || appLoading;
 
   // Loading State
   if (loading) {
@@ -112,6 +116,25 @@ export default function Rentals() {
         <View className='flex-1 items-center justify-center'>
           <ActivityIndicator size='large' color={colors.primary} />
         </View>
+      </ScreenWrapper>
+    );
+  }
+
+  // Application Status
+  if (application) {
+    return (
+      <ScreenWrapper className="p-5">
+        <View className="flex-row items-center justify-start gap-2 mb-5">
+          <ClipboardList size={24} color={colors.textPrimary} />
+          <Text className="text-foreground text-lg font-interSemiBold">
+            My Application
+          </Text>
+        </View>
+        <ApplicationStatusCard
+          status={application.status}
+          apartmentName={application.apartments.name}
+          submittedAt={application.created_at}
+        />
       </ScreenWrapper>
     );
   }
@@ -134,10 +157,7 @@ export default function Rentals() {
   const balancePaid = currentPayment?.amount ?? 0;
   const balanceLeft = Math.max(0, monthlyRent - balancePaid);
 
-  const landlordFullName = landlord
-    ? `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim()
-    : 'Unknown Landlord';
-
+  const landlordFullName = formatFullName(landlord!);
   const address = formatAddress(apartment);
 
   return (
@@ -241,7 +261,7 @@ export default function Rentals() {
         />
       </View>
 
-      <Divider />
+      <Separator className='my-4' />
 
       <Button onPress={handleRequestMaintenance}>
         <Hammer size={20} color={colors.secondaryForeground} />
