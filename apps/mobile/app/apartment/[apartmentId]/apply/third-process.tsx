@@ -21,21 +21,32 @@ type FormErrors = {
   proofOfBilling?: string
 }
 
+const NO_INCOME_EMPLOYMENT_TYPES = [
+  "Student",
+  "Unemployed",
+];
+
 export default function ThirdProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
-
+  
   const {
+    tenantInformation,
     documents,
     updateImageDocument,
     updateFileDocument,
-  } = useApplicationFormStore()
+  } = useApplicationFormStore();
 
   const [errors, setErrors] = useState<FormErrors>({})
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null)
   const contentRef = useRef<View>(null)
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({})
+
+  const requiresProofOfIncome =
+    !NO_INCOME_EMPLOYMENT_TYPES.includes(
+      tenantInformation.employmentType
+    );
 
   const registerFieldRef = (field: keyof FormErrors) => (node: View | null) => {
     if (!node || !contentRef.current) return
@@ -56,9 +67,14 @@ export default function ThirdProcess() {
 
     if (documents.govId.length === 0)
       newErrors.govId = 'Please upload a valid government-issued ID.'
-
-    if (!documents.proofOfIncome)
-      newErrors.proofOfIncome = 'Please upload proof of income.'
+    
+    if (
+      requiresProofOfIncome &&
+      !documents.proofOfIncome
+    ) {
+      newErrors.proofOfIncome =
+        "Please upload proof of income.";
+    }
 
     if (documents.proofOfBilling.length === 0)
       newErrors.proofOfBilling = 'Please upload proof of billing.'
@@ -134,7 +150,7 @@ export default function ThirdProcess() {
                 updateFileDocument("proofOfIncome", asset);
                 if (asset) clearError("proofOfIncome");
               }}
-              required
+              required={requiresProofOfIncome}
               error={errors.proofOfIncome}
             />
           </View>
