@@ -29,25 +29,7 @@ import { useTenancy } from '@/hooks/useTenancy';
 import { useColors } from '@/hooks/useTheme';
 
 import { Button } from 'heroui-native';
-
-function formatMonth(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('default', { month: 'long' });
-}
-
-function formatYear(dateStr: string): string {
-  return new Date(dateStr).getFullYear().toString();
-}
-
-function formatAddress(apartment: {
-  street_address: string;
-  barangay: string;
-  city: string;
-  province: string;
-}): string {
-  return [apartment.street_address, apartment.barangay, apartment.city, apartment.province]
-    .filter(Boolean)
-    .join(', ');
-}
+import { formatAddress, formatDate } from '@repo/utils';
 
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
@@ -156,36 +138,34 @@ export default function Rentals() {
     ? `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim()
     : 'Unknown Landlord';
 
+  const address = formatAddress(apartment);
+
   return (
-    <ScreenWrapper
-      scrollable
-      className='p-5'
-      bottomPadding={50}
-    >
+    <ScreenWrapper scrollable className="p-5" bottomPadding={50}>
       {/* Apartment Header */}
-      <View className='flex-row items-center justify-between gap-2'>
-        <View className='flex-row items-center justify-start gap-2'>
+      <View className="flex-row items-center justify-between gap-2">
+        <View className="flex-row items-center justify-start gap-2">
           <MapPin size={30} color={colors.primary} />
 
-          <Text className='text-secondary text-2xl font-nunitoSemiBold'>
+          <Text className="text-secondary text-2xl font-nunitoSemiBold">
             {apartment.name}
           </Text>
         </View>
 
-        <Button 
+        <Button
           isIconOnly
-          variant='ghost' 
-          onPress={() => router.push('/tenant-notif')}
+          variant="ghost"
+          onPress={() => router.push("/tenant-notif")}
         >
           <Bell size={26} color={colors.gray500} />
         </Button>
       </View>
 
       {/* Payment Summary Card */}
-      <View className='mt-3'>
+      <View className="mt-3">
         <PaymentSummaryCard
-          periodMonth={formatMonth(paymentPeriodDate)}
-          periodYear={formatYear(paymentPeriodDate)}
+          periodMonth={formatDate(paymentPeriodDate, "month")}
+          periodYear={formatDate(paymentPeriodDate, "year")}
           status={paymentStatus}
           totalRent={monthlyRent}
           balanceLeft={balanceLeft}
@@ -196,14 +176,14 @@ export default function Rentals() {
       </View>
 
       {/* Quick Actions */}
-      <View className='flex mt-5'>
-        <View className='flex-row items-center justify-start gap-2'>
+      <View className="flex mt-5">
+        <View className="flex-row items-center justify-start gap-2">
           <Link size={24} color={colors.textPrimary} />
-          <Text className='text-foreground text-lg font-interSemiBold'>
+          <Text className="text-foreground text-lg font-interSemiBold">
             Quick Actions
           </Text>
         </View>
-        <View className='mt-5 flex-row flex-wrap'>
+        <View className="mt-5 flex-row flex-wrap">
           {actions.map((action) => (
             <QuickActionButton
               key={action.id}
@@ -216,38 +196,46 @@ export default function Rentals() {
       </View>
 
       {/* Landlord Information */}
-      <View className='mt-5 flex gap-3'>
-        <View className='flex-row items-center justify-start gap-2'>
+      <View className="mt-5 flex gap-3">
+        <View className="flex-row items-center justify-start gap-2">
           <User size={24} color={colors.textPrimary} />
-          <Text className='text-foreground text-lg font-interSemiBold'>
+          <Text className="text-foreground text-lg font-interSemiBold">
             Landlord Information
           </Text>
         </View>
 
         <LandlordCard
           fullName={landlordFullName}
-          email={landlord?.email ?? 'No email provided'}
-          phoneNumber={landlord?.mobile_number ?? 'No number provided'}
+          email={landlord?.email ?? "No email provided"}
+          phoneNumber={landlord?.mobile_number ?? "No number provided"}
           profilePictureUrl={landlord?.avatar_url}
         />
       </View>
 
       {/* Apartment Description */}
-      <View className='mt-5 flex gap-3'>
-        <View className='flex-row items-center justify-start gap-2'>
+      <View className="mt-5 flex gap-3">
+        <View className="flex-row items-center justify-start gap-2">
           <FileText size={24} color={colors.textPrimary} />
-          <Text className='text-foreground text-lg font-interSemiBold'>
+          <Text className="text-foreground text-lg font-interSemiBold">
             Apartment Description
           </Text>
         </View>
 
         <ApartmentDescriptionCard
           apartmentName={apartment.name}
-          apartmentAddress={formatAddress(apartment)}
-          leaseStartMonth={formatMonth(tenancy.lease_start)}
-          leaseStartYear={formatYear(tenancy.lease_start)}
-          leaseEndMonth={tenancy.lease_end ? formatMonth(tenancy.lease_end) : 'Ongoing'}
-          leaseEndYear={tenancy.lease_end ? formatYear(tenancy.lease_end) : ''}
+          apartmentAddress={address}
+          leaseStartMonth={formatDate(tenancy.lease_start, "month")}
+          leaseStartYear={formatDate(tenancy.lease_start, "year")}
+          leaseEndMonth={
+            tenancy.lease_end
+              ? formatDate(tenancy.lease_end, "month")
+              : "Ongoing"
+          }
+          leaseEndYear={
+            tenancy.lease_end 
+              ? formatDate(tenancy.lease_end, "year") 
+              : ""
+          }
           monthlyRent={monthlyRent}
           onPressViewMore={handleViewMoreDetails}
         />
@@ -257,9 +245,7 @@ export default function Rentals() {
 
       <Button onPress={handleRequestMaintenance}>
         <Hammer size={20} color={colors.secondaryForeground} />
-        <Button.Label>
-          Request Maintenance Issue
-        </Button.Label>
+        <Button.Label>Request Maintenance Issue</Button.Label>
       </Button>
     </ScreenWrapper>
   );
