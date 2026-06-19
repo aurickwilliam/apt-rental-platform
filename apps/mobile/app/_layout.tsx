@@ -1,6 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from 'expo-system-ui';
 import "./global.css";
 
 // For using custom fonts
@@ -22,12 +23,15 @@ import { supabase } from "@repo/supabase";
 
 import { Appearance } from "react-native";         
 import { useThemeStore } from "../stores/useThemeStore";
+import { useTheme } from 'hooks/useTheme';
 
 function ThemeInitializer() {
   const { themeMode } = useThemeStore();
 
   useEffect(() => {
-    Appearance.setColorScheme(themeMode === "system" ? null : themeMode);
+    if (themeMode !== "system") {
+      Appearance.setColorScheme(themeMode);
+    }
   }, [themeMode]);
 
   return null;
@@ -47,6 +51,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   const router = useRouter();
+  const { isDark } = useTheme();
   
   // Initialize custom fonts
   const [fontsLoaded, fontError] = useFonts({
@@ -59,6 +64,9 @@ export default function RootLayout() {
     "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
   });
 
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(COLORS.light.primary);
+  }, []);
 
   // Check if the fonts have loaded or if there was an error
   useEffect(() => {
@@ -104,7 +112,7 @@ export default function RootLayout() {
       <ThemeInitializer />
       <HeroUINativeProvider>
         <PortalProvider>
-          <StatusBar style="light" backgroundColor={COLORS.light.primary} />
+          <StatusBar style={isDark ? 'light' : 'dark'} />
           <BottomSheetModalProvider>
             <Stack
               screenOptions={{
@@ -117,12 +125,10 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="chat/[conversationId]" />
               <Stack.Screen name="tenant" />
-              <Stack.Screen name="landlord-profile/[landlordId]" />
               <Stack.Screen name="apartment/[apartmentId]" />
               <Stack.Screen name="(notification)" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="document-id" />
-              <Stack.Screen name="manage-apartment/[apartmentId]" />
             </Stack>
           </BottomSheetModalProvider>
           <PortalHost name="root" />

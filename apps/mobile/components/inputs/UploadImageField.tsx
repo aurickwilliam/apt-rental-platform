@@ -8,9 +8,10 @@ import {
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 
-import { Ionicons } from '@expo/vector-icons'
+import { UploadCloud, XCircle, RefreshCw } from 'lucide-react-native'
 
 import { useColors } from '@/hooks/useTheme'
+
 interface UploadImageFieldProps {
   label: string
   required?: boolean
@@ -20,6 +21,8 @@ interface UploadImageFieldProps {
   onRemove: (uri: string) => void
   error?: string
 }
+
+const THUMB_SIZE = 100
 
 export default function UploadImageField({
   label,
@@ -71,18 +74,23 @@ export default function UploadImageField({
       {images.length > 0 && (
         <View className="flex-row flex-wrap gap-2 mt-1">
           {images.map((item) => (
-            <View key={item.uri} className="relative flex-1 aspect-square" style={{ minWidth: '30%' }}>
+            <View
+              key={item.uri}
+              className="relative"
+              style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
+            >
               <Image
                 source={{ uri: item.uri }}
-                className="w-full h-full rounded-xl"
+                className="w-full h-full rounded-2xl border border-border"
                 resizeMode="cover"
               />
+
               <TouchableOpacity
                 className="absolute -top-1.5 -right-1.5 rounded-full bg-surface"
                 onPress={() => onRemove(item.uri)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Ionicons name="close-circle" size={20} color={colors.textPrimary} />
+                <XCircle size={18} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           ))}
@@ -95,20 +103,20 @@ export default function UploadImageField({
           onPress={pickImage}
           disabled={loading}
           className={[
-            'flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4.5',
+            "flex-row items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4.5",
             error
-              ? 'border-danger bg-danger-light'
-              : 'border-border bg-surface',
-            loading ? 'opacity-50' : 'opacity-100',
-          ].join(' ')}
+              ? "border-danger bg-surface"
+              : "border-border bg-surface",
+            loading ? "opacity-50" : "opacity-100",
+          ].join(" ")}
         >
           {loading ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <>
-              <Ionicons name="cloud-upload-outline" size={22} color={colors.primary} />
-              <Text className="text-sm font-medium text-danger-foreground">
-                {single ? 'Choose photo' : 'Add photos'}
+              <UploadCloud size={22} color={colors.primary} />
+              <Text className="text-sm font-medium text-foreground">
+                {single ? "Choose photo" : "Add photos"}
               </Text>
             </>
           )}
@@ -116,19 +124,23 @@ export default function UploadImageField({
       )}
 
       {/* Error message */}
-      {!!error && (
-        <Text className="text-xs text-red-500">{error}</Text>
-      )}
+      {!!error && <Text className="text-xs text-danger">{error}</Text>}
 
       {/* Replace button shown in single mode when image is already set */}
       {single && images.length > 0 && (
-        <TouchableOpacity onPress={pickImage} className="flex-row items-center gap-1 self-start">
-          <Ionicons name="refresh-outline" size={16} color={colors.primary} />
-          <Text className="text-[13px] font-medium" style={{ color: colors.primary }}>
+        <TouchableOpacity
+          onPress={pickImage}
+          className="flex-row items-center gap-1 self-start"
+        >
+          <RefreshCw size={16} color={colors.primary} />
+          <Text
+            className="text-[13px] font-medium"
+            style={{ color: colors.primary }}
+          >
             Replace photo
           </Text>
         </TouchableOpacity>
       )}
     </View>
-  )
+  );
 }

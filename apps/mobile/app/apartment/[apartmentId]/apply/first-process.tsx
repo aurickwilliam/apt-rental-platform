@@ -1,74 +1,223 @@
 import { View, Text } from 'react-native'
-import { useState } from 'react'
+import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import ApplicationHeader from '@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader'
-import TextField from 'components/inputs/TextField'
-import Divider from 'components/display/Divider'
+import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DropdownField from 'components/inputs/DropdownField'
-import PillButton from 'components/buttons/PillButton'
-import NumberField from 'components/inputs/NumberField'
+import DateField from '@/components/inputs/DateField'
 
-import { COLORS } from '@repo/constants'
+import {
+  TextField,
+  Input,
+  Label,
+  FieldError,
+  Button,
+  Separator,
+  Dialog,
+} from 'heroui-native';
 
-type TenantInformation = {
-  fullName: string;
-  contactNumber: string;
-  email: string;
-  dateOfBirth: string;
-  currentAddress: string;
-  occupation: string;
-  companyName: string;
-  monthlyIncome: number;
-  employmentType: string;
-  previousLandlordName: string;
-  previousLandlordContact: string;
+import { useProfile } from '@/hooks/useProfile'
+import { usePHMobileValidation } from '@repo/hooks'
+
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+
+const EMPLOYMENT_TYPES = [
+  "Full-Time",
+  "Part-Time",
+  "Self-Employed",
+  "Unemployed",
+  "Student",
+]
+
+const NO_INCOME_EMPLOYMENT_TYPES = [
+  "Unemployed", 
+  "Student"
+]
+
+const REQUIRES_OCCUPATION_TYPES = [
+  "Full-Time",
+  "Part-Time",
+  "Self-Employed",
+];
+
+const REQUIRES_COMPANY_NAME_TYPES = [
+  "Full-Time",
+  "Part-Time",
+];
+
+type FieldErrors = {
+  employmentType?: string
+  occupation?: string
+  companyName?: string
+  monthlyIncome?: string
+  previousLandlordName?: string
+  previousLandlordContact?: string
 }
 
 export default function FirstProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { profile } = useProfile();
 
-  // TODO: Fetch tenant information from API and pre-fill the form if data exists. For now, using dummy data.
-  // Dummy Tenant Information
-  const tenantInfo = {
-    fullName: 'John Doe',
-    contactNumber: '123-456-7890',
-    email: 'johndoe@example.com',
-    dateOfBirth: '1990-01-01',
-    currentAddress: '123 Main St, Cityville',
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const fieldPositions = useRef<Partial<Record<keyof FieldErrors, number>>>({});
+
+  const registerFieldRef = (field: keyof FieldErrors) => (node: View | null) => {
+    if (!node || !contentRef.current) return;
+    node.measureLayout(
+      contentRef.current,
+      (_x: number, y: number) => {
+        fieldPositions.current[field] = y;
+      },
+      () => {},
+    );
+  };
+
+  const clearFieldError = (field: keyof FieldErrors) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
   }
 
-  const [tenantInformation, setTenantInformation] = useState<TenantInformation>({
-    fullName: tenantInfo.fullName,
-    contactNumber: tenantInfo.contactNumber,
-    email: tenantInfo.email,
-    dateOfBirth: tenantInfo.dateOfBirth,
-    currentAddress: tenantInfo.currentAddress,
+  const previousLandlordContactValidation = usePHMobileValidation();
 
-    occupation: '',
-    companyName: '',
-    monthlyIncome: 0,
-    employmentType: '',
+  const {
+    tenantInformation,
+    updateTenantInformation,
+    resetApplicationForm,
+  } = useApplicationFormStore();
 
-    previousLandlordName: '',
-    previousLandlordContact: '',
-  })
+  // Derived flag — drives company name disable + income validation
+  const isNoIncomeType = NO_INCOME_EMPLOYMENT_TYPES.includes(tenantInformation.employmentType)
 
-  // Function to update tenant information
-  const updateTenantInformation = (field: keyof TenantInformation, value: string | number) => {
-    setTenantInformation(prev => ({
-      ...prev,
-      [field]: value,
-    }))
+  useEffect(() => {
+    if (!profile) return
+
+    const fullName = [profile.first_name, profile.middle_name, profile.last_name]
+      .filter(Boolean)
+      .join(' ')
+
+    const address = [profile.street_address, profile.barangay, profile.city, profile.province]
+      .filter(Boolean)
+      .join(', ')
+
+    if (fullName) updateTenantInformation('fullName', fullName)
+    if (profile.mobile_number) updateTenantInformation('contactNumber', profile.mobile_number)
+    if (profile.email) updateTenantInformation('email', profile.email)
+    if (profile.birth_date) updateTenantInformation('dateOfBirth', profile.birth_date)
+    if (address) updateTenantInformation('currentAddress', address)
+  }, [profile, updateTenantInformation])
+
+  const validate = (): boolean => {
+    const nextErrors: FieldErrors = {}
+
+    // Employment Type validation
+    if (!tenantInformation.employmentType.trim()) {
+      nextErrors.employmentType = 'Employment type is required.'
+    }
+
+    // Occupation validation
+    if (
+      REQUIRES_OCCUPATION_TYPES.includes(tenantInformation.employmentType) &&
+      !tenantInformation.occupation.trim()
+    ) {
+      nextErrors.occupation = "Occupation is required.";
+    }
+
+    // Company Name validation
+    if (
+      REQUIRES_COMPANY_NAME_TYPES.includes(
+        tenantInformation.employmentType
+      ) &&
+      !tenantInformation.companyName.trim()
+    ) {
+      nextErrors.companyName = "Company name is required.";
+    }
+
+    // Monthly income: must always be present and non-negative.
+    // 0 is only valid for Unemployed / Student; all other types require > 0.
+    if (
+      tenantInformation.monthlyIncome === null ||
+      tenantInformation.monthlyIncome === undefined ||
+      Number.isNaN(tenantInformation.monthlyIncome)
+    ) {
+      nextErrors.monthlyIncome = 'Monthly income is required.'
+    } else if (tenantInformation.monthlyIncome < 0) {
+      nextErrors.monthlyIncome = 'Monthly income cannot be negative.'
+    } else if (!isNoIncomeType && tenantInformation.monthlyIncome === 0) {
+      nextErrors.monthlyIncome = 'Monthly income is required.'
+    }
+
+    // previousLandlordContact is optional, only validate format if filled in
+    if (tenantInformation.previousLandlordContact.trim()) {
+      const prevContactResult = previousLandlordContactValidation.validate(
+        tenantInformation.previousLandlordContact,
+      )
+      if (!prevContactResult.isValid) {
+        nextErrors.previousLandlordContact =
+          prevContactResult.errorMessage ?? 'Invalid contact number.'
+      }
+    }
+
+    // Chcek if both reference has a value
+    // Baduy kapag name lang or number lang
+    const hasLandlordName =
+      tenantInformation.previousLandlordName.trim().length > 0
+
+    const hasLandlordContact =
+      tenantInformation.previousLandlordContact.trim().length > 0
+
+    if (hasLandlordName && !hasLandlordContact) {
+      nextErrors.previousLandlordContact =
+        "Contact number is required."
+    }
+
+    if (!hasLandlordName && hasLandlordContact) {
+      nextErrors.previousLandlordName =
+        "Landlord name is required."
+    }
+
+    setErrors(nextErrors)
+    const isValid = Object.keys(nextErrors).length === 0
+
+    if (!isValid) {
+      const fieldOrder: (keyof FieldErrors)[] = [
+        'employmentType',
+        'occupation',
+        'companyName',
+        'monthlyIncome',
+        'previousLandlordName',
+        'previousLandlordContact',
+      ]
+      const firstInvalidField = fieldOrder.find((field) => nextErrors[field])
+      const y = 
+        firstInvalidField 
+          ? fieldPositions.current[firstInvalidField] 
+          : undefined
+      if (y !== undefined) {
+        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
+      }
+    }
+
+    return isValid
+  }
+
+  const handleNext = () => {
+    if (!validate()) return
+    router.push(`/apartment/${apartmentId}/apply/second-process`);
   }
 
   return (
-    <ScreenWrapper
-      scrollable
-      backgroundColor={COLORS.darkerWhite}
-    >
+    <ScreenWrapper scrollable ref={scrollRef}>
       {/* Header with Progress Bar */}
       <ApplicationHeader
         currentTitle="Tenant Information"
@@ -76,142 +225,301 @@ export default function FirstProcess() {
         step={1}
       />
 
-      <View className='p-5'>
+      <View className="p-5" ref={contentRef}>
         {/* Personal Information */}
-        <View className='flex gap-3'>
-          {/* Full Name */}
-          <TextField
-            label="Full Name"
-            placeholder='Enter your full name'
-            value={tenantInformation.fullName}
-            onChangeText={(text) => updateTenantInformation('fullName', text)}
-            required
-          />
-          {/* Contact Number */}
-          <TextField
-            label="Contact Number"
-            placeholder='Enter your contact number'
-            value={tenantInformation.contactNumber}
-            onChangeText={(text) => updateTenantInformation('contactNumber', text)}
-            required
-          />
+        <View className="flex gap-3">
           {/* Email */}
-          <TextField
-            label="Email"
-            placeholder='Enter your email'
-            value={tenantInformation.email}
-            onChangeText={(text) => updateTenantInformation('email', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Email</Label>
+            <Input
+              readOnly
+              placeholder="No email on file"
+              value={tenantInformation.email}
+            />
+          </TextField>
+
+          {/* Full Name — pre-filled from profile, not editable */}
+          <TextField isRequired>
+            <Label>Full Name</Label>
+            <Input
+              readOnly
+              placeholder="No Full Name on file"
+              value={tenantInformation.fullName}
+            />
+          </TextField>
+
           {/* Date of Birth */}
-          <TextField
+          <DateField
             label="Date of Birth"
-            placeholder='Enter your date of birth'
-            value={tenantInformation.dateOfBirth}
-            onChangeText={(text) => updateTenantInformation('dateOfBirth', text)}
+            placeholder="No date of birth on file"
+            value={
+              tenantInformation.dateOfBirth
+                ? new Date(tenantInformation.dateOfBirth)
+                : null
+            }
             required
+            readOnly
           />
+
+          {/* Contact Number */}
+          <TextField isRequired>
+            <Label>Contact Number</Label>
+            <Input
+              readOnly
+              placeholder="No contact number on file"
+              value={tenantInformation.contactNumber}
+            />
+          </TextField>
+
           {/* Current Address */}
-          <TextField
-            label="Current Address"
-            placeholder='Enter your current address'
-            value={tenantInformation.currentAddress}
-            onChangeText={(text) => updateTenantInformation('currentAddress', text)}
-            required
-          />
+          <TextField isRequired>
+            <Label>Current Address</Label>
+            <Input
+              placeholder="No current address on file"
+              value={tenantInformation.currentAddress}
+              readOnly
+            />
+          </TextField>
         </View>
 
-        <Divider />
+        <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className='text-text text-xl font-interMedium mb-5'>
+        <Text className="text-foreground text-lg font-interMedium mb-5">
           Employment & Income Details
         </Text>
 
-        <View className='flex gap-3'>
-          {/* Occupation */}
-          <TextField
-            label="Occupation/Job Title"
-            placeholder='Enter your occupation'
-            value={tenantInformation.occupation}
-            onChangeText={(text) => updateTenantInformation('occupation', text)}
-            required
-          />
-          {/* Company Name */}
-          <TextField
-            label="Company Name"
-            placeholder='Enter your company name'
-            value={tenantInformation.companyName}
-            onChangeText={(text) => updateTenantInformation('companyName', text)}
-          />
-          {/* Monthly Income */}
-          <NumberField
-            label="Monthly Income"
-            placeholder='Enter your monthly income'
-            value={tenantInformation.monthlyIncome.toString()}
-            onChange={(value) => updateTenantInformation('monthlyIncome', value === '' ? 0 : parseInt(value))}
-            required
-          />
+        <View className="flex gap-3">
           {/* Employment Type */}
-          <DropdownField
-            label="Employment Type"
-            bottomSheetLabel='Select Employment Type'
-            placeholder='Select your employment type'
-            options={[ 'Full-Time', 'Part-Time', 'Self-Employed', 'Unemployed', 'Student']}
-            value={tenantInformation.employmentType}
-            onSelect={(value) => updateTenantInformation('employmentType', value)}
-            required
-          />
+          <View ref={registerFieldRef("employmentType")}>
+            <DropdownField
+              label="Employment Type"
+              bottomSheetLabel="Select Employment Type"
+              placeholder="Select your employment type"
+              options={EMPLOYMENT_TYPES}
+              value={tenantInformation.employmentType}
+              onSelect={(value) => {
+                updateTenantInformation("employmentType", value ?? "");
+              
+                if (value) {
+                  clearFieldError("employmentType");
+                }
+              
+                if (value && !REQUIRES_OCCUPATION_TYPES.includes(value)) {
+                  clearFieldError("occupation");
+                }
+              
+                if (value && NO_INCOME_EMPLOYMENT_TYPES.includes(value)) {
+                  updateTenantInformation("companyName", "");
+              
+                  clearFieldError("companyName");
+                  clearFieldError("monthlyIncome");
+                }
+              }}
+              required
+              error={errors.employmentType}
+            />
+          </View>
+
+          {/* Occupation */}
+          <View ref={registerFieldRef("occupation")}>
+            <TextField 
+              isRequired={!isNoIncomeType}
+              isInvalid={!!errors.occupation}
+            >
+              <Label>Occupation/Job Title</Label>
+              <Input
+                placeholder="Enter your occupation"
+                value={tenantInformation.occupation}
+                onChangeText={(text) => {
+                  updateTenantInformation("occupation", text);
+                  if (text.trim()) clearFieldError("occupation");
+                }}
+              />
+              <FieldError>{errors.occupation}</FieldError>
+            </TextField>
+          </View>
+
+          {/* Company Name — disabled for Unemployed / Student */}
+          <View ref={registerFieldRef("companyName")}>
+            <TextField
+              isRequired={REQUIRES_COMPANY_NAME_TYPES.includes(
+                tenantInformation.employmentType
+              )}
+              isDisabled={isNoIncomeType}
+              isInvalid={!!errors.companyName}
+            >
+              <Label>Company Name</Label>
+              <Input
+                placeholder={
+                  isNoIncomeType ? "Not applicable" : "Enter your company name"
+                }
+                value={isNoIncomeType ? "" : tenantInformation.companyName}
+                onChangeText={(text) => {
+                  updateTenantInformation("companyName", text);
+            
+                  if (text.trim()) {
+                    clearFieldError("companyName");
+                  }
+                }}
+              />
+              <FieldError>{errors.companyName}</FieldError>
+            </TextField>
+          </View>
+
+          {/* Monthly Income */}
+          <View ref={registerFieldRef("monthlyIncome")}>
+            <TextField isRequired isInvalid={!!errors.monthlyIncome}>
+              <Label>Monthly Income</Label>
+              <Input
+                placeholder={
+                  isNoIncomeType
+                    ? "Enter 0 if no income"
+                    : "Enter your monthly income"
+                }
+                keyboardType="numeric"
+                value={
+                  tenantInformation.monthlyIncome !== null
+                    ? tenantInformation.monthlyIncome.toString()
+                    : ""
+                }
+                onChangeText={(text) => {
+                  const parsed = text === "" ? null : parseInt(text, 10);
+                
+                  updateTenantInformation("monthlyIncome", parsed);
+                
+                  if (parsed !== null) {
+                    const isValid =
+                      parsed >= 0 &&
+                      (isNoIncomeType || parsed > 0);
+                
+                    if (isValid) {
+                      clearFieldError("monthlyIncome");
+                    }
+                  }
+                }}
+              />
+              <FieldError>{errors.monthlyIncome}</FieldError>
+            </TextField>
+          </View>
         </View>
 
-        <Divider />
+        <Separator className="my-5" />
 
-        {/* Employment Information */}
-        <Text className='text-text text-xl font-interMedium'>
+        {/* References */}
+        <Text className="text-foreground text-lg font-interMedium">
           References
         </Text>
-        <Text className='text-grey-500 text-base font-inter mb-5'>
+        <Text className="text-muted font-inter mb-5">
           Preferred for Fast-Track Review
         </Text>
 
-        <View className='flex gap-3'>
+        <View className="flex gap-3">
           {/* Previous Landlord Name */}
-          <TextField
-            label="Previous Landlord Name"
-            placeholder='Enter your previous landlord name'
-            value={tenantInformation.previousLandlordName}
-            onChangeText={(text) => updateTenantInformation('previousLandlordName', text)}
-          />
+          <View ref={registerFieldRef('previousLandlordName')}>
+            <TextField isInvalid={!!errors.previousLandlordName}>
+              <Label>Previous Landlord Name</Label>
+
+              <Input
+                placeholder="Enter your previous landlord name"
+                value={tenantInformation.previousLandlordName}
+                onChangeText={(text) => {
+                  updateTenantInformation(
+                    "previousLandlordName",
+                    text
+                  );
+
+                  if (text.trim()) {
+                    clearFieldError("previousLandlordName");
+                  }
+                }}
+              />
+
+              <FieldError>
+                {errors.previousLandlordName}
+              </FieldError>
+            </TextField>
+          </View>
+
           {/* Previous Landlord Contact */}
-          <TextField
-            label="Previous Landlord Contact"
-            placeholder='Enter your previous landlord contact'
-            value={tenantInformation.previousLandlordContact}
-            onChangeText={(text) => updateTenantInformation('previousLandlordContact', text)}
-          />
+          <View ref={registerFieldRef("previousLandlordContact")}>
+            <TextField isInvalid={!!errors.previousLandlordContact}>
+              <Label>Previous Landlord Contact</Label>
+              <Input
+                placeholder="Enter your previous landlord contact"
+                value={tenantInformation.previousLandlordContact}
+                onChangeText={(text) => {
+                  updateTenantInformation("previousLandlordContact", text);
+                  if (
+                    !text.trim() ||
+                    previousLandlordContactValidation.validate(text).isValid
+                  ) {
+                    clearFieldError("previousLandlordContact");
+                  }
+                }}
+                onBlur={() =>
+                  tenantInformation.previousLandlordContact.trim() &&
+                  previousLandlordContactValidation.validate(
+                    tenantInformation.previousLandlordContact,
+                  )
+                }
+              />
+              <FieldError>{errors.previousLandlordContact}</FieldError>
+            </TextField>
+          </View>
         </View>
 
         {/* Cancel or Next Button */}
-        <View className='flex-1 flex-row mt-16 gap-4'>
-          <View className='flex-1'>
-            <PillButton
-              label={'Cancel'}
-              type='outline'
-              isFullWidth
-              onPress={() => router.back()}
-            />
-          </View>
-          <View className='flex-1'>
-            <PillButton
-              label={'Next'}
-              isFullWidth
-              onPress={() => {
-                router.push(`/apartment/${apartmentId}/apply/second-process`);
-              }}
-            />
-          </View>
+        <View className="flex-1 flex-row mt-16 gap-4">
+          <Button
+            onPress={() => setIsCancelDialogOpen(true)}
+            variant="danger-soft"
+            className="flex-1"
+          >
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+
+          <Button onPress={handleNext} className="flex-1">
+            <Button.Label>Next</Button.Label>
+          </Button>
         </View>
       </View>
+
+      {/* Cancel Dialog if the user wants to discard progress */}
+      <Dialog isOpen={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <View className="mb-5 gap-1.5">
+              <Dialog.Title>Discard Application?</Dialog.Title>
+              <Dialog.Description>
+                Your progress will be lost if you leave now. Are you sure you
+                want to cancel?
+              </Dialog.Description>
+            </View>
+            <View className="flex-row justify-end gap-3">
+              <Button
+                variant="danger-soft"
+                size="sm"
+                onPress={() => {
+                  resetApplicationForm();
+                  router.back();
+                }}
+              >
+                <Button.Label>Discard</Button.Label>
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => setIsCancelDialogOpen(false)}
+              >
+                <Button.Label>Keep Editing</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScreenWrapper>
-  )
+  );
 }

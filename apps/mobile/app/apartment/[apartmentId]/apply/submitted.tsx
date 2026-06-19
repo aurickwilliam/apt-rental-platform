@@ -1,59 +1,49 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
-import PillButton from 'components/buttons/PillButton';
 
 import { IMAGES } from 'constants/images'
 
+import { Button } from 'heroui-native'
+
+import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+
 export default function Submitted() {
   const router = useRouter();
+  const { apartmentContext } = useApplicationFormStore();
 
-  // Dummy data for now, will be replaced with real data from backend
-  const apartmentName = 'The Grand Apartments';
+  const apartmentName = apartmentContext.name || 'No Apartment Name'
 
   return (
-    <ScreenWrapper
-      className='p-5'
-    >
-      <View className='flex-1 items-center justify-center'>
+    <ScreenWrapper className="p-5">
+      <View className="flex-1 items-center justify-center">
         {/* Image */}
-        <View className='size-40 mb-5'>
-          <Image 
+        <View className="size-40 mb-5">
+          <Image
             source={IMAGES.houseCheck}
             style={{
-              width: '100%',
-              height: '100%',
+              width: "100%",
+              height: "100%",
             }}
           />
         </View>
 
-        <Text className='text-primary font-interSemiBold text-3xl mb-5'>
+        <Text className="text-accent font-interSemiBold text-3xl mb-5">
           Application Sent!
         </Text>
 
-        <Text className='text-text font-interMedium text-base mt-2 text-center mx-10'>
-          Your application for {apartmentName} has been submitted. Rental Owner will review your application and get back to you soon.
+        <Text className="text-foreground font-interMedium text-base mt-2 text-center mx-10">
+          Your application for {apartmentName} has been submitted. Rental Owner
+          will review your application and get back to you soon.
         </Text>
       </View>
 
-      <View className='flex gap-5'>
-        <PillButton 
-          label='View Application Status'
-          isFullWidth
-          onPress={() => {}}
-        />
-
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={() => router.navigate(`/(tabs)/(tenant)/rentals`)}
-          className='flex items-center justify-center'
-        >
-          <Text className='text-secondary text-lg font-interMedium'>
-            Go Home
-          </Text>
-        </TouchableOpacity>
+      <View className="flex gap-5">
+        <Button onPress={() => router.navigate(`/(tabs)/(tenant)/rentals`)}>
+          <Button.Label>View Application Status</Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
-  )
+  );
 }

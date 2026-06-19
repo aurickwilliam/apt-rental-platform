@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import ApplicationHeader from "@/app/landlord/manage-apartment/add-apartment/components/ApplicationHeader";
+import ApplicationHeader from "@/components/layout/ApplicationHeader";
 import UploadFileField from "components/inputs/UploadFileField";
 
 import {
@@ -75,7 +75,7 @@ export default function ThirdStep() {
       setErrors(validationErrors);
       return;
     }
-    router.push("/manage-apartment/add-apartment/fourth-step");
+    router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
   return (

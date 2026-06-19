@@ -388,66 +388,96 @@ export type Database = {
       }
       rental_application: {
         Row: {
+          apartment_id: string
           created_at: string
-          date_submitted: string
-          duration_stay: string
           employer_name: string
           employment_type: string
+          gov_id_url: string
           has_pets: boolean
           has_smoker: boolean
           id: string
           message: string | null
           monthly_income: number
           move_in_date: string
+          nbi_clearance_url: string | null
           need_parking: boolean
           no_occupants: number
           occupation: string
           prev_landlord_contact: string | null
           prev_landlord_name: string | null
+          proof_of_billing_url: string
+          proof_of_income_url: string
+          rejected_reason: string | null
           status: string
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
+          apartment_id: string
           created_at?: string
-          date_submitted: string
-          duration_stay: string
           employer_name: string
           employment_type: string
+          gov_id_url: string
           has_pets: boolean
           has_smoker: boolean
           id?: string
           message?: string | null
           monthly_income: number
           move_in_date: string
+          nbi_clearance_url?: string | null
           need_parking: boolean
           no_occupants: number
           occupation: string
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
-          status: string
+          proof_of_billing_url: string
+          proof_of_income_url: string
+          rejected_reason?: string | null
+          status?: string
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
+          apartment_id?: string
           created_at?: string
-          date_submitted?: string
-          duration_stay?: string
           employer_name?: string
           employment_type?: string
+          gov_id_url?: string
           has_pets?: boolean
           has_smoker?: boolean
           id?: string
           message?: string | null
           monthly_income?: number
           move_in_date?: string
+          nbi_clearance_url?: string | null
           need_parking?: boolean
           no_occupants?: number
           occupation?: string
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
+          proof_of_billing_url?: string
+          proof_of_income_url?: string
+          rejected_reason?: string | null
           status?: string
+          tenant_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rental_application_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_application_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {

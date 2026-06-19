@@ -31,7 +31,7 @@ type VerificationStatusProps = {
   dateVerified?: string;
 };
 
-export function VerificationStatus({
+export default function VerificationStatus({
   accountStatus = 'unverified',
   rejectedReason,
   dateVerified,
