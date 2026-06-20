@@ -1,20 +1,29 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { useRouter } from "expo-router";
+
 import { Clock, CheckCircle, XCircle } from "lucide-react-native";
+
 import { useColors } from "@/hooks/useTheme";
+
 import { formatDate } from "@repo/utils";
+
+import { Card, Separator, PressableFeedback } from "heroui-native";
 
 type Props = {
   status: "pending" | "approved" | "rejected";
   apartmentName: string;
   submittedAt: string;
+  apartmentId: string;
 };
 
 export default function ApplicationStatusCard({
   status,
   apartmentName,
   submittedAt,
+  apartmentId,
 }: Props) {
   const { colors } = useColors();
+  const router = useRouter();
 
   const STATUS_CONFIG = {
     pending: {
@@ -38,32 +47,43 @@ export default function ApplicationStatusCard({
       color: colors.danger
     },
   };
-  
+
   const { label, description, Icon, color } = STATUS_CONFIG[status];
 
   return (
-    <View className="rounded-2xl border border-default-200 bg-content1 p-5 gap-4">
-      <View className="flex-row items-center gap-3">
-        <Icon size={28} color={color} />
-        <View className="flex-1">
-          <Text className="text-foreground text-lg font-interSemiBold">
-            {label}
-          </Text>
-          <Text className="text-secondary text-sm font-inter">
-            {apartmentName}
-          </Text>
-        </View>
-      </View>
+    <PressableFeedback
+      onPress={() => router.push({
+        pathname: '/tenant/applications/[applicationId]',
+        params: { applicationId: apartmentId },
+      })}
+      className="rounded-3xl overflow-hidden"
+    >
+      <PressableFeedback.Highlight />
+      <Card className="shadow-none border border-border overflow-hidden">
+        <Card.Body className="gap-3">
+          <View className="flex-row items-center gap-3">
+            <Icon size={28} color={color} />
+            <View className="flex-1">
+              <Card.Title className="text-lg text-foreground font-interSemiBold">
+                {label}
+              </Card.Title>
+              <Card.Description className="text-sm text-secondary font-inter">
+                {apartmentName}
+              </Card.Description>
+            </View>
+          </View>
 
-      <Text className="text-muted text-sm font-inter leading-5">
-        {description}
-      </Text>
+          <Card.Description className="text-sm font-inter leading-5">
+            {description}
+          </Card.Description>
 
-      <View className="border-t border-default-100 pt-3">
-        <Text className="text-default-400 text-xs font-inter">
-          Submitted {formatDate(submittedAt, "long")}
-        </Text>
-      </View>
-    </View>
+          <Separator className="my-1" />
+
+          <Card.Description className="text-xs font-inter">
+            Submitted {formatDate(submittedAt, "long")}
+          </Card.Description>
+        </Card.Body>
+      </Card>
+    </PressableFeedback>
   );
 }

@@ -4,20 +4,21 @@ import { useProfile } from './useProfile';
 
 type ApplicationStatus = 'pending' | 'approved' | 'rejected';
 
-type TenantApplication = {
+export type TenantApplication = {
   id: string;
   status: ApplicationStatus;
   created_at: string;
   rejected_reason: string | null;
+  apartment_id: string;
   apartments: {
     name: string;
     monthly_rent: number;
   };
 };
 
-export function useTenantApplication() {
+export function useTenantApplications() {
   const { profile } = useProfile();
-  const [application, setApplication] = useState<TenantApplication | null>(null);
+  const [applications, setApplications] = useState<TenantApplication[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,22 +30,21 @@ export function useTenantApplication() {
     async function fetch() {
       const { data } = await supabase
         .from('rental_application')
-        .select('id, status, created_at, rejected_reason, apartments(name, monthly_rent)')
+        .select('id, status, created_at, rejected_reason, apartment_id, apartments(name, monthly_rent)')
         .eq('tenant_id', profile!.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
-      setApplication(
-        data
-          ? { ...data, status: data.status as ApplicationStatus }
-          : null
+      setApplications(
+        (data ?? []).map(item => ({
+          ...item,
+          status: item.status as ApplicationStatus,
+        }))
       );
       setLoading(false);
     }
 
     fetch();
-  }, [profile]); // profile, not profile?.id
+  }, [profile]);
 
-  return { application, loading };
+  return { applications, loading };
 }
