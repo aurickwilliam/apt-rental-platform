@@ -10,6 +10,7 @@ import { formatDate } from "@repo/utils";
 import { Card, Separator, PressableFeedback } from "heroui-native";
 
 type Props = {
+  applicationId: string;
   status: "pending" | "approved" | "rejected";
   apartmentName: string;
   submittedAt: string;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function ApplicationStatusCard({
+  applicationId,
   status,
   apartmentName,
   submittedAt,
@@ -54,7 +56,10 @@ export default function ApplicationStatusCard({
     <PressableFeedback
       onPress={() => router.push({
         pathname: '/tenant/applications/[applicationId]',
-        params: { applicationId: apartmentId },
+        params: { 
+          applicationId: applicationId,
+          apartmentId: apartmentId
+        },
       })}
       className="rounded-3xl overflow-hidden"
     >
