@@ -14,6 +14,7 @@ import ImageViewing from 'react-native-image-viewing';
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
+import DocumentRow from "./components/DocumentRow";
 
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
 import { useColors } from "@/hooks/useTheme";
@@ -53,7 +54,7 @@ export default function ApplicationApartment() {
 
   const application = applications.find(a => a.id === applicationId);
   const status = application?.status;
-  const chipConfig = status ? STATUS_CHIP[status] : null;
+  const chipConfig = status ? STATUS_CHIP[status as ApplicationStatus] : null;
 
   // Carousel state
   const CARD_WIDTH = 260;
@@ -76,6 +77,9 @@ export default function ApplicationApartment() {
     setImageIndex(index);
     setIsImageViewerOpen(true);
   };
+
+  // Document viewer state (separate from the apartment image carousel above)
+  const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
@@ -270,6 +274,36 @@ export default function ApplicationApartment() {
             </Accordion.Content>
           </Accordion.Item>
 
+          <Accordion.Item value="documents">
+            <Accordion.Trigger>
+              <View className="flex-row items-center flex-1">
+                <Text className="text-foreground text-base flex-1">
+                  Submitted Documents
+                </Text>
+              </View>
+              <Accordion.Indicator />
+            </Accordion.Trigger>
+            <Accordion.Content>
+              <View className="gap-1 pb-2">
+                {application.documents.length > 0 ? (
+                  application.documents.map((doc) => (
+                    <DocumentRow
+                      key={doc.path}
+                      label={doc.label}
+                      path={doc.path}
+                      signedUrl={doc.signedUrl}
+                      onPressImage={setDocViewerUri}
+                    />
+                  ))
+                ) : (
+                  <Text className="text-muted text-sm">
+                    No documents submitted.
+                  </Text>
+                )}
+              </View>
+            </Accordion.Content>
+          </Accordion.Item>
+
           <Accordion.Item value="status">
             <Accordion.Trigger>
               <View className="flex-row items-center flex-1">
@@ -324,6 +358,15 @@ export default function ApplicationApartment() {
             </Text>
           </View>
         )}
+      />
+
+      <ImageViewing
+        images={docViewerUri ? [{ uri: docViewerUri }] : []}
+        imageIndex={0}
+        visible={!!docViewerUri}
+        onRequestClose={() => setDocViewerUri(null)}
+        presentationStyle="overFullScreen"
+        backgroundColor="rgb(0, 0, 0, 0.8)"
       />
     </ScreenWrapper>
   );
