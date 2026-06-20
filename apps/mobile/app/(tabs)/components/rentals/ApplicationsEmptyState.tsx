@@ -24,7 +24,7 @@ export default function ApplicationsEmptyState() {
         </Text>
       </View>
 
-      <Button onPress={() => router.push('/(tabs)/(tenant)/search')}>
+      <Button onPress={() => router.replace('/(tabs)/(tenant)/search')}>
         <Button.Label>Browse Listings</Button.Label>
       </Button>
     </View>
