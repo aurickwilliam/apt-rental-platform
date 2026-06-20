@@ -35,6 +35,7 @@ export default function ApplicationsList() {
           {applications.map((application) => (
             <ApplicationStatusCard
               key={application.id}
+              applicationId={application.id}
               status={application.status}
               apartmentName={application.apartments.name}
               submittedAt={application.created_at}
