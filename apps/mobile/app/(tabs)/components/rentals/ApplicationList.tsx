@@ -7,10 +7,11 @@ import { useTenantApplications } from '@/hooks/useTenantApplications';
 
 import ApplicationStatusCard from './ApplicationStatusCard';
 import ApplicationsEmptyState from './ApplicationsEmptyState';
+import ApplicationStatusCardSkeleton from './ApplicationStatusCardSkeleton';
 
 export default function ApplicationsList() {
   const { colors } = useColors();
-  const { applications } = useTenantApplications();
+  const { applications, loading } = useTenantApplications();
 
   return (
     <>
@@ -21,7 +22,13 @@ export default function ApplicationsList() {
         </Text>
       </View>
 
-      {applications.length === 0 ? (
+      {loading ? (
+        <View className="flex gap-3">
+          <ApplicationStatusCardSkeleton />
+          <ApplicationStatusCardSkeleton />
+          <ApplicationStatusCardSkeleton />
+        </View>
+      ) : applications.length === 0 ? (
         <ApplicationsEmptyState />
       ) : (
         <View className="flex gap-3">

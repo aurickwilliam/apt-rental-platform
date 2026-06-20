@@ -17,20 +17,27 @@ export type TenantApplication = {
 };
 
 export function useTenantApplications() {
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [applications, setApplications] = useState<TenantApplication[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (profileLoading) return;
+
     if (!profile?.id) {
+      setApplications([]);
       setLoading(false);
       return;
     }
 
     async function fetch() {
+      setLoading(true);
+
       const { data } = await supabase
         .from('rental_application')
-        .select('id, status, created_at, rejected_reason, apartment_id, apartments(name, monthly_rent)')
+        .select(
+          'id, status, created_at, rejected_reason, apartment_id, apartments(name, monthly_rent)'
+        )
         .eq('tenant_id', profile!.id)
         .order('created_at', { ascending: false });
 
@@ -40,11 +47,12 @@ export function useTenantApplications() {
           status: item.status as ApplicationStatus,
         }))
       );
+
       setLoading(false);
     }
 
     fetch();
-  }, [profile]);
+  }, [profile, profileLoading]);
 
-  return { applications, loading };
+  return { applications, loading: loading || profileLoading };
 }

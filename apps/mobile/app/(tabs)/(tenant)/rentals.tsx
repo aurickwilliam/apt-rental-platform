@@ -105,7 +105,7 @@ export default function Rentals() {
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
 
-  // 1. Loading
+  // Loading
   if (loading) {
     return (
       <ScreenWrapper className='p-5'>
@@ -116,7 +116,7 @@ export default function Rentals() {
     );
   }
 
-  // 2. Active tenancy
+  // Active tenancy
   if (tenancy) {
     const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
@@ -236,7 +236,7 @@ export default function Rentals() {
     );
   }
 
-  // 3. No tenancy, has applications — useEffect handles redirect, render null while it fires
+  // No tenancy, has applications
   if (!tenancy) {
     return (
       <ScreenWrapper className="p-5">
@@ -245,7 +245,7 @@ export default function Rentals() {
     );
   }
 
-  // 4. Brand new user, nothing at all
+  // Brand new user, nothing at all
   return (
     <ScreenWrapper className='p-5'>
       <TenancyEmptyState />
