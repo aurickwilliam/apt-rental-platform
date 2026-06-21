@@ -1,11 +1,16 @@
 import { View, Text } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import DateField from "@/components/inputs/DateField";
+import TimeField from "@/components/inputs/TimeField";
+import QuantityField from "@/components/inputs/QuantityField";
 
 import { useColors } from "hooks/useTheme";
+import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useSubmitVisitRequest } from "@/hooks/useSubmitVisitRequest";
 
 import {
   Button,
@@ -13,27 +18,19 @@ import {
   TextField,
   Label,
   TextArea,
-  Select,
-  Slider,
+  useToast,
 } from "heroui-native";
-import TimeField from "@/components/inputs/TimeField";
-import QuantityField from "@/components/inputs/QuantityField";
 
-type VisitDetails = {
-  date: Date | null;
-  time: string;
-  noVisitors: number;
-  notes: string;
-};
-
-const TIME_OPTIONS = [
-  "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM",
-  "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
-  "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM",
-];
 
 export default function RequestVisit() {
   const { colors } = useColors();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const { apartmentId, applicationId } = useLocalSearchParams<{
+    apartmentId: string;
+    applicationId: string;
+  }>();
 
   const [visitDetails, setVisitDetails] = useState({
     date: null as Date | null,
@@ -43,8 +40,37 @@ export default function RequestVisit() {
     notes: "",
   });
 
-  const handleSubmitRequestVisit = () => {
-    console.log("Request Visit Submitted", visitDetails);
+  const { apartment } = useApartmentDetails(apartmentId);
+  const { submitVisitRequest, loading } = useSubmitVisitRequest();
+
+  const handleSubmitRequestVisit = async () => {
+    if (!visitDetails.date) {
+      toast.show({ variant: "warning", label: "Please select a visit date." });
+      return;
+    }
+    if (!visitDetails.hour) {
+      toast.show({ variant: "warning", label: "Please select a visit time." });
+      return;
+    }
+    if (!apartment?.landlord?.id) return;
+
+    const { success } = await submitVisitRequest({
+      apartmentId,
+      applicationId,
+      landlordId: apartment.landlord.id,
+      date: visitDetails.date,
+      hour: visitDetails.hour,
+      period: visitDetails.period,
+      noVisitors: visitDetails.noVisitors,
+      notes: visitDetails.notes,
+    });
+
+    if (success) {
+      toast.show({ variant: "success", label: "Visit request submitted!" });
+      router.back();
+    } else {
+      toast.show({ variant: "danger", label: "Something went wrong. Please try again." });
+    }
   };
 
   return (
@@ -77,6 +103,7 @@ export default function RequestVisit() {
 
             {/* Time of Visit */}
             <TimeField
+              required
               label="Preferred Visit Time:"
               hour={visitDetails.hour}
               period={visitDetails.period}
@@ -88,6 +115,7 @@ export default function RequestVisit() {
 
             {/* Number of Visitors */}
             <QuantityField
+              required
               label="Number of Visitors:"
               value={visitDetails.noVisitors}
               onChange={(noVisitors) => setVisitDetails((prev) => ({ ...prev, noVisitors }))}
@@ -113,10 +141,15 @@ export default function RequestVisit() {
           </View>
         </View>
 
-        <Button onPress={handleSubmitRequestVisit}>
-          <Button.Label>Request a Visit</Button.Label>
+        <Button 
+          onPress={handleSubmitRequestVisit}
+          isDisabled={loading}
+        >
+          <Button.Label>
+            {loading ? "Requesting..." : "Submit Visit Request"}
+          </Button.Label>
         </Button>
-      </View>
+      </View>s
     </ScreenWrapper>
   );
 }

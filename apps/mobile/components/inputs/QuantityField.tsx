@@ -31,7 +31,10 @@ export default function QuantityField({
       step={step}
     >
       <View className="flex-row items-center justify-between mb-2">
-        <Label>{label} {required && <Text className="text-danger">*</Text>}</Label>
+        <View className="flex-row items-center gap-1">
+          <Label>{label}</Label>
+          {required && <Text className="text-danger">*</Text>}
+        </View>
         <Slider.Output>
           {({ state }) => (
             <Text className="text-foreground font-interMedium text-base">
