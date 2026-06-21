@@ -672,6 +672,7 @@ export type Database = {
       visit_request: {
         Row: {
           apartment_id: string
+          application_id: string | null
           confirmed_time: string | null
           confirmed_visit_date: string | null
           created_at: string
@@ -689,6 +690,7 @@ export type Database = {
         }
         Insert: {
           apartment_id: string
+          application_id?: string | null
           confirmed_time?: string | null
           confirmed_visit_date?: string | null
           created_at?: string
@@ -706,6 +708,7 @@ export type Database = {
         }
         Update: {
           apartment_id?: string
+          application_id?: string | null
           confirmed_time?: string | null
           confirmed_visit_date?: string | null
           created_at?: string
@@ -727,6 +730,13 @@ export type Database = {
             columns: ["apartment_id"]
             isOneToOne: false
             referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_request_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "rental_application"
             referencedColumns: ["id"]
           },
           {
