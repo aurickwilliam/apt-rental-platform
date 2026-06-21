@@ -133,8 +133,11 @@ export default function ApplicationApartment() {
               size="sm"
               onPress={() =>
                 router.push({
-                  pathname: "/apartment/[apartmentId]",
-                  params: { apartmentId: apartment?.id ?? "" },
+                  pathname: "/tenant/applications/request-visit",
+                  params: { 
+                    apartmentId: apartment?.id ?? "",
+                    applicationId: applicationId,
+                  },
                 })
               }
             >
