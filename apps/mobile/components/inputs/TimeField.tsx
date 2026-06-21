@@ -5,11 +5,12 @@ type Period = "AM" | "PM";
 
 type Props = {
   label: string;
-  hour: string;   // "01" – "12"
+  hour: string;
   period: Period;
   onHourChange: (hour: string) => void;
   onPeriodChange: (period: Period) => void;
   required?: boolean;
+  isInvalid?: boolean;
 };
 
 const HOURS = Array.from({ length: 12 }, (_, i) => {
@@ -28,12 +29,14 @@ function TimeSelect<T extends string>({
   options,
   sheetLabel,
   onValueChange,
+  isInvalid,
 }: {
   value: T | "";
   placeholder: string;
   options: { value: T; label: string }[];
   sheetLabel: string;
   onValueChange: (v: T) => void;
+  isInvalid?: boolean;
 }) {
   return (
     <Select
@@ -45,7 +48,9 @@ function TimeSelect<T extends string>({
         }
       }}
     >
-      <Select.Trigger className="bg-surface border border-field-border">
+      <Select.Trigger
+        className={`bg-surface border ${isInvalid ? "border-danger" : "border-field-border"}`}
+      >
         <Select.Value placeholder={placeholder} />
         <Select.TriggerIndicator />
       </Select.Trigger>
@@ -78,11 +83,12 @@ export default function TimeField({
   onHourChange,
   onPeriodChange,
   required = false,
+  isInvalid = false,
 }: Props) {
   return (
     <View className="gap-2">
       <View className="flex-row items-center gap-1">
-        <Label>{label}</Label>
+        <Label className={isInvalid ? "text-danger" : ""}>{label}</Label>
         {required && <Text className="text-danger">*</Text>}
       </View>
       <View className="flex-row gap-3">
@@ -93,6 +99,7 @@ export default function TimeField({
             options={HOURS}
             sheetLabel="Select Hour"
             onValueChange={onHourChange}
+            isInvalid={isInvalid && !hour}
           />
         </View>
         <View className="flex-1">
