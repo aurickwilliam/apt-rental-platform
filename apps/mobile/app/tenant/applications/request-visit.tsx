@@ -32,6 +32,9 @@ export default function RequestVisit() {
     applicationId: string;
   }>();
 
+  const { apartment } = useApartmentDetails(apartmentId);
+  const { submitVisitRequest, loading } = useSubmitVisitRequest();
+
   const [visitDetails, setVisitDetails] = useState({
     date: null as Date | null,
     hour: "",
@@ -40,25 +43,40 @@ export default function RequestVisit() {
     notes: "",
   });
 
-  const { apartment } = useApartmentDetails(apartmentId);
-  const { submitVisitRequest, loading } = useSubmitVisitRequest();
+  const [errors, setErrors] = useState({
+    date: false,
+    hour: false,
+  });
 
   const handleSubmitRequestVisit = async () => {
-    if (!visitDetails.date) {
-      toast.show({ variant: "warning", label: "Please select a visit date." });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selected = new Date(visitDetails.date!);
+    selected.setHours(0, 0, 0, 0);
+
+    const newErrors = {
+      date: !visitDetails.date || selected <= today,
+      hour: !visitDetails.hour,
+    };
+
+    setErrors(newErrors);
+
+    if (newErrors.date || newErrors.hour) return;
+
+    if (!apartment?.landlord?.id) {
+      toast.show({
+        variant: "danger",
+        label: "Unable to find landlord. Please try again.",
+      });
       return;
     }
-    if (!visitDetails.hour) {
-      toast.show({ variant: "warning", label: "Please select a visit time." });
-      return;
-    }
-    if (!apartment?.landlord?.id) return;
 
     const { success } = await submitVisitRequest({
       apartmentId,
       applicationId,
       landlordId: apartment.landlord.id,
-      date: visitDetails.date,
+      date: visitDetails.date!,
       hour: visitDetails.hour,
       period: visitDetails.period,
       noVisitors: visitDetails.noVisitors,
@@ -69,7 +87,10 @@ export default function RequestVisit() {
       toast.show({ variant: "success", label: "Visit request submitted!" });
       router.back();
     } else {
-      toast.show({ variant: "danger", label: "Something went wrong. Please try again." });
+      toast.show({
+        variant: "danger",
+        label: "Something went wrong. Please try again.",
+      });
     }
   };
 
@@ -92,11 +113,19 @@ export default function RequestVisit() {
             <DateField
               label="Preferred Visit Date:"
               value={visitDetails.date}
-              onChange={(date) =>
-                setVisitDetails((prev) => ({ ...prev, date }))
-              }
+              onChange={(date) => {
+                setVisitDetails((prev) => ({ ...prev, date }));
+                setErrors((prev) => ({ ...prev, date: false }));
+              }}
               placeholder="Select date..."
               required
+              error={
+                errors.date
+                  ? !visitDetails.date
+                    ? "Please select a visit date."
+                    : "Visit date must be at least a day from today."
+                  : undefined
+              }
             />
 
             <Separator />
@@ -107,8 +136,14 @@ export default function RequestVisit() {
               label="Preferred Visit Time:"
               hour={visitDetails.hour}
               period={visitDetails.period}
-              onHourChange={(hour) => setVisitDetails((prev) => ({ ...prev, hour }))}
-              onPeriodChange={(period) => setVisitDetails((prev) => ({ ...prev, period }))}
+              onHourChange={(hour) => {
+                setVisitDetails((prev) => ({ ...prev, hour }));
+                setErrors((prev) => ({ ...prev, hour: false }));
+              }}
+              onPeriodChange={(period) =>
+                setVisitDetails((prev) => ({ ...prev, period }))
+              }
+              isInvalid={errors.hour}
             />
 
             <Separator />
@@ -118,7 +153,9 @@ export default function RequestVisit() {
               required
               label="Number of Visitors:"
               value={visitDetails.noVisitors}
-              onChange={(noVisitors) => setVisitDetails((prev) => ({ ...prev, noVisitors }))}
+              onChange={(noVisitors) =>
+                setVisitDetails((prev) => ({ ...prev, noVisitors }))
+              }
               unit={["person", "people"]}
             />
 
@@ -141,15 +178,12 @@ export default function RequestVisit() {
           </View>
         </View>
 
-        <Button 
-          onPress={handleSubmitRequestVisit}
-          isDisabled={loading}
-        >
+        <Button onPress={handleSubmitRequestVisit} isDisabled={loading}>
           <Button.Label>
             {loading ? "Requesting..." : "Submit Visit Request"}
           </Button.Label>
         </Button>
-      </View>s
+      </View>
     </ScreenWrapper>
   );
 }

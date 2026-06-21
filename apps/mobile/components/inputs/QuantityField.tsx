@@ -8,8 +8,9 @@ type Props = {
   minValue?: number;
   maxValue?: number;
   step?: number;
-  unit?: [string, string]; // [singular, plural]
+  unit?: [string, string];
   required?: boolean;
+  isInvalid?: boolean;
 };
 
 export default function QuantityField({
@@ -21,6 +22,7 @@ export default function QuantityField({
   step = 1,
   unit = ["item", "items"],
   required = false,
+  isInvalid = false,
 }: Props) {
   return (
     <Slider
@@ -32,7 +34,7 @@ export default function QuantityField({
     >
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-1">
-          <Label>{label}</Label>
+          <Label className={isInvalid ? "text-danger" : ""}>{label}</Label>
           {required && <Text className="text-danger">*</Text>}
         </View>
         <Slider.Output>
@@ -44,7 +46,7 @@ export default function QuantityField({
         </Slider.Output>
       </View>
       <Slider.Track>
-        <Slider.Fill />
+        <Slider.Fill className={isInvalid ? "bg-danger" : ""} />
         <Slider.Thumb />
       </Slider.Track>
     </Slider>
