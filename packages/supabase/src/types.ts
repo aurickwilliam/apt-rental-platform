@@ -671,37 +671,52 @@ export type Database = {
       }
       visit_request: {
         Row: {
-          apartment_id: string | null
+          apartment_id: string
+          confirmed_time: string | null
+          confirmed_visit_date: string | null
           created_at: string
           id: string
+          landlord_id: string
           no_visitors: number
           notes: string | null
+          rejected_reason: string | null
+          responded_at: string | null
           status: string
-          tenant_id: string | null
+          tenant_id: string
           time: string
           updated_at: string | null
           visit_date: string
         }
         Insert: {
-          apartment_id?: string | null
+          apartment_id: string
+          confirmed_time?: string | null
+          confirmed_visit_date?: string | null
           created_at?: string
           id?: string
+          landlord_id: string
           no_visitors: number
           notes?: string | null
+          rejected_reason?: string | null
+          responded_at?: string | null
           status?: string
-          tenant_id?: string | null
+          tenant_id: string
           time: string
           updated_at?: string | null
           visit_date: string
         }
         Update: {
-          apartment_id?: string | null
+          apartment_id?: string
+          confirmed_time?: string | null
+          confirmed_visit_date?: string | null
           created_at?: string
           id?: string
+          landlord_id?: string
           no_visitors?: number
           notes?: string | null
+          rejected_reason?: string | null
+          responded_at?: string | null
           status?: string
-          tenant_id?: string | null
+          tenant_id?: string
           time?: string
           updated_at?: string | null
           visit_date?: string
@@ -712,6 +727,13 @@ export type Database = {
             columns: ["apartment_id"]
             isOneToOne: false
             referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_request_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
