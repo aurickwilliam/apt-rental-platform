@@ -29,7 +29,7 @@ import {
   Accordion,
 } from 'heroui-native';
 
-import { Ban } from "lucide-react-native";
+import { Ban, ChevronLeft } from "lucide-react-native";
 
 type ApplicationStatus = 'pending' | 'approved' | 'rejected';
 
@@ -85,7 +85,9 @@ export default function ApplicationApartment() {
   const monthlyRent = apartment?.monthly_rent
     ? `₱ ${formatCurrency(apartment.monthly_rent)}/month`
     : "";
-  const moveInDate = application ? formatDate(application.move_in_date, 'long') : "N/A";
+  const moveInDate = application
+    ? formatDate(application.move_in_date, "long")
+    : "N/A";
 
   if (apartmentLoading || appsLoading) {
     return (
@@ -99,11 +101,25 @@ export default function ApplicationApartment() {
     <ScreenWrapper scrollable className="p-5">
       {/* Header */}
       <View className="flex-row items-center justify-between">
-        <View className="flex-1 mr-3">
-          <Text className="text-sm text-muted font-inter">Applied for</Text>
-          <Text className="text-secondary font-nunitoSemiBold text-2xl">
-            {apartment?.name}
-          </Text>
+        <View className="flex-1 flex-row gap-3 items-center">
+          <Button 
+            isIconOnly 
+            variant="ghost" 
+            size='sm' 
+            onPress={() => router.back()}
+          >
+            <ChevronLeft size={24} color={colors.gray400} />
+          </Button>
+          
+          <View>
+            <Text className="text-sm text-muted font-inter">Applied for</Text>
+            <Text 
+              className="text-secondary font-nunitoSemiBold text-2xl"
+              numberOfLines={1}
+            >
+              {apartment?.name}
+            </Text>
+          </View>
         </View>
 
         {chipConfig && (
