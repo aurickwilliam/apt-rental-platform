@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Image } from "react-native";
 import { useState, useCallback } from "react";
 import { useLocalSearchParams, useRouter, useFocusEffect} from "expo-router";
 import ImageViewing from "react-native-image-viewing";
@@ -7,7 +7,6 @@ import Animated from 'react-native-reanimated';
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
 import DocumentRow from "./components/DocumentRow";
-import ImageCarousel from "./components/ImageCarousel";
 import VisitRequestCard from "./components/VisitRequestCard";
 
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
@@ -74,6 +73,9 @@ export default function ApplicationApartment() {
     ? formatDate(application.move_in_date, "long")
     : "N/A";
 
+  const coverImage = apartment?.apartment_images?.find((img) => img.is_cover)
+    ?? apartment?.apartment_images?.[0];
+
   if (apartmentLoading || appsLoading || visitLoading) {
     return (
       <ScreenWrapper scrollable className="p-5 flex-1 items-center justify-center">
@@ -97,9 +99,7 @@ export default function ApplicationApartment() {
             <ChevronLeft size={24} color={colors.gray400} />
           </Button>
           <View>
-            <Text className="text-sm text-muted font-inter">
-              Applied for
-            </Text>
+            <Text className="text-sm text-muted font-inter">Applied for</Text>
             <Text
               className="text-secondary font-nunitoSemiBold text-2xl"
               numberOfLines={1}
@@ -115,8 +115,14 @@ export default function ApplicationApartment() {
         )}
       </View>
 
-      {/* Image Carousel */}
-      <ImageCarousel images={apartment?.apartment_images ?? []} />
+      {/* Apartment cover image */}
+      <View className="w-full h-60 rounded-3xl overflow-hidden mt-5">
+        <Image
+          source={{ uri: coverImage?.url }}
+          resizeMode="cover"
+          className="w-full h-full"
+        />
+      </View>
 
       {/* Apartment details */}
       <View className="mt-5 flex gap-5">
@@ -146,7 +152,7 @@ export default function ApplicationApartment() {
               onPress={() =>
                 router.push({
                   pathname: "/tenant/applications/request-visit",
-                  params: { 
+                  params: {
                     apartmentId: apartment?.id ?? "",
                     applicationId: applicationId,
                   },
@@ -189,10 +195,7 @@ export default function ApplicationApartment() {
             layout={AccordionLayoutTransition}
             className="rounded-3xl bg-surface border border-border shadow-none"
           >
-            <Accordion
-              selectionMode="single"
-              variant="surface"
-            >
+            <Accordion selectionMode="single" variant="surface">
               <Accordion.Item value="personal">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
@@ -262,7 +265,10 @@ export default function ApplicationApartment() {
                       value={application.need_parking ? "Yes" : "No"}
                     />
                     {application.message && (
-                      <DetailField label="Message" value={application.message} />
+                      <DetailField
+                        label="Message"
+                        value={application.message}
+                      />
                     )}
                   </View>
                 </Accordion.Content>
