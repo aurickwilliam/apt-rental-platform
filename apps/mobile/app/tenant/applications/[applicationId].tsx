@@ -1,6 +1,6 @@
 import { View, Text, ActivityIndicator } from "react-native";
-import { useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState, useCallback } from "react";
+import { useLocalSearchParams, useRouter, useFocusEffect} from "expo-router";
 import ImageViewing from "react-native-image-viewing";
 import Animated from 'react-native-reanimated';
 
@@ -44,9 +44,21 @@ export default function ApplicationApartment() {
     apartmentId: string;
   }>();
 
-  const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
+  const { apartment, loading: apartmentLoading } =
+    useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
-  const { visitRequest, loading: visitLoading } = useVisitRequest(applicationId);
+  const {
+    visitRequest,
+    loading: visitLoading,
+    refetch,
+  } = useVisitRequest(applicationId);
+
+  // Reload the page when visit request changes
+  useFocusEffect(
+    useCallback(() => {
+      if (!visitRequest) refetch();
+    }, [refetch, visitRequest])
+  );
 
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
