@@ -14,7 +14,7 @@ type Props = {
 
 const HOURS = Array.from({ length: 12 }, (_, i) => {
   const h = String(i + 1).padStart(2, "0");
-  return { value: h, label: h };
+  return { value: h, label: `${h}:00` };
 });
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -81,9 +81,10 @@ export default function TimeField({
 }: Props) {
   return (
     <View className="gap-2">
-      <Label>
-        {label} {required && <Text className="text-danger">*</Text>}
-      </Label>
+      <View className="flex-row items-center gap-1">
+        <Label>{label}</Label>
+        {required && <Text className="text-danger">*</Text>}
+      </View>
       <View className="flex-row gap-3">
         <View className="flex-1">
           <TimeSelect
