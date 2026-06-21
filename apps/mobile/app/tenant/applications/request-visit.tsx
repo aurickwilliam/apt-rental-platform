@@ -8,7 +8,6 @@ import DateField from "@/components/inputs/DateField";
 import TimeField from "@/components/inputs/TimeField";
 import QuantityField from "@/components/inputs/QuantityField";
 
-import { useColors } from "hooks/useTheme";
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
 import { useSubmitVisitRequest } from "@/hooks/useSubmitVisitRequest";
 
@@ -23,7 +22,6 @@ import {
 
 
 export default function RequestVisit() {
-  const { colors } = useColors();
   const { toast } = useToast();
   const router = useRouter();
 

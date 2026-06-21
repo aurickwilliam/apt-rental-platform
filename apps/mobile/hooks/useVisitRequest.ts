@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useProfile } from "@/hooks/useProfile"; // adjust if your profile hook differs
+import { useEffect, useState, useCallback } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@repo/supabase";
 
 export type VisitRequest = {
@@ -23,7 +23,7 @@ export function useVisitRequest(applicationId: string | undefined) {
 
   const profileId = profile?.id;
 
-  useEffect(() => {
+  const fetchVisitRequest = useCallback(async () => {
     if (!applicationId || !profileId) {
       setLoading(false);
       return;
@@ -31,21 +31,21 @@ export function useVisitRequest(applicationId: string | undefined) {
 
     const id = applicationId;
 
-    async function fetch() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("visit_request")
-        .select("id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at")
-        .eq("application_id", id)
-        .eq("tenant_id", profileId!)
-        .maybeSingle();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("visit_request")
+      .select("id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at")
+      .eq("application_id", id)
+      .eq("tenant_id", profileId)
+      .maybeSingle();
 
-      if (!error) setVisitRequest(data as VisitRequest | null);
-      setLoading(false);
-    }
-
-    fetch();
+    if (!error) setVisitRequest(data as VisitRequest | null);
+    setLoading(false);
   }, [applicationId, profileId]);
 
-  return { visitRequest, loading };
+  useEffect(() => {
+    fetchVisitRequest();
+  }, [fetchVisitRequest]);
+
+  return { visitRequest, loading, refetch: fetchVisitRequest };
 }
