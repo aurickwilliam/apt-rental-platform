@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
 import PropertyCard from "./../components/units/PropertyCard";
+import PropertyStats from "../components/units/PropertyStats";
 import EmptyProperties from "../components/units/EmptyProperties";
 import PropertyCardSkeleton from "../components/units/PropertyCardSkeleton";
 
@@ -13,15 +14,11 @@ import {
   FileText,
   Home,
   Hammer,
-  ChartPie,
   CirclePlus,
 } from "lucide-react-native";
 
-import { formatCurrency } from "@repo/utils";
+import { SearchField, Separator } from "heroui-native";
 
-import { Button, SearchField, Separator } from "heroui-native";
-
-import { useColors } from "@/hooks/useTheme";
 import { useLandlordUnits } from "@/hooks/useLandlordUnits";
 
 const statusOptions = [
@@ -40,15 +37,8 @@ const locationOptions = [
   "Valenzuela",
 ];
 
-// Current Month Label (e.g. "November 2024")
-const currentMonthLabel = new Date().toLocaleString("default", {
-  month: "long",
-  year: "numeric",
-});
-
 export default function Units() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -97,47 +87,13 @@ export default function Units() {
       </Text>
 
       {/* Property Stats */}
-      <View className="flex gap-3 mt-5">
-        <View className="bg-accent p-4 rounded-3xl flex gap-2">
-          <Text className="text-gray-100 text-base font-interSemiBold">
-            {currentMonthLabel} Total Profit
-          </Text>
-          <Text className="text-accent-foreground text-4xl font-interSemiBold">
-            {loading
-              ? "—"
-              : monthlyProfit === null
-                ? "N/A"
-                : `₱ ${formatCurrency(monthlyProfit)}`}
-          </Text>
-        </View>
-
-        <View className="flex-row gap-3">
-          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-            <Text className="text-sm text-gray-500 font-interMedium">
-              Total Properties
-            </Text>
-            <Text className="text-3xl text-foreground font-interSemiBold">
-              {loading ? "—" : totalProperties}
-            </Text>
-          </View>
-
-          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-            <Text className="text-sm text-gray-500 font-interMedium">
-              Units Occupied
-            </Text>
-            <Text className="text-3xl text-foreground font-interSemiBold">
-              {loading ? "—" : occupiedCount}
-            </Text>
-          </View>
-        </View>
-
-        <Button onPress={() => router.push("/landlord/analytics")}>
-          <ChartPie size={20} color={colors.secondaryForeground} />
-          <Button.Label>
-            Budget Analytics
-          </Button.Label>
-        </Button>
-      </View>
+      <PropertyStats
+        loading={loading}
+        monthlyProfit={monthlyProfit}
+        totalProperties={totalProperties}
+        occupiedCount={occupiedCount}
+        onAnalyticsPress={() => router.push("/landlord/analytics")}
+      />
 
       <Separator className="my-4" />
 
@@ -189,15 +145,14 @@ export default function Units() {
 
         <Separator className="my-4" />
 
+        {/* Generate all the Properties */}
         {loading ? (
-          // Skeleton loading state
           <View className="flex gap-3">
             {[1, 2, 3].map((i) => (
               <PropertyCardSkeleton key={i} />
             ))}
           </View>
         ) : filteredApartments.length === 0 ? (
-          // Empty / no results state
           apartments.length === 0 ? (
             <EmptyProperties
               onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
@@ -210,7 +165,6 @@ export default function Units() {
             </View>
           )
         ) : (
-          // Apartment list
           <View className="flex gap-3">
             {filteredApartments.map((apt) => (
               <PropertyCard
