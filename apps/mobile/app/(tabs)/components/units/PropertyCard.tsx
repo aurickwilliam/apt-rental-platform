@@ -51,7 +51,7 @@ export default function PropertyCard({
     <PressableFeedback onPress={onPress}>
       <PressableFeedback.Highlight />
       <Card
-        className='flex-row overflow-hidden rounded-3xl border border-border p-0 shadow-none'
+        className='flex-row h-28 overflow-hidden rounded-3xl border border-border p-0 shadow-none'
       >
         {/* Image — fills full height, left corners rounded to match card */}
         <Image
