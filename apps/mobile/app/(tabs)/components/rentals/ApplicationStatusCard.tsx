@@ -11,7 +11,7 @@ import { Card, Separator, PressableFeedback } from "heroui-native";
 
 type Props = {
   applicationId: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "cancelled";
   apartmentName: string;
   submittedAt: string;
   apartmentId: string;
@@ -45,6 +45,12 @@ export default function ApplicationStatusCard({
     rejected: {
       label: "Not Approved",
       description: "Unfortunately, your application was not approved this time.",
+      Icon: XCircle,
+      color: colors.danger
+    },
+    cancelled: {
+      label: "Cancelled",
+      description: "Your application has been cancelled. If you have any questions, please contact the landlord.",
       Icon: XCircle,
       color: colors.danger
     },

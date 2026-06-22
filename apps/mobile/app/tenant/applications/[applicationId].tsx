@@ -1,8 +1,8 @@
 import { View, Text, ActivityIndicator, Image } from "react-native";
 import { useState, useCallback } from "react";
-import { useLocalSearchParams, useRouter, useFocusEffect} from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
-import Animated from 'react-native-reanimated';
+import Animated from "react-native-reanimated";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
@@ -13,6 +13,7 @@ import { useApartmentDetails } from "@/hooks/useApartmentDetails";
 import { useColors } from "@/hooks/useTheme";
 import { useTenantApplications } from "@/hooks/useTenantApplications";
 import { useVisitRequest } from "@/hooks/useVisitRequest";
+import { useCancelApplication } from "@/hooks/useCancelApplication";
 
 import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
 
@@ -22,6 +23,7 @@ import {
   Chip,
   Accordion,
   AccordionLayoutTransition,
+  Dialog,
 } from "heroui-native";
 
 import { Ban, ChevronLeft } from "lucide-react-native";
@@ -43,16 +45,11 @@ export default function ApplicationApartment() {
     apartmentId: string;
   }>();
 
-  const { apartment, loading: apartmentLoading } =
-    useApartmentDetails(apartmentId);
+  const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
-  const {
-    visitRequest,
-    loading: visitLoading,
-    refetch,
-  } = useVisitRequest(applicationId);
+  const { visitRequest, loading: visitLoading, refetch } = useVisitRequest(applicationId);
+  const { cancelApplication, loading: cancelling } = useCancelApplication();
 
-  // Reload the page when visit request changes
   useFocusEffect(
     useCallback(() => {
       if (!visitRequest) refetch();
@@ -64,6 +61,8 @@ export default function ApplicationApartment() {
   const chipConfig = status ? STATUS_CHIP[status as ApplicationStatus] : null;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
@@ -73,8 +72,20 @@ export default function ApplicationApartment() {
     ? formatDate(application.move_in_date, "long")
     : "N/A";
 
-  const coverImage = apartment?.apartment_images?.find((img) => img.is_cover)
-    ?? apartment?.apartment_images?.[0];
+  const coverImage =
+    apartment?.apartment_images?.find((img) => img.is_cover) ??
+    apartment?.apartment_images?.[0];
+
+  const handleConfirmCancel = async () => {
+    setCancelError(null);
+    const { error } = await cancelApplication(applicationId, visitRequest?.id);
+    if (error) {
+      setCancelError("Failed to cancel application. Please try again.");
+    } else {
+      setCancelDialogOpen(false);
+      router.back();
+    }
+  };
 
   if (apartmentLoading || appsLoading || visitLoading) {
     return (
@@ -144,7 +155,6 @@ export default function ApplicationApartment() {
             <Button.Label>View Description</Button.Label>
           </Button>
 
-          {/* Only show Request a Visit if no visit request exists yet */}
           {!visitRequest && (
             <Button
               className="flex-1"
@@ -173,7 +183,6 @@ export default function ApplicationApartment() {
           <View className="mb-3">
             <VisitRequestCard visitRequest={visitRequest} />
           </View>
-
           <Separator className="my-5" />
         </>
       )}
@@ -338,12 +347,64 @@ export default function ApplicationApartment() {
         </>
       )}
 
-      {/* Cancel Button */}
-      <Button className="mt-5" variant="danger">
-        <Ban size={20} color={colors.secondaryForeground} />
-        <Button.Label>Cancel Application</Button.Label>
-      </Button>
+      {/* Cancel Button + Dialog */}
+      <Dialog isOpen={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <Dialog.Trigger asChild>
+          <Button
+            className="mt-5"
+            variant="danger"
+            isDisabled={
+              cancelling || status === "cancelled" || status === "approved"
+            }
+          >
+            <Ban size={20} color={colors.secondaryForeground} />
+            <Button.Label>Cancel Application</Button.Label>
+          </Button>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <View className="mb-5 gap-1.5">
+              <Dialog.Title>Cancel Application</Dialog.Title>
+              <Dialog.Description>
+                Are you sure you want to cancel your application for{" "}
+                <Text className="font-interMedium text-foreground">
+                  {apartment?.name}
+                </Text>
+                ? This cannot be undone.
+              </Dialog.Description>
+              
+              {cancelError && (
+                <Text className="text-sm text-danger mt-1">{cancelError}</Text>
+              )}
+            </View>
 
+            <View className="flex-row justify-end gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  setCancelDialogOpen(false);
+                  setCancelError(null);
+                }}
+              >
+                <Button.Label>Keep Application</Button.Label>
+              </Button>
+
+              <Button
+                variant="danger"
+                size="sm"
+                onPress={handleConfirmCancel}
+                isDisabled={cancelling}
+              >
+                <Button.Label>Yes, Cancel</Button.Label>
+              </Button>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+
+      {/* Document Viewer */}
       <ImageViewing
         images={docViewerUri ? [{ uri: docViewerUri }] : []}
         imageIndex={0}
