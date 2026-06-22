@@ -139,6 +139,9 @@ export default function ApplicationApartment() {
     );
   }
 
+  console.log('images:', apartment?.apartment_images);
+  console.log('cover:', coverImage);
+
   return (
     <ScreenWrapper scrollable className="p-5">
       {/* Header */}
@@ -171,14 +174,17 @@ export default function ApplicationApartment() {
       </View>
 
       {/* Apartment cover image */}
-      <View className="w-full h-60 rounded-3xl overflow-hidden mt-5">
-        <Image
-          source={{ uri: coverImage?.url }}
-          contentFit="cover"
-          className="w-full h-full"
-          cachePolicy="disk"
-        />
-      </View>
+      <Image
+        source={{ uri: coverImage?.url }}
+        contentFit="cover"
+        style={{
+          width: "100%",
+          height: 200,
+          borderRadius: 24,
+          marginTop: 20,
+        }}
+        cachePolicy="disk"
+      />
 
       {/* Apartment details */}
       <View className="mt-5 flex gap-5">
@@ -226,8 +232,8 @@ export default function ApplicationApartment() {
       {visitRequest && (
         <>
           <View className="mb-3">
-            <VisitRequestCard 
-              visitRequest={visitRequest} 
+            <VisitRequestCard
+              visitRequest={visitRequest}
               onAccept={handleAccept}
               onDecline={handleDecline}
               onRequestAgain={handleRequestAgain}
