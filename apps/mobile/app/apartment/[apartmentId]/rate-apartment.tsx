@@ -1,4 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 
@@ -101,6 +102,8 @@ export default function RateApartment() {
         <Image
           source={apartment.thumbnailUrl}
           style={{ width: '100%', height: '100%' }}
+          contentFit='cover'
+          cachePolicy='disk'
         />
       </View>
 

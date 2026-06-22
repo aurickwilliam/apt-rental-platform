@@ -1,10 +1,10 @@
-import { ImageSourcePropType } from "react-native";
+import { ImageSource } from 'expo-image';
 
 interface Slide {
   id: number;
   title: string;
   description: string;
-  imagePath: ImageSourcePropType;
+  imagePath: ImageSource;
 }
 
 export const SLIDES: Slide[] = [
