@@ -204,7 +204,11 @@ export default function ApplicationApartment() {
             layout={AccordionLayoutTransition}
             className="rounded-3xl bg-surface border border-border shadow-none"
           >
-            <Accordion selectionMode="single" variant="surface">
+            <Accordion 
+              selectionMode="single"
+              variant="surface"
+              className="shadow-none"
+            >
               <Accordion.Item value="personal">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
@@ -373,7 +377,7 @@ export default function ApplicationApartment() {
                 </Text>
                 ? This cannot be undone.
               </Dialog.Description>
-              
+
               {cancelError && (
                 <Text className="text-sm text-danger mt-1">{cancelError}</Text>
               )}
