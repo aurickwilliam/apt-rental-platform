@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image as RNImage } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState, useCallback } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
@@ -123,7 +123,7 @@ export default function TenantProfile() {
         memberSinceYear: user.created_at
           ? String(new Date(user.created_at).getFullYear())
           : '—',
-        isVerified: user.account_status === 'verified',    
+        isVerified: user.account_status === 'verified',
         avatarUrl: user.avatar_url ?? null,
         noReviews: reviewCount ?? 0,
       })
@@ -160,7 +160,7 @@ export default function TenantProfile() {
         const cover = images.find((img) => img.is_cover) ?? images[0]
         const thumbnailUrl =
           cover?.url ??
-          Image.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail).uri
+          RNImage.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail).uri
 
         return {
           id: t.id,
@@ -261,7 +261,7 @@ export default function TenantProfile() {
                   className="justify-center items-center"
                 >
                   <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
-                    {/* mt-3 compensates for font-interMedium's vertical metrics 
+                    {/* mt-3 compensates for font-interMedium's vertical metrics
                     so the initials sit centered in the circle */}
                     {avatarInitials ?? ""}
                   </Text>

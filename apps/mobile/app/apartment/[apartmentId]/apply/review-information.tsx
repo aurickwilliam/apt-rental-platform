@@ -17,7 +17,7 @@ import {
   Separator,
   Spinner,
   useToast,
-} from 'heroui-native';
+} from "heroui-native";
 
 import { formatCurrency, formatDate } from '@repo/utils'
 

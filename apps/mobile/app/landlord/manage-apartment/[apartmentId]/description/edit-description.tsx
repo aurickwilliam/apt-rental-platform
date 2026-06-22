@@ -75,7 +75,7 @@ export default function EditDescription() {
       return;
     }
 
-    router.push(`/manage-apartment/${apartmentId}/description`);
+    router.push(`/landlord/manage-apartment/${apartmentId}/description`);
   };
 
   return (
