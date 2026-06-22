@@ -14,6 +14,8 @@ import { useColors } from "@/hooks/useTheme";
 import { useTenantApplications } from "@/hooks/useTenantApplications";
 import { useVisitRequest } from "@/hooks/useVisitRequest";
 import { useCancelApplication } from "@/hooks/useCancelApplication";
+import { useRespondToReschedule } from "@/hooks/useRespondToReschedule";
+import { useProfile } from "@/hooks/useProfile";
 
 import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
 
@@ -45,10 +47,12 @@ export default function ApplicationApartment() {
     apartmentId: string;
   }>();
 
+  const { profile } = useProfile();
   const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
   const { visitRequest, loading: visitLoading, refetch } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
+  const { accept, decline, loading: responding } = useRespondToReschedule();
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +89,45 @@ export default function ApplicationApartment() {
       setCancelDialogOpen(false);
       router.back();
     }
+  };
+
+  const handleAccept = async () => {
+    if (!visitRequest) return;
+    const { error } = await accept(visitRequest.id);
+    if (!error) refetch();
+  };
+
+  const handleDecline = async () => {
+    if (!visitRequest) return;
+    const { error } = await decline(visitRequest.id);
+    if (!error) refetch();
+  };
+
+  const handleRequestAgain = () =>
+    router.push({
+      pathname: "/tenant/applications/request-visit",
+      params: { apartmentId: apartment?.id ?? "", applicationId },
+    });
+
+  const handleMessageLandlord = () => {
+    const landlord = apartment?.landlord;
+    if (!landlord || !profile || !apartmentId) return;
+
+    const userA = profile.id < landlord.id ? profile.id : landlord.id;
+    const userB = profile.id < landlord.id ? landlord.id : profile.id;
+    const conversationId = `${userA}-${userB}-${apartmentId}`;
+
+    router.push({
+      pathname: "/chat/[conversationId]",
+      params: {
+        conversationId,
+        otherUserId: landlord.id,
+        otherUserName: `${landlord.first_name} ${landlord.last_name}`,
+        otherUserAvatar: landlord.avatar_url ?? "",
+        otherUserPhoneNumber: landlord.mobile_number,
+        apartmentId,
+      },
+    });
   };
 
   if (apartmentLoading || appsLoading || visitLoading) {
@@ -181,7 +224,13 @@ export default function ApplicationApartment() {
       {visitRequest && (
         <>
           <View className="mb-3">
-            <VisitRequestCard visitRequest={visitRequest} />
+            <VisitRequestCard 
+              visitRequest={visitRequest} 
+              onAccept={handleAccept}
+              onDecline={handleDecline}
+              onRequestAgain={handleRequestAgain}
+              onMessageLandlord={handleMessageLandlord}
+            />
           </View>
           <Separator className="my-5" />
         </>
@@ -204,7 +253,7 @@ export default function ApplicationApartment() {
             layout={AccordionLayoutTransition}
             className="rounded-3xl bg-surface border border-border shadow-none"
           >
-            <Accordion 
+            <Accordion
               selectionMode="single"
               variant="surface"
               className="shadow-none"
@@ -358,7 +407,10 @@ export default function ApplicationApartment() {
             className="mt-5"
             variant="danger"
             isDisabled={
-              cancelling || status === "cancelled" || status === "approved"
+              cancelling ||
+              responding ||
+              status === "cancelled" ||
+              status === "approved"
             }
           >
             <Ban size={20} color={colors.secondaryForeground} />
