@@ -1,11 +1,13 @@
 import { useMemo } from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 
 import { Button, Card, Chip } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
+import DetailField from "@/components/display/DetailField";
 
 import { formatDate } from "@repo/utils";
 
@@ -14,15 +16,6 @@ import { DEFAULT_IMAGES } from "constants/images";
 import { VISIT_REQUESTS } from "./mockData";
 
 import { useColors } from "@/hooks/useTheme";
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="gap-1 flex-1">
-      <Text className="text-gray-500 text-xs font-inter">{label}</Text>
-      <Text className="text-foreground text-sm font-interMedium">{value}</Text>
-    </View>
-  );
-}
 
 export default function VisitRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
@@ -88,7 +81,8 @@ export default function VisitRequestDetails() {
                 : DEFAULT_IMAGES.defaultThumbnail
             }
             style={{ width: "100%", height: 210 }}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
           />
         </View>
 

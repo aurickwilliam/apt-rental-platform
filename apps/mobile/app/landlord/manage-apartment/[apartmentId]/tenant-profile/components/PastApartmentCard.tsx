@@ -1,4 +1,5 @@
-import { Image, View } from 'react-native'
+import { View } from 'react-native'
+import { Image } from 'expo-image'
 
 import { Card, PressableFeedback } from 'heroui-native'
 
@@ -34,6 +35,8 @@ export default function PastApartmentCard({
         <Image
           source={{ uri: thumbnailUrl }}
           className='size-30 rounded-3xl'
+          contentFit='cover'
+          cachePolicy="disk"
         />
 
         <Card.Body className='p-3 justify-between'>

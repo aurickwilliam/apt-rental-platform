@@ -3,18 +3,18 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   Animated,
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
 import {
   MapPin,
   Star,
-  Bed,
+  BedDouble,
   Bath,
   Maximize,
 } from 'lucide-react-native';
@@ -76,6 +76,8 @@ export default function ApartmentHeroSection({
             <Image
               source={item.image}
               style={{ height: '100%', width: '100%' }}
+              contentFit='cover'
+              cachePolicy='disk'
             />
           </TouchableOpacity>
         ))}
@@ -115,7 +117,7 @@ export default function ApartmentHeroSection({
 
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
-              <Bed size={24} color={colors.secondaryForeground} />
+              <BedDouble size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-interMedium text-sm`}>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}

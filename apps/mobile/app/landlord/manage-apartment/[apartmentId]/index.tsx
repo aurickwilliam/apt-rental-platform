@@ -1,4 +1,5 @@
-import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native'
+import { View, Text, TouchableOpacity, FlatList } from 'react-native'
+import { Image } from 'expo-image';
 import ImageViewing from 'react-native-image-viewing'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useState, useCallback } from 'react'
@@ -35,7 +36,12 @@ import { supabase } from '@repo/supabase'
 
 import { useColors } from 'hooks/useTheme'
 
-type ApartmentStatus = 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
+type ApartmentStatus =
+  | "Available"
+  | "Occupied"
+  | "Under Maintenance"
+  | "Unverified"
+  | "Verified";
 
 type ApartmentImage = {
   id: string
@@ -177,7 +183,13 @@ export default function Index() {
         ? aptData.status.charAt(0).toUpperCase() + aptData.status.slice(1)
         : 'Unverified'
 
-      const validStatuses: ApartmentStatus[] = ['Available', 'Occupied', 'Under Maintenance', 'Unverified', 'Verified']
+      const validStatuses: ApartmentStatus[] = [
+        'Available',
+        'Occupied',
+        'Under Maintenance',
+        'Unverified',
+        'Verified'
+      ]
       const status = validStatuses.includes(rawStatus as ApartmentStatus)
         ? (rawStatus as ApartmentStatus)
         : 'Unverified'
@@ -436,7 +448,8 @@ export default function Index() {
                       <Image
                         source={{ uri: item.url }}
                         style={{ width: "100%", height: "100%" }}
-                        resizeMode="cover"
+                        contentFit="cover"
+                        cachePolicy="disk"
                       />
                     </TouchableOpacity>
                   )}
@@ -582,7 +595,7 @@ export default function Index() {
                     size={32}
                     color={isOccupied ? colors.success : colors.primary}
                   />
-                  
+
                   <Text className="text-base text-foreground font-interMedium">
                     {apartment.status}
                   </Text>
@@ -684,7 +697,7 @@ export default function Index() {
                   <Image
                     source={IMAGES.userError}
                     className="size-20"
-                    resizeMode="contain"
+                    contentFit="contain"
                   />
                   <Text className="text-danger text-lg font-interMedium">
                     This property is currently vacant.
@@ -807,7 +820,7 @@ export default function Index() {
               <Dialog.Title>
                 Vacate Unit
               </Dialog.Title>
-              
+
               <Dialog.Description>
                 Are you sure you want to mark this unit as vacant? The current
                 tenant&apos;s lease will be ended and the unit will be listed as

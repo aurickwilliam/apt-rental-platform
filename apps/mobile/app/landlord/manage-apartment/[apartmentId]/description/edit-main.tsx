@@ -2,6 +2,7 @@ import { View, Text, Alert, ActivityIndicator } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import * as DocumentPicker from 'expo-document-picker'
 
 import DropdownField from 'components/inputs/DropdownField'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -75,7 +76,7 @@ export default function EditMain() {
 
   const [coverImages, setCoverImages] = useState<DisplayImage[]>([])
   const [additionalImages, setAdditionalImages] = useState<DisplayImage[]>([])
-  const [leaseUri, setLeaseUri] = useState<string>('')
+  const [leaseAsset, setLeaseAsset] = useState<DocumentPicker.DocumentPickerAsset | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -117,7 +118,13 @@ export default function EditMain() {
 
       // Set lease agreement URI if exists
       if (apartment.lease_agreement_url) {
-        setLeaseUri(apartment.lease_agreement_url)
+        setLeaseAsset({
+          uri: apartment.lease_agreement_url,
+          name: 'lease_agreement',
+          mimeType: 'application/pdf',
+          size: 0,
+          lastModified: 0
+        })
       }
 
       // Get apartment images
@@ -220,7 +227,7 @@ export default function EditMain() {
         pendingImages,
       })
 
-      router.replace(`/manage-apartment/${apartmentId}/description`)
+      router.replace(`/landlord/manage-apartment/${apartmentId}/description`)
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
@@ -341,8 +348,8 @@ export default function EditMain() {
         <UploadFileField
           label="Lease Agreement:"
           placeholder="No lease agreement uploaded yet."
-          value={leaseUri}
-          onChange={setLeaseUri}
+          value={leaseAsset}
+          onChange={setLeaseAsset}
         />
       </View>
 

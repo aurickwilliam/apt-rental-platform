@@ -1,5 +1,5 @@
-import { View, Text, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import { View, Text, Alert, Linking } from 'react-native';
 
 import { FileText } from 'lucide-react-native';
 
@@ -9,38 +9,46 @@ import { supabase } from '@repo/supabase';
 
 import { useColors } from 'hooks/useTheme';
 
+// Signed URLs are valid for 1 hour; refresh 5 min before expiry
+const TTL_MS = 55 * 60 * 1000;
+
 type LeaseAgreementSectionProps = {
-  apartmentId: string;
   leaseAgreementUrl?: string | null;
 };
 
 export default function LeaseAgreementSection({
-  apartmentId,
   leaseAgreementUrl,
 }: LeaseAgreementSectionProps) {
-  const router = useRouter();
   const { colors } = useColors();
+  const cachedUrl = useRef<string | null>(null);
+  const cacheExpiry = useRef<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLeaseAgreementNavigation = async () => {
-    if (!leaseAgreementUrl) {
-      Alert.alert('Not Found', 'This apartment does not have a lease agreement uploaded.');
+  const handleOpen = async () => {
+    if (!leaseAgreementUrl) return;
+
+    // Reuse cached signed URL if still valid
+    if (cachedUrl.current && Date.now() < cacheExpiry.current) {
+      Linking.openURL(cachedUrl.current);
       return;
     }
 
+    setIsLoading(true);
     try {
       const { data, error } = await supabase.storage
         .from('lease-agreements')
         .createSignedUrl(leaseAgreementUrl, 3600);
-
       if (error || !data?.signedUrl) throw error;
 
-      router.push({
-        pathname: '/apartment/[apartmentId]/view-lease',
-        params: { apartmentId, fileUrl: data.signedUrl },
-      });
+      cachedUrl.current = data.signedUrl;
+      cacheExpiry.current = Date.now() + TTL_MS;
+
+      Linking.openURL(data.signedUrl);
     } catch (err) {
       Alert.alert('Error', 'Could not open lease agreement.');
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,16 +60,14 @@ export default function LeaseAgreementSection({
           Lease Agreement & Rules
         </Text>
       </View>
-
       <Text className='text-muted text-sm font-inter'>
-        Please review the rental owner’s property rules before applying.
+        Please review the rental owner&apos;s property rules before applying.
       </Text>
-
       <Button
         size="sm"
         variant="tertiary"
-        onPress={handleLeaseAgreementNavigation}
-        isDisabled={!leaseAgreementUrl}
+        onPress={handleOpen}
+        isDisabled={!leaseAgreementUrl || isLoading}
       >
         <Button.Label>
           View Full Lease Agreement

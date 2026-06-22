@@ -1,6 +1,13 @@
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList
+} from 'react-native'
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
+import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -232,6 +239,8 @@ export default function PublicLandlordProfile() {
             <Image
               source={backgroundPhotoUri}
               style={{ width: "100%", height: "100%" }}
+              contentFit="cover"
+              cachePolicy="disk"
             />
           )}
         </View>

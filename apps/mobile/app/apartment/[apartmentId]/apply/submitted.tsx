@@ -1,5 +1,6 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Image } from 'expo-image';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 

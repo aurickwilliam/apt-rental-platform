@@ -1,4 +1,5 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text } from 'react-native'
+import { Image } from 'expo-image';
  
 type ReviewDocumentImageProps = {
   label: string
@@ -13,7 +14,8 @@ export default function ReviewDocumentImage({ label, uri }: ReviewDocumentImageP
         <Image
           source={{ uri }}
           className="w-full h-52 rounded-3xl border border-border"
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="disk"
         />
       ) : (
         <View className="bg-surface w-full h-52 rounded-lg items-center justify-center">

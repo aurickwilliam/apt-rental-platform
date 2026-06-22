@@ -1,5 +1,6 @@
-import { View, Image } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
@@ -127,7 +128,7 @@ export default function SignUp() {
         <Image
           source={IMAGES.logo}
           style={{ width: "100%", height: "100%" }}
-          resizeMode="contain"
+          contentFit="contain"
         />
       </View>
 
