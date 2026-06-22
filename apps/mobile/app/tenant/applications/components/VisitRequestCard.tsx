@@ -146,16 +146,13 @@ export default function VisitRequestCard({ visitRequest, onPress }: Props) {
           {notes && (
             <>
               <Separator />
-              <View className="flex-row gap-2.5">
-                <FileText size={iconSize} color={iconColor} />
-                <View className="flex-1 gap-1">
-                  <Text className="text-xs text-muted font-interMedium uppercase tracking-wide">
-                    Notes
-                  </Text>
-                  <Text className="text-sm text-foreground font-inter leading-5">
-                    {notes}
-                  </Text>
-                </View>
+              <View className="flex-1 gap-1">
+                <Text className="text-sm text-muted font-interMedium leading-0">
+                  Additional Notes
+                </Text>
+                <Text className="text-sm text-foreground font-inter leading-5">
+                  {notes}
+                </Text>
               </View>
             </>
           )}
