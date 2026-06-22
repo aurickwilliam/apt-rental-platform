@@ -87,7 +87,7 @@ export default function DateField({
         onPress={openDatePicker}
         disabled={disabled}
         style={{ justifyContent: "space-between" }}
-        className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center justify-between
+        className={`border rounded-2xl pl-3 pr-4 h-12 flex-row items-center justify-between
           ${disabled
             ? 'bg-surface-tertiary border-field-border'
             : error
