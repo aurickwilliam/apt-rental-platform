@@ -1,4 +1,5 @@
-import { View, Text, Image } from "react-native";
+import { View, Text } from "react-native";
+import { Image } from "expo-image";
 
 import { Button, Card, PressableFeedback } from "heroui-native";
 
@@ -60,6 +61,8 @@ export default function TenantCard({
                 <Image
                   source={{ uri: profilePictureUrl }}
                   style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                  cachePolicy="disk"
                 />
               </View>
             ) : (
@@ -79,13 +82,21 @@ export default function TenantCard({
           {/* Row 2: Lease Start / Lease End */}
           <View className="flex-row rounded-xl border border-border overflow-hidden">
             <View className="flex-1 items-center py-2.5 gap-0.5">
-              <Text className="text-muted font-inter text-xs">Lease Start</Text>
-              <Text className="text-foreground font-interMedium text-sm">{leaseStartMonthYear}</Text>
+              <Text className="text-muted font-inter text-xs">
+                Lease Start
+              </Text>
+              <Text className="text-foreground font-interMedium text-sm">
+                {leaseStartMonthYear}
+              </Text>
             </View>
             <View className="w-px bg-border" />
             <View className="flex-1 items-center py-2.5 gap-0.5">
-              <Text className="text-muted font-inter text-xs">Lease End</Text>
-              <Text className="text-foreground font-interMedium text-sm">{leaseEndMonthYear}</Text>
+              <Text className="text-muted font-inter text-xs">
+                Lease End
+              </Text>
+              <Text className="text-foreground font-interMedium text-sm">
+                {leaseEndMonthYear}
+              </Text>
             </View>
           </View>
 
@@ -103,7 +114,7 @@ export default function TenantCard({
                 Documents
               </Button.Label>
             </Button>
-            
+
             <Button
               variant="tertiary"
               className="flex-1"

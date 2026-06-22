@@ -1,5 +1,6 @@
-import {View, Image, Pressable} from "react-native";
+import { View, Pressable} from "react-native";
 import { useState } from "react";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 
 import { IMAGES } from "constants/images";
@@ -179,7 +180,7 @@ export default function SignIn() {
         <Image
           source={IMAGES.logo}
           style={{ width: "100%", height: "100%" }}
-          resizeMode="contain"
+          contentFit="contain"
         />
       </View>
 

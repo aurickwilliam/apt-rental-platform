@@ -1,14 +1,15 @@
-import { View, Image, ImageSourcePropType, Text } from 'react-native'
+import { View, Text } from 'react-native'
+import { Image, ImageSource } from 'expo-image';
 
-import { IconStarFilled } from '@tabler/icons-react-native';
+import { Star } from 'lucide-react-native';
 
 import { DEFAULT_IMAGES } from '../../constants/images'
 
-import { COLORS } from '@repo/constants';
+import { useColors } from '@/hooks/useTheme';
 
 interface SmallRatingCardProps {
   accountName: string;
-  profilePictureUrl?: ImageSourcePropType;
+  profilePictureUrl?: ImageSource;
   rating: number;
   comment: string;
   date: string;
@@ -21,6 +22,8 @@ export default function SmallRatingCard({
   comment,
   date
 }: SmallRatingCardProps) {
+  const { colors } = useColors();
+
   return (
     <View className='bg-darkerWhite p-3 rounded-xl'>
       <View className='flex-row items-center justify-between'>
@@ -52,9 +55,10 @@ export default function SmallRatingCard({
             {rating}
           </Text>
 
-          <IconStarFilled 
+          <Star 
             size={20}
-            color={COLORS.secondary}
+            color={colors.secondary}
+            fill={colors.secondary}
           />
         </View>
       </View>

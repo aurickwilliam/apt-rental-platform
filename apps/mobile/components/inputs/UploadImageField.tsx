@@ -3,9 +3,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from 'react-native'
+import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 
 import { UploadCloud, XCircle, RefreshCw } from 'lucide-react-native'
@@ -82,7 +82,8 @@ export default function UploadImageField({
               <Image
                 source={{ uri: item.uri }}
                 className="w-full h-full rounded-2xl border border-border"
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="disk"
               />
 
               <TouchableOpacity

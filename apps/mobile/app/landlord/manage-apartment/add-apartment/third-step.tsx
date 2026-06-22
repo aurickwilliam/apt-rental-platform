@@ -196,10 +196,17 @@ export default function ThirdStep() {
           label="Lease Agreement:"
           placeholder="No lease agreement uploaded yet."
           required
-          value={leaseAgreement}
+          value={leaseAgreement
+            ? {
+              uri: leaseAgreement,
+              name: 'lease_agreement',
+              mimeType: 'application/pdf',
+              size: 0,
+              lastModified: 0
+            } : null}
           error={errors.leaseAgreement}
-          onChange={(uri) => {
-            setField("leaseAgreement", uri);
+          onChange={(asset) => {
+            setField("leaseAgreement", asset?.uri ?? '');
             clearError("leaseAgreement");
           }}
         />

@@ -1,11 +1,12 @@
-import { View, Text, Image, ImageSourcePropType } from 'react-native'
+import { View, Text } from 'react-native'
+import { Image, ImageSource } from 'expo-image';
 
 interface OnBoardingSlideProps {
   slide: {
     id: number;
     title: string;
     description: string;
-    imagePath: ImageSourcePropType;
+    imagePath: ImageSource;
   },
   width: number;
 }
@@ -18,7 +19,8 @@ export default function OnBoardingSlide({ slide, width }: OnBoardingSlideProps) 
       <View className="w-full h-120 mb-4 flex justify-center items-center">
         <Image 
           source={slide.imagePath} 
-          style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="contain"
         />
       </View>
 

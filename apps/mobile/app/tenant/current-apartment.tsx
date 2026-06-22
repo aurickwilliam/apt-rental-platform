@@ -1,5 +1,5 @@
-import { View, Text, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRef, useState } from 'react'
+import { View, Text, ActivityIndicator, Alert, Linking } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -24,6 +24,7 @@ import {
 
 import { useColors } from 'hooks/useTheme'
 import { useTenancy } from 'hooks/useTenancy'
+import { supabase } from '@repo/supabase'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -35,15 +36,48 @@ function formatDateToMonthYear(dateStr: string) {
   return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`
 }
 
-export default function CurrentApartmentDetails() {
-  const router = useRouter();
+// Signed URLs valid 1hr; refresh 5min before expiry
+const TTL_MS = 55 * 60 * 1000;
 
+export default function CurrentApartmentDetails() {
   const { colors } = useColors();
   const { tenancy, loading, error } = useTenancy()
 
-  const handleViewLeaseAgreement = () => {
-    router.push('/tenant/current-lease')
-  }
+  const cachedLeaseUrl = useRef<string | null>(null);
+  const leaseUrlExpiry = useRef<number>(0);
+  const [leaseLoading, setLeaseLoading] = useState(false);
+
+  const handleViewLeaseAgreement = async () => {
+    const leaseAgreementUrl = tenancy?.apartment?.lease_agreement_url;
+    if (!leaseAgreementUrl) {
+      Alert.alert('Not Found', 'This apartment does not have a lease agreement uploaded.');
+      return;
+    }
+
+    // Reuse cached signed URL if still valid
+    if (cachedLeaseUrl.current && Date.now() < leaseUrlExpiry.current) {
+      Linking.openURL(cachedLeaseUrl.current);
+      return;
+    }
+
+    setLeaseLoading(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from('lease-agreements')
+        .createSignedUrl(leaseAgreementUrl, 3600);
+      if (error || !data?.signedUrl) throw error;
+
+      cachedLeaseUrl.current = data.signedUrl;
+      leaseUrlExpiry.current = Date.now() + TTL_MS;
+
+      Linking.openURL(data.signedUrl);
+    } catch (err) {
+      Alert.alert('Error', 'Could not open lease agreement.');
+      console.error(err);
+    } finally {
+      setLeaseLoading(false);
+    }
+  };
 
   // Loading State
   if (loading) {
@@ -246,7 +280,11 @@ export default function CurrentApartmentDetails() {
 
       {/* View Lease Agreement */}
       <View className="mt-5">
-        <Button variant="tertiary" onPress={handleViewLeaseAgreement}>
+        <Button
+          variant="tertiary"
+          onPress={handleViewLeaseAgreement}
+          isDisabled={!tenancy?.apartment?.lease_agreement_url || leaseLoading}
+        >
           <FileText size={20} color={colors.secondaryForeground} />
           <Button.Label>View Lease Agreement</Button.Label>
         </Button>

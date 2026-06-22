@@ -1,4 +1,5 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text } from 'react-native'
+import { Image } from 'expo-image'
 
 import { Card, PressableFeedback } from 'heroui-native'
 
@@ -61,7 +62,8 @@ export default function PropertyCard({
             borderTopLeftRadius: 16,
             borderBottomLeftRadius: 16,
           }}
-          resizeMode='cover'
+          contentFit='cover'
+          cachePolicy="disk"
         />
 
         {/* Content */}
