@@ -1,4 +1,6 @@
-import { Image, View } from 'react-native'
+import { View } from 'react-native'
+import { Image } from 'expo-image'
+
 import { Avatar, Chip, Text } from 'heroui-native';
 
 import { Home, Building2, LucideIcon } from 'lucide-react-native';
@@ -27,7 +29,7 @@ export default function ProfileHeader({
   role,
 }: ProfileHeaderProps) {
   const { colors } = useColors();
-  
+
   const fullName = loading ? '...' : `${firstName} ${lastName}`;
   const displayEmail = loading ? '...' : email;
 
@@ -70,6 +72,8 @@ export default function ProfileHeader({
           <Image
             source={{ uri: backgroundPhotoUri }}
             style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            cachePolicy="disk"
           />
         )}
       </View>
@@ -83,13 +87,13 @@ export default function ProfileHeader({
           alt={fullName}
         >
           {avatarUrl && <Avatar.Image source={{ uri: avatarUrl }} />}
-          
+
           <Avatar.Fallback
             delayMs={200}
             className="justify-center items-center"
           >
             <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
-              {/* mt-3 compensates for font-interMedium's vertical metrics 
+              {/* mt-3 compensates for font-interMedium's vertical metrics
               so the initials sit centered in the circle */}
               {avatarInitials ?? ""}
             </Text>
