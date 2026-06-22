@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { Image } from 'expo-image';
 import { useLocalSearchParams } from "expo-router";
 
 import { Button, Card, Chip } from "heroui-native";
@@ -8,6 +9,7 @@ import { Hammer } from "lucide-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
+import DetailField from "@/components/display/DetailField";
 
 import { formatDate } from "@repo/utils";
 
@@ -17,15 +19,6 @@ import {
   STATUS_STYLES,
   useMaintenanceRequestsStore,
 } from "@/stores/useMaintenanceRequestsStore";
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="gap-1 flex-1">
-      <Text className="text-gray-500 text-xs font-inter">{label}</Text>
-      <Text className="text-foreground text-sm font-interMedium">{value}</Text>
-    </View>
-  );
-}
 
 function RequestNotFound() {
   const { colors } = useColors();
@@ -173,6 +166,8 @@ export default function MaintenanceRequestDetails() {
                 <Image
                   source={{ uri: photo }}
                   style={{ width: 96, height: 96 }}
+                  contentFit="cover"
+                  cachePolicy="disk"
                 />
               </View>
             ))}

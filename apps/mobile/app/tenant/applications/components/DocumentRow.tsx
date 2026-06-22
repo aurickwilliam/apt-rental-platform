@@ -1,4 +1,6 @@
-import { View, Text, TouchableOpacity, Image, Linking } from "react-native";
+import { View, Text, TouchableOpacity, Linking } from "react-native";
+import { Image } from "expo-image";
+
 import { FileText, ExternalLink } from "lucide-react-native";
 
 import { useColors } from "@/hooks/useTheme";
@@ -45,7 +47,8 @@ export default function DocumentRow({
         <Image
           source={{ uri: signedUrl }}
           className="w-14 h-14 rounded-xl"
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="disk"
         />
         <View className="flex-1">
           <Text className="text-foreground font-interMedium">{label}</Text>
@@ -70,7 +73,7 @@ export default function DocumentRow({
           Tap to open · {ext.toUpperCase()}
         </Text>
       </View>
-      
+
       <ExternalLink size={18} color={colors.gray400} />
     </TouchableOpacity>
   );
