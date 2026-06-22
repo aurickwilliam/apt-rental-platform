@@ -9,6 +9,7 @@ export type TenancyApartment = {
   barangay: string;
   city: string;
   province: string;
+  zip_code: string;
   monthly_rent: number;
   type: string;
   no_bedrooms: number;
@@ -89,7 +90,7 @@ export function useTenancy() {
           monthly_rent,
           status,
           apartment:apartments (
-            id, name, street_address, barangay, city, province, monthly_rent,
+            id, name, street_address, barangay, city, province, zip_code, monthly_rent,
             type, no_bedrooms, no_bathrooms, area_sqm, amenities, description,
             furnished_type, floor_level, max_occupants, lease_duration,
             lease_agreement_url

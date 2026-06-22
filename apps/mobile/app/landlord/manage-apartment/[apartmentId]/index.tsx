@@ -361,7 +361,7 @@ export default function Index() {
   }
 
   const handleTenantProfilePress = (tenantId: string) => {
-    router.push(`/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
+    router.push(`/landlord/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
   }
 
   const handleMessageTenant = async () => {
@@ -594,7 +594,7 @@ export default function Index() {
             <View className="mt-5">
               <Button
                 onPress={() =>
-                  router.push(`/manage-apartment/${apartmentId}/description`)
+                  router.push(`/landlord/manage-apartment/${apartmentId}/description`)
                 }
                 size="sm"
               >
@@ -652,7 +652,7 @@ export default function Index() {
                         activeOpacity={0.7}
                         onPress={() =>
                           router.push(
-                            `/manage-apartment/${apartmentId}/payment-history`,
+                            `/landlord/manage-apartment/${apartmentId}/payment-history`,
                           )
                         }
                       >
