@@ -1,5 +1,6 @@
-import { View, Text, ActivityIndicator, Image } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useState, useCallback } from "react";
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
 import Animated from "react-native-reanimated";
@@ -173,8 +174,9 @@ export default function ApplicationApartment() {
       <View className="w-full h-60 rounded-3xl overflow-hidden mt-5">
         <Image
           source={{ uri: coverImage?.url }}
-          resizeMode="cover"
+          contentFit="cover"
           className="w-full h-full"
+          cachePolicy="disk"
         />
       </View>
 

@@ -1,9 +1,11 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text } from 'react-native'
+import { Image } from 'expo-image';
 
-import { COLORS } from '@repo/constants';
 import { DEFAULT_IMAGES } from 'constants/images';
 
-import { IconStar, IconStarFilled } from '@tabler/icons-react-native';
+import { useColors } from 'hooks/useTheme';
+
+import { Star } from 'lucide-react-native';
 
 interface RatingCardProps {
   name: string;
@@ -23,6 +25,8 @@ export default function RatingCard({
   durationOfStay,
 }: RatingCardProps) {
 
+  const { colors } = useColors();
+
   // TODO: Format date to relative time (e.g., "2 weeks ago")
 
   const profileImage = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
@@ -39,6 +43,8 @@ export default function RatingCard({
                 width: '100%',
                 height: '100%',
               }}
+              contentFit='cover'
+              cachePolicy='disk'
             />
           </View>
 
@@ -50,19 +56,12 @@ export default function RatingCard({
             <View className='flex-row gap-1 items-center'>
               <View className='flex-row gap-1'>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  star <= Math.round(rating) ? (
-                    <IconStarFilled 
-                      key={star} 
-                      size={16} 
-                      color={COLORS.secondary} 
-                    />
-                  ) : (
-                    <IconStar 
-                      key={star} 
-                      size={16} 
-                      color={COLORS.secondary} 
-                    />
-                  )
+                  <Star 
+                    key={star} 
+                    size={16} 
+                    color={colors.secondary} 
+                    fill={star <= rating ? colors.secondary : 'transparent'}
+                  />
                 ))}
               </View>
 
