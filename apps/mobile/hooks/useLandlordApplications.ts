@@ -3,13 +3,13 @@ import { supabase } from '@repo/supabase';
 import { useProfile } from './useProfile';
 
 type DbStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
-export type DisplayStatus = 'Applied' | 'Approved' | 'Rejected';
+export type DisplayStatus = 'Applied' | 'Approved' | 'Rejected' | 'Cancelled';
 
 const STATUS_MAP: Record<DbStatus, DisplayStatus> = {
   pending: 'Applied',
   approved: 'Approved',
   rejected: 'Rejected',
-  cancelled: 'Rejected', // fallback; cancelled rows are filtered out in the query
+  cancelled: 'Cancelled',
 };
 
 export type LandlordApplication = {
@@ -77,8 +77,6 @@ export function useLandlordApplications() {
         )
         // Filtering on embedded resource columns (apartments.landlord_id) is not
         // supported by PostgREST — rely on RLS to scope rows to the landlord's apartments.
-        // Exclude cancelled applications; tenants manage those from their own side.
-        .neq('status', 'cancelled')
         .order('created_at', { ascending: false });
 
       if (fetchError) {
