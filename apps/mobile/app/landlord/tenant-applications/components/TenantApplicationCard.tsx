@@ -1,11 +1,9 @@
 import { View, Text } from "react-native";
 import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 
-import { IconHome } from "@tabler/icons-react-native";
-
 import { COLORS } from "@repo/constants";
 
-type TenantApplicationStatus = "Applied" | "Under Review" | "Approved" | "Rejected";
+type TenantApplicationStatus = "Applied" | "Approved" | "Rejected";
 
 interface TenantApplicationCardProps {
   tenantName: string;
@@ -21,20 +19,16 @@ const STATUS_STYLES: Record<
   { backgroundColor: string; textColor: string }
 > = {
   Applied: {
-    backgroundColor: COLORS.lightYellowish,
-    textColor: COLORS.yellowish,
-  },
-  "Under Review": {
-    backgroundColor: COLORS.lightBlue,
-    textColor: COLORS.primary,
+    backgroundColor: COLORS.light.warningLight,
+    textColor: COLORS.light.warning,
   },
   Approved: {
-    backgroundColor: COLORS.lightGreen,
-    textColor: COLORS.greenHulk,
+    backgroundColor: COLORS.light.successLight,
+    textColor: COLORS.light.success,
   },
   Rejected: {
-    backgroundColor: COLORS.lightLightRedHead,
-    textColor: COLORS.lightRedHead,
+    backgroundColor: COLORS.light.dangerLight,
+    textColor: COLORS.light.danger,
   },
 };
 
@@ -59,33 +53,38 @@ export default function TenantApplicationCard({
   const statusStyle = STATUS_STYLES[status];
 
   return (
-    <PressableFeedback onPress={onPress} className="rounded-2xl overflow-hidden">
+    <PressableFeedback
+      onPress={onPress}
+      className="rounded-3xl overflow-hidden border border-border"
+    >
       <PressableFeedback.Highlight />
-      <Card className="shadow-none border border-grey-200 p-0">
+      <Card className="shadow-none p-0">
         <Card.Body className="p-3 flex-row items-center gap-3">
-          <Avatar size="lg" className="border border-secondary">
+          <Avatar size="lg" className="border border-border">
             <Avatar.Image source={{ uri: avatarUrl }} />
-            <Avatar.Fallback delayMs={200}>{getInitials(tenantName)}</Avatar.Fallback>
+            <Avatar.Fallback delayMs={200}>
+              {getInitials(tenantName)}
+            </Avatar.Fallback>
           </Avatar>
 
           <View className="flex-1 min-w-0">
             <View className="flex-row items-start justify-between gap-3">
-              <View className="flex-1 min-w-0">
-                <Text className="text-text text-sm font-interSemiBold" numberOfLines={1}>
+              <View className="flex-1 min-w-0 h-full">
+                <Text
+                  className="text-foreground text-sm font-interSemiBold"
+                  numberOfLines={1}
+                >
                   {tenantName}
                 </Text>
-                <View className="flex-row items-center gap-1 mt-1">
-                  <IconHome size={14} color={COLORS.grey} />
-                  <Text
-                    className="text-grey-500 text-xs font-inter"
-                    numberOfLines={1}
-                  >
-                    {apartmentName}
-                  </Text>
-                </View>
+                <Text
+                  className="text-muted text-xs font-inter"
+                  numberOfLines={1}
+                >
+                  {apartmentName}
+                </Text>
               </View>
 
-              <View className="items-end gap-1">
+              <View className="items-end gap-3">
                 <Chip
                   size="sm"
                   variant="soft"
@@ -98,7 +97,8 @@ export default function TenantApplicationCard({
                     {status}
                   </Chip.Label>
                 </Chip>
-                <Text className="text-grey-500 text-xs font-inter">
+
+                <Text className="text-muted text-xs font-inter">
                   {submittedDate}
                 </Text>
               </View>

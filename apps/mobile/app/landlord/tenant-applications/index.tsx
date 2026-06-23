@@ -1,54 +1,29 @@
-import { useMemo, useState } from "react";
-import { FlatList, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-
-import { IconFileText } from "@tabler/icons-react-native";
-
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import StandardHeader from "@/components/layout/StandardHeader";
-import TenantApplicationCard from "@/components/cards/TenantApplicationCard";
-
-import { SearchField } from "heroui-native";
-
-import { formatDate } from "@repo/utils";
-
-import { useColors } from "@/hooks/useTheme";
-
-import { TENANT_APPLICATIONS } from "./mockData";
-
-function EmptyApplications() {
-  const { colors } = useColors();
-
-  return (
-    <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-surface rounded-full p-5 mb-4">
-        <IconFileText size={32} color={colors.gray500} />
-      </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
-        No applications yet
-      </Text>
-      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
-        New tenant applications will appear here.
-      </Text>
-    </View>
-  );
-}
+import { useMemo, useState } from 'react';
+import { FlatList, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import ScreenWrapper from '@/components/layout/ScreenWrapper';
+import StandardHeader from '@/components/layout/StandardHeader';
+import TenantApplicationCard from '@/app/landlord/tenant-applications/components/TenantApplicationCard';
+import { SearchField } from 'heroui-native';
+import { formatDate } from '@repo/utils';
+import { useLandlordApplications } from '@/hooks/useLandlordApplications';
+import TenantApplicationCardSkeleton from '@/app/landlord/tenant-applications/components/TenantApplicationCardSkeleton';
+import EmptyApplications from '@/app/landlord/tenant-applications/components/EmptyApplications';
 
 export default function TenantApplications() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const { applications, loading } = useLandlordApplications();
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredApplications = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return TENANT_APPLICATIONS;
-
-    return TENANT_APPLICATIONS.filter((application) => {
-      return (
-        application.tenant_name.toLowerCase().includes(query) ||
-        application.apartment_name.toLowerCase().includes(query)
-      );
-    });
-  }, [searchQuery]);
+    if (!query) return applications;
+    return applications.filter(
+      (app) =>
+        app.tenant_name.toLowerCase().includes(query) ||
+        app.apartment_name.toLowerCase().includes(query)
+    );
+  }, [applications, searchQuery]);
 
   const handleApplicationPress = (applicationId: string) => {
     router.push(`/landlord/tenant-applications/${applicationId}`);
@@ -60,7 +35,7 @@ export default function TenantApplications() {
       scrollable={false}
     >
       <FlatList
-        data={filteredApplications}
+        data={loading ? [] : filteredApplications}
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -68,7 +43,7 @@ export default function TenantApplications() {
           paddingHorizontal: 20,
           paddingTop: 16,
           paddingBottom: 30,
-          flexGrow: filteredApplications.length === 0 ? 1 : 0,
+          flexGrow: !loading && filteredApplications.length === 0 ? 1 : 0,
         }}
         ListHeaderComponent={
           <View className="gap-4">
@@ -82,20 +57,27 @@ export default function TenantApplications() {
                 <SearchField.ClearButton />
               </SearchField.Group>
             </SearchField>
-
-            <Text className="text-gray-500 text-sm font-inter mb-3">
-              Total: {filteredApplications.length}
-            </Text>
+            {loading ? (
+              <View className="gap-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TenantApplicationCardSkeleton key={i} />
+                ))}
+              </View>
+            ) : (
+              <Text className="text-gray-500 text-sm font-inter mb-3">
+                Total: {filteredApplications.length}
+              </Text>
+            )}
           </View>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={<EmptyApplications />}
+        ListEmptyComponent={loading ? null : <EmptyApplications />}
         renderItem={({ item }) => (
           <TenantApplicationCard
             tenantName={item.tenant_name}
             apartmentName={item.apartment_name}
             status={item.status}
-            submittedDate={formatDate(item.date_submitted)}
+            submittedDate={formatDate(item.created_at)}
             avatarUrl={item.tenant_avatar_url ?? undefined}
             onPress={() => handleApplicationPress(item.id)}
           />
