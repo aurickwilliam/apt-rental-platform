@@ -1,9 +1,10 @@
 import { View, Text } from "react-native";
+
 import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 
 import { COLORS } from "@repo/constants";
 
-type TenantApplicationStatus = "Applied" | "Approved" | "Rejected";
+type TenantApplicationStatus = "Applied" | "Approved" | "Rejected" | "Cancelled";
 
 interface TenantApplicationCardProps {
   tenantName: string;
@@ -29,6 +30,10 @@ const STATUS_STYLES: Record<
   Rejected: {
     backgroundColor: COLORS.light.dangerLight,
     textColor: COLORS.light.danger,
+  },
+  Cancelled: {
+    backgroundColor: COLORS.light.gray100,
+    textColor: COLORS.light.gray500,
   },
 };
 
@@ -66,7 +71,6 @@ export default function TenantApplicationCard({
               {getInitials(tenantName)}
             </Avatar.Fallback>
           </Avatar>
-
           <View className="flex-1 min-w-0">
             <View className="flex-row items-start justify-between gap-3">
               <View className="flex-1 min-w-0 h-full">
@@ -83,7 +87,6 @@ export default function TenantApplicationCard({
                   {apartmentName}
                 </Text>
               </View>
-
               <View className="items-end gap-3">
                 <Chip
                   size="sm"
@@ -97,7 +100,6 @@ export default function TenantApplicationCard({
                     {status}
                   </Chip.Label>
                 </Chip>
-
                 <Text className="text-muted text-xs font-inter">
                   {submittedDate}
                 </Text>
