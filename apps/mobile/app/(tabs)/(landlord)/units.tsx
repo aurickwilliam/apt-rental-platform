@@ -5,7 +5,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
-import PropertyCard from "./../components/units/PropertyCard";
+import PropertyCard from "../components/units/PropertyCard";
 import PropertyStats from "../components/units/PropertyStats";
 import EmptyProperties from "../components/units/EmptyProperties";
 import PropertyCardSkeleton from "../components/units/PropertyCardSkeleton";
@@ -15,9 +15,16 @@ import {
   Home,
   Hammer,
   CirclePlus,
+  ListFilter,
 } from "lucide-react-native";
 
-import { SearchField, Separator } from "heroui-native";
+import {
+  SearchField,
+  Separator,
+  BottomSheet,
+  Chip,
+  Button,
+} from "heroui-native";
 
 import { useLandlordUnits } from "@/hooks/useLandlordUnits";
 
@@ -46,6 +53,15 @@ export default function Units() {
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const hasActiveFilters =
+    selectedStatus !== statusOptions[0] || selectedLocation !== locationOptions[0];
+
+  const handleClearFilters = () => {
+    setSelectedStatus(statusOptions[0]);
+    setSelectedLocation(locationOptions[0]);
+  };
 
   // Re-fetch whenever tab is focused (e.g. after adding a new apartment)
   useFocusEffect(
@@ -133,14 +149,95 @@ export default function Units() {
           List of Properties
         </Text>
 
-        <View className="mt-3">
-          <SearchField value={searchQuery} onChange={setSearchQuery}>
+        {/* Search + Filter Row */}
+        <View className="mt-3 flex-row items-center gap-2">
+          <SearchField value={searchQuery} onChange={setSearchQuery} className="flex-1">
             <SearchField.Group>
               <SearchField.SearchIcon />
               <SearchField.Input placeholder="Search a Property" />
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
+
+          <BottomSheet isOpen={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <BottomSheet.Trigger asChild>
+              <Button isIconOnly variant="secondary" className="relative">
+                <ListFilter size={18} />
+                {hasActiveFilters && (
+                  <View className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary border border-background" />
+                )}
+              </Button>
+            </BottomSheet.Trigger>
+
+            <BottomSheet.Portal>
+              <BottomSheet.Overlay />
+              <BottomSheet.Content>
+                <BottomSheet.Title>Filter Properties</BottomSheet.Title>
+
+                <View className="gap-5 mt-4 pb-6">
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">
+                      Status
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {statusOptions.map((status) => {
+                        const isSelected = selectedStatus === status;
+                        return (
+                          <Chip
+                            key={status}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedStatus(status)}
+                          >
+                            <Chip.Label>{status}</Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+                
+                  <Separator />
+                
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">Location</Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {locationOptions.map((location) => {
+                        const isSelected = selectedLocation === location;
+                        return (
+                          <Chip
+                            key={location}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedLocation(location)}
+                          >
+                            <Chip.Label>{location}</Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+                
+                  <View className="flex-row gap-3 mt-2">
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onPress={handleClearFilters}
+                      isDisabled={!hasActiveFilters}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      variant="primary"
+                      className="flex-1"
+                      onPress={() => setIsFilterOpen(false)}
+                    >
+                      Done
+                    </Button>
+                  </View>
+                </View>
+              </BottomSheet.Content>
+            </BottomSheet.Portal>
+          </BottomSheet>
         </View>
 
         <Separator className="my-4" />
