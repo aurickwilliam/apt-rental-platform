@@ -12,6 +12,7 @@ import EmptyApplications from './components/EmptyApplications';
 import ApplicationFilterSheet, {
   type ApplicationFilters,
 } from './components/ApplicationFilterSheet';
+import EmptySearchResults from './components/EmptySearchResults';
 
 import { Button, SearchField } from 'heroui-native';
 
@@ -32,6 +33,8 @@ export default function TenantApplications() {
   const [filters, setFilters] = useState<ApplicationFilters>(EMPTY_FILTERS);
 
   const activeCount = filters.statuses.length + filters.locations.length;
+  const hasApplications = applications.length > 0;
+  const hasActiveSearch = searchQuery.trim().length > 0 || activeCount > 0;
 
   const filteredApplications = useMemo(() => {
     let result = applications;
@@ -133,7 +136,13 @@ export default function TenantApplications() {
           </View>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={loading ? null : <EmptyApplications />}
+        ListEmptyComponent={
+          loading ? null : (
+            hasApplications && hasActiveSearch
+              ? <EmptySearchResults query={searchQuery} />
+              : <EmptyApplications />
+          )
+        }
         renderItem={({ item }) => (
           <TenantApplicationCard
             tenantName={item.tenant_name}
