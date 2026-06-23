@@ -44,6 +44,7 @@ export type LandlordApplication = {
   tenant_avatar_url: string | null;
   apartment_name: string;
   monthly_rent: number;
+  apartment_city: string;
 };
 
 export function useLandlordApplications() {
@@ -72,7 +73,7 @@ export function useLandlordApplications() {
           prev_landlord_name, prev_landlord_contact,
           move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
           gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-          apartments!inner(name, monthly_rent),
+          apartments!inner(name, monthly_rent, city),
           users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url)`
         )
         // Filtering on embedded resource columns (apartments.landlord_id) is not
@@ -121,6 +122,7 @@ export function useLandlordApplications() {
           tenant_avatar_url: tenant?.avatar_url ?? null,
           apartment_name: apartment?.name ?? '',
           monthly_rent: Number(apartment?.monthly_rent ?? 0),
+          apartment_city: apartment?.city ?? '',
         };
       });
 
