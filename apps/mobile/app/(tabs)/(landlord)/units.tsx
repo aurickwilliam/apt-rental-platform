@@ -27,6 +27,7 @@ import {
 } from "heroui-native";
 
 import { useLandlordUnits } from "@/hooks/useLandlordUnits";
+import { useColors } from "@/hooks/useTheme";
 
 const statusOptions = [
   "All",
@@ -46,6 +47,7 @@ const locationOptions = [
 
 export default function Units() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -55,8 +57,12 @@ export default function Units() {
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const hasActiveFilters =
-    selectedStatus !== statusOptions[0] || selectedLocation !== locationOptions[0];
+  const activeFilterCount = [
+    selectedStatus !== statusOptions[0],
+    selectedLocation !== locationOptions[0],
+  ].filter(Boolean).length;
+
+  const hasActiveFilters = activeFilterCount > 0;
 
   const handleClearFilters = () => {
     setSelectedStatus(statusOptions[0]);
@@ -160,21 +166,28 @@ export default function Units() {
           </SearchField>
 
           <BottomSheet isOpen={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <BottomSheet.Trigger asChild>
-              <Button isIconOnly variant="secondary" className="relative">
-                <ListFilter size={18} />
-                {hasActiveFilters && (
-                  <View className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary border border-background" />
-                )}
-              </Button>
-            </BottomSheet.Trigger>
+            <View className="relative">
+              <BottomSheet.Trigger asChild>
+                <Button isIconOnly variant="secondary">
+                  <ListFilter size={18} color={colors.textPrimary} />
+                </Button>
+              </BottomSheet.Trigger>
+
+              {hasActiveFilters && (
+                <View className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center" style={{ zIndex: 10 }}>
+                  <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
+                    {activeFilterCount}
+                  </Text>
+                </View>
+              )}
+            </View>
 
             <BottomSheet.Portal>
               <BottomSheet.Overlay />
               <BottomSheet.Content>
                 <BottomSheet.Title>Filter Properties</BottomSheet.Title>
 
-                <View className="gap-5 mt-4 pb-6">
+                <View className="gap-5 mt-4">
                   <View className="gap-2">
                     <Text className="text-foreground font-interMedium text-sm">
                       Status
@@ -195,9 +208,9 @@ export default function Units() {
                       })}
                     </View>
                   </View>
-                
+
                   <Separator />
-                
+
                   <View className="gap-2">
                     <Text className="text-foreground font-interMedium text-sm">Location</Text>
                     <View className="flex-row flex-wrap gap-2">
@@ -216,7 +229,7 @@ export default function Units() {
                       })}
                     </View>
                   </View>
-                
+
                   <View className="flex-row gap-3 mt-2">
                     <Button
                       variant="secondary"

@@ -1,29 +1,62 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+
+import { ListFilter } from 'lucide-react-native';
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
-import TenantApplicationCard from '@/app/landlord/tenant-applications/components/TenantApplicationCard';
-import { SearchField } from 'heroui-native';
+import TenantApplicationCard from './components/TenantApplicationCard';
+import TenantApplicationCardSkeleton from './components/TenantApplicationCardSkeleton';
+import EmptyApplications from './components/EmptyApplications';
+import ApplicationFilterSheet, {
+  type ApplicationFilters,
+} from './components/ApplicationFilterSheet';
+
+import { Button, SearchField } from 'heroui-native';
+
 import { formatDate } from '@repo/utils';
+
 import { useLandlordApplications } from '@/hooks/useLandlordApplications';
-import TenantApplicationCardSkeleton from '@/app/landlord/tenant-applications/components/TenantApplicationCardSkeleton';
-import EmptyApplications from '@/app/landlord/tenant-applications/components/EmptyApplications';
+import { useColors } from '@/hooks/useTheme';
+
+const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };
 
 export default function TenantApplications() {
   const router = useRouter();
+  const { colors } = useColors();
   const { applications, loading } = useLandlordApplications();
-  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<ApplicationFilters>(EMPTY_FILTERS);
+
+  const activeCount = filters.statuses.length + filters.locations.length;
 
   const filteredApplications = useMemo(() => {
+    let result = applications;
+
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return applications;
-    return applications.filter(
-      (app) =>
-        app.tenant_name.toLowerCase().includes(query) ||
-        app.apartment_name.toLowerCase().includes(query)
-    );
-  }, [applications, searchQuery]);
+    if (query) {
+      result = result.filter(
+        (app) =>
+          app.tenant_name.toLowerCase().includes(query) ||
+          app.apartment_name.toLowerCase().includes(query)
+      );
+    }
+
+    if (filters.statuses.length > 0) {
+      result = result.filter((app) => filters.statuses.includes(app.status));
+    }
+
+    if (filters.locations.length > 0) {
+      result = result.filter((app) =>
+        filters.locations.includes(app.apartment_city.toLowerCase())
+      );
+    }
+
+    return result;
+  }, [applications, searchQuery, filters]);
 
   const handleApplicationPress = (applicationId: string) => {
     router.push(`/landlord/tenant-applications/${applicationId}`);
@@ -47,16 +80,45 @@ export default function TenantApplications() {
         }}
         ListHeaderComponent={
           <View className="gap-4">
-            <SearchField value={searchQuery} onChange={setSearchQuery}>
-              <SearchField.Group>
-                <SearchField.SearchIcon />
-                <SearchField.Input
-                  placeholder="Search tenant or apartment..."
-                  className="flex-1 shadow-none"
-                />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
+            {/* Search + Filter row */}
+            <View className="flex-row items-center gap-2">
+              <View className="flex-1">
+                <SearchField value={searchQuery} onChange={setSearchQuery}>
+                  <SearchField.Group>
+                    <SearchField.SearchIcon />
+                    <SearchField.Input
+                      placeholder="Search tenant or apartment..."
+                      className="flex-1 shadow-none"
+                    />
+                    <SearchField.ClearButton />
+                  </SearchField.Group>
+                </SearchField>
+              </View>
+
+              {/* Filter button */}
+              <View className="relative">
+                <Button
+                  onPress={() => setFilterOpen(true)}
+                  variant="tertiary"
+                  isIconOnly
+                >
+                  <ListFilter
+                    size={18}
+                    color={colors.textPrimary}
+                  />
+                </Button>
+
+                {/* Badge for number of filters active */}
+                {activeCount > 0 && (
+                  <View className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center">
+                    <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
+                      {activeCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
             {loading ? (
               <View className="gap-3">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -82,6 +144,13 @@ export default function TenantApplications() {
             onPress={() => handleApplicationPress(item.id)}
           />
         )}
+      />
+
+      <ApplicationFilterSheet
+        isOpen={filterOpen}
+        onOpenChange={setFilterOpen}
+        filters={filters}
+        onChange={setFilters}
       />
     </ScreenWrapper>
   );
