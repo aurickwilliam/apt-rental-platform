@@ -13,7 +13,7 @@ export default function EmptySearchResults({ query }: { query: string }) {
           No results found
         </Text>
         {query.trim() && (
-          <Text className="text-sm font-inter text-gray-500 text-center px-8">
+          <Text className="text-sm font-inter text-muted text-center px-8">
             No applications match `&quot;{query}&quot;
           </Text>
         )}

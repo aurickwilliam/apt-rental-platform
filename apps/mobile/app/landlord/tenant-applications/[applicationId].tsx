@@ -4,10 +4,12 @@ import { useLocalSearchParams } from "expo-router";
 
 import { Avatar, Card, Chip } from "heroui-native";
 
-import { IconFileText, IconHome } from "@tabler/icons-react-native";
+import { Home } from "lucide-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
+import DetailField from "@/components/display/DetailField";
+import EmptyApplicationData from "./components/EmptyApplicationData";
 
 import { formatCurrency, formatDate } from "@repo/utils";
 
@@ -28,39 +30,6 @@ const getInitials = (value: string) => {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 };
-
-const formatDateValue = (value: string) => {
-  const formatted = formatDate(value, "medium");
-  return formatted || "-";
-};
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-row items-start justify-between gap-4">
-      <Text className="text-muted text-xs font-inter">{label}</Text>
-      <Text className="text-foreground text-sm font-interMedium text-right flex-1">
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function ApplicationNotFound() {
-  const { colors } = useColors();
-  return (
-    <View className="flex-1 items-center justify-center py-20">
-      <View className="bg-surface rounded-full p-5 mb-4">
-        <IconFileText size={32} color={colors.gray500} />
-      </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
-        Application not found
-      </Text>
-      <Text className="text-gray-500 text-sm font-inter text-center mt-1">
-        This application may have been removed or is unavailable.
-      </Text>
-    </View>
-  );
-}
 
 export default function TenantApplicationDetails() {
   const { applicationId } = useLocalSearchParams<{
@@ -87,7 +56,7 @@ export default function TenantApplicationDetails() {
         scrollable
         className="p-5"
       >
-        <ApplicationNotFound />
+        <EmptyApplicationData />
       </ScreenWrapper>
     );
   }
@@ -137,7 +106,7 @@ export default function TenantApplicationDetails() {
                 {application.tenant_name}
               </Text>
               <View className="flex-row items-center gap-1 mt-1">
-                <IconHome size={14} color={colors.gray500} />
+                <Home size={14} color={colors.gray500} />
                 <Text
                   className="text-gray-500 text-xs font-inter"
                   numberOfLines={1}
@@ -167,20 +136,20 @@ export default function TenantApplicationDetails() {
             <Text className="text-foreground text-sm font-interSemiBold">
               Application Details
             </Text>
-            <DetailRow
+            <DetailField
               label="Date Submitted"
-              value={formatDateValue(application.date_submitted)}
+              value={formatDate(application.date_submitted, "medium")}
             />
-            <DetailRow
+            <DetailField
               label="Move-in Date"
-              value={formatDateValue(application.move_in_date)}
+              value={formatDate(application.move_in_date, "medium")}
             />
-            <DetailRow label="Duration" value={application.duration_stay} />
-            <DetailRow
+            <DetailField label="Duration" value={application.duration_stay} />
+            <DetailField
               label="Monthly Income"
               value={`₱ ${formatCurrency(application.monthly_income)}`}
             />
-            <DetailRow
+            <DetailField
               label="No. of Occupants"
               value={`${application.no_occupants}`}
             />
@@ -190,9 +159,9 @@ export default function TenantApplicationDetails() {
         <Card className="shadow-none border border-grey-200">
           <Card.Body className="p-4 gap-3">
             <Text className="text-foreground text-sm font-interSemiBold">Employment</Text>
-            <DetailRow label="Occupation" value={application.occupation} />
-            <DetailRow label="Employer" value={application.employer_name} />
-            <DetailRow
+            <DetailField label="Occupation" value={application.occupation} />
+            <DetailField label="Employer" value={application.employer_name} />
+            <DetailField
               label="Employment Type"
               value={application.employment_type}
             />
@@ -202,12 +171,12 @@ export default function TenantApplicationDetails() {
         <Card className="shadow-none border border-border">
           <Card.Body className="p-4 gap-3">
             <Text className="text-foreground text-sm font-interSemiBold">Preferences</Text>
-            <DetailRow label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
-            <DetailRow
+            <DetailField label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
+            <DetailField
               label="Has Smoker"
               value={application.has_smoker ? "Yes" : "No"}
             />
-            <DetailRow
+            <DetailField
               label="Needs Parking"
               value={application.need_parking ? "Yes" : "No"}
             />
@@ -219,11 +188,11 @@ export default function TenantApplicationDetails() {
             <Text className="text-foreground text-sm font-interSemiBold">
               Previous Landlord
             </Text>
-            <DetailRow
+            <DetailField
               label="Name"
               value={application.prev_landlord_name || "Not provided"}
             />
-            <DetailRow
+            <DetailField
               label="Contact"
               value={application.prev_landlord_contact || "Not provided"}
             />
