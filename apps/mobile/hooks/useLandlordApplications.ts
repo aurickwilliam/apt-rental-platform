@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 import { useProfile } from './useProfile';
+import { formatAddress } from '@repo/utils';
 
 type DbStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 export type DisplayStatus = 'Applied' | 'Approved' | 'Rejected' | 'Cancelled';
@@ -42,9 +43,14 @@ export type LandlordApplication = {
   // joined
   tenant_name: string;
   tenant_avatar_url: string | null;
+  tenant_address: string;
+  tenant_email: string;
+  tenant_city: string;
+  tenant_mobile_number: string;
   apartment_name: string;
   monthly_rent: number;
   apartment_city: string;
+  apartment_address: string;
 };
 
 export function useLandlordApplications() {
@@ -61,6 +67,8 @@ export function useLandlordApplications() {
       return;
     }
 
+    let ignored = false;
+
     async function fetchApplications() {
       setLoading(true);
       setError(null);
@@ -73,14 +81,16 @@ export function useLandlordApplications() {
           prev_landlord_name, prev_landlord_contact,
           move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
           gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-          apartments!inner(name, monthly_rent, city),
-          users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url)`
+          apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code),
+          users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`,
         )
         // Filtering on embedded resource columns (apartments.landlord_id) is not
         // supported by PostgREST — rely on RLS to scope rows to the landlord's apartments.
         .order('created_at', { ascending: false });
 
+
       if (fetchError) {
+        if (ignored) return;
         setError(fetchError.message);
         setLoading(false);
         return;
@@ -120,9 +130,26 @@ export function useLandlordApplications() {
           nbi_clearance_url: item.nbi_clearance_url,
           tenant_name: tenantName,
           tenant_avatar_url: tenant?.avatar_url ?? null,
+          tenant_address: formatAddress({
+            street_address: tenant?.street_address ?? null,
+            barangay:       tenant?.barangay ?? null,
+            city:           tenant?.city ?? null,
+            province:       tenant?.province ?? null,
+            zip_code: tenant?.postal_code ?? null
+          }),
+          tenant_email: tenant?.email ?? null,
+          tenant_mobile_number: tenant?.mobile_number ?? null,
+          tenant_city: tenant?.city ?? '',
           apartment_name: apartment?.name ?? '',
           monthly_rent: Number(apartment?.monthly_rent ?? 0),
           apartment_city: apartment?.city ?? '',
+          apartment_address: formatAddress({
+            street_address: apartment?.street_address ?? null,
+            barangay:       apartment?.barangay ?? null,
+            city:           apartment?.city ?? null,
+            province:       apartment?.province ?? null,
+            zip_code:       apartment?.zip_code ?? null,
+          }),
         };
       });
 
@@ -131,7 +158,9 @@ export function useLandlordApplications() {
     }
 
     fetchApplications();
-  }, [profile, profileLoading]);
+
+    return () => { ignored = true; };
+  }, [profile?.id, profileLoading]);
 
   return { applications, loading: loading || profileLoading, error };
 }

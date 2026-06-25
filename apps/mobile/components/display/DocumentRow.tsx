@@ -46,7 +46,13 @@ export default function DocumentRow({
       >
         <Image
           source={{ uri: signedUrl }}
-          className="w-14 h-14 rounded-xl"
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.gray200,
+          }}
           contentFit="cover"
           cachePolicy="disk"
         />
