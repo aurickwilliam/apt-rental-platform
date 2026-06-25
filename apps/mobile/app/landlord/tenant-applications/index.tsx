@@ -26,7 +26,7 @@ const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };
 export default function TenantApplications() {
   const router = useRouter();
   const { colors } = useColors();
-  const { applications, loading } = useLandlordApplications();
+  const { applications, loading, refetch} = useLandlordApplications();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -81,6 +81,8 @@ export default function TenantApplications() {
           paddingBottom: 30,
           flexGrow: !loading && filteredApplications.length === 0 ? 1 : 0,
         }}
+        refreshing={loading}
+        onRefresh={refetch}
         ListHeaderComponent={
           <View className="gap-4">
             {/* Search + Filter row */}

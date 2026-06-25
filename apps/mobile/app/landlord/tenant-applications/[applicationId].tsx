@@ -11,6 +11,7 @@ import StandardHeader from '@/components/layout/StandardHeader';
 import DetailField from '@/components/display/DetailField';
 import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
+import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
 
 import { formatCurrency, formatDate, getInitials } from '@repo/utils';
 
@@ -76,29 +77,12 @@ export default function TenantApplicationDetails() {
     clearError
   } = useApplicationActions(resolvedId);
 
-  const displayStatus = localStatus ?? application?.status;
-
   // Loading State
   if (loading) {
-    return (
-      <ScreenWrapper
-        header={<StandardHeader title="Application Details" />}
-        backgroundColor={colors.surface}
-        scrollable
-        className="p-5"
-      >
-        {/* Skeleton placeholders */}
-        {[...Array(4)].map((_, i) => (
-          <View
-            key={i}
-            className="rounded-xl mb-4 h-28"
-            style={{ backgroundColor: colors.gray300 ?? colors.gray400 }}
-          />
-        ))}
-      </ScreenWrapper>
-    );
+    return <TenantApplicationDetailsSkeleton />;
   }
 
+  // Empty State
   if (!application) {
     return (
       <ScreenWrapper
@@ -112,6 +96,7 @@ export default function TenantApplicationDetails() {
     );
   }
 
+  const displayStatus = localStatus ?? application?.status;
   const statusStyle = getStatusStyle(displayStatus!, colors);
   const isPending = displayStatus === 'Applied';
 
@@ -128,12 +113,9 @@ export default function TenantApplicationDetails() {
             <Text className="text-foreground text-sm font-interMedium">
               Tenant Application For
             </Text>
-            {/* Apartment Name */}
             <Text className='text-secondary font-interSemiBold text-lg'>
               {application.apartment_name}
             </Text>
-
-            {/* Full Address */}
             <Text className="text-muted font-inter text-sm">
               {application.apartment_address}
             </Text>
@@ -175,7 +157,6 @@ export default function TenantApplicationDetails() {
                 </View>
               </View>
 
-              {/* Status of Application */}
               <Chip
                 size="sm"
                 variant="soft"
@@ -236,21 +217,12 @@ export default function TenantApplicationDetails() {
             </Text>
 
             <View className='flex-row'>
-              <DetailField
-                label="Occupation"
-                value={application.occupation}
-              />
-              <DetailField
-                label="Employer"
-                value={application.employer_name}
-              />
+              <DetailField label="Occupation" value={application.occupation} />
+              <DetailField label="Employer" value={application.employer_name} />
             </View>
 
             <View className='flex-row'>
-              <DetailField
-                label="Employment Type"
-                value={application.employment_type}
-              />
+              <DetailField label="Employment Type" value={application.employment_type} />
               <DetailField
                 label="Monthly Income"
                 value={`₱ ${formatCurrency(application.monthly_income)}`}
@@ -267,14 +239,8 @@ export default function TenantApplicationDetails() {
             </Text>
 
             <View className='flex-row'>
-              <DetailField
-                label="Has Pets"
-                value={application.has_pets ? 'Yes' : 'No'}
-              />
-              <DetailField
-                label="Has Smoker"
-                value={application.has_smoker ? 'Yes' : 'No'}
-              />
+              <DetailField label="Has Pets" value={application.has_pets ? 'Yes' : 'No'} />
+              <DetailField label="Has Smoker" value={application.has_smoker ? 'Yes' : 'No'} />
             </View>
             <DetailField
               label="Needs Parking"
@@ -337,7 +303,6 @@ export default function TenantApplicationDetails() {
             </Text>
           </View>
 
-          {/* Approve / Reject actions (only when status is pending) */}
           {isPending && (
             <View className="flex-row gap-3 mt-2">
               <Button
