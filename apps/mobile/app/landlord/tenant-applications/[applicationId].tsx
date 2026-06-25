@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Text, View, ActivityIndicator } from 'react-native';
+import { Text, View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
@@ -14,11 +14,12 @@ import DocumentRow from '@/components/display/DocumentRow';
 
 import { formatCurrency, formatDate, getInitials } from '@repo/utils';
 
-import { supabase } from '@repo/supabase';
-
 import { useColors } from '@/hooks/useTheme';
 import { useLandlordApplications, type DisplayStatus } from '@/hooks/useLandlordApplications';
 import { useDocumentUrls } from '@/hooks/useDocumentUrls';
+import { useApplicationActions } from '@/hooks/useApplicationActions';
+import ErrorDialog from '@/components/display/ErrorDialog';
+import RejectDialog from './components/RejectDialog';
 
 function getStatusStyle(
   status: DisplayStatus,
@@ -53,9 +54,6 @@ export default function TenantApplicationDetails() {
     return applications.find((a) => a.id === resolvedId);
   }, [resolvedId, applications]);
 
-  // Local optimistic status so the UI updates immediately after action
-  const [localStatus, setLocalStatus] = useState<DisplayStatus | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
   const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const docEntries = application ? [
@@ -66,51 +64,19 @@ export default function TenantApplicationDetails() {
   ] : [];
 
   const { resolved: resolvedDocs, loading: docsLoading } = useDocumentUrls(docEntries);
+  const {
+    localStatus,
+    actionLoading,
+    isRejectDialogOpen,
+    errorMessage,
+    approve,
+    reject,
+    openRejectDialog,
+    closeRejectDialog,
+    clearError
+  } = useApplicationActions(resolvedId);
 
   const displayStatus = localStatus ?? application?.status;
-
-  async function handleApprove() {
-    if (!application) return;
-    setActionLoading(true);
-    const { error } = await supabase
-      .from('rental_application')
-      .update({ status: 'approved' })
-      .eq('id', application.id);
-
-    setActionLoading(false);
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setLocalStatus('Approved');
-    }
-  }
-
-  function handleReject() {
-    if (!application) return;
-    Alert.prompt(
-      'Reject Application',
-      'Provide a reason for rejection (optional):',
-      async (reason) => {
-        setActionLoading(true);
-        const { error } = await supabase
-          .from('rental_application')
-          .update({
-            status: 'rejected',
-            rejected_reason: reason?.trim() || null,
-          })
-          .eq('id', application.id);
-
-        setActionLoading(false);
-        if (error) {
-          Alert.alert('Error', error.message);
-        } else {
-          setLocalStatus('Rejected');
-        }
-      },
-      'plain-text',
-      '',
-    );
-  }
 
   // Loading State
   if (loading) {
@@ -378,25 +344,34 @@ export default function TenantApplicationDetails() {
                 variant="danger-soft"
                 className="flex-1"
                 isDisabled={actionLoading}
-                onPress={handleReject}
+                onPress={openRejectDialog}
               >
-                <Button.Label className="font-interSemiBold">
-                  Reject
-                </Button.Label>
+                <Button.Label className="font-interSemiBold">Reject</Button.Label>
               </Button>
               <Button
                 className="flex-1"
                 isDisabled={actionLoading}
-                onPress={handleApprove}
+                onPress={approve}
               >
-                <Button.Label className="font-interSemiBold">
-                  Approve
-                </Button.Label>
+                <Button.Label className="font-interSemiBold">Approve</Button.Label>
               </Button>
             </View>
           )}
         </View>
       </ScreenWrapper>
+
+      <RejectDialog
+        isOpen={isRejectDialogOpen}
+        onClose={closeRejectDialog}
+        onConfirm={reject}
+        isLoading={actionLoading}
+      />
+
+      <ErrorDialog
+        isOpen={!!errorMessage}
+        onClose={clearError}
+        message={errorMessage}
+      />
 
       <ImageViewing
         images={viewerUri ? [{ uri: viewerUri }] : []}
