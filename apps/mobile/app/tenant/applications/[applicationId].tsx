@@ -7,7 +7,7 @@ import Animated from "react-native-reanimated";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
-import DocumentRow from "./components/DocumentRow";
+import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
