@@ -230,7 +230,7 @@ export default function Index() {
       if (error || !data?.signedUrl) throw error;
 
       router.push({
-        pathname: "/manage-apartment/[apartmentId]/description/lease-viewer",
+        pathname: "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
         params: { apartmentId, fileUrl: data.signedUrl },
       });
     } catch (err) {
@@ -266,7 +266,7 @@ export default function Index() {
       header={
         <StandardHeader
           title="Apartment Description"
-          onBackPress={() => router.replace(`/manage-apartment/${apartmentId}`)}
+          onBackPress={() => router.replace(`/landlord/manage-apartment/${apartmentId}`)}
         />
       }
     >
@@ -277,7 +277,7 @@ export default function Index() {
         <TouchableOpacity
           onPress={() =>
             router.push(
-              `/manage-apartment/${apartmentId}/description/edit-main`,
+              `/landlord/manage-apartment/${apartmentId}/description/edit-main`,
             )
           }
         >
@@ -346,7 +346,7 @@ export default function Index() {
         <TouchableOpacity
           onPress={() =>
             router.push(
-              `/manage-apartment/${apartmentId}/description/edit-description`,
+              `/landlord/manage-apartment/${apartmentId}/description/edit-description`,
             )
           }
         >
@@ -367,7 +367,7 @@ export default function Index() {
         <TouchableOpacity
           onPress={() =>
             router.push(
-              `/manage-apartment/${apartmentId}/description/edit-specs`,
+              `/landlord/manage-apartment/${apartmentId}/description/edit-specs`,
             )
           }
         >
@@ -447,7 +447,7 @@ export default function Index() {
             <TouchableOpacity
               onPress={() =>
                 router.push(
-                  `/manage-apartment/${apartmentId}/description/edit-perks`,
+                  `/landlord/manage-apartment/${apartmentId}/description/edit-perks`,
                 )
               }
             >

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 
 export type ApartmentDetails = {
@@ -27,6 +27,7 @@ export type ApartmentDetails = {
   max_occupants: number | null;
   security_deposit: number | null;
   advance_rent: number | null;
+  status: string;
   landlord: {
     id: string;
     first_name: string;
@@ -60,94 +61,92 @@ export function useApartmentDetails(apartmentId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!apartmentId) return;
+    setLoading(true);
+    setError(null);
 
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-
-      // Fetch apartment + images + landlord
-      const { data: aptData, error: aptError } = await supabase
-        .from('apartments')
-        .select(`
+    const { data: aptData, error: aptError } = await supabase
+      .from('apartments')
+      .select(`
+        id,
+        name,
+        description,
+        type,
+        monthly_rent,
+        no_bedrooms,
+        no_bathrooms,
+        area_sqm,
+        average_rating,
+        no_ratings,
+        amenities,
+        street_address,
+        barangay,
+        city,
+        province,
+        zip_code,
+        latitude,
+        longitude,
+        lease_agreement_url,
+        floor_level,
+        furnished_type,
+        lease_duration,
+        max_occupants,
+        security_deposit,
+        advance_rent,
+        status,
+        landlord:landlord_id (
           id,
-          name,
-          description,
-          type,
-          monthly_rent,
-          no_bedrooms,
-          no_bathrooms,
-          area_sqm,
-          average_rating,
-          no_ratings,
-          amenities,
-          street_address,
-          barangay,
-          city,
-          province,
-          zip_code,
-          latitude,
-          longitude,
-          lease_agreement_url,
-          floor_level,
-          furnished_type,
-          lease_duration,
-          max_occupants,
-          security_deposit,
-          advance_rent,
-          landlord:landlord_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            mobile_number,
-            avatar_url
-          ),
-          apartment_images (
-            id,
-            url,
-            is_cover
-          )
-        `)
-        .eq('id', apartmentId)
-        .single();
-
-      if (aptError) {
-        setError(aptError.message);
-        setLoading(false);
-        return;
-      }
-
-      setApartment(aptData as ApartmentDetails);
-
-      // Fetch top 2 reviews with tenant info
-      const { data: reviewData, error: reviewError } = await supabase
-        .from('reviews')
-        .select(`
+          first_name,
+          last_name,
+          email,
+          mobile_number,
+          avatar_url
+        ),
+        apartment_images (
           id,
-          rating,
-          comment,
-          created_at,
-          tenant:tenant_id (
-            first_name,
-            last_name,
-            avatar_url
-          )
-        `)
-        .eq('apartment_id', apartmentId)
-        .order('created_at', { ascending: false })
-        .limit(2);
+          url,
+          is_cover
+        )
+      `)
+      .eq('id', apartmentId)
+      .single();
 
-      if (!reviewError && reviewData) {
-        setReviews(reviewData as ReviewWithTenant[]);
-      }
-
+    if (aptError) {
+      setError(aptError.message);
       setLoading(false);
+      return;
     }
 
-    fetchData();
+    setApartment(aptData as ApartmentDetails);
+
+    const { data: reviewData, error: reviewError } = await supabase
+      .from('reviews')
+      .select(`
+        id,
+        rating,
+        comment,
+        created_at,
+        tenant:tenant_id (
+          first_name,
+          last_name,
+          avatar_url
+        )
+      `)
+      .eq('apartment_id', apartmentId)
+      .order('created_at', { ascending: false })
+      .limit(2);
+
+    if (!reviewError && reviewData) {
+      setReviews(reviewData as ReviewWithTenant[]);
+    }
+
+    setLoading(false);
   }, [apartmentId]);
 
-  return { apartment, reviews, loading, error };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { apartment, reviews, loading, error, refetch: fetchData };
 }

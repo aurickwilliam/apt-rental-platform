@@ -48,7 +48,7 @@ export default function PropertyCard({
   }
 
   return (
-    <PressableFeedback onPress={onPress}>
+    <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden'>
       <PressableFeedback.Highlight />
       <Card
         className='flex-row h-28 overflow-hidden rounded-3xl border border-border p-0 shadow-none'
