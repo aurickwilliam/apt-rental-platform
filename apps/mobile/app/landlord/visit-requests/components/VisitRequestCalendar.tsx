@@ -64,19 +64,22 @@ export default function VisitRequestCalendar({
           const isSelected = selectedDate === dateStr;
           const hasRequest = markedSet.has(dateStr);
           const isDisabled = state === "disabled";
+          const isToday = state === "today";
 
           // Priority: selected > has request > default
           const bgColor = isSelected
             ? colors.primary
             : hasRequest
-            ? colors.secondary
-            : colors.surface;
+              ? colors.secondary
+              : colors.surface;
 
           const textColor = isSelected || hasRequest
             ? colors.white
             : isDisabled
-            ? colors.gray400
-            : colors.textPrimary;
+              ? colors.gray400
+              : isToday
+                ? colors.primary
+                : colors.textPrimary;
 
           return (
             <Pressable

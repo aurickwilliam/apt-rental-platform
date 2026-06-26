@@ -12,16 +12,16 @@ import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestCalendar from "./components/VisitRequestCalendar";
 import EmptyApproved from "./components/EmptyApproved";
 
-import { formatDate } from "@repo/utils";
+import { formatDate, formatFullName } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 
-import { VISIT_REQUESTS } from "./mockData";
+import { useLandlordVisitRequests, LandlordVisitRequest } from "@/hooks/useLandlordVisitRequests";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
 type GroupedItem =
   | { type: "header"; group: Group; count: number }
-  | { type: "item"; data: (typeof VISIT_REQUESTS)[0] }
+  | { type: "item"; data: LandlordVisitRequest }
   | { type: "past-toggle" };
 
 const getGroup = (dateStr: string, today: string, todayDate: Date): Group => {
@@ -98,12 +98,13 @@ export default function VisitRequests() {
   const [isPastExpanded, setIsPastExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const { visitRequests, refetch } = useLandlordVisitRequests();
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    // swap this out for your real Supabase fetch later
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await refetch();
     setIsRefreshing(false);
-  }, []);
+  }, [refetch]);
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -116,26 +117,30 @@ export default function VisitRequests() {
   }, []);
 
   const markedDates = useMemo(() => {
-    return VISIT_REQUESTS.filter((r) => r.status === "Approved").map(
-      (r) => r.visit_date
-    );
-  }, []);
+    return visitRequests
+      .filter((r) => r.status === "approved")
+      .map((r) => r.visit_date);
+  }, [visitRequests]);
 
   const pendingCount = useMemo(() => {
-    return VISIT_REQUESTS.filter((r) => r.status === "Pending").length;
-  }, []);
+    return visitRequests.filter((r) => r.status === "pending").length;
+  }, [visitRequests]);
 
   const approvedRequests = useMemo(() => {
-    return VISIT_REQUESTS.filter((r) => r.status === "Approved");
-  }, []);
+    return visitRequests.filter((r) => r.status === "approved");
+  }, [visitRequests]);
 
   const filteredApproved = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return approvedRequests.filter((request) => {
+      const tenantName = formatFullName({
+        first_name: request.tenant.first_name,
+        last_name: request.tenant.last_name,
+      }).toLowerCase();
       const matchesSearch =
         !query ||
-        request.tenant_name.toLowerCase().includes(query) ||
-        request.apartment_name.toLowerCase().includes(query);
+        tenantName.includes(query) ||
+        request.apartment.name.toLowerCase().includes(query);
       const matchesDate = !selectedDate || request.visit_date === selectedDate;
       return matchesSearch && matchesDate;
     });
@@ -266,11 +271,14 @@ export default function VisitRequests() {
           return (
             <View className="mb-3">
               <VisitRequestCard
-                tenantName={item.data.tenant_name}
-                apartmentName={item.data.apartment_name}
-                visitSchedule={`${formatDate(item.data.visit_date, "medium")} • ${item.data.visit_time}`}
+                tenantName={formatFullName({
+                  first_name: item.data.tenant.first_name,
+                  last_name: item.data.tenant.last_name,
+                })}
+                apartmentName={item.data.apartment.name}
+                visitSchedule={`${formatDate(item.data.visit_date, "medium")} at ${item.data.time}`}
                 status={item.data.status}
-                avatarUrl={item.data.tenant_avatar_url ?? undefined}
+                avatarUrl={item.data.tenant.avatar_url ?? undefined}
                 onPress={() => handleRequestPress(item.data.id)}
               />
             </View>

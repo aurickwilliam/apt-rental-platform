@@ -4,16 +4,16 @@ import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 
 import { Calendar, Home } from "lucide-react-native";
 
-import { COLORS } from "@repo/constants";
 import { useColors } from "@/hooks/useTheme"
 
 import { getInitials } from "@repo/utils";
 
 export type VisitRequestStatus =
-  | "Pending"
-  | "Approved"
-  | "Rejected"
-  | "Rescheduled";
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "rescheduled";
 
 interface VisitRequestCardProps {
   tenantName: string;
@@ -23,28 +23,6 @@ interface VisitRequestCardProps {
   avatarUrl?: string;
   onPress?: () => void;
 }
-
-const STATUS_STYLES: Record<
-  VisitRequestStatus,
-  { backgroundColor: string; textColor: string }
-> = {
-  Pending: {
-    backgroundColor: COLORS.light.warningLight,
-    textColor: COLORS.light.warning,
-  },
-  Approved: {
-    backgroundColor: COLORS.light.successLight,
-    textColor: COLORS.light.success,
-  },
-  Rejected: {
-    backgroundColor: COLORS.light.dangerLight,
-    textColor: COLORS.light.danger,
-  },
-  Rescheduled: {
-    backgroundColor: COLORS.light.primaryLight,
-    textColor: COLORS.light.primary,
-  },
-};
 
 export default function VisitRequestCard({
   tenantName,
@@ -56,7 +34,45 @@ export default function VisitRequestCard({
 }: VisitRequestCardProps) {
   const { colors } = useColors();
 
-  const statusStyle = STATUS_STYLES[status];
+  const STATUS_STYLES: Record<
+    VisitRequestStatus,
+    {
+      label: string;
+      backgroundColor:
+      string; textColor: string
+    }
+  > = {
+    pending: {
+      label: "Pending",
+      backgroundColor: colors.warningLight,
+      textColor: colors.warning,
+    },
+    approved: {
+      label: "Approved",
+      backgroundColor: colors.successLight,
+      textColor: colors.success,
+    },
+    rejected: {
+      label: "Rejected",
+      backgroundColor: colors.dangerLight,
+      textColor: colors.danger,
+    },
+    rescheduled: {
+      label: "Rescheduled",
+      backgroundColor: colors.primaryLight,
+      textColor: colors.primary,
+    },
+    cancelled: {
+      label: "Cancelled",
+      backgroundColor: colors.gray100,
+      textColor: colors.gray500,
+    },
+  };
+
+  const statusStyle = STATUS_STYLES[status] ?? {
+    backgroundColor: colors.gray100,
+    textColor: colors.gray500,
+  };
 
   return (
     <PressableFeedback onPress={onPress} className="rounded-3xl overflow-hidden">
@@ -99,7 +115,7 @@ export default function VisitRequestCard({
                 </View>
               </View>
 
-              {status !== "Approved" && (
+              {status !== "approved" && (
                 <View className="items-end gap-1">
                   <Chip
                     size="sm"
@@ -110,7 +126,7 @@ export default function VisitRequestCard({
                       className="font-interMedium"
                       style={{ color: statusStyle.textColor }}
                     >
-                      {status}
+                      {statusStyle.label}
                     </Chip.Label>
                   </Chip>
                 </View>
