@@ -1,54 +1,20 @@
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  House,
-} from 'lucide-react-native';
+import { House } from "lucide-react-native";
 
-import { Button, Card, SearchField } from "heroui-native";
+import { Card, SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "@/components/cards/VisitRequestCard";
+import VisitRequestCalendar from "./components/VisitRequestCalendar";
 
 import { formatDate } from "@repo/utils";
-
-import { VISIT_REQUESTS } from "./mockData";
-
 import { useColors } from "@/hooks/useTheme";
 
-const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-
-const formatDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const normalizeDate = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const buildMonthCells = (monthDate: Date) => {
-  const year = monthDate.getFullYear();
-  const month = monthDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startIndex = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const cells: Array<Date | null> = Array.from({ length: 42 }, () => null);
-  for (let i = 0; i < daysInMonth; i += 1) {
-    cells[startIndex + i] = new Date(year, month, i + 1);
-  }
-
-  return cells;
-};
-
-const formatMonthLabel = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+import { VISIT_REQUESTS } from "./mockData";
 
 function EmptyApproved() {
   const { colors } = useColors();
@@ -72,43 +38,34 @@ export default function VisitRequests() {
   const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(() =>
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const requestDateSet = useMemo(() => {
-    return new Set(VISIT_REQUESTS.map((request) => request.visit_date));
+  const markedDates = useMemo(() => {
+    return VISIT_REQUESTS.filter((r) => r.status === "Approved").map(
+      (r) => r.visit_date
+    );
   }, []);
 
   const pendingCount = useMemo(() => {
-    return VISIT_REQUESTS.filter((request) => request.status === "Pending")
-      .length;
+    return VISIT_REQUESTS.filter((r) => r.status === "Pending").length;
   }, []);
 
   const approvedRequests = useMemo(() => {
-    return VISIT_REQUESTS.filter((request) => request.status === "Approved");
+    return VISIT_REQUESTS.filter((r) => r.status === "Approved");
   }, []);
 
   const filteredApproved = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return approvedRequests;
     return approvedRequests.filter((request) => {
-      return (
+      const matchesSearch =
+        !query ||
         request.tenant_name.toLowerCase().includes(query) ||
-        request.apartment_name.toLowerCase().includes(query)
-      );
+        request.apartment_name.toLowerCase().includes(query);
+      const matchesDate =
+        !selectedDate || request.visit_date === selectedDate;
+      return matchesSearch && matchesDate;
     });
-  }, [approvedRequests, searchQuery]);
-
-  const monthCells = useMemo(
-    () => buildMonthCells(currentMonth),
-    [currentMonth]
-  );
-
-  const today = normalizeDate(new Date());
-  const todayKey = formatDateKey(today);
-  const selectedKey = selectedDate ? formatDateKey(selectedDate) : "";
+  }, [approvedRequests, searchQuery, selectedDate]);
 
   const handlePendingPress = () => {
     router.push("/landlord/visit-requests/pending");
@@ -116,12 +73,6 @@ export default function VisitRequests() {
 
   const handleRequestPress = (requestId: string) => {
     router.push(`/landlord/visit-requests/${requestId}`);
-  };
-
-  const handleChangeMonth = (offset: number) => {
-    setCurrentMonth((prev) =>
-      new Date(prev.getFullYear(), prev.getMonth() + offset, 1)
-    );
   };
 
   return (
@@ -142,170 +93,17 @@ export default function VisitRequests() {
         }}
         ListHeaderComponent={
           <View className="gap-5">
-            <View className="gap-2">
-              <Text className="text-primary text-base font-interMedium">
-                Visit Request Schedule
-              </Text>
-              <Card className="shadow-none border border-grey-200">
-                <Card.Body className="p-4 gap-4">
-                  <View className="flex-row items-center justify-between">
-                    <Pressable
-                      onPress={() => handleChangeMonth(-1)}
-                      className="p-2 rounded-full"
-                    >
-                      <ChevronLeft size={20} color={colors.gray500} />
-                    </Pressable>
-
-                    <Text className="text-foreground text-base font-interSemiBold">
-                      {formatMonthLabel(currentMonth)}
-                    </Text>
-
-                    <Pressable
-                      onPress={() => handleChangeMonth(1)}
-                      className="p-2 rounded-full"
-                    >
-                      <ChevronRight size={20} color={colors.gray500} />
-                    </Pressable>
-                  </View>
-
-                  <View className="flex-row justify-between">
-                    {DAYS.map((day) => (
-                      <Text
-                        key={day}
-                        className="text-muted text-xs font-inter"
-                        style={{ width: 32, textAlign: "center" }}
-                      >
-                        {day}
-                      </Text>
-                    ))}
-                  </View>
-
-                  <View className="flex-row flex-wrap">
-                    {monthCells.map((date, index) => {
-                      if (!date) {
-                        return (
-                          <View
-                            key={`empty-${index}`}
-                            style={{ width: 32, height: 40 }}
-                          />
-                        );
-                      }
-
-                      const dateKey = formatDateKey(date);
-                      const isRequestDay = requestDateSet.has(dateKey);
-                      const isSelected = dateKey === selectedKey;
-                      const isToday = dateKey === todayKey;
-                      const isPast = normalizeDate(date) < today;
-                      const isAvailable = !isPast && !isRequestDay;
-
-                      return (
-                        <Pressable
-                          key={dateKey}
-                          onPress={() => setSelectedDate(date)}
-                          className="items-center justify-center"
-                          style={{ width: 32, height: 40 }}
-                        >
-                          <View
-                            className="items-center justify-center rounded-full"
-                            style={{
-                              width: 28,
-                              height: 28,
-                              borderWidth: isSelected || isToday ? 1 : 0,
-                              borderColor: isSelected
-                                ? colors.primary
-                                : isToday
-                                ? colors.primary
-                                : "transparent",
-                              backgroundColor: isSelected
-                                ? colors.primary
-                                : "transparent",
-                              opacity: isPast ? 0.4 : 1,
-                            }}
-                          >
-                            <Text
-                              className="text-xs font-inter"
-                              style={{
-                                color: isSelected
-                                  ? colors.white
-                                  : isRequestDay
-                                  ? colors.primary
-                                  : isAvailable
-                                  ? colors.textPrimary
-                                  : colors.gray500,
-                              }}
-                            >
-                              {date.getDate()}
-                            </Text>
-                          </View>
-                          <View className="mt-1">
-                            {isRequestDay ? (
-                              <View
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 999,
-                                  backgroundColor: isSelected
-                                    ? colors.white
-                                    : colors.primary,
-                                }}
-                              />
-                            ) : isAvailable ? (
-                              <View
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 999,
-                                  borderWidth: 1,
-                                  borderColor: colors.gray400,
-                                }}
-                              />
-                            ) : (
-                              <View style={{ width: 6, height: 6 }} />
-                            )}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <View className="flex-row items-center gap-4">
-                    <View className="flex-row items-center gap-2">
-                      <View
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          backgroundColor: colors.primary,
-                        }}
-                      />
-                      <Text className="text-xs text-gray-500 font-inter">
-                        Visit requests
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-2">
-                      <View
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          borderWidth: 1,
-                          borderColor: colors.gray400,
-                        }}
-                      />
-                      <Text className="text-xs text-gray-500 font-inter">
-                        Available dates
-                      </Text>
-                    </View>
-                  </View>
-                </Card.Body>
-              </Card>
-            </View>
-
-            <Button onPress={handlePendingPress} className="w-full">
-              <Button.Label>
-                Pending Visit Requests ({pendingCount})
-              </Button.Label>
-            </Button>
+            <Card className="shadow-none border border-border p-3 rounded-3xl">
+              <Card.Body>
+                <VisitRequestCalendar
+                  markedDates={markedDates}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  pendingCount={pendingCount}
+                  onPendingPress={handlePendingPress}
+                />
+              </Card.Body>
+            </Card>
 
             <View className="gap-3 mb-3">
               <View className="flex-row items-center justify-between">

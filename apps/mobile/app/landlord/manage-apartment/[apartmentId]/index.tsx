@@ -5,7 +5,6 @@ import { useState } from 'react';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import PillButton from 'components/buttons/PillButton'
 import TenantCard from './components/TenantCard'
 import PaymentHistoryCard from './components/PaymentHistoryCard'
 import MaintenanceRequestCard from './components/MaintenanceRequestCard'
@@ -182,8 +181,11 @@ export default function Index() {
               <View className="w-px h-full bg-border" />
 
               <View className="flex items-center gap-1 w-1/3">
-                <Text className="text-base text-foreground font-inter">Status</Text>
-                <CircleCheck size={32} color={isOccupied ? colors.success : colors.primary} />
+                <Text className="text-base text-foreground font-inter">
+                  Status
+                </Text>
+                <CircleCheck
+                  size={32} color={isOccupied ? colors.success : colors.primary} />
                 <Text className="text-base text-foreground font-interMedium">
                   {apartment.status}
                 </Text>
@@ -301,7 +303,16 @@ export default function Index() {
             <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
-            <PillButton label="Retry" size="sm" onPress={refetch} />
+
+            <Button
+              size="sm"
+              variant="tertiary"
+              onPress={refetch}
+            >
+              <Button.Label>
+                Retry
+              </Button.Label>
+            </Button>
           </View>
         )}
       </ScreenWrapper>
