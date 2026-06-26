@@ -2,8 +2,7 @@ import { View, Text, TouchableOpacity, FlatList } from 'react-native'
 import { Image } from 'expo-image';
 import ImageViewing from 'react-native-image-viewing'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { useState, useCallback } from 'react'
-import { useFocusEffect } from '@react-navigation/native'
+import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -35,75 +34,10 @@ import { IMAGES } from 'constants/images'
 import { supabase } from '@repo/supabase'
 
 import { useColors } from 'hooks/useTheme'
+import { useApartmentDetails } from 'hooks/useApartmentDetails'
+import { useLandlordTenancy } from 'hooks/useLandlordTenancy'
 
-type ApartmentStatus =
-  | "Available"
-  | "Occupied"
-  | "Under Maintenance"
-  | "Unverified"
-  | "Verified";
-
-type ApartmentImage = {
-  id: string
-  url: string
-}
-
-type Tenant = {
-  id: string
-  fullName: string
-  email: string
-  mobileNumber: string
-  avatarUrl: string | null
-  leaseStartMonthYear: string
-  leaseEndMonthYear: string
-}
-
-type MaintenanceRequest = {
-  id: string
-  title: string
-  reportedDate: string
-}
-
-type PaymentRecord = {
-  id: string
-  month: string
-  year: string
-  amount: number
-  paidDate: string
-  status: 'paid' | 'partial'
-}
-
-type ApartmentDetail = {
-  name: string
-  street_address: string
-  barangay: string
-  city: string
-  province: string
-  zip_code: number | null
-  status: ApartmentStatus
-  monthlyRent: number
-  type: string
-  noBedrooms: number
-  noBathrooms: number
-  areaSqm: number
-  averageRating: number | null
-  noRatings: number
-  furnishedType: string
-  floorLevel: string
-  maxOccupants: number
-  leaseDuration: string
-}
-
-function formatMonthYear(isoDate: string | null): string {
-  if (!isoDate) return '—'
-  const d = new Date(isoDate)
-  return d.toLocaleString('default', { month: 'short', year: 'numeric' })
-}
-
-function formatPaymentDate(isoDate: string): string {
-  const d = new Date(isoDate)
-  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`
-}
+import { formatDate } from '@repo/utils';
 
 function DetailSkeleton() {
   return (
@@ -134,190 +68,11 @@ export default function Index() {
   const [isImageViewVisible, setIsImageViewVisible] = useState(false)
   const [open, setOpen] = useState(false)
 
-  const [loading, setLoading] = useState(true)
-  const [apartment, setApartment] = useState<ApartmentDetail | null>(null)
-  const [images, setImages] = useState<ApartmentImage[]>([])
-  const [tenant, setTenant] = useState<Tenant | null>(null)
-  const [maintenanceRequest, setMaintenanceRequest] = useState<MaintenanceRequest | null>(null);
-  const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([])
-
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
 
-  const fetchApartmentDetail = useCallback(async () => {
-    if (!apartmentId) return
-    setLoading(true)
-
-    try {
-      // Get the full information of the apartment
-      const { data: aptData, error: aptError } = await supabase
-        .from('apartments')
-        .select(`
-          name,
-          street_address,
-          barangay,
-          city,
-          province,
-          zip_code,
-          status,
-          monthly_rent,
-          type,
-          no_bedrooms,
-          no_bathrooms,
-          area_sqm,
-          average_rating,
-          no_ratings,
-          apartment_images (id, url, is_cover),
-          furnished_type,
-          floor_level,
-          max_occupants,
-          lease_duration
-        `)
-        .eq('id', apartmentId)
-        .is('deleted_at', null)
-        .single()
-
-      if (aptError) throw aptError
-
-      const rawStatus = aptData.status
-        ? aptData.status.charAt(0).toUpperCase() + aptData.status.slice(1)
-        : 'Unverified'
-
-      const validStatuses: ApartmentStatus[] = [
-        'Available',
-        'Occupied',
-        'Under Maintenance',
-        'Unverified',
-        'Verified'
-      ]
-      const status = validStatuses.includes(rawStatus as ApartmentStatus)
-        ? (rawStatus as ApartmentStatus)
-        : 'Unverified'
-
-      setApartment({
-        name: aptData.name,
-        street_address: aptData.street_address,
-        barangay: aptData.barangay,
-        city: aptData.city,
-        province: aptData.province,
-        zip_code: aptData.zip_code ?? null,
-        status,
-        monthlyRent: Number(aptData.monthly_rent ?? 0),
-        type: aptData.type ?? '—',
-        noBedrooms: aptData.no_bedrooms ?? 0,
-        noBathrooms: aptData.no_bathrooms ?? 0,
-        areaSqm: Number(aptData.area_sqm ?? 0),
-        averageRating: aptData.average_rating ? Number(aptData.average_rating) : null,
-        noRatings: aptData.no_ratings ?? 0,
-        furnishedType: aptData.furnished_type ?? '—',
-        floorLevel: aptData.floor_level ?? '—',
-        maxOccupants: aptData.max_occupants ?? 0,
-        leaseDuration: aptData.lease_duration ?? '—',
-      })
-
-      // Get the images and sort by cover first
-      const rawImages: { id: string; url: string; is_cover: boolean | null }[] =
-        aptData.apartment_images ?? []
-      const sorted = [...rawImages].sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0))
-      setImages(sorted.map((img) => ({ id: img.id, url: img.url })))
-
-      // Get the active tenant of the apt
-      const { data: tenancyData } = await supabase
-        .from('tenancies')
-        .select(`
-          id,
-          lease_start,
-          lease_end,
-          tenant:users!tenancies_tenant_id_fkey (
-            id,
-            first_name,
-            last_name,
-            mobile_number,
-            email,
-            avatar_url
-          )
-        `)
-        .eq('apartment_id', apartmentId)
-        .eq('status', 'active')
-        .maybeSingle()
-
-      if (tenancyData?.tenant) {
-        const t = tenancyData.tenant as {
-          id: string
-          first_name: string
-          last_name: string
-          mobile_number: string
-          email: string | null
-          avatar_url: string | null
-        }
-        setTenant({
-          id: t.id,
-          fullName: `${t.first_name} ${t.last_name}`,
-          email: t.email ?? '—',
-          mobileNumber: t.mobile_number,
-          avatarUrl: t.avatar_url,
-          leaseStartMonthYear: formatMonthYear(tenancyData.lease_start),
-          leaseEndMonthYear: formatMonthYear(tenancyData.lease_end),
-        })
-      } else {
-        setTenant(null)
-      }
-
-      // Get the most recent pending/in_progress maintenance request, if any
-      const { data: maintData } = await supabase
-        .from('maintenance_request')
-        .select('id, title, created_at')
-        .eq('apartment_id', apartmentId)
-        .in('status', ['pending', 'in_progress'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (maintData) {
-        setMaintenanceRequest({
-          id: maintData.id,
-          title: maintData.title,
-          reportedDate: new Date(maintData.created_at).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric',
-          }),
-        })
-      } else {
-        setMaintenanceRequest(null)
-      }
-
-      // Get the 4 most recent paid/partial rent payments for this apartment
-      const { data: payments } = await supabase
-        .from('payment')
-        .select('id, amount, date, status')
-        .eq('apartment_id', apartmentId)
-        .in('status', ['paid', 'partial'])
-        .order('date', { ascending: false })
-        .limit(4)
-
-      const mapped: PaymentRecord[] = (payments ?? []).map((p) => {
-        const d = new Date(p.date)
-        return {
-          id: p.id,
-          month: d.toLocaleString('default', { month: 'long' }),
-          year: String(d.getFullYear()),
-          amount: Number(p.amount ?? 0),
-          paidDate: formatPaymentDate(p.date),
-          status: p.status as 'paid' | 'partial',
-        }
-      })
-      setPaymentHistory(mapped)
-    } catch (err) {
-      console.error('Error fetching apartment detail:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [apartmentId])
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchApartmentDetail()
-    }, [fetchApartmentDetail])
-  )
+  const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
+  const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
 
   const handleImagePress = (index: number) => {
     setImageIndex(index)
@@ -346,7 +101,7 @@ export default function Index() {
         .eq('id', apartmentId)
 
       setIsVacateDialogOpen(false)
-      fetchApartmentDetail()
+      refetch()
     } catch (err) {
       console.error('Error vacating unit:', err)
       setIsVacateDialogOpen(false)
@@ -411,7 +166,8 @@ export default function Index() {
     })
   }
 
-  const isOccupied = apartment?.status === 'Occupied';
+  const isOccupied = apartment?.status === 'occupied';
+  const images = [...(apartment?.apartment_images ?? [])].sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0))
 
   return (
     <View style={{ flex: 1 }}>
@@ -473,7 +229,7 @@ export default function Index() {
 
               {/* Monthly Rent */}
               <Text className="text-accent text-lg font-interMedium">
-                ₱ {apartment.monthlyRent.toLocaleString()}
+                ₱ {apartment.monthly_rent.toLocaleString()}
                 <Text className="text-gray-500 font-inter text-base">
                   /month
                 </Text>
@@ -491,7 +247,7 @@ export default function Index() {
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Calendar size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.leaseDuration}
+                    {apartment.lease_duration}
                   </Text>
                 </View>
               </View>
@@ -501,16 +257,16 @@ export default function Index() {
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <BedDouble size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.noBedrooms} Bedroom
-                    {apartment.noBedrooms !== 1 ? "s" : ""}
+                    {apartment.no_bedrooms} Bedroom
+                    {apartment.no_bedrooms !== 1 ? "s" : ""}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Bath size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.noBathrooms} Bathroom
-                    {apartment.noBathrooms !== 1 ? "s" : ""}
+                    {apartment.no_bathrooms} Bathroom
+                    {apartment.no_bathrooms !== 1 ? "s" : ""}
                   </Text>
                 </View>
               </View>
@@ -520,14 +276,14 @@ export default function Index() {
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Armchair size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.furnishedType}
+                    {apartment.furnished_type}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Building size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.floorLevel}
+                    {apartment.floor_level}
                   </Text>
                 </View>
               </View>
@@ -537,15 +293,15 @@ export default function Index() {
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Users size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    Max {apartment.maxOccupants} Occupant
-                    {apartment.maxOccupants !== 1 ? "s" : ""}
+                    Max {apartment.max_occupants} Occupant
+                    {apartment.max_occupants !== 1 ? "s" : ""}
                   </Text>
                 </View>
 
                 <View className="flex-row w-1/2 gap-2 items-center justify-start">
                   <Maximize size={24} color={colors.gray500} />
                   <Text className="text-foreground text-base">
-                    {apartment.areaSqm} Sqm
+                    {apartment.area_sqm} Sqm
                   </Text>
                 </View>
               </View>
@@ -558,8 +314,8 @@ export default function Index() {
                   </Text>
 
                   <Text className="text-3xl text-secondary font-interMedium">
-                    {apartment.averageRating !== null
-                      ? `${apartment.averageRating}/5`
+                    {apartment.average_rating !== null
+                      ? `${apartment.average_rating}/5`
                       : "—"}
                   </Text>
 
@@ -576,7 +332,7 @@ export default function Index() {
                   </Text>
 
                   <Text className="text-3xl text-foreground font-interMedium">
-                    {apartment.noRatings}
+                    {apartment.no_ratings}
                   </Text>
 
                   <Text className="text-base text-foreground font-interMedium">
@@ -634,8 +390,12 @@ export default function Index() {
                       phoneNumber={tenant.mobileNumber}
                       profilePictureUrl={tenant.avatarUrl ?? undefined}
                       onPress={() => handleTenantProfilePress(tenant.id)}
-                      leaseStartMonthYear={tenant.leaseStartMonthYear}
-                      leaseEndMonthYear={tenant.leaseEndMonthYear}
+                      leaseStartMonthYear={formatDate(tenant.leaseStart, "medium")}
+                      leaseEndMonthYear={
+                        tenant.leaseEnd
+                          ? formatDate(tenant.leaseEnd, "medium")
+                          : "—"
+                      }
                       onMessagePress={handleMessageTenant}
                     />
                   </View>
@@ -696,7 +456,7 @@ export default function Index() {
                 <View className="flex items-center gap-1">
                   <Image
                     source={IMAGES.userError}
-                    className="size-20"
+                    style={{ width: 100, height: 100 }}
                     contentFit="contain"
                   />
                   <Text className="text-danger text-lg font-interMedium">
@@ -704,14 +464,20 @@ export default function Index() {
                   </Text>
                 </View>
 
-                <Button size="sm" variant="tertiary">
-                  <Button.Label>View Applications</Button.Label>
+                <Button
+                  size="sm"
+                  variant="tertiary"
+                  onPress={() => router.push(`/landlord/tenant-applications/`)}
+                >
+                  <Button.Label>
+                    View Applications
+                  </Button.Label>
                 </Button>
               </View>
             )}
 
             <ImageViewing
-              images={images.map((img) => ({ uri: img.url }))}
+              images={(apartment?.apartment_images ?? []).map((img) => ({ uri: img.url }))}
               imageIndex={imageIndex}
               visible={isImageViewVisible}
               onRequestClose={() => setIsImageViewVisible(false)}
@@ -736,7 +502,7 @@ export default function Index() {
             <PillButton
               label="Retry"
               size="sm"
-              onPress={fetchApartmentDetail}
+              onPress={refetch}
             />
           </View>
         )}
@@ -762,6 +528,7 @@ export default function Index() {
             align="end"
             width={200}
           >
+            <Menu.Label>Actions</Menu.Label>
             <Menu.Item onPress={handleVacateUnit}>
               <LogOut size={20} color={colors.textPrimary} />
               <Menu.ItemTitle>Vacate</Menu.ItemTitle>

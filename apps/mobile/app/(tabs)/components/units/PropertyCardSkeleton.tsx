@@ -5,7 +5,7 @@ export default function PropertyCardSkeleton() {
   return (
     <SkeletonGroup
       isLoading
-      className="bg-surface rounded-2xl p-4 flex-row gap-3 border border-border"
+      className="bg-surface rounded-3xl p-4 flex-row gap-3 border border-border"
     >
       <SkeletonGroup.Item className="w-20 h-20 rounded-xl" />
       <View className="flex-1 gap-2 justify-center">

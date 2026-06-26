@@ -52,7 +52,6 @@ const actions: actionsTypes[] = [
     id: 2,
     label: "View Lease",
     icon: FileText,
-    onPress: () => router.push("/tenant/current-lease"),
   },
   { 
     id: 3, 
