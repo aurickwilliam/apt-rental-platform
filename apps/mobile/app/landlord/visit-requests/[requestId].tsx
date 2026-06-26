@@ -16,6 +16,14 @@ import { DEFAULT_IMAGES } from "constants/images";
 import { VISIT_REQUESTS } from "./mockData";
 
 import { useColors } from "@/hooks/useTheme";
+import EmptyRequestData from "./components/EmptyRequestData";
+
+type VisitRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "rescheduled"
+  | "cancelled";
 
 export default function VisitRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
@@ -25,43 +33,45 @@ export default function VisitRequestDetails() {
     return VISIT_REQUESTS.find((item) => item.id === requestId);
   }, [requestId]);
 
-  if (!request) {
-    return (
-      <ScreenWrapper
-        header={<StandardHeader title="Visit Request" />}
-      >
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-foreground text-base font-interSemiBold">
-            Visit request not found
-          </Text>
-          <Text className="text-gray-500 text-sm font-inter text-center mt-2">
-            Please return to the visit request list.
-          </Text>
-        </View>
-      </ScreenWrapper>
-    );
-  }
+  if (!request) return <EmptyRequestData />;
 
-  const STATUS_STYLES = {
-    Pending: {
+  const STATUS_STYLES: Record<VisitRequestStatus, {
+    label: string;
+    backgroundColor: string;
+    textColor: string
+  }> = {
+    pending: {
+      label: "Pending",
       backgroundColor: colors.warningLight,
       textColor: colors.warning,
     },
-    Approved: {
+    approved: {
+      label: "Approved",
       backgroundColor: colors.successLight,
       textColor: colors.success,
     },
-    Rejected: {
+    rejected: {
+      label: "Rejected",
       backgroundColor: colors.dangerLight,
       textColor: colors.danger,
     },
-    Rescheduled: {
+    rescheduled: {
+      label: "Rescheduled",
       backgroundColor: colors.primaryLight,
       textColor: colors.primary,
     },
+    cancelled: {
+      label: "Cancelled",
+      backgroundColor: colors.gray100,
+      textColor: colors.gray500
+    }
   };
 
-  const statusStyle = STATUS_STYLES[request.status];
+  const statusStyle = STATUS_STYLES[request.status as VisitRequestStatus] ?? {
+    label: "Unknown",
+    backgroundColor: colors.gray100,
+    textColor: colors.gray500
+  };
   const scheduleLabel = `${formatDate(request.visit_date, "long")} • ${
     request.visit_time
   }`;
