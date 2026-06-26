@@ -9,15 +9,13 @@ import TenantCard from './components/TenantCard'
 import PaymentHistoryCard from './components/PaymentHistoryCard'
 import MaintenanceRequestCard from './components/MaintenanceRequestCard'
 import PropertyOverview from './components/PropertyOverview'
+import PropertyActionMenu from './components/PropertyActionMenu'
 
-import { Button, Menu, Dialog } from 'heroui-native'
+import { Button, Dialog } from 'heroui-native'
 
 import {
   User,
   CircleCheck,
-  LogOut,
-  CircleX,
-  EllipsisVertical,
   Building,
 } from 'lucide-react-native';
 
@@ -334,44 +332,11 @@ export default function Index() {
         )}
       </ScreenWrapper>
 
-      {/* FAB with Menu */}
-      <Menu>
-        <Menu.Trigger asChild>
-          <Button
-            className="absolute bottom-8 right-6 rounded-full bg-accent
-              items-center justify-center shadow-lg active:opacity-80"
-            isIconOnly
-          >
-            <EllipsisVertical size={26} color={colors.secondaryForeground} />
-          </Button>
-        </Menu.Trigger>
-
-        <Menu.Portal>
-          <Menu.Overlay />
-          <Menu.Content
-            presentation="popover"
-            placement="top"
-            align="end"
-            width={200}
-          >
-            <Menu.Label>Actions</Menu.Label>
-            <Menu.Item onPress={handleVacateUnit}>
-              <LogOut size={20} color={colors.textPrimary} />
-              <Menu.ItemTitle>Vacate</Menu.ItemTitle>
-            </Menu.Item>
-
-            <Menu.Item
-              variant="danger"
-              onPress={() => {
-                setIsRemoveDialogOpen(true);
-              }}
-            >
-              <CircleX size={20} color={colors.danger} />
-              <Menu.ItemTitle>Remove Unit</Menu.ItemTitle>
-            </Menu.Item>
-          </Menu.Content>
-        </Menu.Portal>
-      </Menu>
+      <PropertyActionMenu
+        onVacate={handleVacateUnit}
+        onRemove={() => setIsRemoveDialogOpen(true)}
+        isOccupied={isOccupied}
+      />
 
       {/* Remove Unit Dialog */}
       <Dialog isOpen={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
