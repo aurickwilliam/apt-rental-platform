@@ -29,6 +29,7 @@ import { supabase } from '@repo/supabase'
 import { useColors } from 'hooks/useTheme'
 import { useApartmentDetails } from 'hooks/useApartmentDetails'
 import { useLandlordTenancy } from 'hooks/useLandlordTenancy'
+import { useProfile } from 'hooks/useProfile'
 
 import { formatDate } from '@repo/utils';
 
@@ -42,6 +43,7 @@ export default function Index() {
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
+  const { profile } = useProfile();
 
   const handleVacateUnit = () => {
     setIsVacateDialogOpen(true)
@@ -94,39 +96,25 @@ export default function Index() {
     router.push(`/landlord/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
   }
 
-  const handleMessageTenant = async () => {
-    if (!tenant || !apartmentId) return
+  const handleMessageTenant = () => {
+    if (!tenant || !profile || !apartmentId) return;
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!profile) return
-
-    const landlordId = profile.id
-    const tenantId = tenant.id
-
-    const userA = landlordId < tenantId ? landlordId : tenantId
-    const userB = landlordId < tenantId ? tenantId : landlordId
-    const conversationId = `${userA}-${userB}-${apartmentId}`
+    const userA = profile.id < tenant.id ? profile.id : tenant.id;
+    const userB = profile.id < tenant.id ? tenant.id : profile.id;
+    const conversationId = `${userA}-${userB}-${apartmentId}`;
 
     router.push({
       pathname: '/chat/[conversationId]',
       params: {
         conversationId,
-        otherUserId: tenantId,
+        otherUserId: tenant.id,
         otherUserName: tenant.fullName,
         otherUserAvatar: tenant.avatarUrl ?? '',
         otherUserPhoneNumber: tenant.mobileNumber,
         apartmentId,
       },
-    })
-  }
+    });
+  };
 
   const isOccupied = apartment?.status === 'occupied';
 
@@ -172,9 +160,13 @@ export default function Index() {
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Ratings</Text>
                 <Text className="text-3xl text-secondary font-interMedium">
-                  {apartment.average_rating !== null ? `${apartment.average_rating}/5` : '—'}
+                  {apartment.average_rating !== null
+                    ? `${apartment.average_rating}/5`
+                    : '—'}
                 </Text>
-                <Text className="text-base text-foreground font-interMedium">Average</Text>
+                <Text className="text-base text-foreground font-interMedium">
+                  Average
+                </Text>
               </View>
 
               <View className="w-px h-full bg-border" />
