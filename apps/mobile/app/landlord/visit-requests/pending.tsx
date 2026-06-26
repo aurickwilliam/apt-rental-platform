@@ -2,13 +2,13 @@ import { useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import { Calendar } from 'lucide-react-native'; 
+import { Calendar } from 'lucide-react-native';
 
 import { SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import VisitRequestCard from "@/components/cards/VisitRequestCard";
+import VisitRequestCard from "./components/VisitRequestCard";
 
 import { formatDate } from "@repo/utils";
 
