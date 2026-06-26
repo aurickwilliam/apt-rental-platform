@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useState } from 'react';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -10,8 +11,10 @@ import PaymentHistoryCard from './components/PaymentHistoryCard'
 import MaintenanceRequestCard from './components/MaintenanceRequestCard'
 import PropertyOverview from './components/PropertyOverview'
 import PropertyActionMenu from './components/PropertyActionMenu'
+import ConfirmDialog from 'components/display/ConfirmDialog'
+import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 
-import { Button, Dialog } from 'heroui-native'
+import { Button } from 'heroui-native'
 
 import {
   User,
@@ -28,27 +31,6 @@ import { useApartmentDetails } from 'hooks/useApartmentDetails'
 import { useLandlordTenancy } from 'hooks/useLandlordTenancy'
 
 import { formatDate } from '@repo/utils';
-import { useState } from 'react';
-
-function DetailSkeleton() {
-  return (
-    <View className="flex gap-5 mt-3">
-      <View className="flex-row gap-3 mb-3">
-        {[1, 2].map((i) => (
-          <View key={i} className="rounded-2xl w-48 h-60 bg-surface" />
-        ))}
-      </View>
-      <View className="h-8 bg-surface rounded-full w-2/3" />
-      <View className="h-4 bg-surface rounded-full w-1/2" />
-      <View className="h-5 bg-surface rounded-full w-1/3" />
-      <View className="flex-row gap-3">
-        {[1, 2, 3].map((i) => (
-          <View key={i} className="h-4 bg-surface-secondary rounded-full w-1/4" />
-        ))}
-      </View>
-    </View>
-  )
-}
 
 export default function Index() {
   const router = useRouter()
@@ -162,7 +144,7 @@ export default function Index() {
         bottomPadding={50}
       >
         {loading ? (
-          <DetailSkeleton />
+          <PropertyOverviewSkeleton />
         ) : apartment ? (
           <>
             {/* Images + Specs */}
@@ -338,54 +320,23 @@ export default function Index() {
         isOccupied={isOccupied}
       />
 
-      {/* Remove Unit Dialog */}
-      <Dialog isOpen={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
-            <View className="mb-5 gap-1.5">
-              <Dialog.Title>Remove Unit</Dialog.Title>
-              <Dialog.Description>
-                Are you sure you want to remove this property? This action cannot be undone.
-              </Dialog.Description>
-            </View>
-            <View className="flex-row justify-end gap-3">
-              <Button variant="ghost" size="sm" onPress={() => setIsRemoveDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button size="sm" variant="danger" onPress={handleRemoveUnit}>
-                Remove
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      <ConfirmDialog
+        isOpen={isRemoveDialogOpen}
+        onOpenChange={setIsRemoveDialogOpen}
+        title="Remove Unit"
+        description="Are you sure you want to remove this property? This action cannot be undone."
+        confirmLabel="Remove"
+        onConfirm={handleRemoveUnit}
+      />
 
-      {/* Vacate Unit Dialog */}
-      <Dialog isOpen={isVacateDialogOpen} onOpenChange={setIsVacateDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
-            <View className="mb-5 gap-1.5">
-              <Dialog.Title>Vacate Unit</Dialog.Title>
-              <Dialog.Description>
-                Are you sure you want to mark this unit as vacant? The current tenant&apos;s
-                lease will be ended and the unit will be listed as available.
-              </Dialog.Description>
-            </View>
-            <View className="flex-row justify-end gap-3">
-              <Button variant="ghost" size="sm" onPress={() => setIsVacateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button size="sm" variant="danger" onPress={handleConfirmVacate}>
-                Vacate
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      <ConfirmDialog
+        isOpen={isVacateDialogOpen}
+        onOpenChange={setIsVacateDialogOpen}
+        title="Vacate Unit"
+        description="Are you sure you want to mark this unit as vacant? The current tenant's lease will be ended and the unit will be listed as available."
+        confirmLabel="Vacate"
+        onConfirm={handleConfirmVacate}
+      />
     </View>
   );
 }
