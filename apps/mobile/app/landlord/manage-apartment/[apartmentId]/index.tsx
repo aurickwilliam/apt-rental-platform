@@ -1,8 +1,6 @@
-import { View, Text, TouchableOpacity, FlatList } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Image } from 'expo-image';
-import ImageViewing from 'react-native-image-viewing'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -10,22 +8,16 @@ import PillButton from 'components/buttons/PillButton'
 import TenantCard from './components/TenantCard'
 import PaymentHistoryCard from './components/PaymentHistoryCard'
 import MaintenanceRequestCard from './components/MaintenanceRequestCard'
+import PropertyOverview from './components/PropertyOverview'
 
 import { Button, Menu, Dialog } from 'heroui-native'
 
 import {
-  Bath,
-  BedDouble,
-  House,
-  Maximize,
   User,
   CircleCheck,
   LogOut,
   CircleX,
   EllipsisVertical,
-  Armchair,
-  Calendar,
-  Users,
   Building,
 } from 'lucide-react-native';
 
@@ -38,6 +30,7 @@ import { useApartmentDetails } from 'hooks/useApartmentDetails'
 import { useLandlordTenancy } from 'hooks/useLandlordTenancy'
 
 import { formatDate } from '@repo/utils';
+import { useState } from 'react';
 
 function DetailSkeleton() {
   return (
@@ -64,23 +57,13 @@ export default function Index() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
   const { colors } = useColors();
 
-  const [imageIndex, setImageIndex] = useState(0)
-  const [isImageViewVisible, setIsImageViewVisible] = useState(false)
-  const [open, setOpen] = useState(false)
-
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
 
-  const handleImagePress = (index: number) => {
-    setImageIndex(index)
-    setIsImageViewVisible(true)
-  }
-
   const handleVacateUnit = () => {
-    setOpen(false)
     setIsVacateDialogOpen(true)
   }
 
@@ -148,7 +131,6 @@ export default function Index() {
     const landlordId = profile.id
     const tenantId = tenant.id
 
-    // Mirror the LEAST/GREATEST logic from get_conversations
     const userA = landlordId < tenantId ? landlordId : tenantId
     const userB = landlordId < tenantId ? tenantId : landlordId
     const conversationId = `${userA}-${userB}-${apartmentId}`
@@ -167,7 +149,6 @@ export default function Index() {
   }
 
   const isOccupied = apartment?.status === 'occupied';
-  const images = [...(apartment?.apartment_images ?? [])].sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0))
 
   return (
     <View style={{ flex: 1 }}>
@@ -186,176 +167,54 @@ export default function Index() {
           <DetailSkeleton />
         ) : apartment ? (
           <>
-            {/* Image Carousel */}
-            {images.length > 0 && (
-              <View>
-                <FlatList
-                  data={images}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.id}
-                  contentContainerClassName="gap-3 mb-3"
-                  renderItem={({ item, index }) => (
-                    <TouchableOpacity
-                      className="rounded-2xl overflow-hidden w-48 h-60"
-                      activeOpacity={0.7}
-                      onPress={() => handleImagePress(index)}
-                    >
-                      <Image
-                        source={{ uri: item.url }}
-                        style={{ width: "100%", height: "100%" }}
-                        contentFit="cover"
-                        cachePolicy="disk"
-                      />
-                    </TouchableOpacity>
-                  )}
-                />
-              </View>
-            )}
+            {/* Images + Specs */}
+            <PropertyOverview
+              name={apartment.name}
+              street_address={apartment.street_address}
+              barangay={apartment.barangay}
+              city={apartment.city}
+              province={apartment.province}
+              zip_code={apartment.zip_code}
+              monthly_rent={apartment.monthly_rent}
+              type={apartment.type}
+              lease_duration={apartment.lease_duration!}
+              no_bedrooms={apartment.no_bedrooms}
+              no_bathrooms={apartment.no_bathrooms}
+              furnished_type={apartment.furnished_type!}
+              floor_level={apartment.floor_level!}
+              max_occupants={apartment.max_occupants!}
+              area_sqm={apartment.area_sqm}
+              apartment_images={apartment.apartment_images ?? []}
+            />
 
-            {/* Property Details */}
-            <View className="flex gap-5">
-              <View className="flex gap-1">
-                <Text className="text-accent text-2xl font-nunito">
-                  {apartment.name}
+            {/* Stats Row */}
+            <View className="mt-5 p-2 border-t border-b border-border flex-row items-center justify-between">
+              <View className="flex items-center gap-1 w-1/3">
+                <Text className="text-base text-foreground font-inter">Ratings</Text>
+                <Text className="text-3xl text-secondary font-interMedium">
+                  {apartment.average_rating !== null ? `${apartment.average_rating}/5` : '—'}
                 </Text>
-                <Text className="text-foreground font-inter">
-                  {apartment.street_address}, {apartment.barangay},{" "}
-                  {apartment.city}
-                  {apartment.province ? `, ${apartment.province}` : ""}{" "}
-                  {apartment.zip_code ? `, ${apartment.zip_code}` : ""}
+                <Text className="text-base text-foreground font-interMedium">Average</Text>
+              </View>
+
+              <View className="w-px h-full bg-border" />
+
+              <View className="flex items-center gap-1 w-1/3">
+                <Text className="text-base text-foreground font-inter">Reviews</Text>
+                <Text className="text-3xl text-foreground font-interMedium">
+                  {apartment.no_ratings}
                 </Text>
+                <Text className="text-base text-foreground font-interMedium">Total</Text>
               </View>
 
-              {/* Monthly Rent */}
-              <Text className="text-accent text-lg font-interMedium">
-                ₱ {apartment.monthly_rent.toLocaleString()}
-                <Text className="text-gray-500 font-inter text-base">
-                  /month
+              <View className="w-px h-full bg-border" />
+
+              <View className="flex items-center gap-1 w-1/3">
+                <Text className="text-base text-foreground font-inter">Status</Text>
+                <CircleCheck size={32} color={isOccupied ? colors.success : colors.primary} />
+                <Text className="text-base text-foreground font-interMedium">
+                  {apartment.status}
                 </Text>
-              </Text>
-
-              {/* Apartment Type and Lease Duration */}
-              <View className="flex-row flex-wrap">
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <House size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.type}
-                  </Text>
-                </View>
-
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Calendar size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.lease_duration}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Bedrooms and Bathrooms */}
-              <View className="flex-row flex-wrap">
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <BedDouble size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.no_bedrooms} Bedroom
-                    {apartment.no_bedrooms !== 1 ? "s" : ""}
-                  </Text>
-                </View>
-
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Bath size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.no_bathrooms} Bathroom
-                    {apartment.no_bathrooms !== 1 ? "s" : ""}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Furnished Type and Floor Level */}
-              <View className="flex-row flex-wrap">
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Armchair size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.furnished_type}
-                  </Text>
-                </View>
-
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Building size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.floor_level}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Max Occupants and Square Footage */}
-              <View className="flex-row flex-wrap">
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Users size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    Max {apartment.max_occupants} Occupant
-                    {apartment.max_occupants !== 1 ? "s" : ""}
-                  </Text>
-                </View>
-
-                <View className="flex-row w-1/2 gap-2 items-center justify-start">
-                  <Maximize size={24} color={colors.gray500} />
-                  <Text className="text-foreground text-base">
-                    {apartment.area_sqm} Sqm
-                  </Text>
-                </View>
-              </View>
-
-              {/* Stats Row */}
-              <View className="mt-5 p-2 border-t border-b border-border flex-row items-center justify-between">
-                <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-foreground font-inter">
-                    Ratings
-                  </Text>
-
-                  <Text className="text-3xl text-secondary font-interMedium">
-                    {apartment.average_rating !== null
-                      ? `${apartment.average_rating}/5`
-                      : "—"}
-                  </Text>
-
-                  <Text className="text-base text-foreground font-interMedium">
-                    Average
-                  </Text>
-                </View>
-
-                <View className="w-px h-full bg-border" />
-
-                <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-foreground font-inter">
-                    Reviews
-                  </Text>
-
-                  <Text className="text-3xl text-foreground font-interMedium">
-                    {apartment.no_ratings}
-                  </Text>
-
-                  <Text className="text-base text-foreground font-interMedium">
-                    Total
-                  </Text>
-                </View>
-
-                <View className="w-px h-full bg-border" />
-
-                <View className="flex items-center gap-1 w-1/3">
-                  <Text className="text-base text-foreground font-inter">
-                    Status
-                  </Text>
-
-                  <CircleCheck
-                    size={32}
-                    color={isOccupied ? colors.success : colors.primary}
-                  />
-
-                  <Text className="text-base text-foreground font-interMedium">
-                    {apartment.status}
-                  </Text>
-                </View>
               </View>
             </View>
 
@@ -371,10 +230,9 @@ export default function Index() {
               </Button>
             </View>
 
-            {/* Render the tenant information, maintenance if any, payments, if it is occupied */}
+            {/* Occupied vs Vacant */}
             {isOccupied ? (
               <>
-                {/* Tenant Information */}
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
@@ -392,29 +250,23 @@ export default function Index() {
                       onPress={() => handleTenantProfilePress(tenant.id)}
                       leaseStartMonthYear={formatDate(tenant.leaseStart, "medium")}
                       leaseEndMonthYear={
-                        tenant.leaseEnd
-                          ? formatDate(tenant.leaseEnd, "medium")
-                          : "—"
+                        tenant.leaseEnd ? formatDate(tenant.leaseEnd, "medium") : '—'
                       }
                       onMessagePress={handleMessageTenant}
                     />
                   </View>
                 )}
 
-                {/* Maintenance Request */}
                 {maintenanceRequest && (
                   <View className="mt-5">
                     <MaintenanceRequestCard
                       issueName={maintenanceRequest.title}
                       reportedDate={maintenanceRequest.reportedDate}
-                      onUpdatePress={() =>
-                        console.log("Update Maintenance Pressed")
-                      }
+                      onUpdatePress={() => console.log('Update Maintenance Pressed')}
                     />
                   </View>
                 )}
 
-                {/* Rent Payment History */}
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
@@ -429,9 +281,7 @@ export default function Index() {
                           )
                         }
                       >
-                        <Text className="text-primary text-base font-inter">
-                          See All
-                        </Text>
+                        <Text className="text-primary text-base font-inter">See All</Text>
                       </TouchableOpacity>
                     </View>
 
@@ -451,7 +301,6 @@ export default function Index() {
                 )}
               </>
             ) : (
-              // Empty State of Vacant Unit
               <View className="bg-surface border border-border flex gap-5 items-center p-4 rounded-2xl mt-5">
                 <View className="flex items-center gap-1">
                   <Image
@@ -469,41 +318,18 @@ export default function Index() {
                   variant="tertiary"
                   onPress={() => router.push(`/landlord/tenant-applications/`)}
                 >
-                  <Button.Label>
-                    View Applications
-                  </Button.Label>
+                  <Button.Label>View Applications</Button.Label>
                 </Button>
               </View>
             )}
-
-            <ImageViewing
-              images={(apartment?.apartment_images ?? []).map((img) => ({ uri: img.url }))}
-              imageIndex={imageIndex}
-              visible={isImageViewVisible}
-              onRequestClose={() => setIsImageViewVisible(false)}
-              presentationStyle="overFullScreen"
-              backgroundColor="rgb(0, 0, 0, 0.8)"
-              FooterComponent={({ imageIndex: idx }) => (
-                <View className="p-10 items-center">
-                  <Text className="text-white font-interMedium">
-                    {idx + 1} / {images.length}
-                  </Text>
-                </View>
-              )}
-            />
           </>
         ) : (
-          // Error State
           <View className="flex-1 items-center justify-center py-24 gap-4">
             <Building size={48} color={colors.gray400} />
             <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>
-            <PillButton
-              label="Retry"
-              size="sm"
-              onPress={refetch}
-            />
+            <PillButton label="Retry" size="sm" onPress={refetch} />
           </View>
         )}
       </ScreenWrapper>
@@ -537,7 +363,6 @@ export default function Index() {
             <Menu.Item
               variant="danger"
               onPress={() => {
-                setOpen(false);
                 setIsRemoveDialogOpen(true);
               }}
             >
@@ -557,16 +382,11 @@ export default function Index() {
             <View className="mb-5 gap-1.5">
               <Dialog.Title>Remove Unit</Dialog.Title>
               <Dialog.Description>
-                Are you sure you want to remove this property? This action
-                cannot be undone.
+                Are you sure you want to remove this property? This action cannot be undone.
               </Dialog.Description>
             </View>
             <View className="flex-row justify-end gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => setIsRemoveDialogOpen(false)}
-              >
+              <Button variant="ghost" size="sm" onPress={() => setIsRemoveDialogOpen(false)}>
                 Cancel
               </Button>
               <Button size="sm" variant="danger" onPress={handleRemoveUnit}>
@@ -577,29 +397,21 @@ export default function Index() {
         </Dialog.Portal>
       </Dialog>
 
-      {/* Confirm Dialog for Vacating Unit */}
+      {/* Vacate Unit Dialog */}
       <Dialog isOpen={isVacateDialogOpen} onOpenChange={setIsVacateDialogOpen}>
         <Dialog.Portal>
           <Dialog.Overlay />
           <Dialog.Content>
             <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
             <View className="mb-5 gap-1.5">
-              <Dialog.Title>
-                Vacate Unit
-              </Dialog.Title>
-
+              <Dialog.Title>Vacate Unit</Dialog.Title>
               <Dialog.Description>
-                Are you sure you want to mark this unit as vacant? The current
-                tenant&apos;s lease will be ended and the unit will be listed as
-                available.
+                Are you sure you want to mark this unit as vacant? The current tenant&apos;s
+                lease will be ended and the unit will be listed as available.
               </Dialog.Description>
             </View>
             <View className="flex-row justify-end gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => setIsVacateDialogOpen(false)}
-              >
+              <Button variant="ghost" size="sm" onPress={() => setIsVacateDialogOpen(false)}>
                 Cancel
               </Button>
               <Button size="sm" variant="danger" onPress={handleConfirmVacate}>
