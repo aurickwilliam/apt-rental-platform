@@ -18,9 +18,16 @@ export type LandlordVisitRequest = {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
+    mobile_number: string | null;
   };
   apartment: {
     name: string;
+    barangay: string;
+    street_address: string;
+    city: string;
+    province: string;
+    zip_code: number | null;
+    apartment_images: { url: string }[];
   };
 };
 
@@ -54,13 +61,23 @@ export function useLandlordVisitRequests() {
         tenant:users!visit_request_tenant_id_fkey (
           first_name,
           last_name,
-          avatar_url
+          avatar_url,
+          mobile_number
         ),
         apartment:apartments!visit_request_apartment_id_fkey (
-          name
+          name,
+          barangay,
+          street_address,
+          city,
+          province,
+          zip_code,
+          apartment_images!inner (
+            url
+          )
         )
       `)
       .eq("landlord_id", profile.id)
+      .eq("apartment.apartment_images.is_cover", true)
       .order("visit_date", { ascending: true });
 
     if (!error && data) {
