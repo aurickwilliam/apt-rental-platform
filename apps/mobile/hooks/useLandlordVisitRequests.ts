@@ -31,8 +31,48 @@ export type LandlordVisitRequest = {
   };
 };
 
+type RawApartmentImage = {
+  url: string;
+  is_cover: boolean | null;
+};
+
+const signedUrlCache = new Map<string, { signedUrl: string; expiresAt: number }>();
+const SIGNED_URL_TTL_MS = 55 * 60 * 1000; // 55 minutes
+
+async function resolveApartmentImageUrls(paths: string[]): Promise<Map<string, string>> {
+  const uncached: string[] = [];
+  const result = new Map<string, string>();
+
+  for (const path of paths) {
+    const cached = signedUrlCache.get(path);
+    if (cached && Date.now() < cached.expiresAt) {
+      result.set(path, cached.signedUrl);
+    } else {
+      uncached.push(path);
+    }
+  }
+
+  if (uncached.length > 0) {
+    const { data } = await supabase.storage
+      .from("apartment-images")
+      .createSignedUrls(uncached, 60 * 60);
+
+    for (const item of data ?? []) {
+      if (item.signedUrl && item.path) {
+        signedUrlCache.set(item.path, {
+          signedUrl: item.signedUrl,
+          expiresAt: Date.now() + SIGNED_URL_TTL_MS,
+        });
+        result.set(item.path, item.signedUrl);
+      }
+    }
+  }
+
+  return result;
+}
+
 export function useLandlordVisitRequests() {
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [visitRequests, setVisitRequests] = useState<LandlordVisitRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,25 +111,51 @@ export function useLandlordVisitRequests() {
           city,
           province,
           zip_code,
-          apartment_images!inner (
-            url
+          apartment_images (
+            url,
+            is_cover
           )
         )
       `)
       .eq("landlord_id", profile.id)
-      .eq("apartment.apartment_images.is_cover", true)
       .order("visit_date", { ascending: true });
 
     if (!error && data) {
-      setVisitRequests(data as LandlordVisitRequest[]);
+      // Collect all cover image paths across all requests in one batch
+      const coverPaths: string[] = [];
+      for (const r of data) {
+        const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
+        const cover = images.find((img) => img.is_cover === true);
+        if (cover?.url) coverPaths.push(cover.url);
+      }
+
+      const urlMap = await resolveApartmentImageUrls(coverPaths);
+
+      const normalized: LandlordVisitRequest[] = data.map((r) => {
+        const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
+        const cover = images.find((img) => img.is_cover === true);
+        const resolvedUrl = cover?.url ? (urlMap.get(cover.url) ?? cover.url) : null;
+
+        return {
+          ...r,
+          apartment: {
+            ...r.apartment,
+            apartment_images: resolvedUrl ? [{ url: resolvedUrl }] : [],
+          },
+        } as LandlordVisitRequest;
+      });
+
+      setVisitRequests(normalized);
     }
 
     setLoading(false);
   }, [profile?.id]);
 
   useEffect(() => {
-    fetchVisitRequests();
-  }, [fetchVisitRequests]);
+    if (!profileLoading) {
+      fetchVisitRequests();
+    }
+  }, [fetchVisitRequests, profileLoading]);
 
   return { visitRequests, loading, refetch: fetchVisitRequests };
 }

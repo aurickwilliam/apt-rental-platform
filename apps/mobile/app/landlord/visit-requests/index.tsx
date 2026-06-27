@@ -16,6 +16,7 @@ import { formatDate, formatFullName } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 
 import { useLandlordVisitRequests, LandlordVisitRequest } from "@/hooks/useLandlordVisitRequests";
+import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
@@ -98,7 +99,7 @@ export default function VisitRequests() {
   const [isPastExpanded, setIsPastExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { visitRequests, refetch } = useLandlordVisitRequests();
+  const { visitRequests, refetch, loading } = useLandlordVisitRequests();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -245,11 +246,20 @@ export default function VisitRequests() {
                   <SearchField.ClearButton />
                 </SearchField.Group>
               </SearchField>
+
+              {/* Skeletons shown inline while loading */}
+              {loading && (
+                <View className="gap-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <VisitRequestCardSkeleton key={i} />
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         }
         ItemSeparatorComponent={() => null}
-        ListEmptyComponent={<EmptyApproved />}
+        ListEmptyComponent={loading ? null : <EmptyApproved />}
         renderItem={({ item }) => {
           if (item.type === "header") {
             return <SectionHeader group={item.group} count={item.count} />;
