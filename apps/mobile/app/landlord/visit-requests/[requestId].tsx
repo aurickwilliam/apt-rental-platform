@@ -11,6 +11,7 @@ import DetailField from "@/components/display/DetailField";
 import EmptyRequestData from "./components/EmptyRequestData";
 import RejectDialog from "@/components/display/RejectDialog";
 import RescheduleSheet from "./components/RescheduleSheet";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 import { Image as ImageIcon } from "lucide-react-native";
 
@@ -21,21 +22,17 @@ import {
   formatTime,
 } from "@repo/utils";
 
-import {
-  useLandlordVisitRequests,
-  type LandlordVisitRequest,
-} from "@/hooks/useLandlordVisitRequests";
+import { useLandlordVisitRequests } from "@/hooks/useLandlordVisitRequests";
 import { useVisitRequestActions } from "@/hooks/useVisitRequestActions";
 import { useColors } from "@/hooks/useTheme";
-import ConfirmDialog from "@/components/display/ConfirmDialog";
-
-type VisitRequestStatus = LandlordVisitRequest["status"];
+import { useVisitRequestStatusStyles } from "@/hooks/useVisitRequestStatusStyles";
 
 export default function VisitRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { colors } = useColors();
 
   const { visitRequests, loading, refetch } = useLandlordVisitRequests();
+  const { getStatusStyle } = useVisitRequestStatusStyles();
 
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showRescheduleSheet, setShowRescheduleSheet] = useState(false);
@@ -50,37 +47,6 @@ export default function VisitRequestDetails() {
     useVisitRequestActions(requestId!, () => {
       refetch();
     });
-
-  const STATUS_STYLES: Record<
-    VisitRequestStatus,
-    { label: string; backgroundColor: string; textColor: string }
-  > = {
-    pending: {
-      label: "Pending",
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
-    },
-    approved: {
-      label: "Approved",
-      backgroundColor: colors.successLight,
-      textColor: colors.success,
-    },
-    rejected: {
-      label: "Rejected",
-      backgroundColor: colors.dangerLight,
-      textColor: colors.danger,
-    },
-    rescheduled: {
-      label: "Rescheduled",
-      backgroundColor: colors.primaryLight,
-      textColor: colors.primary,
-    },
-    cancelled: {
-      label: "Cancelled",
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500,
-    },
-  };
 
   const handleApproveConfirm = async () => {
     const ok = await approve();
@@ -105,6 +71,7 @@ export default function VisitRequestDetails() {
     }
   };
 
+  // Loading State
   if (loading) {
     return (
       <ScreenWrapper header={<StandardHeader title="Visit Request" />}>
@@ -115,13 +82,10 @@ export default function VisitRequestDetails() {
     );
   }
 
+  // Empty State
   if (!request) return <EmptyRequestData />;
 
-  const statusStyle = STATUS_STYLES[request.status] ?? {
-    label: "Unknown",
-    backgroundColor: colors.gray100,
-    textColor: colors.gray500,
-  };
+  const statusStyle = getStatusStyle(request.status);
 
   const tenantFullName = formatFullName({
     first_name: request.tenant.first_name,
