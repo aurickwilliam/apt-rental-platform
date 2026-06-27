@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useLandlordVisitRequests";
 import { useVisitRequestActions } from "@/hooks/useVisitRequestActions";
 import { useColors } from "@/hooks/useTheme";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 type VisitRequestStatus = LandlordVisitRequest["status"];
 
@@ -38,6 +39,7 @@ export default function VisitRequestDetails() {
 
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showRescheduleSheet, setShowRescheduleSheet] = useState(false);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
 
   const request = useMemo(
     () => visitRequests.find((item) => item.id === requestId),
@@ -80,23 +82,9 @@ export default function VisitRequestDetails() {
     },
   };
 
-  const handleApprove = () => {
-    Alert.alert(
-      "Approve Visit",
-      "Are you sure you want to approve this visit request?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Approve",
-          onPress: async () => {
-            const ok = await approve();
-            if (!ok) {
-              Alert.alert("Error", "Failed to approve the request. Please try again.");
-            }
-          },
-        },
-      ]
-    );
+  const handleApproveConfirm = async () => {
+    const ok = await approve();
+    if (ok) setShowApproveDialog(false);
   };
 
   const handleRejectConfirm = async (reason: string) => {
@@ -287,7 +275,7 @@ export default function VisitRequestDetails() {
             <Button
               className="flex-1"
               size="sm"
-              onPress={handleApprove}
+              onPress={() => setShowApproveDialog(true)}
               isDisabled={isAnyActionLoading}
             >
               <Button.Label>Approve</Button.Label>
@@ -304,6 +292,16 @@ export default function VisitRequestDetails() {
         title="Reject Visit Request"
         description="Provide a reason for rejection (optional). The tenant will be notified."
         placeholder="e.g. The unit is unavailable on that date..."
+      />
+
+      <ConfirmDialog
+        isOpen={showApproveDialog}
+        onOpenChange={setShowApproveDialog}
+        title="Approve Visit Request"
+        description="Are you sure you want to approve this visit request? The tenant will be notified."
+        confirmLabel="Approve"
+        confirmVariant="primary"
+        onConfirm={handleApproveConfirm}
       />
 
       <RescheduleSheet
