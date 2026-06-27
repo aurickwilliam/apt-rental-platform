@@ -5,4 +5,5 @@ export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';
 export { formatFullName } from './formatFullName';
 export { getInitials } from './getInitials';
+export { formatTime } from './formatTime';
 export * from './authErrors';
