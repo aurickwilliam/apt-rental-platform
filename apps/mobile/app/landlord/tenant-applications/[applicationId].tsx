@@ -20,7 +20,7 @@ import { useLandlordApplications, type DisplayStatus } from '@/hooks/useLandlord
 import { useDocumentUrls } from '@/hooks/useDocumentUrls';
 import { useApplicationActions } from '@/hooks/useApplicationActions';
 import ErrorDialog from '@/components/display/ErrorDialog';
-import RejectDialog from './components/RejectDialog';
+import RejectDialog from '../../../components/display/RejectDialog';
 
 function getStatusStyle(
   status: DisplayStatus,

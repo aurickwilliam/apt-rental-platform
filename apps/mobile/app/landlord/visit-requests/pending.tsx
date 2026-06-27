@@ -72,7 +72,7 @@ export default function PendingVisitRequests() {
   }, []);
 
   const filteredRequests = useMemo(() => {
-    let result = visitRequests;
+    let result = visitRequests.filter((r) => r.status !== "approved");
 
     const query = searchQuery.trim().toLowerCase();
     if (query) {
