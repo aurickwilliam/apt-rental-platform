@@ -5,15 +5,12 @@ import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 import { Calendar, Home } from "lucide-react-native";
 
 import { useColors } from "@/hooks/useTheme"
+import {
+  useVisitRequestStatusStyles,
+  VisitRequestStatus
+} from "@/hooks/useVisitRequestStatusStyles";
 
 import { getInitials } from "@repo/utils";
-
-export type VisitRequestStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "cancelled"
-  | "rescheduled";
 
 interface VisitRequestCardProps {
   tenantName: string;
@@ -33,46 +30,9 @@ export default function VisitRequestCard({
   onPress,
 }: VisitRequestCardProps) {
   const { colors } = useColors();
+  const { getStatusStyle } = useVisitRequestStatusStyles();
 
-  const STATUS_STYLES: Record<
-    VisitRequestStatus,
-    {
-      label: string;
-      backgroundColor:
-      string; textColor: string
-    }
-  > = {
-    pending: {
-      label: "Pending",
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
-    },
-    approved: {
-      label: "Approved",
-      backgroundColor: colors.successLight,
-      textColor: colors.success,
-    },
-    rejected: {
-      label: "Rejected",
-      backgroundColor: colors.dangerLight,
-      textColor: colors.danger,
-    },
-    rescheduled: {
-      label: "Rescheduled",
-      backgroundColor: colors.primaryLight,
-      textColor: colors.primary,
-    },
-    cancelled: {
-      label: "Cancelled",
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500,
-    },
-  };
-
-  const statusStyle = STATUS_STYLES[status] ?? {
-    backgroundColor: colors.gray100,
-    textColor: colors.gray500,
-  };
+  const statusStyle = getStatusStyle(status);
 
   return (
     <PressableFeedback onPress={onPress} className="rounded-3xl overflow-hidden">
