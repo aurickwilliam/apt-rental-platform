@@ -406,7 +406,7 @@ export type Database = {
           prev_landlord_contact: string | null
           prev_landlord_name: string | null
           proof_of_billing_url: string
-          proof_of_income_url: string
+          proof_of_income_url: string | null
           rejected_reason: string | null
           status: string
           tenant_id: string
@@ -431,7 +431,7 @@ export type Database = {
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
           proof_of_billing_url: string
-          proof_of_income_url: string
+          proof_of_income_url?: string | null
           rejected_reason?: string | null
           status?: string
           tenant_id: string
@@ -456,7 +456,7 @@ export type Database = {
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
           proof_of_billing_url?: string
-          proof_of_income_url?: string
+          proof_of_income_url?: string | null
           rejected_reason?: string | null
           status?: string
           tenant_id?: string

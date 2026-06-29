@@ -9,6 +9,8 @@ import {
   type UploadedDocumentPaths,
 } from '@/stores/useApplicationFormStore'
 
+import { requiresProofOfIncome } from '@repo/constants'
+
 const BUCKET = 'application-documents'
 
 type DocKey = keyof UploadedDocumentPaths
@@ -87,7 +89,7 @@ export function useSubmitApplication() {
         setError(msg)
         return { success: false, error: msg }
       }
-      if (!documents.proofOfIncome) {
+      if (requiresProofOfIncome(tenantInformation.employmentType) && !documents.proofOfIncome) {
         const msg = 'Proof of income is required.'
         setError(msg)
         return { success: false, error: msg }
@@ -140,15 +142,18 @@ export function useSubmitApplication() {
         uploadedSoFar.push(govIdPath)
         setUploadedPath('govId', govIdPath)
 
-        const proofOfIncomePath = await uploadDoc(
-          proofOfIncomeAsset.uri,
-          proofOfIncomeAsset.name,
-          tenantId,
-          applicationId,
-          'proofOfIncome',
-        )
-        uploadedSoFar.push(proofOfIncomePath)
-        setUploadedPath('proofOfIncome', proofOfIncomePath)
+        let proofOfIncomePath: string | null = null
+        if (proofOfIncomeAsset) {
+          proofOfIncomePath = await uploadDoc(
+            proofOfIncomeAsset.uri,
+            proofOfIncomeAsset.name,
+            tenantId,
+            applicationId,
+            'proofOfIncome',
+          )
+          uploadedSoFar.push(proofOfIncomePath)
+          setUploadedPath('proofOfIncome', proofOfIncomePath)
+        }
 
         const proofOfBillingPath = await uploadDoc(
           proofOfBillingAsset.uri,
@@ -191,13 +196,18 @@ export function useSubmitApplication() {
             need_parking: rentalPreferences.needParking ?? false,
             message: rentalPreferences.additionalNotes || null,
             gov_id_url: govIdPath,
-            proof_of_income_url: proofOfIncomePath,
+            proof_of_income_url: proofOfIncomePath ?? null,
             proof_of_billing_url: proofOfBillingPath,
             nbi_clearance_url: nbiPath,
             status: 'pending',
           })
 
-        if (insertError) throw new Error(insertError.message)
+        if (insertError) {
+          if (insertError.message.includes('unique_active_application_per_tenant_apartment')) {
+            throw new Error('You already have an active application for this apartment.')
+          }
+          throw new Error(insertError.message)
+        }
 
         resetApplicationForm()
         return { success: true }

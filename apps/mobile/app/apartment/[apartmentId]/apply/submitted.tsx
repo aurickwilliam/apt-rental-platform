@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Image } from 'expo-image';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -8,13 +8,13 @@ import { IMAGES } from 'constants/images'
 
 import { Button } from 'heroui-native'
 
-import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 export default function Submitted() {
   const router = useRouter();
-  const { apartmentContext } = useApplicationFormStore();
-
-  const apartmentName = apartmentContext.name || 'No Apartment Name'
+  const { apartmentName } = useLocalSearchParams<{
+    apartmentId: string;
+    apartmentName: string
+  }>();
 
   return (
     <ScreenWrapper className="p-5">

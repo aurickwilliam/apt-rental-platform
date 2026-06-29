@@ -14,7 +14,7 @@ export default function ApplicationsEmptyState() {
   return (
     <View className='flex-1 bg-background items-center justify-center gap-4 py-20'>
       <ClipboardX size={64} color={colors.primary} />
-      
+
       <View className='items-center gap-1'>
         <Text className='text-foreground text-xl font-interSemiBold text-center'>
           No Applications Yet
@@ -24,7 +24,7 @@ export default function ApplicationsEmptyState() {
         </Text>
       </View>
 
-      <Button onPress={() => router.replace('/(tabs)/(tenant)/search')}>
+      <Button onPress={() => router.push('/(tabs)/(tenant)/search')}>
         <Button.Label>Browse Listings</Button.Label>
       </Button>
     </View>
