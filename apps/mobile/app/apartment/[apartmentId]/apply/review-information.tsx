@@ -7,7 +7,7 @@ import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import ReviewAccordionItem from './components/ReviewAccordionItem'
 import ReviewDocumentFile from './components/ReviewDocumentFile'
 import ReviewDocumentImage from './components/ReviewDocumentImage'
-import ReviewField from './components/ReviewField'
+import DetailField from '@/components/display/DetailField';
 
 
 import {
@@ -57,7 +57,13 @@ export default function ReviewInformation() {
       return;
     }
 
-    router.replace(`/apartment/${apartmentId}/apply/submitted`);
+    router.replace({
+      pathname: "/apartment/[apartmentId]/apply/submitted",
+      params: {
+        apartmentId,
+        apartmentName: apartmentContext.name ?? 'No Apartment Name',
+      },
+    });
   };
 
   return (
@@ -78,73 +84,85 @@ export default function ReviewInformation() {
 
         {/* Apartment Information */}
         <View className="flex gap-3">
-          
-          <ReviewField
+
+          <DetailField
             label="Apartment Name"
             value={apartmentContext.name ?? '—'}
           />
-          <ReviewField
+          <DetailField
             label="Address"
             value={apartmentContext.address ?? '—'}
           />
-          <ReviewField
+          <DetailField
             label="Rental Owner/Landlord"
             value={apartmentContext.landlordName ?? '—'}
           />
-          <ReviewField
-            label="Unit Type"
-            value={apartmentContext.type ?? '—'}
-          />
-          <ReviewField
-            label="Furnishing"
-            value={apartmentContext.furnishedType ?? '—'}
-          />
-          <ReviewField
-            label="Floor Level"
-            value={apartmentContext.floorLevel ?? '—'}
-          />
-          <ReviewField
-            label="Max Occupants"
-            value={
-              apartmentContext.maxOccupants != null
-                ? `${apartmentContext.maxOccupants} Person`
-                : '—'}
-          />
+
+          <View className='flex-row'>
+            <DetailField
+              label="Unit Type"
+              value={apartmentContext.type ?? '—'}
+            />
+            <DetailField
+              label="Furnishing"
+              value={apartmentContext.furnishedType ?? '—'}
+            />
+          </View>
+
+          <View className='flex-row'>
+            <DetailField
+              label="Floor Level"
+              value={apartmentContext.floorLevel ?? '—'}
+            />
+            <DetailField
+              label="Max Occupants"
+              value={
+                apartmentContext.maxOccupants != null
+                  ? `${apartmentContext.maxOccupants} Person`
+                  : '—'}
+            />
+          </View>
 
           <Separator className="my-3" />
 
-          <ReviewField
-            label="Monthly Rent"
-            value={
-              apartmentContext.monthlyRent != null
-                ? `₱ ${formatCurrency(apartmentContext.monthlyRent)}`
-                : '—'
-            }
-          />
-          <ReviewField
+          <DetailField
             label="Lease Duration"
             value={apartmentContext.leaseDuration ?? '—'}
           />
-          <ReviewField
-            label="Security Deposit"
-            value={
-              apartmentContext.securityDeposit != null
-                ? `₱ ${formatCurrency(apartmentContext.securityDeposit)}`
-                : '—'
-            }
-          />
-          <ReviewField
-            label="Advance Rent"
-            value={
-              apartmentContext.advanceRent != null
-                ? `₱ ${formatCurrency(apartmentContext.advanceRent)}`
-                : '—'
-            }
-          />
-          <ReviewField
-            label='Total Move-In Cost'
-            value={`₱ ${formatCurrency(totalMoveInCost)}`}
-          />
+
+          <View className='flex-row'>
+            <DetailField
+              label="Monthly Rent"
+              value={
+                apartmentContext.monthlyRent != null
+                  ? `${formatCurrency(apartmentContext.monthlyRent)}`
+                  : '—'
+              }
+            />
+            <DetailField
+              label="Security Deposit"
+              value={
+                apartmentContext.securityDeposit != null
+                  ? `${formatCurrency(apartmentContext.securityDeposit)}`
+                  : '—'
+              }
+            />
+          </View>
+
+          <View className='flex-row'>
+            <DetailField
+              label="Advance Rent"
+              value={
+                apartmentContext.advanceRent != null
+                  ? `${formatCurrency(apartmentContext.advanceRent)}`
+                  : '—'
+              }
+            />
+            <DetailField
+              label='Total Move-In Cost'
+              value={`${formatCurrency(totalMoveInCost)}`}
+            />
+          </View>
         </View>
 
         <Separator className="my-5" />
@@ -166,42 +184,42 @@ export default function ReviewInformation() {
           >
             <Accordion selectionMode="single" defaultValue="tenant">
               <ReviewAccordionItem value="tenant" title="Tenant Information">
-                <ReviewField
+                <DetailField
                   label="Full Name"
                   value={tenantInformation.fullName}
                 />
-                <ReviewField
+                <DetailField
                   label="Contact Number"
                   value={tenantInformation.contactNumber}
                 />
-                <ReviewField
+                <DetailField
                   label="Email Address"
                   value={tenantInformation.email}
                 />
-                <ReviewField
+                <DetailField
                   label="Date of Birth"
                   value={formatDate(tenantInformation.dateOfBirth)}
                 />
-                <ReviewField
+                <DetailField
                   label="Current Address"
                   value={tenantInformation.currentAddress}
                 />
 
                 <Separator className="my-5" />
 
-                <ReviewField
+                <DetailField
                   label="Occupation"
                   value={tenantInformation.occupation}
                 />
-                <ReviewField
+                <DetailField
                   label="Employer"
                   value={tenantInformation.companyName || "—"}
                 />
-                <ReviewField
+                <DetailField
                   label="Monthly Income"
-                  value={`₱ ${formattedMonthlyIncome}`}
+                  value={`${formattedMonthlyIncome}`}
                 />
-                <ReviewField
+                <DetailField
                   label="Employment Type"
                   value={tenantInformation.employmentType}
                 />
@@ -209,13 +227,13 @@ export default function ReviewInformation() {
                 <Separator className="my-5" />
 
                 <View className="mb-5">
-                  <ReviewField
+                  <DetailField
                     label="Previous Landlord Name"
                     value={tenantInformation.previousLandlordName || "—"}
                   />
                 </View>
                 <View className="mb-5">
-                  <ReviewField
+                  <DetailField
                     label="Previous Landlord Contact"
                     value={tenantInformation.previousLandlordContact || "—"}
                   />
@@ -226,7 +244,7 @@ export default function ReviewInformation() {
                 value="preferences"
                 title="Rental Preferences"
               >
-                <ReviewField
+                <DetailField
                   label="Move-in Date"
                   value={
                     rentalPreferences.moveInDate
@@ -234,23 +252,23 @@ export default function ReviewInformation() {
                       : "—"
                   }
                 />
-                <ReviewField
+                <DetailField
                   label="Number of Occupants"
                   value={`${rentalPreferences.noOccupants} Person`}
                 />
-                <ReviewField
+                <DetailField
                   label="Are there Pets?"
                   value={rentalPreferences.hasPets ? "Yes" : "No"}
                 />
-                <ReviewField
+                <DetailField
                   label="Is Smoker?"
                   value={rentalPreferences.isSmoker ? "Yes" : "No"}
                 />
-                <ReviewField
+                <DetailField
                   label="Need Parking?"
                   value={rentalPreferences.needParking ? "Yes" : "No"}
                 />
-                <ReviewField
+                <DetailField
                   label="Additional Notes"
                   value={rentalPreferences.additionalNotes || "—"}
                 />

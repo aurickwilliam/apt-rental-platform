@@ -117,7 +117,7 @@ export default function ApartmentCard({
               <Text
                 className={`text-accent font-interSemiBold ${isGrid ? "text-lg" : "text-xl"}`}
               >
-                ₱ {formatCurrency(monthlyRent)}
+                {formatCurrency(monthlyRent)}
               </Text>
               <View className="flex-row items-center justify-center gap-1">
                 <Star size={isGrid ? 16 : 18} color={colors.secondary} />

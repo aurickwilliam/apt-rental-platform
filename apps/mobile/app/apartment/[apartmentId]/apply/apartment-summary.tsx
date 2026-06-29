@@ -230,7 +230,7 @@ export default function ApartmentSummary() {
 
             <View className="mt-5 mb-10" pointerEvents="none">
               <Text className="text-secondary-foreground font-interSemiBold text-2xl">
-                ₱ {formattedMonthlyRent}/month
+                {formattedMonthlyRent}/month
               </Text>
             </View>
           </View>

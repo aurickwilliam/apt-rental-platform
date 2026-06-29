@@ -71,7 +71,7 @@ export default function ApplicationApartment() {
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
-    ? `₱ ${formatCurrency(apartment.monthly_rent)}/month`
+    ? `${formatCurrency(apartment.monthly_rent)}/month`
     : "";
   const moveInDate = application
     ? formatDate(application.move_in_date, "long")
@@ -291,7 +291,7 @@ export default function ApplicationApartment() {
                     />
                     <DetailField
                       label="Monthly Income"
-                      value={`₱ ${formatCurrency(application.monthly_income)}`}
+                      value={`${formatCurrency(application.monthly_income)}`}
                     />
                     <Separator className="my-2" />
                     <DetailField

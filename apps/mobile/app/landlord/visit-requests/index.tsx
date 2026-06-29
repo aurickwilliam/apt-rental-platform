@@ -11,12 +11,12 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestCalendar from "./components/VisitRequestCalendar";
 import EmptyApproved from "./components/EmptyApproved";
+import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 
 import { formatDate, formatFullName } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 
 import { useLandlordVisitRequests, LandlordVisitRequest } from "@/hooks/useLandlordVisitRequests";
-import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
