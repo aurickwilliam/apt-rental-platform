@@ -164,7 +164,7 @@ export default function CurrentApartmentDetails() {
       <View className="mt-5">
         <Text className="text-muted text-xs font-inter">Monthly Rent</Text>
         <Text className="text-foreground text-base font-interMedium">
-          {`₱ ${formattedMonthlyRent}`}
+          {`${formattedMonthlyRent}`}
         </Text>
       </View>
 
@@ -285,7 +285,7 @@ export default function CurrentApartmentDetails() {
           onPress={handleViewLeaseAgreement}
           isDisabled={!tenancy?.apartment?.lease_agreement_url || leaseLoading}
         >
-          <FileText size={20} color={colors.secondaryForeground} />
+          <FileText size={20} color={colors.textPrimary} />
           <Button.Label>View Lease Agreement</Button.Label>
         </Button>
       </View>

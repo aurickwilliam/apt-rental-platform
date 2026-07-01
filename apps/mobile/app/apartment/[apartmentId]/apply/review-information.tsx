@@ -312,7 +312,7 @@ export default function ReviewInformation() {
             isDisabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Spinner />
+              <Spinner color="white" />
             ) : (
               <Button.Label>Submit Application</Button.Label>
             )}
