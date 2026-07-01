@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Text, View, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
 import { Avatar, Button, Card, Chip, Separator } from 'heroui-native';
@@ -40,7 +40,6 @@ function getStatusStyle(
 
 export default function TenantApplicationDetails() {
   const { colors } = useColors();
-  const router = useRouter();
 
   const { applicationId } = useLocalSearchParams<{ applicationId?: string | string[] }>();
   const resolvedId = useMemo(
@@ -199,7 +198,7 @@ export default function TenantApplicationDetails() {
             <View className='flex-row'>
               <DetailField
                 label="Monthly Rent"
-                value={`₱ ${formatCurrency(application.monthly_rent)}`}
+                value={`${formatCurrency(application.monthly_rent)}`}
               />
               <DetailField
                 label="No. of Occupants"
@@ -225,7 +224,7 @@ export default function TenantApplicationDetails() {
               <DetailField label="Employment Type" value={application.employment_type} />
               <DetailField
                 label="Monthly Income"
-                value={`₱ ${formatCurrency(application.monthly_income)}`}
+                value={`${formatCurrency(application.monthly_income)}`}
               />
             </View>
           </View>

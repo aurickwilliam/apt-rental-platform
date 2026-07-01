@@ -139,9 +139,6 @@ export default function ApplicationApartment() {
     );
   }
 
-  console.log('images:', apartment?.apartment_images);
-  console.log('cover:', coverImage);
-
   return (
     <ScreenWrapper scrollable className="p-5">
       {/* Header */}
@@ -206,7 +203,7 @@ export default function ApplicationApartment() {
             <Button.Label>View Description</Button.Label>
           </Button>
 
-          {!visitRequest && (
+          {!visitRequest && application?.status !== "rejected" && (
             <Button
               className="flex-1"
               size="sm"
@@ -227,6 +224,17 @@ export default function ApplicationApartment() {
       </View>
 
       <Separator className="my-5" />
+
+      {application?.status === "rejected" && application.rejected_reason && (
+        <View className="mb-3 p-4 rounded-3xl bg-danger-soft border border-danger-light">
+          <Text className="text-sm font-interSemiBold text-danger mb-1">
+            Application Rejected
+          </Text>
+          <Text className="text-sm text-foreground">
+            {application.rejected_reason}
+          </Text>
+        </View>
+      )}
 
       {/* Visit Request */}
       {visitRequest && (
@@ -393,13 +401,6 @@ export default function ApplicationApartment() {
                       label="Status"
                       value={chipConfig?.label ?? "—"}
                     />
-                    {application.status === "rejected" &&
-                      application.rejected_reason && (
-                        <DetailField
-                          label="Rejection Reason"
-                          value={application.rejected_reason}
-                        />
-                      )}
                   </View>
                 </Accordion.Content>
               </Accordion.Item>
@@ -409,64 +410,63 @@ export default function ApplicationApartment() {
       )}
 
       {/* Cancel Button + Dialog */}
-      <Dialog isOpen={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <Dialog.Trigger asChild>
-          <Button
-            className="mt-5"
-            variant="danger"
-            isDisabled={
-              cancelling ||
-              responding ||
-              status === "cancelled" ||
-              status === "approved"
-            }
-          >
-            <Ban size={20} color={colors.secondaryForeground} />
-            <Button.Label>Cancel Application</Button.Label>
-          </Button>
-        </Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <View className="mb-5 gap-1.5">
-              <Dialog.Title>Cancel Application</Dialog.Title>
-              <Dialog.Description>
-                Are you sure you want to cancel your application for{" "}
-                <Text className="font-interMedium text-foreground">
-                  {apartment?.name}
-                </Text>
-                ? This cannot be undone.
-              </Dialog.Description>
-
-              {cancelError && (
-                <Text className="text-sm text-danger mt-1">{cancelError}</Text>
-              )}
-            </View>
-
-            <View className="flex-row justify-end gap-3">
+      {
+        application?.status === "pending" && (
+          <Dialog isOpen={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+            <Dialog.Trigger asChild>
               <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => {
-                  setCancelDialogOpen(false);
-                  setCancelError(null);
-                }}
-              >
-                <Button.Label>Keep Application</Button.Label>
-              </Button>
-
-              <Button
+                className="mt-5"
                 variant="danger"
-                size="sm"
-                onPress={handleConfirmCancel}
-                isDisabled={cancelling}
+                isDisabled={cancelling || responding}
               >
-                <Button.Label>Yes, Cancel</Button.Label>
+                <Ban size={20} color={colors.secondaryForeground} />
+                <Button.Label>Cancel Application</Button.Label>
               </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay />
+              <Dialog.Content>
+                <View className="mb-5 gap-1.5">
+                  <Dialog.Title>Cancel Application</Dialog.Title>
+                  <Dialog.Description>
+                    Are you sure you want to cancel your application for{" "}
+                    <Text className="font-interMedium text-foreground">
+                      {apartment?.name}
+                    </Text>
+                    ? This cannot be undone.
+                  </Dialog.Description>
+
+                  {cancelError && (
+                    <Text className="text-sm text-danger mt-1">{cancelError}</Text>
+                  )}
+                </View>
+
+                <View className="flex-row justify-end gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => {
+                      setCancelDialogOpen(false);
+                      setCancelError(null);
+                    }}
+                  >
+                    <Button.Label>Keep Application</Button.Label>
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onPress={handleConfirmCancel}
+                    isDisabled={cancelling}
+                  >
+                    <Button.Label>Yes, Cancel</Button.Label>
+                  </Button>
+                </View>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog>
+        )
+      }
 
       {/* Document Viewer */}
       <ImageViewing
