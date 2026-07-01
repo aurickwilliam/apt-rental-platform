@@ -31,13 +31,14 @@ import {
 
 import { Ban, ChevronLeft } from "lucide-react-native";
 
-type ApplicationStatus = "pending" | "approved" | "rejected";
+type ApplicationStatus = "pending" | "approved" | "rejected" | "cancelled";
 type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
 
 const STATUS_CHIP: Record<ApplicationStatus, { color: ChipColor; label: string }> = {
   pending:  { color: "warning", label: "Pending" },
   approved: { color: "success", label: "Approved" },
-  rejected: { color: "danger",  label: "Rejected" },
+  rejected: { color: "danger", label: "Rejected" },
+  cancelled: { color: "default", label: "Cancelled" },
 };
 
 export default function ApplicationApartment() {
@@ -203,7 +204,7 @@ export default function ApplicationApartment() {
             <Button.Label>View Description</Button.Label>
           </Button>
 
-          {!visitRequest && application?.status !== "rejected" && (
+          {!visitRequest && application?.status === "pending" && (
             <Button
               className="flex-1"
               size="sm"
