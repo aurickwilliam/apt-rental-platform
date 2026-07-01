@@ -19,9 +19,11 @@ import {
   User,
   CircleCheck,
   Building,
+  ShieldCheck
 } from 'lucide-react-native';
 
 import { IMAGES } from 'constants/images'
+import { APARTMENT_STATUS_LABELS } from '@repo/constants'
 
 import { supabase } from '@repo/supabase'
 
@@ -181,14 +183,24 @@ export default function Index() {
               <View className="w-px h-full bg-border" />
 
               <View className="flex items-center gap-1 w-1/3">
-                <Text className="text-base text-foreground font-inter">
-                  Status
-                </Text>
+                <Text className="text-base text-foreground font-inter">Status</Text>
                 <CircleCheck
-                  size={32} color={isOccupied ? colors.success : colors.primary} />
+                  size={32}
+                  color={isOccupied ? colors.success : colors.primary}
+                />
                 <Text className="text-base text-foreground font-interMedium">
-                  {apartment.status}
+                  {APARTMENT_STATUS_LABELS[apartment.status]}
                 </Text>
+
+                {/* Verified Badge */}
+                {apartment.is_verified && (
+                  <View className="flex-row items-center gap-1">
+                    <ShieldCheck size={13} color={colors.success} />
+                    <Text className="text-xs font-inter" style={{ color: colors.success }}>
+                      Verified
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
 

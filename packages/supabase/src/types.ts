@@ -60,6 +60,7 @@ export type Database = {
           floor_level: string | null
           furnished_type: string | null
           id: string
+          is_verified: boolean
           landlord_id: string | null
           latitude: number | null
           lease_agreement_url: string | null
@@ -93,6 +94,7 @@ export type Database = {
           floor_level?: string | null
           furnished_type?: string | null
           id?: string
+          is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
           lease_agreement_url?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           floor_level?: string | null
           furnished_type?: string | null
           id?: string
+          is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
           lease_agreement_url?: string | null

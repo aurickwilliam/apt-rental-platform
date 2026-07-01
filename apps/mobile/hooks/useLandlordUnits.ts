@@ -1,12 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@repo/supabase";
 
-type ApartmentStatus =
-  | "Available"
-  | "Occupied"
-  | "Under Maintenance"
-  | "Unverified"
-  | "Verified";
+import { ApartmentStatus, VALID_APARTMENT_STATUSES } from '@repo/constants'
 
 export type Apartment = {
   id: string;
@@ -14,16 +9,9 @@ export type Apartment = {
   barangay: string;
   city: string;
   status: ApartmentStatus;
+  isVerified: boolean;
   coverUrl: string | null;
 };
-
-const validStatuses: ApartmentStatus[] = [
-  "Available",
-  "Occupied",
-  "Under Maintenance",
-  "Unverified",
-  "Verified",
-];
 
 async function fetchMonthlyProfit(landlordId: string): Promise<number> {
   const now = new Date();
@@ -80,7 +68,7 @@ export function useLandlordUnits() {
       const [apartmentsResult, profit] = await Promise.all([
         supabase
           .from("apartments")
-          .select("id, name, barangay, city, status, apartment_images (url, is_cover)")
+          .select("id, name, barangay, city, status, is_verified, apartment_images (url, is_cover)")
           .eq("landlord_id", userData.id)
           .is("deleted_at", null)
           .order("created_at", { ascending: false }),
@@ -92,19 +80,17 @@ export function useLandlordUnits() {
       const mapped: Apartment[] = (apartmentsResult.data ?? []).map((apt) => {
         const images = apt.apartment_images ?? [];
         const cover = images.find((img) => img.is_cover) ?? images[0] ?? null;
-        const rawStatus =
-          apt.status
-            ? apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
-            : "Unverified";
+        const rawStatus = apt.status ?? "available";
 
         return {
           id: apt.id,
           name: apt.name,
           barangay: apt.barangay,
           city: apt.city,
-          status: validStatuses.includes(rawStatus as ApartmentStatus)
+          status: VALID_APARTMENT_STATUSES.includes(rawStatus as ApartmentStatus)
             ? (rawStatus as ApartmentStatus)
-            : "Unverified",
+            : "available",
+          isVerified: apt.is_verified ?? false,
           coverUrl: cover?.url ?? null,
         };
       });

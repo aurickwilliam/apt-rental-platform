@@ -107,7 +107,7 @@ export default function TenantApplicationDetails() {
         className="p-5"
         noBottomPadding
       >
-        <View className="gap-4 pb-6">
+        <View className="gap-4">
           <View>
             <Text className="text-foreground text-sm font-interMedium">
               Tenant Application For

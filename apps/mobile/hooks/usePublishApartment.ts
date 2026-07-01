@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '@repo/supabase'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
-import { File } from 'expo-file-system/next'
+import { File } from 'expo-file-system'
 import { useProfile } from './useProfile'
 
 async function uploadImage(asset: ImagePickerAsset, folder: string): Promise<string> {
@@ -83,7 +83,7 @@ export function usePublishApartment() {
           longitude: store.longitude,
           amenities: store.amenities,
           lease_duration: store.leaseDuration || null,
-          status: 'unverified' as const,
+          status: 'available' as const,
           lease_agreement_url: null,
           landlord_id: profile.id,
         })

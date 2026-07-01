@@ -10,3 +10,4 @@ export * from "./payment-status";
 export * from "./pets";
 export * from "./vehicles";
 export * from './employment'
+export * from './apartment-status'
