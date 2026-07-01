@@ -11,6 +11,7 @@ export type Apartment = {
   status: ApartmentStatus;
   isVerified: boolean;
   coverUrl: string | null;
+  monthlyRent?: number;
 };
 
 async function fetchMonthlyProfit(landlordId: string): Promise<number> {
@@ -68,7 +69,7 @@ export function useLandlordUnits() {
       const [apartmentsResult, profit] = await Promise.all([
         supabase
           .from("apartments")
-          .select("id, name, barangay, city, status, is_verified, apartment_images (url, is_cover)")
+          .select("id, name, barangay, city, status, is_verified, apartment_images (url, is_cover), monthly_rent")
           .eq("landlord_id", userData.id)
           .is("deleted_at", null)
           .order("created_at", { ascending: false }),
@@ -92,6 +93,7 @@ export function useLandlordUnits() {
             : "available",
           isVerified: apt.is_verified ?? false,
           coverUrl: cover?.url ?? null,
+          monthlyRent: apt.monthly_rent ?? undefined,
         };
       });
 
