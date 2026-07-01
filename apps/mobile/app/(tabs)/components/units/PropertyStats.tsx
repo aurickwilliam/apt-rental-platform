@@ -38,7 +38,7 @@ export default function PropertyStats({
             ? "—"
             : monthlyProfit === null
               ? "N/A"
-              : `₱ ${formatCurrency(monthlyProfit)}`}
+              : `${formatCurrency(monthlyProfit)}`}
         </Text>
       </View>
 

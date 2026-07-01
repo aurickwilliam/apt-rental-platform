@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
+import { ApartmentStatus, VALID_APARTMENT_STATUSES } from '@repo/constants';
 
 export type ApartmentDetails = {
   id: string;
@@ -27,7 +28,8 @@ export type ApartmentDetails = {
   max_occupants: number | null;
   security_deposit: number | null;
   advance_rent: number | null;
-  status: string;
+  status: ApartmentStatus;
+  is_verified: boolean;
   landlord: {
     id: string;
     first_name: string;
@@ -95,6 +97,7 @@ export function useApartmentDetails(apartmentId: string) {
         security_deposit,
         advance_rent,
         status,
+        is_verified,
         landlord:landlord_id (
           id,
           first_name,
@@ -118,7 +121,14 @@ export function useApartmentDetails(apartmentId: string) {
       return;
     }
 
-    setApartment(aptData as ApartmentDetails);
+    const rawStatus = aptData.status ?? 'available';
+    setApartment({
+      ...aptData,
+      status: VALID_APARTMENT_STATUSES.includes(rawStatus as ApartmentStatus)
+        ? (rawStatus as ApartmentStatus)
+        : 'available',
+      isVerified: aptData.is_verified ?? false,
+    } as ApartmentDetails);
 
     const { data: reviewData, error: reviewError } = await supabase
       .from('reviews')

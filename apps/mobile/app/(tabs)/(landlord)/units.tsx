@@ -29,13 +29,9 @@ import {
 import { useLandlordUnits } from "@/hooks/useLandlordUnits";
 import { useColors } from "@/hooks/useTheme";
 
-const statusOptions = [
-  "All",
-  "Occupied",
-  "Available",
-  "Under Maintenance",
-  "Unverified",
-];
+import { APARTMENT_STATUS_LABELS, VALID_APARTMENT_STATUSES } from "@repo/constants";
+
+const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
 const locationOptions = [
   "All",
@@ -44,6 +40,11 @@ const locationOptions = [
   "Navotas",
   "Valenzuela",
 ];
+
+const STATUS_FILTER_LABELS: Record<string, string> = {
+  All: "All",
+  ...APARTMENT_STATUS_LABELS,
+};
 
 export default function Units() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function Units() {
 
   const totalProperties = apartments.length;
   const occupiedCount = apartments.filter(
-    (a) => a.status === "Occupied",
+    (a) => a.status === "occupied",
   ).length;
 
   const handlePropertyPress = (propertyId: string) => {
@@ -202,7 +203,9 @@ export default function Units() {
                             color={isSelected ? "accent" : "default"}
                             onPress={() => setSelectedStatus(status)}
                           >
-                            <Chip.Label>{status}</Chip.Label>
+                            <Chip.Label>
+                              {STATUS_FILTER_LABELS[status]}
+                            </Chip.Label>
                           </Chip>
                         );
                       })}
@@ -285,6 +288,7 @@ export default function Units() {
                 status={apt.status}
                 thumbnailUrl={apt.coverUrl ?? undefined}
                 onPress={() => handlePropertyPress(apt.id)}
+                isVerified={apt.isVerified}
               />
             ))}
           </View>
