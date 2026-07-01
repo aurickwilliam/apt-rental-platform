@@ -19,7 +19,6 @@ import {
   User,
   CircleCheck,
   Building,
-  ShieldCheck
 } from 'lucide-react-native';
 
 import { IMAGES } from 'constants/images'
@@ -154,6 +153,7 @@ export default function Index() {
               max_occupants={apartment.max_occupants!}
               area_sqm={apartment.area_sqm}
               apartment_images={apartment.apartment_images ?? []}
+              is_verified={apartment.is_verified}
             />
 
             {/* Stats Row */}
@@ -191,16 +191,6 @@ export default function Index() {
                 <Text className="text-base text-foreground font-interMedium">
                   {APARTMENT_STATUS_LABELS[apartment.status]}
                 </Text>
-
-                {/* Verified Badge */}
-                {apartment.is_verified && (
-                  <View className="flex-row items-center gap-1">
-                    <ShieldCheck size={13} color={colors.success} />
-                    <Text className="text-xs font-inter" style={{ color: colors.success }}>
-                      Verified
-                    </Text>
-                  </View>
-                )}
               </View>
             </View>
 

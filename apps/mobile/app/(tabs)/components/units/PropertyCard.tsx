@@ -9,6 +9,8 @@ import { useColors } from '@/hooks/useTheme'
 
 import { ApartmentStatus, APARTMENT_STATUS_LABELS } from '@repo/constants'
 
+import { formatCurrency } from '@repo/utils'
+
 interface PropertyCardProps {
   apartmentName: string
   barangay: string
@@ -17,6 +19,7 @@ interface PropertyCardProps {
   isVerified: boolean
   thumbnailUrl: string | undefined
   onPress: () => void
+  monthlyRent?: number
 }
 
 export default function PropertyCard({
@@ -27,6 +30,7 @@ export default function PropertyCard({
   isVerified,
   thumbnailUrl,
   onPress,
+  monthlyRent,
 }: PropertyCardProps) {
   const { colors } = useColors();
 
@@ -71,16 +75,20 @@ export default function PropertyCard({
         />
         <Card.Body className='px-3 py-2 min-w-0 justify-between flex-1'>
           <View>
-            <View className='flex-row items-center gap-1'>
+            <View className="flex-row items-center">
               <Card.Title
-                className='text-base font-interMedium text-foreground leading-snug shrink'
+                className="flex-1 mr-2 text-base font-interMedium text-foreground leading-snug"
                 numberOfLines={1}
-                ellipsizeMode='tail'
+                ellipsizeMode="tail"
               >
                 {apartmentName}
               </Card.Title>
+
               {isVerified && (
-                <ShieldCheck size={15} color={colors.success} />
+                <ShieldCheck
+                  size={18}
+                  color={colors.success}
+                />
               )}
             </View>
             <Card.Description
@@ -92,17 +100,23 @@ export default function PropertyCard({
             </Card.Description>
           </View>
 
-          {/* Status chip */}
-          <View
-            className='px-2 py-1 rounded-full self-start border'
-            style={{
-              backgroundColor: style.backgroundColor,
-              borderColor: style.color,
-            }}
-          >
-            <Text className='text-xs font-inter' style={{ color: style.color }}>
-              {APARTMENT_STATUS_LABELS[status]}
+          <View className='flex-row items-center justify-between'>
+            {/* Monthly Rent */}
+            <Text className='text-sm font-interMedium text-accent'>
+              {monthlyRent ? formatCurrency(monthlyRent) : 'N/A'}
             </Text>
+            {/* Status chip */}
+            <View
+              className='px-2 py-1 rounded-full self-start border'
+              style={{
+                backgroundColor: style.backgroundColor,
+                borderColor: style.color,
+              }}
+            >
+              <Text className='text-xs font-inter' style={{ color: style.color }}>
+                {APARTMENT_STATUS_LABELS[status]}
+              </Text>
+            </View>
           </View>
         </Card.Body>
       </Card>

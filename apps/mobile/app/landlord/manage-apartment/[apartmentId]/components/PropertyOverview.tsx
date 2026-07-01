@@ -12,10 +12,12 @@ import {
   Calendar,
   Users,
   Building,
+  ShieldCheck,
 } from 'lucide-react-native'
 
 import { useColors } from 'hooks/useTheme'
-import { formatAddress } from '@repo/utils'
+
+import { formatAddress, formatCurrency } from '@repo/utils'
 
 type ApartmentImage = {
   id: string
@@ -40,6 +42,7 @@ type Props = {
   max_occupants: number
   area_sqm: number
   apartment_images: ApartmentImage[]
+  is_verified: boolean
 }
 
 export default function PropertyOverview({
@@ -59,6 +62,7 @@ export default function PropertyOverview({
   max_occupants,
   area_sqm,
   apartment_images,
+  is_verified
 }: Props) {
   const { colors } = useColors()
 
@@ -118,10 +122,23 @@ export default function PropertyOverview({
       </View>
 
       {/* Monthly Rent */}
-      <Text className="text-accent text-lg font-interMedium">
-        ₱ {monthly_rent.toLocaleString()}
-        <Text className="text-gray-500 font-inter text-base">/month</Text>
-      </Text>
+      <View className='flex-row'>
+        <Text className="text-accent text-lg font-interMedium flex-1">
+          {formatCurrency(monthly_rent)}
+          <Text className="text-gray-500 font-inter text-base">/month</Text>
+        </Text>
+
+        {is_verified && (
+          <View className="flex-row items-center gap-1">
+            <ShieldCheck size={20} color={colors.success} />
+            <Text
+              className="text-base font-interMedium"
+              style={{ color: colors.success }}>
+              Verified
+            </Text>
+          </View>
+        )}
+      </View>
 
       {/* Specs Grid */}
       <View className="flex-row flex-wrap">

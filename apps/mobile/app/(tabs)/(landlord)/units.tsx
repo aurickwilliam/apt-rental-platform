@@ -41,6 +41,15 @@ const locationOptions = [
   "Valenzuela",
 ];
 
+const sortOptions = ["none", "price_asc", "price_desc"] as const;
+type SortOption = (typeof sortOptions)[number];
+
+const SORT_LABELS: Record<SortOption, string> = {
+  none: "Default",
+  price_asc: "Low to High",
+  price_desc: "High to Low",
+};
+
 const STATUS_FILTER_LABELS: Record<string, string> = {
   All: "All",
   ...APARTMENT_STATUS_LABELS,
@@ -56,11 +65,13 @@ export default function Units() {
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
+  const [selectedSort, setSelectedSort] = useState<SortOption>("none");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const activeFilterCount = [
     selectedStatus !== statusOptions[0],
     selectedLocation !== locationOptions[0],
+    selectedSort !== "none",
   ].filter(Boolean).length;
 
   const hasActiveFilters = activeFilterCount > 0;
@@ -68,6 +79,7 @@ export default function Units() {
   const handleClearFilters = () => {
     setSelectedStatus(statusOptions[0]);
     setSelectedLocation(locationOptions[0]);
+    setSelectedSort("none");
   };
 
   // Re-fetch whenever tab is focused (e.g. after adding a new apartment)
@@ -90,8 +102,14 @@ export default function Units() {
           a.city.toLowerCase().includes(q),
       );
     }
+
+    if (selectedSort === "price_asc") {
+        result = [...result].sort((a, b) => (a.monthlyRent ?? 0) - (b.monthlyRent ?? 0));
+      } else if (selectedSort === "price_desc") {
+        result = [...result].sort((a, b) => (b.monthlyRent ?? 0) - (a.monthlyRent ?? 0));
+      }
     return result;
-  }, [searchQuery, selectedStatus, selectedLocation, apartments]);
+  }, [searchQuery, selectedStatus, selectedLocation, selectedSort, apartments]);
 
   const totalProperties = apartments.length;
   const occupiedCount = apartments.filter(
@@ -233,6 +251,29 @@ export default function Units() {
                     </View>
                   </View>
 
+                  <Separator />
+
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">
+                      Sort by Price
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {sortOptions.map((sort) => {
+                        const isSelected = selectedSort === sort;
+                        return (
+                          <Chip
+                            key={sort}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedSort(sort)}
+                          >
+                            <Chip.Label>{SORT_LABELS[sort]}</Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+
                   <View className="flex-row gap-3 mt-2">
                     <Button
                       variant="secondary"
@@ -289,6 +330,7 @@ export default function Units() {
                 thumbnailUrl={apt.coverUrl ?? undefined}
                 onPress={() => handlePropertyPress(apt.id)}
                 isVerified={apt.isVerified}
+                monthlyRent={apt.monthlyRent}
               />
             ))}
           </View>
