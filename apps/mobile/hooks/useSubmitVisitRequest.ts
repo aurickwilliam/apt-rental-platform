@@ -42,7 +42,7 @@ export function useSubmitVisitRequest() {
     const timeString = `${String(hour24).padStart(2, "0")}:00:00`;
 
     // Format date as YYYY-MM-DD
-    const visitDate = date.toISOString().split("T")[0];
+    const visitDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
     setLoading(true);
     setError(null);
@@ -63,6 +63,11 @@ export function useSubmitVisitRequest() {
     setLoading(false);
 
     if (insertError) {
+      if (insertError.code === "23505") {
+        const message = "You already have an active visit request for this apartment.";
+        setError(message);
+        return { success: false };
+      }
       setError(insertError.message);
       return { success: false };
     }
