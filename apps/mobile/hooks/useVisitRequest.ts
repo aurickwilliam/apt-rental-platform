@@ -16,11 +16,14 @@ export type VisitRequest = {
   created_at: string;
 };
 
+const SELECT_FIELDS =
+  "id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at";
+
 export function useVisitRequest(applicationId: string | undefined) {
   const { profile } = useProfile();
   const [visitRequest, setVisitRequest] = useState<VisitRequest | null>(null);
+  const [history, setHistory] = useState<VisitRequest[]>([]);
   const [loading, setLoading] = useState(true);
-
   const profileId = profile?.id;
 
   const fetchVisitRequest = useCallback(async () => {
@@ -28,18 +31,22 @@ export function useVisitRequest(applicationId: string | undefined) {
       setLoading(false);
       return;
     }
-
-    const id = applicationId;
-
     setLoading(true);
+
+    // Get all the rows
+    // Get the latest row as the current visit request, and the rest as history
     const { data, error } = await supabase
       .from("visit_request")
-      .select("id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at")
-      .eq("application_id", id)
+      .select(SELECT_FIELDS)
+      .eq("application_id", applicationId)
       .eq("tenant_id", profileId)
-      .maybeSingle();
+      .order("created_at", { ascending: false });
 
-    if (!error) setVisitRequest(data as VisitRequest | null);
+    if (!error && data) {
+      const [current, ...rest] = data as VisitRequest[];
+      setVisitRequest(current ?? null);
+      setHistory(rest);
+    }
     setLoading(false);
   }, [applicationId, profileId]);
 
@@ -47,5 +54,5 @@ export function useVisitRequest(applicationId: string | undefined) {
     fetchVisitRequest();
   }, [fetchVisitRequest]);
 
-  return { visitRequest, loading, refetch: fetchVisitRequest };
+  return { visitRequest, history, loading, refetch: fetchVisitRequest };
 }

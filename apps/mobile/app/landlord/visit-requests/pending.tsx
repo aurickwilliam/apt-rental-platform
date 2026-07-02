@@ -14,7 +14,7 @@ import VisitRequestFilterSheet, {
 import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 import EmptyPending from "./components/EmptyPending";
 
-import { formatDate, formatFullName } from "@repo/utils";
+import { formatDate, formatFullName, formatTime } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import { useLandlordVisitRequests } from "@/hooks/useLandlordVisitRequests";
 
@@ -186,7 +186,7 @@ export default function PendingVisitRequests() {
               last_name: item.tenant.last_name,
             })}
             apartmentName={item.apartment.name}
-            visitSchedule={`${formatDate(item.visit_date, "medium")} at ${item.time}`}
+            visitSchedule={`${formatDate(item.visit_date, "medium")} at ${formatTime(item.time)}`}
             status={item.status}
             avatarUrl={item.tenant.avatar_url ?? undefined}
             onPress={() => handleRequestPress(item.id)}

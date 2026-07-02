@@ -3,7 +3,6 @@ import { View, Text } from "react-native";
 import {
   Button,
   Card,
-  Chip,
   PressableFeedback,
   Separator,
   useThemeColor,
@@ -27,14 +26,10 @@ import {
 import { formatDate } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
-
-type VisitStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "cancelled"
-  | "rescheduled";
-type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
+import {
+  type VisitRequestStatus,
+  useVisitRequestStatusStyles
+} from "@/hooks/useVisitRequestStatusStyles";
 
 export type VisitRequest = {
   id: string;
@@ -42,7 +37,7 @@ export type VisitRequest = {
   time: string;
   no_visitors: number;
   notes: string | null;
-  status: VisitStatus;
+  status: VisitRequestStatus;
   rejected_reason: string | null;
   responded_at: string | null;
   confirmed_visit_date: string | null;
@@ -62,14 +57,6 @@ type Props = {
   onMessageLandlord?: () => void;
   /** rejected / declined-reschedule -> open a fresh visit request form */
   onRequestAgain?: () => void;
-};
-
-const STATUS_CHIP: Record<VisitStatus, { color: ChipColor; label: string }> = {
-  pending: { color: "warning", label: "Pending" },
-  approved: { color: "success", label: "Approved" },
-  rejected: { color: "danger", label: "Rejected" },
-  cancelled: { color: "default", label: "Cancelled" },
-  rescheduled: { color: "accent", label: "Rescheduled" },
 };
 
 function InfoRow({
@@ -138,6 +125,7 @@ export default function VisitRequestCard({
   onRequestAgain,
 }: Props) {
   const { colors } = useColors();
+  const { getStatusStyle } = useVisitRequestStatusStyles();
   const [
     themeColorAccentForeground,
     themeColorAccentSoftForeground,
@@ -160,7 +148,7 @@ export default function VisitRequestCard({
     created_at,
   } = visitRequest;
 
-  const chipConfig = STATUS_CHIP[status];
+  const statusStyle = getStatusStyle(status);
   const iconColor = colors.gray400;
   const iconSize = 16;
 
@@ -185,8 +173,8 @@ export default function VisitRequestCard({
     status === "cancelled" && !!confirmed_visit_date && !!confirmed_time;
 
   return (
-    <PressableFeedback 
-      onPress={onPress} 
+    <PressableFeedback
+      onPress={onPress}
       className="rounded-3xl shadow-none border border-border"
     >
       <Card className="gap-3">
@@ -196,9 +184,19 @@ export default function VisitRequestCard({
             <Text className="text-base text-foreground font-interMedium">
               Visit Request Details
             </Text>
-            <Chip variant="soft" color={chipConfig.color}>
-              <Chip.Label>{chipConfig.label}</Chip.Label>
-            </Chip>
+            <View
+              className="rounded-full px-2.5 py-1"
+              style={{
+                backgroundColor: statusStyle.backgroundColor,
+              }}
+            >
+              <Text
+                style={{ color: statusStyle.textColor }}
+                className="text-xs font-interMedium"
+              >
+                {statusStyle.label}
+              </Text>
+            </View>
           </View>
 
           {/* PENDING — waiting on the landlord, show what was requested */}
@@ -460,9 +458,13 @@ export default function VisitRequestCard({
 
           <Separator />
 
-          <Text className="text-xs text-muted font-inter">
-            Submitted: {formatDate(created_at, "long")}
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs text-muted font-inter">
+              Submitted: {formatDate(created_at, "long")}
+            </Text>
+
+
+          </View>
         </Card.Body>
       </Card>
     </PressableFeedback>

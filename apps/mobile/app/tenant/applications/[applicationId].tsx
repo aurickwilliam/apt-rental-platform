@@ -9,6 +9,7 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
 import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
+import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
 
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
 import { useColors } from "@/hooks/useTheme";
@@ -44,14 +45,14 @@ export default function ApplicationApartment() {
   const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
   const { getStatusStyle } = useApplicationStatusStyles();
-  const { visitRequest, loading: visitLoading, refetch } = useVisitRequest(applicationId);
+  const { visitRequest, history, loading: visitLoading, refetch } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
 
   useFocusEffect(
     useCallback(() => {
-      if (!visitRequest) refetch();
-    }, [refetch, visitRequest])
+      refetch();
+    }, [refetch])
   );
 
   const application = applications.find((a) => a.id === applicationId);
@@ -410,6 +411,25 @@ export default function ApplicationApartment() {
               </Accordion.Item>
             </Accordion>
           </Animated.View>
+        </>
+      )}
+
+      {history.length > 0 && (
+        <>
+          <Separator className="my-5" />
+          <View className="mb-3">
+            <Text className="text-lg text-foreground font-interMedium">
+              Visit History
+            </Text>
+            <Text className="text-sm text-muted">
+              Previous visit requests for this apartment.
+            </Text>
+          </View>
+          <View className="gap-2">
+            {history.map((vr) => (
+              <VisitRequestHistoryItem key={vr.id} visitRequest={vr} />
+            ))}
+          </View>
         </>
       )}
 
