@@ -6,20 +6,28 @@ export function useRespondToReschedule() {
 
   const accept = useCallback(async (visitRequestId: string) => {
     setLoading(true);
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from("visit_request")
-      .update({ status: "approved", responded_at: new Date().toISOString() })
+      .update({
+        status: "approved",
+        tenant_responded_at: new Date().toISOString(),
+      })
       .eq("id", visitRequestId);
+    console.log("accept result:", { error, data });
     setLoading(false);
     return { error };
   }, []);
 
   const decline = useCallback(async (visitRequestId: string) => {
     setLoading(true);
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from("visit_request")
-      .update({ status: "cancelled", responded_at: new Date().toISOString() })
+      .update({
+        status: "cancelled",
+        tenant_responded_at: new Date().toISOString(),
+      })
       .eq("id", visitRequestId);
+    console.log("decline result:", { error, data });
     setLoading(false);
     return { error };
   }, []);

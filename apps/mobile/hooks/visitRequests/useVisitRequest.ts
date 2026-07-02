@@ -14,10 +14,11 @@ export type VisitRequest = {
   confirmed_visit_date: string | null;
   confirmed_time: string | null;
   created_at: string;
+  tenant_responded_at: string | null;
 };
 
 const SELECT_FIELDS =
-  "id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at";
+  "id, visit_date, time, no_visitors, notes, status, rejected_reason, responded_at, confirmed_visit_date, confirmed_time, created_at, tenant_responded_at";
 
 export function useVisitRequest(applicationId: string | undefined) {
   const { profile } = useProfile();

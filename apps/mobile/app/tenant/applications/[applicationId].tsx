@@ -13,11 +13,12 @@ import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
-import { useTenantApplications } from "@/hooks/applications";
-import { useApplicationStatusStyles } from "@/hooks/applications";
-import { useVisitRequest } from "@/hooks/visitRequests";
-import { useCancelApplication } from "@/hooks/applications";
-import { useRespondToReschedule } from "@/hooks/visitRequests";
+import {
+  useTenantApplications,
+  useApplicationStatusStyles,
+  useCancelApplication
+} from "@/hooks/applications";
+import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
 
 import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
@@ -427,7 +428,10 @@ export default function ApplicationApartment() {
           </View>
           <View className="gap-2">
             {history.map((vr) => (
-              <VisitRequestHistoryItem key={vr.id} visitRequest={vr} />
+              <VisitRequestHistoryItem
+                key={vr.id}
+                visitRequest={vr}
+              />
             ))}
           </View>
         </>
