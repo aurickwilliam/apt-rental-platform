@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 import { useProfile } from './useProfile';
 
-type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+import type { ApplicationStatus } from '@/hooks/useApplicationStatusStyles';
 
 export type ApplicationDocument = {
   label: string;

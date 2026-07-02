@@ -13,6 +13,7 @@ import VisitRequestCard from "./components/VisitRequestCard";
 import { useApartmentDetails } from "@/hooks/useApartmentDetails";
 import { useColors } from "@/hooks/useTheme";
 import { useTenantApplications } from "@/hooks/useTenantApplications";
+import { useApplicationStatusStyles } from "@/hooks/useApplicationStatusStyles";
 import { useVisitRequest } from "@/hooks/useVisitRequest";
 import { useCancelApplication } from "@/hooks/useCancelApplication";
 import { useRespondToReschedule } from "@/hooks/useRespondToReschedule";
@@ -31,16 +32,6 @@ import {
 
 import { Ban, ChevronLeft } from "lucide-react-native";
 
-type ApplicationStatus = "pending" | "approved" | "rejected" | "cancelled";
-type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
-
-const STATUS_CHIP: Record<ApplicationStatus, { color: ChipColor; label: string }> = {
-  pending:  { color: "warning", label: "Pending" },
-  approved: { color: "success", label: "Approved" },
-  rejected: { color: "danger", label: "Rejected" },
-  cancelled: { color: "default", label: "Cancelled" },
-};
-
 export default function ApplicationApartment() {
   const { colors } = useColors();
   const router = useRouter();
@@ -52,6 +43,7 @@ export default function ApplicationApartment() {
   const { profile } = useProfile();
   const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
+  const { getStatusStyle } = useApplicationStatusStyles();
   const { visitRequest, loading: visitLoading, refetch } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
@@ -64,7 +56,7 @@ export default function ApplicationApartment() {
 
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
-  const chipConfig = status ? STATUS_CHIP[status as ApplicationStatus] : null;
+  const chipConfig = status ? getStatusStyle(status) : null;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -165,7 +157,7 @@ export default function ApplicationApartment() {
           </View>
         </View>
         {chipConfig && (
-          <Chip variant="soft" color={chipConfig.color}>
+          <Chip variant="soft" color={chipConfig.chipColor}>
             <Chip.Label>{chipConfig.label}</Chip.Label>
           </Chip>
         )}
@@ -230,6 +222,17 @@ export default function ApplicationApartment() {
         <View className="mb-3 p-4 rounded-3xl bg-danger-soft border border-danger-light">
           <Text className="text-sm font-interSemiBold text-danger mb-1">
             Application Rejected
+          </Text>
+          <Text className="text-sm text-foreground">
+            {application.rejected_reason}
+          </Text>
+        </View>
+      )}
+
+      {application?.status === "closed" && application.rejected_reason && (
+        <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
+          <Text className="text-sm font-interSemiBold text-secondary mb-1">
+            Application Closed
           </Text>
           <Text className="text-sm text-foreground">
             {application.rejected_reason}
