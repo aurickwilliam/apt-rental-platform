@@ -22,6 +22,8 @@ import { PERKS } from "@/constants/perks";
 
 import { useColors } from "hooks/useTheme";
 
+import { ShieldCheck } from "lucide-react-native";
+
 const MAX_SIZE = 300;
 const MIN_BUDGET = 1000;
 const MAX_BUDGET = 50000;
@@ -40,6 +42,7 @@ export type FilterState = {
   floorLevel: string[];
   leaseDuration: string[];
   amenities: string[];
+  verifiedOnly: boolean;
 };
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -53,6 +56,7 @@ export const DEFAULT_FILTERS: FilterState = {
   floorLevel: FLOOR_LEVELS,
   leaseDuration: LEASE_DURATIONS,
   amenities: [],
+  verifiedOnly: false,
 };
 
 type Props = {
@@ -164,6 +168,28 @@ export default function FilterBottomSheet({
             }}
             showsVerticalScrollIndicator={false}
           >
+            {/* Verification */}
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="font-interSemiBold text-base text-foreground">
+                Verification
+              </Text>
+            </View>
+            <Chip
+              variant={filters.verifiedOnly ? "soft" : "secondary"}
+              color={filters.verifiedOnly ? "success" : "default"}
+              onPress={() =>
+                setFilters((p) => ({ ...p, verifiedOnly: !p.verifiedOnly }))
+              }
+            >
+              <ShieldCheck
+                size={14}
+                color={filters.verifiedOnly ? colors.success : colors.gray400}
+              />
+              <Chip.Label>Verified listings only</Chip.Label>
+            </Chip>
+
+            <Separator className="my-4" />
+
             {/* Budget */}
             <Slider
               value={filters.budget}

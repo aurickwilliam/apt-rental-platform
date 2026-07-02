@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import ApartmentCard from 'components/cards/ApartmentCard'
+import { type ApartmentCardProps } from 'components/cards/ApartmentCard'
 
 import { Button, Avatar } from "heroui-native"
 
@@ -45,7 +46,7 @@ type LandlordProfileData = {
 type LandlordListing = ApartmentCardProps;
 
 export default function PublicLandlordProfile() {
-  const { landlordId, apartmentId } = useLocalSearchParams<{ 
+  const { landlordId, apartmentId } = useLocalSearchParams<{
     landlordId?: string | string[],
     apartmentId?: string | string[],
   }>();
