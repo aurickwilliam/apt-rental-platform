@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text } from "react-native";
 import { Calendar } from "react-native-calendars";
 
-import { BottomSheet, Button } from "heroui-native";
+import { BottomSheet, Button, useToast } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -21,7 +21,10 @@ type Props = {
   onConfirm: (date: string, time: string) => void;
 };
 
-const today = new Date().toISOString().split("T")[0];
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const minSelectableDate = tomorrow.toISOString().split("T")[0];
 
 function toSupabaseTime(hour: string, period: Period): string {
   let h = parseInt(hour, 10);
@@ -37,12 +40,30 @@ export default function RescheduleSheet({
   onConfirm,
 }: Props) {
   const { colors } = useColors();
+  const { toast } = useToast();
+
   const [selectedDate, setSelectedDate] = useState("");
   const [hour, setHour] = useState("");
   const [period, setPeriod] = useState<Period>("AM");
 
   const handleConfirm = () => {
     if (!selectedDate || !hour) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const pickedDate = new Date(`${selectedDate}T00:00:00`);
+
+    if (pickedDate <= today) {
+      toast.show({
+        label: "Invalid Date",
+        description: "Please select a date starting tomorrow.",
+        variant: "danger",
+      });
+
+      return;
+    }
+
     onConfirm(selectedDate, toSupabaseTime(hour, period));
   };
 
@@ -75,7 +96,7 @@ export default function RescheduleSheet({
 
             {/* Date picker */}
             <Calendar
-              minDate={today}
+              minDate={minSelectableDate}
               onDayPress={(day) => setSelectedDate(day.dateString)}
               renderHeader={(date) => {
                 // date here is a XDate object from the library
