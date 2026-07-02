@@ -10,6 +10,7 @@ import {
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from 'components/layout/StandardHeader';
 import ApartmentCard from 'components/cards/ApartmentCard';
+import { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 
 import { useFavorites } from '@/hooks/useFavorites';
 import { useColors } from '@/hooks/useTheme';
@@ -118,7 +119,7 @@ export default function TenantFavorites() {
       {
         viewMode === 'grid'
           ? (
-            <Rows3 
+            <Rows3
               size={24}
               color={colors.secondaryForeground}
             />
@@ -136,11 +137,11 @@ export default function TenantFavorites() {
   const combinedError = favoritesError ?? apartmentsError;
 
   return (
-    <ScreenWrapper 
+    <ScreenWrapper
       scrollable
       className='pt-5'
       header={
-        <StandardHeader 
+        <StandardHeader
           title='Favorites Apartment'
           rightComponent={ToggleFavoritesView}
         />

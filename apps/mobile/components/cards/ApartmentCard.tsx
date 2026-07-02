@@ -11,10 +11,28 @@ import {
   Bath,
   Maximize,
   Heart,
-  Star
+  Star,
+  ShieldCheck
 } from 'lucide-react-native';
 
 import { formatCurrency } from '@repo/utils';
+
+export interface ApartmentCardProps {
+  id: string;
+  thumbnail?: { uri: string };
+  name?: string;
+  location?: string;
+  ratings?: string;
+  isFavorite?: boolean;
+  monthlyRent?: number;
+  noBedroom?: number;
+  noBathroom?: number;
+  areaSqm?: number;
+  isGrid?: boolean;
+  onPress?: () => void;
+  onPressFavorite?: () => void;
+  isVerified?: boolean;
+}
 
 export default function ApartmentCard({
   thumbnail,
@@ -29,6 +47,7 @@ export default function ApartmentCard({
   isGrid = true,
   onPress,
   onPressFavorite,
+  isVerified = false,
 }: ApartmentCardProps) {
   const { width } = useWindowDimensions();
   const { colors } = useColors();
@@ -129,6 +148,23 @@ export default function ApartmentCard({
               </View>
             </View>
           </Card.Body>
+
+          {isVerified && (
+            <View
+              className="bg-success-light p-1 absolute top-2 left-2 rounded-full flex-row items-center gap-1"
+              style={{
+                paddingHorizontal: isGrid ? 6 : 8,
+                elevation: 3,
+              }}
+            >
+              <ShieldCheck size={isGrid ? 14 : 16} color={colors.success} />
+              <Text
+                className={`text-success font-interMedium ${isGrid ? "text-xs" : "text-sm"}`}
+              >
+                Verified
+              </Text>
+            </View>
+          )}
 
           {/* Favorite Button — floats over the image */}
           <PressableFeedback

@@ -6,7 +6,7 @@ import {
   Text,
 } from 'react-native';
 
-import ApartmentCard from 'components/cards/ApartmentCard';
+import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 
 import { useColors } from 'hooks/useTheme';
 

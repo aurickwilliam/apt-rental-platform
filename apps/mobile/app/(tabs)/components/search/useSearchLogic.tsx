@@ -11,6 +11,7 @@ import { supabase } from "@repo/supabase";
 import { useFavorites } from "@/hooks/useFavorites";
 
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
+import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
 
 const CITIES = ["CAMANAVA", "Caloocan", "Malabon", "Navotas", "Valenzuela"];
 const PAGE_SIZE = 10;
@@ -65,6 +66,7 @@ export default function useSearchLogic() {
         no_bedrooms,
         no_bathrooms,
         area_sqm,
+        is_verified,
         apartment_images (
           url,
           is_cover,
@@ -86,6 +88,10 @@ export default function useSearchLogic() {
     }
 
     if (activeFilters) {
+      if (activeFilters.verifiedOnly) {
+        query = query.eq("is_verified", true);
+      }
+
       if (activeFilters.budget[0] > MIN_BUDGET) {
         query = query.gte("monthly_rent", activeFilters.budget[0]);
       }
@@ -202,6 +208,7 @@ export default function useSearchLogic() {
         noBedroom: apt.no_bedrooms,
         noBathroom: apt.no_bathrooms,
         areaSqm: apt.area_sqm,
+        isVerified: apt.is_verified,
         isGrid: true,
       };
     });
@@ -299,6 +306,7 @@ export default function useSearchLogic() {
     if (!filters) return 0;
     let count = 0;
 
+    if (filters.verifiedOnly) count++;
     if (filters.budget[0] > MIN_BUDGET || filters.budget[1] < MAX_BUDGET)
       count++;
     if (
