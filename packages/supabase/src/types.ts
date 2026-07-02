@@ -687,6 +687,7 @@ export type Database = {
           responded_at: string | null
           status: string
           tenant_id: string
+          tenant_responded_at: string | null
           time: string
           updated_at: string | null
           visit_date: string
@@ -705,6 +706,7 @@ export type Database = {
           responded_at?: string | null
           status?: string
           tenant_id: string
+          tenant_responded_at?: string | null
           time: string
           updated_at?: string | null
           visit_date: string
@@ -723,6 +725,7 @@ export type Database = {
           responded_at?: string | null
           status?: string
           tenant_id?: string
+          tenant_responded_at?: string | null
           time?: string
           updated_at?: string | null
           visit_date?: string

@@ -23,7 +23,7 @@ import {
   LucideIcon,
 } from "lucide-react-native";
 
-import { formatDate } from "@repo/utils";
+import { formatDate, formatTime } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -90,7 +90,7 @@ function SectionLabel({
 }) {
   return (
     <Text
-      className={`text-xs font-interMedium uppercase tracking-wide ${className}`}
+      className={`text-xs font-interMedium ${className}`}
     >
       {children}
     </Text>
@@ -143,32 +143,29 @@ export default function VisitRequestCard({
     notes,
     status,
     rejected_reason,
+    responded_at,
     confirmed_visit_date,
     confirmed_time,
     created_at,
   } = visitRequest;
 
   const statusStyle = getStatusStyle(status);
-  const iconColor = colors.gray400;
+  const iconColor = colors.gray500;
   const iconSize = 16;
-
-  // Format time string (HH:MM:SS -> HH:MM AM/PM)
-  const formatTime = (t: string) => {
-    const [hours, minutes] = t.split(":").map(Number);
-    const period = hours >= 12 ? "PM" : "AM";
-    const h = hours % 12 || 12;
-    return `${h}:${String(minutes).padStart(2, "0")} ${period}`;
-  };
 
   const visitorsLabel = `${no_visitors} ${no_visitors === 1 ? "person" : "people"}`;
 
-  // "approved" can be reached either directly, or via an accepted reschedule —
-  // confirmed_visit_date/time win whenever they're set, since that's the real visit time.
+  const respondedLabel =
+    status === "approved"
+      ? "Approved"
+      : status === "rejected"
+        ? "Rejected"
+        : status === "rescheduled"
+          ? "Proposed"
+          : null;
   const finalVisitDate = confirmed_visit_date ?? visit_date;
   const finalVisitTime = confirmed_time ?? time;
 
-  // "cancelled" covers two different tenant actions. If confirmed_visit_date is set,
-  // this row came from declining a reschedule rather than a plain self-cancel.
   const isDeclinedReschedule =
     status === "cancelled" && !!confirmed_visit_date && !!confirmed_time;
 
@@ -334,18 +331,18 @@ export default function VisitRequestCard({
                   <Separator />
 
                   <View className="gap-2">
-                    <SectionLabel className="text-accent">
+                    <SectionLabel className="text-accent text-sm">
                       Landlord proposed a new time
                     </SectionLabel>
                     <InfoRow
                       icon={
-                        <CalendarCheck size={iconSize} color={colors.primary} />
+                        <CalendarCheck size={iconSize} color={colors.gray500} />
                       }
                       label="Date"
                       value={formatDate(confirmed_visit_date, "long")}
                     />
                     <InfoRow
-                      icon={<Clock size={iconSize} color={colors.primary} />}
+                      icon={<Clock size={iconSize} color={colors.gray500} />}
                       label="Time"
                       value={formatTime(confirmed_time)}
                     />
@@ -459,11 +456,17 @@ export default function VisitRequestCard({
           <Separator />
 
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs text-muted font-inter">
-              Submitted: {formatDate(created_at, "long")}
-            </Text>
+            <View>
+              <Text className="text-xs text-muted font-inter">
+                Submitted: {formatDate(created_at, "long")}
+              </Text>
 
-
+              {respondedLabel && responded_at && (
+                <Text className="text-xs text-muted font-inter">
+                  {respondedLabel} {formatDate(responded_at, "long")} at {formatTime(responded_at)}
+                </Text>
+              )}
+            </View>
           </View>
         </Card.Body>
       </Card>
