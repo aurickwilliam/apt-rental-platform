@@ -8,8 +8,6 @@ import { MONTHS } from '@repo/constants'
 
 import { useColors } from '@/hooks/useTheme'
 
-
-
 export default function ProfitByPropertyCard() {
   const { colors } = useColors();
 

@@ -14,7 +14,7 @@ import {
 
 import { Button, ListGroup, Separator } from 'heroui-native';
 
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from 'hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -96,7 +96,7 @@ export default function Profile() {
       )}
 
       {/* Verification Status */}
-      <VerificationStatus 
+      <VerificationStatus
         accountStatus={accountStatus}
         rejectedReason={rejectedReason}
         dateVerified={dateVerified}
@@ -120,7 +120,7 @@ export default function Profile() {
 
                 <ListGroup.ItemSuffix />
               </ListGroup.Item>
-              
+
               {index < listItems.length - 1 && (
                 <Separator key={`sep-${index}`} className='mx-4' />
               )}

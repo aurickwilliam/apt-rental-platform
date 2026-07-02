@@ -8,7 +8,7 @@ import {
   LucideIcon,
 } from 'lucide-react-native';
 
-import type { ApartmentDetails } from 'hooks/useApartmentDetails';
+import type { ApartmentDetails } from 'hooks/apartments';
 import { useColors } from 'hooks/useTheme';
 
 type ApartmentDetailsSectionProps = {
@@ -41,11 +41,11 @@ export default function ApartmentDetailsSection({
   }
 
   const detailData = [
-    { 
-      icon: Users, 
-      value: apartment?.max_occupants 
-        ? `Max ${apartment.max_occupants} ${apartment.max_occupants === 1 ? 'Occupant' : 'Occupants'}` 
-        : 'N/A' 
+    {
+      icon: Users,
+      value: apartment?.max_occupants
+        ? `Max ${apartment.max_occupants} ${apartment.max_occupants === 1 ? 'Occupant' : 'Occupants'}`
+        : 'N/A'
     },
     {
       icon: Building,
@@ -66,7 +66,7 @@ export default function ApartmentDetailsSection({
       {
         detailData.map((detail, index) => (
           <View key={index} className='w-1/2 pr-2'>
-            <DetailBlock 
+            <DetailBlock
               Icon={detail.icon}
               value={detail.value}
             />

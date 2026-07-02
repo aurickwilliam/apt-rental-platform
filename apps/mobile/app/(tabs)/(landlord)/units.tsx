@@ -26,7 +26,7 @@ import {
   Button,
 } from "heroui-native";
 
-import { useLandlordUnits } from "@/hooks/useLandlordUnits";
+import { useLandlordUnits } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
 
 import { APARTMENT_STATUS_LABELS, VALID_APARTMENT_STATUSES } from "@repo/constants";

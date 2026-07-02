@@ -2,7 +2,8 @@ import { createElement, useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useToast } from 'heroui-native';
 import { IconAlertTriangle, IconHeartFilled, IconHeartOff } from '@tabler/icons-react-native';
-import { COLORS } from '@repo/constants';
+
+import { useColors } from '@/hooks/useTheme';
 
 import {
   deleteFavorite,
@@ -12,6 +13,7 @@ import {
 } from '@/service/favoritesService';
 
 export function useFavorites() {
+  const { colors } = useColors();
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [favoriteApartmentIds, setFavoriteApartmentIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export function useFavorites() {
         toast.show({
           variant: 'danger',
           label: 'No tenant profile found',
-          icon: createElement(IconAlertTriangle, { size: 18, color: COLORS.danger }),
+          icon: createElement(IconAlertTriangle, { size: 18, color: colors.danger }),
         });
         throw new Error('No tenant profile found.');
       }
@@ -83,10 +85,10 @@ export function useFavorites() {
           variant: wasAlreadyFavorite ? 'default' : 'success',
           label: wasAlreadyFavorite ? 'Removed from favorites' : 'Added to favorites',
           icon: wasAlreadyFavorite
-            ? createElement(IconHeartOff, { size: 18, color: COLORS.text, style: { marginTop: 3 } })
+            ? createElement(IconHeartOff, { size: 18, color: colors.textPrimary, style: { marginTop: 3 } })
             : createElement(IconHeartFilled, {
                 size: 18,
-                color: COLORS.greenHulk,
+                color: colors.success,
                 style: { marginTop: 3 },
               }),
         });
@@ -95,7 +97,7 @@ export function useFavorites() {
         toast.show({
           variant: 'danger',
           label: 'Something went wrong',
-          icon: createElement(IconAlertTriangle, { size: 18, color: COLORS.danger }),
+          icon: createElement(IconAlertTriangle, { size: 18, color: colors.danger }),
         });
         throw err;
       }

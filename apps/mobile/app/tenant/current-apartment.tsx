@@ -23,7 +23,7 @@ import {
 } from 'lucide-react-native';
 
 import { useColors } from 'hooks/useTheme'
-import { useTenancy } from 'hooks/useTenancy'
+import { useTenancy } from 'hooks/tenancy'
 import { supabase } from '@repo/supabase'
 
 const MONTHS = [

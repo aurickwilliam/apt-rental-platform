@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native';
 
 import { useColors } from 'hooks/useTheme';
-import type { ApartmentDetails } from 'hooks/useApartmentDetails';
+import type { ApartmentDetails } from 'hooks/apartments';
 
 type ApartmentImage = {
   id: string;

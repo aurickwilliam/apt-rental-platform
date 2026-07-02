@@ -8,7 +8,7 @@ import {
   markMessagesAsRead,
   buildConversationKey,
   type Message,
-} from '../service/chatService';
+} from '../../service/chatService';
 
 import { useChatChannel } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';

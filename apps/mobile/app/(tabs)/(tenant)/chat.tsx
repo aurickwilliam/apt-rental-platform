@@ -14,7 +14,7 @@ import { supabase } from '@repo/supabase';
 
 import { getConversations, type Conversation } from '@/service/chatService';
 
-import { useTenancy } from '@/hooks/useTenancy';
+import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 
 import {
@@ -207,7 +207,7 @@ export default function Chat() {
           : c
       )
     );
-    
+
     router.push({
       pathname: '/chat/[conversationId]',
       params: {
@@ -239,8 +239,8 @@ export default function Chat() {
           <SearchField value={searchQuery} onChange={setSearchQuery}>
             <SearchField.Group>
               <SearchField.SearchIcon />
-              <SearchField.Input 
-                placeholder='Search messages...' 
+              <SearchField.Input
+                placeholder='Search messages...'
                 className='flex-1 shadow-none'
               />
               <SearchField.ClearButton />

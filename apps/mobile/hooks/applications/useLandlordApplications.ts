@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@repo/supabase';
-import { useProfile } from './useProfile';
+import { useProfile } from 'hooks/auth';
 import { formatAddress } from '@repo/utils';
 
 type DbStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';

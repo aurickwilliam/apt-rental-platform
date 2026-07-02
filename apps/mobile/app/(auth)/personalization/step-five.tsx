@@ -10,7 +10,7 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
-import { useProfile } from "hooks/useProfile";
+import { useProfile } from "hooks/auth";
 
 import {
   RadioGroup,

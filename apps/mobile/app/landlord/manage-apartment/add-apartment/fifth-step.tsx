@@ -48,9 +48,9 @@ import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
 import { formatCurrency } from "@repo/utils";
 
-import { useProfile } from "hooks/useProfile";
-import { useLandlordStats } from "hooks/useLandlordStats";
-import { usePublishApartment } from "hooks/usePublishApartment";
+import { useProfile } from "hooks/auth";
+import { useLandlordStats } from "hooks/landlord";
+import { usePublishApartment } from "hooks/apartments";
 import { useColors } from "hooks/useTheme";
 
 setAccessToken(null); // Suppress the missing API key warning since we're using free OSM tiles

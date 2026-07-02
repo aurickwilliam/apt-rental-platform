@@ -1,7 +1,6 @@
-// hooks/useSubmitVisitRequest.ts
 import { useState } from "react";
 import { supabase } from "@repo/supabase";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "hooks/auth";
 
 type VisitRequestPayload = {
   apartmentId: string;

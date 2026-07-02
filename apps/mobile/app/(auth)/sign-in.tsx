@@ -12,25 +12,25 @@ import AuthButton from "./components/AuthButton";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
 import {
-  Button, 
-  Text, 
-  TextField, 
-  Label, 
-  FieldError, 
+  Button,
+  Text,
+  TextField,
+  Label,
+  FieldError,
   LinkButton,
   Input,
   InputGroup,
   Spinner,
 } from 'heroui-native';
 
-import { 
-  Eye, 
-  EyeOff 
+import {
+  Eye,
+  EyeOff
 } from "lucide-react-native";
 
 import { supabase } from "@repo/supabase";
 
-import { useGoogleAuth } from "hooks/useGoogleAuth";
+import { useGoogleAuth } from "hooks/auth";
 import { useColors } from "hooks/useTheme";
 
 import { isValidEmail } from "@repo/utils";
@@ -43,9 +43,9 @@ export default function SignIn() {
   const [password, setPassword] = useState<string>("");
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
-  
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const [emailError, setEmailError] = useState<string>("");
@@ -112,7 +112,7 @@ export default function SignIn() {
           email: email.trim(),
           password,
         });
-      
+
       // Check if there is an error during sign-in and handle it
       if (signInError) {
         if (signInError.message === "Invalid login credentials") {
@@ -134,7 +134,7 @@ export default function SignIn() {
         .eq("user_id", authData.user!.id)
         .single();
 
-        
+
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");
         return;
@@ -198,7 +198,7 @@ export default function SignIn() {
       </View>
 
       {/* Tab Group User Side */}
-      <RoleTab 
+      <RoleTab
         userSide={userSide}
         onValueChange={(val) => {
           setUserSide(val as "tenant" | "landlord");
@@ -213,7 +213,7 @@ export default function SignIn() {
             isInvalid={!!emailError}
         >
           <Label>Email Address:</Label>
-          <Input 
+          <Input
             placeholder="Enter your email"
             value={email}
             onChangeText={handleEmailTextChange}
@@ -227,8 +227,8 @@ export default function SignIn() {
           )}
         </TextField>
 
-        <TextField 
-          isRequired 
+        <TextField
+          isRequired
           isInvalid={!!passwordError}
         >
           <Label>Password:</Label>
@@ -284,7 +284,7 @@ export default function SignIn() {
           <Button.Label className="font-interMedium">
             {loading ? "Signing In..." : "Sign In"}
           </Button.Label>
-          
+
           {loading && (
             <Spinner
               size="sm"
@@ -300,7 +300,7 @@ export default function SignIn() {
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
-        <AuthButton 
+        <AuthButton
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
           imageSource={IMAGES.googleLogo}

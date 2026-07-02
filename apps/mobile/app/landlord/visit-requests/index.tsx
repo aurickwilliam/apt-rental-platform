@@ -16,7 +16,10 @@ import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 import { formatDate, formatFullName } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 
-import { useLandlordVisitRequests, LandlordVisitRequest } from "@/hooks/useLandlordVisitRequests";
+import {
+  useLandlordVisitRequests,
+  type LandlordVisitRequest
+} from "@/hooks/visitRequests";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 

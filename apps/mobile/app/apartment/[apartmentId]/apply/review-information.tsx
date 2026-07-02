@@ -22,7 +22,8 @@ import {
 import { formatCurrency, formatDate } from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
-import { useSubmitApplication } from '@/hooks/useSubmitApplication'
+
+import { useSubmitApplication } from '@/hooks/applications'
 
 export default function ReviewInformation() {
   const router = useRouter();

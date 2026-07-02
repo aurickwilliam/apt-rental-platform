@@ -17,7 +17,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import { formatCurrency } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useApartmentDetails } from "@/hooks/apartments";
 import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
 
 import { Button, Spinner } from "heroui-native";
