@@ -18,7 +18,7 @@ import { Button, SearchField } from 'heroui-native';
 
 import { formatDate } from '@repo/utils';
 
-import { useLandlordApplications } from '@/hooks/useLandlordApplications';
+import { useLandlordApplications } from '@/hooks/applications';
 import { useColors } from '@/hooks/useTheme';
 
 const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };

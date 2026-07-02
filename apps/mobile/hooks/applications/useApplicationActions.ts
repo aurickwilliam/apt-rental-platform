@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@repo/supabase';
-import { type DisplayStatus } from '@/hooks/useLandlordApplications';
+import { type DisplayStatus } from 'hooks/applications';
 
 export function useApplicationActions(applicationId: string | undefined) {
   const [localStatus, setLocalStatus] = useState<DisplayStatus | null>(null);

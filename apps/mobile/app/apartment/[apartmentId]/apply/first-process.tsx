@@ -18,7 +18,7 @@ import {
   Dialog,
 } from 'heroui-native';
 
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile } from 'hooks/auth'
 import { usePHMobileValidation } from '@repo/hooks'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'

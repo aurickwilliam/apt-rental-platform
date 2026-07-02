@@ -8,7 +8,7 @@ import { useColors } from "@/hooks/useTheme"
 import {
   useVisitRequestStatusStyles,
   VisitRequestStatus
-} from "@/hooks/useVisitRequestStatusStyles";
+} from "@/hooks/visitRequests";
 
 import { getInitials } from "@repo/utils";
 

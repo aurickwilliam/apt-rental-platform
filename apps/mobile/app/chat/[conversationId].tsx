@@ -16,7 +16,7 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import ChatEmptyState from './components/ChatEmptyState';
 
 import { useColors } from '@/hooks/useTheme';
-import { useChat } from 'hooks/useChat';
+import { useChat } from 'hooks/chat';
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{

@@ -6,7 +6,7 @@ import { useColors } from "@/hooks/useTheme";
 import {
   type VisitRequestStatus,
   useVisitRequestStatusStyles,
-} from "@/hooks/useVisitRequestStatusStyles";
+} from "@/hooks/visitRequests";
 
 type Props = {
   visitRequest: {

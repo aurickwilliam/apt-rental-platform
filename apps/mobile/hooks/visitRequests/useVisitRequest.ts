@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "hooks/auth";
 import { supabase } from "@repo/supabase";
 
 export type VisitRequest = {
@@ -50,9 +50,9 @@ export function useVisitRequest(applicationId: string | undefined) {
     setLoading(false);
   }, [applicationId, profileId]);
 
-  useEffect(() => {
-    fetchVisitRequest();
-  }, [fetchVisitRequest]);
+  // useEffect(() => {
+  //   fetchVisitRequest();
+  // }, [fetchVisitRequest]);
 
   return { visitRequest, history, loading, refetch: fetchVisitRequest };
 }

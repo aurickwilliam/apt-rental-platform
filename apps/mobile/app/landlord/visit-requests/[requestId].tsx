@@ -22,10 +22,12 @@ import {
   formatTime,
 } from "@repo/utils";
 
-import { useLandlordVisitRequests } from "@/hooks/useLandlordVisitRequests";
-import { useVisitRequestActions } from "@/hooks/useVisitRequestActions";
+import {
+  useLandlordVisitRequests,
+  useVisitRequestActions,
+  useVisitRequestStatusStyles
+} from "@/hooks/visitRequests";
 import { useColors } from "@/hooks/useTheme";
-import { useVisitRequestStatusStyles } from "@/hooks/useVisitRequestStatusStyles";
 
 export default function VisitRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();

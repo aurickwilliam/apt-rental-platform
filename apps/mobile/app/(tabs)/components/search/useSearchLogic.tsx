@@ -8,7 +8,7 @@ import {
 } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
-import { useFavorites } from "@/hooks/useFavorites";
+import { useFavorites } from "@/hooks/favorites";
 
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";

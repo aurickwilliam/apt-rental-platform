@@ -20,7 +20,7 @@ import { Button, Avatar } from "heroui-native"
 import { supabase } from '@repo/supabase'
 
 import { useColors } from 'hooks/useTheme'
-import { useLandlordStats } from 'hooks/useLandlordStats'
+import { useLandlordStats } from 'hooks/landlord'
 
 import {
   Flag,

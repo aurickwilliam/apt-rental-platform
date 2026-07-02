@@ -8,8 +8,8 @@ import DateField from "@/components/inputs/DateField";
 import TimeField from "@/components/inputs/TimeField";
 import QuantityField from "@/components/inputs/QuantityField";
 
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
-import { useSubmitVisitRequest } from "@/hooks/useSubmitVisitRequest";
+import { useApartmentDetails } from "@/hooks/apartments";
+import { useSubmitVisitRequest } from "@/hooks/visitRequests";
 
 import {
   Button,

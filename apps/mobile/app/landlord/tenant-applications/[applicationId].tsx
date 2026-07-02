@@ -12,15 +12,19 @@ import DetailField from '@/components/display/DetailField';
 import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
 import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
+import ErrorDialog from '@/components/display/ErrorDialog';
+import RejectDialog from '../../../components/display/RejectDialog';
 
 import { formatCurrency, formatDate, getInitials } from '@repo/utils';
 
 import { useColors } from '@/hooks/useTheme';
-import { useLandlordApplications, type DisplayStatus } from '@/hooks/useLandlordApplications';
-import { useDocumentUrls } from '@/hooks/useDocumentUrls';
-import { useApplicationActions } from '@/hooks/useApplicationActions';
-import ErrorDialog from '@/components/display/ErrorDialog';
-import RejectDialog from '../../../components/display/RejectDialog';
+import {
+  useLandlordApplications,
+  type DisplayStatus,
+  useDocumentUrls,
+  useApplicationActions
+} from '@/hooks/applications';
+
 
 function getStatusStyle(
   status: DisplayStatus,

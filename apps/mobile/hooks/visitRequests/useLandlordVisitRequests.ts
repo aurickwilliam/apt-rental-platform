@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@repo/supabase";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "hooks/auth";
 
 export type LandlordVisitRequest = {
   id: string;

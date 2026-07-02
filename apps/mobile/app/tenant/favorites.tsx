@@ -12,7 +12,7 @@ import StandardHeader from 'components/layout/StandardHeader';
 import ApartmentCard from 'components/cards/ApartmentCard';
 import { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks/favorites';
 import { useColors } from '@/hooks/useTheme';
 
 import { fetchApartmentsByIds, type FavoriteApartment } from '@/service/favoritesService';

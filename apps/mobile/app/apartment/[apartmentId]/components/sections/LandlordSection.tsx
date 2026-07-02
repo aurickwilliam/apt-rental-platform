@@ -4,7 +4,7 @@ import { IconUser } from '@tabler/icons-react-native';
 import LandlordCard from 'components/cards/LandlordCard';
 
 import { useColors } from 'hooks/useTheme';
-import type { ApartmentDetails } from 'hooks/useApartmentDetails';
+import type { ApartmentDetails } from 'hooks/apartments';
 
 type LandlordSectionProps = {
   landlord: ApartmentDetails['landlord'];

@@ -16,7 +16,7 @@ import IconButton from '@/app/apartment/[apartmentId]/components/IconButton';
 import { Dialog, Button } from "heroui-native"
 
 import { useColors } from '@/hooks/useTheme';
-import { useApartmentDetails } from '@/hooks/useApartmentDetails';
+import { useApartmentDetails } from '@/hooks/apartments';
 
 import {
   Route,

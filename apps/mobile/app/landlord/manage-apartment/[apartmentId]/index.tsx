@@ -27,9 +27,9 @@ import { APARTMENT_STATUS_LABELS } from '@repo/constants'
 import { supabase } from '@repo/supabase'
 
 import { useColors } from 'hooks/useTheme'
-import { useApartmentDetails } from 'hooks/useApartmentDetails'
-import { useLandlordTenancy } from 'hooks/useLandlordTenancy'
-import { useProfile } from 'hooks/useProfile'
+import { useApartmentDetails } from 'hooks/apartments'
+import { useLandlordTenancy } from 'hooks/tenancy'
+import { useProfile } from 'hooks/auth'
 
 import { formatDate } from '@repo/utils';
 

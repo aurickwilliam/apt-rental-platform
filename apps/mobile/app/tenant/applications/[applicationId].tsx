@@ -11,14 +11,14 @@ import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
 
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
-import { useTenantApplications } from "@/hooks/useTenantApplications";
-import { useApplicationStatusStyles } from "@/hooks/useApplicationStatusStyles";
-import { useVisitRequest } from "@/hooks/useVisitRequest";
-import { useCancelApplication } from "@/hooks/useCancelApplication";
-import { useRespondToReschedule } from "@/hooks/useRespondToReschedule";
-import { useProfile } from "@/hooks/useProfile";
+import { useTenantApplications } from "@/hooks/applications";
+import { useApplicationStatusStyles } from "@/hooks/applications";
+import { useVisitRequest } from "@/hooks/visitRequests";
+import { useCancelApplication } from "@/hooks/applications";
+import { useRespondToReschedule } from "@/hooks/visitRequests";
+import { useProfile } from "@/hooks/auth";
 
 import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
 

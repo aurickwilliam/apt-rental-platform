@@ -8,7 +8,7 @@ import { Card, Separator, PressableFeedback } from "heroui-native";
 import {
   useApplicationStatusStyles,
   type ApplicationStatus
-} from "@/hooks/useApplicationStatusStyles";
+} from "@/hooks/applications";
 
 type Props = {
   applicationId: string;

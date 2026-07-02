@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { supabase } from '@repo/supabase';
 import { getRelativeTime } from '@repo/utils';
-import type { Message } from '../service/chatService';
+import type { Message } from '../../service/chatService';
 
 type PresenceState = {
   userId: string;

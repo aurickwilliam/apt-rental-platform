@@ -3,7 +3,7 @@ import { supabase } from '@repo/supabase'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { File } from 'expo-file-system'
-import { useProfile } from './useProfile'
+import { useProfile } from 'hooks/auth'
 
 async function uploadImage(asset: ImagePickerAsset, folder: string): Promise<string> {
   const ext = asset.uri.split('.').pop() ?? 'jpg'

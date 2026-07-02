@@ -16,7 +16,7 @@ import EmptyPending from "./components/EmptyPending";
 
 import { formatDate, formatFullName, formatTime } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
-import { useLandlordVisitRequests } from "@/hooks/useLandlordVisitRequests";
+import { useLandlordVisitRequests } from "@/hooks/visitRequests";
 
 const EMPTY_FILTERS: VisitRequestFilters = { statuses: [], dateRanges: [] };
 

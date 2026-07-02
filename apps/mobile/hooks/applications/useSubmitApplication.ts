@@ -3,7 +3,7 @@ import { File } from 'expo-file-system'
 import { randomUUID } from 'expo-crypto'
 
 import { supabase } from '@repo/supabase'
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile } from 'hooks/auth'
 import {
   useApplicationFormStore,
   type UploadedDocumentPaths,
