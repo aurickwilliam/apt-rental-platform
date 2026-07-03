@@ -13,7 +13,7 @@ import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
 import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
 
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";

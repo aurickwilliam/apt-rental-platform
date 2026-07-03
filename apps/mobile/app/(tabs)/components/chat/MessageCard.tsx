@@ -30,7 +30,7 @@ export default function MessageCard({
 
         {/* Profile Picture */}
         <View className='relative'>
-          <Avatar size='lg' className='border border-secondary'>
+          <Avatar size='lg' className='border border-border'>
             <Avatar.Image source={{ uri: profilePictureUrl }} />
             <Avatar.Fallback delayMs={200}>
               {name.split(' ').map((n) => n[0]).join('').slice(0, 2)}

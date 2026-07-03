@@ -3,7 +3,6 @@ import { View, Text } from "react-native";
 import {
   Button,
   Card,
-  Chip,
   PressableFeedback,
   Separator,
   useThemeColor,
@@ -24,17 +23,13 @@ import {
   LucideIcon,
 } from "lucide-react-native";
 
-import { formatDate } from "@repo/utils";
+import { formatDate, formatTime } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
-
-type VisitStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "cancelled"
-  | "rescheduled";
-type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
+import {
+  type VisitRequestStatus,
+  useVisitRequestStatusStyles
+} from "@/hooks/visitRequests";
 
 export type VisitRequest = {
   id: string;
@@ -42,7 +37,7 @@ export type VisitRequest = {
   time: string;
   no_visitors: number;
   notes: string | null;
-  status: VisitStatus;
+  status: VisitRequestStatus;
   rejected_reason: string | null;
   responded_at: string | null;
   confirmed_visit_date: string | null;
@@ -62,14 +57,8 @@ type Props = {
   onMessageLandlord?: () => void;
   /** rejected / declined-reschedule -> open a fresh visit request form */
   onRequestAgain?: () => void;
-};
-
-const STATUS_CHIP: Record<VisitStatus, { color: ChipColor; label: string }> = {
-  pending: { color: "warning", label: "Pending" },
-  approved: { color: "success", label: "Approved" },
-  rejected: { color: "danger", label: "Rejected" },
-  cancelled: { color: "default", label: "Cancelled" },
-  rescheduled: { color: "accent", label: "Rescheduled" },
+  /** pending / rescheduled -> tenant cancels their own request outright */
+  onCancel?: () => void;
 };
 
 function InfoRow({
@@ -103,7 +92,7 @@ function SectionLabel({
 }) {
   return (
     <Text
-      className={`text-xs font-interMedium uppercase tracking-wide ${className}`}
+      className={`text-xs font-interMedium ${className}`}
     >
       {children}
     </Text>
@@ -136,8 +125,10 @@ export default function VisitRequestCard({
   onDecline,
   onMessageLandlord,
   onRequestAgain,
+  onCancel,
 }: Props) {
   const { colors } = useColors();
+  const { getStatusStyle } = useVisitRequestStatusStyles();
   const [
     themeColorAccentForeground,
     themeColorAccentSoftForeground,
@@ -155,38 +146,38 @@ export default function VisitRequestCard({
     notes,
     status,
     rejected_reason,
+    responded_at,
     confirmed_visit_date,
     confirmed_time,
     created_at,
   } = visitRequest;
 
-  const chipConfig = STATUS_CHIP[status];
-  const iconColor = colors.gray400;
+  const statusStyle = getStatusStyle(status);
+  const iconColor = colors.gray500;
   const iconSize = 16;
-
-  // Format time string (HH:MM:SS -> HH:MM AM/PM)
-  const formatTime = (t: string) => {
-    const [hours, minutes] = t.split(":").map(Number);
-    const period = hours >= 12 ? "PM" : "AM";
-    const h = hours % 12 || 12;
-    return `${h}:${String(minutes).padStart(2, "0")} ${period}`;
-  };
 
   const visitorsLabel = `${no_visitors} ${no_visitors === 1 ? "person" : "people"}`;
 
-  // "approved" can be reached either directly, or via an accepted reschedule —
-  // confirmed_visit_date/time win whenever they're set, since that's the real visit time.
+  const respondedLabel =
+    status === "approved"
+      ? "Approved"
+      : status === "rejected"
+        ? "Rejected"
+        : status === "rescheduled"
+          ? "Proposed"
+          : null;
   const finalVisitDate = confirmed_visit_date ?? visit_date;
   const finalVisitTime = confirmed_time ?? time;
 
-  // "cancelled" covers two different tenant actions. If confirmed_visit_date is set,
-  // this row came from declining a reschedule rather than a plain self-cancel.
   const isDeclinedReschedule =
     status === "cancelled" && !!confirmed_visit_date && !!confirmed_time;
 
+  const canCancel =
+    status === "pending" || status === "rescheduled" || status === "approved";
+
   return (
-    <PressableFeedback 
-      onPress={onPress} 
+    <PressableFeedback
+      onPress={onPress}
       className="rounded-3xl shadow-none border border-border"
     >
       <Card className="gap-3">
@@ -196,9 +187,19 @@ export default function VisitRequestCard({
             <Text className="text-base text-foreground font-interMedium">
               Visit Request Details
             </Text>
-            <Chip variant="soft" color={chipConfig.color}>
-              <Chip.Label>{chipConfig.label}</Chip.Label>
-            </Chip>
+            <View
+              className="rounded-full px-2.5 py-1"
+              style={{
+                backgroundColor: statusStyle.backgroundColor,
+              }}
+            >
+              <Text
+                style={{ color: statusStyle.textColor }}
+                className="text-xs font-interMedium"
+              >
+                {statusStyle.label}
+              </Text>
+            </View>
           </View>
 
           {/* PENDING — waiting on the landlord, show what was requested */}
@@ -336,18 +337,18 @@ export default function VisitRequestCard({
                   <Separator />
 
                   <View className="gap-2">
-                    <SectionLabel className="text-accent">
+                    <SectionLabel className="text-accent text-sm">
                       Landlord proposed a new time
                     </SectionLabel>
                     <InfoRow
                       icon={
-                        <CalendarCheck size={iconSize} color={colors.primary} />
+                        <CalendarCheck size={iconSize} color={colors.gray500} />
                       }
                       label="Date"
                       value={formatDate(confirmed_visit_date, "long")}
                     />
                     <InfoRow
-                      icon={<Clock size={iconSize} color={colors.primary} />}
+                      icon={<Clock size={iconSize} color={colors.gray500} />}
                       label="Time"
                       value={formatTime(confirmed_time)}
                     />
@@ -427,19 +428,17 @@ export default function VisitRequestCard({
                 />
               </View>
 
-              {isDeclinedReschedule && (
-                <ActionButton
-                  icon={
-                    <RotateCcw
-                      size={iconSize}
-                      color={themeColorAccentForeground}
-                    />
-                  }
-                  label="Request Again"
-                  onPress={onRequestAgain}
-                  variant="primary"
-                />
-              )}
+              <ActionButton
+                icon={
+                  <RotateCcw
+                    size={iconSize}
+                    color={themeColorAccentForeground}
+                  />
+                }
+                label="Request Again"
+                onPress={onRequestAgain}
+                variant="primary"
+              />
             </View>
           )}
 
@@ -460,9 +459,32 @@ export default function VisitRequestCard({
 
           <Separator />
 
-          <Text className="text-xs text-muted font-inter">
-            Submitted: {formatDate(created_at, "long")}
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-xs text-muted font-inter">
+                Submitted: {formatDate(created_at, "long")}
+              </Text>
+
+              {respondedLabel && responded_at && (
+                <Text className="text-xs text-muted font-inter">
+                  {respondedLabel} {formatDate(responded_at, "long")} at {formatTime(responded_at)}
+                </Text>
+              )}
+            </View>
+
+            {canCancel && onCancel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={onCancel}
+                className="h-auto px-0 py-0"
+              >
+                <Button.Label className="text-xs text-danger font-interMedium">
+                  Cancel Request
+                </Button.Label>
+              </Button>
+            )}
+          </View>
         </Card.Body>
       </Card>
     </PressableFeedback>

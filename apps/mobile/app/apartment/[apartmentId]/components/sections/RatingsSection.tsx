@@ -5,7 +5,7 @@ import { Star } from 'lucide-react-native';
 import SmallRatingCard from 'components/cards/SmallRatingCard';
 
 import { useColors } from 'hooks/useTheme';
-import type { ReviewWithTenant } from 'hooks/useApartmentDetails';
+import type { ReviewWithTenant } from 'hooks/apartments';
 
 type RatingsSectionProps = {
   reviews: ReviewWithTenant[];

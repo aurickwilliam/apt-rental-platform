@@ -24,7 +24,7 @@ import {
   ClipboardPen
 } from "lucide-react-native";
 
-import { useTenancy } from '@/hooks/useTenancy';
+import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 
 import { Button, Separator } from 'heroui-native';
@@ -43,32 +43,31 @@ type actionsTypes = {
 }
 
 const actions: actionsTypes[] = [
-  { 
-    id: 1, 
-    label: "Chat Landlord", 
+  {
+    id: 1,
+    label: "Chat Landlord",
     icon: MessageCircleMore,
   },
   {
     id: 2,
     label: "View Lease",
     icon: FileText,
-    onPress: () => router.push("/tenant/current-lease"),
   },
-  { 
-    id: 3, 
-    label: "View Receipts", 
-    icon: ReceiptText,  
+  {
+    id: 3,
+    label: "View Receipts",
+    icon: ReceiptText,
     onPress: () => router.push("/tenant/payment/history"),
   },
-  { 
-    id: 4, 
-    label: "Pay Rent", 
+  {
+    id: 4,
+    label: "Pay Rent",
     icon: Banknote,
     onPress: () => router.push("/tenant/payment"),
   },
-  { 
-    id: 5, 
-    label: "Request Maintenance", 
+  {
+    id: 5,
+    label: "Request Maintenance",
     icon: Hammer,
     onPress: () => router.push("/tenant/maintenance-issue"),
   },
@@ -84,9 +83,9 @@ const actions: actionsTypes[] = [
     icon: Settings,
     onPress: () => router.push("/settings"),
   },
-  { 
-    id: 8, 
-    label: "FAQ", 
+  {
+    id: 8,
+    label: "FAQ",
     icon: CircleQuestionMark,
     onPress: () => router.push("/settings/faq"),
   },

@@ -3,5 +3,7 @@ export { getRelativeTime } from './getRelativeTime';
 export { formatDate } from './formatDate';
 export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';
-export { formatFullName } from './formatFullName'; 
+export { formatFullName } from './formatFullName';
+export { getInitials } from './getInitials';
+export { formatTime } from './formatTime';
 export * from './authErrors';

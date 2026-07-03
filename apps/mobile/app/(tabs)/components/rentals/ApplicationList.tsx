@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { ClipboardList } from 'lucide-react-native';
 
 import { useColors } from '@/hooks/useTheme';
-import { useTenantApplications } from '@/hooks/useTenantApplications';
+import { useTenantApplications } from '@/hooks/applications';
 
 import ApplicationStatusCard from './ApplicationStatusCard';
 import ApplicationsEmptyState from './ApplicationsEmptyState';

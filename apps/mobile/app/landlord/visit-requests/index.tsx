@@ -1,69 +1,95 @@
-import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  House,
-} from 'lucide-react-native';
+import { ChevronDown, ChevronUp } from "lucide-react-native";
 
-import { Button, Card, SearchField } from "heroui-native";
+import { Card, SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import VisitRequestCard from "@/components/cards/VisitRequestCard";
+import VisitRequestCard from "./components/VisitRequestCard";
+import VisitRequestCalendar from "./components/VisitRequestCalendar";
+import EmptyApproved from "./components/EmptyApproved";
+import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 
-import { formatDate } from "@repo/utils";
-
-import { VISIT_REQUESTS } from "./mockData";
-
+import { formatDate, formatFullName } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 
-const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+import {
+  useLandlordVisitRequests,
+  type LandlordVisitRequest
+} from "@/hooks/visitRequests";
 
-const formatDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
+
+type GroupedItem =
+  | { type: "header"; group: Group; count: number }
+  | { type: "item"; data: LandlordVisitRequest }
+  | { type: "past-toggle" };
+
+const getGroup = (dateStr: string, today: string, todayDate: Date): Group => {
+  if (dateStr === today) return "Today";
+
+  const date = new Date(dateStr);
+  const diffDays = Math.floor(
+    (date.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays < 0) return "Past";
+  if (diffDays <= 7) return "This Week";
+  if (diffDays <= 14) return "Next Week";
+  return "Later";
 };
 
-const normalizeDate = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const GROUP_ORDER: Group[] = ["Today", "This Week", "Next Week", "Later", "Past"];
 
-const buildMonthCells = (monthDate: Date) => {
-  const year = monthDate.getFullYear();
-  const month = monthDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startIndex = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+function SectionHeader({ group, count }: { group: string; count: number }) {
+  return (
+    <View className="flex-row items-center gap-2 mb-3 mt-1">
+      <Text className="text-foreground text-sm font-interSemiBold">
+        {group}
+      </Text>
+      <View className="bg-surface-tertiary rounded-full px-2 py-0.5">
+        <Text className="text-gray-700 text-xs font-interMedium">
+          {count}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
-  const cells: Array<Date | null> = Array.from({ length: 42 }, () => null);
-  for (let i = 0; i < daysInMonth; i += 1) {
-    cells[startIndex + i] = new Date(year, month, i + 1);
-  }
-
-  return cells;
-};
-
-const formatMonthLabel = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
-function EmptyApproved() {
+function PastToggle({
+  isExpanded,
+  count,
+  onToggle,
+}: {
+  isExpanded: boolean;
+  count: number;
+  onToggle: () => void;
+}) {
   const { colors } = useColors();
   return (
-    <View className="flex-1 items-center justify-center py-12">
-      <View className="bg-white rounded-full p-5 mb-4">
-        <House size={28} color={colors.gray500} />
+    <Pressable
+      onPress={onToggle}
+      className="flex-row items-center justify-between py-3 mb-1"
+    >
+      <View className="flex-row items-center gap-2">
+        <Text className="text-foreground text-sm font-interSemiBold">
+          Past
+        </Text>
+        <View className="bg-surface-tertiary rounded-full px-2 py-0.5">
+          <Text className="text-gray-700 text-xs font-interMedium">
+            {count}
+          </Text>
+        </View>
       </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
-        No approved visits
-      </Text>
-      <Text className="text-muted text-sm font-inter text-center mt-1">
-        Approved visit requests will appear here.
-      </Text>
-    </View>
+      {isExpanded ? (
+        <ChevronUp size={20} color={colors.gray500} />
+      ) : (
+        <ChevronDown size={20} color={colors.gray500} />
+      )}
+    </Pressable>
   );
 }
 
@@ -72,43 +98,89 @@ export default function VisitRequests() {
   const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(() =>
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isPastExpanded, setIsPastExpanded] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const requestDateSet = useMemo(() => {
-    return new Set(VISIT_REQUESTS.map((request) => request.visit_date));
+  const { visitRequests, refetch, loading } = useLandlordVisitRequests();
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
+
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }, []);
+
+  const todayDate = useMemo(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }, []);
+
+  const markedDates = useMemo(() => {
+    return visitRequests
+      .filter((r) => r.status === "approved")
+      .map((r) => r.resolved_visit_date);
+  }, [visitRequests]);
 
   const pendingCount = useMemo(() => {
-    return VISIT_REQUESTS.filter((request) => request.status === "Pending")
-      .length;
-  }, []);
+    return visitRequests.filter((r) => r.status === "pending").length;
+  }, [visitRequests]);
 
   const approvedRequests = useMemo(() => {
-    return VISIT_REQUESTS.filter((request) => request.status === "Approved");
-  }, []);
+    return visitRequests.filter((r) => r.status === "approved");
+  }, [visitRequests]);
 
   const filteredApproved = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return approvedRequests;
     return approvedRequests.filter((request) => {
-      return (
-        request.tenant_name.toLowerCase().includes(query) ||
-        request.apartment_name.toLowerCase().includes(query)
-      );
+      const tenantName = formatFullName({
+        first_name: request.tenant.first_name,
+        last_name: request.tenant.last_name,
+      }).toLowerCase();
+      const matchesSearch =
+        !query ||
+        tenantName.includes(query) ||
+        request.apartment.name.toLowerCase().includes(query);
+      const matchesDate = !selectedDate || request.resolved_visit_date === selectedDate;
+      return matchesSearch && matchesDate;
     });
-  }, [approvedRequests, searchQuery]);
+  }, [approvedRequests, searchQuery, selectedDate]);
 
-  const monthCells = useMemo(
-    () => buildMonthCells(currentMonth),
-    [currentMonth]
-  );
+  const groupedItems = useMemo((): GroupedItem[] => {
+    // Bucket requests into groups
+    const buckets = new Map<Group, typeof approvedRequests>();
+    GROUP_ORDER.forEach((g) => buckets.set(g, []));
 
-  const today = normalizeDate(new Date());
-  const todayKey = formatDateKey(today);
-  const selectedKey = selectedDate ? formatDateKey(selectedDate) : "";
+    filteredApproved.forEach((r) => {
+      const group = getGroup(r.resolved_visit_date, todayStr, todayDate);
+      buckets.get(group)!.push(r);
+    });
+
+    const items: GroupedItem[] = [];
+
+    GROUP_ORDER.forEach((group) => {
+      const requests = buckets.get(group)!;
+      if (requests.length === 0) return;
+
+      if (group === "Past") {
+        // Always show the toggle row
+        items.push({ type: "past-toggle" });
+        if (isPastExpanded) {
+          requests.forEach((r) => items.push({ type: "item", data: r }));
+        }
+        return;
+      }
+
+      items.push({ type: "header", group, count: requests.length });
+      requests.forEach((r) => items.push({ type: "item", data: r }));
+    });
+
+    return items;
+  }, [filteredApproved, todayStr, todayDate, isPastExpanded]);
 
   const handlePendingPress = () => {
     router.push("/landlord/visit-requests/pending");
@@ -118,20 +190,16 @@ export default function VisitRequests() {
     router.push(`/landlord/visit-requests/${requestId}`);
   };
 
-  const handleChangeMonth = (offset: number) => {
-    setCurrentMonth((prev) =>
-      new Date(prev.getFullYear(), prev.getMonth() + offset, 1)
-    );
-  };
-
   return (
     <ScreenWrapper
       header={<StandardHeader title="Visit Requests" />}
       scrollable={false}
     >
       <FlatList
-        data={filteredApproved}
-        keyExtractor={(item) => item.id}
+        data={groupedItems}
+        keyExtractor={(item, index) =>
+          item.type === "item" ? item.data.id : `${item.type}-${index}`
+        }
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -140,181 +208,38 @@ export default function VisitRequests() {
           paddingBottom: 30,
           flexGrow: filteredApproved.length === 0 ? 1 : 0,
         }}
+        refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         ListHeaderComponent={
           <View className="gap-5">
-            <View className="gap-2">
-              <Text className="text-primary text-base font-interMedium">
-                Visit Request Schedule
-              </Text>
-              <Card className="shadow-none border border-grey-200">
-                <Card.Body className="p-4 gap-4">
-                  <View className="flex-row items-center justify-between">
-                    <Pressable
-                      onPress={() => handleChangeMonth(-1)}
-                      className="p-2 rounded-full"
-                    >
-                      <ChevronLeft size={20} color={colors.gray500} />
-                    </Pressable>
-
-                    <Text className="text-foreground text-base font-interSemiBold">
-                      {formatMonthLabel(currentMonth)}
-                    </Text>
-
-                    <Pressable
-                      onPress={() => handleChangeMonth(1)}
-                      className="p-2 rounded-full"
-                    >
-                      <ChevronRight size={20} color={colors.gray500} />
-                    </Pressable>
-                  </View>
-
-                  <View className="flex-row justify-between">
-                    {DAYS.map((day) => (
-                      <Text
-                        key={day}
-                        className="text-muted text-xs font-inter"
-                        style={{ width: 32, textAlign: "center" }}
-                      >
-                        {day}
-                      </Text>
-                    ))}
-                  </View>
-
-                  <View className="flex-row flex-wrap">
-                    {monthCells.map((date, index) => {
-                      if (!date) {
-                        return (
-                          <View
-                            key={`empty-${index}`}
-                            style={{ width: 32, height: 40 }}
-                          />
-                        );
-                      }
-
-                      const dateKey = formatDateKey(date);
-                      const isRequestDay = requestDateSet.has(dateKey);
-                      const isSelected = dateKey === selectedKey;
-                      const isToday = dateKey === todayKey;
-                      const isPast = normalizeDate(date) < today;
-                      const isAvailable = !isPast && !isRequestDay;
-
-                      return (
-                        <Pressable
-                          key={dateKey}
-                          onPress={() => setSelectedDate(date)}
-                          className="items-center justify-center"
-                          style={{ width: 32, height: 40 }}
-                        >
-                          <View
-                            className="items-center justify-center rounded-full"
-                            style={{
-                              width: 28,
-                              height: 28,
-                              borderWidth: isSelected || isToday ? 1 : 0,
-                              borderColor: isSelected
-                                ? colors.primary
-                                : isToday
-                                ? colors.primary
-                                : "transparent",
-                              backgroundColor: isSelected
-                                ? colors.primary
-                                : "transparent",
-                              opacity: isPast ? 0.4 : 1,
-                            }}
-                          >
-                            <Text
-                              className="text-xs font-inter"
-                              style={{
-                                color: isSelected
-                                  ? colors.white
-                                  : isRequestDay
-                                  ? colors.primary
-                                  : isAvailable
-                                  ? colors.textPrimary
-                                  : colors.gray500,
-                              }}
-                            >
-                              {date.getDate()}
-                            </Text>
-                          </View>
-                          <View className="mt-1">
-                            {isRequestDay ? (
-                              <View
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 999,
-                                  backgroundColor: isSelected
-                                    ? colors.white
-                                    : colors.primary,
-                                }}
-                              />
-                            ) : isAvailable ? (
-                              <View
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 999,
-                                  borderWidth: 1,
-                                  borderColor: colors.gray400,
-                                }}
-                              />
-                            ) : (
-                              <View style={{ width: 6, height: 6 }} />
-                            )}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <View className="flex-row items-center gap-4">
-                    <View className="flex-row items-center gap-2">
-                      <View
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          backgroundColor: colors.primary,
-                        }}
-                      />
-                      <Text className="text-xs text-gray-500 font-inter">
-                        Visit requests
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-2">
-                      <View
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          borderWidth: 1,
-                          borderColor: colors.gray400,
-                        }}
-                      />
-                      <Text className="text-xs text-gray-500 font-inter">
-                        Available dates
-                      </Text>
-                    </View>
-                  </View>
-                </Card.Body>
-              </Card>
-            </View>
-
-            <Button onPress={handlePendingPress} className="w-full">
-              <Button.Label>
-                Pending Visit Requests ({pendingCount})
-              </Button.Label>
-            </Button>
+            <Card className="shadow-none border border-border p-3 rounded-3xl">
+              <Card.Body>
+                <VisitRequestCalendar
+                  markedDates={markedDates}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  pendingCount={pendingCount}
+                  onPendingPress={handlePendingPress}
+                />
+              </Card.Body>
+            </Card>
 
             <View className="gap-3 mb-3">
               <View className="flex-row items-center justify-between">
                 <Text className="text-foreground text-base font-interSemiBold">
                   Approved Visit Requests
                 </Text>
-                <Text className="text-gray-500 text-xs font-inter">
-                  Total: {filteredApproved.length}
-                </Text>
+                {(searchQuery || selectedDate) && (
+                  <Text className="text-gray-500 text-xs font-inter">
+                    {filteredApproved.length} result{filteredApproved.length !== 1 ? "s" : ""}
+                  </Text>
+                )}
               </View>
 
               <SearchField value={searchQuery} onChange={setSearchQuery}>
@@ -324,23 +249,54 @@ export default function VisitRequests() {
                   <SearchField.ClearButton />
                 </SearchField.Group>
               </SearchField>
+
+              {/* Skeletons shown inline while loading */}
+              {loading && (
+                <View className="gap-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <VisitRequestCardSkeleton key={i} />
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         }
-        ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={<EmptyApproved />}
-        renderItem={({ item }) => (
-          <VisitRequestCard
-            tenantName={item.tenant_name}
-            apartmentName={item.apartment_name}
-            visitSchedule={`${formatDate(item.visit_date, "medium")} • ${
-              item.visit_time
-            }`}
-            status={item.status}
-            avatarUrl={item.tenant_avatar_url ?? undefined}
-            onPress={() => handleRequestPress(item.id)}
-          />
-        )}
+        ItemSeparatorComponent={() => null}
+        ListEmptyComponent={loading ? null : <EmptyApproved />}
+        renderItem={({ item }) => {
+          if (item.type === "header") {
+            return <SectionHeader group={item.group} count={item.count} />;
+          }
+
+          if (item.type === "past-toggle") {
+            const pastCount = filteredApproved.filter(
+              (r) => getGroup(r.resolved_visit_date, todayStr, todayDate) === "Past"
+            ).length;
+            return (
+              <PastToggle
+                isExpanded={isPastExpanded}
+                count={pastCount}
+                onToggle={() => setIsPastExpanded((prev) => !prev)}
+              />
+            );
+          }
+
+          return (
+            <View className="mb-3">
+              <VisitRequestCard
+                tenantName={formatFullName({
+                  first_name: item.data.tenant.first_name,
+                  last_name: item.data.tenant.last_name,
+                })}
+                apartmentName={item.data.apartment.name}
+                visitSchedule={`${formatDate(item.data.resolved_visit_date, "medium")} at ${item.data.resolved_visit_time}`}
+                status={item.data.status}
+                avatarUrl={item.data.tenant.avatar_url ?? undefined}
+                onPress={() => handleRequestPress(item.data.id)}
+              />
+            </View>
+          );
+        }}
       />
     </ScreenWrapper>
   );

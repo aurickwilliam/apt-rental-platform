@@ -17,7 +17,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import { formatCurrency } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useApartmentDetails } from "@/hooks/apartments";
 import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
 
 import { Button, Spinner } from "heroui-native";
@@ -230,7 +230,7 @@ export default function ApartmentSummary() {
 
             <View className="mt-5 mb-10" pointerEvents="none">
               <Text className="text-secondary-foreground font-interSemiBold text-2xl">
-                ₱ {formattedMonthlyRent}/month
+                {formattedMonthlyRent}/month
               </Text>
             </View>
           </View>

@@ -81,7 +81,13 @@ export default function UploadImageField({
             >
               <Image
                 source={{ uri: item.uri }}
-                className="w-full h-full rounded-2xl border border-border"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: colors.gray200,
+                }}
                 contentFit="cover"
                 cachePolicy="disk"
               />

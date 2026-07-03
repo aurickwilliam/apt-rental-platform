@@ -8,8 +8,8 @@ import DateField from "@/components/inputs/DateField";
 import TimeField from "@/components/inputs/TimeField";
 import QuantityField from "@/components/inputs/QuantityField";
 
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
-import { useSubmitVisitRequest } from "@/hooks/useSubmitVisitRequest";
+import { useApartmentDetails } from "@/hooks/apartments";
+import { useSubmitVisitRequest } from "@/hooks/visitRequests";
 
 import {
   Button,
@@ -19,7 +19,6 @@ import {
   TextArea,
   useToast,
 } from "heroui-native";
-
 
 export default function RequestVisit() {
   const { toast } = useToast();
@@ -31,7 +30,7 @@ export default function RequestVisit() {
   }>();
 
   const { apartment } = useApartmentDetails(apartmentId);
-  const { submitVisitRequest, loading } = useSubmitVisitRequest();
+  const { submitVisitRequest, loading, error } = useSubmitVisitRequest();
 
   const [visitDetails, setVisitDetails] = useState({
     date: null as Date | null,
@@ -82,12 +81,15 @@ export default function RequestVisit() {
     });
 
     if (success) {
-      toast.show({ variant: "success", label: "Visit request submitted!" });
+      toast.show({
+        variant: "success",
+        label: "Visit request submitted!"
+      });
       router.back();
     } else {
       toast.show({
         variant: "danger",
-        label: "Something went wrong. Please try again.",
+        label: error ?? "Something went wrong. Please try again.",
       });
     }
   };

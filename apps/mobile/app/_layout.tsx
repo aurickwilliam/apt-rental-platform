@@ -21,7 +21,7 @@ import { COLORS } from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
 
-import { Appearance } from "react-native";         
+import { Appearance } from "react-native";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
 
@@ -52,7 +52,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   const router = useRouter();
   const { isDark } = useTheme();
-  
+
   // Initialize custom fonts
   const [fontsLoaded, fontError] = useFonts({
     "Inter_24pt-Regular": require("../assets/fonts/Inter_24pt-Regular.ttf"),
@@ -79,7 +79,7 @@ export default function RootLayout() {
     }
 
     // REMOVED: Force redirect to complete profile if mobile number is missing
-    
+
     // Redirect incomplete profiles on every app open
     // (async () => {
     //   const { data: { session } } = await supabase.auth.getSession();
@@ -129,6 +129,7 @@ export default function RootLayout() {
               <Stack.Screen name="(notification)" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="document-id" />
+              <Stack.Screen name="edit-profile" />
             </Stack>
           </BottomSheetModalProvider>
           <PortalHost name="root" />

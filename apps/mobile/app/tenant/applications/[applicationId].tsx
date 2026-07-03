@@ -7,16 +7,20 @@ import Animated from "react-native-reanimated";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
-import DocumentRow from "./components/DocumentRow";
+import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
+import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
+import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
-import { useTenantApplications } from "@/hooks/useTenantApplications";
-import { useVisitRequest } from "@/hooks/useVisitRequest";
-import { useCancelApplication } from "@/hooks/useCancelApplication";
-import { useRespondToReschedule } from "@/hooks/useRespondToReschedule";
-import { useProfile } from "@/hooks/useProfile";
+import {
+  useTenantApplications,
+  useApplicationStatusStyles,
+  useCancelApplication
+} from "@/hooks/applications";
+import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
+import { useProfile } from "@/hooks/auth";
 
 import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
 
@@ -26,19 +30,9 @@ import {
   Chip,
   Accordion,
   AccordionLayoutTransition,
-  Dialog,
 } from "heroui-native";
 
 import { Ban, ChevronLeft } from "lucide-react-native";
-
-type ApplicationStatus = "pending" | "approved" | "rejected";
-type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
-
-const STATUS_CHIP: Record<ApplicationStatus, { color: ChipColor; label: string }> = {
-  pending:  { color: "warning", label: "Pending" },
-  approved: { color: "success", label: "Approved" },
-  rejected: { color: "danger",  label: "Rejected" },
-};
 
 export default function ApplicationApartment() {
   const { colors } = useColors();
@@ -51,27 +45,30 @@ export default function ApplicationApartment() {
   const { profile } = useProfile();
   const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
-  const { visitRequest, loading: visitLoading, refetch } = useVisitRequest(applicationId);
+  const { getStatusStyle } = useApplicationStatusStyles();
+  const { visitRequest, history, loading: visitLoading, refetch } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
 
   useFocusEffect(
     useCallback(() => {
-      if (!visitRequest) refetch();
-    }, [refetch, visitRequest])
+      refetch();
+    }, [refetch])
   );
 
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
-  const chipConfig = status ? STATUS_CHIP[status as ApplicationStatus] : null;
+  const chipConfig = status ? getStatusStyle(status) : null;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelVisitDialogOpen, setCancelVisitDialogOpen] = useState(false);
+  const [cancelVisitError, setCancelVisitError] = useState<string | null>(null);
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
-    ? `₱ ${formatCurrency(apartment.monthly_rent)}/month`
+    ? `${formatCurrency(apartment.monthly_rent)}/month`
     : "";
   const moveInDate = application
     ? formatDate(application.move_in_date, "long")
@@ -92,6 +89,11 @@ export default function ApplicationApartment() {
     }
   };
 
+  const handleCancelDialogOpenChange = (open: boolean) => {
+    setCancelDialogOpen(open);
+    if (!open) setCancelError(null);
+  };
+
   const handleAccept = async () => {
     if (!visitRequest) return;
     const { error } = await accept(visitRequest.id);
@@ -102,6 +104,26 @@ export default function ApplicationApartment() {
     if (!visitRequest) return;
     const { error } = await decline(visitRequest.id);
     if (!error) refetch();
+  };
+
+  const handleConfirmCancelVisit = async () => {
+    if (!visitRequest) return;
+    setCancelVisitError(null);
+    const { error } = await decline(visitRequest.id);
+    if (error) {
+      setCancelVisitError(
+        error.message ?? "Failed to cancel visit request. Please try again."
+      );
+      refetch();
+    } else {
+      setCancelVisitDialogOpen(false);
+      refetch();
+    }
+  };
+
+  const handleCancelVisitDialogOpenChange = (open: boolean) => {
+    setCancelVisitDialogOpen(open);
+    if (!open) setCancelVisitError(null);
   };
 
   const handleRequestAgain = () =>
@@ -156,7 +178,7 @@ export default function ApplicationApartment() {
           <View>
             <Text className="text-sm text-muted font-inter">Applied for</Text>
             <Text
-              className="text-secondary font-nunitoSemiBold text-2xl"
+              className="text-accent font-nunitoBold text-2xl"
               numberOfLines={1}
             >
               {apartment?.name}
@@ -164,21 +186,24 @@ export default function ApplicationApartment() {
           </View>
         </View>
         {chipConfig && (
-          <Chip variant="soft" color={chipConfig.color}>
+          <Chip variant="soft" color={chipConfig.chipColor}>
             <Chip.Label>{chipConfig.label}</Chip.Label>
           </Chip>
         )}
       </View>
 
       {/* Apartment cover image */}
-      <View className="w-full h-60 rounded-3xl overflow-hidden mt-5">
-        <Image
-          source={{ uri: coverImage?.url }}
-          contentFit="cover"
-          className="w-full h-full"
-          cachePolicy="disk"
-        />
-      </View>
+      <Image
+        source={{ uri: coverImage?.url }}
+        contentFit="cover"
+        style={{
+          width: "100%",
+          height: 200,
+          borderRadius: 24,
+          marginTop: 20,
+        }}
+        cachePolicy="disk"
+      />
 
       {/* Apartment details */}
       <View className="mt-5 flex gap-5">
@@ -200,7 +225,7 @@ export default function ApplicationApartment() {
             <Button.Label>View Description</Button.Label>
           </Button>
 
-          {!visitRequest && (
+          {!visitRequest && application?.status === "pending" && (
             <Button
               className="flex-1"
               size="sm"
@@ -222,16 +247,39 @@ export default function ApplicationApartment() {
 
       <Separator className="my-5" />
 
+      {application?.status === "rejected" && application.rejected_reason && (
+        <View className="mb-3 p-4 rounded-3xl bg-danger-soft border border-danger-light">
+          <Text className="text-sm font-interSemiBold text-danger mb-1">
+            Application Rejected
+          </Text>
+          <Text className="text-sm text-foreground">
+            {application.rejected_reason}
+          </Text>
+        </View>
+      )}
+
+      {application?.status === "closed" && application.rejected_reason && (
+        <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
+          <Text className="text-sm font-interSemiBold text-secondary mb-1">
+            Application Closed
+          </Text>
+          <Text className="text-sm text-foreground">
+            {application.rejected_reason}
+          </Text>
+        </View>
+      )}
+
       {/* Visit Request */}
       {visitRequest && (
         <>
           <View className="mb-3">
-            <VisitRequestCard 
-              visitRequest={visitRequest} 
+            <VisitRequestCard
+              visitRequest={visitRequest}
               onAccept={handleAccept}
               onDecline={handleDecline}
               onRequestAgain={handleRequestAgain}
               onMessageLandlord={handleMessageLandlord}
+              onCancel={() => setCancelVisitDialogOpen(true)}
             />
           </View>
           <Separator className="my-5" />
@@ -285,7 +333,7 @@ export default function ApplicationApartment() {
                     />
                     <DetailField
                       label="Monthly Income"
-                      value={`₱ ${formatCurrency(application.monthly_income)}`}
+                      value={`${formatCurrency(application.monthly_income)}`}
                     />
                     <Separator className="my-2" />
                     <DetailField
@@ -387,13 +435,6 @@ export default function ApplicationApartment() {
                       label="Status"
                       value={chipConfig?.label ?? "—"}
                     />
-                    {application.status === "rejected" &&
-                      application.rejected_reason && (
-                        <DetailField
-                          label="Rejection Reason"
-                          value={application.rejected_reason}
-                        />
-                      )}
                   </View>
                 </Accordion.Content>
               </Accordion.Item>
@@ -402,65 +443,73 @@ export default function ApplicationApartment() {
         </>
       )}
 
-      {/* Cancel Button + Dialog */}
-      <Dialog isOpen={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <Dialog.Trigger asChild>
-          <Button
-            className="mt-5"
-            variant="danger"
-            isDisabled={
-              cancelling ||
-              responding ||
-              status === "cancelled" ||
-              status === "approved"
-            }
-          >
-            <Ban size={20} color={colors.secondaryForeground} />
-            <Button.Label>Cancel Application</Button.Label>
-          </Button>
-        </Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <View className="mb-5 gap-1.5">
-              <Dialog.Title>Cancel Application</Dialog.Title>
-              <Dialog.Description>
-                Are you sure you want to cancel your application for{" "}
-                <Text className="font-interMedium text-foreground">
-                  {apartment?.name}
-                </Text>
-                ? This cannot be undone.
-              </Dialog.Description>
+      {history.length > 0 && (
+        <>
+          <Separator className="my-5" />
+          <View className="mb-3">
+            <Text className="text-lg text-foreground font-interMedium">
+              Visit History
+            </Text>
+            <Text className="text-sm text-muted">
+              Previous visit requests for this apartment.
+            </Text>
+          </View>
+          <View className="gap-2">
+            {history.map((vr) => (
+              <VisitRequestHistoryItem
+                key={vr.id}
+                visitRequest={vr}
+              />
+            ))}
+          </View>
+        </>
+      )}
 
-              {cancelError && (
-                <Text className="text-sm text-danger mt-1">{cancelError}</Text>
-              )}
-            </View>
+      {/* Cancel Application Button + Dialog */}
+      {
+        application?.status === "pending" && (
+          <>
+            <Button
+              className="mt-5"
+              variant="danger"
+              isDisabled={cancelling || responding}
+              onPress={() => setCancelDialogOpen(true)}
+            >
+              <Ban size={20} color={colors.secondaryForeground} />
+              <Button.Label>Cancel Application</Button.Label>
+            </Button>
 
-            <View className="flex-row justify-end gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => {
-                  setCancelDialogOpen(false);
-                  setCancelError(null);
-                }}
-              >
-                <Button.Label>Keep Application</Button.Label>
-              </Button>
+            <ConfirmDialog
+              isOpen={cancelDialogOpen}
+              onOpenChange={handleCancelDialogOpenChange}
+              title="Cancel Application"
+              description={`Are you sure you want to cancel your application for ${apartment?.name ?? "this apartment"}? This cannot be undone.`}
+              confirmLabel="Yes, Cancel"
+              confirmVariant="danger"
+              onConfirm={handleConfirmCancel}
+              errorMessage={cancelError}
+              isConfirmDisabled={cancelling}
+            />
+          </>
+        )
+      }
 
-              <Button
-                variant="danger"
-                size="sm"
-                onPress={handleConfirmCancel}
-                isDisabled={cancelling}
-              >
-                <Button.Label>Yes, Cancel</Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      {/* Cancel Visit Request Dialog */}
+      <ConfirmDialog
+        isOpen={cancelVisitDialogOpen}
+        onOpenChange={handleCancelVisitDialogOpenChange}
+        title="Cancel Visit Request"
+        description={
+          visitRequest?.status === "approved"
+            ? "This visit was already confirmed with the landlord. Are you sure you want to cancel it? This cannot be undone."
+            : "Are you sure you want to cancel this visit request? This cannot be undone."
+        }
+        confirmLabel="Yes, Cancel"
+        confirmVariant="danger"
+        onConfirm={handleConfirmCancelVisit}
+        errorMessage={cancelVisitError}
+        isConfirmDisabled={responding}
+      />
 
       {/* Document Viewer */}
       <ImageViewing
