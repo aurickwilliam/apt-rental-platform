@@ -49,7 +49,7 @@ export default function ApplicationStatusCard({
               <Card.Title className="text-lg text-foreground font-interSemiBold">
                 {label}
               </Card.Title>
-              <Card.Description className="text-sm text-secondary font-inter">
+              <Card.Description className="text-sm text-accent font-interMedium">
                 {apartmentName}
               </Card.Description>
             </View>
