@@ -1,237 +1,86 @@
 import { View, Text } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
-import PropertyCard from "./../components/units/PropertyCard";
+import PropertyCard from "../components/units/PropertyCard";
+import PropertyStats from "../components/units/PropertyStats";
+import EmptyProperties from "../components/units/EmptyProperties";
+import PropertyCardSkeleton from "../components/units/PropertyCardSkeleton";
 
 import {
-  Building,
   FileText,
   Home,
   Hammer,
-  ChartPie,
   CirclePlus,
+  ListFilter,
 } from "lucide-react-native";
 
-import { supabase } from "@repo/supabase";
+import {
+  SearchField,
+  Separator,
+  BottomSheet,
+  Chip,
+  Button,
+} from "heroui-native";
 
-import { formatCurrency } from "@repo/utils";
-
-import { Button, SearchField, Separator } from "heroui-native";
-
+import { useLandlordUnits } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
 
-type ApartmentStatus =
-  | "Available"
-  | "Occupied"
-  | "Under Maintenance"
-  | "Unverified"
-  | "Verified";
+import { APARTMENT_STATUS_LABELS, VALID_APARTMENT_STATUSES } from "@repo/constants";
 
-type Apartment = {
-  id: string;
-  name: string;
-  barangay: string;
-  city: string;
-  status: ApartmentStatus;
-  coverUrl: string | null;
+const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
+
+const locationOptions = [
+  "All",
+  "Caloocan",
+  "Malabon",
+  "Navotas",
+  "Valenzuela",
+];
+
+const sortOptions = ["none", "price_asc", "price_desc"] as const;
+type SortOption = (typeof sortOptions)[number];
+
+const SORT_LABELS: Record<SortOption, string> = {
+  none: "Default",
+  price_asc: "Low to High",
+  price_desc: "High to Low",
 };
 
-function EmptyProperties({ onAdd }: { onAdd: () => void }) {
-  const { colors } = useColors();
-
-  return (
-    <View className="items-center justify-center py-16 gap-4">
-      <View className="bg-gray-100 rounded-full p-6">
-        <Building size={48} color={colors.gray500} />
-      </View>
-      <View className="items-center gap-1">
-        <Text className="text-text text-lg font-interSemiBold">
-          No properties yet
-        </Text>
-        <Text className="text-gray-400 text-sm font-inter text-center px-8">
-          Add your first property to start managing your rentals.
-        </Text>
-      </View>
-
-      <Button onPress={onAdd}>
-        <CirclePlus size={20} color={colors.white} />
-        <Button.Label>Add Property</Button.Label>
-      </Button>
-    </View>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <View className="bg-surface-secondary rounded-2xl p-4 flex-row gap-3 border border-border">
-      <View className="w-20 h-20 rounded-xl bg-surface-tertiary" />
-      <View className="flex-1 gap-2 justify-center">
-        <View className="h-4 bg-surface-tertiary rounded-full w-3/4" />
-        <View className="h-3 bg-surface-tertiary rounded-full w-1/2" />
-        <View className="h-3 bg-surface-tertiary rounded-full w-1/3" />
-      </View>
-    </View>
-  );
-}
+const STATUS_FILTER_LABELS: Record<string, string> = {
+  All: "All",
+  ...APARTMENT_STATUS_LABELS,
+};
 
 export default function Units() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const [apartments, setApartments] = useState<Apartment[]>([]);
-  const [filteredApartments, setFilteredApartments] = useState<Apartment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const statusOptions = [
-    "All",
-    "Occupied",
-    "Available",
-    "Under Maintenance",
-    "Unverified",
-  ];
-  const locationOptions = [
-    "All",
-    "Caloocan",
-    "Malabon",
-    "Navotas",
-    "Valenzuela",
-  ];
+  const { apartments, monthlyProfit, loading, fetchApartments } = useLandlordUnits();
 
-  const [selectedStatus, setSelectedStatus] = useState<string>(
-    statusOptions[0],
-  );
-  const [selectedLocation, setSelectedLocation] = useState<string>(
-    locationOptions[0],
-  );
+  const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
+  const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
+  const [selectedSort, setSelectedSort] = useState<SortOption>("none");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const [monthlyProfit, setMonthlyProfit] = useState<number | null>(null);
+  const activeFilterCount = [
+    selectedStatus !== statusOptions[0],
+    selectedLocation !== locationOptions[0],
+    selectedSort !== "none",
+  ].filter(Boolean).length;
 
-  // Current Month Label (e.g. "November 2024")
-  const currentMonthLabel = new Date().toLocaleString("default", {
-    month: "long",
-    year: "numeric",
-  });
+  const hasActiveFilters = activeFilterCount > 0;
 
-  const fetchMonthlyProfit = async (landlordId: string): Promise<void> => {
-    try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        .toISOString()
-        .split("T")[0];
-
-      // Get all apartment IDs that belong to this landlord
-      const { data: aptData, error: aptError } = await supabase
-        .from("apartments")
-        .select("id")
-        .eq("landlord_id", landlordId)
-        .is("deleted_at", null);
-
-      if (aptError) throw aptError;
-
-      const apartmentIds = (aptData ?? []).map((a) => a.id);
-      if (apartmentIds.length === 0) {
-        setMonthlyProfit(0);
-        return;
-      }
-
-      const { data: payments, error: payError } = await supabase
-        .from("payment")
-        .select("amount")
-        .in("apartment_id", apartmentIds)
-        .eq("status", "paid")
-        .gte("date", startOfMonth)
-        .lte("date", endOfMonth);
-
-      if (payError) throw payError;
-
-      const total = (payments ?? []).reduce(
-        (sum, p) => sum + Number(p.amount ?? 0),
-        0,
-      );
-      setMonthlyProfit(total);
-    } catch (err) {
-      console.error("Error fetching monthly profit:", err);
-      setMonthlyProfit(null);
-    }
+  const handleClearFilters = () => {
+    setSelectedStatus(statusOptions[0]);
+    setSelectedLocation(locationOptions[0]);
+    setSelectedSort("none");
   };
-
-  const fetchApartments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (userError || !userData) throw userError;
-
-      const [apartmentsResult] = await Promise.all([
-        supabase
-          .from("apartments")
-          .select(
-            `id, name, barangay, city, status, apartment_images (url, is_cover)`,
-          )
-          .eq("landlord_id", userData.id)
-          .is("deleted_at", null)
-          .order("created_at", { ascending: false }),
-
-        fetchMonthlyProfit(userData.id),
-      ]);
-
-      if (apartmentsResult.error) throw apartmentsResult.error;
-
-      const mapped: Apartment[] = (apartmentsResult.data ?? []).map((apt) => {
-        const images = apt.apartment_images ?? [];
-        const cover = images.find((img) => img.is_cover) ?? images[0] ?? null;
-
-        const rawStatus = apt.status
-          ? apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
-          : "Unverified";
-
-        const validStatuses: ApartmentStatus[] = [
-          "Available",
-          "Occupied",
-          "Under Maintenance",
-          "Unverified",
-          "Verified",
-        ];
-
-        const status = validStatuses.includes(rawStatus as ApartmentStatus)
-          ? (rawStatus as ApartmentStatus)
-          : "Unverified";
-
-        return {
-          id: apt.id,
-          name: apt.name,
-          barangay: apt.barangay,
-          city: apt.city,
-          status,
-          coverUrl: cover?.url ?? null,
-        };
-      });
-
-      setApartments(mapped);
-      setFilteredApartments(mapped);
-    } catch (err) {
-      console.error("Error fetching apartments:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Re-fetch whenever tab is focused (e.g. after adding a new apartment)
   useFocusEffect(
@@ -240,17 +89,10 @@ export default function Units() {
     }, [fetchApartments]),
   );
 
-  useEffect(() => {
+  const filteredApartments = useMemo(() => {
     let result = apartments;
-
-    if (selectedStatus !== "All") {
-      result = result.filter((a) => a.status === selectedStatus);
-    }
-
-    if (selectedLocation !== "All") {
-      result = result.filter((a) => a.city === selectedLocation);
-    }
-
+    if (selectedStatus !== "All") result = result.filter((a) => a.status === selectedStatus);
+    if (selectedLocation !== "All") result = result.filter((a) => a.city === selectedLocation);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -261,12 +103,17 @@ export default function Units() {
       );
     }
 
-    setFilteredApartments(result);
-  }, [searchQuery, selectedStatus, selectedLocation, apartments]);
+    if (selectedSort === "price_asc") {
+        result = [...result].sort((a, b) => (a.monthlyRent ?? 0) - (b.monthlyRent ?? 0));
+      } else if (selectedSort === "price_desc") {
+        result = [...result].sort((a, b) => (b.monthlyRent ?? 0) - (a.monthlyRent ?? 0));
+      }
+    return result;
+  }, [searchQuery, selectedStatus, selectedLocation, selectedSort, apartments]);
 
   const totalProperties = apartments.length;
   const occupiedCount = apartments.filter(
-    (a) => a.status === "Occupied",
+    (a) => a.status === "occupied",
   ).length;
 
   const handlePropertyPress = (propertyId: string) => {
@@ -281,47 +128,13 @@ export default function Units() {
       </Text>
 
       {/* Property Stats */}
-      <View className="flex gap-3 mt-5">
-        <View className="bg-accent p-4 rounded-3xl flex gap-2">
-          <Text className="text-gray-100 text-base font-interSemiBold">
-            {currentMonthLabel} Total Profit
-          </Text>
-          <Text className="text-accent-foreground text-4xl font-interSemiBold">
-            {loading
-              ? "—"
-              : monthlyProfit === null
-                ? "N/A"
-                : `₱ ${formatCurrency(monthlyProfit)}`}
-          </Text>
-        </View>
-
-        <View className="flex-row gap-3">
-          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-            <Text className="text-sm text-gray-500 font-interMedium">
-              Total Properties
-            </Text>
-            <Text className="text-3xl text-foreground font-interSemiBold">
-              {loading ? "—" : totalProperties}
-            </Text>
-          </View>
-
-          <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-            <Text className="text-sm text-gray-500 font-interMedium">
-              Units Occupied
-            </Text>
-            <Text className="text-3xl text-foreground font-interSemiBold">
-              {loading ? "—" : occupiedCount}
-            </Text>
-          </View>
-        </View>
-
-        <Button onPress={() => router.push("/landlord/analytics")}>
-          <ChartPie size={20} color={colors.secondaryForeground} />
-          <Button.Label>
-            Budget Analytics
-          </Button.Label>
-        </Button>
-      </View>
+      <PropertyStats
+        loading={loading}
+        monthlyProfit={monthlyProfit}
+        totalProperties={totalProperties}
+        occupiedCount={occupiedCount}
+        onAnalyticsPress={() => router.push("/landlord/analytics")}
+      />
 
       <Separator className="my-4" />
 
@@ -361,27 +174,139 @@ export default function Units() {
           List of Properties
         </Text>
 
-        <View className="mt-3">
-          <SearchField value={searchQuery} onChange={setSearchQuery}>
+        {/* Search + Filter Row */}
+        <View className="mt-3 flex-row items-center gap-2">
+          <SearchField value={searchQuery} onChange={setSearchQuery} className="flex-1">
             <SearchField.Group>
               <SearchField.SearchIcon />
               <SearchField.Input placeholder="Search a Property" />
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
+
+          <BottomSheet isOpen={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <View className="relative">
+              <BottomSheet.Trigger asChild>
+                <Button isIconOnly variant="secondary">
+                  <ListFilter size={18} color={colors.textPrimary} />
+                </Button>
+              </BottomSheet.Trigger>
+
+              {hasActiveFilters && (
+                <View className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center" style={{ zIndex: 10 }}>
+                  <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
+                    {activeFilterCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <BottomSheet.Portal>
+              <BottomSheet.Overlay />
+              <BottomSheet.Content>
+                <BottomSheet.Title>Filter Properties</BottomSheet.Title>
+
+                <View className="gap-5 mt-4">
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">
+                      Status
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {statusOptions.map((status) => {
+                        const isSelected = selectedStatus === status;
+                        return (
+                          <Chip
+                            key={status}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedStatus(status)}
+                          >
+                            <Chip.Label>
+                              {STATUS_FILTER_LABELS[status]}
+                            </Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <Separator />
+
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">Location</Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {locationOptions.map((location) => {
+                        const isSelected = selectedLocation === location;
+                        return (
+                          <Chip
+                            key={location}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedLocation(location)}
+                          >
+                            <Chip.Label>{location}</Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <Separator />
+
+                  <View className="gap-2">
+                    <Text className="text-foreground font-interMedium text-sm">
+                      Sort by Price
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {sortOptions.map((sort) => {
+                        const isSelected = selectedSort === sort;
+                        return (
+                          <Chip
+                            key={sort}
+                            variant={isSelected ? "soft" : "secondary"}
+                            color={isSelected ? "accent" : "default"}
+                            onPress={() => setSelectedSort(sort)}
+                          >
+                            <Chip.Label>{SORT_LABELS[sort]}</Chip.Label>
+                          </Chip>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View className="flex-row gap-3 mt-2">
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onPress={handleClearFilters}
+                      isDisabled={!hasActiveFilters}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      variant="primary"
+                      className="flex-1"
+                      onPress={() => setIsFilterOpen(false)}
+                    >
+                      Done
+                    </Button>
+                  </View>
+                </View>
+              </BottomSheet.Content>
+            </BottomSheet.Portal>
+          </BottomSheet>
         </View>
 
         <Separator className="my-4" />
 
+        {/* Generate all the Properties */}
         {loading ? (
-          // Skeleton loading state
           <View className="flex gap-3">
             {[1, 2, 3].map((i) => (
-              <SkeletonCard key={i} />
+              <PropertyCardSkeleton key={i} />
             ))}
           </View>
         ) : filteredApartments.length === 0 ? (
-          // Empty / no results state
           apartments.length === 0 ? (
             <EmptyProperties
               onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
@@ -394,7 +319,6 @@ export default function Units() {
             </View>
           )
         ) : (
-          // Apartment list
           <View className="flex gap-3">
             {filteredApartments.map((apt) => (
               <PropertyCard
@@ -405,6 +329,8 @@ export default function Units() {
                 status={apt.status}
                 thumbnailUrl={apt.coverUrl ?? undefined}
                 onPress={() => handlePropertyPress(apt.id)}
+                isVerified={apt.isVerified}
+                monthlyRent={apt.monthlyRent}
               />
             ))}
           </View>

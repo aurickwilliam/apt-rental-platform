@@ -17,7 +17,7 @@ import {
 
 import { Button, ListGroup, Separator } from "heroui-native";
 
-import { useProfile } from 'hooks/useProfile';
+import { useProfile } from 'hooks/auth';
 import { useColors } from 'hooks/useTheme';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -34,7 +34,7 @@ export default function Profile() {
       refetch();
     }, [refetch])
   );
-  
+
   const avatarInitials =
     `${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase();
 
@@ -90,13 +90,13 @@ export default function Profile() {
   ];
 
   return (
-    <ScrollView 
+    <ScrollView
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
     >
 
-      <ProfileHeader 
+      <ProfileHeader
         backgroundPhotoUri={backgroundPhotoUri}
         avatarUrl={profile?.avatar_url}
         firstName={profile?.first_name}
@@ -117,12 +117,12 @@ export default function Profile() {
       )}
 
       {/* Verification Status */}
-      <VerificationStatus 
+      <VerificationStatus
         accountStatus={accountStatus}
         rejectedReason={rejectedReason}
         dateVerified={dateVerified}
       />
-      
+
       {/* Profile Options */}
       <View className='mt-5 px-5'>
         <ListGroup className="shadow-none border border-border">
@@ -137,7 +137,7 @@ export default function Profile() {
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix />
               </ListGroup.Item>
-              
+
               {index < listItems.length - 1 && (
                 <Separator key={`sep-${index}`} className='mx-4' />
               )}

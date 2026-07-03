@@ -11,7 +11,7 @@ import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { IMAGES } from "constants/images";
 
-import { useGoogleAuth } from "hooks/useGoogleAuth";
+import { useGoogleAuth } from "hooks/auth";
 import { useColors } from "hooks/useTheme";
 
 import { supabase } from "@repo/supabase"

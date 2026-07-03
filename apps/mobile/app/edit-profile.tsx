@@ -26,9 +26,9 @@ import {
 import { Camera, User, Home } from "lucide-react-native";
 
 import { useColors } from "@/hooks/useTheme";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "@/hooks/auth";
 import { usePHPostalCode } from "@repo/hooks";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useImageUpload } from "@/hooks/apartments";
 
 import { supabase } from "@repo/supabase";
 
@@ -89,7 +89,7 @@ export default function EditProfile() {
   const [form, setForm] = useState<EditProfileForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
-  
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -125,7 +125,7 @@ export default function EditProfile() {
         ? new Date(profile.birth_date)
         : null,
       gender: profile.gender ?? "",
-      
+
       streetAddress: profile.street_address ?? "",
       barangay: profile.barangay ?? "",
       city: profile.city ?? "",
@@ -265,12 +265,12 @@ export default function EditProfile() {
     });
   };
 
-  const hasBackgroundImage = 
+  const hasBackgroundImage =
     form.backgroundImageUri !== null &&
     typeof form.backgroundImageUri === "object" &&
     "uri" in form.backgroundImageUri;
-  
-  const hasProfileImage = 
+
+  const hasProfileImage =
     form.profileImageUri !== null &&
     typeof form.profileImageUri === "object" &&
     "uri" in form.profileImageUri;
@@ -477,14 +477,14 @@ export default function EditProfile() {
           )}
         </TextField>
       </View>
-      
+
       {/* Save Button for the Fields */}
       <View className="mt-10 mb-5">
         <Button onPress={handleSave} isDisabled={saving}>
           <Button.Label>{saving ? "Saving..." : "Save Changes"}</Button.Label>
         </Button>
       </View>
-      
+
       <ErrorDialog
         isOpen={!!errorMessage}
         onClose={() => setErrorMessage(null)}

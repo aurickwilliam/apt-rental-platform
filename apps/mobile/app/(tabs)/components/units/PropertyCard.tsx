@@ -3,15 +3,23 @@ import { Image } from 'expo-image'
 
 import { Card, PressableFeedback } from 'heroui-native'
 
+import { ShieldCheck } from 'lucide-react-native'
+
 import { useColors } from '@/hooks/useTheme'
+
+import { ApartmentStatus, APARTMENT_STATUS_LABELS } from '@repo/constants'
+
+import { formatCurrency } from '@repo/utils'
 
 interface PropertyCardProps {
   apartmentName: string
   barangay: string
   city: string
-  status: 'Available' | 'Occupied' | 'Under Maintenance' | 'Unverified' | 'Verified'
+  status: ApartmentStatus
+  isVerified: boolean
   thumbnailUrl: string | undefined
   onPress: () => void
+  monthlyRent?: number
 }
 
 export default function PropertyCard({
@@ -19,41 +27,41 @@ export default function PropertyCard({
   barangay,
   city,
   status,
+  isVerified,
   thumbnailUrl,
   onPress,
+  monthlyRent,
 }: PropertyCardProps) {
   const { colors } = useColors();
 
-  const STATUS_STYLES = {
-    'Occupied': {
-      backgroundColor: colors.successLight,
-      color: colors.success,
-    },
-    'Under Maintenance': {
-      backgroundColor: colors.warningLight,
-      color: colors.warning,
-    },
-    'Available': {
+  const STATUS_STYLES: Record<ApartmentStatus, { backgroundColor: string; color: string }> = {
+    available: {
       backgroundColor: colors.primaryLight,
       color: colors.primary,
     },
-    'Unverified': {
+    occupied: {
+      backgroundColor: colors.successLight,
+      color: colors.success,
+    },
+    under_maintenance: {
+      backgroundColor: colors.warningLight,
+      color: colors.warning,
+    },
+    unverified: {
       backgroundColor: colors.gray200,
       color: colors.gray500,
     },
-    'Verified': {
-      backgroundColor: colors.successLight,
-      color: colors.success,
-    }
+  }
+
+  const style = STATUS_STYLES[status] ?? {
+    backgroundColor: colors.gray200,
+    color: colors.gray500,
   }
 
   return (
-    <PressableFeedback onPress={onPress}>
+    <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden'>
       <PressableFeedback.Highlight />
-      <Card
-        className='flex-row overflow-hidden rounded-3xl border border-border p-0 shadow-none'
-      >
-        {/* Image — fills full height, left corners rounded to match card */}
+      <Card className='flex-row h-28 overflow-hidden rounded-3xl border border-border p-0 shadow-none'>
         <Image
           source={{ uri: thumbnailUrl }}
           className='w-30 shrink-0'
@@ -65,18 +73,24 @@ export default function PropertyCard({
           contentFit='cover'
           cachePolicy="disk"
         />
-
-        {/* Content */}
         <Card.Body className='px-3 py-2 min-w-0 justify-between flex-1'>
           <View>
-            <Card.Title
-              className='text-base font-interMedium text-foreground leading-snug'
-              numberOfLines={1}
-              ellipsizeMode='tail'
-            >
-              {apartmentName}
-            </Card.Title>
+            <View className="flex-row items-center">
+              <Card.Title
+                className="flex-1 mr-2 text-base font-interMedium text-foreground leading-snug"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {apartmentName}
+              </Card.Title>
 
+              {isVerified && (
+                <ShieldCheck
+                  size={18}
+                  color={colors.success}
+                />
+              )}
+            </View>
             <Card.Description
               className='text-muted text-sm font-inter'
               numberOfLines={2}
@@ -86,19 +100,23 @@ export default function PropertyCard({
             </Card.Description>
           </View>
 
-          <View
-            className='px-2 py-1 rounded-full self-start border'
-            style={{
-              backgroundColor: STATUS_STYLES[status].backgroundColor,
-              borderColor: STATUS_STYLES[status].color,
-            }}
-          >
-            <Text
-              className='text-xs font-inter'
-              style={{ color: STATUS_STYLES[status].color }}
-            >
-              {status}
+          <View className='flex-row items-center justify-between'>
+            {/* Monthly Rent */}
+            <Text className='text-sm font-interMedium text-accent'>
+              {monthlyRent ? formatCurrency(monthlyRent) : 'N/A'}
             </Text>
+            {/* Status chip */}
+            <View
+              className='px-2 py-1 rounded-full self-start border'
+              style={{
+                backgroundColor: style.backgroundColor,
+                borderColor: style.color,
+              }}
+            >
+              <Text className='text-xs font-inter' style={{ color: style.color }}>
+                {APARTMENT_STATUS_LABELS[status]}
+              </Text>
+            </View>
           </View>
         </Card.Body>
       </Card>

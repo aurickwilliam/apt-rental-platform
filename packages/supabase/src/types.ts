@@ -60,6 +60,7 @@ export type Database = {
           floor_level: string | null
           furnished_type: string | null
           id: string
+          is_verified: boolean
           landlord_id: string | null
           latitude: number | null
           lease_agreement_url: string | null
@@ -93,6 +94,7 @@ export type Database = {
           floor_level?: string | null
           furnished_type?: string | null
           id?: string
+          is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
           lease_agreement_url?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           floor_level?: string | null
           furnished_type?: string | null
           id?: string
+          is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
           lease_agreement_url?: string | null
@@ -406,7 +409,7 @@ export type Database = {
           prev_landlord_contact: string | null
           prev_landlord_name: string | null
           proof_of_billing_url: string
-          proof_of_income_url: string
+          proof_of_income_url: string | null
           rejected_reason: string | null
           status: string
           tenant_id: string
@@ -431,7 +434,7 @@ export type Database = {
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
           proof_of_billing_url: string
-          proof_of_income_url: string
+          proof_of_income_url?: string | null
           rejected_reason?: string | null
           status?: string
           tenant_id: string
@@ -456,7 +459,7 @@ export type Database = {
           prev_landlord_contact?: string | null
           prev_landlord_name?: string | null
           proof_of_billing_url?: string
-          proof_of_income_url?: string
+          proof_of_income_url?: string | null
           rejected_reason?: string | null
           status?: string
           tenant_id?: string
@@ -684,6 +687,7 @@ export type Database = {
           responded_at: string | null
           status: string
           tenant_id: string
+          tenant_responded_at: string | null
           time: string
           updated_at: string | null
           visit_date: string
@@ -702,6 +706,7 @@ export type Database = {
           responded_at?: string | null
           status?: string
           tenant_id: string
+          tenant_responded_at?: string | null
           time: string
           updated_at?: string | null
           visit_date: string
@@ -720,6 +725,7 @@ export type Database = {
           responded_at?: string | null
           status?: string
           tenant_id?: string
+          tenant_responded_at?: string | null
           time?: string
           updated_at?: string | null
           visit_date?: string

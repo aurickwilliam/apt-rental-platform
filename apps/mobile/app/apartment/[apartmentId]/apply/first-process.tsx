@@ -18,34 +18,21 @@ import {
   Dialog,
 } from 'heroui-native';
 
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile } from 'hooks/auth'
 import { usePHMobileValidation } from '@repo/hooks'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
-const EMPLOYMENT_TYPES = [
-  "Full-Time",
-  "Part-Time",
-  "Self-Employed",
-  "Unemployed",
-  "Student",
-]
-
-const NO_INCOME_EMPLOYMENT_TYPES = [
-  "Unemployed", 
-  "Student"
-]
-
-const REQUIRES_OCCUPATION_TYPES = [
-  "Full-Time",
-  "Part-Time",
-  "Self-Employed",
-];
-
-const REQUIRES_COMPANY_NAME_TYPES = [
-  "Full-Time",
-  "Part-Time",
-];
+import {
+  EMPLOYMENT_TYPES,
+  NO_INCOME_EMPLOYMENT_TYPES,
+  REQUIRES_OCCUPATION_TYPES,
+  REQUIRES_COMPANY_NAME_TYPES,
+  requiresProofOfIncome,
+  requiresOccupation,
+  requiresCompanyName,
+  EmploymentType,
+} from '@repo/constants'
 
 type FieldErrors = {
   employmentType?: string
@@ -97,7 +84,7 @@ export default function FirstProcess() {
   } = useApplicationFormStore();
 
   // Derived flag — drives company name disable + income validation
-  const isNoIncomeType = NO_INCOME_EMPLOYMENT_TYPES.includes(tenantInformation.employmentType)
+  const isNoIncomeType = !requiresProofOfIncome(tenantInformation.employmentType)
 
   useEffect(() => {
     if (!profile) return
@@ -127,7 +114,9 @@ export default function FirstProcess() {
 
     // Occupation validation
     if (
-      REQUIRES_OCCUPATION_TYPES.includes(tenantInformation.employmentType) &&
+      REQUIRES_OCCUPATION_TYPES.includes(
+        tenantInformation.employmentType as EmploymentType
+      ) &&
       !tenantInformation.occupation.trim()
     ) {
       nextErrors.occupation = "Occupation is required.";
@@ -136,7 +125,7 @@ export default function FirstProcess() {
     // Company Name validation
     if (
       REQUIRES_COMPANY_NAME_TYPES.includes(
-        tenantInformation.employmentType
+        tenantInformation.employmentType as EmploymentType
       ) &&
       !tenantInformation.companyName.trim()
     ) {
@@ -199,9 +188,9 @@ export default function FirstProcess() {
         'previousLandlordContact',
       ]
       const firstInvalidField = fieldOrder.find((field) => nextErrors[field])
-      const y = 
-        firstInvalidField 
-          ? fieldPositions.current[firstInvalidField] 
+      const y =
+        firstInvalidField
+          ? fieldPositions.current[firstInvalidField]
           : undefined
       if (y !== undefined) {
         scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
@@ -296,22 +285,22 @@ export default function FirstProcess() {
               label="Employment Type"
               bottomSheetLabel="Select Employment Type"
               placeholder="Select your employment type"
-              options={EMPLOYMENT_TYPES}
+              options={EMPLOYMENT_TYPES as unknown as string[]}
               value={tenantInformation.employmentType}
               onSelect={(value) => {
                 updateTenantInformation("employmentType", value ?? "");
-              
+
                 if (value) {
                   clearFieldError("employmentType");
                 }
-              
-                if (value && !REQUIRES_OCCUPATION_TYPES.includes(value)) {
+
+                if (value && !requiresOccupation(value)) {
                   clearFieldError("occupation");
                 }
-              
-                if (value && NO_INCOME_EMPLOYMENT_TYPES.includes(value)) {
+
+                if (value && !requiresProofOfIncome(value)) {
                   updateTenantInformation("companyName", "");
-              
+
                   clearFieldError("companyName");
                   clearFieldError("monthlyIncome");
                 }
@@ -323,7 +312,7 @@ export default function FirstProcess() {
 
           {/* Occupation */}
           <View ref={registerFieldRef("occupation")}>
-            <TextField 
+            <TextField
               isRequired={!isNoIncomeType}
               isInvalid={!!errors.occupation}
             >
@@ -343,9 +332,7 @@ export default function FirstProcess() {
           {/* Company Name — disabled for Unemployed / Student */}
           <View ref={registerFieldRef("companyName")}>
             <TextField
-              isRequired={REQUIRES_COMPANY_NAME_TYPES.includes(
-                tenantInformation.employmentType
-              )}
+              isRequired={requiresCompanyName(tenantInformation.employmentType)}
               isDisabled={isNoIncomeType}
               isInvalid={!!errors.companyName}
             >
@@ -357,7 +344,7 @@ export default function FirstProcess() {
                 value={isNoIncomeType ? "" : tenantInformation.companyName}
                 onChangeText={(text) => {
                   updateTenantInformation("companyName", text);
-            
+
                   if (text.trim()) {
                     clearFieldError("companyName");
                   }
@@ -385,14 +372,14 @@ export default function FirstProcess() {
                 }
                 onChangeText={(text) => {
                   const parsed = text === "" ? null : parseInt(text, 10);
-                
+
                   updateTenantInformation("monthlyIncome", parsed);
-                
+
                   if (parsed !== null) {
                     const isValid =
                       parsed >= 0 &&
                       (isNoIncomeType || parsed > 0);
-                
+
                     if (isValid) {
                       clearFieldError("monthlyIncome");
                     }

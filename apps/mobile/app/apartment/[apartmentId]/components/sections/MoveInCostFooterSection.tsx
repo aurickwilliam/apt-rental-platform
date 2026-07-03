@@ -46,7 +46,7 @@ export default function MoveInCostFooterSection({
             >
               <View className='flex-row items-baseline'>
                 <Text className='text-2xl font-interSemiBold text-accent'>
-                  ₱ {formatCurrency(monthlyRent)}
+                  {formatCurrency(monthlyRent)}
                 </Text>
                 <Text className='text-sm font-interMedium text-muted ml-1'>
                   /month
@@ -108,7 +108,7 @@ export default function MoveInCostFooterSection({
                   Monthly Rent
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
-                  ₱ {formatCurrency(monthlyRent)}
+                  {formatCurrency(monthlyRent)}
                 </Text>
               </View>
 
@@ -118,7 +118,7 @@ export default function MoveInCostFooterSection({
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
                   {securityDeposit != null
-                    ? `₱ ${formatCurrency(securityDeposit)}`
+                    ? `${formatCurrency(securityDeposit)}`
                     : 'None'}
                 </Text>
               </View>
@@ -129,7 +129,7 @@ export default function MoveInCostFooterSection({
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
                   {advanceRent != null
-                    ? `₱ ${formatCurrency(advanceRent)}`
+                    ? `${formatCurrency(advanceRent)}`
                     : 'None'}
                 </Text>
               </View>
@@ -141,7 +141,7 @@ export default function MoveInCostFooterSection({
                   Total Move-in
                 </Text>
                 <Text className='text-accent font-interSemiBold text-lg'>
-                  ₱ {formatCurrency(totalMoveIn)}
+                  {formatCurrency(totalMoveIn)}
                 </Text>
               </View>
             </View>

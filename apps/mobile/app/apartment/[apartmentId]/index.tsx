@@ -19,8 +19,8 @@ import {
   ApartmentDetailsSection,
 } from "./components";
 
-import { useApartmentDetails } from "@/hooks/useApartmentDetails";
-import { useFavorites } from "@/hooks/useFavorites";
+import { useApartmentDetails } from "@/hooks/apartments";
+import { useFavorites } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";
