@@ -22,7 +22,7 @@ export default function AuthButton({
 
   return (
     <Button
-      variant="outline"
+      variant="tertiary"
       onPress={onPress}
       isDisabled={isDisabled}
       className="flex-1"
