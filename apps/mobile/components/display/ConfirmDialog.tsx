@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { Button, Dialog } from 'heroui-native'
 
 type Props = {
@@ -9,6 +9,9 @@ type Props = {
   confirmLabel: string
   confirmVariant?: 'danger' | 'primary' | 'secondary'
   onConfirm: () => void
+  errorMessage?: string | null
+  isConfirmDisabled?: boolean
+  cancelLabel?: string
 }
 
 export default function ConfirmDialog({
@@ -19,6 +22,9 @@ export default function ConfirmDialog({
   confirmLabel,
   confirmVariant = 'danger',
   onConfirm,
+  errorMessage,
+  isConfirmDisabled,
+  cancelLabel = 'Cancel',
 }: Props) {
   return (
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -29,12 +35,22 @@ export default function ConfirmDialog({
           <View className="mb-5 gap-1.5">
             <Dialog.Title>{title}</Dialog.Title>
             <Dialog.Description>{description}</Dialog.Description>
+            {errorMessage && (
+              <Text className="text-sm text-danger mt-1">
+                {errorMessage}
+              </Text>
+            )}
           </View>
           <View className="flex-row justify-end gap-3">
             <Button variant="ghost" size="sm" onPress={() => onOpenChange(false)}>
-              Cancel
+              {cancelLabel}
             </Button>
-            <Button size="sm" variant={confirmVariant} onPress={onConfirm}>
+            <Button
+              size="sm"
+              variant={confirmVariant}
+              onPress={onConfirm}
+              isDisabled={isConfirmDisabled}
+            >
               {confirmLabel}
             </Button>
           </View>

@@ -10,6 +10,7 @@ import DetailField from "@/components/display/DetailField";
 import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
@@ -29,7 +30,6 @@ import {
   Chip,
   Accordion,
   AccordionLayoutTransition,
-  Dialog,
 } from "heroui-native";
 
 import { Ban, ChevronLeft } from "lucide-react-native";
@@ -63,6 +63,8 @@ export default function ApplicationApartment() {
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelVisitDialogOpen, setCancelVisitDialogOpen] = useState(false);
+  const [cancelVisitError, setCancelVisitError] = useState<string | null>(null);
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
@@ -87,6 +89,11 @@ export default function ApplicationApartment() {
     }
   };
 
+  const handleCancelDialogOpenChange = (open: boolean) => {
+    setCancelDialogOpen(open);
+    if (!open) setCancelError(null);
+  };
+
   const handleAccept = async () => {
     if (!visitRequest) return;
     const { error } = await accept(visitRequest.id);
@@ -97,6 +104,26 @@ export default function ApplicationApartment() {
     if (!visitRequest) return;
     const { error } = await decline(visitRequest.id);
     if (!error) refetch();
+  };
+
+  const handleConfirmCancelVisit = async () => {
+    if (!visitRequest) return;
+    setCancelVisitError(null);
+    const { error } = await decline(visitRequest.id);
+    if (error) {
+      setCancelVisitError(
+        error.message ?? "Failed to cancel visit request. Please try again."
+      );
+      refetch();
+    } else {
+      setCancelVisitDialogOpen(false);
+      refetch();
+    }
+  };
+
+  const handleCancelVisitDialogOpenChange = (open: boolean) => {
+    setCancelVisitDialogOpen(open);
+    if (!open) setCancelVisitError(null);
   };
 
   const handleRequestAgain = () =>
@@ -252,6 +279,7 @@ export default function ApplicationApartment() {
               onDecline={handleDecline}
               onRequestAgain={handleRequestAgain}
               onMessageLandlord={handleMessageLandlord}
+              onCancel={() => setCancelVisitDialogOpen(true)}
             />
           </View>
           <Separator className="my-5" />
@@ -437,64 +465,51 @@ export default function ApplicationApartment() {
         </>
       )}
 
-      {/* Cancel Button + Dialog */}
+      {/* Cancel Application Button + Dialog */}
       {
         application?.status === "pending" && (
-          <Dialog isOpen={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-            <Dialog.Trigger asChild>
-              <Button
-                className="mt-5"
-                variant="danger"
-                isDisabled={cancelling || responding}
-              >
-                <Ban size={20} color={colors.secondaryForeground} />
-                <Button.Label>Cancel Application</Button.Label>
-              </Button>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Overlay />
-              <Dialog.Content>
-                <View className="mb-5 gap-1.5">
-                  <Dialog.Title>Cancel Application</Dialog.Title>
-                  <Dialog.Description>
-                    Are you sure you want to cancel your application for{" "}
-                    <Text className="font-interMedium text-foreground">
-                      {apartment?.name}
-                    </Text>
-                    ? This cannot be undone.
-                  </Dialog.Description>
+          <>
+            <Button
+              className="mt-5"
+              variant="danger"
+              isDisabled={cancelling || responding}
+              onPress={() => setCancelDialogOpen(true)}
+            >
+              <Ban size={20} color={colors.secondaryForeground} />
+              <Button.Label>Cancel Application</Button.Label>
+            </Button>
 
-                  {cancelError && (
-                    <Text className="text-sm text-danger mt-1">{cancelError}</Text>
-                  )}
-                </View>
-
-                <View className="flex-row justify-end gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onPress={() => {
-                      setCancelDialogOpen(false);
-                      setCancelError(null);
-                    }}
-                  >
-                    <Button.Label>Keep Application</Button.Label>
-                  </Button>
-
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onPress={handleConfirmCancel}
-                    isDisabled={cancelling}
-                  >
-                    <Button.Label>Yes, Cancel</Button.Label>
-                  </Button>
-                </View>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog>
+            <ConfirmDialog
+              isOpen={cancelDialogOpen}
+              onOpenChange={handleCancelDialogOpenChange}
+              title="Cancel Application"
+              description={`Are you sure you want to cancel your application for ${apartment?.name ?? "this apartment"}? This cannot be undone.`}
+              confirmLabel="Yes, Cancel"
+              confirmVariant="danger"
+              onConfirm={handleConfirmCancel}
+              errorMessage={cancelError}
+              isConfirmDisabled={cancelling}
+            />
+          </>
         )
       }
+
+      {/* Cancel Visit Request Dialog */}
+      <ConfirmDialog
+        isOpen={cancelVisitDialogOpen}
+        onOpenChange={handleCancelVisitDialogOpenChange}
+        title="Cancel Visit Request"
+        description={
+          visitRequest?.status === "approved"
+            ? "This visit was already confirmed with the landlord. Are you sure you want to cancel it? This cannot be undone."
+            : "Are you sure you want to cancel this visit request? This cannot be undone."
+        }
+        confirmLabel="Yes, Cancel"
+        confirmVariant="danger"
+        onConfirm={handleConfirmCancelVisit}
+        errorMessage={cancelVisitError}
+        isConfirmDisabled={responding}
+      />
 
       {/* Document Viewer */}
       <ImageViewing

@@ -12,10 +12,23 @@ export function useRespondToReschedule() {
         status: "approved",
         tenant_responded_at: new Date().toISOString(),
       })
-      .eq("id", visitRequestId);
-    console.log("accept result:", { error, data });
+      .eq("id", visitRequestId)
+      .select();
     setLoading(false);
-    return { error };
+
+    if (error) return { error };
+
+    if (!data || data.length === 0) {
+      console.log("accept matched 0 rows for visit_request:", visitRequestId);
+      return {
+        error: {
+          message:
+            "Couldn't update the visit request. It may have already been responded to.",
+        },
+      };
+    }
+
+    return { error: null };
   }, []);
 
   const decline = useCallback(async (visitRequestId: string) => {
@@ -26,10 +39,23 @@ export function useRespondToReschedule() {
         status: "cancelled",
         tenant_responded_at: new Date().toISOString(),
       })
-      .eq("id", visitRequestId);
-    console.log("decline result:", { error, data });
+      .eq("id", visitRequestId)
+      .select();
     setLoading(false);
-    return { error };
+
+    if (error) return { error };
+
+    if (!data || data.length === 0) {
+      console.log("decline matched 0 rows for visit_request:", visitRequestId);
+      return {
+        error: {
+          message:
+            "Couldn't update the visit request. It may have already been responded to.",
+        },
+      };
+    }
+
+    return { error: null };
   }, []);
 
   return { accept, decline, loading };
