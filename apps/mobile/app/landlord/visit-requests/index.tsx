@@ -123,7 +123,7 @@ export default function VisitRequests() {
   const markedDates = useMemo(() => {
     return visitRequests
       .filter((r) => r.status === "approved")
-      .map((r) => r.visit_date);
+      .map((r) => r.resolved_visit_date);
   }, [visitRequests]);
 
   const pendingCount = useMemo(() => {
@@ -145,7 +145,7 @@ export default function VisitRequests() {
         !query ||
         tenantName.includes(query) ||
         request.apartment.name.toLowerCase().includes(query);
-      const matchesDate = !selectedDate || request.visit_date === selectedDate;
+      const matchesDate = !selectedDate || request.resolved_visit_date === selectedDate;
       return matchesSearch && matchesDate;
     });
   }, [approvedRequests, searchQuery, selectedDate]);
@@ -156,7 +156,7 @@ export default function VisitRequests() {
     GROUP_ORDER.forEach((g) => buckets.set(g, []));
 
     filteredApproved.forEach((r) => {
-      const group = getGroup(r.visit_date, todayStr, todayDate);
+      const group = getGroup(r.resolved_visit_date, todayStr, todayDate);
       buckets.get(group)!.push(r);
     });
 
@@ -270,7 +270,7 @@ export default function VisitRequests() {
 
           if (item.type === "past-toggle") {
             const pastCount = filteredApproved.filter(
-              (r) => getGroup(r.visit_date, todayStr, todayDate) === "Past"
+              (r) => getGroup(r.resolved_visit_date, todayStr, todayDate) === "Past"
             ).length;
             return (
               <PastToggle
@@ -289,7 +289,7 @@ export default function VisitRequests() {
                   last_name: item.data.tenant.last_name,
                 })}
                 apartmentName={item.data.apartment.name}
-                visitSchedule={`${formatDate(item.data.visit_date, "medium")} at ${item.data.time}`}
+                visitSchedule={`${formatDate(item.data.resolved_visit_date, "medium")} at ${item.data.resolved_visit_time}`}
                 status={item.data.status}
                 avatarUrl={item.data.tenant.avatar_url ?? undefined}
                 onPress={() => handleRequestPress(item.data.id)}

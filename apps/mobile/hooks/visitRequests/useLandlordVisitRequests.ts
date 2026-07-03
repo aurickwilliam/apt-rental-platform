@@ -13,7 +13,10 @@ export type LandlordVisitRequest = {
   responded_at: string | null;
   confirmed_visit_date: string | null;
   confirmed_time: string | null;
-  created_at: string;
+  created_at: string
+  // These fields are used when the tenant reschedules a visit request
+  resolved_visit_date: string;
+  resolved_visit_time: string;
   tenant: {
     first_name: string;
     last_name: string;
@@ -138,6 +141,8 @@ export function useLandlordVisitRequests() {
 
         return {
           ...r,
+          resolved_visit_date: r.confirmed_visit_date ?? r.visit_date,
+          resolved_visit_time: r.confirmed_time ?? r.time,
           apartment: {
             ...r.apartment,
             apartment_images: resolvedUrl ? [{ url: resolvedUrl }] : [],

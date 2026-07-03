@@ -102,10 +102,10 @@ export default function VisitRequestDetails() {
   });
   const requestedDate = formatDate(request.visit_date, "long");
   const requestedTime = formatTime(request.time);
-  const rescheduledDate = request.confirmed_visit_date
+  const confirmedDate = request.confirmed_visit_date
     ? formatDate(request.confirmed_visit_date, "long")
     : null;
-  const rescheduledTime = request.confirmed_time
+  const confirmedTime = request.confirmed_time
     ? formatTime(request.confirmed_time)
     : null;
   const isPending = request.status === "pending";
@@ -177,20 +177,12 @@ export default function VisitRequestDetails() {
           </View>
         </View>
 
-        {request.status === "rescheduled" &&
-          request.confirmed_visit_date &&
-          request.confirmed_time && (
-            <View className="flex-row">
-              <DetailField
-                label="Rescheduled Date"
-                value={rescheduledDate}
-              />
-              <DetailField
-                label="Rescheduled Time"
-                value={rescheduledTime}
-              />
-            </View>
-          )}
+        {request.confirmed_visit_date && request.confirmed_time && (
+          <View className="flex-row">
+            <DetailField label="Confirmed Date" value={confirmedDate} />
+            <DetailField label="Confirmed Time" value={confirmedTime} />
+          </View>
+        )}
 
         {request.status === "rejected" && request.rejected_reason && (
           <View className="gap-1">
