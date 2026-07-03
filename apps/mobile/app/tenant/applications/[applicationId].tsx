@@ -178,7 +178,7 @@ export default function ApplicationApartment() {
           <View>
             <Text className="text-sm text-muted font-inter">Applied for</Text>
             <Text
-              className="text-secondary font-nunitoSemiBold text-2xl"
+              className="text-accent font-nunitoBold text-2xl"
               numberOfLines={1}
             >
               {apartment?.name}

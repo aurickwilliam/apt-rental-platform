@@ -428,19 +428,17 @@ export default function VisitRequestCard({
                 />
               </View>
 
-              {isDeclinedReschedule && (
-                <ActionButton
-                  icon={
-                    <RotateCcw
-                      size={iconSize}
-                      color={themeColorAccentForeground}
-                    />
-                  }
-                  label="Request Again"
-                  onPress={onRequestAgain}
-                  variant="primary"
-                />
-              )}
+              <ActionButton
+                icon={
+                  <RotateCcw
+                    size={iconSize}
+                    color={themeColorAccentForeground}
+                  />
+                }
+                label="Request Again"
+                onPress={onRequestAgain}
+                variant="primary"
+              />
             </View>
           )}
 
