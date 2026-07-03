@@ -57,6 +57,8 @@ type Props = {
   onMessageLandlord?: () => void;
   /** rejected / declined-reschedule -> open a fresh visit request form */
   onRequestAgain?: () => void;
+  /** pending / rescheduled -> tenant cancels their own request outright */
+  onCancel?: () => void;
 };
 
 function InfoRow({
@@ -123,6 +125,7 @@ export default function VisitRequestCard({
   onDecline,
   onMessageLandlord,
   onRequestAgain,
+  onCancel,
 }: Props) {
   const { colors } = useColors();
   const { getStatusStyle } = useVisitRequestStatusStyles();
@@ -168,6 +171,9 @@ export default function VisitRequestCard({
 
   const isDeclinedReschedule =
     status === "cancelled" && !!confirmed_visit_date && !!confirmed_time;
+
+  const canCancel =
+    status === "pending" || status === "rescheduled" || status === "approved";
 
   return (
     <PressableFeedback
@@ -467,6 +473,19 @@ export default function VisitRequestCard({
                 </Text>
               )}
             </View>
+
+            {canCancel && onCancel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={onCancel}
+                className="h-auto px-0 py-0"
+              >
+                <Button.Label className="text-xs text-danger font-interMedium">
+                  Cancel Request
+                </Button.Label>
+              </Button>
+            )}
           </View>
         </Card.Body>
       </Card>
