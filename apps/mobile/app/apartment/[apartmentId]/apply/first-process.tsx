@@ -25,7 +25,6 @@ import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 import {
   EMPLOYMENT_TYPES,
-  NO_INCOME_EMPLOYMENT_TYPES,
   REQUIRES_OCCUPATION_TYPES,
   REQUIRES_COMPANY_NAME_TYPES,
   requiresProofOfIncome,
@@ -33,6 +32,7 @@ import {
   requiresCompanyName,
   EmploymentType,
 } from '@repo/constants'
+import { formatPesoDisplay, handlePesoChange } from '@repo/utils'
 
 type FieldErrors = {
   employmentType?: string
@@ -48,8 +48,22 @@ export default function FirstProcess() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { profile } = useProfile();
 
+  const previousLandlordContactValidation = usePHMobileValidation();
+
+  const {
+    tenantInformation,
+    updateTenantInformation,
+    resetApplicationForm,
+  } = useApplicationFormStore();
+
+
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [monthlyIncomeText, setMonthlyIncomeText] = useState(
+    tenantInformation.monthlyIncome !== null
+      ? formatPesoDisplay(tenantInformation.monthlyIncome.toString())
+      : ""
+  );
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
   const contentRef = useRef<View>(null);
@@ -74,14 +88,6 @@ export default function FirstProcess() {
       return next
     })
   }
-
-  const previousLandlordContactValidation = usePHMobileValidation();
-
-  const {
-    tenantInformation,
-    updateTenantInformation,
-    resetApplicationForm,
-  } = useApplicationFormStore();
 
   // Derived flag — drives company name disable + income validation
   const isNoIncomeType = !requiresProofOfIncome(tenantInformation.employmentType)
@@ -364,15 +370,13 @@ export default function FirstProcess() {
                     ? "Enter 0 if no income"
                     : "Enter your monthly income"
                 }
-                keyboardType="numeric"
-                value={
-                  tenantInformation.monthlyIncome !== null
-                    ? tenantInformation.monthlyIncome.toString()
-                    : ""
-                }
+                keyboardType="decimal-pad"
+                value={monthlyIncomeText}
                 onChangeText={(text) => {
-                  const parsed = text === "" ? null : parseInt(text, 10);
+                  const { raw, formatted } = handlePesoChange(text);
+                  setMonthlyIncomeText(formatted);
 
+                  const parsed = raw === "" || raw === "." ? null : parseFloat(raw);
                   updateTenantInformation("monthlyIncome", parsed);
 
                   if (parsed !== null) {

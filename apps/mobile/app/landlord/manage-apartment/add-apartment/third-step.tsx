@@ -17,6 +17,8 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
+import { formatPesoDisplay, handlePesoChange } from "@repo/utils";
+
 type FieldErrors = {
   monthlyRent?: string;
   securityDeposit?: string;
@@ -78,6 +80,11 @@ export default function ThirdStep() {
     router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
+  const totalMoveInCost =
+    (Number(monthlyRent) || 0) +
+    (Number(securityDeposit) || 0) +
+    (Number(advanceRent) || 0);
+
   return (
     <ScreenWrapper scrollable>
       <ApplicationHeader
@@ -93,48 +100,45 @@ export default function ThirdStep() {
             <Label>Monthly Rent:</Label>
             <Input
               placeholder="Enter monthly rent"
-              value={monthlyRent}
+              value={formatPesoDisplay(monthlyRent)}
               keyboardType="numeric"
-              onChangeText={(value) => {
-                setField("monthlyRent", value);
+              onChangeText={(text) => {
+                const { raw } = handlePesoChange(text);
+                setField("monthlyRent", raw);
                 clearError("monthlyRent");
               }}
             />
-            {errors.monthlyRent && (
-              <FieldError>{errors.monthlyRent}</FieldError>
-            )}
+            {errors.monthlyRent && <FieldError>{errors.monthlyRent}</FieldError>}
           </TextField>
 
           <TextField isInvalid={!!errors.securityDeposit}>
             <Label>Security Deposit:</Label>
             <Input
               placeholder="Enter security deposit"
-              value={securityDeposit}
+              value={formatPesoDisplay(securityDeposit)}
               keyboardType="numeric"
-              onChangeText={(value) => {
-                setField("securityDeposit", value);
+              onChangeText={(text) => {
+                const { raw } = handlePesoChange(text);
+                setField("securityDeposit", raw);
                 clearError("securityDeposit");
               }}
             />
-            {errors.securityDeposit && (
-              <FieldError>{errors.securityDeposit}</FieldError>
-            )}
+            {errors.securityDeposit && <FieldError>{errors.securityDeposit}</FieldError>}
           </TextField>
 
           <TextField isInvalid={!!errors.advanceRent}>
             <Label>Advance Rent:</Label>
             <Input
               placeholder="Enter advance rent"
-              value={advanceRent}
+              value={formatPesoDisplay(advanceRent)}
               keyboardType="numeric"
-              onChangeText={(value) => {
-                setField("advanceRent", value);
+              onChangeText={(text) => {
+                const { raw } = handlePesoChange(text);
+                setField("advanceRent", raw);
                 clearError("advanceRent");
               }}
             />
-            {errors.advanceRent && (
-              <FieldError>{errors.advanceRent}</FieldError>
-            )}
+            {errors.advanceRent && <FieldError>{errors.advanceRent}</FieldError>}
           </TextField>
 
           {/* Total Move-in Cost */}
@@ -146,7 +150,7 @@ export default function ThirdStep() {
                   Monthly Rent:
                 </Text>
                 <Text className="text-base font-inter text-foreground">
-                  ₱ {(Number(monthlyRent) || 0).toLocaleString()}
+                  {formatPesoDisplay(monthlyRent) || "₱ 0"}
                 </Text>
               </View>
 
@@ -156,7 +160,7 @@ export default function ThirdStep() {
                   Security Deposit:
                 </Text>
                 <Text className="text-base font-inter text-foreground">
-                  ₱ {(Number(securityDeposit) || 0).toLocaleString()}
+                  {formatPesoDisplay(securityDeposit) || "₱ 0"}
                 </Text>
               </View>
 
@@ -166,7 +170,7 @@ export default function ThirdStep() {
                   Advance Rent:
                 </Text>
                 <Text className="text-base font-inter text-foreground">
-                  ₱ {(Number(advanceRent) || 0).toLocaleString()}
+                  {formatPesoDisplay(advanceRent) || "₱ 0"}
                 </Text>
               </View>
 
@@ -178,12 +182,7 @@ export default function ThirdStep() {
                   Total Move-in Cost:
                 </Text>
                 <Text className="text-base font-interMedium text-accent">
-                  ₱{" "}
-                  {(
-                    (Number(monthlyRent) || 0) +
-                    (Number(securityDeposit) || 0) +
-                    (Number(advanceRent) || 0)
-                  ).toLocaleString()}
+                  {formatPesoDisplay(totalMoveInCost.toString())}
                 </Text>
               </View>
             </View>
