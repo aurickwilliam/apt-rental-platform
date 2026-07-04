@@ -2,7 +2,7 @@ import { View, Text } from 'react-native'
 
 import { PAYMENT_STATUS } from '@repo/constants';
 
-import { formatDate, formatCurrency } from '@repo/utils';
+import { formatDate, formatPesoDisplay } from '@repo/utils';
 
 interface PaymentHistoryBigCardProps {
   payment: {
@@ -19,7 +19,7 @@ interface PaymentHistoryBigCardProps {
 export default function PaymentHistoryBigCard({ payment }: PaymentHistoryBigCardProps) {
 
   const formattedDate = formatDate(payment.date, 'long');
-  const formattedAmount = formatCurrency(payment.amount);
+  const formattedAmount = formatPesoDisplay(payment.amount);
 
   const STATUS_STYLES: Record<typeof PAYMENT_STATUS[number], { container: string; text: string; border: string }> = {
     'Paid':    { container: 'bg-greenHulk-100', text: 'text-greenHulk-200', border: 'border-greenHulk-200' },

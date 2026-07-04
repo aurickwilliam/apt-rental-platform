@@ -8,7 +8,7 @@ import {
 
 import { Flag } from "lucide-react";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 interface PriceCardProps {
   price: number;
@@ -22,14 +22,14 @@ export default function PriceCard({
   advancePayment = 0,
 }: PriceCardProps) {
 
-  const formattedPrice = formatCurrency(price);
+  const formattedPrice = formatPesoDisplay(price);
 
   const totalMoveInCost = price + securityDeposit + advancePayment;
 
   const costBreakdown = [
     { label: "Monthly Rent", value: `₱ ${formattedPrice}` },
-    { label: "Security Deposit", value: `₱ ${formatCurrency(securityDeposit)}` },
-    { label: "Advance Payment", value: `₱ ${formatCurrency(advancePayment)}` },
+    { label: "Security Deposit", value: `${formatPesoDisplay(securityDeposit)}` },
+    { label: "Advance Payment", value: `${formatPesoDisplay(advancePayment)}` },
   ]
 
   return (
@@ -53,7 +53,7 @@ export default function PriceCard({
 
           <div className="flex justify-between text-sm">
             <span className="font-medium">Total Move-in Cost:</span>
-            <span className="font-medium">₱ {formatCurrency(totalMoveInCost)}</span>
+            <span className="font-medium">{formatPesoDisplay(totalMoveInCost)}</span>
           </div>
         </div>
       </Card.Content>

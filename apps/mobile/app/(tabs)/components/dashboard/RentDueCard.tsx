@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 
 import { Building } from 'lucide-react-native';
 
-import { formatCurrency } from '@repo/utils';
+import { formatPesoDisplay } from '@repo/utils';
 
 import { useColors } from '@/hooks/useTheme';
 
@@ -22,18 +22,18 @@ export default function RentDueCard({
   onPress
 }: RentDueCardProps){
   const { colors } = useColors();
-  const formattedAmount = formatCurrency(amount);
+  const formattedAmount = formatPesoDisplay(amount);
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       className='bg-surface rounded-3xl p-4 border border-border'
       activeOpacity={0.7}
       onPress={onPress}
     >
       <View className='flex-row gap-1 items-center'>
-        <Building 
-          size={22} 
-          color={colors.gray500} 
+        <Building
+          size={22}
+          color={colors.gray500}
         />
         <Text className='text-foreground font-interSemiBold'>
           {propertyName}

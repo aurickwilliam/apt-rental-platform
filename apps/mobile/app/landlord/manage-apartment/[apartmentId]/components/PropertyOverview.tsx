@@ -17,7 +17,7 @@ import {
 
 import { useColors } from 'hooks/useTheme'
 
-import { formatAddress, formatCurrency } from '@repo/utils'
+import { formatAddress, formatPesoDisplay } from '@repo/utils'
 
 type ApartmentImage = {
   id: string
@@ -124,7 +124,7 @@ export default function PropertyOverview({
       {/* Monthly Rent */}
       <View className='flex-row'>
         <Text className="text-accent text-lg font-interMedium flex-1">
-          {formatCurrency(monthly_rent)}
+          {formatPesoDisplay(monthly_rent)}
           <Text className="text-gray-500 font-inter text-base">/month</Text>
         </Text>
 

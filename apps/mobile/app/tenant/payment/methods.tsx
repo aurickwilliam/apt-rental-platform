@@ -16,7 +16,7 @@ import NumberField from '@/components/inputs/NumberField'
 
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 
-import { formatCurrency } from '@repo/utils'
+import { formatPesoDisplay } from '@repo/utils'
 
 type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash';
 
@@ -150,13 +150,13 @@ export default function Methods() {
 
               {/* Divider */}
               <View className="flex-row justify-center items-center mt-7 mb-7">
-                <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
+                <View className="flex-1 h-px bg-grey-300 rounded-full mt-1" />
 
                 <Text className="mx-3 text-grey-400 font-inter">
-                  or 
+                  or
                 </Text>
 
-                <View className="flex-1 h-[1px] bg-grey-300 rounded-full mt-1" />
+                <View className="flex-1 h-px bg-grey-300 rounded-full mt-1" />
               </View>
             </>
           )
@@ -165,31 +165,31 @@ export default function Methods() {
         {/* Add New Payment Method */}
         <View className={`flex gap-3 ${hasSavedPaymentMethod ? '' : 'mt-5'}`}>
           <Text className='text-text text-base font-interMedium'>
-            Add New Payment Method 
+            Add New Payment Method
           </Text>
 
-          <RadioButton 
-            label={'GCash'} 
-            onPress={() => setSelectedPaymentMethod('GCash')} 
-            selected={selectedPaymentMethod === 'GCash'}            
+          <RadioButton
+            label={'GCash'}
+            onPress={() => setSelectedPaymentMethod('GCash')}
+            selected={selectedPaymentMethod === 'GCash'}
           />
 
-          <RadioButton 
-            label={'Maya'} 
-            onPress={() => setSelectedPaymentMethod('Maya')} 
-            selected={selectedPaymentMethod === 'Maya'}            
+          <RadioButton
+            label={'Maya'}
+            onPress={() => setSelectedPaymentMethod('Maya')}
+            selected={selectedPaymentMethod === 'Maya'}
           />
 
-          <RadioButton 
-            label={'Debit/Credit Card'} 
-            onPress={() => setSelectedPaymentMethod('Debit/Credit-Card')} 
-            selected={selectedPaymentMethod === 'Debit/Credit-Card'}            
+          <RadioButton
+            label={'Debit/Credit Card'}
+            onPress={() => setSelectedPaymentMethod('Debit/Credit-Card')}
+            selected={selectedPaymentMethod === 'Debit/Credit-Card'}
           />
 
-          <RadioButton 
-            label={'Cash'} 
-            onPress={() => setSelectedPaymentMethod('Cash')} 
-            selected={selectedPaymentMethod === 'Cash'}            
+          <RadioButton
+            label={'Cash'}
+            onPress={() => setSelectedPaymentMethod('Cash')}
+            selected={selectedPaymentMethod === 'Cash'}
           />
         </View>
 
@@ -201,7 +201,7 @@ export default function Methods() {
 
               <View className='flex gap-3'>
                 {/* Card Number */}
-                <TextField 
+                <TextField
                   label='Card Number:'
                   placeholder='**** **** **** ****'
                   required
@@ -211,7 +211,7 @@ export default function Methods() {
                 />
 
                 {/* Expiry Date */}
-                <DateTimeField 
+                <DateTimeField
                   label='Expiry Date:'
                   placeholder='XX/XX'
                   required
@@ -220,7 +220,7 @@ export default function Methods() {
                 />
 
                 {/* Card Name */}
-                <TextField 
+                <TextField
                   label='Cardholder Name:'
                   placeholder='Enter cardholder name'
                   required
@@ -230,7 +230,7 @@ export default function Methods() {
 
                 {/* Card Verification Value */}
                 <View>
-                  <NumberField 
+                  <NumberField
                     label='CVV:'
                     placeholder='***'
                     maxLength={3}
@@ -244,10 +244,10 @@ export default function Methods() {
                   </Text>
                 </View>
 
-                <CheckBox 
-                  label={'Save this card for future use?'} 
-                  selected={cardInformation.isPaymentSaved} 
-                  onPress={() => setCardInformation({...cardInformation, isPaymentSaved: !cardInformation.isPaymentSaved})}                  
+                <CheckBox
+                  label={'Save this card for future use?'}
+                  selected={cardInformation.isPaymentSaved}
+                  onPress={() => setCardInformation({...cardInformation, isPaymentSaved: !cardInformation.isPaymentSaved})}
                 />
               </View>
             </>
@@ -274,13 +274,13 @@ export default function Methods() {
                   </Text>
 
                   {/* Date of Payment */}
-                  <DateTimeField 
+                  <DateTimeField
                     label='Payment Date:'
                     placeholder='Select date of payment'
                   />
 
                   {/* Amount */}
-                  <NumberField 
+                  <NumberField
                     label='Amount Paid:'
                     placeholder='₱ 0.00'
                     allowDecimal
@@ -295,14 +295,14 @@ export default function Methods() {
 
       {/* Checkout Button */}
       <View className='absolute bottom-0 left-0 right-0 z-10 w-full p-5 border-t border-grey-300 bg-white'>
-        <SafeAreaView edges={['bottom']} className='flex-row items-center justify-between'> 
+        <SafeAreaView edges={['bottom']} className='flex-row items-center justify-between'>
           <View className='flex'>
             <Text className='text-grey-500 font-interMedium'>
               Total
             </Text>
 
-            <Text className='text-primary text-3xl font-interSemiBold'>
-              ₱ {formatCurrency(totalPayment)}
+            <Text className='text-accent text-3xl font-interSemiBold'>
+              {formatPesoDisplay(totalPayment)}
             </Text>
           </View>
 
