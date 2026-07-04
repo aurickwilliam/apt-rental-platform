@@ -19,7 +19,7 @@ import {
   useToast,
 } from "heroui-native";
 
-import { formatCurrency, formatDate } from '@repo/utils'
+import { formatDate, formatPesoDisplay } from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
@@ -38,8 +38,6 @@ export default function ReviewInformation() {
   } = useApplicationFormStore();
 
   const { submit, isSubmitting } = useSubmitApplication();
-
-  const formattedMonthlyIncome = formatCurrency(tenantInformation.monthlyIncome!)
 
   const totalMoveInCost =
     apartmentContext.monthlyRent! +
@@ -136,7 +134,7 @@ export default function ReviewInformation() {
               label="Monthly Rent"
               value={
                 apartmentContext.monthlyRent != null
-                  ? `${formatCurrency(apartmentContext.monthlyRent)}`
+                  ? `${formatPesoDisplay(String(apartmentContext.monthlyRent))}`
                   : '—'
               }
             />
@@ -144,7 +142,7 @@ export default function ReviewInformation() {
               label="Security Deposit"
               value={
                 apartmentContext.securityDeposit != null
-                  ? `${formatCurrency(apartmentContext.securityDeposit)}`
+                  ? `${formatPesoDisplay(String(apartmentContext.securityDeposit))}`
                   : '—'
               }
             />
@@ -155,13 +153,13 @@ export default function ReviewInformation() {
               label="Advance Rent"
               value={
                 apartmentContext.advanceRent != null
-                  ? `${formatCurrency(apartmentContext.advanceRent)}`
+                  ? `${formatPesoDisplay(String(apartmentContext.advanceRent))}`
                   : '—'
               }
             />
             <DetailField
               label='Total Move-In Cost'
-              value={`${formatCurrency(totalMoveInCost)}`}
+              value={`${formatPesoDisplay(String(totalMoveInCost))}`}
             />
           </View>
         </View>
@@ -218,7 +216,7 @@ export default function ReviewInformation() {
                 />
                 <DetailField
                   label="Monthly Income"
-                  value={`${formattedMonthlyIncome}`}
+                  value={formatPesoDisplay(String(tenantInformation.monthlyIncome)) || "—"}
                 />
                 <DetailField
                   label="Employment Type"
