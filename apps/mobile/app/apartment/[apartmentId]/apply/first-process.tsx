@@ -60,9 +60,7 @@ export default function FirstProcess() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [monthlyIncomeText, setMonthlyIncomeText] = useState(
-    tenantInformation.monthlyIncome !== null
-      ? formatPesoDisplay(tenantInformation.monthlyIncome.toString())
-      : ""
+    formatPesoDisplay(tenantInformation.monthlyIncome)
   );
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null);

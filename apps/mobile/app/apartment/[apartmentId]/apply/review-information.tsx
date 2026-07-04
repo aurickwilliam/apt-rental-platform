@@ -134,7 +134,7 @@ export default function ReviewInformation() {
               label="Monthly Rent"
               value={
                 apartmentContext.monthlyRent != null
-                  ? `${formatPesoDisplay(String(apartmentContext.monthlyRent))}`
+                  ? `${formatPesoDisplay(apartmentContext.monthlyRent)}`
                   : '—'
               }
             />
@@ -142,7 +142,7 @@ export default function ReviewInformation() {
               label="Security Deposit"
               value={
                 apartmentContext.securityDeposit != null
-                  ? `${formatPesoDisplay(String(apartmentContext.securityDeposit))}`
+                  ? `${formatPesoDisplay(apartmentContext.securityDeposit)}`
                   : '—'
               }
             />
@@ -153,13 +153,13 @@ export default function ReviewInformation() {
               label="Advance Rent"
               value={
                 apartmentContext.advanceRent != null
-                  ? `${formatPesoDisplay(String(apartmentContext.advanceRent))}`
+                  ? `${formatPesoDisplay(apartmentContext.advanceRent)}`
                   : '—'
               }
             />
             <DetailField
               label='Total Move-In Cost'
-              value={`${formatPesoDisplay(String(totalMoveInCost))}`}
+              value={`${formatPesoDisplay(totalMoveInCost)}`}
             />
           </View>
         </View>
@@ -216,7 +216,7 @@ export default function ReviewInformation() {
                 />
                 <DetailField
                   label="Monthly Income"
-                  value={formatPesoDisplay(String(tenantInformation.monthlyIncome)) || "—"}
+                  value={formatPesoDisplay(tenantInformation.monthlyIncome) || "—"}
                 />
                 <DetailField
                   label="Employment Type"

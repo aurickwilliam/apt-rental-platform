@@ -22,7 +22,7 @@ import {
 import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
 
-import { formatAddress, formatCurrency, formatDate } from "@repo/utils";
+import { formatAddress, formatPesoDisplay, formatDate } from "@repo/utils";
 
 import {
   Separator,
@@ -68,7 +68,7 @@ export default function ApplicationApartment() {
 
   const fullAddress = apartment ? formatAddress(apartment) : "";
   const monthlyRent = apartment?.monthly_rent
-    ? `${formatCurrency(apartment.monthly_rent)}/month`
+    ? `${formatPesoDisplay(apartment.monthly_rent)}/month`
     : "";
   const moveInDate = application
     ? formatDate(application.move_in_date, "long")
@@ -333,7 +333,7 @@ export default function ApplicationApartment() {
                     />
                     <DetailField
                       label="Monthly Income"
-                      value={`${formatCurrency(application.monthly_income)}`}
+                      value={`${formatPesoDisplay(application.monthly_income)}`}
                     />
                     <Separator className="my-2" />
                     <DetailField

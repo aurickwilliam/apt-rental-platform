@@ -15,7 +15,7 @@ import {
   ShieldCheck
 } from 'lucide-react-native';
 
-import { formatCurrency } from '@repo/utils';
+import { formatPesoDisplay } from '@repo/utils';
 
 export interface ApartmentCardProps {
   id: string;
@@ -136,7 +136,7 @@ export default function ApartmentCard({
               <Text
                 className={`text-accent font-interSemiBold ${isGrid ? "text-lg" : "text-xl"}`}
               >
-                {formatCurrency(monthlyRent)}
+                {formatPesoDisplay(monthlyRent)}
               </Text>
               <View className="flex-row items-center justify-center gap-1">
                 <Star size={isGrid ? 16 : 18} color={colors.secondary} />

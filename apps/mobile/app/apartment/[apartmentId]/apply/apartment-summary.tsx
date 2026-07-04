@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
 import { useApartmentDetails } from "@/hooks/apartments";
@@ -109,7 +109,7 @@ export default function ApartmentSummary() {
     a.is_cover === b.is_cover ? 0 : a.is_cover ? -1 : 1
   );
 
-  const formattedMonthlyRent = formatCurrency(apartment.monthly_rent);
+  const formattedMonthlyRent = formatPesoDisplay(apartment.monthly_rent);
 
   return (
     <ScreenWrapper noTopPadding>
