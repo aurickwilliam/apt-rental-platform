@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import ImageViewing from "react-native-image-viewing";
 
@@ -16,7 +16,8 @@ import { useColors } from "@/hooks/useTheme";
 import {
   useMaintenanceRequestStatusStyles,
   useMaintenanceRequestUrgencyStyles,
-  MaintenanceRequest
+  MaintenanceRequest,
+  useMaintenanceRequests,
 } from "@/hooks/maintenance-requests";
 
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from "@repo/constants";
@@ -25,12 +26,19 @@ import { formatDate } from "@repo/utils";
 
 export default function MaintenanceDetails() {
   // Get the maintenance request details from the query parameters
-  const { request } = useLocalSearchParams<{ request: string }>();
+  const { request, apartmentId } = useLocalSearchParams<{
+    request: string;
+    apartmentId: string
+  }>();
   const maintenanceRequest = request ? JSON.parse(request) as MaintenanceRequest : null;
 
+  const router = useRouter();
   const { colors } = useColors();
   const statusStyles = useMaintenanceRequestStatusStyles();
   const urgencyStyles = useMaintenanceRequestUrgencyStyles();
+  const { cancelRequest, canCancel } = useMaintenanceRequests({ apartmentId });
+
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Image lightbox state
   const [imageIndex, setImageIndex] = useState(0);
@@ -52,6 +60,14 @@ export default function MaintenanceDetails() {
       </ScreenWrapper>
     );
   }
+
+  const handleCancel = async () => {
+    if (isCancelling) return;
+    setIsCancelling(true);
+    await cancelRequest();
+    setIsCancelling(false);
+    router.back();
+  };
 
   const status = statusStyles[maintenanceRequest.status];
   const urgency = urgencyStyles[maintenanceRequest.urgency];
@@ -211,10 +227,12 @@ export default function MaintenanceDetails() {
       <Button
         variant="danger-soft"
         className="mt-10"
+        isDisabled={!canCancel(maintenanceRequest.status) || isCancelling}
+        onPress={handleCancel}
       >
         <Trash2 size={20} color={colors.danger} />
         <Button.Label>
-          Cancel Maintenance Request
+          {isCancelling ? "Cancelling..." : "Cancel Maintenance Request"}
         </Button.Label>
       </Button>
     </ScreenWrapper>

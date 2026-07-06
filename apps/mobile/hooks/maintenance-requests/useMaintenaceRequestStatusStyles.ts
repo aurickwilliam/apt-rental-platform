@@ -21,6 +21,10 @@ export function useMaintenanceRequestStatusStyles(): Record<
       backgroundColor: colors.successLight,
       textColor: colors.success,
     },
+    Cancelled: {
+      backgroundColor: colors.gray100,
+      textColor: colors.gray500
+    },
   };
 }
 
