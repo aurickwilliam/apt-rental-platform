@@ -38,10 +38,24 @@ const getNextStatus = (status: MaintenanceRequestStatus): MaintenanceRequestStat
   return 'Resolved';
 };
 
-function mapRow(row: any): MaintenanceRequest {
+async function mapRow(row: any): Promise<MaintenanceRequest> {
+  const paths: string[] = row.image_urls ?? [];
+  let resolvedUrls: string[] = [];
+
+  if (paths.length > 0) {
+    const { data, error } = await supabase.storage
+      .from('maintenance-images')
+      .createSignedUrls(paths, 60 * 55); // 55 min, matches your existing TTL pattern
+
+    if (!error && data) {
+      resolvedUrls = data.map((d) => d.signedUrl);
+    }
+  }
+
   return {
     ...row,
     status: DB_TO_DISPLAY_STATUS[row.status] ?? 'Pending',
+    image_urls: resolvedUrls,
   };
 }
 
@@ -77,7 +91,7 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       setError(fetchError.message);
       setActiveRequest(null);
     } else {
-      setActiveRequest(data ? mapRow(data) : null);
+      setActiveRequest(data ? await mapRow(data) : null);
     }
 
     setLoading(false);
