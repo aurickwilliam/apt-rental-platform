@@ -8,6 +8,7 @@ import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentD
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 import ApplicationsList from '../components/rentals/ApplicationList';
+import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
 
 import {
   Link,
@@ -25,6 +26,7 @@ import {
 
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
+import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
 
 import { Button, Separator } from 'heroui-native';
 
@@ -73,12 +75,13 @@ export default function Rentals() {
   const { colors } = useColors();
 
   const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { activeRequest } = useMaintenanceRequests({ apartmentId: tenancy?.apartment.id })
 
   const loading = tenancyLoading;
 
   const handleRequestMaintenance = () => {
     router.push({
-      pathname: '/tenant/maintenance-issue',
+      pathname: '/tenant/request-maintenance',
       params: {
         apartmentId: tenancy?.apartment.id,
         apartmentName: tenancy?.apartment.name,
@@ -221,12 +224,39 @@ export default function Rentals() {
           />
         </View>
 
-        <Separator className='my-4' />
+        {activeRequest ? (
+          <>
+            <Separator className="my-4" />
+            <View className="flex gap-3">
+              <View className="flex-row items-center justify-start gap-2">
+                <Hammer size={24} color={colors.textPrimary} />
+                <Text className="text-foreground text-lg font-interSemiBold">
+                  Active Maintenance Request
+                </Text>
+              </View>
+              <MaintenanceRequestCard
+                request={activeRequest}
+                onPress={() => {
+                  router.push({
+                    pathname: "/tenant/maintenance-details",
+                    params: {
+                      request: JSON.stringify(activeRequest),
+                    },
+                  });
+                }}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <Separator className='my-4' />
 
-        <Button onPress={handleRequestMaintenance}>
-          <Hammer size={20} color={colors.secondaryForeground} />
-          <Button.Label>Request Maintenance Issue</Button.Label>
-        </Button>
+            <Button onPress={handleRequestMaintenance}>
+              <Hammer size={20} color={colors.secondaryForeground} />
+              <Button.Label>Request Maintenance Issue</Button.Label>
+            </Button>
+          </>
+        )}
       </ScreenWrapper>
     );
   }

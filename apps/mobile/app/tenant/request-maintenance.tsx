@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native'
+import { View, Text } from 'react-native'
 
 import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
@@ -30,7 +30,8 @@ import { Building2, Check } from 'lucide-react-native'
 import { useColors } from '@/hooks/useTheme'
 import {
   useSubmitMaintenanceRequest,
-  MaintenanceCategorySlug
+  MaintenanceCategorySlug,
+  useMaintenanceRequestUrgencyStyles
 } from '@/hooks/maintenance-requests'
 
 type MaintenanceDetails = {
@@ -42,13 +43,7 @@ type MaintenanceDetails = {
 
 type MaintenanceErrors = Partial<Record<keyof MaintenanceDetails, string>>;
 
-const URGENCY_COLORS: Record<typeof MAINTENANCE_URGENCY[number]['value'], 'danger' | 'warning' | 'default'> = {
-  high: 'danger',
-  medium: 'warning',
-  low: 'default',
-};
-
-export default function MaintenanceIssue() {
+export default function RequestMaintenance() {
   const { colors } = useColors();
   const router = useRouter();
   const {
@@ -63,6 +58,7 @@ export default function MaintenanceIssue() {
     landlordName?: string
   }>();
   const { submitRequest, isSubmitting, error } = useSubmitMaintenanceRequest();
+  const urgencyStyles = useMaintenanceRequestUrgencyStyles();
 
   const [maintenanceDetails, setMaintenanceDetails] = useState<MaintenanceDetails>({
     category: '',
@@ -238,23 +234,31 @@ export default function MaintenanceIssue() {
           <View className='flex-row gap-2'>
             {MAINTENANCE_URGENCY.map((option) => {
               const selected = maintenanceDetails.urgency === option.value;
+              const style = urgencyStyles[option.value];
               return (
                 <Chip
                   key={option.value}
-                  variant={selected ? 'primary' : 'soft'}
-                  color={URGENCY_COLORS[option.value]}
+                  variant="soft"
+                  animation="disable-all"
+                  style={{
+                    backgroundColor: selected
+                      ? style.textColor
+                      : style.backgroundColor
+                  }}
                   onPress={() => updateField('urgency', option.value)}
                 >
                   {selected && (
-                    <Check
-                      size={14}
-                      color={URGENCY_COLORS[option.value] === 'danger'
-                        ? colors.white
-                        : colors.textPrimary
-                      }
-                    />
+                    <Check size={14} color={colors.white} />
                   )}
-                  <Chip.Label>{option.label}</Chip.Label>
+                  <Chip.Label
+                    style={{
+                      color: selected
+                        ? colors.white
+                        : style.textColor
+                    }}
+                  >
+                    {option.label}
+                  </Chip.Label>
                 </Chip>
               );
             })}
