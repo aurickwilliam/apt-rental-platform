@@ -5,3 +5,8 @@ export type {
   MaintenanceRequest
 } from "./useMaintenanceRequests";
 export { STATUS_ORDER, useMaintenanceRequests } from "./useMaintenanceRequests";
+export {
+  useSubmitMaintenanceRequest,
+  type MaintenanceCategorySlug,
+  type MaintenanceUrgencySlug,
+} from "./useSubmitMaintenanceRequest";
