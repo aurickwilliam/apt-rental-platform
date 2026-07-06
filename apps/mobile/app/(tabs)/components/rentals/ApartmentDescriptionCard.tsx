@@ -68,7 +68,7 @@ export default function ApartmentDescriptionCard({
           Monthly Rent
         </Text>
         <Text className='text-foreground text-base font-interMedium'>
-          {`₱ ${formattedMonthlyRent}`}
+          {`${formattedMonthlyRent}`}
         </Text>
       </View>
 

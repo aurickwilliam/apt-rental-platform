@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { File } from "expo-file-system";
 import { supabase } from "@repo/supabase";
-
 import { useProfile } from "../auth";
-
 export type MaintenanceCategorySlug =
   | "plumbing_water_fixtures"
   | "appliances"
@@ -13,9 +11,7 @@ export type MaintenanceCategorySlug =
   | "pest_control"
   | "structural_issues"
   | "safety_security";
-
 export type MaintenanceUrgencySlug = "low" | "medium" | "high";
-
 type SubmitMaintenanceRequestInput = {
   apartmentId: string;
   title: string;
@@ -24,15 +20,12 @@ type SubmitMaintenanceRequestInput = {
   message: string;
   imageUris: string[];
 };
-
 export function useSubmitMaintenanceRequest() {
   const { profile } = useProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const uploadImages = async (uris: string[], tenantId: string): Promise<string[]> => {
-    const urls: string[] = [];
-
+    const paths: string[] = [];
     for (const uri of uris) {
       const file = new File(uri);
       const bytes = await file.bytes();
@@ -42,31 +35,20 @@ export function useSubmitMaintenanceRequest() {
       const { error: uploadError } = await supabase.storage
         .from("maintenance-images")
         .upload(path, bytes, { contentType: file.type ?? "image/jpeg" });
-
       if (uploadError) throw uploadError;
 
-      // signed URL
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from("maintenance-images")
-        .createSignedUrl(path, 60 * 55);
-
-      if (signedUrlError) throw signedUrlError;
-      urls.push(signedUrlData.signedUrl);
+      paths.push(path);
     }
-
-    return urls;
+    return paths;
   };
-
   const submitRequest = async (input: SubmitMaintenanceRequestInput) => {
     if (!profile) {
       const message = "No profile loaded — cannot submit maintenance request";
       setError(message);
       throw new Error(message);
     }
-
     setIsSubmitting(true);
     setError(null);
-
     try {
       // resolve landlord_id from the apartment being reported on
       const { data: apartment, error: apartmentError } = await supabase
@@ -74,13 +56,10 @@ export function useSubmitMaintenanceRequest() {
         .select("landlord_id")
         .eq("id", input.apartmentId)
         .single();
-
       if (apartmentError) throw apartmentError;
-
-      const imageUrls = input.imageUris.length
+      const imagePaths = input.imageUris.length
         ? await uploadImages(input.imageUris, profile.id)
         : [];
-
       const { data, error: insertError } = await supabase
         .from("maintenance_request")
         .insert({
@@ -91,12 +70,11 @@ export function useSubmitMaintenanceRequest() {
           category: input.category,
           urgency: input.urgency,
           message: input.message,
-          image_urls: imageUrls,
+          image_urls: imagePaths,
           status: "pending",
         })
         .select()
         .single();
-
       if (insertError) throw insertError;
       return data;
     } catch (err) {
@@ -109,6 +87,5 @@ export function useSubmitMaintenanceRequest() {
       setIsSubmitting(false);
     }
   };
-
   return { submitRequest, isSubmitting, error, profileReady: !!profile };
 }
