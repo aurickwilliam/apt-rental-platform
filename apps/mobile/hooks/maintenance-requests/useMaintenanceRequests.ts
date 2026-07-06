@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 
-export type MaintenanceRequestStatus = 'Pending' | 'In Progress' | 'Resolved';
+export type MaintenanceRequestStatus = 'Pending' | 'In Progress' | 'Resolved' | 'Cancelled';
 export type MaintenanceRequestUrgency = 'low' | 'medium' | 'high';
 
 export type MaintenanceRequest = {
@@ -18,18 +18,21 @@ export type MaintenanceRequest = {
   tenant_id: string;
   apartment_id: string;
   landlord_id: string | null;
+  cancelled_at: string | null;
 };
 
 const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
   pending: 'Pending',
   in_progress: 'In Progress',
   resolved: 'Resolved',
+  cancelled: 'Cancelled',
 };
 
 const DISPLAY_TO_DB_STATUS: Record<MaintenanceRequestStatus, string> = {
   Pending: 'pending',
   'In Progress': 'in_progress',
   Resolved: 'resolved',
+  Cancelled: 'cancelled',
 };
 
 const getNextStatus = (status: MaintenanceRequestStatus): MaintenanceRequestStatus => {
@@ -82,7 +85,7 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       .from('maintenance_request')
       .select('*')
       .eq('apartment_id', apartmentId)
-      .neq('status', 'resolved')
+      .not('status', 'in', '(resolved,cancelled)')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -125,5 +128,37 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
     }
   };
 
-  return { activeRequest, loading, error, advanceStatus, refetch: fetchRequest };
+  const canCancel = (status: MaintenanceRequestStatus) =>
+    status === 'Pending' || status === 'In Progress';
+
+  const cancelRequest = async () => {
+    if (!activeRequest || !canCancel(activeRequest.status)) return;
+    const previous = activeRequest;
+    setActiveRequest({ ...activeRequest, status: 'Cancelled' });
+
+    const { error: updateError } = await supabase
+      .from('maintenance_request')
+      .update({
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+      })
+      .eq('id', activeRequest.id);
+
+    if (updateError) {
+      setActiveRequest(previous);
+      setError(updateError.message);
+    } else {
+      setActiveRequest(null);
+    }
+  };
+
+  return {
+    activeRequest,
+    loading,
+    error,
+    advanceStatus,
+    cancelRequest,
+    canCancel,
+    refetch: fetchRequest
+  };
 }

@@ -240,6 +240,7 @@ export default function Rentals() {
                   router.push({
                     pathname: "/tenant/maintenance-details",
                     params: {
+                      apartmentId: apartment.id,
                       request: JSON.stringify(activeRequest),
                     },
                   });
