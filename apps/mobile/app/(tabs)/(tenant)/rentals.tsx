@@ -7,6 +7,7 @@ import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
+import ApplicationsList from '../components/rentals/ApplicationList';
 
 import {
   Link,
@@ -15,9 +16,7 @@ import {
   Hammer,
   MapPin,
   Bell,
-  MessageCircleMore,
   ReceiptText,
-  Banknote,
   Settings,
   CircleQuestionMark,
   LucideIcon,
@@ -28,8 +27,8 @@ import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 
 import { Button, Separator } from 'heroui-native';
+
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
-import ApplicationsList from '../components/rentals/ApplicationList';
 
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
@@ -45,46 +44,24 @@ type actionsTypes = {
 const actions: actionsTypes[] = [
   {
     id: 1,
-    label: "Chat Landlord",
-    icon: MessageCircleMore,
-  },
-  {
-    id: 2,
-    label: "View Lease",
-    icon: FileText,
-  },
-  {
-    id: 3,
     label: "View Receipts",
     icon: ReceiptText,
     onPress: () => router.push("/tenant/payment/history"),
   },
   {
-    id: 4,
-    label: "Pay Rent",
-    icon: Banknote,
-    onPress: () => router.push("/tenant/payment"),
-  },
-  {
-    id: 5,
-    label: "Request Maintenance",
-    icon: Hammer,
-    onPress: () => router.push("/tenant/maintenance-issue"),
-  },
-  {
-    id: 6,
+    id: 2,
     label: "View Applications",
     icon: ClipboardPen,
     onPress: () => router.push("/tenant/applications"),
   },
   {
-    id: 7,
+    id: 3,
     label: "Settings",
     icon: Settings,
     onPress: () => router.push("/settings"),
   },
   {
-    id: 8,
+    id: 4,
     label: "FAQ",
     icon: CircleQuestionMark,
     onPress: () => router.push("/settings/faq"),
@@ -99,7 +76,26 @@ export default function Rentals() {
 
   const loading = tenancyLoading;
 
-  const handleRequestMaintenance = () => router.push('/tenant/maintenance-issue');
+  const handleRequestMaintenance = () => {
+    router.push({
+      pathname: '/tenant/maintenance-issue',
+      params: {
+        apartmentId: tenancy?.apartment.id,
+        apartmentName: tenancy?.apartment.name,
+        apartmentAddress: formatAddress({
+          street_address: tenancy?.apartment.street_address ?? '',
+          province: tenancy?.apartment.province ?? '',
+          barangay: tenancy?.apartment.barangay ?? '',
+          city: tenancy?.apartment.city ?? '',
+          zip_code: tenancy?.apartment.zip_code ?? '',
+        }),
+        landlordName: formatFullName({
+          first_name: tenancy?.landlord?.first_name ?? '',
+          last_name: tenancy?.landlord?.last_name ?? '',
+        }),
+      },
+    });
+  };
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
@@ -117,7 +113,7 @@ export default function Rentals() {
 
   // Active tenancy
   if (tenancy) {
-    const { apartment, landlord, currentPayment } = tenancy;
+     const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
     const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();

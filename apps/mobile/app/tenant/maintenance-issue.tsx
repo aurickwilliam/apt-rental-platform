@@ -1,13 +1,16 @@
-import { View, Text } from 'react-native'
+import { View, Text, Alert } from 'react-native'
 
 import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import DropdownField from '@/components/inputs/DropdownField'
 import DetailField from '@/components/display/DetailField'
 import UploadImageField from '@/components/inputs/UploadImageField'
+import SuccessDialog from '@/components/display/SuccessDialog'
+import ErrorDialog from '@/components/display/ErrorDialog'
 
 import {
   Separator,
@@ -25,6 +28,10 @@ import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from '@repo/constants';
 import { Building2, Check } from 'lucide-react-native'
 
 import { useColors } from '@/hooks/useTheme'
+import {
+  useSubmitMaintenanceRequest,
+  MaintenanceCategorySlug
+} from '@/hooks/maintenance-requests'
 
 type MaintenanceDetails = {
   category: string;
@@ -43,8 +50,19 @@ const URGENCY_COLORS: Record<typeof MAINTENANCE_URGENCY[number]['value'], 'dange
 
 export default function MaintenanceIssue() {
   const { colors } = useColors();
-  // TODO: Get the apartment details and maintenance issue details from
-  // TODO: the backend using the issue ID passed in the route params
+  const router = useRouter();
+  const {
+    apartmentId,
+    apartmentName,
+    apartmentAddress,
+    landlordName
+  } = useLocalSearchParams<{
+    apartmentId: string,
+    apartmentName?: string,
+    apartmentAddress?: string,
+    landlordName?: string
+  }>();
+  const { submitRequest, isSubmitting, error } = useSubmitMaintenanceRequest();
 
   const [maintenanceDetails, setMaintenanceDetails] = useState<MaintenanceDetails>({
     category: '',
@@ -54,9 +72,13 @@ export default function MaintenanceIssue() {
   });
 
   const [errors, setErrors] = useState<MaintenanceErrors>({});
-
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [imageError, setImageError] = useState<string | undefined>(undefined);
+
+  // For Dialogs
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAddImages = (
     added: ImagePicker.ImagePickerAsset | ImagePicker.ImagePickerAsset[]
@@ -64,7 +86,6 @@ export default function MaintenanceIssue() {
     setImageError(undefined);
     setImages((prev) => {
       const incoming = Array.isArray(added) ? added : [added];
-      // de-dupe by uri in case the picker returns an already-selected asset
       const existingUris = new Set(prev.map((img) => img.uri));
       const merged = [...prev, ...incoming.filter((img) => !existingUris.has(img.uri))];
       return merged;
@@ -103,17 +124,34 @@ export default function MaintenanceIssue() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    // TODO: submit maintenanceDetails + images to backend
-  };
+    if (!apartmentId) return;
 
-  // Dummy data for now
-  const apartmentDetails = {
-    name: "Charles Apartments",
-    address: "123 Main St, Apt 4B",
-    landlord: "John Doe",
-  }
+    const categoryEntry = MAINTENANCE_CATEGORIES.find(
+      (c) => c.label === maintenanceDetails.category
+    );
+    if (!categoryEntry) {
+      setErrors((prev) => ({ ...prev, category: 'Invalid category selected' }));
+      return;
+    }
+
+    try {
+      await submitRequest({
+        apartmentId,
+        title: maintenanceDetails.title.trim(),
+        category: categoryEntry.value as MaintenanceCategorySlug,
+        urgency: maintenanceDetails.urgency as 'low' | 'medium' | 'high',
+        message: maintenanceDetails.message.trim(),
+        imageUris: images.map((img) => img.uri),
+      });
+
+      setSuccessOpen(true);
+    } catch {
+      setErrorMessage(error ?? 'Something went wrong. Please try again.');
+      setErrorOpen(true);
+    }
+  };
 
   return (
     <ScreenWrapper
@@ -131,12 +169,12 @@ export default function MaintenanceIssue() {
             className='text-accent text-xl font-interSemiBold'
             numberOfLines={1}
           >
-            {apartmentDetails.name}
+            {apartmentName}
           </Text>
         </View>
 
         <Text className='text-foreground font-interMedium'>
-          {apartmentDetails.address}
+          {apartmentAddress}
         </Text>
       </View>
 
@@ -144,7 +182,7 @@ export default function MaintenanceIssue() {
       <View className='mt-3'>
         <DetailField
           label='Landlord'
-          value={apartmentDetails.landlord}
+          value={landlordName}
         />
       </View>
 
@@ -152,7 +190,6 @@ export default function MaintenanceIssue() {
 
       {/* Maintenance Issue Form */}
       <View className='flex gap-3'>
-        {/* Title */}
         <Text className='text-foreground text-lg font-interMedium'>
           Maintenance Details
         </Text>
@@ -241,11 +278,26 @@ export default function MaintenanceIssue() {
         </View>
       </View>
 
-      <Button className='mt-10' onPress={handleSubmit}>
+      <Button className='mt-10' onPress={handleSubmit} isDisabled={isSubmitting}>
         <Button.Label>
-          Submit Request
+          {isSubmitting ? 'Submitting...' : 'Submit Request'}
         </Button.Label>
       </Button>
+
+      <SuccessDialog
+        isOpen={successOpen}
+        onClose={() => {
+          setSuccessOpen(false);
+          router.back();
+        }}
+        message="Your maintenance request has been sent to your landlord."
+      />
+
+      <ErrorDialog
+        isOpen={errorOpen}
+        onClose={() => setErrorOpen(false)}
+        message={errorMessage}
+      />
     </ScreenWrapper>
   )
 }
