@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { Image } from 'expo-image';
+import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 
 import { Button, Card, Chip } from "heroui-native";
@@ -14,11 +14,100 @@ import DetailField from "@/components/display/DetailField";
 import { formatDate } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
-
 import {
-  STATUS_STYLES,
-  useMaintenanceRequestsStore,
-} from "@/stores/useMaintenanceRequestsStore";
+  useMaintenanceRequests,
+  useMaintenanceRequestStatusStyles,
+  type MaintenanceRequest,
+} from "@/hooks/maintenance-requests";
+
+// TODO: replace with a real fetch-by-id once backend is wired up
+const DUMMY_MAINTENANCE_REQUESTS: MaintenanceRequest[] = [
+  {
+    id: "mr-1",
+    issue_title: "Leaking kitchen sink",
+    apartment_name: "Parkview Suites 12B",
+    apartment_address: "Dela Rosa St, Makati City",
+    tenant_name: "Jenna Santos",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=24",
+    contact_number: "09123456789",
+    reported_at: "2026-05-24",
+    urgency: "High",
+    status: "Pending",
+    description:
+      "Water is dripping from the pipe under the sink and pooling on the floor. It started last night and has not stopped.",
+    photos: [
+      "https://picsum.photos/seed/maintenance-1/400/400",
+      "https://picsum.photos/seed/maintenance-2/400/400",
+      "https://picsum.photos/seed/maintenance-3/400/400",
+    ],
+  },
+  {
+    id: "mr-2",
+    issue_title: "Air conditioner not cooling",
+    apartment_name: "Sunset Heights 7A",
+    apartment_address: "Valenzuela St, Quezon City",
+    tenant_name: "Carlos Medina",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=12",
+    contact_number: "09987654321",
+    reported_at: "2026-05-22",
+    urgency: "Medium",
+    status: "In Progress",
+    description:
+      "The unit turns on but only blows warm air. We tried cleaning the filter and resetting the unit.",
+    photos: [
+      "https://picsum.photos/seed/maintenance-4/400/400",
+      "https://picsum.photos/seed/maintenance-5/400/400",
+    ],
+  },
+  {
+    id: "mr-3",
+    issue_title: "Broken bathroom light",
+    apartment_name: "Maple Residences 3C",
+    apartment_address: "Katipunan Ave, Quezon City",
+    tenant_name: "Alyssa Cruz",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=56",
+    contact_number: "09170011223",
+    reported_at: "2026-05-19",
+    urgency: "Low",
+    status: "Resolved",
+    description:
+      "The bathroom light flickered for a day and now will not turn on at all.",
+    photos: ["https://picsum.photos/seed/maintenance-6/400/400"],
+  },
+  {
+    id: "mr-4",
+    issue_title: "Ceiling leak after rain",
+    apartment_name: "Cedar Point 9F",
+    apartment_address: "Roxas Blvd, Pasay City",
+    tenant_name: "Noah Lim",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=68",
+    contact_number: "09181234567",
+    reported_at: "2026-05-25",
+    urgency: "High",
+    status: "Pending",
+    description:
+      "There is a steady drip from the bedroom ceiling during heavy rain. The paint has started to bubble.",
+    photos: [
+      "https://picsum.photos/seed/maintenance-7/400/400",
+      "https://picsum.photos/seed/maintenance-8/400/400",
+    ],
+  },
+  {
+    id: "mr-5",
+    issue_title: "Loose door handle",
+    apartment_name: "Riverstone Flats 5D",
+    apartment_address: "Ortigas Ave, Pasig City",
+    tenant_name: "Bianca Reyes",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=49",
+    contact_number: "09223334444",
+    reported_at: "2026-05-21",
+    urgency: "Low",
+    status: "Pending",
+    description:
+      "The main door handle is loose and wobbles when turning. It still locks but feels unstable.",
+    photos: ["https://picsum.photos/seed/maintenance-9/400/400"],
+  },
+];
 
 function RequestNotFound() {
   const { colors } = useColors();
@@ -42,10 +131,11 @@ export default function MaintenanceRequestDetails() {
   const { requestId } = useLocalSearchParams<{
     requestId?: string | string[];
   }>();
-  const requests = useMaintenanceRequestsStore((state) => state.requests);
-  const advanceStatus = useMaintenanceRequestsStore(
-    (state) => state.advanceStatus
+
+  const { requests, advanceStatus } = useMaintenanceRequests(
+    DUMMY_MAINTENANCE_REQUESTS
   );
+  const statusStyles = useMaintenanceRequestStatusStyles();
 
   const { colors } = useColors();
 
@@ -71,7 +161,7 @@ export default function MaintenanceRequestDetails() {
     );
   }
 
-  const statusStyle = STATUS_STYLES[request.status];
+  const statusStyle = statusStyles[request.status];
   const reportedDate = formatDate(request.reported_at, "medium") || "-";
   const buttonLabel =
     request.status === "Pending"
