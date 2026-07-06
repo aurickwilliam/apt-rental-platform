@@ -10,7 +10,6 @@ import TextField from '@/components/inputs/TextField'
 
 import { MAINTENANCE_CATEGORIES } from '@repo/constants';
 import TextBox from '@/components/inputs/TextBox'
-import UploadImageField from '@/components/inputs/UploadImageField'
 import RadioButton from 'components/buttons/RadioButton'
 import PillButton from '@/components/buttons/PillButton'
 
@@ -22,7 +21,7 @@ type MaintenanceDetails = {
 }
 
 export default function MaintenanceIssue() {
-  // TODO: Get the apartment details and maintenance issue details from 
+  // TODO: Get the apartment details and maintenance issue details from
   // TODO: the backend using the issue ID passed in the route params
 
   const [maintenanceDetails, setMaintenanceDetails] = useState<MaintenanceDetails>({
@@ -84,34 +83,34 @@ export default function MaintenanceIssue() {
           Maintenance Details
         </Text>
 
-        <DropdownField 
-          label={'Issue Category:'} 
-          bottomSheetLabel={'Select Issue Category'} 
-          options={MAINTENANCE_CATEGORIES}
+        <DropdownField
+          label={'Issue Category:'}
+          bottomSheetLabel={'Select Issue Category'}
+          options={MAINTENANCE_CATEGORIES.map((category) => [category.label])}
           value={maintenanceDetails.category}
-          onSelect={(value) => setMaintenanceDetails({...maintenanceDetails, category: value ? value : ''})}          
+          onSelect={(value) => setMaintenanceDetails({...maintenanceDetails, category: value ? value : ''})}
           placeholder='Select a Category'
           required
         />
 
-        <TextField 
+        <TextField
           label={'Issue Title:'}
           placeholder='Enter a short title for the issue...'
-          required        
+          required
           value={maintenanceDetails.title}
           onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, title: value})}
         />
 
-        <TextBox 
+        <TextBox
           label={'Issue Description:'}
           placeholder='Describe the issue in detail...'
-          required        
+          required
           value={maintenanceDetails.message}
-          onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, message: value})}        
+          onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, message: value})}
         />
 
-        {/* <UploadImageField 
-          label={'Add Photos or Videos:'}          
+        {/* <UploadImageField
+          label={'Add Photos or Videos:'}
         /> */}
 
         <View className='mt-5 flex gap-3'>
@@ -119,27 +118,27 @@ export default function MaintenanceIssue() {
             How urgent is this issue? <Text className='text-redHead-200'>*</Text>
           </Text>
 
-          <RadioButton 
-            label={'Urgent'} 
-            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Urgent'})} 
-            selected={maintenanceDetails.urgency === 'Urgent'}        
+          <RadioButton
+            label={'Urgent'}
+            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Urgent'})}
+            selected={maintenanceDetails.urgency === 'Urgent'}
           />
-          <RadioButton 
-            label={'Moderate'} 
-            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Moderate'})} 
-            selected={maintenanceDetails.urgency === 'Moderate'}        
+          <RadioButton
+            label={'Moderate'}
+            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Moderate'})}
+            selected={maintenanceDetails.urgency === 'Moderate'}
           />
-          <RadioButton 
-            label={'Low'} 
-            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Low'})} 
-            selected={maintenanceDetails.urgency === 'Low'}        
+          <RadioButton
+            label={'Low'}
+            onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: 'Low'})}
+            selected={maintenanceDetails.urgency === 'Low'}
           />
         </View>
       </View>
 
       <View className='mt-20'>
-        <PillButton 
-          label={'Submit Maintenance Request'} 
+        <PillButton
+          label={'Submit Maintenance Request'}
         />
       </View>
     </ScreenWrapper>
