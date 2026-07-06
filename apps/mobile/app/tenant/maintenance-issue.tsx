@@ -33,6 +33,8 @@ type MaintenanceDetails = {
   urgency: typeof MAINTENANCE_URGENCY[number]['value'] | '';
 }
 
+type MaintenanceErrors = Partial<Record<keyof MaintenanceDetails, string>>;
+
 const URGENCY_COLORS: Record<typeof MAINTENANCE_URGENCY[number]['value'], 'danger' | 'warning' | 'default'> = {
   high: 'danger',
   medium: 'warning',
@@ -50,6 +52,8 @@ export default function MaintenanceIssue() {
     message: '',
     urgency: '',
   });
+
+  const [errors, setErrors] = useState<MaintenanceErrors>({});
 
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [imageError, setImageError] = useState<string | undefined>(undefined);
@@ -69,6 +73,39 @@ export default function MaintenanceIssue() {
 
   const handleRemoveImage = (uri: string) => {
     setImages((prev) => prev.filter((img) => img.uri !== uri));
+  };
+
+  const updateField = <K extends keyof MaintenanceDetails>(field: K, value: MaintenanceDetails[K]) => {
+    setMaintenanceDetails((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const validate = (): boolean => {
+    const nextErrors: MaintenanceErrors = {};
+
+    if (!maintenanceDetails.title.trim()) {
+      nextErrors.title = 'Title is required';
+    }
+    if (!maintenanceDetails.category) {
+      nextErrors.category = 'Category is required';
+    }
+    if (!maintenanceDetails.message.trim()) {
+      nextErrors.message = 'Description is required';
+    }
+    if (!maintenanceDetails.urgency) {
+      nextErrors.urgency = 'Please select an urgency level';
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    // TODO: submit maintenanceDetails + images to backend
   };
 
   // Dummy data for now
@@ -120,15 +157,15 @@ export default function MaintenanceIssue() {
           Maintenance Details
         </Text>
 
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors.title}>
           <Label>Issue Title:</Label>
           <Input
             placeholder='Enter a short title for the issue...'
             value={maintenanceDetails.title}
-            onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, title: value})}
+            onChangeText={(value) => updateField('title', value)}
           />
-          {maintenanceDetails.title === '' && (
-            <FieldError>Title is required</FieldError>
+          {errors.title && (
+            <FieldError>{errors.title}</FieldError>
           )}
         </TextField>
 
@@ -137,21 +174,22 @@ export default function MaintenanceIssue() {
           bottomSheetLabel={'Select Issue Category'}
           options={MAINTENANCE_CATEGORIES.map(category => category.label)}
           value={maintenanceDetails.category}
-          onSelect={(value) => setMaintenanceDetails({...maintenanceDetails, category: value ? value : ''})}
+          onSelect={(value) => updateField('category', value ? value : '')}
           placeholder='Select a Category'
+          error={errors.category}
           required
         />
 
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors.message}>
           <Label>Issue Description:</Label>
           <TextArea
-          className='p-3'
+            className='p-3'
             placeholder='Describe the issue in detail...'
             value={maintenanceDetails.message}
-            onChangeText={(value) => setMaintenanceDetails({...maintenanceDetails, message: value})}
+            onChangeText={(value) => updateField('message', value)}
           />
-          {maintenanceDetails.message === '' && (
-            <FieldError>Description is required</FieldError>
+          {errors.message && (
+            <FieldError>{errors.message}</FieldError>
           )}
         </TextField>
 
@@ -168,7 +206,7 @@ export default function MaintenanceIssue() {
                   key={option.value}
                   variant={selected ? 'primary' : 'soft'}
                   color={URGENCY_COLORS[option.value]}
-                  onPress={() => setMaintenanceDetails({...maintenanceDetails, urgency: option.value})}
+                  onPress={() => updateField('urgency', option.value)}
                 >
                   {selected && (
                     <Check
@@ -185,8 +223,10 @@ export default function MaintenanceIssue() {
             })}
           </View>
 
-          {maintenanceDetails.urgency === '' && (
-            <FieldError>Please select an urgency level</FieldError>
+          {errors.urgency && (
+            <Text className='text-danger font-inter'>
+              {errors.urgency}
+            </Text>
           )}
         </View>
 
@@ -201,7 +241,7 @@ export default function MaintenanceIssue() {
         </View>
       </View>
 
-      <Button className='mt-10'>
+      <Button className='mt-10' onPress={handleSubmit}>
         <Button.Label>
           Submit Request
         </Button.Label>
