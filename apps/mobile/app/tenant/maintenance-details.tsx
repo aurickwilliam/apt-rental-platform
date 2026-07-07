@@ -7,6 +7,7 @@ import ImageViewing from "react-native-image-viewing";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
+import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { Hammer, Trash2 } from "lucide-react-native";
 
@@ -23,10 +24,11 @@ import {
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from "@repo/constants";
 
 import { formatDate } from "@repo/utils";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 export default function MaintenanceDetails() {
   // Get the maintenance request details from the query parameters
-  const { request, apartmentId } = useLocalSearchParams<{
+  const { request } = useLocalSearchParams<{
     request: string;
     apartmentId: string
   }>();
@@ -36,9 +38,11 @@ export default function MaintenanceDetails() {
   const { colors } = useColors();
   const statusStyles = useMaintenanceRequestStatusStyles();
   const urgencyStyles = useMaintenanceRequestUrgencyStyles();
-  const { cancelRequest, canCancel } = useMaintenanceRequests({ apartmentId });
+  const { cancelRequest, canCancel } = useMaintenanceRequests({});
 
   const [isCancelling, setIsCancelling] = useState(false);
+  const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   // Image lightbox state
   const [imageIndex, setImageIndex] = useState(0);
@@ -64,9 +68,18 @@ export default function MaintenanceDetails() {
   const handleCancel = async () => {
     if (isCancelling) return;
     setIsCancelling(true);
-    await cancelRequest();
+    setCancelError(null);
+
+    const result = await cancelRequest(maintenanceRequest);
+
     setIsCancelling(false);
-    router.back();
+    setConfirmCancelDialogOpen(false);
+
+    if (result.success) {
+      router.back();
+    } else {
+      setCancelError(result.error);
+    }
   };
 
   const status = statusStyles[maintenanceRequest.status];
@@ -228,13 +241,34 @@ export default function MaintenanceDetails() {
         variant="danger-soft"
         className="mt-10"
         isDisabled={!canCancel(maintenanceRequest.status) || isCancelling}
-        onPress={handleCancel}
+        onPress={() => {
+          setCancelError(null);
+          setConfirmCancelDialogOpen(true);
+        }}
       >
         <Trash2 size={20} color={colors.danger} />
         <Button.Label>
           {isCancelling ? "Cancelling..." : "Cancel Maintenance Request"}
         </Button.Label>
       </Button>
+
+      <ErrorDialog
+        isOpen={!!cancelError}
+        onClose={() => setCancelError(null)}
+        message={cancelError}
+        title="Couldn't Cancel Request"
+      />
+
+      <ConfirmDialog
+        isOpen={confirmCancelDialogOpen}
+        onOpenChange={setConfirmCancelDialogOpen}
+        title="Cancel Maintenance Request"
+        description="Are you sure you want to cancel this maintenance request? This action cannot be undone."
+        confirmLabel="Yes, Cancel Request"
+        confirmVariant="danger"
+        onConfirm={handleCancel}
+        isConfirmDisabled={isCancelling}
+      />
     </ScreenWrapper>
   );
 }

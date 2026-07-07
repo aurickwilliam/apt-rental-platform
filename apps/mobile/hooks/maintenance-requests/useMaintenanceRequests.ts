@@ -131,10 +131,23 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
   const canCancel = (status: MaintenanceRequestStatus) =>
     status === 'Pending' || status === 'In Progress';
 
-  const cancelRequest = async () => {
-    if (!activeRequest || !canCancel(activeRequest.status)) return;
+  const cancelRequest = async (target?: MaintenanceRequest) => {
+    const requestToCancel = target ?? activeRequest;
+
+    if (!requestToCancel) {
+      return { success: false as const, error: 'No maintenance request to cancel.' };
+    }
+    if (!canCancel(requestToCancel.status)) {
+      return { success: false as const, error: 'This request can no longer be cancelled.' };
+    }
+
+    // Only touch local state if this hook instance is actually the one tracking this request
+    const isLocal = activeRequest?.id === requestToCancel.id;
     const previous = activeRequest;
-    setActiveRequest({ ...activeRequest, status: 'Cancelled' });
+
+    if (isLocal) {
+      setActiveRequest({ ...requestToCancel, status: 'Cancelled' });
+    }
 
     const { error: updateError } = await supabase
       .from('maintenance_request')
@@ -142,14 +155,16 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
         status: 'cancelled',
         cancelled_at: new Date().toISOString(),
       })
-      .eq('id', activeRequest.id);
+      .eq('id', requestToCancel.id);
 
     if (updateError) {
-      setActiveRequest(previous);
+      if (isLocal) setActiveRequest(previous);
       setError(updateError.message);
-    } else {
-      setActiveRequest(null);
+      return { success: false as const, error: updateError.message };
     }
+
+    if (isLocal) setActiveRequest(null);
+    return { success: true as const };
   };
 
   return {
