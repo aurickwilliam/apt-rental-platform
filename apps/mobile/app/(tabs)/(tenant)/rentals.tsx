@@ -1,5 +1,6 @@
 import { View, Text, ActivityIndicator } from 'react-native'
-import { router, useRouter } from 'expo-router'
+import { useCallback } from 'react'
+import { router, useRouter, useFocusEffect } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
@@ -75,7 +76,9 @@ export default function Rentals() {
   const { colors } = useColors();
 
   const { tenancy, loading: tenancyLoading } = useTenancy();
-  const { activeRequest } = useMaintenanceRequests({ apartmentId: tenancy?.apartment.id })
+  const { activeRequest, refetch: refetchMaintenanceRequest } = useMaintenanceRequests({
+    apartmentId: tenancy?.apartment.id,
+  })
 
   const loading = tenancyLoading;
 
@@ -102,6 +105,12 @@ export default function Rentals() {
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchMaintenanceRequest();
+    }, [refetchMaintenanceRequest])
+  );
 
   // Loading
   if (loading) {
@@ -240,7 +249,6 @@ export default function Rentals() {
                   router.push({
                     pathname: "/tenant/maintenance-details",
                     params: {
-                      apartmentId: apartment.id,
                       request: JSON.stringify(activeRequest),
                     },
                   });
