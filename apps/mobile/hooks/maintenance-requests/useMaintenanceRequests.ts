@@ -28,19 +28,6 @@ const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
   cancelled: 'Cancelled',
 };
 
-const DISPLAY_TO_DB_STATUS: Record<MaintenanceRequestStatus, string> = {
-  Pending: 'pending',
-  'In Progress': 'in_progress',
-  Resolved: 'resolved',
-  Cancelled: 'cancelled',
-};
-
-const getNextStatus = (status: MaintenanceRequestStatus): MaintenanceRequestStatus => {
-  if (status === 'Pending') return 'In Progress';
-  if (status === 'In Progress') return 'Resolved';
-  return 'Resolved';
-};
-
 async function mapRow(row: any): Promise<MaintenanceRequest> {
   const paths: string[] = row.image_urls ?? [];
   let resolvedUrls: string[] = [];
@@ -103,30 +90,6 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
   useEffect(() => {
     fetchRequest();
   }, [fetchRequest]);
-
-  const advanceStatus = async () => {
-    if (!activeRequest) return;
-
-    const nextStatus = getNextStatus(activeRequest.status);
-    const previous = activeRequest;
-
-    setActiveRequest({ ...activeRequest, status: nextStatus });
-
-    const { error: updateError } = await supabase
-      .from('maintenance_request')
-      .update({
-        status: DISPLAY_TO_DB_STATUS[nextStatus],
-        resolved_at: nextStatus === 'Resolved' ? new Date().toISOString() : null,
-      })
-      .eq('id', activeRequest.id);
-
-    if (updateError) {
-      setActiveRequest(previous);
-      setError(updateError.message);
-    } else if (nextStatus === 'Resolved') {
-      setActiveRequest(null);
-    }
-  };
 
   const canCancel = (status: MaintenanceRequestStatus) =>
     status === 'Pending' || status === 'In Progress';
