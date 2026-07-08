@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { SearchField, Spinner, Button } from "heroui-native";
+import { SearchField, Button } from "heroui-native";
 import { ListFilter } from "lucide-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import MaintenanceRequestCard from "./components/MaintenanceRequestCard";
+import MaintenanceRequestCardSkeleton from "./components/MaintenanceRequestCardSkeleton";
 import EmptyMaintenanceRequestsList from "./components/EmptyMaintenanceRequestsList";
 import MaintenanceRequestFilterSheet, {
   type MaintenanceRequestFilters,
@@ -75,20 +76,8 @@ export default function MaintenanceRequests() {
     router.push(`/landlord/maintenance-requests/${requestId}`);
   };
 
-  // Loading state for the initial fetch of maintenance requests
+  // Only true on the very first fetch, before we have any cached requests
   const isInitialLoad = loading && requests.length === 0;
-  if (isInitialLoad) {
-    return (
-      <ScreenWrapper
-        header={<StandardHeader title="Maintenance Requests" />}
-        scrollable={false}
-      >
-        <View className="flex-1 items-center justify-center">
-          <Spinner size="lg" color={colors.primary} />
-        </View>
-      </ScreenWrapper>
-    );
-  }
 
   return (
     <ScreenWrapper
@@ -149,13 +138,24 @@ export default function MaintenanceRequests() {
               </View>
             </View>
 
-            <Text className="text-gray-500 text-sm font-inter mb-3">
-              Total: {filteredRequests.length}
-            </Text>
+            {!isInitialLoad && (
+              <Text className="text-gray-500 text-sm font-inter mb-3">
+                Total: {filteredRequests.length}
+              </Text>
+            )}
+
+            {/* Skeletons shown inline while loading */}
+            {isInitialLoad && (
+              <View className="gap-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <MaintenanceRequestCardSkeleton key={i} />
+                ))}
+              </View>
+            )}
           </View>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={<EmptyMaintenanceRequestsList />}
+        ListEmptyComponent={isInitialLoad ? null : <EmptyMaintenanceRequestsList />}
         renderItem={({ item }) => (
           <MaintenanceRequestCard
             issueTitle={item.issue_title}

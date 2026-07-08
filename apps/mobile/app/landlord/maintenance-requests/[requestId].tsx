@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import ImageView from "react-native-image-viewing";
@@ -122,144 +122,146 @@ export default function MaintenanceRequestDetails() {
     <ScreenWrapper
       header={<StandardHeader title="Maintenance Request" />}
       className="p-5"
+      scrollable
     >
-      <View className="flex-1 gap-3">
-        <View className="flex-1 gap-3">
-          <View className="flex-row items-center gap-3">
-            <Hammer size={20} color={colors.primary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
-              Maintenance Information
+      <View className="flex-row items-center gap-3">
+        <Hammer size={20} color={colors.primary} />
+        <Text className="text-foreground text-lg font-interSemiBold">
+          Maintenance Information
+        </Text>
+      </View>
+
+      <View className="gap-3 mt-3">
+        <DetailField label="Issue Title" value={request.issue_title} />
+
+        <View className="flex-row items-start gap-4">
+          <View className="gap-1 flex-1">
+            <Text className="text-muted text-sm font-inter">
+              Urgency Level
+            </Text>
+
+            <Chip
+              size="md"
+              variant="soft"
+              style={{ backgroundColor: urgencyStyle.backgroundColor }}
+            >
+              <Chip.Label
+                className="font-interMedium"
+                style={{ color: urgencyStyle.textColor }}
+              >
+                {urgencyLabel}
+              </Chip.Label>
+            </Chip>
+          </View>
+
+          <View className="gap-1 flex-1">
+            <Text className="text-muted text-sm font-inter">Status</Text>
+
+            <Chip
+              size="md"
+              variant="soft"
+              style={{ backgroundColor: statusStyle.backgroundColor }}
+            >
+              <Chip.Label
+                className="font-interMedium"
+                style={{ color: statusStyle.textColor }}
+              >
+                {request.status}
+              </Chip.Label>
+            </Chip>
+          </View>
+        </View>
+      </View>
+
+      <Separator className="my-3"/>
+
+      <View className="gap-3">
+        <DetailField label="Apartment" value={request.apartment_name} />
+        <DetailField label="Address" value={request.apartment_address} />
+        <DetailField label="Current Tenant" value={request.tenant_name} />
+
+        <View className="flex-row items-start gap-4">
+          <DetailField
+            label="Contact Number"
+            value={request.contact_number}
+          />
+          <DetailField label="Date Reported" value={reportedDate} />
+        </View>
+      </View>
+
+      <Separator className="my-3" />
+
+      <View className="gap-1">
+        <Text className="text-foreground text-base font-interMedium">
+          Issue Description
+        </Text>
+        <View className="bg-surface rounded-3xl p-3 min-h-20">
+          <Text className="text-muted text-sm font-inter">
+            {request.description}
+          </Text>
+        </View>
+      </View>
+
+      {request.photos.length > 0 ? (
+        <View className="gap-3 mt-3">
+          <Text className="text-foreground text-base font-interMedium">
+            Issue Photos
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {request.photos.map((photo, index) => (
+              <Pressable
+                key={`${request.id}-photo-${index}`}
+                onPress={() => handleOpenPhoto(index)}
+                className="overflow-hidden size-24 rounded-3xl border border-border"
+              >
+                <Image
+                  source={{ uri: photo }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                  cachePolicy="disk"
+                />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : (
+        <View className="gap-1 mt-3">
+          <Text className="text-foreground text-base font-interMedium">
+            Issue Photos
+          </Text>
+          <View className="bg-surface rounded-3xl p-3">
+            <Text className="text-muted text-sm font-inter">
+              No photos provided.
             </Text>
           </View>
+        </View>
+      )}
 
-          <DetailField label="Issue Title" value={request.issue_title} />
-
-          <View className="flex-row items-start gap-4">
-            <View className="gap-1 flex-1">
-              <Text className="text-muted text-sm font-inter">
-                Urgency Level
-              </Text>
-
-              <Chip
-                size="md"
-                variant="soft"
-                style={{ backgroundColor: urgencyStyle.backgroundColor }}
-              >
-                <Chip.Label
-                  className="font-interMedium"
-                  style={{ color: urgencyStyle.textColor }}
-                >
-                  {urgencyLabel}
-                </Chip.Label>
-              </Chip>
-            </View>
-
-            <View className="gap-1 flex-1">
-              <Text className="text-muted text-sm font-inter">Status</Text>
-
-              <Chip
-                size="md"
-                variant="soft"
-                style={{ backgroundColor: statusStyle.backgroundColor }}
-              >
-                <Chip.Label
-                  className="font-interMedium"
-                  style={{ color: statusStyle.textColor }}
-                >
-                  {request.status}
-                </Chip.Label>
-              </Chip>
-            </View>
-          </View>
-
-          <Separator />
-
-          <DetailField label="Apartment" value={request.apartment_name} />
-          <DetailField label="Address" value={request.apartment_address} />
-          <DetailField label="Current Tenant" value={request.tenant_name} />
-          <View className="flex-row items-start gap-4">
-            <DetailField
-              label="Contact Number"
-              value={request.contact_number}
-            />
-            <DetailField label="Date Reported" value={reportedDate} />
-          </View>
-
-          <Separator />
+      {request.status === "Resolved" && request.resolution_notes ? (
+        <>
+          <Separator className="my-3" />
 
           <View className="gap-1">
             <Text className="text-foreground text-base font-interMedium">
-              Issue Description
+              Resolution Notes
             </Text>
-            <View className="bg-surface rounded-3xl p-3">
+            <View className="bg-surface rounded-3xl p-3 min-h-20">
               <Text className="text-muted text-sm font-inter">
-                {request.description}
+                {request.resolution_notes}
               </Text>
             </View>
           </View>
+        </>
+      ) : null}
 
-          {request.photos.length > 0 ? (
-            <View className="gap-3">
-              <Text className="text-foreground text-base font-interMedium">
-                Issue Photos
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, paddingRight: 8 }}
-              >
-                {request.photos.map((photo, index) => (
-                  <Pressable
-                    key={`${request.id}-photo-${index}`}
-                    onPress={() => handleOpenPhoto(index)}
-                    className="overflow-hidden size-24 rounded-3xl border border-border"
-                  >
-                    <Image
-                      source={{ uri: photo }}
-                      style={{ width: "100%", height: "100%" }}
-                      contentFit="cover"
-                      cachePolicy="disk"
-                    />
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          ) : (
-            <View className="gap-1">
-              <Text className="text-foreground text-base font-interMedium">
-                Issue Photos
-              </Text>
-              <View className="bg-surface rounded-3xl p-3">
-                <Text className="text-muted text-sm font-inter">
-                  No photos provided.
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {request.status === "Resolved" && request.resolution_notes ? (
-            <View className="gap-1">
-              <Text className="text-foreground text-base font-interMedium">
-                Resolution Notes
-              </Text>
-              <View className="bg-surface rounded-3xl p-3">
-                <Text className="text-muted text-sm font-inter">
-                  {request.resolution_notes}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-        </View>
-
-        <Button
-          size="md"
-          onPress={handleAdvanceStatus}
-          isDisabled={isTerminal}
-          className={request.status === "Resolved" ? "bg-success" : ""}
-        >
-          <Button.Label>{buttonLabel}</Button.Label>
-        </Button>
-      </View>
+      <Button
+        size="md"
+        onPress={handleAdvanceStatus}
+        isDisabled={isTerminal}
+        className={`${request.status === "Resolved" ? "bg-success" : ""} mt-10 `}
+      >
+        <Button.Label>{buttonLabel}</Button.Label>
+      </Button>
 
       <ImageView
         images={photoImages}
@@ -268,10 +270,10 @@ export default function MaintenanceRequestDetails() {
         onRequestClose={() => setIsViewerVisible(false)}
         presentationStyle="overFullScreen"
         backgroundColor="rgb(0, 0, 0, 0.8)"
-        FooterComponent={({ imageIndex: idx }) => (
+        FooterComponent={({ imageIndex: index }) => (
           <View className="p-10 items-center">
             <Text className="text-white font-interMedium">
-              {idx + 1} / {photoImages.length}
+              {index + 1} / {photoImages.length}
             </Text>
           </View>
         )}
