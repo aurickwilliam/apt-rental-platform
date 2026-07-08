@@ -106,20 +106,6 @@ export default function MaintenanceDetails() {
             Maintenance
           </Text>
         </View>
-
-        <Chip
-          variant="soft"
-          size="md"
-          animation="disable-all"
-          style={{ backgroundColor: status.backgroundColor }}
-        >
-          <Chip.Label
-            style={{ color: status.textColor }}
-            className="font-interMedium"
-          >
-            {maintenanceRequest.status}
-          </Chip.Label>
-        </Chip>
       </View>
 
       <View className="mt-3 gap-3">
@@ -128,23 +114,45 @@ export default function MaintenanceDetails() {
           value={maintenanceRequest.title}
         />
 
-        <View className="gap-1 flex">
-          <Text className="text-muted text-sm font-inter">
-            Urgency Level
-          </Text>
-          <Chip
-            variant="soft"
-            size="md"
-            animation="disable-all"
-            style={{ backgroundColor: urgency.backgroundColor }}
-          >
-            <Chip.Label
-              style={{ color: urgency.textColor }}
-              className="font-interMedium"
+        <View className="flex-row">
+          <View className="gap-1 flex-1">
+            <Text className="text-muted text-sm font-inter">
+              Urgency Level
+            </Text>
+            <Chip
+              variant="soft"
+              size="md"
+              animation="disable-all"
+              style={{ backgroundColor: urgency.backgroundColor }}
             >
-              {urgencyLabel}
-            </Chip.Label>
-          </Chip>
+              <Chip.Label
+                style={{ color: urgency.textColor }}
+                className="font-interMedium"
+              >
+                {urgencyLabel}
+              </Chip.Label>
+            </Chip>
+          </View>
+
+          <View className="gap-1 flex-1">
+            <Text className="text-muted text-sm font-inter">
+              Status
+            </Text>
+
+            <Chip
+              variant="soft"
+              size="md"
+              animation="disable-all"
+              style={{ backgroundColor: status.backgroundColor }}
+            >
+              <Chip.Label
+                style={{ color: status.textColor }}
+                className="font-interMedium"
+              >
+                {maintenanceRequest.status}
+              </Chip.Label>
+            </Chip>
+          </View>
         </View>
 
         <View className="flex-row">

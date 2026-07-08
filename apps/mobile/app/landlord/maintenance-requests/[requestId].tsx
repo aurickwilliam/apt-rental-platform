@@ -1,7 +1,8 @@
-import { useMemo } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
+import ImageView from "react-native-image-viewing";
 
 import { Button, Chip, Separator } from "heroui-native";
 
@@ -11,6 +12,7 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
 import EmptyMaintenanceRequestDetail from "./components/EmptyMaintenanceRequestDetail";
+import ResolveRequestDialog from "./components/ResolveRequestDialog";
 
 import { formatDate } from "@repo/utils";
 
@@ -32,10 +34,16 @@ export default function MaintenanceRequestDetails() {
     requests,
     loading,
     advanceStatus,
+    resolveRequest,
     getNextStatus
   } = useLandlordMaintenanceRequests();
   const statusStyles = useMaintenanceRequestStatusStyles();
   const urgencyStyles = useMaintenanceRequestUrgencyStyles();
+
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
 
   const resolvedId = useMemo(
     () => (Array.isArray(requestId) ? requestId[0] : requestId),
@@ -46,6 +54,16 @@ export default function MaintenanceRequestDetails() {
     if (!resolvedId) return undefined;
     return requests.find((entry) => entry.id === resolvedId);
   }, [requests, resolvedId]);
+
+  const photoImages = useMemo(
+    () => (request?.photos ?? []).map((uri) => ({ uri })),
+    [request?.photos]
+  );
+
+  const handleOpenPhoto = (index: number) => {
+    setSelectedImageIndex(index);
+    setIsViewerVisible(true);
+  };
 
   // Loading State: still fetching data
   if (loading) {
@@ -88,20 +106,25 @@ export default function MaintenanceRequestDetails() {
 
   const handleAdvanceStatus = () => {
     if (!resolvedId) return;
+    if (nextStatus === "Resolved") {
+      setIsResolveDialogOpen(true);
+      return;
+    }
     advanceStatus(resolvedId);
+  };
+
+  const handleResolveConfirm = async (notes: string) => {
+    if (!resolvedId) return false;
+    return resolveRequest(resolvedId, notes);
   };
 
   return (
     <ScreenWrapper
       header={<StandardHeader title="Maintenance Request" />}
       className="p-5"
-      noBottomPadding
     >
       <View className="flex-1 gap-3">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ gap: 12, paddingBottom: 16 }}
-        >
+        <View className="flex-1 gap-3">
           <View className="flex-row items-center gap-3">
             <Hammer size={20} color={colors.primary} />
             <Text className="text-foreground text-lg font-interSemiBold">
@@ -113,7 +136,9 @@ export default function MaintenanceRequestDetails() {
 
           <View className="flex-row items-start gap-4">
             <View className="gap-1 flex-1">
-              <Text className="text-muted text-sm font-inter">Urgency</Text>
+              <Text className="text-muted text-sm font-inter">
+                Urgency Level
+              </Text>
 
               <Chip
                 size="md"
@@ -184,8 +209,9 @@ export default function MaintenanceRequestDetails() {
                 contentContainerStyle={{ gap: 8, paddingRight: 8 }}
               >
                 {request.photos.map((photo, index) => (
-                  <View
+                  <Pressable
                     key={`${request.id}-photo-${index}`}
+                    onPress={() => handleOpenPhoto(index)}
                     className="overflow-hidden size-24 rounded-3xl border border-border"
                   >
                     <Image
@@ -194,7 +220,7 @@ export default function MaintenanceRequestDetails() {
                       contentFit="cover"
                       cachePolicy="disk"
                     />
-                  </View>
+                  </Pressable>
                 ))}
               </ScrollView>
             </View>
@@ -210,16 +236,52 @@ export default function MaintenanceRequestDetails() {
               </View>
             </View>
           )}
-        </ScrollView>
+
+          {request.status === "Resolved" && request.resolution_notes ? (
+            <View className="gap-1">
+              <Text className="text-foreground text-base font-interMedium">
+                Resolution Notes
+              </Text>
+              <View className="bg-surface rounded-3xl p-3">
+                <Text className="text-muted text-sm font-inter">
+                  {request.resolution_notes}
+                </Text>
+              </View>
+            </View>
+          ) : null}
+        </View>
 
         <Button
           size="md"
           onPress={handleAdvanceStatus}
           isDisabled={isTerminal}
+          className={request.status === "Resolved" ? "bg-success" : ""}
         >
           <Button.Label>{buttonLabel}</Button.Label>
         </Button>
       </View>
+
+      <ImageView
+        images={photoImages}
+        imageIndex={selectedImageIndex}
+        visible={isViewerVisible}
+        onRequestClose={() => setIsViewerVisible(false)}
+        presentationStyle="overFullScreen"
+        backgroundColor="rgb(0, 0, 0, 0.8)"
+        FooterComponent={({ imageIndex: idx }) => (
+          <View className="p-10 items-center">
+            <Text className="text-white font-interMedium">
+              {idx + 1} / {photoImages.length}
+            </Text>
+          </View>
+        )}
+      />
+
+      <ResolveRequestDialog
+        isOpen={isResolveDialogOpen}
+        onOpenChange={setIsResolveDialogOpen}
+        onConfirm={handleResolveConfirm}
+      />
     </ScreenWrapper>
   );
 }

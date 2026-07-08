@@ -156,6 +156,7 @@ export default function RequestMaintenance() {
       header={
         <StandardHeader title='Request Maintenance'/>
       }
+      noBottomPadding
     >
       {/* Apartment Details */}
       <View className="flex gap-1">
