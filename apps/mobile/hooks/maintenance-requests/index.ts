@@ -13,5 +13,5 @@ export {
   type MaintenanceCategorySlug,
   type MaintenanceUrgencySlug,
 } from "./useSubmitMaintenanceRequest";
-export { useLandlordMaintenanceRequests } from "./useLandlordMaintenanceRequests";
+export { useLandlordMaintenanceRequests, getNextStatus } from "./useLandlordMaintenanceRequests";
 export type { LandlordMaintenanceRequest } from "./useLandlordMaintenanceRequests";

@@ -25,10 +25,18 @@ const EMPTY_FILTERS: MaintenanceRequestFilters = {
 export default function MaintenanceRequests() {
   const router = useRouter();
   const { requests, loading, refetch } = useLandlordMaintenanceRequests();
+  const { colors } = useColors();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<MaintenanceRequestFilters>(EMPTY_FILTERS);
-  const { colors } = useColors();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   const activeCount =
     filters.statuses.length + filters.urgencies.length + filters.locations.length;
@@ -94,8 +102,8 @@ export default function MaintenanceRequests() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={refetch}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
           />
