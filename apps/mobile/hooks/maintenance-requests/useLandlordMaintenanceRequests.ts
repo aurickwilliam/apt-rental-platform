@@ -87,6 +87,7 @@ export type LandlordMaintenanceRequest = {
   status: MaintenanceRequestStatus;
   urgency: MaintenanceRequestUrgency;
   photos: string[];
+  resolution_notes?: string;
 };
 
 export function useLandlordMaintenanceRequests() {
@@ -117,6 +118,7 @@ export function useLandlordMaintenanceRequests() {
         created_at,
         urgency,
         image_urls,
+        resolution_notes,
         apartment:apartments!maintenance_request_apartment_id_fkey(name, street_address, barangay, city, province),
         tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name, mobile_number, avatar_url)
       `
@@ -158,6 +160,7 @@ export function useLandlordMaintenanceRequests() {
           status: DB_TO_DISPLAY_STATUS[row.status] ?? "Pending",
           urgency: row.urgency,
           photos,
+          resolution_notes: row.resolution_notes ?? null,
         };
       })
     );
@@ -177,13 +180,26 @@ export function useLandlordMaintenanceRequests() {
   );
 
   const updateStatus = useCallback(
-    async (id: string, nextStatus: MaintenanceRequestStatus) => {
+    async (
+      id: string,
+      nextStatus: MaintenanceRequestStatus,
+      resolutionNotes?: string
+    ) => {
       const previous = requests;
 
       // Optimistic update
       setRequests((current) =>
         current.map((request) =>
-          request.id === id ? { ...request, status: nextStatus } : request
+          request.id === id
+            ? {
+                ...request,
+                status: nextStatus,
+                resolution_notes:
+                  nextStatus === "Resolved"
+                    ? resolutionNotes ?? request.resolution_notes
+                    : request.resolution_notes,
+              }
+            : request
         )
       );
 
@@ -192,6 +208,7 @@ export function useLandlordMaintenanceRequests() {
       };
       if (nextStatus === "Resolved") {
         updatePayload.resolved_at = new Date().toISOString();
+        updatePayload.resolution_notes = resolutionNotes?.trim() || null;
       }
       if (nextStatus === "Cancelled") {
         updatePayload.cancelled_at = new Date().toISOString();
@@ -215,6 +232,13 @@ export function useLandlordMaintenanceRequests() {
     [requests]
   );
 
+  const resolveRequest = useCallback(
+    async (id: string, resolutionNotes: string) => {
+      return updateStatus(id, "Resolved", resolutionNotes);
+    },
+    [updateStatus]
+  );
+
   const advanceStatus = useCallback(
     async (id: string) => {
       const request = requests.find((entry) => entry.id === id);
@@ -222,6 +246,8 @@ export function useLandlordMaintenanceRequests() {
 
       const nextStatus = getNextStatus(request.status);
       if (nextStatus === request.status) return false;
+
+      if (nextStatus === "Resolved") return false;
 
       return updateStatus(id, nextStatus);
     },
@@ -234,6 +260,7 @@ export function useLandlordMaintenanceRequests() {
     error,
     refetch: fetchRequests,
     advanceStatus,
+    resolveRequest,
     updateStatus,
     getNextStatus,
   };
