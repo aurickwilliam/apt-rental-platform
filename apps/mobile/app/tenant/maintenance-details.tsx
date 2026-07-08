@@ -8,6 +8,7 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 import { Hammer, Trash2 } from "lucide-react-native";
 
@@ -24,7 +25,6 @@ import {
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from "@repo/constants";
 
 import { formatDate } from "@repo/utils";
-import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 export default function MaintenanceDetails() {
   // Get the maintenance request details from the query parameters
