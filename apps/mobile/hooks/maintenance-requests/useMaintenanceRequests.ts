@@ -134,7 +134,6 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
     activeRequest,
     loading,
     error,
-    advanceStatus,
     cancelRequest,
     canCancel,
     refetch: fetchRequest
