@@ -16,11 +16,12 @@ export type LandlordMaintenanceRequest = {
   id: string;
   issue_title: string;
   apartment_name: string;
+  apartment_city: string;
   tenant_name: string;
   reported_at: string;
   status: MaintenanceRequestStatus;
+  urgency: string;
 };
-
 export function useLandlordMaintenanceRequests() {
   const { profile, loading: profileLoading } = useProfile();
   const [requests, setRequests] = useState<LandlordMaintenanceRequest[]>([]);
@@ -48,7 +49,8 @@ export function useLandlordMaintenanceRequests() {
         title,
         status,
         created_at,
-        apartment:apartments!maintenance_request_apartment_id_fkey(name),
+        urgency,
+        apartment:apartments!maintenance_request_apartment_id_fkey(name, city),
         tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name)
       `
       )
@@ -63,11 +65,13 @@ export function useLandlordMaintenanceRequests() {
         id: row.id,
         issue_title: row.title,
         apartment_name: row.apartment?.name ?? "Unknown apartment",
+        apartment_city: row.apartment?.city ?? "",
         tenant_name:
           [row.tenant?.first_name, row.tenant?.last_name].filter(Boolean).join(" ") ||
           "Unknown tenant",
         reported_at: row.created_at,
         status: DB_TO_DISPLAY_STATUS[row.status] ?? "Pending",
+        urgency: row.urgency,
       }));
       setRequests(mapped);
     }
