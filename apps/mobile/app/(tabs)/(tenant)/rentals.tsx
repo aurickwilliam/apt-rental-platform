@@ -76,9 +76,13 @@ export default function Rentals() {
   const { colors } = useColors();
 
   const { tenancy, loading: tenancyLoading } = useTenancy();
-  const { activeRequest, refetch: refetchMaintenanceRequest } = useMaintenanceRequests({
+  const {
+    latestRequest,
+    isFinal,
+    refetch: refetchMaintenanceRequest
+  } = useMaintenanceRequests({
     apartmentId: tenancy?.apartment.id,
-  })
+  });
 
   const loading = tenancyLoading;
 
@@ -102,6 +106,11 @@ export default function Rentals() {
       },
     });
   };
+  const handleViewHistory = () =>
+    router.push({
+      pathname: '/tenant/maintenance-history',
+      params: { apartmentId: tenancy?.apartment.id },
+    });
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
@@ -233,27 +242,50 @@ export default function Rentals() {
           />
         </View>
 
-        {activeRequest ? (
+        {latestRequest ? (
           <>
             <Separator className="my-4" />
             <View className="flex gap-3">
               <View className="flex-row items-center justify-start gap-2">
                 <Hammer size={24} color={colors.textPrimary} />
                 <Text className="text-foreground text-lg font-interSemiBold">
-                  Active Maintenance Request
+                  {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
                 </Text>
               </View>
+
               <MaintenanceRequestCard
-                request={activeRequest}
+                request={latestRequest}
                 onPress={() => {
                   router.push({
                     pathname: "/tenant/maintenance-details",
                     params: {
-                      request: JSON.stringify(activeRequest),
+                      request: JSON.stringify(latestRequest),
                     },
                   });
                 }}
               />
+
+              <View className="flex-row gap-3 mt-1">
+                <Button
+                  className="flex-1"
+                  variant="secondary"
+                  onPress={handleViewHistory}
+                  size='sm'
+                >
+                  <Button.Label>View History</Button.Label>
+                </Button>
+
+                {isFinal && (
+                  <Button
+                    className="flex-1"
+                    onPress={handleRequestMaintenance}
+                    size='sm'
+                  >
+                    <Hammer size={18} color={colors.secondaryForeground} />
+                    <Button.Label>Request Again</Button.Label>
+                  </Button>
+                )}
+              </View>
             </View>
           </>
         ) : (

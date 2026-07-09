@@ -28,20 +28,20 @@ const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
   cancelled: 'Cancelled',
 };
 
-async function mapRow(row: any): Promise<MaintenanceRequest> {
+const isFinalStatus = (status: MaintenanceRequestStatus) =>
+  status === 'Resolved' || status === 'Cancelled';
+
+export async function mapRow(row: any): Promise<MaintenanceRequest> {
   const paths: string[] = row.image_urls ?? [];
   let resolvedUrls: string[] = [];
-
   if (paths.length > 0) {
     const { data, error } = await supabase.storage
       .from('maintenance-images')
       .createSignedUrls(paths, 60 * 55); // 55 min, matches your existing TTL pattern
-
     if (!error && data) {
       resolvedUrls = data.map((d) => d.signedUrl);
     }
   }
-
   return {
     ...row,
     status: DB_TO_DISPLAY_STATUS[row.status] ?? 'Pending',
@@ -54,17 +54,16 @@ type UseMaintenanceRequestsParams = {
 };
 
 export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsParams) {
-  const [activeRequest, setActiveRequest] = useState<MaintenanceRequest | null>(null);
+  const [latestRequest, setLatestRequest] = useState<MaintenanceRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRequest = useCallback(async () => {
     if (!apartmentId) {
-      setActiveRequest(null);
+      setLatestRequest(null);
       setLoading(false);
       return;
     }
-
     setLoading(true);
     setError(null);
 
@@ -72,18 +71,16 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       .from('maintenance_request')
       .select('*')
       .eq('apartment_id', apartmentId)
-      .not('status', 'in', '(resolved,cancelled)')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (fetchError) {
       setError(fetchError.message);
-      setActiveRequest(null);
+      setLatestRequest(null);
     } else {
-      setActiveRequest(data ? await mapRow(data) : null);
+      setLatestRequest(data ? await mapRow(data) : null);
     }
-
     setLoading(false);
   }, [apartmentId]);
 
@@ -94,9 +91,14 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
   const canCancel = (status: MaintenanceRequestStatus) =>
     status === 'Pending' || status === 'In Progress';
 
+  // Derived for backward compatibility with any code that expects "an active,
+  const activeRequest =
+    latestRequest && canCancel(latestRequest.status) ? latestRequest : null;
+
+  const isFinal = latestRequest ? isFinalStatus(latestRequest.status) : false;
+
   const cancelRequest = async (target?: MaintenanceRequest) => {
     const requestToCancel = target ?? activeRequest;
-
     if (!requestToCancel) {
       return { success: false as const, error: 'No maintenance request to cancel.' };
     }
@@ -104,12 +106,10 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       return { success: false as const, error: 'This request can no longer be cancelled.' };
     }
 
-    // Only touch local state if this hook instance is actually the one tracking this request
-    const isLocal = activeRequest?.id === requestToCancel.id;
-    const previous = activeRequest;
-
+    const isLocal = latestRequest?.id === requestToCancel.id;
+    const previous = latestRequest;
     if (isLocal) {
-      setActiveRequest({ ...requestToCancel, status: 'Cancelled' });
+      setLatestRequest({ ...requestToCancel, status: 'Cancelled' });
     }
 
     const { error: updateError } = await supabase
@@ -121,21 +121,22 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       .eq('id', requestToCancel.id);
 
     if (updateError) {
-      if (isLocal) setActiveRequest(previous);
+      if (isLocal) setLatestRequest(previous);
       setError(updateError.message);
       return { success: false as const, error: updateError.message };
     }
 
-    if (isLocal) setActiveRequest(null);
     return { success: true as const };
   };
 
   return {
+    latestRequest,
     activeRequest,
+    isFinal,
     loading,
     error,
     cancelRequest,
     canCancel,
-    refetch: fetchRequest
+    refetch: fetchRequest,
   };
 }
