@@ -76,7 +76,7 @@ export default function MaintenanceRequests() {
     router.push(`/landlord/maintenance-requests/${requestId}`);
   };
 
-  // Only true on the very first fetch, before we have any cached requests
+  // Only true on the very first fetch
   const isInitialLoad = loading && requests.length === 0;
 
   return (

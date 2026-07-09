@@ -9,27 +9,26 @@ import PropertyCard from "../components/units/PropertyCard";
 import PropertyStats from "../components/units/PropertyStats";
 import EmptyProperties from "../components/units/EmptyProperties";
 import PropertyCardSkeleton from "../components/units/PropertyCardSkeleton";
+import PropertyFilterSheet, {
+  type SortOption,
+} from "../components/units/PropertyFilterSheet";
 
 import {
   FileText,
   Home,
   Hammer,
   CirclePlus,
-  ListFilter,
 } from "lucide-react-native";
 
 import {
   SearchField,
   Separator,
-  BottomSheet,
-  Chip,
-  Button,
 } from "heroui-native";
 
 import { useLandlordUnits } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
 
-import { APARTMENT_STATUS_LABELS, VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { VALID_APARTMENT_STATUSES } from "@repo/constants";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
@@ -40,20 +39,6 @@ const locationOptions = [
   "Navotas",
   "Valenzuela",
 ];
-
-const sortOptions = ["none", "price_asc", "price_desc"] as const;
-type SortOption = (typeof sortOptions)[number];
-
-const SORT_LABELS: Record<SortOption, string> = {
-  none: "Default",
-  price_asc: "Low to High",
-  price_desc: "High to Low",
-};
-
-const STATUS_FILTER_LABELS: Record<string, string> = {
-  All: "All",
-  ...APARTMENT_STATUS_LABELS,
-};
 
 export default function Units() {
   const router = useRouter();
@@ -82,7 +67,7 @@ export default function Units() {
     setSelectedSort("none");
   };
 
-  // Re-fetch whenever tab is focused (e.g. after adding a new apartment)
+  // Re-fetch whenever tab is focused
   useFocusEffect(
     useCallback(() => {
       fetchApartments();
@@ -184,117 +169,21 @@ export default function Units() {
             </SearchField.Group>
           </SearchField>
 
-          <BottomSheet isOpen={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <View className="relative">
-              <BottomSheet.Trigger asChild>
-                <Button isIconOnly variant="secondary">
-                  <ListFilter size={18} color={colors.textPrimary} />
-                </Button>
-              </BottomSheet.Trigger>
-
-              {hasActiveFilters && (
-                <View className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center" style={{ zIndex: 10 }}>
-                  <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
-                    {activeFilterCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            <BottomSheet.Portal>
-              <BottomSheet.Overlay />
-              <BottomSheet.Content>
-                <BottomSheet.Title>Filter Properties</BottomSheet.Title>
-
-                <View className="gap-5 mt-4">
-                  <View className="gap-2">
-                    <Text className="text-foreground font-interMedium text-sm">
-                      Status
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {statusOptions.map((status) => {
-                        const isSelected = selectedStatus === status;
-                        return (
-                          <Chip
-                            key={status}
-                            variant={isSelected ? "soft" : "secondary"}
-                            color={isSelected ? "accent" : "default"}
-                            onPress={() => setSelectedStatus(status)}
-                          >
-                            <Chip.Label>
-                              {STATUS_FILTER_LABELS[status]}
-                            </Chip.Label>
-                          </Chip>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <Separator />
-
-                  <View className="gap-2">
-                    <Text className="text-foreground font-interMedium text-sm">Location</Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {locationOptions.map((location) => {
-                        const isSelected = selectedLocation === location;
-                        return (
-                          <Chip
-                            key={location}
-                            variant={isSelected ? "soft" : "secondary"}
-                            color={isSelected ? "accent" : "default"}
-                            onPress={() => setSelectedLocation(location)}
-                          >
-                            <Chip.Label>{location}</Chip.Label>
-                          </Chip>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <Separator />
-
-                  <View className="gap-2">
-                    <Text className="text-foreground font-interMedium text-sm">
-                      Sort by Price
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {sortOptions.map((sort) => {
-                        const isSelected = selectedSort === sort;
-                        return (
-                          <Chip
-                            key={sort}
-                            variant={isSelected ? "soft" : "secondary"}
-                            color={isSelected ? "accent" : "default"}
-                            onPress={() => setSelectedSort(sort)}
-                          >
-                            <Chip.Label>{SORT_LABELS[sort]}</Chip.Label>
-                          </Chip>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <View className="flex-row gap-3 mt-2">
-                    <Button
-                      variant="secondary"
-                      className="flex-1"
-                      onPress={handleClearFilters}
-                      isDisabled={!hasActiveFilters}
-                    >
-                      Clear
-                    </Button>
-                    <Button
-                      variant="primary"
-                      className="flex-1"
-                      onPress={() => setIsFilterOpen(false)}
-                    >
-                      Done
-                    </Button>
-                  </View>
-                </View>
-              </BottomSheet.Content>
-            </BottomSheet.Portal>
-          </BottomSheet>
+          <PropertyFilterSheet
+            isOpen={isFilterOpen}
+            onOpenChange={setIsFilterOpen}
+            statusOptions={statusOptions}
+            selectedStatus={selectedStatus}
+            onSelectStatus={setSelectedStatus}
+            locationOptions={locationOptions}
+            selectedLocation={selectedLocation}
+            onSelectLocation={setSelectedLocation}
+            selectedSort={selectedSort}
+            onSelectSort={setSelectedSort}
+            activeFilterCount={activeFilterCount}
+            hasActiveFilters={hasActiveFilters}
+            onClear={handleClearFilters}
+          />
         </View>
 
         <Separator className="my-4" />
