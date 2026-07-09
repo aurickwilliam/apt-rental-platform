@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { SearchField, Button } from "heroui-native";
 import { ListFilter } from "lucide-react-native";
 
@@ -16,6 +16,7 @@ import MaintenanceRequestFilterSheet, {
 import { formatDate } from "@repo/utils";
 import { useLandlordMaintenanceRequests } from "@/hooks/maintenance-requests";
 import { useColors } from "@/hooks/useTheme";
+import { useLandlordActionBadges } from "@/hooks/apartments";
 
 const EMPTY_FILTERS: MaintenanceRequestFilters = {
   statuses: [],
@@ -27,11 +28,18 @@ export default function MaintenanceRequests() {
   const router = useRouter();
   const { requests, loading, refetch } = useLandlordMaintenanceRequests();
   const { colors } = useColors();
+  const { markViewed } = useLandlordActionBadges();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<MaintenanceRequestFilters>(EMPTY_FILTERS);
   const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      markViewed("maintenance");
+    }, [markViewed]),
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);

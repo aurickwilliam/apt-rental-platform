@@ -25,8 +25,7 @@ import {
   Separator,
 } from "heroui-native";
 
-import { useLandlordUnits } from "@/hooks/apartments";
-import { useColors } from "@/hooks/useTheme";
+import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
 
 import { VALID_APARTMENT_STATUSES } from "@repo/constants";
 
@@ -42,11 +41,11 @@ const locationOptions = [
 
 export default function Units() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
 
   const { apartments, monthlyProfit, loading, fetchApartments } = useLandlordUnits();
+  const { counts, fetchCounts, markViewed } = useLandlordActionBadges();
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
@@ -71,7 +70,8 @@ export default function Units() {
   useFocusEffect(
     useCallback(() => {
       fetchApartments();
-    }, [fetchApartments]),
+      fetchCounts();
+    }, [fetchApartments, fetchCounts]),
   );
 
   const filteredApartments = useMemo(() => {
@@ -126,7 +126,7 @@ export default function Units() {
       {/* Property Actions */}
       <View className="flex gap-5">
         <Text className="text-foreground text-base font-interMedium">
-          Property
+          Property Actions
         </Text>
 
         <View className="flex-row flex-wrap">
@@ -138,17 +138,29 @@ export default function Units() {
           <QuickActionButton
             label={"Maintenance Request"}
             icon={Hammer}
-            onPress={() => router.push("/landlord/maintenance-requests")}
+            badgeCount={counts.maintenance}
+            onPress={() => {
+              markViewed("maintenance");
+              router.push("/landlord/maintenance-requests");
+            }}
           />
           <QuickActionButton
             label={"Visit Request"}
             icon={Home}
-            onPress={() => router.push("/landlord/visit-requests")}
+            badgeCount={counts.visits}
+            onPress={() => {
+              markViewed("visits");
+              router.push("/landlord/visit-requests");
+            }}
           />
           <QuickActionButton
             label={"Tenant Applications"}
             icon={FileText}
-            onPress={() => router.push("/landlord/tenant-applications")}
+            badgeCount={counts.applications}
+            onPress={() => {
+              markViewed("applications");
+              router.push("/landlord/tenant-applications");
+            }}
           />
         </View>
       </View>
