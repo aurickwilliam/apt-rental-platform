@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 
@@ -14,12 +14,13 @@ import EmptyApproved from "./components/EmptyApproved";
 import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 
 import { formatDate, formatFullName } from "@repo/utils";
-import { useColors } from "@/hooks/useTheme";
 
+import { useColors } from "@/hooks/useTheme";
 import {
   useLandlordVisitRequests,
   type LandlordVisitRequest
 } from "@/hooks/visitRequests";
+import { useLandlordActionBadges } from "@/hooks/apartments";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
@@ -103,6 +104,13 @@ export default function VisitRequests() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { visitRequests, refetch, loading } = useLandlordVisitRequests();
+  const { markViewed } = useLandlordActionBadges();
+
+  useFocusEffect(
+    useCallback(() => {
+      markViewed("visits");
+    }, [markViewed]),
+  );
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
