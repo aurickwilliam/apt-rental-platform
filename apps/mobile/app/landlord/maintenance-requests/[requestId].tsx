@@ -254,6 +254,8 @@ export default function MaintenanceRequestDetails() {
         </>
       ) : null}
 
+      <View className="flex-1" />
+
       <Button
         size="md"
         onPress={handleAdvanceStatus}

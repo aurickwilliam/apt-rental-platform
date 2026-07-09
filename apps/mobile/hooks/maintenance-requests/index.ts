@@ -15,3 +15,4 @@ export {
 } from "./useSubmitMaintenanceRequest";
 export { useLandlordMaintenanceRequests, getNextStatus } from "./useLandlordMaintenanceRequests";
 export type { LandlordMaintenanceRequest } from "./useLandlordMaintenanceRequests";
+export * from './useMaintenanceRequestHistory';

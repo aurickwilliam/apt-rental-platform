@@ -167,77 +167,93 @@ export default function MaintenanceDetails() {
           />
         </View>
 
-        <DetailField
-          label="Description"
-          value={maintenanceRequest.message}
-        />
-      </View>
-
-      <Separator className="my-4" />
-
-      {images.length > 0 && (
-        <View className="gap-3">
-          <Text className="text-foreground text-base font-interMedium">
-            Photos of the issue:
+        <View className="gap-1">
+          <Text className="text-sm text-muted  font-inter">
+            Description
           </Text>
 
-          <View className="flex-row flex-wrap gap-2">
-            {images.map((url, index) => (
-              <PressableFeedback
-                key={index}
-                className="size-24 rounded-3xl overflow-hidden border border-border"
-                onPress={() => {
-                  setImageIndex(index);
-                  setIsImageViewVisible(true);
-                }}
-              >
-                <PressableFeedback.Highlight />
-                <Image
-                  source={{ uri: url }}
-                  style={{
-                    width: "100%",
-                    height: '100%',
-                  }}
-                  contentFit="cover"
-                  cachePolicy="disk"
-                />
-              </PressableFeedback>
-            ))}
+          <View className="bg-surface p-3 rounded-3xl min-h-20">
+            <Text className="text-sm text-foreground font-inter">
+              {maintenanceRequest.message}
+            </Text>
           </View>
-
-          <ImageViewing
-            images={images.map((url) => ({ uri: url }))}
-            imageIndex={imageIndex}
-            visible={isImageViewVisible}
-            onRequestClose={() => setIsImageViewVisible(false)}
-            presentationStyle="overFullScreen"
-            backgroundColor="rgb(0, 0, 0, 0.8)"
-            FooterComponent={({ imageIndex: idx }) => (
-              <View className="p-10 items-center">
-                <Text className="text-white font-interMedium">
-                  {idx + 1} / {images.length}
-                </Text>
-              </View>
-            )}
-          />
         </View>
+      </View>
+
+      {images.length > 0 && (
+        <>
+          <Separator className="my-4" />
+
+          <View className="gap-3">
+            <Text className="text-foreground text-base font-interMedium">
+              Photos of the issue:
+            </Text>
+
+            <View className="flex-row flex-wrap gap-2">
+              {images.map((url, index) => (
+                <PressableFeedback
+                  key={index}
+                  className="size-24 rounded-3xl overflow-hidden border border-border"
+                  onPress={() => {
+                    setImageIndex(index);
+                    setIsImageViewVisible(true);
+                  }}
+                >
+                  <PressableFeedback.Highlight />
+                  <Image
+                    source={{ uri: url }}
+                    style={{
+                      width: "100%",
+                      height: '100%',
+                    }}
+                    contentFit="cover"
+                    cachePolicy="disk"
+                  />
+                </PressableFeedback>
+              ))}
+            </View>
+
+            <ImageViewing
+              images={images.map((url) => ({ uri: url }))}
+              imageIndex={imageIndex}
+              visible={isImageViewVisible}
+              onRequestClose={() => setIsImageViewVisible(false)}
+              presentationStyle="overFullScreen"
+              backgroundColor="rgb(0, 0, 0, 0.8)"
+              FooterComponent={({ imageIndex: idx }) => (
+                <View className="p-10 items-center">
+                  <Text className="text-white font-interMedium">
+                    {idx + 1} / {images.length}
+                  </Text>
+                </View>
+              )}
+            />
+          </View>
+        </>
       )}
 
       {maintenanceRequest.resolved_at && (
         <>
           <Separator className="my-4" />
 
-          <View className="mt-4 gap-3">
+          <View className="gap-3">
             <DetailField
               label="Resolved Date"
               value={formatDate(maintenanceRequest.resolved_at, "long")}
             />
 
             {maintenanceRequest.resolution_notes && (
-              <DetailField
-                label="Resolution Notes"
-                value={maintenanceRequest.resolution_notes}
-              />
+              <View className="gap-1">
+                <Text className="text-sm text-muted  font-inter">
+                  Resolution Notes
+                </Text>
+
+                <View className="bg-surface p-3 rounded-3xl min-h-20">
+                  <Text className="text-sm text-foreground font-inter">
+                    {maintenanceRequest.resolution_notes}
+                  </Text>
+                </View>
+              </View>
             )}
           </View>
         </>
