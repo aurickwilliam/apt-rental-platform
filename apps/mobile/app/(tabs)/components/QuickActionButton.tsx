@@ -8,12 +8,14 @@ interface QuickActionButtonProps {
   label: string;
   icon: LucideIcon;
   onPress?: () => void;
+  badgeCount?: number;
 }
 
 export default function QuickActionButton({
   label,
   icon: Icon,
-  onPress
+  onPress,
+  badgeCount,
 }: QuickActionButtonProps) {
   const { colors } = useColors();
 
@@ -25,12 +27,21 @@ export default function QuickActionButton({
         activeOpacity={0.7}
       >
         {/* Icon Label */}
-        <View className="aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-2xl">
+        <View className="relative aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-2xl">
           <Icon
             size={26}
             color={colors.gray500}
             strokeWidth={2}
           />
+
+          {/* Badge Count */}
+          {(badgeCount ?? 0) > 0 && (
+            <View className="absolute -top-1 -right-1 min-w-5.5 h-5.5 px-1 rounded-full bg-accent items-center justify-center border-2 border-background">
+              <Text className="text-white text-[10px] font-interSemiBold">
+                {badgeCount && badgeCount > 9 ? "9+" : badgeCount}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Text Label */}

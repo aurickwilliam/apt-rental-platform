@@ -1,5 +1,6 @@
 import { View, Text, ActivityIndicator } from 'react-native'
-import { router, useRouter } from 'expo-router'
+import { useCallback } from 'react'
+import { router, useRouter, useFocusEffect } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
@@ -7,6 +8,8 @@ import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
+import ApplicationsList from '../components/rentals/ApplicationList';
+import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
 
 import {
   Link,
@@ -15,9 +18,7 @@ import {
   Hammer,
   MapPin,
   Bell,
-  MessageCircleMore,
   ReceiptText,
-  Banknote,
   Settings,
   CircleQuestionMark,
   LucideIcon,
@@ -26,10 +27,11 @@ import {
 
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
+import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
 
 import { Button, Separator } from 'heroui-native';
+
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
-import ApplicationsList from '../components/rentals/ApplicationList';
 
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
@@ -45,46 +47,24 @@ type actionsTypes = {
 const actions: actionsTypes[] = [
   {
     id: 1,
-    label: "Chat Landlord",
-    icon: MessageCircleMore,
-  },
-  {
-    id: 2,
-    label: "View Lease",
-    icon: FileText,
-  },
-  {
-    id: 3,
     label: "View Receipts",
     icon: ReceiptText,
     onPress: () => router.push("/tenant/payment/history"),
   },
   {
-    id: 4,
-    label: "Pay Rent",
-    icon: Banknote,
-    onPress: () => router.push("/tenant/payment"),
-  },
-  {
-    id: 5,
-    label: "Request Maintenance",
-    icon: Hammer,
-    onPress: () => router.push("/tenant/maintenance-issue"),
-  },
-  {
-    id: 6,
+    id: 2,
     label: "View Applications",
     icon: ClipboardPen,
     onPress: () => router.push("/tenant/applications"),
   },
   {
-    id: 7,
+    id: 3,
     label: "Settings",
     icon: Settings,
     onPress: () => router.push("/settings"),
   },
   {
-    id: 8,
+    id: 4,
     label: "FAQ",
     icon: CircleQuestionMark,
     onPress: () => router.push("/settings/faq"),
@@ -96,13 +76,50 @@ export default function Rentals() {
   const { colors } = useColors();
 
   const { tenancy, loading: tenancyLoading } = useTenancy();
+  const {
+    latestRequest,
+    isFinal,
+    refetch: refetchMaintenanceRequest
+  } = useMaintenanceRequests({
+    apartmentId: tenancy?.apartment.id,
+  });
 
   const loading = tenancyLoading;
 
-  const handleRequestMaintenance = () => router.push('/tenant/maintenance-issue');
+  const handleRequestMaintenance = () => {
+    router.push({
+      pathname: '/tenant/request-maintenance',
+      params: {
+        apartmentId: tenancy?.apartment.id,
+        apartmentName: tenancy?.apartment.name,
+        apartmentAddress: formatAddress({
+          street_address: tenancy?.apartment.street_address ?? '',
+          province: tenancy?.apartment.province ?? '',
+          barangay: tenancy?.apartment.barangay ?? '',
+          city: tenancy?.apartment.city ?? '',
+          zip_code: tenancy?.apartment.zip_code ?? '',
+        }),
+        landlordName: formatFullName({
+          first_name: tenancy?.landlord?.first_name ?? '',
+          last_name: tenancy?.landlord?.last_name ?? '',
+        }),
+      },
+    });
+  };
+  const handleViewHistory = () =>
+    router.push({
+      pathname: '/tenant/maintenance-history',
+      params: { apartmentId: tenancy?.apartment.id },
+    });
   const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchMaintenanceRequest();
+    }, [refetchMaintenanceRequest])
+  );
 
   // Loading
   if (loading) {
@@ -117,7 +134,7 @@ export default function Rentals() {
 
   // Active tenancy
   if (tenancy) {
-    const { apartment, landlord, currentPayment } = tenancy;
+     const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
     const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();
@@ -225,12 +242,62 @@ export default function Rentals() {
           />
         </View>
 
-        <Separator className='my-4' />
+        {latestRequest ? (
+          <>
+            <Separator className="my-4" />
+            <View className="flex gap-3">
+              <View className="flex-row items-center justify-start gap-2">
+                <Hammer size={24} color={colors.textPrimary} />
+                <Text className="text-foreground text-lg font-interSemiBold">
+                  {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
+                </Text>
+              </View>
 
-        <Button onPress={handleRequestMaintenance}>
-          <Hammer size={20} color={colors.secondaryForeground} />
-          <Button.Label>Request Maintenance Issue</Button.Label>
-        </Button>
+              <MaintenanceRequestCard
+                request={latestRequest}
+                onPress={() => {
+                  router.push({
+                    pathname: "/tenant/maintenance-details",
+                    params: {
+                      request: JSON.stringify(latestRequest),
+                    },
+                  });
+                }}
+              />
+
+              <View className="flex-row gap-3 mt-1">
+                <Button
+                  className="flex-1"
+                  variant="secondary"
+                  onPress={handleViewHistory}
+                  size='sm'
+                >
+                  <Button.Label>View History</Button.Label>
+                </Button>
+
+                {isFinal && (
+                  <Button
+                    className="flex-1"
+                    onPress={handleRequestMaintenance}
+                    size='sm'
+                  >
+                    <Hammer size={18} color={colors.secondaryForeground} />
+                    <Button.Label>Request Again</Button.Label>
+                  </Button>
+                )}
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <Separator className='my-4' />
+
+            <Button onPress={handleRequestMaintenance}>
+              <Hammer size={20} color={colors.secondaryForeground} />
+              <Button.Label>Request Maintenance Issue</Button.Label>
+            </Button>
+          </>
+        )}
       </ScreenWrapper>
     );
   }

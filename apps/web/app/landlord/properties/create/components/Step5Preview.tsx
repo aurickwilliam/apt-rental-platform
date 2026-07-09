@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import NextImage from "next/image";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 import { Separator, Button, Card } from "@heroui/react";
 
@@ -173,7 +173,7 @@ export default function Step5Preview({ formData }: Props) {
 
             {/* Map */}
             <Separator className="my-6" />
-            
+
             <div>
               <h3 className="text-lg font-medium mb-3">Location</h3>
               <MapPreview
@@ -189,7 +189,7 @@ export default function Step5Preview({ formData }: Props) {
             <Card className="border border-grey-300">
               <Card.Header>
                 <h2 className="text-3xl font-noto-serif font-medium text-primary">
-                  ₱ {formatCurrency(formData.monthly_rent)}
+                  {formatPesoDisplay(formData.monthly_rent)}
                   <span className="text-xl">/month</span>
                 </h2>
               </Card.Header>
@@ -209,7 +209,7 @@ export default function Step5Preview({ formData }: Props) {
                   ].map(({ label, amount }) => (
                     <div key={label} className="flex justify-between text-sm">
                       <span className="text-grey-500">{label}</span>
-                      <span className="font-medium">₱ {formatCurrency(amount)}</span>
+                      <span className="font-medium">{formatPesoDisplay(amount)}</span>
                     </div>
                   ))}
 
@@ -218,7 +218,7 @@ export default function Step5Preview({ formData }: Props) {
                   <div className="flex justify-between text-sm">
                     <span className="font-bold text-grey-800">Total</span>
                     <span className="font-bold text-primary">
-                      ₱ {formatCurrency(
+                      {formatPesoDisplay(
                         formData.monthly_rent +
                         formData.security_deposit +
                         formData.monthly_rent

@@ -255,43 +255,52 @@ export type Database = {
       }
       maintenance_request: {
         Row: {
-          apartment_id: string | null
+          apartment_id: string
+          cancelled_at: string | null
           category: string
           created_at: string
           id: string
           image_urls: string[] | null
+          landlord_id: string | null
           message: string
+          resolution_notes: string | null
           resolved_at: string | null
           status: string
-          tenant_id: string | null
+          tenant_id: string
           title: string
           updated_at: string | null
           urgency: string
         }
         Insert: {
-          apartment_id?: string | null
+          apartment_id: string
+          cancelled_at?: string | null
           category: string
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          landlord_id?: string | null
           message: string
+          resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
-          tenant_id?: string | null
+          tenant_id: string
           title: string
           updated_at?: string | null
           urgency: string
         }
         Update: {
-          apartment_id?: string | null
+          apartment_id?: string
+          cancelled_at?: string | null
           category?: string
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          landlord_id?: string | null
           message?: string
+          resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
-          tenant_id?: string | null
+          tenant_id?: string
           title?: string
           updated_at?: string | null
           urgency?: string
@@ -302,6 +311,13 @@ export type Database = {
             columns: ["apartment_id"]
             isOneToOne: false
             referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_request_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {

@@ -1,5 +1,6 @@
 import { View } from 'react-native'
 import { Image } from 'expo-image'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Chip, Text } from 'heroui-native';
 
@@ -29,6 +30,7 @@ export default function ProfileHeader({
   role,
 }: ProfileHeaderProps) {
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
 
   const fullName = loading ? '...' : `${firstName} ${lastName}`;
   const displayEmail = loading ? '...' : email;
@@ -64,7 +66,8 @@ export default function ProfileHeader({
     <View className="relative h-80">
       {/* Background Photo */}
       <View
-        className={`w-full h-45 rounded-b-3xl overflow-hidden ${
+        style={{ marginTop: -insets.top, height: 180 + insets.top }}
+        className={`w-full rounded-b-3xl overflow-hidden ${
           backgroundPhotoUri ? "bg-transparent" : "bg-surface-tertiary"
         }`}
       >

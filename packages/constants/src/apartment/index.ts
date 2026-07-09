@@ -6,6 +6,7 @@ export * from "./floor-level";
 export * from "./furnished-types";
 export * from "./lease-duration";
 export * from "./maintenance-categories";
+export * from "./maintenance-urgency";
 export * from "./payment-status";
 export * from "./pets";
 export * from "./vehicles";

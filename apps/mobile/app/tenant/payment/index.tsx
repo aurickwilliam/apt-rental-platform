@@ -6,7 +6,7 @@ import StandardHeader from '@/components/layout/StandardHeader'
 import Divider from '@/components/display/Divider'
 import PillButton from '@/components/buttons/PillButton'
 
-import { formatCurrency } from '@repo/utils'
+import { formatPesoDisplay } from '@repo/utils'
 
 export default function Index() {
   const router = useRouter();
@@ -131,7 +131,7 @@ export default function Index() {
                 Monthly Rent
               </Text>
               <Text className='text-text text-base font-inter'>
-                ₱ {formatCurrency(apartmentDetails.monthlyRent)}
+                {formatPesoDisplay(apartmentDetails.monthlyRent)}
               </Text>
             </View>
 
@@ -141,7 +141,7 @@ export default function Index() {
                 Paid
               </Text>
               <Text className='text-text text-base font-inter'>
-                ₱ {formatCurrency(apartmentDetails.paidAmount)}
+                {formatPesoDisplay(apartmentDetails.paidAmount)}
               </Text>
             </View>
 
@@ -153,7 +153,7 @@ export default function Index() {
                 Balance Left
               </Text>
               <Text className='text-text text-base font-inter'>
-                ₱ {formatCurrency(totalPayment)}
+                {formatPesoDisplay(totalPayment)}
               </Text>
             </View>
 
@@ -166,7 +166,7 @@ export default function Index() {
                 Total Payment
               </Text>
               <Text className='text-text text-base font-inter'>
-                ₱ {formatCurrency(totalPayment)}
+                {formatPesoDisplay(totalPayment)}
               </Text>
             </View>
           </View>
@@ -175,7 +175,7 @@ export default function Index() {
       </View>
 
       <View className='flex-1'/>
-      
+
       {/* Checkout Button */}
       <View className='w-full p-5 border-t border-grey-300 flex-row items-center justify-between bg-white'>
         <View className='flex'>
@@ -184,7 +184,7 @@ export default function Index() {
           </Text>
 
           <Text className='text-primary text-3xl font-interSemiBold'>
-            ₱ {formatCurrency(totalPayment)}
+            {formatPesoDisplay(totalPayment)}
           </Text>
         </View>
 

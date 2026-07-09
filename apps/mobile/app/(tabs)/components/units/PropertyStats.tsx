@@ -3,7 +3,7 @@ import { ChartPie } from "lucide-react-native";
 import { Button } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 const currentMonthLabel = new Date().toLocaleString("default", {
   month: "long",
@@ -38,7 +38,7 @@ export default function PropertyStats({
             ? "—"
             : monthlyProfit === null
               ? "N/A"
-              : `${formatCurrency(monthlyProfit)}`}
+              : `${formatPesoDisplay(monthlyProfit)}`}
         </Text>
       </View>
 

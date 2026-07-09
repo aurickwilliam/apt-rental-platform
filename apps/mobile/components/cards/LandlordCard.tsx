@@ -13,7 +13,7 @@ import {
 interface LandlordCardProps {
   fullName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   profilePictureUrl?: string | null;
   withRentalInfo?: boolean;
   averageRating?: number;

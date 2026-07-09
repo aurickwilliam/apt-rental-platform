@@ -5,7 +5,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import PerkItem from 'components/display/PerkItem'
 
-import { formatCurrency } from '@repo/utils'
+import { formatPesoDisplay } from '@repo/utils'
 
 import { Button, Separator } from 'heroui-native'
 
@@ -114,7 +114,7 @@ export default function CurrentApartmentDetails() {
   const landlordName = landlord
     ? `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim()
     : 'Unknown Landlord'
-  const formattedMonthlyRent = formatCurrency(Number(tenancy.monthly_rent ?? apartment.monthly_rent))
+  const formattedMonthlyRent = formatPesoDisplay(Number(tenancy.monthly_rent ?? apartment.monthly_rent))
   const apartmentAddress = `${apartment.street_address}, ${apartment.barangay}, ${apartment.city}`
 
   return (

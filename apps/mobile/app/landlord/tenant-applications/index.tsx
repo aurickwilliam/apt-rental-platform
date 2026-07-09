@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { ListFilter } from 'lucide-react-native';
 
@@ -20,17 +20,25 @@ import { formatDate } from '@repo/utils';
 
 import { useLandlordApplications } from '@/hooks/applications';
 import { useColors } from '@/hooks/useTheme';
+import { useLandlordActionBadges } from '@/hooks/apartments';
 
 const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };
 
 export default function TenantApplications() {
   const router = useRouter();
   const { colors } = useColors();
-  const { applications, loading, refetch} = useLandlordApplications();
+  const { applications, loading, refetch } = useLandlordApplications();
+  const { markViewed } = useLandlordActionBadges();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<ApplicationFilters>(EMPTY_FILTERS);
+
+  useFocusEffect(
+    useCallback(() => {
+      markViewed("applications");
+    }, [markViewed]),
+  );
 
   const activeCount = filters.statuses.length + filters.locations.length;
   const hasApplications = applications.length > 0;
