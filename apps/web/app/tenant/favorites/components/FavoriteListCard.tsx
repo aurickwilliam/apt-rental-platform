@@ -6,7 +6,7 @@ import { Button, Card } from "@heroui/react";
 
 import { BedDouble, Bath, Expand, Heart } from "lucide-react";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 import type { FavoriteApartment } from "@/service/favoritesService";
 
@@ -98,7 +98,7 @@ export default function FavoriteListCard({
             </Button>
 
             <p className="text-lg font-semibold text-primary">
-              ₱ {formatCurrency(apartment.monthly_rent ?? 0)}
+              {formatPesoDisplay(apartment.monthly_rent ?? 0)}
             </p>
           </div>
         </div>

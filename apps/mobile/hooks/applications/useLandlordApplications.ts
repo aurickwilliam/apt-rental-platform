@@ -36,9 +36,9 @@ export type LandlordApplication = {
   need_parking: boolean;
   message: string | null;
   // document paths (raw — sign on demand in the detail screen)
-  gov_id_url: string;
-  proof_of_income_url: string;
-  proof_of_billing_url: string;
+  gov_id_url: string | null;
+  proof_of_income_url: string | null;
+  proof_of_billing_url: string | null;
   nbi_clearance_url: string | null;
   // joined
   tenant_name: string;
@@ -80,8 +80,6 @@ export function useLandlordApplications() {
         apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code),
         users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`,
       )
-      // Filtering on embedded resource columns (apartments.landlord_id) is not
-      // supported by PostgREST — rely on RLS to scope rows to the landlord's apartments.
       .order('created_at', { ascending: false });
 
 

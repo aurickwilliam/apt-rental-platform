@@ -6,7 +6,7 @@ import { Card, Button, Spinner } from "@heroui/react";
 
 import { Star, Heart } from "lucide-react";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 interface ApartmentCardProps {
   name: string;
@@ -64,7 +64,7 @@ export default function ApartmentCard({
 
         <Card.Footer className="p-2 flex justify-between items-center">
           <p className="text-[15px] font-medium text-primary">
-            ₱ {formatCurrency(price)}
+            {formatPesoDisplay(price)}
           </p>
 
           <div className="flex items-center gap-1">

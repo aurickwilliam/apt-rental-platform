@@ -35,6 +35,8 @@ import { supabase } from "@repo/supabase";
 
 import { useColors } from "hooks/useTheme";
 
+import { formatPesoDisplay, formatDate } from "@repo/utils";
+
 type Apartment = {
   id: string;
   name: string;
@@ -71,19 +73,6 @@ type ActiveTenancy = {
     last_name: string;
   } | null;
 };
-
-function formatDate(dateStr: string | null | undefined) {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number | null | undefined) {
-  if (amount == null) return "—";
-  return `₱ ${Number(amount).toLocaleString("en-PH")}`;
-}
 
 export default function Index() {
   const router = useRouter();
@@ -310,7 +299,7 @@ export default function Index() {
           <View className="flex w-1/2">
             <Text className="text-muted text-xs font-inter">Lease End</Text>
             <Text className="text-foreground text-base font-interMedium">
-              {formatDate(tenancy.lease_end)}
+              {formatDate(tenancy.lease_end!)}
             </Text>
           </View>
         </View>
@@ -320,19 +309,19 @@ export default function Index() {
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Monthly Rent</Text>
           <Text className="text-foreground text-base font-interMedium">
-            {formatCurrency(effectiveRent)}
+            {formatPesoDisplay(effectiveRent)}
           </Text>
         </View>
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Security Deposit</Text>
           <Text className="text-foreground text-base font-interMedium">
-            {formatCurrency(apartment?.security_deposit ?? 0)}
+            {formatPesoDisplay(apartment?.security_deposit ?? 0)}
           </Text>
         </View>
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Advance Rent</Text>
           <Text className="text-foreground text-base font-interMedium">
-            {formatCurrency(apartment?.advance_rent ?? 0)}
+            {formatPesoDisplay(apartment?.advance_rent ?? 0)}
           </Text>
         </View>
       </View>

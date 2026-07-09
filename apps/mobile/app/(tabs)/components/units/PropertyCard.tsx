@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/useTheme'
 
 import { ApartmentStatus, APARTMENT_STATUS_LABELS } from '@repo/constants'
 
-import { formatCurrency } from '@repo/utils'
+import { formatPesoDisplay } from '@repo/utils'
 
 interface PropertyCardProps {
   apartmentName: string
@@ -103,7 +103,7 @@ export default function PropertyCard({
           <View className='flex-row items-center justify-between'>
             {/* Monthly Rent */}
             <Text className='text-sm font-interMedium text-accent'>
-              {monthlyRent ? formatCurrency(monthlyRent) : 'N/A'}
+              {monthlyRent ? formatPesoDisplay(monthlyRent) : 'N/A'}
             </Text>
             {/* Status chip */}
             <View

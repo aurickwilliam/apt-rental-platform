@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { formatCurrency } from '@repo/utils';
+import { formatPesoDisplay } from '@repo/utils';
 
 import { Button } from 'heroui-native';
 
@@ -25,7 +25,7 @@ export default function ApartmentDescriptionCard({
   onPressViewMore
 }: ApartmentDescriptionCardProps) {
 
-  const formattedMonthlyRent = formatCurrency(monthlyRent);
+  const formattedMonthlyRent = formatPesoDisplay(monthlyRent);
 
   return (
     <View className='w-full bg-surface rounded-3xl p-4 border border-border'>
@@ -68,7 +68,7 @@ export default function ApartmentDescriptionCard({
           Monthly Rent
         </Text>
         <Text className='text-foreground text-base font-interMedium'>
-          {`₱ ${formattedMonthlyRent}`}
+          {`${formattedMonthlyRent}`}
         </Text>
       </View>
 

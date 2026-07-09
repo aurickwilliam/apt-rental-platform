@@ -15,7 +15,7 @@ import TenantApplicationDetailsSkeleton from './components/TenantApplicationDeta
 import ErrorDialog from '@/components/display/ErrorDialog';
 import RejectDialog from '../../../components/display/RejectDialog';
 
-import { formatCurrency, formatDate, getInitials } from '@repo/utils';
+import { formatPesoDisplay, formatDate, getInitials } from '@repo/utils';
 
 import { useColors } from '@/hooks/useTheme';
 import {
@@ -202,7 +202,7 @@ export default function TenantApplicationDetails() {
             <View className='flex-row'>
               <DetailField
                 label="Monthly Rent"
-                value={`${formatCurrency(application.monthly_rent)}`}
+                value={`${formatPesoDisplay(application.monthly_rent)}`}
               />
               <DetailField
                 label="No. of Occupants"
@@ -228,7 +228,7 @@ export default function TenantApplicationDetails() {
               <DetailField label="Employment Type" value={application.employment_type} />
               <DetailField
                 label="Monthly Income"
-                value={`${formatCurrency(application.monthly_income)}`}
+                value={`${formatPesoDisplay(application.monthly_income)}`}
               />
             </View>
           </View>

@@ -13,7 +13,7 @@ import {
   House,
 } from "lucide-react";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 import Footer from "@/app/components/layout/Footer";
@@ -225,7 +225,7 @@ export default function MyRental() {
               <p className="text-xs text-zinc-400 uppercase tracking-wider">Payment due</p>
               <div className="flex items-end gap-2 mt-2">
                 <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  ₱{formatCurrency(amountDue)}
+                  {formatPesoDisplay(amountDue)}
                 </p>
                 <span className="text-sm text-zinc-400">.00</span>
               </div>
@@ -256,7 +256,7 @@ export default function MyRental() {
                 <div>
                   <p className="text-xs text-zinc-400">Monthly rent</p>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    ₱{formatCurrency(monthlyRent)}
+                    {formatPesoDisplay(monthlyRent)}
                   </p>
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function MyRental() {
                           {row.description}
                         </Table.Cell>
                         <Table.Cell className="text-right text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                          ₱{formatCurrency(row.amount)}
+                          {formatPesoDisplay(row.amount)}
                         </Table.Cell>
                         <Table.Cell className="text-right">
                           {statusBadge(row.status)}

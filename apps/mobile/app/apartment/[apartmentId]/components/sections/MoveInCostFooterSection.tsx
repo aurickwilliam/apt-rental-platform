@@ -6,7 +6,7 @@ import { X } from 'lucide-react-native';
 
 import { Button } from "heroui-native"
 
-import { formatCurrency } from '@repo/utils';
+import { formatPesoDisplay } from '@repo/utils';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -46,7 +46,7 @@ export default function MoveInCostFooterSection({
             >
               <View className='flex-row items-baseline'>
                 <Text className='text-2xl font-interSemiBold text-accent'>
-                  {formatCurrency(monthlyRent)}
+                  {formatPesoDisplay(monthlyRent)}
                 </Text>
                 <Text className='text-sm font-interMedium text-muted ml-1'>
                   /month
@@ -108,7 +108,7 @@ export default function MoveInCostFooterSection({
                   Monthly Rent
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
-                  {formatCurrency(monthlyRent)}
+                  {formatPesoDisplay(monthlyRent)}
                 </Text>
               </View>
 
@@ -118,7 +118,7 @@ export default function MoveInCostFooterSection({
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
                   {securityDeposit != null
-                    ? `${formatCurrency(securityDeposit)}`
+                    ? `${formatPesoDisplay(securityDeposit)}`
                     : 'None'}
                 </Text>
               </View>
@@ -129,7 +129,7 @@ export default function MoveInCostFooterSection({
                 </Text>
                 <Text className='text-foreground font-interMedium text-base'>
                   {advanceRent != null
-                    ? `${formatCurrency(advanceRent)}`
+                    ? `${formatPesoDisplay(advanceRent)}`
                     : 'None'}
                 </Text>
               </View>
@@ -141,7 +141,7 @@ export default function MoveInCostFooterSection({
                   Total Move-in
                 </Text>
                 <Text className='text-accent font-interSemiBold text-lg'>
-                  {formatCurrency(totalMoveIn)}
+                  {formatPesoDisplay(totalMoveIn)}
                 </Text>
               </View>
             </View>

@@ -46,7 +46,7 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { formatCurrency } from "@repo/utils";
+import { formatPesoDisplay } from "@repo/utils";
 
 import { useProfile } from "hooks/auth";
 import { useLandlordStats } from "hooks/landlord";
@@ -507,7 +507,7 @@ export default function FifthStep() {
           <View className="flex-col">
             <View className="flex-row items-baseline">
               <Text className="text-2xl font-interSemiBold text-accent">
-                ₱ {formatCurrency(Number(monthlyRent))}
+                {formatPesoDisplay(monthlyRent)}
               </Text>
               <Text className="text-sm font-interMedium text-muted ml-1">
                 /month
