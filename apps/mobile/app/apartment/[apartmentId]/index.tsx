@@ -141,7 +141,10 @@ export default function ApartmentScreen() {
           onOpenMap={handleMapViewNavigation}
         />
 
-        <RatingsSection reviews={reviews} onSeeAll={handleSeeAllRatings} />
+        <RatingsSection
+          reviews={reviews}
+          onSeeAll={handleSeeAllRatings}
+        />
 
         <LandlordSection
           landlord={apartment?.landlord ?? null}
@@ -151,7 +154,6 @@ export default function ApartmentScreen() {
         />
 
         <LeaseAgreementSection
-          apartmentId={apartmentId}
           leaseAgreementUrl={apartment?.lease_agreement_url}
         />
 
