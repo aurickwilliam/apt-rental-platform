@@ -1,4 +1,3 @@
-import { DynamicColorIOS, Platform } from 'react-native';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { useColors } from 'hooks/useTheme';
@@ -6,12 +5,11 @@ import { useColors } from 'hooks/useTheme';
 export default function LandlordTabLayout() {
   const { colors } = useColors();
 
-  const tint = Platform.OS === 'ios'
-    ? DynamicColorIOS({ dark: colors.primary, light: colors.primary })
-    : colors.primary;
-
   return (
-    <NativeTabs tintColor={tint} labelStyle={{ color: tint }}>
+    <NativeTabs
+      tintColor={colors.primary}
+      labelStyle={{ color: colors.primary }}
+    >
       <NativeTabs.Trigger name="dashboard">
         <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' }} md="dashboard" />
