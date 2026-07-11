@@ -26,8 +26,8 @@ import {
 } from "heroui-native";
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
-
 import { VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
@@ -45,7 +45,7 @@ export default function Units() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { apartments, monthlyProfit, loading, fetchApartments } = useLandlordUnits();
-  const { counts, fetchCounts, markViewed } = useLandlordActionBadges();
+  const { counts, fetchCounts } = useLandlordActionBadges();
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
@@ -106,7 +106,7 @@ export default function Units() {
   };
 
   return (
-    <ScreenWrapper className="p-5" scrollable bottomPadding={50}>
+    <ScreenWrapper className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       {/* Header */}
       <Text className="text-secondary text-3xl font-nunitoSemiBold">
         My Properties
@@ -139,28 +139,19 @@ export default function Units() {
             label={"Maintenance Request"}
             icon={Hammer}
             badgeCount={counts.maintenance}
-            onPress={() => {
-              markViewed("maintenance");
-              router.push("/landlord/maintenance-requests");
-            }}
+            onPress={() => router.push("/landlord/maintenance-requests")}
           />
           <QuickActionButton
             label={"Visit Request"}
             icon={Home}
             badgeCount={counts.visits}
-            onPress={() => {
-              markViewed("visits");
-              router.push("/landlord/visit-requests");
-            }}
+            onPress={() => router.push("/landlord/visit-requests")}
           />
           <QuickActionButton
             label={"Tenant Applications"}
             icon={FileText}
             badgeCount={counts.applications}
-            onPress={() => {
-              markViewed("applications");
-              router.push("/landlord/tenant-applications");
-            }}
+            onPress={() => router.push("/landlord/tenant-applications")}
           />
         </View>
       </View>

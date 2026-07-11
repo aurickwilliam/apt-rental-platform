@@ -17,6 +17,7 @@ import { getConversations, type Conversation } from '@/service/chatService'
 import { EMPTY_STATE_IMAGES } from 'constants/images'
 
 import { useColors } from '@/hooks/useTheme'
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar'
 
 type ConversationWithMeta = Conversation & {
   last_sender_is_me?: boolean;
@@ -240,7 +241,7 @@ export default function Chat() {
     <ScreenWrapper
       className='p-5'
       scrollable
-      bottomPadding={50}
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >

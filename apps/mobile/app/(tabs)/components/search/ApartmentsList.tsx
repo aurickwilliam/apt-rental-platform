@@ -9,6 +9,7 @@ import {
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 
 import { useColors } from 'hooks/useTheme';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
 type ApartmentsListProps = {
   apartments: ApartmentCardProps[];
@@ -84,7 +85,7 @@ export default function ApartmentsList({
       keyExtractor={(item) => item.id.toString()}
       numColumns={isGridView ? 2 : 1}
       columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}
-      contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
+      contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET, gap: 16 }}
       ListEmptyComponent={renderEmptyState}
       ListFooterComponent={renderFooter}
       onEndReached={onLoadMore}

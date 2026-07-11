@@ -16,6 +16,7 @@ import { getConversations, type Conversation } from '@/service/chatService';
 
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
 import {
   SearchField,
@@ -226,7 +227,7 @@ export default function Chat() {
       scrollable
       className='p-5'
       backgroundColor={colors.surface}
-      bottomPadding={50}
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >
