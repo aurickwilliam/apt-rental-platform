@@ -14,6 +14,9 @@ export default function TabsLayout() {
   useEffect(() => {
     if (loading || !profile?.role) return;
 
+    // Only enforce tab-group routing when we're actually inside (tabs)
+    if (segments[0] !== '(tabs)') return;
+
     const currentGroup = segments[1]; // '(landlord)' or '(tenant)'
 
     if (profile.role === 'landlord' && currentGroup !== '(landlord)') {

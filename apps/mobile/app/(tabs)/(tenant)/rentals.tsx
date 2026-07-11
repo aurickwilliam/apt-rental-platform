@@ -33,6 +33,8 @@ import { Button, Separator } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
+
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
 }
@@ -146,7 +148,7 @@ export default function Rentals() {
     const address = formatAddress(apartment);
 
     return (
-      <ScreenWrapper scrollable className="p-5" bottomPadding={50}>
+      <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
         {/* Apartment Header */}
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
