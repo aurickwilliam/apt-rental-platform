@@ -5,7 +5,8 @@ import {
   ImageSourcePropType,
   ActivityIndicator,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import type { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
@@ -92,6 +93,20 @@ export default function EditProfile() {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Scroll-to-error refs
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({});
+
+  const registerFieldRef = (field: keyof FormErrors) => (node: View | null) => {
+    if (!node || !contentRef.current) return;
+    node.measureLayout(
+      contentRef.current,
+      (_x: number, y: number) => { fieldPositions.current[field] = y; },
+      () => {},
+    );
+  };
 
   const {
     value: postalCode,
@@ -205,7 +220,20 @@ export default function EditProfile() {
       errs.streetAddress = "Street address is required.";
 
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const isValid = Object.keys(errs).length === 0;
+
+    if (!isValid) {
+      const fieldOrder: (keyof FormErrors)[] = [
+        'gender', 'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+      ];
+      const firstError = fieldOrder.find((field) => errs[field]);
+      const y = firstError ? fieldPositions.current[firstError] : undefined;
+      if (y !== undefined) {
+        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true);
+      }
+    }
+
+    return isValid;
   };
 
   // Save the updated profile information to Supabase
@@ -278,204 +306,219 @@ export default function EditProfile() {
   return (
     <ScreenWrapper
       scrollable
+      ref={scrollRef}
       header={<StandardHeader title="Edit Profile" />}
       className="p-5"
     >
       {/* Profile Picture */}
-      <View className="flex gap-3">
-        <View className="size-32 overflow-hidden rounded-full self-center border-2 border-border">
-          {hasProfileImage ? (
-            <Image
-              source={form.profileImageUri!}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="size-32 rounded-full bg-surface flex items-center justify-center">
-              <Text className="text-accent text-4xl font-interMedium">
-                {`${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase()}
-              </Text>
-            </View>
-          )}
+      <View ref={contentRef}>
+        <View className="flex gap-3">
+          <View className="size-32 overflow-hidden rounded-full self-center border-2 border-border">
+            {hasProfileImage ? (
+              <Image
+                source={form.profileImageUri!}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="size-32 rounded-full bg-surface flex items-center justify-center">
+                <Text className="text-accent text-4xl font-interMedium">
+                  {`${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </View>
+          <View className="mx-20">
+            <Button
+              size="sm"
+              onPress={handleAvatarUpload}
+              isDisabled={!!uploading}
+            >
+              <Camera size={16} color={colors.secondaryForeground} />
+              <Button.Label>
+                {uploading === "avatar" ? "Uploading..." : "Change Profile Picture"}
+              </Button.Label>
+              {uploading === "avatar" && (
+                <Spinner
+                  size="sm"
+                  color={colors.secondaryForeground}
+                  className="ml-2"
+                />
+              )}
+            </Button>
+          </View>
         </View>
-        <View className="mx-20">
-          <Button
-            size="sm"
-            onPress={handleAvatarUpload}
-            isDisabled={!!uploading}
-          >
-            <Camera size={16} color={colors.secondaryForeground} />
-            <Button.Label>
-              {uploading === "avatar" ? "Uploading..." : "Change Profile Picture"}
-            </Button.Label>
-            {uploading === "avatar" && (
-              <Spinner
-                size="sm"
-                color={colors.secondaryForeground}
-                className="ml-2"
+
+        {/* Background Picture */}
+        <View className="flex gap-3 mt-5">
+          <View className="w-full h-40 overflow-hidden rounded-2xl self-center border-2 border-border">
+            {hasBackgroundImage ? (
+              <Image
+                source={form.backgroundImageUri!}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                style={{ backgroundColor: colors.surface }}
+                className="w-full h-full"
               />
             )}
-          </Button>
+          </View>
+          <View className="mx-20">
+            <Button
+              size="sm"
+              onPress={handleBackgroundUpload}
+              isDisabled={!!uploading}
+            >
+              <Camera size={16} color={colors.secondaryForeground} />
+              <Button.Label>
+                {uploading === "background" ? "Uploading..." : "Change Background Picture"}
+              </Button.Label>
+              {uploading === "background" && (
+                <Spinner
+                  size="sm"
+                  color={colors.secondaryForeground}
+                  className="ml-2"
+                />
+              )}
+            </Button>
+          </View>
         </View>
-      </View>
 
-      {/* Background Picture */}
-      <View className="flex gap-3 mt-5">
-        <View className="w-full h-40 overflow-hidden rounded-2xl self-center border-2 border-border">
-          {hasBackgroundImage ? (
-            <Image
-              source={form.backgroundImageUri!}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="cover"
+        <Separator className="my-5" />
+
+        {/* Personal Information */}
+        <View className="flex gap-3">
+          <View className="flex-row gap-2">
+            <User size={24} color={colors.textPrimary} />
+            <Text className="text-foreground text-lg font-interSemiBold">
+              Personal Information
+            </Text>
+          </View>
+
+          {/* Read-only: names pre-filled from Google OAuth */}
+          <TextField isRequired>
+            <Label>First Name:</Label>
+            <Input readOnly placeholder="First Name" value={form.firstName} />
+          </TextField>
+
+          <TextField isRequired>
+            <Label>Last Name:</Label>
+            <Input readOnly placeholder="Last Name" value={form.lastName} />
+          </TextField>
+
+          <TextField>
+            <Label>Middle Name:</Label>
+            <Input readOnly placeholder="Middle Name" value={form.middleName} />
+          </TextField>
+
+          {/* Editable: Gender */}
+          <View ref={registerFieldRef("gender")}>
+            <DropdownField
+              label="Gender:"
+              placeholder="Select Gender"
+              bottomSheetLabel="Select Gender"
+              options={GENDERS}
+              value={form.gender}
+              onSelect={(value) => updateForm({ gender: value ?? "" })}
+              error={errors.gender}
             />
-          ) : (
-            <View
-              style={{ backgroundColor: colors.surface }}
-              className="w-full h-full"
-            />
-          )}
+          </View>
+
+          {/* Read-only: Date of Birth */}
+          <DateField
+            readOnly
+            placeholder="Select Date of Birth"
+            label="Date of Birth:"
+            value={form.dateOfBirth ?? undefined}
+            onChange={(date) => updateForm({ dateOfBirth: date })}
+          />
         </View>
-        <View className="mx-20">
-          <Button
-            size="sm"
-            onPress={handleBackgroundUpload}
-            isDisabled={!!uploading}
-          >
-            <Camera size={16} color={colors.secondaryForeground} />
-            <Button.Label>
-              {uploading === "background" ? "Uploading..." : "Change Background Picture"}
-            </Button.Label>
-            {uploading === "background" && (
-              <Spinner
-                size="sm"
-                color={colors.secondaryForeground}
-                className="ml-2"
+
+        <Separator className="my-5" />
+
+        {/* Address Information */}
+        <View className="flex gap-3">
+          <View className="flex-row gap-2">
+            <Home size={24} color={colors.textPrimary} />
+            <Text className="text-foreground text-lg font-interSemiBold">
+              Address Information
+            </Text>
+          </View>
+
+          <View ref={registerFieldRef("province")}>
+            <DropdownField
+              label="Province:"
+              placeholder="Select Province"
+              bottomSheetLabel="Select Province"
+              options={PROVINCES}
+              value={form.province}
+              onSelect={(value) => handleProvinceChange(value as Province | null)}
+              searchPlaceholder="Search for Province..."
+              enableSearch
+              error={errors.province}
+            />
+          </View>
+
+          <View ref={registerFieldRef("city")}>
+            <DropdownField
+              label="City:"
+              placeholder="Select City"
+              bottomSheetLabel="Select City"
+              options={cities}
+              value={form.city}
+              onSelect={handleCityChange}
+              searchPlaceholder="Search for City..."
+              enableSearch
+              disabled={!form.province}
+              error={errors.city}
+            />
+          </View>
+
+          <View ref={registerFieldRef("barangay")}>
+            <DropdownField
+              label="Barangay:"
+              placeholder="Select Barangay"
+              bottomSheetLabel="Select Barangay"
+              options={barangays}
+              value={form.barangay}
+              onSelect={(value) => updateForm({ barangay: value ?? "" })}
+              searchPlaceholder="Search for Barangay..."
+              enableSearch
+              disabled={!form.city}
+              error={errors.barangay}
+            />
+          </View>
+
+          {/* Auto-filled from city, but user can still correct it */}
+          <View ref={registerFieldRef("postalCode")}>
+            <TextField isRequired isInvalid={!!errors.postalCode}>
+              <Label>Postal Code:</Label>
+              <Input
+                placeholder="Enter Postal Code"
+                value={postalCode}
+                onChangeText={handlePostalCodeChange}
+                keyboardType='numeric'
               />
-            )}
-          </Button>
+              {errors.postalCode && <FieldError>{errors.postalCode}</FieldError>}
+            </TextField>
+          </View>
+
+          <View ref={registerFieldRef("streetAddress")}>
+            <TextField isRequired isInvalid={!!errors.streetAddress}>
+              <Label>Street Address:</Label>
+              <Input
+                placeholder="Enter Street Address"
+                value={form.streetAddress}
+                onChangeText={(text) => updateForm({ streetAddress: text })}
+              />
+              {errors.streetAddress && (
+                <FieldError>{errors.streetAddress}</FieldError>
+              )}
+            </TextField>
+          </View>
         </View>
-      </View>
-
-      <Separator className="my-5" />
-
-      {/* Personal Information */}
-      <View className="flex gap-3">
-        <View className="flex-row gap-2">
-          <User size={24} color={colors.textPrimary} />
-          <Text className="text-foreground text-lg font-interSemiBold">
-            Personal Information
-          </Text>
-        </View>
-
-        {/* Read-only: names pre-filled from Google OAuth */}
-        <TextField isRequired>
-          <Label>First Name:</Label>
-          <Input readOnly placeholder="First Name" value={form.firstName} />
-        </TextField>
-
-        <TextField isRequired>
-          <Label>Last Name:</Label>
-          <Input readOnly placeholder="Last Name" value={form.lastName} />
-        </TextField>
-
-        <TextField>
-          <Label>Middle Name:</Label>
-          <Input readOnly placeholder="Middle Name" value={form.middleName} />
-        </TextField>
-
-        {/* Editable: Gender */}
-        <DropdownField
-          label="Gender:"
-          placeholder="Select Gender"
-          bottomSheetLabel="Select Gender"
-          options={GENDERS}
-          value={form.gender}
-          onSelect={(value) => updateForm({ gender: value ?? "" })}
-          error={errors.gender}
-        />
-
-        {/* Read-only: Date of Birth */}
-        <DateField
-          readOnly
-          placeholder="Select Date of Birth"
-          label="Date of Birth:"
-          value={form.dateOfBirth ?? undefined}
-          onChange={(date) => updateForm({ dateOfBirth: date })}
-        />
-      </View>
-
-      <Separator className="my-5" />
-
-      {/* Address Information */}
-      <View className="flex gap-3">
-        <View className="flex-row gap-2">
-          <Home size={24} color={colors.textPrimary} />
-          <Text className="text-foreground text-lg font-interSemiBold">
-            Address Information
-          </Text>
-        </View>
-
-        <DropdownField
-          label="Province:"
-          placeholder="Select Province"
-          bottomSheetLabel="Select Province"
-          options={PROVINCES}
-          value={form.province}
-          onSelect={(value) => handleProvinceChange(value as Province | null)}
-          searchPlaceholder="Search for Province..."
-          enableSearch
-          error={errors.province}
-        />
-
-        <DropdownField
-          label="City:"
-          placeholder="Select City"
-          bottomSheetLabel="Select City"
-          options={cities}
-          value={form.city}
-          onSelect={handleCityChange}
-          searchPlaceholder="Search for City..."
-          enableSearch
-          disabled={!form.province}
-          error={errors.city}
-        />
-
-        <DropdownField
-          label="Barangay:"
-          placeholder="Select Barangay"
-          bottomSheetLabel="Select Barangay"
-          options={barangays}
-          value={form.barangay}
-          onSelect={(value) => updateForm({ barangay: value ?? "" })}
-          searchPlaceholder="Search for Barangay..."
-          enableSearch
-          disabled={!form.city}
-          error={errors.barangay}
-        />
-
-        {/* Auto-filled from city, but user can still correct it */}
-        <TextField isRequired isInvalid={!!errors.postalCode}>
-          <Label>Postal Code:</Label>
-          <Input
-            placeholder="Enter Postal Code"
-            value={postalCode}
-            onChangeText={handlePostalCodeChange}
-            keyboardType='numeric'
-          />
-          {errors.postalCode && <FieldError>{errors.postalCode}</FieldError>}
-        </TextField>
-
-        <TextField isRequired isInvalid={!!errors.streetAddress}>
-          <Label>Street Address:</Label>
-          <Input
-            placeholder="Enter Street Address"
-            value={form.streetAddress}
-            onChangeText={(text) => updateForm({ streetAddress: text })}
-          />
-          {errors.streetAddress && (
-            <FieldError>{errors.streetAddress}</FieldError>
-          )}
-        </TextField>
       </View>
 
       {/* Save Button for the Fields */}
