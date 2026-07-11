@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import {
   PROVINCES,
@@ -16,10 +17,10 @@ import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
 import ErrorDialog from '@/components/display/ErrorDialog';
 
-import { 
-  usePasswordValidation, 
-  usePHMobileValidation, 
-  usePHPostalCode 
+import {
+  usePasswordValidation,
+  usePHMobileValidation,
+  usePHPostalCode
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
@@ -27,7 +28,7 @@ import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
 import { useColors } from 'hooks/useTheme';
 
-import { 
+import {
   CloseButton,
   TextField,
   Label,
@@ -39,8 +40,8 @@ import {
   InputGroup,
 } from 'heroui-native';
 
-import { 
-  Eye, 
+import {
+  Eye,
   EyeOff,
   CircleCheck,
   Minus,
@@ -115,6 +116,26 @@ export default function CompleteProfile() {
     confirmPassword: ""
   });
 
+  // Scroll-to-error refs
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const contentRef = useRef<View>(null);
+
+  type ScrollableField =
+    | keyof ProfileForm
+    | 'mobileNumber'
+    | 'postalCode';
+
+  const fieldPositions = useRef<Partial<Record<ScrollableField, number>>>({});
+
+  const registerFieldRef = (field: ScrollableField) => (node: View | null) => {
+    if (!node || !contentRef.current) return;
+    node.measureLayout(
+      contentRef.current,
+      (_x: number, y: number) => { fieldPositions.current[field] = y; },
+      () => {},
+    );
+  };
+
   // Password validation hook
   // Tracks password strength requirements separately from the form state
   const {
@@ -171,7 +192,7 @@ export default function CompleteProfile() {
     if (submitted && field === 'confirmPassword' && profileForm.confirmPassword && password !== confirmPassword) {
       return 'Passwords do not match';
     }
-    
+
     // Birth Date Validation
     if (field === 'birthDate' && profileForm.birthDate) {
       const birth = new Date(profileForm.birthDate);
@@ -201,16 +222,35 @@ export default function CompleteProfile() {
     const isMobileValidOnSubmit = validateMobileNumber();
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
 
-    // if any validation fails, return early and show errors
+    // if any validation fails, scroll to first error and return early
     if (
-      !isPasswordValid || 
-      emptyFields.length > 0 || 
-      !isPostalCodeValidOnSubmit || 
+      !isPasswordValid ||
+      emptyFields.length > 0 ||
+      !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
-    ) return;
+    ) {
+      const fieldOrder: ScrollableField[] = [
+        'firstName', 'lastName', 'gender', 'birthDate',
+        'mobileNumber',
+        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+        'password', 'confirmPassword',
+      ];
+      const firstError = fieldOrder.find((field) => {
+        if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
+        if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
+        if (field === 'password') return !isPasswordValid && !!profileForm.password;
+        if (field === 'confirmPassword') return !isPasswordValid;
+        return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();
+      });
+      const y = firstError ? fieldPositions.current[firstError] : undefined;
+      if (y !== undefined) {
+        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true);
+      }
+      return;
+    }
 
     // exclude confirmPassword
-    const { confirmPassword, ...rest } = profileForm; 
+    const { confirmPassword, ...rest } = profileForm;
 
     setLoading(true);
 
@@ -272,7 +312,7 @@ export default function CompleteProfile() {
   const barangaysForSelectedCity = profileForm.city ? getBarangaysByCity(profileForm.city) : [];
 
   return (
-    <ScreenWrapper scrollable className="p-5">
+    <ScreenWrapper scrollable ref={scrollRef} className="p-5">
       {/* Back button */}
       <CloseButton
         onPress={handleBackToSignUp}
@@ -286,7 +326,7 @@ export default function CompleteProfile() {
 
       {/* Form Inputs */}
 
-      <View className="flex gap-4">
+      <View className="flex gap-4" ref={contentRef}>
         {/* Email Address Field */}
         <TextField isDisabled>
           <Label>Email Address:</Label>
@@ -295,7 +335,7 @@ export default function CompleteProfile() {
 
         <Separator />
 
-        {/* 
+        {/*
           ===== Personal Information Section =====
         */}
         <Text className="text-xl text-foreground font-interMedium mt-3">
@@ -303,28 +343,32 @@ export default function CompleteProfile() {
         </Text>
 
         {/* First Name Field */}
-        <TextField isRequired isInvalid={!!getError("firstName")}>
-          <Label>First Name:</Label>
-          <Input
-            placeholder="Enter your first name"
-            onChangeText={(value) => updateField("firstName", value)}
-          />
-          {getError("firstName") && (
-            <FieldError>{getError("firstName")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("firstName")}>
+          <TextField isRequired isInvalid={!!getError("firstName")}>
+            <Label>First Name:</Label>
+            <Input
+              placeholder="Enter your first name"
+              onChangeText={(value) => updateField("firstName", value)}
+            />
+            {getError("firstName") && (
+              <FieldError>{getError("firstName")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Last Name Field */}
-        <TextField isRequired isInvalid={!!getError("lastName")}>
-          <Label>Last Name:</Label>
-          <Input
-            placeholder="Enter your last name"
-            onChangeText={(value) => updateField("lastName", value)}
-          />
-          {getError("lastName") && (
-            <FieldError>{getError("lastName")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("lastName")}>
+          <TextField isRequired isInvalid={!!getError("lastName")}>
+            <Label>Last Name:</Label>
+            <Input
+              placeholder="Enter your last name"
+              onChangeText={(value) => updateField("lastName", value)}
+            />
+            {getError("lastName") && (
+              <FieldError>{getError("lastName")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Middle Name Field */}
         <TextField>
@@ -346,50 +390,56 @@ export default function CompleteProfile() {
         />
 
         {/* Gender Field */}
-        <DropdownField
-          label="Gender:"
-          bottomSheetLabel="Select your gender"
-          placeholder="Select your gender"
-          options={GENDERS}
-          value={profileForm.gender}
-          onSelect={(value) => updateField("gender", value)}
-          required
-          error={getError("gender")}
-        />
+        <View ref={registerFieldRef("gender")}>
+          <DropdownField
+            label="Gender:"
+            bottomSheetLabel="Select your gender"
+            placeholder="Select your gender"
+            options={GENDERS}
+            value={profileForm.gender}
+            onSelect={(value) => updateField("gender", value)}
+            required
+            error={getError("gender")}
+          />
+        </View>
 
         {/* Date of Birth Field */}
-        <DateField
-          label="Date of Birth:"
-          placeholder="Select your date of birth"
-          required
-          value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
-          onChange={(date) => {
-            const formattedDate = date.toISOString().split("T")[0];
-            updateField("birthDate", formattedDate);
-          }}
-          error={getError("birthDate")}
-        />
+        <View ref={registerFieldRef("birthDate")}>
+          <DateField
+            label="Date of Birth:"
+            placeholder="Select your date of birth"
+            required
+            value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
+            onChange={(date) => {
+              const formattedDate = date.toISOString().split("T")[0];
+              updateField("birthDate", formattedDate);
+            }}
+            error={getError("birthDate")}
+          />
+        </View>
 
         {/* Mobile Number Field */}
-        <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
-          <Label>Mobile Number:</Label>
-          <Input
-            placeholder="Enter your mobile number"
-            keyboardType="phone-pad"
-            maxLength={13}
-            value={mobileNumber}
-            onChangeText={(value) => {
-              onMobileChange(value);
-            }}
-          />
-          {mobileValidation.errorMessage && (
-            <FieldError>{mobileValidation.errorMessage}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("mobileNumber")}>
+          <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
+            <Label>Mobile Number:</Label>
+            <Input
+              placeholder="Enter your mobile number"
+              keyboardType="phone-pad"
+              maxLength={13}
+              value={mobileNumber}
+              onChangeText={(value) => {
+                onMobileChange(value);
+              }}
+            />
+            {mobileValidation.errorMessage && (
+              <FieldError>{mobileValidation.errorMessage}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         <Separator />
 
-        {/* 
+        {/*
           ===== Address Information Section =====
         */}
         <Text className="text-xl text-foreground font-interMedium mt-3">
@@ -397,83 +447,93 @@ export default function CompleteProfile() {
         </Text>
 
         {/* Province Field */}
-        <DropdownField
-          label="Province:"
-          bottomSheetLabel="Select your province"
-          placeholder="Select your province"
-          options={PROVINCES}
-          value={profileForm.province}
-          onSelect={handleProvinceChange}
-          enableSearch
-          searchPlaceholder="Search provinces..."
-          required
-          error={getError("province")}
-        />
+        <View ref={registerFieldRef("province")}>
+          <DropdownField
+            label="Province:"
+            bottomSheetLabel="Select your province"
+            placeholder="Select your province"
+            options={PROVINCES}
+            value={profileForm.province}
+            onSelect={handleProvinceChange}
+            enableSearch
+            searchPlaceholder="Search provinces..."
+            required
+            error={getError("province")}
+          />
+        </View>
 
         {/* City Field */}
-        <DropdownField
-          label="City:"
-          bottomSheetLabel="Select your city"
-          placeholder="Select your city"
-          options={profileForm.province ? citiesForSelectedProvince : []}
-          value={profileForm.city}
-          onSelect={handleCityChange}
-          required
-          error={getError("city")}
-          enableSearch
-          searchPlaceholder="Search cities..."
-          disabled={!profileForm.province}
-        />
+        <View ref={registerFieldRef("city")}>
+          <DropdownField
+            label="City:"
+            bottomSheetLabel="Select your city"
+            placeholder="Select your city"
+            options={profileForm.province ? citiesForSelectedProvince : []}
+            value={profileForm.city}
+            onSelect={handleCityChange}
+            required
+            error={getError("city")}
+            enableSearch
+            searchPlaceholder="Search cities..."
+            disabled={!profileForm.province}
+          />
+        </View>
 
         {/* Barangay Field */}
-        <DropdownField
-          label="Barangay:"
-          bottomSheetLabel="Select your barangay"
-          placeholder="Select your barangay"
-          options={profileForm.city ? barangaysForSelectedCity : []}
-          value={profileForm.barangay}
-          onSelect={(value) => updateField("barangay", value)}
-          required
-          error={getError("barangay")}
-          enableSearch
-          searchPlaceholder="Search barangays..."
-          disabled={!profileForm.city}
-        />
+        <View ref={registerFieldRef("barangay")}>
+          <DropdownField
+            label="Barangay:"
+            bottomSheetLabel="Select your barangay"
+            placeholder="Select your barangay"
+            options={profileForm.city ? barangaysForSelectedCity : []}
+            value={profileForm.barangay}
+            onSelect={(value) => updateField("barangay", value)}
+            required
+            error={getError("barangay")}
+            enableSearch
+            searchPlaceholder="Search barangays..."
+            disabled={!profileForm.city}
+          />
+        </View>
 
         {/* Postal Code Field */}
-        <TextField isRequired isInvalid={!!postalCodeError}>
-          <Label>Postal Code:</Label>
-          <Input
-            placeholder="Enter your postal code"
-            keyboardType="numeric"
-            maxLength={4}
-            value={postalCode}
-            onChangeText={(value) => {
-              handlePostalCodeChange(value);
-            }}
-            onBlur={handlePostalCodeBlur}
-          />
-          {postalCodeError && (
-            <FieldError>{postalCodeError}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("postalCode")}>
+          <TextField isRequired isInvalid={!!postalCodeError}>
+            <Label>Postal Code:</Label>
+            <Input
+              placeholder="Enter your postal code"
+              keyboardType="numeric"
+              maxLength={4}
+              value={postalCode}
+              onChangeText={(value) => {
+                handlePostalCodeChange(value);
+              }}
+              onBlur={handlePostalCodeBlur}
+            />
+            {postalCodeError && (
+              <FieldError>{postalCodeError}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Street Address Field */}
-        <TextField isRequired isInvalid={!!getError("streetAddress")}>
-          <Label>Street Address:</Label>
-          <Input
-            className="shadow-none"
-            placeholder="Enter your street address"
-            onChangeText={(value) => updateField("streetAddress", value)}
-          />
-          {getError("streetAddress") && (
-            <FieldError>{getError("streetAddress")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("streetAddress")}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         <Separator />
 
-        {/* 
+        {/*
           ===== Account Security Section =====
         */}
         <Text className="text-xl text-foreground font-interMedium mt-3">
@@ -481,69 +541,73 @@ export default function CompleteProfile() {
         </Text>
 
         {/* Password Field */}
-        <TextField isRequired isInvalid={!!getError("password")}>
-          <Label>Password:</Label>
-          <InputGroup>
-            <InputGroup.Input
-              placeholder="Create a password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-                updateField("password", value);
-              }}
-            />
+        <View ref={registerFieldRef("password")}>
+          <TextField isRequired isInvalid={!!getError("password")}>
+            <Label>Password:</Label>
+            <InputGroup>
+              <InputGroup.Input
+                placeholder="Create a password"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  updateField("password", value);
+                }}
+              />
 
-            <InputGroup.Suffix>
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={20}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color={colors.gray400} />
-                ) : (
-                  <Eye size={20} color={colors.gray400} />
-                )}
-              </Pressable>
-            </InputGroup.Suffix>
-          </InputGroup>
-          {getError("password") && (
-            <FieldError>{getError("password")}</FieldError>
-          )}
-        </TextField>
+              <InputGroup.Suffix>
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={20}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color={colors.gray400} />
+                  ) : (
+                    <Eye size={20} color={colors.gray400} />
+                  )}
+                </Pressable>
+              </InputGroup.Suffix>
+            </InputGroup>
+            {getError("password") && (
+              <FieldError>{getError("password")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Confirm Password Field */}
-        <TextField isRequired isInvalid={!!getError("confirmPassword")}>
-          <Label>Confirm Password:</Label>
-          <InputGroup>
-            <InputGroup.Input
-              placeholder="Confirm your password"
-              secureTextEntry={!showConfirmPassword}
-              value={confirmPassword}
-              onChangeText={(value) => {
-                setConfirmPassword(value);
-                updateField("confirmPassword", value);
-              }}
-            />
+        <View ref={registerFieldRef("confirmPassword")}>
+          <TextField isRequired isInvalid={!!getError("confirmPassword")}>
+            <Label>Confirm Password:</Label>
+            <InputGroup>
+              <InputGroup.Input
+                placeholder="Confirm your password"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  updateField("confirmPassword", value);
+                }}
+              />
 
-            <InputGroup.Suffix>
-              <Pressable
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hitSlop={20}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color={colors.gray400} />
-                ) : (
-                  <Eye size={20} color={colors.gray400} />
-                )}
-              </Pressable>
-            </InputGroup.Suffix>
-          </InputGroup>
+              <InputGroup.Suffix>
+                <Pressable
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  hitSlop={20}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} color={colors.gray400} />
+                  ) : (
+                    <Eye size={20} color={colors.gray400} />
+                  )}
+                </Pressable>
+              </InputGroup.Suffix>
+            </InputGroup>
 
-          {getError("confirmPassword") && (
-            <FieldError>{getError("confirmPassword")}</FieldError>
-          )}
-        </TextField>
+            {getError("confirmPassword") && (
+              <FieldError>{getError("confirmPassword")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Password Checker */}
         <View className="flex-col gap-1">
@@ -626,7 +690,7 @@ export default function CompleteProfile() {
       </View>
 
       {/* Error Dialog */}
-      <ErrorDialog 
+      <ErrorDialog
         isOpen={errorDialogOpen}
         onClose={() => setErrorDialogOpen(false)}
         message={error}
