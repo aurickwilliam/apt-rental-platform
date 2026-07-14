@@ -1,10 +1,8 @@
-import { View, Text } from 'react-native'
+import { View, Text, ImageSourcePropType } from 'react-native'
 import { Image, ImageSource } from 'expo-image';
-
-import { Star } from 'lucide-react-native';
-
+import { IconStar, IconStarHalfFilled, IconStarFilled } from '@tabler/icons-react-native';
+import { Avatar, Card, PressableFeedback } from 'heroui-native';
 import { DEFAULT_IMAGES } from '../../constants/images'
-
 import { useColors } from '@/hooks/useTheme';
 
 interface SmallRatingCardProps {
@@ -13,6 +11,19 @@ interface SmallRatingCardProps {
   rating: number;
   comment: string;
   date: string;
+  onPress?: () => void;
+}
+
+function StarIcon({ index, rating, size, color }: { index: number; rating: number; size: number; color: string }) {
+  const diff = rating - index;
+
+  if (diff >= 1) {
+    return <IconStarFilled size={size} color={color} />;
+  }
+  if (diff >= 0.5) {
+    return <IconStarHalfFilled size={size} color={color} />;
+  }
+  return <IconStar size={size} color={color} />;
 }
 
 export default function SmallRatingCard({
@@ -20,55 +31,59 @@ export default function SmallRatingCard({
   profilePictureUrl = DEFAULT_IMAGES.defaultProfilePicture,
   rating,
   comment,
-  date
+  date,
+  onPress
 }: SmallRatingCardProps) {
   const { colors } = useColors();
-
   return (
-    <View className='bg-darkerWhite p-3 rounded-xl'>
-      <View className='flex-row items-center justify-between'>
-        {/* Name and Profile Pic */}
-        <View className='flex-row items-center gap-2'>
-          {/* Profile Picture */}
-          <View className='rounded-full size-10 overflow-hidden border border-secondary'>
-            <Image 
-              source={profilePictureUrl}
-              style={{ width: '100%', height: '100%' }}
-            />
+    <PressableFeedback onPress={onPress} className='rounded-3xl border border-border'>
+      <PressableFeedback.Highlight />
+      <Card variant="transparent" className='bg-surface p-3 rounded-3xl h-30'>
+        <Card.Header className='flex-row items-center justify-between'>
+          <View className='flex-row items-center gap-2'>
+            <Avatar size="sm" className='border border-border'>
+              <Avatar.Image source={profilePictureUrl as ImageSourcePropType} />
+              <Avatar.Fallback />
+            </Avatar>
+            <View>
+              <Card.Title
+                className='font-interMedium text-sm text-foreground'
+                numberOfLines={1}
+              >
+                {accountName}
+              </Card.Title>
+              <Text className='font-inter text-xs text-muted'>
+                {date}
+              </Text>
+            </View>
           </View>
+          <View className='flex-row items-center gap-1'>
+            <View className='flex-row items-center gap-0.5'>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <StarIcon
+                  key={index}
+                  index={index}
+                  rating={rating}
+                  size={16}
+                  color={colors.secondary}
+                />
+              ))}
+            </View>
 
-          {/* Name and Date */}
-          <View>
-            <Text className='font-interMedium text-base text-text'>
-              {accountName}
-            </Text>
-
-            <Text className='font-inter text-sm text-grey-500'>
-              {date}
+            <Text className='font-interMedium text-xs text-foreground'>
+              {rating.toFixed(1)}
             </Text>
           </View>
-        </View>
-    
-        {/* Ratings */}
-        <View className='flex-row items-center gap-1'>
-          <Text className='font-interMedium text-base text-text'>
-            {rating}
-          </Text>
-
-          <Star 
-            size={20}
-            color={colors.secondary}
-            fill={colors.secondary}
-          />
-        </View>
-      </View>
-
-      {/* Comment */}
-      <View className='mt-3'>
-        <Text className='font-inter text-sm text-text'>
-          {comment}
-        </Text>
-      </View>
-    </View>
+        </Card.Header>
+        <Card.Body className='mt-3'>
+          <Card.Description
+            numberOfLines={2}
+            className='font-inter text-sm text-text'
+          >
+            {comment}
+          </Card.Description>
+        </Card.Body>
+      </Card>
+    </PressableFeedback>
   )
 }

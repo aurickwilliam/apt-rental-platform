@@ -2,13 +2,13 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
 import {
-  UserRoundCog,
-  MessageSquareText,
-  BanknoteArrowUp,
-  Hammer,
-  House,
-  Info
-} from 'lucide-react-native';
+  IconUserCog,
+  IconMessage,
+  IconCashBanknote,
+  IconHammer,
+  IconHome,
+  IconInfoCircle,
+} from '@tabler/icons-react-native';
 
 import { useColors } from '@/hooks/useTheme';
 
@@ -30,11 +30,11 @@ export default function NotificationCard({
   const { colors } = useColors();
 
   const iconMap = {
-    payment: BanknoteArrowUp,
-    message: MessageSquareText,
-    maintenance: Hammer,
-    apartment: House,
-    system: UserRoundCog,
+    payment: IconCashBanknote,
+    message: IconMessage,
+    maintenance: IconHammer,
+    apartment: IconHome,
+    system: IconUserCog,
   }
 
   const colorMap = {
@@ -45,7 +45,7 @@ export default function NotificationCard({
     system: colors.gray500,
   }
 
-  const Icon = iconMap[type] ?? Info;
+  const Icon = iconMap[type] ?? IconInfoCircle;
   const iconColor = colorMap[type] ?? colors.gray500;
 
   return (

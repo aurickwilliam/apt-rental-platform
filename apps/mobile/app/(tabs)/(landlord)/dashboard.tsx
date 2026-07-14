@@ -6,7 +6,7 @@ import { IMAGES } from "@/constants/images";
 
 import { supabase } from "@repo/supabase";
 
-import { Bell } from "lucide-react-native";
+import { IconBell } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
@@ -154,7 +154,7 @@ export default function Dashboard() {
           variant="ghost"
           isIconOnly
         >
-          <Bell size={26} color={colors.gray500} />
+          <IconBell size={26} color={colors.gray500} />
         </Button>
       </View>
 

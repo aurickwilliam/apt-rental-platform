@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-import { Building, CirclePlus } from "lucide-react-native";
+import { IconBuilding, IconCirclePlus } from "@tabler/icons-react-native";
 
 import { Button } from "heroui-native";
 
@@ -16,7 +16,7 @@ export default function EmptyProperties({ onAdd }: Props) {
   return (
     <View className="items-center justify-center py-16 gap-4">
       <View className="bg-gray-100 rounded-full p-6">
-        <Building size={48} color={colors.gray500} />
+        <IconBuilding size={48} color={colors.gray500} />
       </View>
       <View className="items-center gap-1">
         <Text className="text-text text-lg font-interSemiBold">
@@ -27,7 +27,7 @@ export default function EmptyProperties({ onAdd }: Props) {
         </Text>
       </View>
       <Button onPress={onAdd}>
-        <CirclePlus size={20} color={colors.white} />
+        <IconCirclePlus size={20} color={colors.white} />
         <Button.Label>Add Property</Button.Label>
       </Button>
     </View>

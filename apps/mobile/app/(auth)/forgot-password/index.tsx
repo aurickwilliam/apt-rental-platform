@@ -6,10 +6,10 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import { Button, CloseButton } from 'heroui-native'
 
 import {
-  Mail,
-  ChevronLeft,
-  MessageCircleMore,
-} from 'lucide-react-native'
+  IconMail,
+  IconChevronLeft,
+  IconMessageCircle,
+} from '@tabler/icons-react-native'
 
 import { useColors } from 'hooks/useTheme';
 
@@ -35,7 +35,7 @@ export default function Index() {
           onPress={() => router.back()}
           className='my-5'
         >
-          <ChevronLeft size={26} color={colors.textPrimary} />
+          <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
       
@@ -58,7 +58,7 @@ export default function Index() {
             variant='outline'
             onPress={() => handleForgotPassword('sms')}
           >
-            <MessageCircleMore size={20} color={colors.textPrimary} />
+            <IconMessageCircle size={20} color={colors.textPrimary} />
             <Button.Label className='font-interMedium'>
               Send via SMS
             </Button.Label>

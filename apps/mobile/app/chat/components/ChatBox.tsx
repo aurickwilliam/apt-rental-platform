@@ -1,7 +1,7 @@
-import { View } from 'react-native'
-import { useState } from 'react'
+import { View } from 'react-native';
+import { useState } from 'react';
 
-import { Send } from 'lucide-react-native';
+import { IconSend } from '@tabler/icons-react-native';
 
 import { Button,TextField, InputGroup } from 'heroui-native';
 
@@ -62,7 +62,7 @@ export default function ChatBox({
                 onPress={onSendPress}
                 className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
               >
-                <Send size={20} color={colors.secondaryForeground} />
+                <IconSend size={20} color={colors.secondaryForeground} />
               </Button>
             </InputGroup.Suffix>
           )}

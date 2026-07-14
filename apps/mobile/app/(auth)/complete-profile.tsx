@@ -41,11 +41,11 @@ import {
 } from 'heroui-native';
 
 import {
-  Eye,
-  EyeOff,
-  CircleCheck,
-  Minus,
-} from "lucide-react-native";
+  IconEye,
+  IconEyeOff,
+  IconCircleCheckFilled,
+  IconMinus,
+} from "@tabler/icons-react-native";
 
 type ProfileForm = {
   email: string;
@@ -561,9 +561,9 @@ export default function CompleteProfile() {
                   hitSlop={20}
                 >
                   {showPassword ? (
-                    <EyeOff size={20} color={colors.gray400} />
+                    <IconEyeOff size={20} color={colors.gray400} />
                   ) : (
-                    <Eye size={20} color={colors.gray400} />
+                    <IconEye size={20} color={colors.gray400} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>
@@ -595,9 +595,9 @@ export default function CompleteProfile() {
                   hitSlop={20}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20} color={colors.gray400} />
+                    <IconEyeOff size={20} color={colors.gray400} />
                   ) : (
-                    <Eye size={20} color={colors.gray400} />
+                    <IconEye size={20} color={colors.gray400} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>
@@ -618,9 +618,9 @@ export default function CompleteProfile() {
           {/* Minimum Length of 8 Char */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.minLength ? (
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheckFilled size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={colors.gray300} />
+              <IconMinus size={20} color={colors.gray300} />
             )}
 
             <Text className="text-foreground font-inter">At least 8 characters</Text>
@@ -629,9 +629,9 @@ export default function CompleteProfile() {
           {/* At least one lowercase letter (a–z) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasLowercase ? (
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheckFilled size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={colors.gray200} />
+              <IconMinus size={20} color={colors.gray200} />
             )}
 
             <Text className="text-foreground font-inter">
@@ -642,9 +642,9 @@ export default function CompleteProfile() {
           {/* At least one uppercase letter (A–Z) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasUppercase ? (
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheckFilled size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={colors.gray300} />
+              <IconMinus size={20} color={colors.gray300} />
             )}
 
             <Text className="text-foreground font-inter">
@@ -655,9 +655,9 @@ export default function CompleteProfile() {
           {/* At least one number (0–9) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasNumber ? (
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheckFilled size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={colors.gray300} />
+              <IconMinus size={20} color={colors.gray300} />
             )}
 
             <Text className="text-foreground font-inter">
@@ -668,9 +668,9 @@ export default function CompleteProfile() {
           {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
           <View className="flex-row items-center gap-2">
             {passwordRequirements.hasSpecialChar ? (
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheckFilled size={20} color={colors.success} />
             ) : (
-              <Minus size={20} color={colors.gray300} />
+              <IconMinus size={20} color={colors.gray300} />
             )}
             <Text className="text-foreground font-inter">
               at least one special character (e.g. ! @ # $ % ^ & *)

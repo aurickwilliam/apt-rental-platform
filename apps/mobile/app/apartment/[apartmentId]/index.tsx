@@ -4,7 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { Heart, ChevronLeft } from "lucide-react-native";
+import {
+  IconHeart,
+  IconHeartFilled,
+  IconChevronLeft,
+} from "@tabler/icons-react-native";
 
 import {
   ApartmentHeroSection,
@@ -172,7 +176,7 @@ export default function ApartmentScreen() {
       {/* Back Button */}
       <View className="absolute left-4" style={{ top: insets.top + 8 }}>
         <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
-          <ChevronLeft size={24} color={colors.textPrimary} />
+          <IconChevronLeft size={24} color={colors.textPrimary} />
         </Button>
       </View>
 
@@ -184,9 +188,9 @@ export default function ApartmentScreen() {
           isIconOnly
         >
           {isFavorite(apartmentId) ? (
-            <Heart size={24} color={colors.danger} fill={colors.danger} />
+            <IconHeartFilled size={24} color={colors.danger} />
           ) : (
-            <Heart size={24} color={colors.gray400} />
+            <IconHeart size={24} color={colors.gray400} />
           )}
         </Button>
       </View>

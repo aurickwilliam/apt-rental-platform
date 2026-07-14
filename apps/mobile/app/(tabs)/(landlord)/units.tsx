@@ -14,11 +14,11 @@ import PropertyFilterSheet, {
 } from "../components/units/PropertyFilterSheet";
 
 import {
-  FileText,
-  Home,
-  Hammer,
-  CirclePlus,
-} from "lucide-react-native";
+  IconFileText,
+  IconHome,
+  IconHammer,
+  IconCirclePlus,
+} from "@tabler/icons-react-native";
 
 import {
   SearchField,
@@ -132,24 +132,24 @@ export default function Units() {
         <View className="flex-row flex-wrap">
           <QuickActionButton
             label={"Add Property"}
-            icon={CirclePlus}
+            icon={IconCirclePlus}
             onPress={() => router.push("/landlord/manage-apartment/add-apartment/")}
           />
           <QuickActionButton
             label={"Maintenance Request"}
-            icon={Hammer}
+            icon={IconHammer}
             badgeCount={counts.maintenance}
             onPress={() => router.push("/landlord/maintenance-requests")}
           />
           <QuickActionButton
             label={"Visit Request"}
-            icon={Home}
+            icon={IconHome}
             badgeCount={counts.visits}
             onPress={() => router.push("/landlord/visit-requests")}
           />
           <QuickActionButton
             label={"Tenant Applications"}
-            icon={FileText}
+            icon={IconFileText}
             badgeCount={counts.applications}
             onPress={() => router.push("/landlord/tenant-applications")}
           />

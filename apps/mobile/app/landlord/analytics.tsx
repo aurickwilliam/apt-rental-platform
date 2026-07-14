@@ -1,6 +1,11 @@
 import { View, Text, ScrollView } from "react-native";
 
-import { TrendingUp, DollarSign, Home, Users } from "lucide-react-native";
+import {
+  IconTrendingUp,
+  IconCurrencyDollar,
+  IconHome,
+  IconUsers,
+} from "@tabler/icons-react-native";
 
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
@@ -13,28 +18,28 @@ const stats = [
     label: "Total Revenue",
     value: "₱ 120,000",
     sub: "This month",
-    icon: DollarSign,
+    icon: IconCurrencyDollar,
   },
   {
     id: 2,
     label: "Active Units",
     value: "8",
     sub: "Out of 10 listed",
-    icon: Home,
+    icon: IconHome,
   },
   {
     id: 3,
     label: "Active Tenants",
     value: "8",
     sub: "Currently renting",
-    icon: Users,
+    icon: IconUsers,
   },
   {
     id: 4,
     label: "Growth",
     value: "+12%",
     sub: "vs last month",
-    icon: TrendingUp,
+    icon: IconTrendingUp,
   },
 ];
 

@@ -1,16 +1,16 @@
 import { View, ScrollView } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import type React from 'react';
 
 import { supabase } from '@repo/supabase';
 
 import {
-  UserPen,
-  FileText,
-  Settings,
-  LogOut,
-  LucideIcon,
-} from 'lucide-react-native';
+  IconUserEdit,
+  IconFileText,
+  IconSettings,
+  IconLogout,
+} from '@tabler/icons-react-native';
 
 import { Button, ListGroup, Separator } from 'heroui-native';
 
@@ -47,24 +47,24 @@ export default function Profile() {
 
   type ListItem = {
     title: string;
-    icon: LucideIcon;
+    icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
     onPress: () => void;
   };
 
   const listItems: ListItem[] = [
     {
       title: 'Edit Profile',
-      icon: UserPen,
+      icon: IconUserEdit,
       onPress: () => router.push('/edit-profile'),
     },
     {
       title: 'Document & IDs',
-      icon: FileText,
+      icon: IconFileText,
       onPress: () => router.push('/document-id'),
     },
     {
       title: 'Settings',
-      icon: Settings,
+      icon: IconSettings,
       onPress: () => router.push('/settings'),
     }
   ]
@@ -135,7 +135,7 @@ export default function Profile() {
           variant='danger'
           size='md'
         >
-          <LogOut size={16} color='white' />
+          <IconLogout size={16} color='white' />
           <Button.Label>Logout</Button.Label>
         </Button>
       </View>

@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { ChartPie } from "lucide-react-native";
+import { IconChartPie } from "@tabler/icons-react-native";
 import { Button } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
@@ -63,7 +63,7 @@ export default function PropertyStats({
       </View>
 
       <Button onPress={onAnalyticsPress}>
-        <ChartPie size={20} color={colors.secondaryForeground} />
+        <IconChartPie size={20} color={colors.secondaryForeground} />
         <Button.Label>Budget Analytics</Button.Label>
       </Button>
     </View>

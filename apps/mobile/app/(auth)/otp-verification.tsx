@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ErrorDialog from '@/components/display/ErrorDialog'
 
-import { ChevronLeft } from 'lucide-react-native'
+import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import { supabase } from '@repo/supabase'
 
@@ -155,7 +155,7 @@ export default function OTPVerification() {
             className="-ml-2"
             onPress={router.back}
           >
-            <ChevronLeft size={26} color={colors.textPrimary} />
+            <IconChevronLeft size={26} color={colors.textPrimary} />
           </CloseButton>
 
           {/* Title */}

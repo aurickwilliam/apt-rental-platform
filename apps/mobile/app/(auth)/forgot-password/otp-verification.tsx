@@ -12,7 +12,7 @@ import {
   REGEXP_ONLY_DIGITS,
 } from "heroui-native";
 
-import { ChevronLeft } from 'lucide-react-native';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -55,7 +55,7 @@ export default function OTPVerification() {
     <ScreenWrapper className="px-5">
       <View>
         <CloseButton onPress={() => router.back()} className="my-5">
-          <ChevronLeft size={26} color={colors.textPrimary} />
+          <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
 

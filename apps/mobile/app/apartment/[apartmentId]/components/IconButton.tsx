@@ -1,11 +1,16 @@
 import { TouchableOpacity } from 'react-native';
-
-import { LucideIcon } from 'lucide-react-native';
+import type React from 'react';
 
 import { useColors } from 'hooks/useTheme';
 
+type IconComponent = React.ComponentType<{
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+}>;
+
 interface IconButtonProps {
-  iconName: LucideIcon;
+  iconName: IconComponent;
   buttonColor?: string;
   iconColor?: string;
   onPress?: () => void;
@@ -32,10 +37,7 @@ export default function IconButton({
         opacity: 0.9
       }}
     >
-      <IconName
-        size={24}
-        color={iconColor}
-      />
+      <IconName size={24} color={iconColor} />
     </TouchableOpacity>
   );
 }
