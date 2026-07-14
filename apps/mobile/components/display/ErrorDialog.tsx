@@ -1,6 +1,8 @@
-import { View } from 'react-native'
+import { IconView } from 'react-native'
 
-import { CircleAlert } from 'lucide-react-native'
+import { CircleAlert as View } from 'react-native'
+
+import { CircleAlert } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 

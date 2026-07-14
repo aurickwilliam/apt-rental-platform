@@ -1,12 +1,11 @@
 import { TouchableOpacity, Text, View } from "react-native";
-
-import { LucideIcon } from "lucide-react-native";
+import type React from "react";
 
 import { useColors } from "hooks/useTheme";
 
 interface QuickActionButtonProps {
   label: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress?: () => void;
   badgeCount?: number;
 }

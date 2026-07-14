@@ -1,5 +1,6 @@
-import { Button, Menu } from 'heroui-native'
-import { EllipsisVertical, LogOut, CircleX } from 'lucide-react-native'
+import { IconButton as Button, IconMenu } from 'heroui-native'
+import { EllipsisVertical as Menu } from 'heroui-native'
+import { EllipsisVertical, IconLogout as LogOut, IconCircleX as CircleX } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
 

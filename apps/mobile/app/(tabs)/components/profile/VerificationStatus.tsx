@@ -1,14 +1,14 @@
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router';
+import type React from 'react';
 
 import {
-  IdCard,
-  CircleCheck,
-  CircleAlert,
-  CircleX,
-  Camera,
-  LucideIcon
-} from 'lucide-react-native';
+  IconId,
+  IconCircleCheck,
+  IconAlertCircle,
+  IconCircleX,
+  IconCamera,
+} from '@tabler/icons-react-native';
 
 import { Button, Card } from 'heroui-native';
 
@@ -20,7 +20,7 @@ type StatusConfig = {
   [key in AccountStatus]: {
     text: string;
     style: string;
-    icon: LucideIcon;
+    icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
     iconColor: string;
   };
 };
@@ -43,25 +43,25 @@ export default function VerificationStatus({
     verified: {
       text: 'Verified Tenant',
       style: 'text-success',
-      icon: CircleCheck,
+      icon: IconCircleCheck,
       iconColor: colors.success,
     },
     pending: {
       text: 'Pending Verification',
       style: 'text-warning',
-      icon: CircleAlert,
+      icon: IconAlertCircle,
       iconColor: colors.warning,
     },
     rejected: {
       text: 'Rejected',
       style: 'text-danger',
-      icon: CircleX,
+      icon: IconCircleX,
       iconColor: colors.danger,
     },
     unverified: {
       text: 'Not Verified',
       style: 'text-gray-500',
-      icon: CircleAlert,
+      icon: IconAlertCircle,
       iconColor: colors.gray500,
     },
   };
@@ -72,7 +72,7 @@ export default function VerificationStatus({
   return (
     <Card className='mx-5 shadow-none border border-border bg-surface'>
       <Card.Header className='flex-row gap-3 items-center pb-0'>
-        <IdCard size={24} color={colors.textPrimary} />
+        <IconId size={24} color={colors.textPrimary} />
         <Card.Title className='text-foreground font-interSemiBold'>
           Verification Status
         </Card.Title>
@@ -97,7 +97,7 @@ export default function VerificationStatus({
               onPress={() => router.push('/(auth)/verify-account')}
               className='w-full'
             >
-              <Camera size={16} color='white' />
+              <IconCamera size={16} color='white' />
               <Button.Label>Re-Apply for Verification</Button.Label>
             </Button>
           </>
@@ -136,7 +136,7 @@ export default function VerificationStatus({
               onPress={() => router.push('/(auth)/verify-account')}
               className='w-full'
             >
-              <Camera size={16} color='white' />
+              <IconCamera size={16} color='white' />
               <Button.Label>Apply for Verification</Button.Label>
             </Button>
           </>

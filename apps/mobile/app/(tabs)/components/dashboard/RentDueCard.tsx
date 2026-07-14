@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
-import { Building } from 'lucide-react-native';
+import { IconBuilding } from '@tabler/icons-react-native';
 
 import { formatPesoDisplay } from '@repo/utils';
 
@@ -31,7 +31,7 @@ export default function RentDueCard({
       onPress={onPress}
     >
       <View className='flex-row gap-1 items-center'>
-        <Building
+        <IconBuilding
           size={22}
           color={colors.gray500}
         />

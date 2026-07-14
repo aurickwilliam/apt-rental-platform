@@ -1,11 +1,11 @@
 import { View } from 'react-native';
 
 import {
-  MapPin,
-  LayoutGrid,
-  Rows3,
-  Heart,
-} from 'lucide-react-native';
+  IconMapPin,
+  IconLayoutGrid,
+  IconLayoutRows,
+  IconHeart,
+} from '@tabler/icons-react-native';
 
 import DropdownButton from 'components/buttons/DropdownButton';
 
@@ -35,7 +35,7 @@ export default function SearchHeader({
   return (
     <View className='flex-row items-center justify-between mb-3 px-5'>
       <View className='flex-row gap-2'>
-        <MapPin size={30} color={colors.primary} />
+        <IconMapPin size={30} color={colors.primary} />
 
         <DropdownButton
           bottomSheetLabel='Select Location'
@@ -53,7 +53,7 @@ export default function SearchHeader({
           variant='ghost' 
           className='p-0'
         >
-          <Heart size={24} color={colors.gray500} />
+          <IconHeart size={24} color={colors.gray500} />
         </Button>
 
         <Button
@@ -62,9 +62,9 @@ export default function SearchHeader({
           className='p-0'
         >
           {isGridView ? (
-            <LayoutGrid size={24} color={colors.gray500} />
+            <IconLayoutGrid size={24} color={colors.gray500} />
           ) : (
-            <Rows3 size={24} color={colors.gray500} />
+            <IconLayoutRows size={24} color={colors.gray500} />
           )}
         </Button>
       </View>

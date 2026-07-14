@@ -24,7 +24,7 @@ import {
   Province,
 } from "@repo/constants";
 
-import { Camera, User, Home } from "lucide-react-native";
+import { IconCamera, IconUser, IconHome } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 import { useProfile } from "@/hooks/auth";
@@ -334,7 +334,7 @@ export default function EditProfile() {
               onPress={handleAvatarUpload}
               isDisabled={!!uploading}
             >
-              <Camera size={16} color={colors.secondaryForeground} />
+              <IconCamera size={16} color={colors.secondaryForeground} />
               <Button.Label>
                 {uploading === "avatar" ? "Uploading..." : "Change Profile Picture"}
               </Button.Label>
@@ -371,7 +371,7 @@ export default function EditProfile() {
               onPress={handleBackgroundUpload}
               isDisabled={!!uploading}
             >
-              <Camera size={16} color={colors.secondaryForeground} />
+              <IconCamera size={16} color={colors.secondaryForeground} />
               <Button.Label>
                 {uploading === "background" ? "Uploading..." : "Change Background Picture"}
               </Button.Label>
@@ -391,7 +391,7 @@ export default function EditProfile() {
         {/* Personal Information */}
         <View className="flex gap-3">
           <View className="flex-row gap-2">
-            <User size={24} color={colors.textPrimary} />
+            <IconUser size={24} color={colors.textPrimary} />
             <Text className="text-foreground text-lg font-interSemiBold">
               Personal Information
             </Text>
@@ -441,7 +441,7 @@ export default function EditProfile() {
         {/* Address Information */}
         <View className="flex gap-3">
           <View className="flex-row gap-2">
-            <Home size={24} color={colors.textPrimary} />
+            <IconHome size={24} color={colors.textPrimary} />
             <Text className="text-foreground text-lg font-interSemiBold">
               Address Information
             </Text>

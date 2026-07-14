@@ -1,6 +1,6 @@
 import { TouchableOpacity, View, Text } from "react-native";
 
-import { CalendarDays } from "lucide-react-native";
+import { IconCalendar } from "@tabler/icons-react-native";
 
 import { useColors } from "hooks/useTheme";
 
@@ -29,7 +29,7 @@ export default function PaymentHistoryCard({
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           {/* Calendar Icon */}
-          <CalendarDays size={20} color={colors.gray500} />
+          <IconCalendar size={20} color={colors.gray500} />
 
           {/* Month Year */}
           <Text className="text-gray-500 text-base font-interSemiBold">

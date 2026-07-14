@@ -22,7 +22,7 @@ import { PERKS } from "@/constants/perks";
 
 import { useColors } from "hooks/useTheme";
 
-import { ShieldCheck } from "lucide-react-native";
+import { IconShieldCheck } from "@tabler/icons-react-native";
 
 const MAX_SIZE = 300;
 const MIN_BUDGET = 1000;
@@ -181,7 +181,7 @@ export default function FilterBottomSheet({
                 setFilters((p) => ({ ...p, verifiedOnly: !p.verifiedOnly }))
               }
             >
-              <ShieldCheck
+              <IconShieldCheck
                 size={14}
                 color={filters.verifiedOnly ? colors.success : colors.gray400}
               />

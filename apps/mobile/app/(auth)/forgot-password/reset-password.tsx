@@ -11,7 +11,7 @@ import { Button, FieldError, Label, TextField } from 'heroui-native';
 import { usePasswordValidation } from '@repo/hooks';
 import { useColors } from '@/hooks/useTheme';
 
-import { Eye, EyeOff } from 'lucide-react-native';
+import { IconEye, IconEyeOff } from '@tabler/icons-react-native';
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -95,9 +95,9 @@ export default function ResetPassword() {
               className="absolute right-3"
             >
               {showPassword ? (
-                <EyeOff size={18} color={colors.textSecondary} />
+                <IconEyeOff size={18} color={colors.textSecondary} />
               ) : (
-                <Eye size={18} color={colors.textSecondary} />
+                <IconEye size={18} color={colors.textSecondary} />
               )}
             </Pressable>
           </View>
@@ -126,9 +126,9 @@ export default function ResetPassword() {
               className="absolute right-3"
             >
               {showConfirmPassword ? (
-                <EyeOff size={18} color={colors.textSecondary} />
+                <IconEyeOff size={18} color={colors.textSecondary} />
               ) : (
-                <Eye size={18} color={colors.textSecondary} />
+                <IconEye size={18} color={colors.textSecondary} />
               )}
             </Pressable>
           </View>

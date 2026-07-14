@@ -1,10 +1,11 @@
 import { View } from 'react-native'
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type React from 'react';
 
 import { Avatar, Chip, Text } from 'heroui-native';
 
-import { Home, Building2, LucideIcon } from 'lucide-react-native';
+import { IconHome, IconBuildingSkyscraper } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -37,7 +38,7 @@ export default function ProfileHeader({
 
   type RoleConfig = {
     [key: string]: {
-      icon: LucideIcon;
+      icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
       iconColor: string;
       className: string;
       label: string;
@@ -47,14 +48,14 @@ export default function ProfileHeader({
 
   const roleConfig: RoleConfig = {
     tenant: {
-      icon: Home,
+      icon: IconHome,
       iconColor: colors.primary,
       className: "bg-primary-light border border-primary",
       label: "Tenant",
       labelColor: "text-primary"
     },
     landlord: {
-      icon: Building2,
+      icon: IconBuildingSkyscraper,
       iconColor: colors.secondary,
       className: "bg-secondary-light border border-secondary",
       label: "Landlord",

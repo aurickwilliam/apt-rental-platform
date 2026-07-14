@@ -50,6 +50,7 @@ export type ReviewWithTenant = {
   rating: number;
   comment: string | null;
   created_at: string;
+  stayed_date: string | null;
   tenant: {
     first_name: string;
     last_name: string;
@@ -137,6 +138,7 @@ export function useApartmentDetails(apartmentId: string) {
         rating,
         comment,
         created_at,
+        stayed_date,
         tenant:tenant_id (
           first_name,
           last_name,
@@ -145,7 +147,7 @@ export function useApartmentDetails(apartmentId: string) {
       `)
       .eq('apartment_id', apartmentId)
       .order('created_at', { ascending: false })
-      .limit(2);
+      .limit(3);
 
     if (!reviewError && reviewData) {
       setReviews(reviewData as ReviewWithTenant[]);

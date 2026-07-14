@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 
-import { ClipboardList } from 'lucide-react-native';
+import { IconClipboardList } from '@tabler/icons-react-native';
 
 import { useColors } from '@/hooks/useTheme';
 import { useTenantApplications } from '@/hooks/applications';
@@ -16,7 +16,7 @@ export default function ApplicationsList() {
   return (
     <>
       <View className="flex-row items-center justify-start gap-2 mb-5">
-        <ClipboardList size={24} color={colors.textPrimary} />
+        <IconClipboardList size={24} color={colors.textPrimary} />
         <Text className="text-foreground text-lg font-interSemiBold">
           My Applications
         </Text>

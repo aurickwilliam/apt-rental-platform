@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { ChevronLeft, AlertCircle } from "lucide-react-native";
+import { IconChevronLeft, IconAlertCircle } from "@tabler/icons-react-native";
 
 import { usePHMobileValidation } from "@repo/hooks";
 
@@ -86,7 +86,7 @@ export default function VerifyMobile() {
             className="-ml-2"
             onPress={() => router.back()}
           >
-            <ChevronLeft size={26} color={colors.textPrimary} />
+            <IconChevronLeft size={26} color={colors.textPrimary} />
           </CloseButton>
 
           {/* Title */}
@@ -126,7 +126,7 @@ export default function VerifyMobile() {
 
             <View className="mb-5 gap-1.5">
               <View className="flex-row items-center gap-2">
-                <AlertCircle size={20} color={colors.danger} />
+                <IconAlertCircle size={20} color={colors.danger} />
                 <Dialog.Title className="text-danger">
                   Something went wrong
                 </Dialog.Title>

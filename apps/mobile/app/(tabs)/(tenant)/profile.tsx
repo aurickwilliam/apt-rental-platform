@@ -1,19 +1,19 @@
 import { View, ScrollView } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
+import type React from 'react';
 
 import { supabase } from '@repo/supabase';
 
 import {
-  UserPen,
-  Heart,
-  FileText,
-  Clock,
-  CreditCard,
-  Settings,
-  LogOut,
-  LucideIcon,
-} from 'lucide-react-native';
+  IconUserEdit,
+  IconHeart,
+  IconFileText,
+  IconClock,
+  IconCreditCard,
+  IconSettings,
+  IconLogout,
+} from '@tabler/icons-react-native';
 
 import { Button, ListGroup, Separator } from "heroui-native";
 
@@ -52,39 +52,39 @@ export default function Profile() {
 
   type ListItem = {
     title: string;
-    icon: LucideIcon;
+    icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
     onPress: () => void;
   }
 
   const listItems: ListItem[] = [
     {
       title: 'Edit Profile',
-      icon: UserPen,
+      icon: IconUserEdit,
       onPress: () => router.push('/edit-profile')
     },
     {
       title: 'Document & IDs',
-      icon: FileText,
+      icon: IconFileText,
       onPress: () => router.push('/document-id')
     },
     {
       title: 'Favorites',
-      icon: Heart,
+      icon: IconHeart,
       onPress: () => router.push('/tenant/favorites')
     },
     {
       title: 'Payment History',
-      icon: Clock,
+      icon: IconClock,
       onPress: () => router.push('/tenant/payment/history')
     },
     {
       title: 'Payment Methods',
-      icon: CreditCard,
+      icon: IconCreditCard,
       onPress: () => router.push('/tenant/payment/saved-methods')
     },
     {
       title: 'Settings',
-      icon: Settings,
+      icon: IconSettings,
       onPress: () => router.push('/settings')
     },
   ];
@@ -152,7 +152,7 @@ export default function Profile() {
           variant='danger'
           size='md'
         >
-          <LogOut size={16} color='white' />
+          <IconLogout size={16} color='white' />
           <Button.Label>
             Logout
           </Button.Label>

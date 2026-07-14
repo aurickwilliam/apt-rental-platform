@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 
-import { FileText } from 'lucide-react-native'
+import { IconFileText } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
 
@@ -15,7 +15,7 @@ export default function ReviewDocumentFile({ label, fileName }: ReviewDocumentFi
     <View className="flex gap-2">
       <Text className="text-base text-foreground">{label}</Text>
       <View className="flex-row gap-2 bg-surface border border-border w-full rounded-xl p-4">
-        {fileName && <FileText size={20} color={colors.primary} />}
+        {fileName && <IconFileText size={20} color={colors.primary} />}
 
         <Text
           className={`text-sm ${fileName ? "text-foreground" : "text-muted"} font-interMedium`}
