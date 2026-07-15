@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import RatingBarCount from './components/RatingBarCount'
-import DropdownButton from 'components/buttons/DropdownButton'
+import MenuSelectButton from 'components/buttons/MenuSelectButton'
 import RatingCard from 'components/cards/RatingCard'
 import StarRating from '@/components/display/StarRating'
 
@@ -113,11 +113,11 @@ export default function RatingsPage() {
           Tenant Reviews
         </Text>
 
-        <DropdownButton
-          bottomSheetLabel={'Sort Reviews By'}
+        <MenuSelectButton
+          label="Sort Reviews By"
           options={['Most Recent', 'Highest Rating', 'Lowest Rating']}
           value={selectedFilter}
-          onSelect={(value) => setSelectedFilter(value as typeof selectedFilter)}
+          onSelect={setSelectedFilter}
         />
       </View>
 
