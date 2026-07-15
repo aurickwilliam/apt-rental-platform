@@ -1,9 +1,11 @@
 import { View, Text, ImageSourcePropType } from 'react-native'
 import { ImageSource } from 'expo-image';
-import { IconStar, IconStarHalfFilled, IconStarFilled } from '@tabler/icons-react-native';
+
 import { Avatar, Card, PressableFeedback } from 'heroui-native';
-import { DEFAULT_IMAGES } from '../../constants/images'
-import { useColors } from '@/hooks/useTheme';
+
+import StarRating from '../display/StarRating';
+
+import { getInitials } from '@repo/utils';
 
 interface SmallRatingCardProps {
   accountName: string;
@@ -14,39 +16,15 @@ interface SmallRatingCardProps {
   onPress?: () => void;
 }
 
-type StarIconProps = {
-  index: number;
-  rating: number;
-  size: number;
-  color: string;
-};
-
-function StarIcon({
-  index,
-  rating,
-  size,
-  color
-}: StarIconProps) {
-  const diff = rating - index;
-
-  if (diff >= 1) {
-    return <IconStarFilled size={size} color={color} />;
-  }
-  if (diff >= 0.5) {
-    return <IconStarHalfFilled size={size} color={color} />;
-  }
-  return <IconStar size={size} color={color} />;
-}
-
 export default function SmallRatingCard({
   accountName,
-  profilePictureUrl = DEFAULT_IMAGES.defaultProfilePicture,
+  profilePictureUrl,
   rating,
   comment,
   date,
   onPress
 }: SmallRatingCardProps) {
-  const { colors } = useColors();
+
   return (
     <PressableFeedback onPress={onPress} className='rounded-3xl border border-border'>
       <PressableFeedback.Highlight />
@@ -55,7 +33,11 @@ export default function SmallRatingCard({
           <View className='flex-row items-center gap-2'>
             <Avatar size="sm" className='border border-border'>
               <Avatar.Image source={profilePictureUrl as ImageSourcePropType} />
-              <Avatar.Fallback />
+              <Avatar.Fallback>
+                <Text className='text-accent text-sm font-interMedium'>
+                  {getInitials(accountName)}
+                </Text>
+              </Avatar.Fallback>
             </Avatar>
             <View>
               <Card.Title
@@ -70,17 +52,10 @@ export default function SmallRatingCard({
             </View>
           </View>
           <View className='flex-row items-center gap-1'>
-            <View className='flex-row items-center gap-0.5'>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <StarIcon
-                  key={index}
-                  index={index}
-                  rating={rating}
-                  size={16}
-                  color={colors.secondary}
-                />
-              ))}
-            </View>
+            <StarRating
+              rating={rating}
+              size={16}
+            />
 
             <Text className='font-interMedium text-xs text-foreground'>
               {rating.toFixed(1)}

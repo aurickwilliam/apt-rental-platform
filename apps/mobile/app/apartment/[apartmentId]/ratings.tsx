@@ -4,23 +4,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import RatingBarCount from 'components/display/RatingBarCount'
+import RatingBarCount from './components/RatingBarCount'
 import DropdownButton from 'components/buttons/DropdownButton'
-import Divider from 'components/display/Divider'
 import RatingCard from 'components/cards/RatingCard'
-import PillButton from 'components/buttons/PillButton'
+import StarRating from '@/components/display/StarRating'
 
-import { useColors } from 'hooks/useTheme'
-
-import {
-  Star,
-  CirclePlus,
-} from 'lucide-react-native';
+import { Button } from 'heroui-native'
 
 export default function RatingsPage() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
-  const { colors } = useColors();
 
   const [selectedFilter, setSelectedFilter] = useState<'Most Recent' | 'Highest Rating' | 'Lowest Rating'>('Most Recent');
 
@@ -75,38 +68,25 @@ export default function RatingsPage() {
         <StandardHeader title="Ratings & Reviews" />
       }
       className='p-5'
-      bottomPadding={50}
     >
       {/* Overall Rating */}
-      <View className='flex items-center justify-center'>
-        <Text className='text-muted text-lg font-interSemiBold'>
+      <View className='flex items-center justify-center gap-3'>
+        <Text className='text-muted text-lg font-interMedium'>
           Overall Rating
         </Text>
 
-        <Text className='text-secondary text-9xl font-nunito mt-5 leading-tight'>
+        <Text className='text-secondary text-8xl font-nunitoBold leading-tight'>
           {ratings.overallRating}
         </Text>
 
         {/* Stars */}
-        <View className='flex-row gap-2'>
-          {[1, 2, 3, 4, 5].map((star) => (
-            star <= Math.round(ratings.overallRating) ? (
-              <Star
-                key={star}
-                size={35}
-                color={colors.secondary}
-              />
-            ) : (
-              <Star
-                key={star}
-                size={35}
-                color={colors.secondary}
-              />
-            )
-          ))}
-        </View>
+        <StarRating
+          rating={ratings.overallRating}
+          size={35}
+          className='flex-row gap-2'
+        />
 
-        <Text className='text-muted text-lg font-interSemiBold mt-3'>
+        <Text className='text-muted text-base font-interMedium'>
           based on {ratings.totalReviews} Reviews
         </Text>
       </View>
@@ -129,7 +109,7 @@ export default function RatingsPage() {
 
       {/* Title */}
       <View className='mt-10 flex-row items-center justify-between'>
-        <Text className='text-text text-base font-interSemiBold'>
+        <Text className='text-foreground text-base font-interMedium'>
           Tenant Reviews
         </Text>
 
@@ -141,10 +121,8 @@ export default function RatingsPage() {
         />
       </View>
 
-      <Divider />
-
       {/* Render List of Tenant Reviews */}
-      <View className='flex gap-5'>
+      <View className='flex gap-2 mt-3'>
         {
           ratings.reviews.map(({ id, name, date, rating, review, durationOfStay }) => (
             <RatingCard
@@ -161,11 +139,11 @@ export default function RatingsPage() {
 
       {/* Review Button */}
       <View className='mt-10'>
-        <PillButton
-          label='Write a Review'
-          onPress={handleWriteReview}
-          leftIconName={CirclePlus}
-        />
+        <Button onPress={handleWriteReview}>
+          <Button.Label>
+            Write a Review
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )
