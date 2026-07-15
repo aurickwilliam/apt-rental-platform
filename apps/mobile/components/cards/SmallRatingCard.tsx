@@ -14,7 +14,19 @@ interface SmallRatingCardProps {
   onPress?: () => void;
 }
 
-function StarIcon({ index, rating, size, color }: { index: number; rating: number; size: number; color: string }) {
+type StarIconProps = {
+  index: number;
+  rating: number;
+  size: number;
+  color: string;
+};
+
+function StarIcon({
+  index,
+  rating,
+  size,
+  color
+}: StarIconProps) {
   const diff = rating - index;
 
   if (diff >= 1) {
