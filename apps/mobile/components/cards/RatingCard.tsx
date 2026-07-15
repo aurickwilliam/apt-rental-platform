@@ -1,19 +1,18 @@
 import { View, Text } from 'react-native'
-import { Image } from 'expo-image';
+import { Avatar, Card, PressableFeedback } from 'heroui-native'
 
-import { DEFAULT_IMAGES } from 'constants/images';
+import { formatDate, getInitials } from '@repo/utils'
 
-import { useColors } from 'hooks/useTheme';
-
-import { Star } from 'lucide-react-native';
+import StarRating from '../display/StarRating'
 
 interface RatingCardProps {
-  name: string;
-  date: string;
-  rating: number;
-  review: string;
-  profilePictureUrl?: string;
-  durationOfStay?: string;
+  name: string
+  date: string
+  rating: number
+  review: string
+  profilePictureUrl?: string
+  durationOfStay?: string
+  onPress?: () => void
 }
 
 export default function RatingCard({
@@ -23,78 +22,73 @@ export default function RatingCard({
   review,
   profilePictureUrl,
   durationOfStay,
+  onPress,
 }: RatingCardProps) {
 
-  const { colors } = useColors();
-
-  // TODO: Format date to relative time (e.g., "2 weeks ago")
-
-  const profileImage = profilePictureUrl ? { uri: profilePictureUrl } : DEFAULT_IMAGES.defaultProfilePicture;
-
   return (
-    <View className='w-full'>
-      <View className='flex-row items-center justify-between'>
-        {/* Profile and Name and Rating */}
-        <View className='flex-row items-center gap-2'>
-          <View className='size-12 rounded-full overflow-hidden border border-secondary'>
-            <Image 
-              source={profileImage}
-              style={{
-                width: '100%',
-                height: '100%',
-              }}
-              contentFit='cover'
-              cachePolicy='disk'
-            />
-          </View>
+    <PressableFeedback
+      onPress={onPress}
+      isDisabled={!onPress}
+      animation={onPress ? undefined : 'disable-all'}
+      className='w-full overflow-hidden rounded-3xl border border-border shadow-none'
+    >
+      {onPress && <PressableFeedback.Highlight />}
+      <Card className='w-full p-3'>
+        <Card.Body className='gap-2 p-0'>
+          <View className='flex-row items-start justify-between'>
+            {/* Avatar + Name + Date */}
+            <View className='flex-row items-center gap-2 flex-1 pr-3'>
+              <Avatar
+                size='sm'
+                alt={`${name}'s profile picture`}
+                className='border border-border'
+              >
+                {profilePictureUrl && (
+                  <Avatar.Image source={{ uri: profilePictureUrl }} />
+                )}
+                <Avatar.Fallback className='bg-gray-100'>
+                  <Text className='text-accent text-sm font-interMedium'>
+                    {getInitials(name)}
+                  </Text>
+                </Avatar.Fallback>
+              </Avatar>
 
-          <View className='flex'>
-            <Text className='text-text text-base font-interMedium'>
-              {name}
-            </Text>
-
-            <View className='flex-row gap-1 items-center'>
-              <View className='flex-row gap-1'>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star 
-                    key={star} 
-                    size={16} 
-                    color={colors.secondary} 
-                    fill={star <= rating ? colors.secondary : 'transparent'}
-                  />
-                ))}
+              <View className='flex-1'>
+                <Text
+                  className='text-foreground text-sm font-interMedium'
+                  numberOfLines={1}
+                >
+                  {name}
+                </Text>
+                <Text className='text-muted text-xs font-inter'>
+                  {formatDate(date, 'medium')}
+                </Text>
               </View>
-
-              <Text className='text-text text-sm font-interMedium'>
-                {rating}/5
+            </View>
+            {/* Star Rating */}
+            <View className='flex-row items-center gap-1'>
+              <StarRating rating={rating} size={14} />
+              <Text className='text-foreground text-sm font-interMedium'>
+                {rating.toFixed(1)}
               </Text>
             </View>
           </View>
-        </View>
 
-        {/* Date Stamp */}
-        <View>
-          <Text className='text-sm text-text font-inter'>
-            {date}
+          {/* Review Text */}
+          <Text className='text-foreground text-sm font-inter'>
+            {review}
           </Text>
-        </View>
-      </View>
 
-      {/* Review Text */}
-      <View className='mt-2'>
-        <Text className='text-text text-base font-inter'>
-          {review}
-        </Text>
-      </View>
-
-      {/* Duration of Stay */}
-      {durationOfStay && (
-        <View className='mt-2'>
-          <Text className='text-grey-500 text-sm font-interItalic'>
-            {durationOfStay}
-          </Text>
-        </View>
-      )}
-    </View>
+          {/* Duration of Stay */}
+          {durationOfStay && (
+            <View className='flex-row items-center gap-1'>
+              <Text className='text-gray-500 text-xs font-inter'>
+                {durationOfStay}
+              </Text>
+            </View>
+          )}
+        </Card.Body>
+      </Card>
+    </PressableFeedback>
   )
 }
