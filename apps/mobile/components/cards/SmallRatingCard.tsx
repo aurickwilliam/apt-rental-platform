@@ -1,5 +1,5 @@
 import { View, Text, ImageSourcePropType } from 'react-native'
-import { Image, ImageSource } from 'expo-image';
+import { ImageSource } from 'expo-image';
 import { IconStar, IconStarHalfFilled, IconStarFilled } from '@tabler/icons-react-native';
 import { Avatar, Card, PressableFeedback } from 'heroui-native';
 import { DEFAULT_IMAGES } from '../../constants/images'

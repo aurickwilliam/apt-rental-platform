@@ -443,7 +443,7 @@ export default function FilterBottomSheet({
                     color={isSelected ? 'accent' : 'default'}
                     onPress={() => toggleArrayItem('amenities', perk.id)}
                   >
-                    <Icon size={14} color={isSelected ? colors.primary : colors.gray400} />
+                    <Icon size={18} color={isSelected ? colors.primary : colors.textPrimary} />
                     <Chip.Label>{perk.name}</Chip.Label>
                   </Chip>
                 );
