@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { supabase } from '@repo/supabase'
 
+import { useReviewEligibility } from './useReviewEligibility'
+
 export type ReviewSortOption = 'Most Recent' | 'Highest Rating' | 'Lowest Rating'
 
 export interface ApartmentReview {
@@ -30,6 +32,11 @@ interface UseApartmentReviewsResult {
   reviews: ApartmentReview[]
   sortBy: ReviewSortOption
   setSortBy: (option: ReviewSortOption) => void
+  canReview: boolean
+  checkingEligibility: boolean
+  // NEW: the specific tenancy to submit a review against.
+  // Pass this to the insert on the rate-apartment screen.
+  reviewableTenancyId: string | null
   refetch: () => Promise<void>
 }
 
@@ -59,6 +66,12 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<ReviewSortOption>('Most Recent')
+
+  const {
+    canReview,
+    checkingEligibility,
+    reviewableTenancyId
+  } = useReviewEligibility(apartmentId);
 
   const fetchReviews = useCallback(
     async (isRefresh = false) => {
@@ -106,12 +119,8 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
     [apartmentId]
   )
 
-  // Refetch whenever the screen regains focus (e.g. returning after writing a review)
-  useFocusEffect(
-    useCallback(() => {
-      fetchReviews()
-    }, [fetchReviews])
-  )
+  // Refetch whenever the screen regains focus
+  useFocusEffect(useCallback(() => { fetchReviews() }, [fetchReviews]))
 
   const reviews = useMemo<ApartmentReview[]>(() => {
     const mapped = rawReviews.map((row) => {
@@ -185,6 +194,9 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
     reviews,
     sortBy,
     setSortBy,
+    canReview,
+    checkingEligibility,
+    reviewableTenancyId,
     refetch: () => fetchReviews(true),
   }
 }

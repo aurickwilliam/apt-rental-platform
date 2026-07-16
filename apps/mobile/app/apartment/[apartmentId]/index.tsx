@@ -26,6 +26,7 @@ import {
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
+import { useReviewEligibility } from "@/hooks/ratings";
 
 import { Button } from "heroui-native";
 
@@ -33,11 +34,16 @@ export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
   const { colors } = useColors();
+
   const { apartment, reviews, loading, error } =
     useApartmentDetails(apartmentId);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const {
+    canReview,
+    checkingEligibility,
+    reviewableTenancyId
+  } = useReviewEligibility(apartmentId);
 
   const apartmentImages =
     apartment?.apartment_images.map((img) => ({
@@ -95,13 +101,19 @@ export default function ApartmentScreen() {
     }
   };
 
-  const handleSeeAllRatings = () => {
-    router.push(`/apartment/${apartmentId}/ratings`);
-  };
-
   const handleMapViewNavigation = () => {
     router.push(`/apartment/${apartmentId}/map-view`);
   };
+
+  const handleWriteReview = () => {
+    router.push({
+      pathname: `/apartment/[apartmentId]/rate-apartment`,
+      params: {
+        apartmentId: apartmentId,
+        tenancyId: reviewableTenancyId
+      },
+    })
+  }
 
   // Loading State
   if (loading) {
@@ -147,7 +159,10 @@ export default function ApartmentScreen() {
 
         <RatingsSection
           reviews={reviews}
-          onSeeAll={handleSeeAllRatings}
+          onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
+          canReview={canReview}
+          checkingEligibility={checkingEligibility}
+          onWriteReview={handleWriteReview}
         />
 
         <LandlordSection
