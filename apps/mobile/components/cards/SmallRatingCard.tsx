@@ -1,5 +1,4 @@
-import { View, Text, ImageSourcePropType } from 'react-native'
-import { ImageSource } from 'expo-image';
+import { View, Text } from 'react-native'
 
 import { Avatar, Card, PressableFeedback } from 'heroui-native';
 
@@ -9,7 +8,7 @@ import { getInitials } from '@repo/utils';
 
 interface SmallRatingCardProps {
   accountName: string;
-  profilePictureUrl?: ImageSource;
+  profilePictureUrl?: string;
   rating: number;
   comment: string;
   date: string;
@@ -32,7 +31,10 @@ export default function SmallRatingCard({
         <Card.Header className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <Avatar size="sm" className='border border-border'>
-              <Avatar.Image source={profilePictureUrl as ImageSourcePropType} />
+              {profilePictureUrl && (
+                <Avatar.Image source={{ uri: profilePictureUrl }} />
+              )}
+
               <Avatar.Fallback>
                 <Text className='text-accent text-sm font-interMedium'>
                   {getInitials(accountName)}

@@ -1,8 +1,13 @@
 import { View, Text, TouchableOpacity } from 'react-native';
+
 import { IconStarFilled, IconStar } from '@tabler/icons-react-native';
+
 import SmallRatingCard from 'components/cards/SmallRatingCard';
+
 import { useColors } from 'hooks/useTheme';
 import type { ReviewWithTenant } from 'hooks/apartments';
+
+import { formatDate } from '@repo/utils';
 
 type RatingsSectionProps = {
   reviews: ReviewWithTenant[];
@@ -37,13 +42,10 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
             <SmallRatingCard
               key={review.id}
               accountName={`${review.tenant?.first_name} ${review.tenant?.last_name}`}
+              profilePictureUrl={review.tenant?.avatar_url ?? undefined}
               rating={review.rating}
               comment={review.comment ?? ''}
-              date={new Date(review.created_at).toLocaleDateString('en-PH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              date={formatDate(review.created_at, 'medium')}
             />
           ))
         ) : (
