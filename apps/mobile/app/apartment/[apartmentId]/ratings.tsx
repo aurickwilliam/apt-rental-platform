@@ -1,5 +1,4 @@
-import { View, Text } from 'react-native'
-import { useState } from 'react'
+import { View, Text, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -9,56 +8,39 @@ import MenuSelectButton from 'components/buttons/MenuSelectButton'
 import RatingCard from 'components/cards/RatingCard'
 import StarRating from '@/components/display/StarRating'
 
+import { useApartmentReviews } from 'hooks/ratings'
+import { useColors } from 'hooks/useTheme'
+
 import { Button } from 'heroui-native'
 
 export default function RatingsPage() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { colors } = useColors();
   const router = useRouter();
 
-  const [selectedFilter, setSelectedFilter] = useState<'Most Recent' | 'Highest Rating' | 'Lowest Rating'>('Most Recent');
+  const {
+    loading,
+    error,
+    overallRating,
+    totalReviews,
+    ratingsCount,
+    reviews,
+    sortBy,
+    setSortBy,
+  } = useApartmentReviews(apartmentId);
 
-  // Dummy data for demonstration purposes
-  const ratings = {
-    overallRating: 4.5,
-    totalReviews: 120,
-    ratingsCount: [
-      { rating: 5, ratingCount: 80, totalCount: 120 },
-      { rating: 4, ratingCount: 25, totalCount: 120 },
-      { rating: 3, ratingCount: 10, totalCount: 120 },
-      { rating: 2, ratingCount: 3, totalCount: 120 },
-      { rating: 1, ratingCount: 2, totalCount: 120 },
-    ],
-    reviews: [
-      {
-        id: 1,
-        name: 'John Doe',
-        date: '2023-08-15',
-        rating: 5.0,
-        review: 'Great place to stay!',
-        durationOfStay: 'Jan 2023 - Mar 2023',
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        date: '2023-07-10',
-        rating: 4.5,
-        review: 'Very comfortable and well-located.',
-        durationOfStay: 'Feb 2023 - Apr 2023',
-      },
-      {
-        id: 3,
-        name: 'Alice Johnson',
-        date: '2023-06-05',
-        rating: 3.3,
-        review: 'Average experience, could be better.',
-        durationOfStay: 'Mar 2023 - May 2023',
-      }
-    ]
-  };
-
-  // Navigate to write a Review Page
   const handleWriteReview = () => {
     router.push(`/apartment/${apartmentId}/rate-apartment`);
+  }
+
+  if (loading) {
+    return (
+      <ScreenWrapper header={<StandardHeader title="Ratings & Reviews" />} className='p-5'>
+        <View className='flex-1 items-center justify-center py-20'>
+          <ActivityIndicator size='large' color={colors.primary} />
+        </View>
+      </ScreenWrapper>
+    )
   }
 
   return (
@@ -69,6 +51,12 @@ export default function RatingsPage() {
       }
       className='p-5'
     >
+      {error && (
+        <Text className='text-red-500 text-sm font-inter text-center mb-3'>
+          {error}
+        </Text>
+      )}
+
       {/* Overall Rating */}
       <View className='flex items-center justify-center gap-3'>
         <Text className='text-muted text-lg font-interMedium'>
@@ -76,25 +64,24 @@ export default function RatingsPage() {
         </Text>
 
         <Text className='text-secondary text-8xl font-nunitoBold leading-tight'>
-          {ratings.overallRating}
+          {overallRating.toFixed(1)}
         </Text>
 
-        {/* Stars */}
         <StarRating
-          rating={ratings.overallRating}
+          rating={overallRating}
           size={35}
           className='flex-row gap-2'
         />
 
         <Text className='text-muted text-base font-interMedium'>
-          based on {ratings.totalReviews} Reviews
+          based on {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}
         </Text>
       </View>
 
       {/* Ratings count */}
       <View className='flex gap-2 mt-5'>
         {
-          ratings.ratingsCount.map(({ rating, ratingCount, totalCount }) => (
+          ratingsCount.map(({ rating, ratingCount, totalCount }) => (
             <RatingBarCount
               key={rating}
               rating={rating}
@@ -105,8 +92,6 @@ export default function RatingsPage() {
         }
       </View>
 
-      {/* List of Tenants Reviews */}
-
       {/* Title */}
       <View className='mt-10 flex-row items-center justify-between'>
         <Text className='text-foreground text-base font-interMedium'>
@@ -116,26 +101,35 @@ export default function RatingsPage() {
         <MenuSelectButton
           label="Sort Reviews By"
           options={['Most Recent', 'Highest Rating', 'Lowest Rating']}
-          value={selectedFilter}
-          onSelect={setSelectedFilter}
+          value={sortBy}
+          onSelect={setSortBy}
         />
       </View>
 
       {/* Render List of Tenant Reviews */}
-      <View className='flex gap-2 mt-3'>
-        {
-          ratings.reviews.map(({ id, name, date, rating, review, durationOfStay }) => (
-            <RatingCard
-              key={id}
-              name={name}
-              date={date}
-              rating={rating}
-              review={review}
-              durationOfStay={durationOfStay}
-            />
-          ))
-        }
-      </View>
+      {totalReviews === 0 ? (
+        <View className='items-center justify-center py-10'>
+          <Text className='text-muted text-sm font-inter'>
+            No reviews yet. Be the first to share your experience!
+          </Text>
+        </View>
+      ) : (
+        <View className='flex gap-2 mt-3'>
+          {
+            reviews.map(({ id, name, date, rating, review, profilePictureUrl, durationOfStay }) => (
+              <RatingCard
+                key={id}
+                name={name}
+                date={date}
+                rating={rating}
+                review={review}
+                profilePictureUrl={profilePictureUrl}
+                durationOfStay={durationOfStay}
+              />
+            ))
+          }
+        </View>
+      )}
 
       {/* Review Button */}
       <View className='mt-10'>
