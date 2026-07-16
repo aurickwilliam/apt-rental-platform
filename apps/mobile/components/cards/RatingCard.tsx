@@ -1,8 +1,9 @@
-import { View, Text } from 'react-native'
-import { Avatar, Card, PressableFeedback } from 'heroui-native'
-
+import { useState } from 'react'
+import { View, Text, Modal, Pressable, FlatList, Dimensions } from 'react-native'
+import { Image } from 'expo-image'
+import { Avatar, Card } from 'heroui-native'
+import { IconX } from '@tabler/icons-react-native'
 import { formatDate, getInitials } from '@repo/utils'
-
 import StarRating from '../display/StarRating'
 
 interface RatingCardProps {
@@ -12,8 +13,12 @@ interface RatingCardProps {
   review: string
   profilePictureUrl?: string
   durationOfStay?: string
-  onPress?: () => void
+  images?: string[]
 }
+
+const REVIEW_CHAR_LIMIT = 150
+const MAX_VISIBLE_THUMBNAILS = 4
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export default function RatingCard({
   name,
@@ -22,18 +27,21 @@ export default function RatingCard({
   review,
   profilePictureUrl,
   durationOfStay,
-  onPress,
+  images,
 }: RatingCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  const isLongReview = review.length > REVIEW_CHAR_LIMIT
+  const displayedReview =
+    isLongReview && !isExpanded ? `${review.slice(0, REVIEW_CHAR_LIMIT).trimEnd()}…` : review
+
+  const visibleThumbnails = images?.slice(0, MAX_VISIBLE_THUMBNAILS) ?? []
+  const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0
 
   return (
-    <PressableFeedback
-      onPress={onPress}
-      isDisabled={!onPress}
-      animation={onPress ? undefined : 'disable-all'}
-      className='w-full overflow-hidden rounded-3xl border border-border shadow-none'
-    >
-      {onPress && <PressableFeedback.Highlight />}
-      <Card className='w-full p-3'>
+    <>
+      <Card className='w-full overflow-hidden rounded-3xl border border-border shadow-none p-3'>
         <Card.Body className='gap-2 p-0'>
           <View className='flex-row items-start justify-between'>
             {/* Avatar + Name + Date */}
@@ -52,7 +60,6 @@ export default function RatingCard({
                   </Text>
                 </Avatar.Fallback>
               </Avatar>
-
               <View className='flex-1'>
                 <Text
                   className='text-foreground text-sm font-interMedium'
@@ -75,9 +82,53 @@ export default function RatingCard({
           </View>
 
           {/* Review Text */}
-          <Text className='text-foreground text-sm font-inter'>
-            {review}
-          </Text>
+          <View>
+            <Text className='text-foreground text-sm font-inter'>
+              {displayedReview}
+            </Text>
+            {isLongReview && (
+              <Pressable
+                onPress={() => setIsExpanded((prev) => !prev)}
+                hitSlop={8}
+              >
+                <Text className='text-accent text-sm font-interMedium mt-1'>
+                  {isExpanded ? 'Show less' : 'Read more'}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+
+          {/* Review Images */}
+          {visibleThumbnails.length > 0 && (
+            <View className='flex-row gap-2 mt-1'>
+              {visibleThumbnails.map((uri, index) => {
+                const isLastVisible = index === MAX_VISIBLE_THUMBNAILS - 1
+                const showOverlay = isLastVisible && remainingCount > 0
+
+                return (
+                  <Pressable
+                    key={uri + index}
+                    onPress={() => setLightboxIndex(index)}
+                    className='w-16 h-16 rounded-xl overflow-hidden'
+                  >
+                    <Image
+                      source={{ uri }}
+                      className='w-full h-full'
+                      contentFit='cover'
+                      cachePolicy='disk'
+                    />
+                    {showOverlay && (
+                      <View className='absolute inset-0 bg-black/50 items-center justify-center'>
+                        <Text className='text-white text-sm font-interMedium'>
+                          +{remainingCount}
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
+                )
+              })}
+            </View>
+          )}
 
           {/* Duration of Stay */}
           {durationOfStay && (
@@ -89,6 +140,53 @@ export default function RatingCard({
           )}
         </Card.Body>
       </Card>
-    </PressableFeedback>
+
+      {/* Lightbox */}
+      <Modal
+        visible={lightboxIndex !== null}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setLightboxIndex(null)}
+      >
+        <View className='flex-1 bg-black'>
+          <Pressable
+            onPress={() => setLightboxIndex(null)}
+            className='absolute top-14 right-5 z-10 w-10 h-10 rounded-full bg-white/10 items-center justify-center'
+            hitSlop={8}
+          >
+            <IconX size={22} color='white' />
+          </Pressable>
+
+          {images && lightboxIndex !== null && (
+            <FlatList
+              data={images}
+              horizontal
+              pagingEnabled
+              initialScrollIndex={lightboxIndex}
+              getItemLayout={(_, index) => ({
+                length: SCREEN_WIDTH,
+                offset: SCREEN_WIDTH * index,
+                index,
+              })}
+              keyExtractor={(_, index) => `lightbox-${index}`}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View
+                  style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+                  className='items-center justify-center'
+                >
+                  <Image
+                    source={{ uri: item }}
+                    style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT * 0.8 }}
+                    contentFit='contain'
+                    cachePolicy='disk'
+                  />
+                </View>
+              )}
+            />
+          )}
+        </View>
+      </Modal>
+    </>
   )
 }
