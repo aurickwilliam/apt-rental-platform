@@ -1,52 +1,38 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, type GestureResponderEvent } from 'react-native'
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
+import * as ImagePicker from 'expo-image-picker'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import Divider from 'components/display/Divider'
-import DropdownButton from 'components/buttons/DropdownButton'
-import PillButton from 'components/buttons/PillButton'
-import TextBox from 'components/inputs/TextBox'
+import UploadImageField from 'components/inputs/UploadImageField'
+import DateField from 'components/inputs/DateField'
 
-import { YEARS, MONTHS } from '@repo/constants'
 import { DEFAULT_IMAGES } from 'constants/images'
 
-import {
-  Star
-} from 'lucide-react-native'
-
 import { useColors } from 'hooks/useTheme';
+import DetailField from '@/components/display/DetailField';
+import {
+  IconStar,
+  IconStarHalfFilled,
+  IconStarFilled,
+} from '@tabler/icons-react-native';
+import { Button, Label, Separator, TextArea, TextField } from 'heroui-native';
+
+const STAR_SIZE = 45;
 
 export default function RateApartment() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { colors } = useColors();
 
-  type Month = typeof MONTHS[number];
-
-  const [fromMonth, setFromMonth] = useState<Month>('January');
-  const [fromYear, setFromYear] = useState<string>('2023');
-  const [toMonth, setToMonth] = useState<Month>('January');
-  const [toYear, setToYear] = useState<string>('2023');
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
 
   const [reviewText, setReviewText] = useState<string>('');
-  const [rating, setRating] = useState<number>(0);
+  const [rating, setRating] = useState<number>(0); // supports .5 increments
 
-  const monthOptions: Month[] = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
+  const [reviewImages, setReviewImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   // Dummy Data for demonstration purposes
   const apartment = {
@@ -60,34 +46,51 @@ export default function RateApartment() {
     noRatings: 120,
   }
 
+  // Tapping the left half of a star sets a half value (e.g. 3.5),
+  // tapping the right half sets the full value (e.g. 4)
+  const handleStarPress = (starIndex: number, event: GestureResponderEvent) => {
+    const { locationX } = event.nativeEvent;
+    const isHalf = locationX < STAR_SIZE / 2;
+    setRating(isHalf ? starIndex - 0.5 : starIndex);
+  };
+
   // Render Stars for Rating
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
+      const isFull = rating >= i;
+      const isHalf = !isFull && rating >= i - 0.5;
+
+      let StarIcon = IconStar;
+      if (isFull) StarIcon = IconStarFilled;
+      else if (isHalf) StarIcon = IconStarHalfFilled;
+
       stars.push(
         <TouchableOpacity
           key={i}
-          onPress={() => setRating(i)}
+          onPress={(e) => handleStarPress(i, e)}
           activeOpacity={0.7}
         >
-          {
-            i <= rating ? (
-              <Star
-                size={45}
-                color={colors.secondary}
-              />
-            ) : (
-              <Star
-                size={45}
-                color={colors.gray300}
-              />
-            )
-          }
+          <StarIcon
+            size={STAR_SIZE}
+            color={isFull || isHalf ? colors.secondary : colors.gray300}
+          />
         </TouchableOpacity>
       );
     }
 
     return stars;
+  };
+
+  const handleAddImages = (
+    newImages: ImagePicker.ImagePickerAsset | ImagePicker.ImagePickerAsset[]
+  ) => {
+    const incoming = Array.isArray(newImages) ? newImages : [newImages];
+    setReviewImages((prev) => [...prev, ...incoming].slice(0, 5));
+  };
+
+  const handleRemoveImage = (uri: string) => {
+    setReviewImages((prev) => prev.filter((img) => img.uri !== uri));
   };
 
   return (
@@ -96,9 +99,10 @@ export default function RateApartment() {
       header={
         <StandardHeader title="Rate Apartment" />
       }
+      className='p-5'
     >
       {/* Apartment Thumbnail */}
-      <View className='w-full h-60'>
+      <View className='w-full h-52 rounded-3xl overflow-hidden'>
         <Image
           source={apartment.thumbnailUrl}
           style={{ width: '100%', height: '100%' }}
@@ -108,10 +112,10 @@ export default function RateApartment() {
       </View>
 
       {/* Main Content */}
-      <View className='p-5'>
+      <View className='flex mt-3 gap-3'>
         {/* Apartment Name and Address */}
         <View className='flex gap-1'>
-          <Text className='text-2xl font-interSemiBold text-accent'>
+          <Text className='text-xl font-interSemiBold text-accent'>
             {apartment.name}
           </Text>
 
@@ -121,39 +125,40 @@ export default function RateApartment() {
         </View>
 
         {/* Rental Owner */}
-        <View className='flex mt-5'>
-          <Text className='text-sm text-muted font-inter'>
-            Rental Owner
-          </Text>
-
-          <Text className='text-base text-foreground font-inter'>
-            {apartment.landlordName}
-          </Text>
-        </View>
+        <DetailField
+          label='Landlord'
+          value={apartment.landlordName}
+        />
 
         {/* Type and Ratings */}
-        <View className='flex-row items-center justify-between mt-5'>
-          <Text className='text-muted text-base font-inter'>
-            {apartment.apartmentType}
-          </Text>
+        <View className='flex-row justify-between items-center'>
+          <DetailField
+            label='Apartment Type'
+            value={apartment.apartmentType}
+          />
 
           <View className='flex-row gap-2'>
-            <Star
-              size={20}
+            <IconStarFilled
+              size={22}
               color={colors.secondary}
             />
-            <Text className='text-foreground text-base font-inter'>
-              {apartment.ratings} ({apartment.noRatings} Reviews)
+            <Text className='text-foreground text-base font-interMedium'>
+              {apartment.ratings} ({apartment.noRatings})
             </Text>
           </View>
         </View>
 
-        <Divider />
+        <Separator className='my-4' />
 
         {/* Rating Input */}
         <View className='flex items-center'>
           <Text className='text-foreground text-lg font-interMedium'>
             Overall Rating
+          </Text>
+
+          {/* Current Rating Label */}
+          <Text className='text-secondary text-5xl font-nunitoBold mt-2 leading-tight'>
+            {rating.toFixed(1)}
           </Text>
 
           {/* Star Rating Input */}
@@ -173,17 +178,28 @@ export default function RateApartment() {
         </View>
 
         {/* Review Text Box */}
-        <View className='flex mt-3'>
-          <TextBox
-            label='Review:'
+        <TextField isRequired>
+          <Label>Tenant Review:</Label>
+          <TextArea
             placeholder="Type your experience and review about the apartment.."
             value={reviewText}
             onChangeText={setReviewText}
-            required
+            multiline
+            numberOfLines={4}
+            className='p-3'
           />
-        </View>
+        </TextField>
 
-        <Divider />
+        {/* Review Photos */}
+        <UploadImageField
+          label="Photos (optional)"
+          images={reviewImages}
+          onAdd={handleAddImages}
+          onRemove={handleRemoveImage}
+          maxImages={5}
+        />
+
+        <Separator className='my-4' />
 
         {/* Duration of Stay */}
         <View>
@@ -191,66 +207,32 @@ export default function RateApartment() {
             Duration of Stay:
           </Text>
 
-          <View className='flex gap-1 mt-3'>
-            <Text className='text-muted text-base font-inter'>
-              From
-            </Text>
-
-            <View className='flex-1 flex-row items-center gap-3'>
-              <DropdownButton
-                bottomSheetLabel={'Select Month'}
-                options={monthOptions}
-                value={fromMonth}
-                onSelect={setFromMonth}
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
-                  px-2 py-1 rounded-xl'
-              />
-              <DropdownButton
-                bottomSheetLabel={'Select Year'}
-                options={YEARS}
-                value={fromYear}
-                onSelect={setFromYear}
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
-                  px-2 py-1 rounded-xl'
+          <View className='flex-row gap-3 mt-3'>
+            <View className='flex-1'>
+              <DateField
+                label="From"
+                placeholder="Select date"
+                value={fromDate}
+                onChange={setFromDate}
               />
             </View>
-          </View>
 
-          <View className='flex gap-1 mt-3'>
-            <Text className='text-muted text-base font-inter'>
-              To
-            </Text>
-
-            <View className='flex-1 flex-row items-center gap-3'>
-              <DropdownButton
-                bottomSheetLabel={'Select Month'}
-                options={monthOptions}
-                value={toMonth}
-                onSelect={setToMonth}
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
-                  px-2 py-1 rounded-xl'
-              />
-              <DropdownButton
-                bottomSheetLabel={'Select Year'}
-                options={YEARS}
-                value={toYear}
-                onSelect={setToYear}
-                buttonClassName='w-1/2 flex-row items-center justify-between bg-darkerWhite
-                  px-2 py-1 rounded-xl'
+            <View className='flex-1'>
+              <DateField
+                label="To"
+                placeholder="Select date"
+                value={toDate}
+                onChange={setToDate}
               />
             </View>
           </View>
         </View>
 
-        <View className='mt-20'>
-          <PillButton
-            label='Submit Review'
-            onPress={() => {
-              console.log('Submit Review Pressed');
-            }}
-          />
-        </View>
-
+        <Button className='mt-5'>
+          <Button.Label>
+            Submit Review
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )
