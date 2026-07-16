@@ -500,31 +500,31 @@ export type Database = {
       }
       reviews: {
         Row: {
-          apartment_id: string | null
+          apartment_id: string
           comment: string | null
           created_at: string | null
           id: string
-          rating: number | null
+          rating: number
           stayed_date: string | null
-          tenant_id: string | null
+          tenant_id: string
         }
         Insert: {
-          apartment_id?: string | null
+          apartment_id: string
           comment?: string | null
           created_at?: string | null
           id?: string
-          rating?: number | null
+          rating: number
           stayed_date?: string | null
-          tenant_id?: string | null
+          tenant_id: string
         }
         Update: {
-          apartment_id?: string | null
+          apartment_id?: string
           comment?: string | null
           created_at?: string | null
           id?: string
-          rating?: number | null
+          rating?: number
           stayed_date?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
         }
         Relationships: [
           {
