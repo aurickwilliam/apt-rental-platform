@@ -1,9 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-
-import { IconStarFilled } from '@tabler/icons-react-native';
-
+import { IconStarFilled, IconStar } from '@tabler/icons-react-native';
 import SmallRatingCard from 'components/cards/SmallRatingCard';
-
 import { useColors } from 'hooks/useTheme';
 import type { ReviewWithTenant } from 'hooks/apartments';
 
@@ -13,8 +10,7 @@ type RatingsSectionProps = {
 };
 
 export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProps) {
-  const {colors} = useColors();
-
+  const { colors } = useColors();
   const hasReviews = reviews.length > 0;
 
   return (
@@ -26,7 +22,6 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
             Ratings
           </Text>
         </View>
-
         {hasReviews && onSeeAll && (
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
             <Text className='font-interMedium text-sm text-accent'>
@@ -52,10 +47,18 @@ export default function RatingsSection({ reviews, onSeeAll }: RatingsSectionProp
             />
           ))
         ) : (
-          <View className='items-center py-8 opacity-70'>
-            <IconStarFilled size={32} color={colors.gray500}/>
-            <Text className='mt-2 text-gray-500 font-interMedium'>
+          <View className='items-center py-5 px-6'>
+            <View
+              className='items-center justify-center rounded-full mb-3'
+              style={{ width: 52, height: 52, backgroundColor: colors.gray100 }}
+            >
+              <IconStar size={24} color={colors.gray400} strokeWidth={1.75} />
+            </View>
+            <Text className='font-interSemiBold text-base text-foreground'>
               No ratings yet
+            </Text>
+            <Text className='mt-1 text-sm text-gray500 font-interMedium text-center leading-5'>
+              This place hasn&apos;t been reviewed. Ratings will appear here once a tenant shares their experience.
             </Text>
           </View>
         )}
