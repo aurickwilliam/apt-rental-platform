@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import { Card, Chip, PressableFeedback } from "heroui-native";
 
-import { Hammer } from "lucide-react-native";
+import { IconHammer } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 import { useMaintenanceRequestStatusStyles } from "@/hooks/maintenance-requests";
@@ -37,7 +37,7 @@ export default function MaintenanceRequestCard({
           <View className="flex-1 min-w-0 gap-3">
             <View className="flex-row items-center justify-between gap-3">
               <View className="size-8 bg-surface-secondary rounded-full items-center justify-center">
-                <Hammer size={18} color={colors.primary} />
+                <IconHammer size={18} color={colors.primary} />
               </View>
 
               <View className="flex-1">

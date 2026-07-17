@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 
 import { SearchField, Chip, Button } from 'heroui-native';
 
-import { ListFilter, X } from 'lucide-react-native';
+import { IconFilter, IconX } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -42,7 +42,7 @@ export default function SearchFiltersBar({
 
         <View className='relative'>
           <Button onPress={onFilterPress} variant='tertiary' isIconOnly>
-            <ListFilter size={24} color={colors.gray500} />
+            <IconFilter size={24} color={colors.gray500} />
           </Button>
           {activeFilterCount > 0 && (
             <View
@@ -62,7 +62,7 @@ export default function SearchFiltersBar({
           {activeFilterCount > 0 ? (
             <Chip onPress={onClearFilters} variant='soft' color='accent' size='sm'>
               <Chip.Label>Clear filters</Chip.Label>
-              <X size={12} strokeWidth={2} color={colors.primary} />
+              <IconX size={12} strokeWidth={2} color={colors.primary} />
             </Chip>
           ) : (
             <View />

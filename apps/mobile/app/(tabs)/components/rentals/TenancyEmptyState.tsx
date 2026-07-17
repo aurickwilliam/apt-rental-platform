@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 
-import { HousePlus } from 'lucide-react-native';
+import { IconHomePlus } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -9,7 +9,7 @@ export default function TenancyEmptyState() {
 
   return (
     <View className='flex-1 bg-background items-center justify-center gap-4 py-20'>
-      <HousePlus size={64} color={colors.primary} />
+      <IconHomePlus size={64} color={colors.primary} />
       
       <View className='items-center gap-1'>
         <Text className='text-foreground text-xl font-interSemiBold text-center'>

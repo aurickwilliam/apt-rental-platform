@@ -500,31 +500,37 @@ export type Database = {
       }
       reviews: {
         Row: {
-          apartment_id: string | null
+          apartment_id: string
           comment: string | null
           created_at: string | null
           id: string
-          rating: number | null
+          image_paths: string[]
+          rating: number
           stayed_date: string | null
-          tenant_id: string | null
+          tenancy_id: string
+          tenant_id: string
         }
         Insert: {
-          apartment_id?: string | null
+          apartment_id: string
           comment?: string | null
           created_at?: string | null
           id?: string
-          rating?: number | null
+          image_paths?: string[]
+          rating: number
           stayed_date?: string | null
-          tenant_id?: string | null
+          tenancy_id: string
+          tenant_id: string
         }
         Update: {
-          apartment_id?: string | null
+          apartment_id?: string
           comment?: string | null
           created_at?: string | null
           id?: string
-          rating?: number | null
+          image_paths?: string[]
+          rating?: number
           stayed_date?: string | null
-          tenant_id?: string | null
+          tenancy_id?: string
+          tenant_id?: string
         }
         Relationships: [
           {
@@ -532,6 +538,13 @@ export type Database = {
             columns: ["apartment_id"]
             isOneToOne: false
             referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: true
+            referencedRelation: "tenancies"
             referencedColumns: ["id"]
           },
           {

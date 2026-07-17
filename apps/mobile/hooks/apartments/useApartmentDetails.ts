@@ -50,12 +50,78 @@ export type ReviewWithTenant = {
   rating: number;
   comment: string | null;
   created_at: string;
+  stayed_date: string | null;
   tenant: {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
   } | null;
 };
+
+const APARTMENT_SELECT = `
+  id,
+  name,
+  description,
+  type,
+  monthly_rent,
+  no_bedrooms,
+  no_bathrooms,
+  area_sqm,
+  average_rating,
+  no_ratings,
+  amenities,
+  street_address,
+  barangay,
+  city,
+  province,
+  zip_code,
+  latitude,
+  longitude,
+  lease_agreement_url,
+  floor_level,
+  furnished_type,
+  lease_duration,
+  max_occupants,
+  security_deposit,
+  advance_rent,
+  status,
+  is_verified,
+  landlord:landlord_id (
+    id,
+    first_name,
+    last_name,
+    email,
+    mobile_number,
+    avatar_url
+  ),
+  apartment_images (
+    id,
+    url,
+    is_cover
+  )
+`;
+
+const REVIEW_SELECT = `
+  id,
+  rating,
+  comment,
+  created_at,
+  stayed_date,
+  tenant:users!reviews_tenant_id_fkey (
+    first_name,
+    last_name,
+    avatar_url
+  )
+`;
+
+const REVIEW_PREVIEW_LIMIT = 3;
+
+function normalizeStatus(rawStatus: string | null): ApartmentStatus {
+  const status = rawStatus ?? 'available';
+  return VALID_APARTMENT_STATUSES.includes(status as ApartmentStatus)
+    ? (status as ApartmentStatus)
+    : 'available';
+}
 
 export function useApartmentDetails(apartmentId: string) {
   const [apartment, setApartment] = useState<ApartmentDetails | null>(null);
@@ -65,90 +131,48 @@ export function useApartmentDetails(apartmentId: string) {
 
   const fetchData = useCallback(async () => {
     if (!apartmentId) return;
+
     setLoading(true);
     setError(null);
 
-    const { data: aptData, error: aptError } = await supabase
-      .from('apartments')
-      .select(`
-        id,
-        name,
-        description,
-        type,
-        monthly_rent,
-        no_bedrooms,
-        no_bathrooms,
-        area_sqm,
-        average_rating,
-        no_ratings,
-        amenities,
-        street_address,
-        barangay,
-        city,
-        province,
-        zip_code,
-        latitude,
-        longitude,
-        lease_agreement_url,
-        floor_level,
-        furnished_type,
-        lease_duration,
-        max_occupants,
-        security_deposit,
-        advance_rent,
-        status,
-        is_verified,
-        landlord:landlord_id (
-          id,
-          first_name,
-          last_name,
-          email,
-          mobile_number,
-          avatar_url
-        ),
-        apartment_images (
-          id,
-          url,
-          is_cover
-        )
-      `)
-      .eq('id', apartmentId)
-      .single();
+    const [aptResult, reviewResult] = await Promise.all([
+      supabase
+        .from('apartments')
+        .select(APARTMENT_SELECT)
+        .eq('id', apartmentId)
+        .single(),
+      supabase
+        .from('reviews')
+        .select(REVIEW_SELECT)
+        .eq('apartment_id', apartmentId)
+        .order('created_at', { ascending: false })
+        .limit(REVIEW_PREVIEW_LIMIT),
+    ]);
+
+    const { data: aptData, error: aptError } = aptResult;
+    const { data: reviewData, error: reviewError } = reviewResult;
 
     if (aptError) {
       setError(aptError.message);
+      setApartment(null);
+      setReviews([]);
       setLoading(false);
       return;
     }
 
-    const rawStatus = aptData.status ?? 'available';
     setApartment({
       ...aptData,
-      status: VALID_APARTMENT_STATUSES.includes(rawStatus as ApartmentStatus)
-        ? (rawStatus as ApartmentStatus)
-        : 'available',
-      isVerified: aptData.is_verified ?? false,
+      status: normalizeStatus(aptData.status),
     } as ApartmentDetails);
 
-    const { data: reviewData, error: reviewError } = await supabase
-      .from('reviews')
-      .select(`
-        id,
-        rating,
-        comment,
-        created_at,
-        tenant:tenant_id (
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
-      .eq('apartment_id', apartmentId)
-      .order('created_at', { ascending: false })
-      .limit(2);
-
-    if (!reviewError && reviewData) {
-      setReviews(reviewData as ReviewWithTenant[]);
+    if (reviewError) {
+      // Don't fail the whole screen over reviews, but don't silently keep
+      // stale data either — clear it and surface the error for logging/UI.
+      console.error('Failed to fetch reviews:', reviewError.message);
+      setReviews([]);
+      setError((prev) => prev ?? reviewError.message);
+    } else {
+      setReviews((reviewData ?? []) as ReviewWithTenant[]);
     }
 
     setLoading(false);

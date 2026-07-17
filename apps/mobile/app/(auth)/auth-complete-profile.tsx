@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
 import { useEffect, useRef, useState } from 'react';
+import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import {
   PROVINCES,
@@ -98,6 +99,26 @@ export default function AuthCompleteProfile() {
     streetAddress: "",
   });
 
+  // Scroll-to-error refs
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const contentRef = useRef<View>(null);
+
+  type ScrollableField =
+    | keyof ProfileForm
+    | 'mobileNumber'
+    | 'postalCode';
+
+  const fieldPositions = useRef<Partial<Record<ScrollableField, number>>>({});
+
+  const registerFieldRef = (field: ScrollableField) => (node: View | null) => {
+    if (!node || !contentRef.current) return;
+    node.measureLayout(
+      contentRef.current,
+      (_x: number, y: number) => { fieldPositions.current[field] = y; },
+      () => {},
+    );
+  };
+
   // Postal code hook
   const {
     value: postalCode,
@@ -168,7 +189,23 @@ export default function AuthCompleteProfile() {
       emptyFields.length > 0 ||
       !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
-    ) return;
+    ) {
+      const fieldOrder: ScrollableField[] = [
+        'firstName', 'lastName', 'gender', 'birthDate',
+        'mobileNumber',
+        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+      ];
+      const firstError = fieldOrder.find((field) => {
+        if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
+        if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
+        return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();
+      });
+      const y = firstError ? fieldPositions.current[firstError] : undefined;
+      if (y !== undefined) {
+        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true);
+      }
+      return;
+    }
 
     setLoading(true);
 
@@ -251,13 +288,13 @@ export default function AuthCompleteProfile() {
     : [];
 
   return (
-    <ScreenWrapper scrollable className="p-5">
+    <ScreenWrapper scrollable ref={scrollRef} className="p-5">
       {/* Title */}
       <Text className="text-2xl text-foreground font-interSemiBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
-      <View className="flex gap-4">
+      <View className="flex gap-4" ref={contentRef}>
         {/* Email Address Field */}
         <TextField isDisabled>
           <Label>Email Address:</Label>
@@ -274,30 +311,34 @@ export default function AuthCompleteProfile() {
         </Text>
 
         {/* First Name Field */}
-        <TextField isRequired isInvalid={!!getError("firstName")}>
-          <Label>First Name:</Label>
-          <Input
-            placeholder="Enter your first name"
-            value={profileForm.firstName}
-            onChangeText={(value) => updateField("firstName", value)}
-          />
-          {getError("firstName") && (
-            <FieldError>{getError("firstName")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("firstName")}>
+          <TextField isRequired isInvalid={!!getError("firstName")}>
+            <Label>First Name:</Label>
+            <Input
+              placeholder="Enter your first name"
+              value={profileForm.firstName}
+              onChangeText={(value) => updateField("firstName", value)}
+            />
+            {getError("firstName") && (
+              <FieldError>{getError("firstName")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Last Name Field */}
-        <TextField isRequired isInvalid={!!getError("lastName")}>
-          <Label>Last Name:</Label>
-          <Input
-            placeholder="Enter your last name"
-            value={profileForm.lastName}
-            onChangeText={(value) => updateField("lastName", value)}
-          />
-          {getError("lastName") && (
-            <FieldError>{getError("lastName")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("lastName")}>
+          <TextField isRequired isInvalid={!!getError("lastName")}>
+            <Label>Last Name:</Label>
+            <Input
+              placeholder="Enter your last name"
+              value={profileForm.lastName}
+              onChangeText={(value) => updateField("lastName", value)}
+            />
+            {getError("lastName") && (
+              <FieldError>{getError("lastName")}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Middle Name Field */}
         <TextField>
@@ -320,46 +361,52 @@ export default function AuthCompleteProfile() {
         />
 
         {/* Gender Field */}
-        <DropdownField
-          label="Gender:"
-          bottomSheetLabel="Select your gender"
-          placeholder="Select your gender"
-          options={GENDERS}
-          value={profileForm.gender}
-          onSelect={(value) => updateField("gender", value)}
-          required
-          error={getError("gender")}
-        />
+        <View ref={registerFieldRef("gender")}>
+          <DropdownField
+            label="Gender:"
+            bottomSheetLabel="Select your gender"
+            placeholder="Select your gender"
+            options={GENDERS}
+            value={profileForm.gender}
+            onSelect={(value) => updateField("gender", value)}
+            required
+            error={getError("gender")}
+          />
+        </View>
 
         {/* Date of Birth Field */}
-        <DateField
-          label="Date of Birth:"
-          placeholder="Select your date of birth"
-          required
-          value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
-          onChange={(date) => {
-            const formattedDate = date.toISOString().split("T")[0];
-            updateField("birthDate", formattedDate);
-          }}
-          error={getError("birthDate")}
-        />
+        <View ref={registerFieldRef("birthDate")}>
+          <DateField
+            label="Date of Birth:"
+            placeholder="Select your date of birth"
+            required
+            value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
+            onChange={(date) => {
+              const formattedDate = date.toISOString().split("T")[0];
+              updateField("birthDate", formattedDate);
+            }}
+            error={getError("birthDate")}
+          />
+        </View>
 
         {/* Mobile Number Field */}
-        <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
-          <Label>Mobile Number:</Label>
-          <Input
-            placeholder="Enter your mobile number"
-            keyboardType="phone-pad"
-            maxLength={13}
-            value={mobileNumber}
-            onChangeText={(value) => {
-              onMobileChange(value);
-            }}
-          />
-          {mobileValidation.errorMessage && (
-            <FieldError>{mobileValidation.errorMessage}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("mobileNumber")}>
+          <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
+            <Label>Mobile Number:</Label>
+            <Input
+              placeholder="Enter your mobile number"
+              keyboardType="phone-pad"
+              maxLength={13}
+              value={mobileNumber}
+              onChangeText={(value) => {
+                onMobileChange(value);
+              }}
+            />
+            {mobileValidation.errorMessage && (
+              <FieldError>{mobileValidation.errorMessage}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         <Separator />
 
@@ -371,79 +418,89 @@ export default function AuthCompleteProfile() {
         </Text>
 
         {/* Province Field */}
-        <DropdownField
-          label="Province:"
-          bottomSheetLabel="Select your province"
-          placeholder="Select your province"
-          options={PROVINCES}
-          value={profileForm.province}
-          onSelect={handleProvinceChange}
-          enableSearch
-          searchPlaceholder="Search provinces..."
-          required
-          error={getError("province")}
-        />
+        <View ref={registerFieldRef("province")}>
+          <DropdownField
+            label="Province:"
+            bottomSheetLabel="Select your province"
+            placeholder="Select your province"
+            options={PROVINCES}
+            value={profileForm.province}
+            onSelect={handleProvinceChange}
+            enableSearch
+            searchPlaceholder="Search provinces..."
+            required
+            error={getError("province")}
+          />
+        </View>
 
         {/* City Field */}
-        <DropdownField
-          label="City:"
-          bottomSheetLabel="Select your city"
-          placeholder="Select your city"
-          options={profileForm.province ? citiesForSelectedProvince : []}
-          value={profileForm.city}
-          onSelect={handleCityChange}
-          required
-          error={getError("city")}
-          enableSearch
-          searchPlaceholder="Search cities..."
-          disabled={!profileForm.province}
-        />
+        <View ref={registerFieldRef("city")}>
+          <DropdownField
+            label="City:"
+            bottomSheetLabel="Select your city"
+            placeholder="Select your city"
+            options={profileForm.province ? citiesForSelectedProvince : []}
+            value={profileForm.city}
+            onSelect={handleCityChange}
+            required
+            error={getError("city")}
+            enableSearch
+            searchPlaceholder="Search cities..."
+            disabled={!profileForm.province}
+          />
+        </View>
 
         {/* Barangay Field */}
-        <DropdownField
-          label="Barangay:"
-          bottomSheetLabel="Select your barangay"
-          placeholder="Select your barangay"
-          options={profileForm.city ? barangaysForSelectedCity : []}
-          value={profileForm.barangay}
-          onSelect={(value) => updateField("barangay", value)}
-          required
-          error={getError("barangay")}
-          enableSearch
-          searchPlaceholder="Search barangays..."
-          disabled={!profileForm.city}
-        />
+        <View ref={registerFieldRef("barangay")}>
+          <DropdownField
+            label="Barangay:"
+            bottomSheetLabel="Select your barangay"
+            placeholder="Select your barangay"
+            options={profileForm.city ? barangaysForSelectedCity : []}
+            value={profileForm.barangay}
+            onSelect={(value) => updateField("barangay", value)}
+            required
+            error={getError("barangay")}
+            enableSearch
+            searchPlaceholder="Search barangays..."
+            disabled={!profileForm.city}
+          />
+        </View>
 
         {/* Postal Code Field */}
-        <TextField isRequired isInvalid={!!postalCodeError}>
-          <Label>Postal Code:</Label>
-          <Input
-            placeholder="Enter your postal code"
-            keyboardType="numeric"
-            maxLength={4}
-            value={postalCode}
-            onChangeText={(value) => {
-              handlePostalCodeChange(value);
-            }}
-            onBlur={handlePostalCodeBlur}
-          />
-          {postalCodeError && (
-            <FieldError>{postalCodeError}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("postalCode")}>
+          <TextField isRequired isInvalid={!!postalCodeError}>
+            <Label>Postal Code:</Label>
+            <Input
+              placeholder="Enter your postal code"
+              keyboardType="numeric"
+              maxLength={4}
+              value={postalCode}
+              onChangeText={(value) => {
+                handlePostalCodeChange(value);
+              }}
+              onBlur={handlePostalCodeBlur}
+            />
+            {postalCodeError && (
+              <FieldError>{postalCodeError}</FieldError>
+            )}
+          </TextField>
+        </View>
 
         {/* Street Address Field */}
-        <TextField isRequired isInvalid={!!getError("streetAddress")}>
-          <Label>Street Address:</Label>
-          <Input
-            className="shadow-none"
-            placeholder="Enter your street address"
-            onChangeText={(value) => updateField("streetAddress", value)}
-          />
-          {getError("streetAddress") && (
-            <FieldError>{getError("streetAddress")}</FieldError>
-          )}
-        </TextField>
+        <View ref={registerFieldRef("streetAddress")}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
       </View>
 
       {/* Submit Button */}

@@ -1,6 +1,7 @@
 import { View, Text, ActivityIndicator } from 'react-native'
 import { useCallback } from 'react'
 import { router, useRouter, useFocusEffect } from 'expo-router'
+import type React from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
@@ -12,18 +13,17 @@ import ApplicationsList from '../components/rentals/ApplicationList';
 import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
 
 import {
-  Link,
-  User,
-  FileText,
-  Hammer,
-  MapPin,
-  Bell,
-  ReceiptText,
-  Settings,
-  CircleQuestionMark,
-  LucideIcon,
-  ClipboardPen
-} from "lucide-react-native";
+  IconLink,
+  IconUser,
+  IconFileText,
+  IconHammer,
+  IconMapPin,
+  IconBell,
+  IconReceipt,
+  IconSettings,
+  IconHelpCircle,
+  IconClipboardText,
+} from "@tabler/icons-react-native";
 
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
@@ -33,6 +33,8 @@ import { Button, Separator } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
+
 function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
   return status === 'paid' ? 'Paid' : 'Pending';
 }
@@ -40,7 +42,7 @@ function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
 type actionsTypes = {
   id: number;
   label: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress?: () => void;
 }
 
@@ -48,25 +50,25 @@ const actions: actionsTypes[] = [
   {
     id: 1,
     label: "View Receipts",
-    icon: ReceiptText,
+    icon: IconReceipt,
     onPress: () => router.push("/tenant/payment/history"),
   },
   {
     id: 2,
     label: "View Applications",
-    icon: ClipboardPen,
+    icon: IconClipboardText,
     onPress: () => router.push("/tenant/applications"),
   },
   {
     id: 3,
     label: "Settings",
-    icon: Settings,
+    icon: IconSettings,
     onPress: () => router.push("/settings"),
   },
   {
     id: 4,
     label: "FAQ",
-    icon: CircleQuestionMark,
+    icon: IconHelpCircle,
     onPress: () => router.push("/settings/faq"),
   },
 ];
@@ -146,11 +148,11 @@ export default function Rentals() {
     const address = formatAddress(apartment);
 
     return (
-      <ScreenWrapper scrollable className="p-5" bottomPadding={50}>
+      <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
         {/* Apartment Header */}
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
-            <MapPin size={30} color={colors.primary} />
+            <IconMapPin size={30} color={colors.primary} />
             <Text className="text-secondary text-2xl font-nunitoSemiBold">
               {apartment.name}
             </Text>
@@ -160,7 +162,7 @@ export default function Rentals() {
             variant="ghost"
             onPress={() => router.push("/tenant-notif")}
           >
-            <Bell size={26} color={colors.gray500} />
+            <IconBell size={26} color={colors.gray500} />
           </Button>
         </View>
 
@@ -181,7 +183,7 @@ export default function Rentals() {
         {/* Quick Actions */}
         <View className="flex mt-5">
           <View className="flex-row items-center justify-start gap-2">
-            <Link size={24} color={colors.textPrimary} />
+            <IconLink size={24} color={colors.textPrimary} />
             <Text className="text-foreground text-lg font-interSemiBold">
               Quick Actions
             </Text>
@@ -201,7 +203,7 @@ export default function Rentals() {
         {/* Landlord Information */}
         <View className="mt-5 flex gap-3">
           <View className="flex-row items-center justify-start gap-2">
-            <User size={24} color={colors.textPrimary} />
+            <IconUser size={24} color={colors.textPrimary} />
             <Text className="text-foreground text-lg font-interSemiBold">
               Landlord Information
             </Text>
@@ -217,7 +219,7 @@ export default function Rentals() {
         {/* Apartment Description */}
         <View className="mt-5 flex gap-3">
           <View className="flex-row items-center justify-start gap-2">
-            <FileText size={24} color={colors.textPrimary} />
+            <IconFileText size={24} color={colors.textPrimary} />
             <Text className="text-foreground text-lg font-interSemiBold">
               Apartment Description
             </Text>
@@ -247,7 +249,7 @@ export default function Rentals() {
             <Separator className="my-4" />
             <View className="flex gap-3">
               <View className="flex-row items-center justify-start gap-2">
-                <Hammer size={24} color={colors.textPrimary} />
+                <IconHammer size={24} color={colors.textPrimary} />
                 <Text className="text-foreground text-lg font-interSemiBold">
                   {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
                 </Text>
@@ -281,7 +283,7 @@ export default function Rentals() {
                     onPress={handleRequestMaintenance}
                     size='sm'
                   >
-                    <Hammer size={18} color={colors.secondaryForeground} />
+                    <IconHammer size={18} color={colors.secondaryForeground} />
                     <Button.Label>Request Again</Button.Label>
                   </Button>
                 )}
@@ -293,7 +295,7 @@ export default function Rentals() {
             <Separator className='my-4' />
 
             <Button onPress={handleRequestMaintenance}>
-              <Hammer size={20} color={colors.secondaryForeground} />
+              <IconHammer size={20} color={colors.secondaryForeground} />
               <Button.Label>Request Maintenance Issue</Button.Label>
             </Button>
           </>

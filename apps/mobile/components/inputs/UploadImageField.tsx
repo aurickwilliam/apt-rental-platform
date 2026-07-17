@@ -17,6 +17,7 @@ interface UploadImageFieldProps {
   required?: boolean
   single?: boolean
   images: ImagePicker.ImagePickerAsset[]
+  maxImages?: number
   onAdd: (images: ImagePicker.ImagePickerAsset | ImagePicker.ImagePickerAsset[]) => void
   onRemove: (uri: string) => void
   error?: string
@@ -29,6 +30,7 @@ export default function UploadImageField({
   required,
   single = false,
   images = [],
+  maxImages,
   onAdd,
   onRemove,
   error,
@@ -37,7 +39,12 @@ export default function UploadImageField({
 
   const [loading, setLoading] = useState(false)
 
+  const remainingSlots = maxImages ? Math.max(maxImages - images.length, 0) : undefined
+  const limitReached = !single && maxImages !== undefined && remainingSlots === 0
+
   const pickImage = async () => {
+    if (limitReached) return
+
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!permission.granted) return
 
@@ -46,6 +53,8 @@ export default function UploadImageField({
       mediaTypes: 'images',
       allowsMultipleSelection: !single,
       quality: 0.75,
+      // Cap selection at the OS picker level when possible
+      selectionLimit: single ? 1 : remainingSlots ?? 0,
     })
     setLoading(false)
 
@@ -55,20 +64,31 @@ export default function UploadImageField({
       // Single mode: pass one asset
       onAdd(result.assets[0])
     } else {
-      // Multiple mode: pass the full batch so the parent can count correctly
-      onAdd(result.assets)
+      // Safety net in case the OS picker doesn't respect selectionLimit
+      const trimmed = remainingSlots !== undefined
+        ? result.assets.slice(0, remainingSlots)
+        : result.assets
+      onAdd(trimmed)
     }
   }
 
-  const showPicker = single ? images.length === 0 : true
+  const showPicker = single ? images.length === 0 : !limitReached
 
   return (
     <View className="gap-2">
       {/* Label */}
-      <Text className="text-base font-semibold text-foreground">
-        {label}
-        {required && <Text className="text-danger"> *</Text>}
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-base font-semibold text-foreground">
+          {label}
+          {required && <Text className="text-danger"> *</Text>}
+        </Text>
+
+        {!single && maxImages !== undefined && (
+          <Text className="text-xs text-muted">
+            {images.length} / {maxImages}
+          </Text>
+        )}
+      </View>
 
       {/* Preview strip */}
       {images.length > 0 && (
@@ -104,7 +124,7 @@ export default function UploadImageField({
         </View>
       )}
 
-      {/* Upload button — hidden in single mode once an image is set */}
+      {/* Upload button — hidden in single mode once an image is set, or once max is reached */}
       {showPicker && (
         <TouchableOpacity
           onPress={pickImage}

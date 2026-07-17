@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router';
 
-import { ClipboardX } from 'lucide-react-native';
+import { IconClipboardOff } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -13,7 +13,7 @@ export default function ApplicationsEmptyState() {
 
   return (
     <View className='flex-1 bg-background items-center justify-center gap-4 py-20'>
-      <ClipboardX size={64} color={colors.primary} />
+      <IconClipboardOff size={64} color={colors.primary} />
 
       <View className='items-center gap-1'>
         <Text className='text-foreground text-xl font-interSemiBold text-center'>

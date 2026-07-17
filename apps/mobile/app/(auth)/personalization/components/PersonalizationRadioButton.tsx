@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from 'react-native'
 
-import { Check } from 'lucide-react-native';
+import { IconCheck } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -30,7 +30,7 @@ export default function PersonalizationRadioButton({
           ${selected ? "border-accent" : "border-field-border"}`}
       >
         {selected && (
-          <Check
+          <IconCheck
             size={22} 
             color={ colors.primary } 
           />

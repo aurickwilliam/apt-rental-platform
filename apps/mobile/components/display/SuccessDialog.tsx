@@ -1,6 +1,6 @@
 import { View } from 'react-native'
 
-import { CircleCheck } from 'lucide-react-native'
+import { IconCircleCheck } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -16,9 +16,9 @@ type SuccessDialogProps = {
   title?: string;
 }
 
-export default function SuccessDialog({ 
-  isOpen, 
-  onClose, 
+export default function SuccessDialog({
+  isOpen,
+  onClose,
   message,
   title = "Success",
 }: SuccessDialogProps) {
@@ -33,7 +33,7 @@ export default function SuccessDialog({
 
           <View className="mb-5 gap-1.5">
             <View className="flex-row items-center gap-2">
-              <CircleCheck size={20} color={colors.success} />
+              <IconCircleCheck size={20} color={colors.success} />
               <Dialog.Title className="text-success">
                 {title}
               </Dialog.Title>

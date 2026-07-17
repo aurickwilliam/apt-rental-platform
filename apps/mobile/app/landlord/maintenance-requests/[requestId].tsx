@@ -6,7 +6,7 @@ import ImageView from "react-native-image-viewing";
 
 import { Button, Chip, Separator } from "heroui-native";
 
-import { Hammer } from "lucide-react-native";
+import { IconHammer } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -125,7 +125,7 @@ export default function MaintenanceRequestDetails() {
       scrollable
     >
       <View className="flex-row items-center gap-3">
-        <Hammer size={20} color={colors.primary} />
+        <IconHammer size={20} color={colors.primary} />
         <Text className="text-foreground text-lg font-interSemiBold">
           Maintenance Information
         </Text>

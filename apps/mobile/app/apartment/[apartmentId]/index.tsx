@@ -4,7 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { Heart, ChevronLeft } from "lucide-react-native";
+import {
+  IconHeart,
+  IconHeartFilled,
+  IconChevronLeft,
+} from "@tabler/icons-react-native";
 
 import {
   ApartmentHeroSection,
@@ -22,6 +26,7 @@ import {
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
+import { useReviewEligibility } from "@/hooks/ratings";
 
 import { Button } from "heroui-native";
 
@@ -29,11 +34,16 @@ export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
   const { colors } = useColors();
+
   const { apartment, reviews, loading, error } =
     useApartmentDetails(apartmentId);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const {
+    canReview,
+    checkingEligibility,
+    reviewableTenancyId
+  } = useReviewEligibility(apartmentId);
 
   const apartmentImages =
     apartment?.apartment_images.map((img) => ({
@@ -91,13 +101,19 @@ export default function ApartmentScreen() {
     }
   };
 
-  const handleSeeAllRatings = () => {
-    router.push(`/apartment/${apartmentId}/ratings`);
-  };
-
   const handleMapViewNavigation = () => {
     router.push(`/apartment/${apartmentId}/map-view`);
   };
+
+  const handleWriteReview = () => {
+    router.push({
+      pathname: `/apartment/[apartmentId]/rate-apartment`,
+      params: {
+        apartmentId: apartmentId,
+        tenancyId: reviewableTenancyId
+      },
+    })
+  }
 
   // Loading State
   if (loading) {
@@ -141,7 +157,13 @@ export default function ApartmentScreen() {
           onOpenMap={handleMapViewNavigation}
         />
 
-        <RatingsSection reviews={reviews} onSeeAll={handleSeeAllRatings} />
+        <RatingsSection
+          reviews={reviews}
+          onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
+          canReview={canReview}
+          checkingEligibility={checkingEligibility}
+          onWriteReview={handleWriteReview}
+        />
 
         <LandlordSection
           landlord={apartment?.landlord ?? null}
@@ -151,7 +173,6 @@ export default function ApartmentScreen() {
         />
 
         <LeaseAgreementSection
-          apartmentId={apartmentId}
           leaseAgreementUrl={apartment?.lease_agreement_url}
         />
 
@@ -170,7 +191,7 @@ export default function ApartmentScreen() {
       {/* Back Button */}
       <View className="absolute left-4" style={{ top: insets.top + 8 }}>
         <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
-          <ChevronLeft size={24} color={colors.textPrimary} />
+          <IconChevronLeft size={24} color={colors.textPrimary} />
         </Button>
       </View>
 
@@ -182,9 +203,9 @@ export default function ApartmentScreen() {
           isIconOnly
         >
           {isFavorite(apartmentId) ? (
-            <Heart size={24} color={colors.danger} fill={colors.danger} />
+            <IconHeartFilled size={24} color={colors.danger} />
           ) : (
-            <Heart size={24} color={colors.gray400} />
+            <IconHeart size={24} color={colors.gray400} />
           )}
         </Button>
       </View>

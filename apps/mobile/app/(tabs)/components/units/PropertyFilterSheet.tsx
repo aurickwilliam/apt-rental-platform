@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { ListFilter } from "lucide-react-native";
+import { IconFilter2 } from "@tabler/icons-react-native";
 import { BottomSheet, Chip, Button, Separator } from "heroui-native";
 
 import { APARTMENT_STATUS_LABELS } from "@repo/constants";
@@ -61,7 +61,7 @@ export default function PropertyFilterSheet({
       <View className="relative">
         <BottomSheet.Trigger asChild>
           <Button isIconOnly variant="secondary">
-            <ListFilter size={18} color={colors.textPrimary} />
+            <IconFilter2 size={18} color={colors.textPrimary} />
           </Button>
         </BottomSheet.Trigger>
 
