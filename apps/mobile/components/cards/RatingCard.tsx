@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { View, Text, Modal, Pressable, FlatList, Dimensions } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import { Avatar, Card } from 'heroui-native'
-import { IconX } from '@tabler/icons-react-native'
+import ImageViewing from 'react-native-image-viewing'
 import { formatDate, getInitials } from '@repo/utils'
 import StarRating from '../display/StarRating'
 
@@ -18,7 +18,6 @@ interface RatingCardProps {
 
 const REVIEW_CHAR_LIMIT = 150
 const MAX_VISIBLE_THUMBNAILS = 4
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export default function RatingCard({
   name,
@@ -38,6 +37,7 @@ export default function RatingCard({
 
   const visibleThumbnails = images?.slice(0, MAX_VISIBLE_THUMBNAILS) ?? []
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0
+  const imageViewingSources = images?.map((uri) => ({ uri })) ?? []
 
   return (
     <>
@@ -113,7 +113,7 @@ export default function RatingCard({
                   >
                     <Image
                       source={{ uri }}
-                      className='w-full h-full'
+                      style={{ width: '100%', height: '100%' }}
                       contentFit='cover'
                       cachePolicy='disk'
                     />
@@ -141,52 +141,12 @@ export default function RatingCard({
         </Card.Body>
       </Card>
 
-      {/* Lightbox */}
-      <Modal
+      <ImageViewing
+        images={imageViewingSources}
+        imageIndex={lightboxIndex ?? 0}
         visible={lightboxIndex !== null}
-        transparent
-        animationType='fade'
         onRequestClose={() => setLightboxIndex(null)}
-      >
-        <View className='flex-1 bg-black'>
-          <Pressable
-            onPress={() => setLightboxIndex(null)}
-            className='absolute top-14 right-5 z-10 w-10 h-10 rounded-full bg-white/10 items-center justify-center'
-            hitSlop={8}
-          >
-            <IconX size={22} color='white' />
-          </Pressable>
-
-          {images && lightboxIndex !== null && (
-            <FlatList
-              data={images}
-              horizontal
-              pagingEnabled
-              initialScrollIndex={lightboxIndex}
-              getItemLayout={(_, index) => ({
-                length: SCREEN_WIDTH,
-                offset: SCREEN_WIDTH * index,
-                index,
-              })}
-              keyExtractor={(_, index) => `lightbox-${index}`}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <View
-                  style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-                  className='items-center justify-center'
-                >
-                  <Image
-                    source={{ uri: item }}
-                    style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT * 0.8 }}
-                    contentFit='contain'
-                    cachePolicy='disk'
-                  />
-                </View>
-              )}
-            />
-          )}
-        </View>
-      </Modal>
+      />
     </>
   )
 }
