@@ -23,14 +23,14 @@ import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
 import { Button, Spinner } from "heroui-native";
 
 import {
-  ChevronLeft,
-  BedDouble,
-  Bath,
-  Home,
-  MapPin,
-  Maximize,
-  Star,
-} from "lucide-react-native";
+  IconChevronLeft,
+  IconBed,
+  IconBath,
+  IconHome,
+  IconMapPin,
+  IconArrowsMaximize,
+  IconStarFilled,
+} from "@tabler/icons-react-native";
 
 export default function ApartmentSummary() {
   const { colors } = useColors();
@@ -160,7 +160,7 @@ export default function ApartmentSummary() {
             </Text>
 
             <View className="flex-row items-center mt-2 gap-2">
-              <MapPin size={24} color={colors.secondaryForeground} />
+              <IconMapPin size={24} color={colors.secondaryForeground} />
               <Text className="text-secondary-foreground font-interMedium text-base">
                 {fullAddress}
               </Text>
@@ -168,14 +168,14 @@ export default function ApartmentSummary() {
 
             <View className="flex-row items-center justify-between mt-8 gap-6">
               <View className="flex-row items-center gap-2">
-                <Home size={24} color={colors.secondaryForeground} />
+                <IconHome size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
                   {apartment.type}
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
-                <Star size={20} color={colors.secondary} fill={colors.secondary} />
+                <IconStarFilled size={20} color={colors.secondary} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
                   {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
                 </Text>
@@ -187,21 +187,21 @@ export default function ApartmentSummary() {
               pointerEvents="none"
             >
               <View className="flex-row items-center gap-2">
-                <BedDouble size={24} color={colors.secondaryForeground} />
+                <IconBed size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
                   {apartment.no_bedrooms} Bedrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
-                <Bath size={24} color={colors.secondaryForeground} />
+                <IconBath size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
                   {apartment.no_bathrooms} Bathrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
-                <Maximize size={24} color={colors.secondaryForeground} />
+                <IconArrowsMaximize size={24} color={colors.secondaryForeground} />
                 <Text className="text-secondary-foreground font-interMedium text-base">
                   {apartment.area_sqm} Sqm
                 </Text>
@@ -277,7 +277,7 @@ export default function ApartmentSummary() {
 
         <View className="absolute left-4" style={{ top: insets.top + 8 }}>
           <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
-            <ChevronLeft size={24} color={colors.textPrimary} />
+            <IconChevronLeft size={24} color={colors.textPrimary} />
           </Button>
         </View>
       </View>

@@ -5,7 +5,7 @@ import {
   Button
 } from 'heroui-native';
 
-import { UserRoundPen } from 'lucide-react-native';
+import { IconUserEdit } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -40,7 +40,7 @@ export default function CompleteProfileCard({
   return (
     <Card className='mx-5 mb-5 shadow-none border border-border bg-surface'>
       <Card.Header className="flex-row gap-3 items-center">
-        <UserRoundPen size={24} color={colors.textPrimary} />
+        <IconUserEdit size={24} color={colors.textPrimary} />
         <Card.Title className='text-foreground font-interSemiBold'>
           Complete Your Profile
         </Card.Title>

@@ -6,7 +6,7 @@ import { IMAGES } from "@/constants/images";
 
 import { supabase } from "@repo/supabase";
 
-import { Bell } from "lucide-react-native";
+import { IconBell } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
@@ -17,6 +17,8 @@ import { useProfile } from "hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";
+
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 
 type DashboardStats = {
   totalProperties: number;
@@ -138,7 +140,7 @@ export default function Dashboard() {
   const isLoading = profileLoading || statsLoading;
 
   return (
-    <ScreenWrapper scrollable className="p-5" bottomPadding={50}>
+    <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
           <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
@@ -152,7 +154,7 @@ export default function Dashboard() {
           variant="ghost"
           isIconOnly
         >
-          <Bell size={26} color={colors.gray500} />
+          <IconBell size={26} color={colors.gray500} />
         </Button>
       </View>
 

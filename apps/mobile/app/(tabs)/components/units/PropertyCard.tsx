@@ -3,7 +3,7 @@ import { Image } from 'expo-image'
 
 import { Card, PressableFeedback } from 'heroui-native'
 
-import { ShieldCheck } from 'lucide-react-native'
+import { IconShieldCheck } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
 
@@ -85,7 +85,7 @@ export default function PropertyCard({
               </Card.Title>
 
               {isVerified && (
-                <ShieldCheck
+                <IconShieldCheck
                   size={18}
                   color={colors.success}
                 />

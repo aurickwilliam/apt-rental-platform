@@ -24,9 +24,9 @@ import {
 } from 'heroui-native';
 
 import {
-  Eye,
-  EyeOff
-} from "lucide-react-native";
+  IconEye,
+  IconEyeOff,
+} from "@tabler/icons-react-native";
 
 import { supabase } from "@repo/supabase";
 
@@ -250,9 +250,9 @@ export default function SignIn() {
                   hitSlop={20}
                 >
                   {showPassword ? (
-                    <EyeOff size={20} color={colors.gray400} />
+                    <IconEyeOff size={20} color={colors.gray400} />
                   ) : (
-                    <Eye size={20} color={colors.gray400} />
+                    <IconEye size={20} color={colors.gray400} />
                   )}
                 </Pressable>
               </InputGroup.Suffix>

@@ -22,7 +22,7 @@ import { PERKS } from "@/constants/perks";
 
 import { useColors } from "hooks/useTheme";
 
-import { ShieldCheck } from "lucide-react-native";
+import { IconShieldCheck } from "@tabler/icons-react-native";
 
 const MAX_SIZE = 300;
 const MIN_BUDGET = 1000;
@@ -181,7 +181,7 @@ export default function FilterBottomSheet({
                 setFilters((p) => ({ ...p, verifiedOnly: !p.verifiedOnly }))
               }
             >
-              <ShieldCheck
+              <IconShieldCheck
                 size={14}
                 color={filters.verifiedOnly ? colors.success : colors.gray400}
               />
@@ -443,7 +443,7 @@ export default function FilterBottomSheet({
                     color={isSelected ? 'accent' : 'default'}
                     onPress={() => toggleArrayItem('amenities', perk.id)}
                   >
-                    <Icon size={14} color={isSelected ? colors.primary : colors.gray400} />
+                    <Icon size={18} color={isSelected ? colors.primary : colors.textPrimary} />
                     <Chip.Label>{perk.name}</Chip.Label>
                   </Chip>
                 );
