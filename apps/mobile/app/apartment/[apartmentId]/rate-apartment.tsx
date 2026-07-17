@@ -9,11 +9,11 @@ import StandardHeader from 'components/layout/StandardHeader'
 import UploadImageField from 'components/inputs/UploadImageField'
 import DetailField from '@/components/display/DetailField';
 import ErrorDialog from 'components/display/ErrorDialog';
-
-import { DEFAULT_IMAGES } from 'constants/images'
+import RateApartmentSkeleton from './components/RateApartmentSkeleton';
 
 import { useColors } from 'hooks/useTheme';
 import { useSubmitReview } from '@/hooks/ratings';
+import { useApartmentDetails } from '@/hooks/apartments';
 
 import { supabase } from '@repo/supabase';
 import { formatDate } from '@repo/utils';
@@ -22,6 +22,7 @@ import {
   IconStar,
   IconStarHalfFilled,
   IconStarFilled,
+  IconPhotoOff,
 } from '@tabler/icons-react-native';
 
 import {
@@ -61,6 +62,12 @@ export default function RateApartment() {
   const router = useRouter();
 
   const { submitReview, isSubmitting } = useSubmitReview();
+
+  const {
+    apartment,
+    loading: apartmentLoading,
+    error: apartmentError,
+  } = useApartmentDetails(apartmentId);
 
   const [reviewText, setReviewText] = useState<string>('');
   const [rating, setRating] = useState<number>(0); // supports .5 increments
@@ -116,17 +123,17 @@ export default function RateApartment() {
     };
   }, [tenancyId]);
 
-  // Dummy Data for demonstration purposes
-  const apartment = {
-    id: apartmentId,
-    name: 'Modern Apartment in City Center',
-    address: '123 Main St, Metropolis',
-    thumbnailUrl: DEFAULT_IMAGES.defaultThumbnail,
-    landlordName: 'Alice Johnson',
-    apartmentType: '2 Bedroom Apartment',
-    ratings: 4.5,
-    noRatings: 120,
-  }
+  // Surface a hard apartment-fetch failure — nothing to review if this didn't load
+  useEffect(() => {
+    if (apartmentError) {
+      setErrorDialog({
+        visible: true,
+        title: 'Unable to load apartment',
+        message: 'We couldn\u2019t load this apartment\u2019s details. Please try again.',
+        navigateOnClose: true,
+      });
+    }
+  }, [apartmentError]);
 
   const stayDurationLabel = tenancyLoading
     ? 'Loading...'
@@ -167,24 +174,11 @@ export default function RateApartment() {
       images: reviewImages,
     });
 
-    if (result.success && !result.error) {
-      // Clean success — leave immediately
+    if (result.success) {
       router.back();
       return;
     }
 
-    if (result.success && result.error) {
-      // Review was saved, but photo upload failed — tell the user, then leave
-      setErrorDialog({
-        visible: true,
-        title: 'Review submitted',
-        message: `Your review was saved, but ${result.error.toLowerCase()} You can add photos later from your review.`,
-        navigateOnClose: true,
-      });
-      return;
-    }
-
-    // Hard failure — nothing was saved, let them retry
     setErrorDialog({
       visible: true,
       title: 'Something went wrong',
@@ -201,8 +195,6 @@ export default function RateApartment() {
     }
   };
 
-  // Tapping the left half of a star sets a half value (e.g. 3.5),
-  // tapping the right half sets the full value (e.g. 4)
   const handleStarPress = (starIndex: number, event: GestureResponderEvent) => {
     const { locationX } = event.nativeEvent;
     const isHalf = locationX < STAR_SIZE / 2;
@@ -210,7 +202,6 @@ export default function RateApartment() {
     if (errors.rating) setErrors((prev) => ({ ...prev, rating: undefined }));
   };
 
-  // Render Stars for Rating
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -254,6 +245,24 @@ export default function RateApartment() {
     setReviewImages((prev) => prev.filter((img) => img.uri !== uri));
   };
 
+  // Block on the apartment fetch — nothing below is safe to render without it
+  if (apartmentLoading || !apartment) {
+    return <RateApartmentSkeleton />;
+  }
+
+  const coverImage =
+    apartment.apartment_images.find((img) => img.is_cover)?.url ??
+    apartment.apartment_images[0]?.url ??
+    null;
+
+  const landlordName = apartment.landlord
+    ? `${apartment.landlord.first_name} ${apartment.landlord.last_name}`.trim()
+    : 'Unknown Landlord';
+
+  const address = [apartment.street_address, apartment.barangay, apartment.city]
+    .filter(Boolean)
+    .join(', ');
+
   return (
     <ScreenWrapper
       scrollable
@@ -264,12 +273,21 @@ export default function RateApartment() {
     >
       {/* Apartment Thumbnail */}
       <View className='w-full h-52 rounded-3xl overflow-hidden'>
-        <Image
-          source={apartment.thumbnailUrl}
-          style={{ width: '100%', height: '100%' }}
-          contentFit='cover'
-          cachePolicy='disk'
-        />
+        {coverImage ? (
+          <Image
+            source={coverImage}
+            style={{ width: '100%', height: '100%' }}
+            contentFit='cover'
+            cachePolicy='disk'
+          />
+        ) : (
+          <View className='w-full h-full items-center justify-center bg-gray50 border border-dashed border-gray300'>
+            <IconPhotoOff size={32} color={colors.gray300} />
+            <Text className='text-muted text-sm font-inter mt-2'>
+              No photo available
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Main Content */}
@@ -281,21 +299,21 @@ export default function RateApartment() {
           </Text>
 
           <Text className='text-foreground text-base font-interMedium'>
-            {apartment.address}
+            {address}
           </Text>
         </View>
 
         {/* Rental Owner */}
         <DetailField
           label='Landlord'
-          value={apartment.landlordName}
+          value={landlordName}
         />
 
         {/* Type and Ratings */}
         <View className='flex-row justify-between items-center'>
           <DetailField
             label='Apartment Type'
-            value={apartment.apartmentType}
+            value={apartment.type}
           />
 
           <View className='flex-row gap-2'>
@@ -304,7 +322,7 @@ export default function RateApartment() {
               color={colors.secondary}
             />
             <Text className='text-foreground text-base font-interMedium'>
-              {apartment.ratings} ({apartment.noRatings})
+              {(apartment.average_rating ?? 0).toFixed(1)} ({apartment.no_ratings})
             </Text>
           </View>
         </View>
@@ -336,12 +354,10 @@ export default function RateApartment() {
             Overall Rating
           </Text>
 
-          {/* Current Rating Label */}
           <Text className='text-secondary text-5xl font-nunitoBold mt-2 leading-tight'>
             {rating.toFixed(1)}
           </Text>
 
-          {/* Star Rating Input */}
           <View className='flex-row items-center justify-center gap-3 my-5'>
             {renderStars()}
           </View>
@@ -357,7 +373,9 @@ export default function RateApartment() {
           </View>
 
           {errors.rating && (
-            <Text className='text-red-500 text-xs mt-1'>{errors.rating}</Text>
+            <Text className='text-red-500 text-xs mt-1'>
+              {errors.rating}
+            </Text>
           )}
         </View>
 
