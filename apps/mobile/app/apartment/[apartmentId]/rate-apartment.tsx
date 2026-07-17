@@ -1,38 +1,120 @@
 import { View, Text, TouchableOpacity, type GestureResponderEvent } from 'react-native'
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useState, useEffect } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import UploadImageField from 'components/inputs/UploadImageField'
-import DateField from 'components/inputs/DateField'
+import DetailField from '@/components/display/DetailField';
+import ErrorDialog from 'components/display/ErrorDialog';
 
 import { DEFAULT_IMAGES } from 'constants/images'
 
 import { useColors } from 'hooks/useTheme';
-import DetailField from '@/components/display/DetailField';
+import { useSubmitReview } from '@/hooks/ratings';
+
+import { supabase } from '@repo/supabase';
+import { formatDate } from '@repo/utils';
+
 import {
   IconStar,
   IconStarHalfFilled,
   IconStarFilled,
 } from '@tabler/icons-react-native';
-import { Button, Label, Separator, TextArea, TextField } from 'heroui-native';
+
+import {
+  Button,
+  FieldError,
+  Label,
+  Separator,
+  TextArea,
+  TextField
+} from 'heroui-native';
 
 const STAR_SIZE = 45;
 
-export default function RateApartment() {
-  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
-  const { colors } = useColors();
+type FormErrors = {
+  rating?: string;
+  reviewText?: string;
+};
 
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
+type TenancyLeasePeriod = {
+  lease_start: string;
+  lease_end: string | null;
+};
+
+type ErrorDialogState = {
+  visible: boolean;
+  title?: string;
+  message: string | null;
+  navigateOnClose: boolean;
+};
+
+export default function RateApartment() {
+  const { apartmentId, tenancyId } = useLocalSearchParams<{
+    apartmentId: string;
+    tenancyId: string;
+  }>();
+  const { colors } = useColors();
+  const router = useRouter();
+
+  const { submitReview, isSubmitting } = useSubmitReview();
 
   const [reviewText, setReviewText] = useState<string>('');
   const [rating, setRating] = useState<number>(0); // supports .5 increments
 
   const [reviewImages, setReviewImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const [errorDialog, setErrorDialog] = useState<ErrorDialogState>({
+    visible: false,
+    message: null,
+    navigateOnClose: false,
+  });
+
+  // Lease period, sourced from the tenancy record rather than manual input
+  const [tenancy, setTenancy] = useState<TenancyLeasePeriod | null>(null);
+  const [tenancyLoading, setTenancyLoading] = useState(true);
+  const [tenancyError, setTenancyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tenancyId) {
+      setTenancyLoading(false);
+      setTenancyError('Missing tenancy reference');
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchTenancy = async () => {
+      setTenancyLoading(true);
+      setTenancyError(null);
+
+      const { data, error } = await supabase
+        .from('tenancies')
+        .select('lease_start, lease_end')
+        .eq('id', tenancyId)
+        .single();
+
+      if (!isMounted) return;
+
+      if (error || !data) {
+        setTenancyError('Unable to load stay duration');
+      } else {
+        setTenancy(data);
+      }
+      setTenancyLoading(false);
+    };
+
+    fetchTenancy();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tenancyId]);
 
   // Dummy Data for demonstration purposes
   const apartment = {
@@ -46,12 +128,86 @@ export default function RateApartment() {
     noRatings: 120,
   }
 
+  const stayDurationLabel = tenancyLoading
+    ? 'Loading...'
+    : tenancyError
+      ? tenancyError
+      : tenancy
+        ? `${formatDate(tenancy.lease_start, 'medium')} - ${tenancy.lease_end ? formatDate(tenancy.lease_end, 'medium') : 'Present'}`
+        : '—';
+
+  const isSubmitDisabled = tenancyLoading || !!tenancyError || isSubmitting;
+
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (rating <= 0) {
+      newErrors.rating = 'Please select a rating';
+    }
+
+    if (!reviewText.trim()) {
+      newErrors.reviewText = 'Please write a review';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitDisabled) return;
+    if (!validate()) return;
+
+    const stayedDate = tenancy?.lease_end ?? new Date().toISOString();
+
+    const result = await submitReview({
+      tenancyId: tenancyId!,
+      rating,
+      comment: reviewText,
+      stayedDate,
+      images: reviewImages,
+    });
+
+    if (result.success && !result.error) {
+      // Clean success — leave immediately
+      router.back();
+      return;
+    }
+
+    if (result.success && result.error) {
+      // Review was saved, but photo upload failed — tell the user, then leave
+      setErrorDialog({
+        visible: true,
+        title: 'Review submitted',
+        message: `Your review was saved, but ${result.error.toLowerCase()} You can add photos later from your review.`,
+        navigateOnClose: true,
+      });
+      return;
+    }
+
+    // Hard failure — nothing was saved, let them retry
+    setErrorDialog({
+      visible: true,
+      title: 'Something went wrong',
+      message: result.error ?? 'Failed to submit your review. Please try again.',
+      navigateOnClose: false,
+    });
+  };
+
+  const handleErrorDialogClose = () => {
+    const shouldNavigate = errorDialog.navigateOnClose;
+    setErrorDialog({ visible: false, message: null, navigateOnClose: false });
+    if (shouldNavigate) {
+      router.back();
+    }
+  };
+
   // Tapping the left half of a star sets a half value (e.g. 3.5),
   // tapping the right half sets the full value (e.g. 4)
   const handleStarPress = (starIndex: number, event: GestureResponderEvent) => {
     const { locationX } = event.nativeEvent;
     const isHalf = locationX < STAR_SIZE / 2;
     setRating(isHalf ? starIndex - 0.5 : starIndex);
+    if (errors.rating) setErrors((prev) => ({ ...prev, rating: undefined }));
   };
 
   // Render Stars for Rating
@@ -80,6 +236,11 @@ export default function RateApartment() {
     }
 
     return stars;
+  };
+
+  const handleReviewTextChange = (text: string) => {
+    setReviewText(text);
+    if (errors.reviewText) setErrors((prev) => ({ ...prev, reviewText: undefined }));
   };
 
   const handleAddImages = (
@@ -148,6 +309,25 @@ export default function RateApartment() {
           </View>
         </View>
 
+        {/* Duration of Stay — read-only, sourced from tenancy lease dates */}
+        <View>
+          <Text className='text-muted text-sm font-interMedium'>
+            Duration of Stay
+          </Text>
+
+          <View className='mt-3 rounded-2xl bg-gray50 flex-row items-center justify-between'>
+            <Text className='text-foreground text-base font-interMedium'>
+              {stayDurationLabel}
+            </Text>
+
+            {tenancy && !tenancy.lease_end && (
+              <Text className='text-muted text-xs font-inter'>
+                Ongoing
+              </Text>
+            )}
+          </View>
+        </View>
+
         <Separator className='my-4' />
 
         {/* Rating Input */}
@@ -175,19 +355,28 @@ export default function RateApartment() {
               5 - Excellent
             </Text>
           </View>
+
+          {errors.rating && (
+            <Text className='text-red-500 text-xs mt-1'>{errors.rating}</Text>
+          )}
         </View>
 
         {/* Review Text Box */}
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors.reviewText}>
           <Label>Tenant Review:</Label>
           <TextArea
             placeholder="Type your experience and review about the apartment.."
             value={reviewText}
-            onChangeText={setReviewText}
+            onChangeText={handleReviewTextChange}
             multiline
             numberOfLines={4}
             className='p-3'
           />
+          {errors.reviewText && (
+            <FieldError>
+              {errors.reviewText}
+            </FieldError>
+          )}
         </TextField>
 
         {/* Review Photos */}
@@ -199,41 +388,23 @@ export default function RateApartment() {
           maxImages={5}
         />
 
-        <Separator className='my-4' />
-
-        {/* Duration of Stay */}
-        <View>
-          <Text className='text-foreground text-base font-interMedium'>
-            Duration of Stay:
-          </Text>
-
-          <View className='flex-row gap-3 mt-3'>
-            <View className='flex-1'>
-              <DateField
-                label="From"
-                placeholder="Select date"
-                value={fromDate}
-                onChange={setFromDate}
-              />
-            </View>
-
-            <View className='flex-1'>
-              <DateField
-                label="To"
-                placeholder="Select date"
-                value={toDate}
-                onChange={setToDate}
-              />
-            </View>
-          </View>
-        </View>
-
-        <Button className='mt-5'>
+        <Button
+          className='mt-15'
+          onPress={handleSubmit}
+          isDisabled={isSubmitDisabled}
+        >
           <Button.Label>
-            Submit Review
+            {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </Button.Label>
         </Button>
       </View>
+
+      <ErrorDialog
+        isOpen={errorDialog.visible}
+        onClose={handleErrorDialogClose}
+        title={errorDialog.title}
+        message={errorDialog.message}
+      />
     </ScreenWrapper>
   )
 }

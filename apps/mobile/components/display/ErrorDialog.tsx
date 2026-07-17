@@ -1,8 +1,6 @@
-import { IconView } from 'react-native'
+import { View } from 'react-native'
 
-import { CircleAlert as View } from 'react-native'
-
-import { CircleAlert } from '@tabler/icons-react-native';
+import { IconAlertCircle } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -18,9 +16,9 @@ type ErrorDialogProps = {
   title?: string;
 }
 
-export default function ErrorDialog({ 
-  isOpen, 
-  onClose, 
+export default function ErrorDialog({
+  isOpen,
+  onClose,
   message,
   title = "Something went wrong",
 }: ErrorDialogProps) {
@@ -35,7 +33,7 @@ export default function ErrorDialog({
 
           <View className="mb-5 gap-1.5">
             <View className="flex-row items-center gap-2">
-              <CircleAlert size={20} color={colors.danger} />
+              <IconAlertCircle size={20} color={colors.danger} />
               <Dialog.Title className="text-danger">
                 {title}
               </Dialog.Title>
