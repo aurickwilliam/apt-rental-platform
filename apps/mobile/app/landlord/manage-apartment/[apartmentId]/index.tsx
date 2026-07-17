@@ -195,14 +195,26 @@ export default function Index() {
             </View>
 
             {/* Description Button */}
-            <View className="mt-5">
+            <View className="mt-5 flex-row items-center gap-3">
               <Button
                 onPress={() =>
                   router.push(`/landlord/manage-apartment/${apartmentId}/description`)
                 }
-                size="sm"
+                  size="sm"
+                  className='flex-1'
               >
                 <Button.Label>View Full Description</Button.Label>
+              </Button>
+
+              <Button
+                onPress={() =>
+                  router.push(`/landlord/manage-apartment/${apartmentId}/reviews`)
+                }
+                  size="sm"
+                  variant="secondary"
+                  className='flex-1'
+              >
+                <Button.Label>View Reviews</Button.Label>
               </Button>
             </View>
 

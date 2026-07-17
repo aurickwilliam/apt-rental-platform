@@ -1,6 +1,9 @@
-import { IconButton as Button, IconMenu } from 'heroui-native'
-import { EllipsisVertical as Menu } from 'heroui-native'
-import { EllipsisVertical, IconLogout as LogOut, IconCircleX as CircleX } from '@tabler/icons-react-native';
+import { Button, Menu} from 'heroui-native'
+import {
+  IconDotsVertical,
+  IconLogout,
+  IconCircleX
+} from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
 
@@ -21,7 +24,10 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
             items-center justify-center shadow-lg active:opacity-80"
           isIconOnly
         >
-          <EllipsisVertical size={26} color={colors.secondaryForeground} />
+          <IconDotsVertical
+            size={26}
+            color={colors.secondaryForeground}
+          />
         </Button>
       </Menu.Trigger>
 
@@ -35,7 +41,10 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
         >
           <Menu.Label>Actions</Menu.Label>
           <Menu.Item isDisabled={!isOccupied} onPress={onVacate}>
-            <LogOut size={20} color={!isOccupied ? colors.gray400 : colors.textPrimary} />
+            <IconLogout
+              size={20}
+              color={!isOccupied ? colors.gray400 : colors.textPrimary}
+            />
             <Menu.ItemTitle className={!isOccupied ? 'text-gray-400' : ''}>
               Vacate
             </Menu.ItemTitle>
@@ -46,7 +55,10 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
             isDisabled={isOccupied}
             onPress={onRemove}
           >
-            <CircleX size={20} color={isOccupied ? colors.gray400 : colors.danger} />
+            <IconCircleX
+              size={20}
+              color={isOccupied ? colors.gray400 : colors.danger}
+            />
             <Menu.ItemTitle className={isOccupied ? 'text-gray-400' : ''}>
               Remove Unit
             </Menu.ItemTitle>
