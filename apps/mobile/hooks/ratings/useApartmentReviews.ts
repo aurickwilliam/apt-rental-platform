@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { supabase } from '@repo/supabase'
+import { formatDate } from '@repo/utils'
 
 import { useReviewEligibility } from './useReviewEligibility'
 
@@ -14,6 +15,7 @@ export interface ApartmentReview {
   review: string
   profilePictureUrl?: string
   durationOfStay?: string
+  images?: string[]
 }
 
 export interface RatingBarCountData {
@@ -34,8 +36,6 @@ interface UseApartmentReviewsResult {
   setSortBy: (option: ReviewSortOption) => void
   canReview: boolean
   checkingEligibility: boolean
-  // NEW: the specific tenancy to submit a review against.
-  // Pass this to the insert on the rate-apartment screen.
   reviewableTenancyId: string | null
   refetch: () => Promise<void>
 }
@@ -44,20 +44,26 @@ type ReviewRow = {
   id: string
   rating: number
   comment: string | null
-  stayed_date: string | null
   created_at: string
+  image_paths: string[] | null
   users: {
     first_name: string | null
     last_name: string | null
     avatar_url: string | null
   } | null
+  tenancy: {
+    lease_start: string
+    lease_end: string | null
+  } | null
 }
 
-function formatStayedDate(dateStr: string | null): string | undefined {
-  if (!dateStr) return undefined
-  const date = new Date(dateStr)
-  if (Number.isNaN(date.getTime())) return undefined
-  return `Stayed ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+function formatLeaseDuration(
+  tenancy: ReviewRow['tenancy']
+): string | undefined {
+  if (!tenancy?.lease_start) return undefined
+  const start = formatDate(tenancy.lease_start, 'medium')
+  const end = tenancy.lease_end ? formatDate(tenancy.lease_end, 'medium') : 'Present'
+  return `${start} - ${end}`
 }
 
 export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsResult {
@@ -91,12 +97,16 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
           id,
           rating,
           comment,
-          stayed_date,
           created_at,
+          image_paths,
           users!reviews_tenant_id_fkey (
             first_name,
             last_name,
             avatar_url
+          ),
+          tenancy:tenancy_id (
+            lease_start,
+            lease_end
           )
         `
         )
@@ -122,6 +132,14 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
   // Refetch whenever the screen regains focus
   useFocusEffect(useCallback(() => { fetchReviews() }, [fetchReviews]))
 
+  function getReviewImageUrls(paths: string[] | null): string[] | undefined {
+    if (!paths || paths.length === 0) return undefined
+    const urls = paths.map(
+      (path) => supabase.storage.from('review-images').getPublicUrl(path).data.publicUrl
+    )
+    return urls
+  }
+
   const reviews = useMemo<ApartmentReview[]>(() => {
     const mapped = rawReviews.map((row) => {
       const firstName = row.users?.first_name ?? ''
@@ -135,7 +153,8 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
         rating: Number(row.rating),
         review: row.comment ?? '',
         profilePictureUrl: row.users?.avatar_url ?? undefined,
-        durationOfStay: formatStayedDate(row.stayed_date),
+        durationOfStay: formatLeaseDuration(row.tenancy),
+        images: getReviewImageUrls(row.image_paths),
       }
     })
 

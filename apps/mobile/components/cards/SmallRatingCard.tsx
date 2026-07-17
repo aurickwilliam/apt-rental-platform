@@ -27,7 +27,7 @@ export default function SmallRatingCard({
   return (
     <PressableFeedback onPress={onPress} className='rounded-3xl border border-border'>
       <PressableFeedback.Highlight />
-      <Card variant="transparent" className='bg-surface p-3 rounded-3xl h-30'>
+      <Card variant="transparent" className='bg-surface p-3 rounded-3xl max-h-30'>
         <Card.Header className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <Avatar size="sm" className='border border-border'>

@@ -130,7 +130,7 @@ export default function RatingsPage() {
         ) : (
           <View className='flex gap-2 mt-3'>
             {
-              reviews.map(({ id, name, date, rating, review, profilePictureUrl, durationOfStay }) => (
+              reviews.map(({ id, name, date, rating, review, profilePictureUrl, durationOfStay, images }) => (
                 <RatingCard
                   key={id}
                   name={name}
@@ -139,6 +139,7 @@ export default function RatingsPage() {
                   review={review}
                   profilePictureUrl={profilePictureUrl}
                   durationOfStay={durationOfStay}
+                  images={images}
                 />
               ))
             }
