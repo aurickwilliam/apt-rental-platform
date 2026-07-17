@@ -15,7 +15,7 @@ import {
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
-import { EMPLOYMENT_TYPES, requiresProofOfIncome } from '@repo/constants'
+import { requiresProofOfIncome } from '@repo/constants'
 
 type FormErrors = {
   govId?: string

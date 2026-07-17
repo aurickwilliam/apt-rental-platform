@@ -28,7 +28,7 @@ export default function Success() {
 
       <View className="w-full mt-10 flex gap-3">
         <Button
-          onPress={() => router.replace(`/manage-apartment/${apartmentId}`)}
+          onPress={() => router.replace(`/landlord/manage-apartment/${apartmentId}`)}
         >
           <Button.Label>View My Property</Button.Label>
         </Button>

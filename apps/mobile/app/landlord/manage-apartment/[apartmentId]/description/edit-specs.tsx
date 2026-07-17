@@ -133,7 +133,7 @@ export default function EditSpecs() {
       return;
     }
 
-    router.replace(`/manage-apartment/${id}/description`);
+    router.replace(`/landlord/manage-apartment/${id}/description`);
   };
 
   if (fetching) return null;

@@ -31,14 +31,14 @@ export default function Index() {
       className='px-5'
     >
       <View>
-        <CloseButton 
+        <CloseButton
           onPress={() => router.back()}
           className='my-5'
         >
           <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
-      
+
       <View className='flex gap-3'>
         <Text className='text-secondary text-3xl font-nunitoSemiBold'>
           Forgot Password
@@ -69,7 +69,7 @@ export default function Index() {
             variant='outline'
             onPress={() => handleForgotPassword('email')}
           >
-            <Mail size={20} color={colors.textPrimary} />
+            <IconMail size={20} color={colors.textPrimary} />
             <Button.Label className='font-interMedium text-foreground'>
               Send via Email
             </Button.Label>
