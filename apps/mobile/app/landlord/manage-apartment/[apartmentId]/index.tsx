@@ -162,7 +162,7 @@ export default function Index() {
                 <Text className="text-base text-foreground font-inter">Ratings</Text>
                 <Text className="text-3xl text-secondary font-interMedium">
                   {apartment.average_rating !== null
-                    ? `${apartment.average_rating}/5`
+                    ? `${apartment.average_rating}`
                     : '—'}
                 </Text>
                 <Text className="text-base text-foreground font-interMedium">
