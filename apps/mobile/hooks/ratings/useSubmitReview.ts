@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File } from 'expo-file-system';
+import * as Crypto from 'expo-crypto';
 
 import { supabase } from '@repo/supabase';
 import { useProfile } from '../auth/useProfile';
@@ -32,7 +33,6 @@ export function useSubmitReview() {
 
       for (const image of images) {
         const ext = image.uri.split('.').pop() ?? 'jpg';
-        // folder[1] must be the tenant's own users.id — enforced by storage RLS
         const path = `${tenantId}/${reviewId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
         const file = new File(image.uri);
@@ -45,6 +45,11 @@ export function useSubmitReview() {
           });
 
         if (uploadError) {
+          // Roll back any images that DID upload before this one failed —
+          // don't leave partial photo sets orphaned in storage.
+          if (paths.length > 0) {
+            await supabase.storage.from(REVIEW_IMAGES_BUCKET).remove(paths);
+          }
           throw new Error(`Failed to upload photo: ${uploadError.message}`);
         }
 
@@ -73,41 +78,51 @@ export function useSubmitReview() {
       setIsSubmitting(true);
       setError(null);
 
+      // Pre-generate the review id so images can be uploaded to their final
+      // path BEFORE the review row exists — if the upload fails, we bail
+      // out here and no review is ever inserted.
+      const reviewId = Crypto.randomUUID();
+      let uploadedPaths: string[] = [];
+
       try {
+        if (images.length > 0) {
+          try {
+            uploadedPaths = await uploadReviewImages(profile.id, reviewId, images);
+          } catch (uploadErr) {
+            const message =
+              uploadErr instanceof Error
+                ? uploadErr.message
+                : 'Failed to upload photos. Please try again.';
+            setError(message);
+            return { success: false, error: message };
+          }
+        }
+
         // apartment_id and tenant_id are populated by the
         // sync_review_tenancy_fields BEFORE INSERT trigger from tenancy_id
         const { data: review, error: insertError } = await supabase
           .from('reviews')
           .insert({
+            id: reviewId,
             tenancy_id: tenancyId,
             rating,
             comment,
             stayed_date: stayedDate,
+            image_paths: uploadedPaths,
           } as never)
           .select('id')
           .single();
 
         if (insertError || !review) {
-          // Postgres unique_violation — the UNIQUE (tenancy_id) constraint
+          // Insert failed after a successful upload — clean up the orphaned images
+          if (uploadedPaths.length > 0) {
+            await supabase.storage.from(REVIEW_IMAGES_BUCKET).remove(uploadedPaths);
+          }
+
           if (insertError?.code === '23505') {
             throw new Error('You have already reviewed this stay.');
           }
           throw new Error(insertError?.message ?? 'Failed to submit review.');
-        }
-
-        if (images.length > 0) {
-          const imagePaths = await uploadReviewImages(profile.id, review.id, images);
-
-          const { error: updateError } = await supabase
-            .from('reviews')
-            .update({ image_paths: imagePaths })
-            .eq('id', review.id);
-
-          if (updateError) {
-            // Review itself succeeded — don't fail the whole submission over photos
-            setError('Review submitted, but photos failed to upload.');
-            return { success: true, error: 'Photos failed to upload' };
-          }
         }
 
         return { success: true };
