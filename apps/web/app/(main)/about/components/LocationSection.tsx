@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -42,10 +42,10 @@ export default function LocationSection() {
       {/* Location info card */}
       <motion.div variants={fadeUp} className="mb-4">
         <Card
-          shadow="none"
-          classNames={{ base: "bg-primary/5 border border-primary/20" }}
+          variant="transparent"
+          className="bg-surface-secondary border border-primary/20"
         >
-          <CardBody className="p-5 flex-row items-start gap-4">
+          <Card.Content className="p-5 flex-row items-start gap-4">
             <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
               <MapPin size={20} className="text-primary" />
             </div>
@@ -61,17 +61,17 @@ export default function LocationSection() {
                 Valenzuela
               </p>
             </div>
-          </CardBody>
+          </Card.Content>
         </Card>
       </motion.div>
 
       {/* Map embed */}
       <motion.div variants={fadeUp}>
         <Card
-          shadow="none"
-          classNames={{ base: "border border-default-200 overflow-hidden" }}
+          variant="transparent"
+          className="border border-default-200 overflow-hidden"
         >
-          <CardBody className="p-0 h-72">
+          <Card.Content className="p-0 h-72">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.4520173016405!2d120.98399997499738!3d14.749845585895315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b1728ef3bec3%3A0x83c5359e2c2c2c2c!2s109%20Samson%20Rd%2C%20Caloocan%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1234567890"
               width="100%"
@@ -82,7 +82,7 @@ export default function LocationSection() {
               referrerPolicy="no-referrer-when-downgrade"
               title="APT Office Location"
             />
-          </CardBody>
+          </Card.Content>
         </Card>
       </motion.div>
     </motion.section>
