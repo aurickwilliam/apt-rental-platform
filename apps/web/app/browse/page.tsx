@@ -140,7 +140,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
             <FilterContainer resultCount={count ?? 0} />
           </div>
         </Suspense>
-        <div className="w-full md:w-3/4 bg-white rounded-lg p-0">
+        <div className="w-full md:w-3/4  rounded-lg p-0">
           <Suspense>
             <RenderApartments
               apartment={mapped}

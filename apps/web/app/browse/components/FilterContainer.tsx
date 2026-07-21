@@ -167,7 +167,7 @@ export default function FilterContainer({ resultCount }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 border border-grey-300">
+    <div className="bg-surface rounded-xl p-4 border ">
       <div className="flex gap-3 items-center justify-center mb-5">
         {/* Search Button */}
         <Button
