@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button, Card, buttonVariants } from "@heroui/react";
 import { IoLogoGithub, IoLogoLinkedin } from "react-icons/io5";
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/AboutData";
@@ -43,12 +43,10 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
 
   return (
     <Card
-      shadow="none"
-      classNames={{
-        base: "border border-default-200 hover:-translate-y-1 hover:border-primary hover:shadow-lg transition-all duration-300",
-      }}
+      variant="transparent"
+      className="border border-default-200 hover:-translate-y-1 hover:border-primary hover:shadow-lg transition-all duration-300"
     >
-      <CardBody className="p-0 flex flex-col">
+      <Card.Content className="p-0 flex flex-col">
         {/* Photo */}
         <div
           className="w-full rounded-t-xl overflow-hidden flex items-end justify-center"
@@ -80,14 +78,13 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
             {member.bio}
           </p>
 
-          {/* Read more toggle — HeroUI Button */}
+          {/* Read more toggle */}
           <div className="min-h-[28px]">
             {isTruncated && (
               <Button
-                variant="light"
-                color="primary"
+                variant="ghost"
                 size="sm"
-                className="h-auto min-w-0 px-0 py-1 text-xs mb-1"
+                className="h-auto min-w-0 px-0 py-1 text-xs mb-1 text-primary"
                 onPress={() => setExpanded(!expanded)}
               >
                 {expanded ? "Show less" : "Read more"}
@@ -95,46 +92,48 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
             )}
           </div>
 
-          {/* Social links — HeroUI isIconOnly Buttons */}
+          {/* Social links */}
           {(member.github || member.linkedin) && (
             <div className="flex items-center gap-2">
               {member.github && (
-                <Button
-                  as="a"
+                <a
                   href={member.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  isIconOnly
-                  size="sm"
-                  variant="flat"
-                  color="default"
                   aria-label="GitHub profile"
-                  className="w-7 h-7 min-w-0 rounded-lg bg-default-100 hover:bg-primary hover:text-white text-default-600 transition-colors duration-200"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                    isIconOnly: true,
+                    className:
+                      "w-7 h-7 min-w-0 rounded-lg bg-default-100 hover:bg-primary hover:text-white text-default-600 transition-colors duration-200",
+                  })}
                 >
                   <IoLogoGithub size={14} />
-                </Button>
+                </a>
               )}
 
               {member.linkedin && (
-                <Button
-                  as="a"
+                <a
                   href={member.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  isIconOnly
-                  size="sm"
-                  variant="flat"
-                  color="default"
                   aria-label="LinkedIn profile"
-                  className="w-7 h-7 min-w-0 rounded-lg bg-default-100 hover:bg-primary hover:text-white text-default-600 transition-colors duration-200"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                    isIconOnly: true,
+                    className:
+                      "w-7 h-7 min-w-0 rounded-lg bg-default-100 hover:bg-primary hover:text-white text-default-600 transition-colors duration-200",
+                  })}
                 >
                   <IoLogoLinkedin size={14} />
-                </Button>
+                </a>
               )}
             </div>
           )}
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

@@ -1,18 +1,14 @@
 "use client";
 import {
   Breadcrumbs,
-  BreadcrumbItem,
   Card,
-  CardBody,
   Chip,
   Separator,
 } from "@heroui/react";
 import { motion } from "framer-motion";
-
 import { Users, Target, Eye } from "lucide-react";
 
 import { stats } from "./data/AboutData";
-
 import TeamSection from "./components/TeamSection";
 import LocationSection from "./components/LocationSection";
 
@@ -30,12 +26,13 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-export default function AboutUs() {
+export default function AboutPage() {
   return (
     <div className="min-h-screen font-poppins">
       {/* ── Hero ── */}
       <section className="px-4 py-9 md:px-12 border-b border-default-200">
         <div className="max-w-7xl mx-auto">
+
           {/* Breadcrumb */}
           <motion.div
             variants={fadeUp}
@@ -43,9 +40,9 @@ export default function AboutUs() {
             animate="visible"
             className="mb-4"
           >
-            <Breadcrumbs size="sm" classNames={{ list: "text-default-500" }}>
-              <BreadcrumbItem href="/">Home</BreadcrumbItem>
-              <BreadcrumbItem>About Us</BreadcrumbItem>
+            <Breadcrumbs className="text-default-500 text-sm">
+              <Breadcrumbs.Item href="/">Home</Breadcrumbs.Item>
+              <Breadcrumbs.Item>About Us</Breadcrumbs.Item>
             </Breadcrumbs>
           </motion.div>
 
@@ -57,17 +54,11 @@ export default function AboutUs() {
             transition={{ delay: 0.1 }}
             className="mb-5"
           >
-            <Chip
-              startContent={<Users size={12} />}
-              variant="flat"
-              color="primary"
-              size="sm"
-              classNames={{
-                content:
-                  "text-xs font-poppinsSemiBold uppercase tracking-widest",
-              }}
-            >
-              About Us
+            <Chip variant="soft" color="default" size="sm">
+              <span className="flex items-center gap-1 text-xs font-poppinsSemiBold uppercase tracking-widest">
+                <Users size={12} />
+                About Us
+              </span>
             </Chip>
           </motion.div>
 
@@ -79,7 +70,10 @@ export default function AboutUs() {
             className="text-4xl md:text-5xl font-inter font-semibold leading-tight tracking-tight mb-4"
           >
             Meet the people{" "}
-            <em className="text-primary not-italic font-inter font-semibold">behind</em> APT
+            <em className="text-primary not-italic font-inter font-semibold">
+              behind
+            </em>{" "}
+            APT
           </motion.h1>
 
           <motion.p
@@ -102,18 +96,11 @@ export default function AboutUs() {
           >
             {stats.map((stat) => (
               <motion.div key={stat.label} variants={fadeUp}>
-                <Card
-                  shadow="none"
-                  classNames={{
-                    base: "bg-primary/5 border border-primary/10",
-                  }}
-                >
-                  <CardBody className="p-4 gap-0.5">
-                    <p className="text-xl font-poppinsSemiBold text-primary">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-default-700">{stat.label}</p>
-                  </CardBody>
+                <Card className="bg-surface border border-default-200 hover:border-primary transition-all duration-200 p-4">
+                  <p className="text-xl font-poppinsSemiBold text-primary">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-default-700">{stat.label}</p>
                 </Card>
               </motion.div>
             ))}
@@ -123,6 +110,7 @@ export default function AboutUs() {
 
       {/* ── Content ── */}
       <div className="max-w-7xl mx-auto px-4 md:px-12 py-14">
+
         {/* Mission & Vision */}
         <motion.div
           variants={stagger}
@@ -133,55 +121,41 @@ export default function AboutUs() {
         >
           {/* Mission */}
           <motion.div variants={fadeUp}>
-            <Card
-              shadow="none"
-              classNames={{
-                base: "bg-primary/5 border border-primary/10 h-full",
-              }}
-            >
-              <CardBody className="p-8 gap-0">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Target size={20} className="text-primary" />
-                </div>
-                <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
-                  Mission
-                </p>
-                <h3 className="text-xl font-poppinsSemiBold mb-3">
-                  What we are here to do
-                </h3>
-                <p className="text-sm text-default-700 leading-relaxed">
-                  To make renting in the Philippines simpler, safer, and more
-                  transparent, connecting tenants and property owners through a
-                  trusted digital platform built for the Filipino community.
-                </p>
-              </CardBody>
+            <Card className="bg-surface border border-default-200 hover:border-primary transition-all duration-200 shadow-none h-full p-8">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                <Target size={20} className="text-primary" />
+              </div>
+              <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+                Mission
+              </p>
+              <h3 className="text-xl font-poppinsSemiBold mb-3">
+                What we are here to do
+              </h3>
+              <p className="text-sm text-default-700 leading-relaxed">
+                To make renting in the Philippines simpler, safer, and more
+                transparent, connecting tenants and property owners through a
+                trusted digital platform built for the Filipino community.
+              </p>
             </Card>
           </motion.div>
 
           {/* Vision */}
           <motion.div variants={fadeUp}>
-            <Card
-              shadow="none"
-              classNames={{
-                base: "bg-primary/5 border border-primary/10 h-full",
-              }}
-            >
-              <CardBody className="p-8 gap-0">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Eye size={20} className="text-primary" />
-                </div>
-                <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
-                  Vision
-                </p>
-                <h3 className="text-xl font-poppinsSemiBold mb-3">
-                  Where we are headed
-                </h3>
-                <p className="text-sm text-default-700 leading-relaxed">
-                  To become the most trusted rental platform in the Philippines,
-                  where every Filipino can find a home they are proud of with
-                  confidence, ease, and peace of mind.
-                </p>
-              </CardBody>
+            <Card className="bg-surface border border-default-200 hover:border-primary transition-all duration-200 shadow-none h-full p-8">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                <Eye size={20} className="text-primary" />
+              </div>
+              <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+                Vision
+              </p>
+              <h3 className="text-xl font-poppinsSemiBold mb-3">
+                Where we are headed
+              </h3>
+              <p className="text-sm text-default-700 leading-relaxed">
+                To become the most trusted rental platform in the Philippines,
+                where every Filipino can find a home they are proud of with
+                confidence, ease, and peace of mind.
+              </p>
             </Card>
           </motion.div>
         </motion.div>
