@@ -9,6 +9,8 @@ import type { MessageType } from '@/service/chatService';
 
 import { useColors } from '@/hooks/useTheme';
 
+import { isEmojiOnly } from '@/service/chatService';
+
 interface ChatBubbleProps {
   message: string | null;
   messageType?: MessageType;
@@ -50,6 +52,20 @@ export default function ChatBubble({
   // shouldn't silently render an empty bubble.
   const isBrokenAttachment = messageType !== 'text' && !attachmentUrl;
 
+
+  // Emoji-only messages are rendered
+  // with a larger font size and no bubble background.
+  const isEmojiMessage =
+    messageType === 'text' &&
+    isEmojiOnly(message);
+
+  const emojiCount = [...(message ?? '')].length;
+
+  let fontSize = 46;
+
+  if (emojiCount === 2) fontSize = 40;
+  if (emojiCount >= 3) fontSize = 34;
+
   return (
     <View className={`max-w-[80%] mb-4 ${alignment}`}>
       {isVideo ? (
@@ -65,9 +81,7 @@ export default function ChatBubble({
             source={{ uri: attachmentUrl! }}
               style={[
                 ATTACHMENT_SIZE,
-                {
-                  borderColor: colors.gray300,
-                }
+                {borderColor: colors.gray300}
               ]}
             cachePolicy="disk"
             contentFit="cover"
@@ -84,11 +98,17 @@ export default function ChatBubble({
           </Text>
         </View>
       ) : (
-        <View className={`px-3 py-2 rounded-full ${bubbleColor}`}>
-          <Text className={`text-sm font-inter leading-6 ${textColor}`}>
+        isEmojiMessage ? (
+          <Text style={{ fontSize }}>
             {message}
           </Text>
-        </View>
+        ) : (
+          <View className={`px-3 py-2 rounded-full ${bubbleColor}`}>
+            <Text className={`text-sm font-inter leading-6 ${textColor}`}>
+              {message}
+            </Text>
+          </View>
+        )
       )}
 
       <Text className="text-gray-300 text-xs font-inter mt-1">
