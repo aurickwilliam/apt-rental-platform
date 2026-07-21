@@ -10,7 +10,7 @@ export default function BrowseLayout({
     <>
       <NavbarSwitcher />
 
-      <main className="bg-white min-h-screen">
+      <main className="min-h-screen">
         {children}
       </main>
 

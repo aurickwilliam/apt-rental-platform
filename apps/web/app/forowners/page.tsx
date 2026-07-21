@@ -119,7 +119,7 @@ export default function ForOwners() {
               </p>
  
               <Link href="/sign-up">
-                <Button size="md" variant="tertiary">
+                <Button size="md" variant="primary">
                   <ArrowRight size={14} />
                   Start managing smarter
                 </Button>
@@ -198,7 +198,7 @@ export default function ForOwners() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {testimonials.map((t) => (
-              <Card key={t.name} variant="default" className="border border-default-200 bg-white">
+              <Card key={t.name} variant="default" className="border border-default-200 bg-surface">
                 <Card.Content className="p-6 flex flex-col justify-between gap-5">
                   <div>
                     <div className="flex gap-0.5 mb-4">

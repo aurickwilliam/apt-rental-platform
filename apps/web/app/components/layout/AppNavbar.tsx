@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Avatar, Dropdown, Button, Label } from "@heroui/react";
 import { Menu, X } from "lucide-react";
@@ -26,9 +26,14 @@ const getInitials = (value: string) => {
 
 export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
   const { user, loading } = useUser();
+
+   useEffect(() => {                                 
+    setMounted(true);
+  }, []);
 
   const firstName = user?.user_metadata?.first_name ?? "";
   const lastName  = user?.user_metadata?.last_name  ?? "";
@@ -36,7 +41,7 @@ export default function AppNavbar() {
   const avatarSrc = user?.user_metadata?.avatar_url?.trim() || undefined;
 
   return (
-    <div className="sticky top-0 z-40 w-full border-b border-divider bg-background/70 backdrop-blur-md backdrop-saturate-150">
+    <div className="sticky top-0 z-40 w-full border-b border-divider bg-surface/70 backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
 
@@ -80,7 +85,7 @@ export default function AppNavbar() {
 
           {/* Right: theme + auth (desktop) */}
           <div className="hidden sm:flex items-center gap-3 flex-1 justify-end">
-            {loading ? (
+            {!mounted || loading ? (
               <div className="w-8 h-8 rounded-full bg-default-200 animate-pulse" />
             ) : user ? (
               <Dropdown>
