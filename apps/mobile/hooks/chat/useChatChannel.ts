@@ -1,12 +1,24 @@
 import { useRef, useCallback } from 'react';
 import { supabase } from '@repo/supabase';
 import { getRelativeTime } from '@repo/utils';
-import type { Message } from '../../service/chatService';
+import type { Message, MessageType } from '../../service/chatService';
 
 type PresenceState = {
   userId: string;
   isTyping: boolean;
   lastTypedAt?: number;
+};
+
+type BroadcastPayload = {
+  id: string;
+  message: string | null;
+  messageType: MessageType;
+  attachmentUrl: string | null;
+  attachmentMimeType?: string | null;
+  thumbnailUrl?: string | null;
+  created_at: string;
+  sender_id: string;
+  apartment_id: string | null;
 };
 
 type UseChatChannelOptions = {
@@ -58,6 +70,10 @@ export function useChatChannel({
           onNewMessage({
             id: payload.id,
             message: payload.message,
+            messageType: payload.messageType ?? 'text',
+            attachmentUrl: payload.attachmentUrl ?? null,
+            attachmentMimeType: payload.attachmentMimeType ?? null,
+            thumbnailUrl: payload.thumbnailUrl ?? null,
             timestamp: getRelativeTime(new Date(payload.created_at)),
             isSent: false,
           });
@@ -114,36 +130,24 @@ export function useChatChannel({
   );
 
   /** Broadcasts an already-inserted message to the other user. */
-  const broadcast = useCallback(
-    (payload: {
-      id: string;
-      message: string;
-      created_at: string;
-      sender_id: string;
-      apartment_id: string | null;
-    }) => {
-      if (!isSubscribedRef.current || !msgChannelRef.current) return;
+  const broadcast = useCallback((payload: BroadcastPayload) => {
+    if (!isSubscribedRef.current || !msgChannelRef.current) return;
 
-      msgChannelRef.current.send({
-        type: 'broadcast',
-        event: 'new_message',
-        payload,
-      });
-    },
-    []
-  );
+    msgChannelRef.current.send({
+      type: 'broadcast',
+      event: 'new_message',
+      payload,
+    });
+  }, []);
 
   /** Tracks the current user's presence state (typing / not typing). */
-  const trackPresence = useCallback(
-    (currentUserId: string, isTyping: boolean) => {
-      presenceChannelRef.current?.track({
-        userId: currentUserId,
-        isTyping,
-        lastTypedAt: Date.now(),
-      });
-    },
-    []
-  );
+  const trackPresence = useCallback((currentUserId: string, isTyping: boolean) => {
+    presenceChannelRef.current?.track({
+      userId: currentUserId,
+      isTyping,
+      lastTypedAt: Date.now(),
+    });
+  }, []);
 
   return { setup, teardown, broadcast, trackPresence };
 }

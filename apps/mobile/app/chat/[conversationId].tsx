@@ -6,7 +6,9 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import ImageViewing from "react-native-image-viewing";
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from '@/app/chat/components/ChatHeader';
@@ -49,6 +51,7 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const {
     conversationId,
@@ -69,6 +72,7 @@ export default function ChatScreen() {
     otherUserIsTyping,
     handleChatMessageChange,
     handleSend,
+    handleSendAttachment,
     handleInputBlur,
   } = useChat({
     conversationId,
@@ -87,10 +91,63 @@ export default function ChatScreen() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
-  // Scroll whenever a new message lands or the pending message appears
   const handleContentSizeChange = useCallback(() => {
     scrollToBottom();
   }, [scrollToBottom]);
+
+  const handlePickImage = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images', 'videos'],
+      quality: 0.8,
+      videoMaxDuration: 60,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    const asset = result.assets[0];
+    await handleSendAttachment(asset.uri, asset.mimeType);
+  }, [handleSendAttachment]);
+
+  const handlePickGif = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') return;
+
+    // No native GIF filter in the system picker — restrict to images and let
+    // resolveMessageType() in the send pipeline detect image/gif by mimeType.
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    const asset = result.assets[0];
+    await handleSendAttachment(asset.uri, asset.mimeType);
+  }, [handleSendAttachment]);
+
+  const handleOpenCamera = useCallback(async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') return;
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images', 'videos'],
+      quality: 0.8,
+      videoMaxDuration: 60,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    const asset = result.assets[0];
+    await handleSendAttachment(asset.uri, asset.mimeType);
+  }, [handleSendAttachment]);
+
+  const images = useMemo(
+    () => (selectedImage ? [{ uri: selectedImage }] : []),
+    [selectedImage]
+  );
 
   return (
     <ScreenWrapper
@@ -129,8 +186,13 @@ export default function ChatScreen() {
               renderItem={({ item }) => (
                 <ChatBubble
                   message={item.message}
+                  messageType={item.messageType}
+                  attachmentUrl={item.attachmentUrl}
+                  attachmentMimeType={item.attachmentMimeType}
+                  thumbnailUrl={item.thumbnailUrl}
                   timestamp={item.timestamp}
                   isSent={item.isSent}
+                  onImagePress={setSelectedImage}
                 />
               )}
               contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
@@ -145,18 +207,27 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <View
-          className="px-3 py-2"
-        >
+        <View className="px-3 py-2">
           <ChatBox
             chatValue={chatMessage}
             onChatValueChange={handleChatMessageChange}
             onSendPress={handleSend}
+            onPickImage={handlePickImage}
+            onPickGif={handlePickGif}
+            onOpenCamera={handleOpenCamera}
             isDisabled={sending}
             onBlur={handleInputBlur}
           />
         </View>
       </KeyboardAvoidingView>
+
+      {/* Full Screen Image View */}
+      <ImageViewing
+        images={images}
+        imageIndex={0}
+        visible={!!selectedImage}
+        onRequestClose={() => setSelectedImage(null)}
+      />
     </ScreenWrapper>
   );
 }
