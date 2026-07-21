@@ -2,6 +2,8 @@ import { supabase } from '@repo/supabase';
 import { getRelativeTime } from '@repo/utils';
 import { File } from 'expo-file-system';
 
+import emojiRegex from 'emoji-regex-xs';
+
 export type MessageType = 'text' | 'image' | 'video' | 'gif';
 
 export type Message = {
@@ -327,4 +329,25 @@ export function buildConversationKey(
 ) {
   const [first, second] = [userAId, userBId].sort();
   return `chat:${apartmentId ?? 'none'}:${first}:${second}`;
+}
+
+// Helper function for checking if a string contains only emojis (and whitespace)
+export function isEmojiOnly(text: string | null | undefined) {
+  if (!text) return false;
+
+  const trimmed = text.trim();
+
+  if (!trimmed) return false;
+
+  const regex = emojiRegex();
+
+  // Remove every emoji
+  const withoutEmoji = trimmed.replace(regex, '');
+
+  // Remove spaces/newlines/variation selectors
+  const cleaned = withoutEmoji
+    .replace(/[\uFE0F\u200D]/g, '')
+    .trim();
+
+  return cleaned.length === 0;
 }
