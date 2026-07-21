@@ -39,7 +39,7 @@ export default function ApartmentCard({
       onClick={onPress}
       role="button"
     >
-      <Card className="bg-white rounded-xl overflow-hidden w-56 h-full relative p-0">
+      <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-56 h-full relative p-0">
         <div>
           <Image
             src={thumbnailUrl}
@@ -55,7 +55,7 @@ export default function ApartmentCard({
             </h3>
 
             <div className="flex items-center gap-1">
-              <p className="text-gray-600 text-xs">
+              <p className="bg-surface-variant text-xs">
                 {location}
               </p>
             </div>

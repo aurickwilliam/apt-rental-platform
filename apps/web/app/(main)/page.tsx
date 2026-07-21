@@ -69,7 +69,7 @@ export default async function Home() {
 
   return (
     <>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen">
         <main className="max-w-7xl mx-auto px-4 pt-4 flex flex-col">
           {/* Intro */}
           <HeroSection />
@@ -164,7 +164,7 @@ export default async function Home() {
 
             <div className="flex flex-col md:flex-row gap-5 mt-5 md:mt-10">
               {/* Discover */}
-              <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
+              <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
                 <Map size={48} className="text-primary" />
 
                 <h2 className="text-3xl text-primary font-inter font-semibold">
@@ -209,7 +209,7 @@ export default async function Home() {
 
               {/* Apply & Pay */}
               <div className="flex flex-col gap-5 md:w-1/2">
-                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <FileCheckCorner size={48} className="text-primary" />
 
                   <h2 className="text-3xl text-primary font-inter font-semibold">
@@ -224,7 +224,7 @@ export default async function Home() {
                   </p>
                 </Surface>
 
-                <Surface className="bg-darker-white flex flex-col gap-3 w-full p-8 rounded-2xl">
+                <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl">
                   <BanknoteArrowUp size={48} className="text-primary" />
 
                   <h2 className="text-3xl text-primary font-inter font-semibold">

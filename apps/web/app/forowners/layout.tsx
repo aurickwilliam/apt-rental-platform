@@ -1,5 +1,6 @@
 import NavbarSwitcher from "../components/layout/NavbarSwitcher";
 import Footer from "../components/layout/Footer";
+import AppNavbar from "../components/layout/AppNavbar";
 
 export default function BrowseLayout({
   children,
@@ -8,9 +9,9 @@ export default function BrowseLayout({
 }) {
   return (
     <>
-      <NavbarSwitcher />
+      <AppNavbar />
 
-      <main className="bg-white min-h-screen">
+      <main className=" min-h-screen">
         {children}
       </main>
 
