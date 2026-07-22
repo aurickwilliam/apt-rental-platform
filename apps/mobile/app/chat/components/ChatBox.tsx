@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Keyboard, TextInput as RNTextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, TextInput as RNTextInput, View } from 'react-native';
+import { Image } from 'expo-image';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 
 import {
@@ -10,11 +11,17 @@ import {
   IconCamera,
   IconMoodSmile,
   IconKeyboard,
+  IconX,
+  IconPlayerPlayFilled,
 } from '@tabler/icons-react-native';
 
 import { Button, TextField, InputGroup, Menu } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
+import type { PickedChatAsset, MessageType } from '@/service/chatService';
+
+/** A locally-picked attachment sitting in the review strip, not yet sent. */
+export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageType };
 
 interface ChatBoxProps {
   chatValue: string;
@@ -27,13 +34,32 @@ interface ChatBoxProps {
   onPickImage?: () => void;
   onPickGif?: () => void;
   onOpenCamera?: () => void;
+  pendingAssets?: StagedAsset[];
+  onRemovePendingAsset?: (id: string) => void;
 }
 
 const ATTACHMENT_OPTIONS = [
-  { key: 'image', label: 'Photo/Video', icon: IconPhoto, handlerKey: 'onPickImage' },
-  { key: 'gif', label: 'GIF', icon: IconGif, handlerKey: 'onPickGif' },
-  { key: 'camera', label: 'Camera', icon: IconCamera, handlerKey: 'onOpenCamera' },
+  {
+    key: 'image',
+    label: 'Photo/Video',
+    icon: IconPhoto,
+    handlerKey: 'onPickImage'
+  },
+  {
+    key: 'gif',
+    label: 'GIF',
+    icon: IconGif,
+    handlerKey: 'onPickGif'
+  },
+  {
+    key: 'camera',
+    label: 'Camera',
+    icon: IconCamera,
+    handlerKey: 'onOpenCamera'
+  },
 ] as const;
+
+const THUMB_SIZE = 64;
 
 export default function ChatBox({
   chatValue,
@@ -46,15 +72,26 @@ export default function ChatBox({
   onPickImage,
   onPickGif,
   onOpenCamera,
+  pendingAssets = [],
+  onRemovePendingAsset,
 }: ChatBoxProps) {
   const { colors } = useColors();
+
   const inputRef = useRef<RNTextInput>(null);
+
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<boolean>(false);
-  const borderColor = isFocused ? 'border-primary' : 'border-gray-300';
-  const hasValue = chatValue.trim().length > 0;
 
-  const attachmentHandlers = { onPickImage, onPickGif, onOpenCamera };
+  const borderColor = isFocused ? 'border-primary' : 'border-gray-300';
+  const hasText = chatValue.trim().length > 0;
+  const hasPending = pendingAssets.length > 0;
+  const showSendButton = hasText || hasPending;
+
+  const attachmentHandlers = {
+    onPickImage,
+    onPickGif,
+    onOpenCamera
+  };
 
   const handleToggleEmojiPicker = () => {
     if (isEmojiPickerOpen) {
@@ -72,8 +109,48 @@ export default function ChatBox({
 
   return (
     <>
+      {hasPending && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mb-2"
+          contentContainerStyle={{ gap: 8 }}
+        >
+          {pendingAssets.map((asset) => (
+            <View key={asset.id} style={{ width: THUMB_SIZE, height: THUMB_SIZE }}>
+              <Image
+                source={{ uri: asset.thumbnailUri ?? asset.localUri }}
+                style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: 12 }}
+                contentFit="cover"
+              />
+
+              {asset.messageType === 'video' && (
+                <View
+                  pointerEvents="none"
+                  className="absolute inset-0 items-center justify-center bg-black/20"
+                  style={{ borderRadius: 12 }}
+                >
+                  <View className="bg-black/50 rounded-full p-1.5">
+                    <IconPlayerPlayFilled size={14} color="white" />
+                  </View>
+                </View>
+              )}
+
+              <Pressable
+                onPress={() => onRemovePendingAsset?.(asset.id)}
+                accessibilityRole="button"
+                accessibilityLabel="Remove attachment"
+                className="absolute -top-1.5 -right-1.5 bg-black/70 rounded-full p-0.5"
+              >
+                <IconX size={14} color="white" />
+              </Pressable>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
       <View className="flex-row items-center gap-2">
-        {!hasValue && (
+        {!hasText && (
           <Menu>
             <Menu.Trigger asChild>
               <Button
@@ -137,11 +214,11 @@ export default function ChatBox({
               value={chatValue}
               numberOfLines={1}
               onChangeText={onChatValueChange}
-              placeholder={chatPlaceholder}
+              placeholder={hasPending ? 'Add a caption...' : chatPlaceholder}
               className="rounded-full border"
             />
 
-            {hasValue && (
+            {showSendButton && (
               <InputGroup.Suffix className="p-0">
                 <Button
                   isDisabled={isDisabled}

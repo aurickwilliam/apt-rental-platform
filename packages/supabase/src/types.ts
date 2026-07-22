@@ -166,6 +166,7 @@ export type Database = {
           attachment_path: string | null
           attachment_thumbnail_path: string | null
           created_at: string
+          group_id: string | null
           id: string
           is_read: boolean
           message: string | null
@@ -181,6 +182,7 @@ export type Database = {
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
           created_at?: string
+          group_id?: string | null
           id?: string
           is_read?: boolean
           message?: string | null
@@ -196,6 +198,7 @@ export type Database = {
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
           created_at?: string
+          group_id?: string | null
           id?: string
           is_read?: boolean
           message?: string | null

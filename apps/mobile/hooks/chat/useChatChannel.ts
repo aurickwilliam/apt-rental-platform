@@ -14,8 +14,10 @@ type BroadcastPayload = {
   message: string | null;
   messageType: MessageType;
   attachmentUrl: string | null;
+  attachmentPath: string | null;
   attachmentMimeType?: string | null;
   thumbnailUrl?: string | null;
+  thumbnailPath?: string | null;
   created_at: string;
   sender_id: string;
   apartment_id: string | null;
@@ -72,8 +74,10 @@ export function useChatChannel({
             message: payload.message,
             messageType: payload.messageType ?? 'text',
             attachmentUrl: payload.attachmentUrl ?? null,
+            attachmentPath: payload.attachmentPath ?? null,
             attachmentMimeType: payload.attachmentMimeType ?? null,
             thumbnailUrl: payload.thumbnailUrl ?? null,
+            thumbnailPath: payload.thumbnailPath ?? null,
             timestamp: getRelativeTime(new Date(payload.created_at)),
             isSent: false,
           });
