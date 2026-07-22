@@ -1,26 +1,31 @@
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
+import { SkeletonGroup } from 'heroui-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import PerkItem from 'components/display/PerkItem'
 
+import { useApartmentDetails } from '@/hooks/apartments'
+
 export default function IncludedPerks() {
-  const { apartmentId } = useLocalSearchParams();
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  // Dummy Data for Included Perks
-  const includedPerks = [
-    'wifi',
-    'ac',
-    'tv',
-    'kitchen',
-    'parking',
-    'hotwater',
-    'bath'
-  ]
+  const { apartment, loading, error } = useApartmentDetails(apartmentId);
 
-  // TODO: Fetch the actual included perks for the apartment using the apartmentId from the params
-  // TODO: Sort the perks based on categories (e.g. Essentials, Appliances, etc.)
+  const amenities = apartment?.amenities ?? [];
+
+  if (error) {
+    return (
+      <ScreenWrapper header={<StandardHeader title='Included Perks' />} className='p-5'>
+        <View className='flex-1 items-center justify-center'>
+          <Text className='text-gray-500 font-interMedium text-base'>
+            Failed to load perks.
+          </Text>
+        </View>
+      </ScreenWrapper>
+    )
+  }
 
   return (
     <ScreenWrapper
@@ -31,11 +36,28 @@ export default function IncludedPerks() {
       className='p-5'
       bottomPadding={50}
     >
-      <View className='flex items-start gap-3'>
-        {includedPerks.map(perkId => (
-          <PerkItem key={perkId} perkId={perkId} />
-        ))}
-      </View>
+      <SkeletonGroup isLoading={loading}>
+        <View className='flex items-start gap-3'>
+          {amenities.length > 0 ? (
+            amenities.map(perkId => (
+              <PerkItem key={perkId} perkId={perkId} />
+            ))
+          ) : (
+            <Text className='text-gray-500 font-interMedium text-base'>
+              No perks included for this apartment.
+            </Text>
+          )}
+        </View>
+
+        <View className='flex items-start gap-3'>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <SkeletonGroup.Item
+              key={i}
+              className='h-10 w-full rounded-lg'
+            />
+          ))}
+        </View>
+      </SkeletonGroup>
     </ScreenWrapper>
   )
 }

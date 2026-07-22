@@ -148,7 +148,7 @@ export default function ApartmentScreen() {
 
         <ApartmentDescriptionSection description={apartment?.description} />
 
-        <PerksSection amenities={apartment?.amenities} />
+        <PerksSection apartmentId={apartmentId} amenities={apartment?.amenities} />
 
         <MapPreviewSection
           apartmentName={apartment?.name}
