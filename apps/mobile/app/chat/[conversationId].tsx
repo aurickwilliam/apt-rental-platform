@@ -8,17 +8,21 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useMemo } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import ImageViewing from "react-native-image-viewing";
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from '@/app/chat/components/ChatHeader';
 import ChatBubble from '@/app/chat/components/ChatBubble';
-import ChatBox from '@/app/chat/components/ChatBox';
+import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import ChatEmptyState from './components/ChatEmptyState';
 
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
+import { resolveMessageType } from '@/service/chatService';
+
+const MAX_ATTACHMENTS_PER_SEND = 10;
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{
@@ -45,6 +49,10 @@ function useRouteParams() {
   };
 }
 
+function generateStagedId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export default function ChatScreen() {
   const { colors } = useColors();
 
@@ -52,6 +60,7 @@ export default function ChatScreen() {
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [pendingAssets, setPendingAssets] = useState<StagedAsset[]>([]);
 
   const {
     conversationId,
@@ -72,7 +81,7 @@ export default function ChatScreen() {
     otherUserIsTyping,
     handleChatMessageChange,
     handleSend,
-    handleSendAttachment,
+    handleSendImages,
     handleInputBlur,
   } = useChat({
     conversationId,
@@ -95,6 +104,49 @@ export default function ChatScreen() {
     scrollToBottom();
   }, [scrollToBottom]);
 
+  /** Builds a local preview thumbnail for a video pick so the staging strip isn't a blank tile. */
+  const buildStagedAsset = useCallback(
+    async (asset: ImagePicker.ImagePickerAsset): Promise<StagedAsset> => {
+      const messageType = resolveMessageType(asset.mimeType);
+      let thumbnailUri: string | undefined;
+
+      if (messageType === 'video') {
+        try {
+          const { uri } = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0 });
+          thumbnailUri = uri;
+        } catch (err) {
+          // Non-fatal — the strip falls back to the raw video uri, which just won't
+          // render a poster frame in <Image>. Send-time thumbnailing still runs.
+          console.warn('Staged video thumbnail generation failed:', err);
+        }
+      }
+
+      return {
+        id: generateStagedId(),
+        localUri: asset.uri,
+        mimeType: asset.mimeType,
+        thumbnailUri,
+        messageType,
+      };
+    },
+    []
+  );
+
+  const addStagedAssets = useCallback(
+    async (assets: ImagePicker.ImagePickerAsset[]) => {
+      const room = MAX_ATTACHMENTS_PER_SEND - pendingAssets.length;
+      if (room <= 0) return;
+
+      const staged = await Promise.all(assets.slice(0, room).map(buildStagedAsset));
+      setPendingAssets((prev) => [...prev, ...staged]);
+    },
+    [pendingAssets.length, buildStagedAsset]
+  );
+
+  const handleRemoveStagedAsset = useCallback((id: string) => {
+    setPendingAssets((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
   const handlePickImage = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') return;
@@ -103,13 +155,14 @@ export default function ChatScreen() {
       mediaTypes: ['images', 'videos'],
       quality: 0.8,
       videoMaxDuration: 60,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_ATTACHMENTS_PER_SEND,
     });
 
-    if (result.canceled || !result.assets?.[0]?.uri) return;
+    if (result.canceled || result.assets.length === 0) return;
 
-    const asset = result.assets[0];
-    await handleSendAttachment(asset.uri, asset.mimeType);
-  }, [handleSendAttachment]);
+    await addStagedAssets(result.assets);
+  }, [addStagedAssets]);
 
   const handlePickGif = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -120,13 +173,14 @@ export default function ChatScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 1,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_ATTACHMENTS_PER_SEND,
     });
 
-    if (result.canceled || !result.assets?.[0]?.uri) return;
+    if (result.canceled || result.assets.length === 0) return;
 
-    const asset = result.assets[0];
-    await handleSendAttachment(asset.uri, asset.mimeType);
-  }, [handleSendAttachment]);
+    await addStagedAssets(result.assets);
+  }, [addStagedAssets]);
 
   const handleOpenCamera = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -138,11 +192,28 @@ export default function ChatScreen() {
       videoMaxDuration: 60,
     });
 
-    if (result.canceled || !result.assets?.[0]?.uri) return;
+    if (result.canceled || !result.assets?.[0]) return;
 
-    const asset = result.assets[0];
-    await handleSendAttachment(asset.uri, asset.mimeType);
-  }, [handleSendAttachment]);
+    // Camera only ever returns one asset — still routes through the same
+    // review-before-send strip as a library pick, for one consistent flow.
+    await addStagedAssets(result.assets);
+  }, [addStagedAssets]);
+
+  const handleSendPress = useCallback(async () => {
+    const assetsToSend = pendingAssets;
+    const hasText = chatMessage.trim().length > 0;
+
+    if (assetsToSend.length > 0) {
+      setPendingAssets([]);
+      await handleSendImages(
+        assetsToSend.map(({ id, messageType, ...rest }) => rest)
+      );
+    }
+
+    if (hasText) {
+      await handleSend();
+    }
+  }, [pendingAssets, chatMessage, handleSendImages, handleSend]);
 
   const images = useMemo(
     () => (selectedImage ? [{ uri: selectedImage }] : []),
@@ -173,10 +244,8 @@ export default function ChatScreen() {
           </View>
         ) : (
           <View className="flex-1">
-            {/* Show Empty State if no messages */}
             {messages.length === 0 && <ChatEmptyState />}
 
-            {/* Render the message list */}
             <FlatList
               inverted
               ref={flatListRef}
@@ -188,7 +257,9 @@ export default function ChatScreen() {
                   message={item.message}
                   messageType={item.messageType}
                   attachmentUrl={item.attachmentUrl}
+                  attachmentPath={item.attachmentPath}
                   attachmentMimeType={item.attachmentMimeType}
+                  thumbnailPath={item.thumbnailPath}
                   thumbnailUrl={item.thumbnailUrl}
                   timestamp={item.timestamp}
                   isSent={item.isSent}
@@ -211,17 +282,18 @@ export default function ChatScreen() {
           <ChatBox
             chatValue={chatMessage}
             onChatValueChange={handleChatMessageChange}
-            onSendPress={handleSend}
+            onSendPress={handleSendPress}
             onPickImage={handlePickImage}
             onPickGif={handlePickGif}
             onOpenCamera={handleOpenCamera}
             isDisabled={sending}
             onBlur={handleInputBlur}
+            pendingAssets={pendingAssets}
+            onRemovePendingAsset={handleRemoveStagedAsset}
           />
         </View>
       </KeyboardAvoidingView>
 
-      {/* Full Screen Image View */}
       <ImageViewing
         images={images}
         imageIndex={0}

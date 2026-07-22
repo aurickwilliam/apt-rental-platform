@@ -4,6 +4,8 @@ import { File } from 'expo-file-system';
 
 import emojiRegex from 'emoji-regex-xs';
 
+// ─── Types ──────────────────────────────────────────────────────────────────
+
 export type MessageType = 'text' | 'image' | 'video' | 'gif';
 
 export type Message = {
@@ -11,11 +13,40 @@ export type Message = {
   message: string | null;
   messageType: MessageType;
   attachmentUrl: string | null;
+  attachmentPath: string | null;
   attachmentMimeType?: string | null;
   thumbnailUrl?: string | null;
+  thumbnailPath?: string | null;
+  groupId?: string | null;
   timestamp: string;
   isSent: boolean;
   isPending?: boolean;
+};
+
+/** A message freshly sent through sendChatAttachments — carries the original
+ * localUri so the caller can match it back to its optimistic pending bubble. */
+export type SentChatAttachment = Message & { localUri: string };
+
+/** A locally-picked image/video/gif, staged for upload. */
+export type PickedChatAsset = {
+  localUri: string;
+  mimeType?: string;
+  /** Local poster-frame uri for video, generated client-side via expo-video-thumbnails. */
+  thumbnailUri?: string;
+};
+
+export type UploadedChatAttachment = {
+  /** Ties the result back to the originally picked asset, for optimistic-UI reconciliation. */
+  localUri: string;
+  attachmentPath: string;
+  messageType: Exclude<MessageType, 'text'>;
+  mimeType?: string;
+  thumbnailPath?: string;
+};
+
+export type AttachmentUploadFailure = {
+  localUri: string;
+  error: string;
 };
 
 export type UserProfile = {
@@ -25,10 +56,40 @@ export type UserProfile = {
   avatarUrl: string | null;
 };
 
+export type Conversation = {
+  conversation_key: string;
+  other_user_id: string;
+  other_user_name: string;
+  other_user_avatar: string | null;
+  other_user_phone: string | null;
+  apartment_id: string | null;
+  apartment_name: string | null;
+  last_message: string;
+  last_message_time: string;
+  unread_count: number;
+  conversation_type: 'tenant' | 'inquiry';
+};
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+
 // Bucket name is legacy — it now also holds video and gif attachments, not just images.
 const CHAT_IMAGES_BUCKET = 'chat-images';
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // must match chat-images bucket file_size_limit
+
+const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'image/gif': 'gif',
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+};
+
+// Cap concurrent uploads rather than firing all N at once — an 8-photo
+// multi-select on a weak connection shouldn't open 8 simultaneous uploads.
+const MAX_CONCURRENT_ATTACHMENT_UPLOADS = 3;
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -47,7 +108,7 @@ export async function getCurrentUserProfile(): Promise<{ id: string } | null> {
   return data ?? null;
 }
 
-// ─── Messages ────────────────────────────────────────────────────────────────
+// ─── Text messages ──────────────────────────────────────────────────────────
 
 export async function fetchMessages(
   currentUserId: string,
@@ -57,7 +118,7 @@ export async function fetchMessages(
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, created_at, sender_id, receiver_id, apartment_id'
+      'id, message, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
     )
     .or(
       `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
@@ -99,41 +160,6 @@ export async function insertMessage(params: {
   return data;
 }
 
-/** Inserts an image, video, or gif message. All three reuse attachment_path the same way. */
-export async function insertAttachmentMessage(params: {
-  senderId: string;
-  receiverId: string;
-  apartmentId: string | null;
-  messageType: Exclude<MessageType, 'text'>;
-  attachmentPath: string;
-  attachmentMimeType?: string;
-  attachmentThumbnailPath?: string | null;
-}) {
-  if (!params.apartmentId) {
-    throw new Error('Chat requires apartmentId');
-  }
-
-  const { data, error } = await supabase
-    .from('chat')
-    .insert({
-      sender_id: params.senderId,
-      receiver_id: params.receiverId,
-      apartment_id: params.apartmentId,
-      message_type: params.messageType,
-      attachment_path: params.attachmentPath,
-      attachment_mime_type: params.attachmentMimeType ?? null,
-      attachment_thumbnail_path: params.attachmentThumbnailPath ?? null,
-      is_read: false,
-    })
-    .select(
-      'id, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, created_at, sender_id'
-    )
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
 export async function markMessagesAsRead(
   currentUserId: string,
   otherUserId: string,
@@ -152,7 +178,10 @@ export async function markMessagesAsRead(
   if (error) throw error;
 }
 
-// ─── Chat attachments (image / video / gif) ───────────────────────────────────
+// ─── Attachment upload primitives ──────────────────────────────────────────
+// Single-file building blocks — storage upload, signed URL resolution. Every
+// attachment send (single photo or multi-select) routes through these via
+// uploadChatAttachments below.
 
 /** Determines the message_type from a picked asset's mimeType. Falls back to 'image'. */
 export function resolveMessageType(mimeType?: string): Exclude<MessageType, 'text'> {
@@ -162,20 +191,14 @@ export function resolveMessageType(mimeType?: string): Exclude<MessageType, 'tex
   return 'image';
 }
 
-const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/heic': 'heic',
-  'image/heif': 'heif',
-  'image/gif': 'gif',
-  'video/mp4': 'mp4',
-  'video/quicktime': 'mov',
-};
+/** Shared id generator for storage filenames and batch group ids — kept in one place so both stay consistent. */
+function generateId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function randomFileName(mimeType?: string) {
   const ext = (mimeType && EXTENSION_BY_MIME_TYPE[mimeType]) || 'jpg';
-  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  return `${id}.${ext}`;
+  return `${generateId()}.${ext}`;
 }
 
 /** Uploads a locally-picked image/video/gif to the private chat-images bucket and returns its storage path. */
@@ -206,8 +229,7 @@ export async function uploadChatThumbnail(senderId: string, localUri: string): P
   const file = new File(localUri);
   const bytes = await file.bytes();
 
-  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  const path = `${senderId}/thumb-${id}.jpg`;
+  const path = `${senderId}/thumb-${generateId()}.jpg`;
 
   const { error } = await supabase.storage
     .from(CHAT_IMAGES_BUCKET)
@@ -217,18 +239,8 @@ export async function uploadChatThumbnail(senderId: string, localUri: string): P
   return path;
 }
 
-/** Resolves a single storage path to a time-limited signed URL for display. */
-export async function getChatAttachmentSignedUrl(path: string): Promise<string> {
-  const { data, error } = await supabase.storage
-    .from(CHAT_IMAGES_BUCKET)
-    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
-
-  if (error) throw error;
-  return data.signedUrl;
-}
-
 /** Batch-resolves storage paths to signed URLs, keyed by path. */
-async function getChatAttachmentSignedUrls(paths: string[]): Promise<Record<string, string>> {
+export async function getChatAttachmentSignedUrls(paths: string[]): Promise<Record<string, string>> {
   if (paths.length === 0) return {};
 
   const { data, error } = await supabase.storage
@@ -244,21 +256,184 @@ async function getChatAttachmentSignedUrls(paths: string[]): Promise<Record<stri
   );
 }
 
-// ─── Conversations ────────────────────────────────────────────────────────────
+// ─── Attachment send (single or multi-select) ──────────────────────────────
+// Every attachment send — one photo or an eight-photo multi-select — goes
+// through this same pipeline: upload each asset, bulk-insert one chat row
+// per attachment, then resolve signed URLs for the result. group_id ties
+// together rows sent as one batch and is left null for a lone attachment.
+// See the add_chat_group_id migration.
 
-export type Conversation = {
-  conversation_key: string;
-  other_user_id: string;
-  other_user_name: string;
-  other_user_avatar: string | null;
-  other_user_phone: string | null;
-  apartment_id: string | null;
-  apartment_name: string | null;
-  last_message: string;
-  last_message_time: string;
-  unread_count: number;
-  conversation_type: 'tenant' | 'inquiry';
-};
+/**
+ * Uploads a batch of picked assets (and their thumbnails, if any) to the
+ * private chat-images bucket, via uploadChatAttachment / uploadChatThumbnail
+ * per file. Failures are collected, not thrown — one bad file in a batch of
+ * 8 shouldn't sink the other 7.
+ */
+export async function uploadChatAttachments(
+  senderId: string,
+  assets: PickedChatAsset[]
+): Promise<{ uploaded: UploadedChatAttachment[]; failed: AttachmentUploadFailure[] }> {
+  const uploaded: UploadedChatAttachment[] = [];
+  const failed: AttachmentUploadFailure[] = [];
+  const queue = [...assets];
+
+  async function worker(): Promise<void> {
+    let asset: PickedChatAsset | undefined;
+    while ((asset = queue.shift())) {
+      try {
+        const messageType = resolveMessageType(asset.mimeType);
+        const attachmentPath = await uploadChatAttachment(senderId, asset.localUri, asset.mimeType);
+
+        let thumbnailPath: string | undefined;
+        if (asset.thumbnailUri) {
+          try {
+            thumbnailPath = await uploadChatThumbnail(senderId, asset.thumbnailUri);
+          } catch {
+            // A missing thumbnail shouldn't fail the whole attachment —
+            // mapMessages already handles a null thumbnailUrl gracefully.
+          }
+        }
+
+        uploaded.push({
+          localUri: asset.localUri,
+          attachmentPath,
+          messageType,
+          mimeType: asset.mimeType,
+          thumbnailPath,
+        });
+      } catch (err) {
+        failed.push({
+          localUri: asset.localUri,
+          error: err instanceof Error ? err.message : 'Upload failed',
+        });
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(MAX_CONCURRENT_ATTACHMENT_UPLOADS, assets.length) }, worker)
+  );
+
+  return { uploaded, failed };
+}
+
+/**
+ * Bulk-inserts one `chat` row per uploaded attachment in a single round trip,
+ * tagged with a shared group_id so the client can render them as one cluster.
+ * group_id is left null when there's only one upload.
+ */
+export async function insertAttachmentMessagesBatch(params: {
+  senderId: string;
+  receiverId: string;
+  apartmentId: string | null;
+  uploads: UploadedChatAttachment[];
+}) {
+  if (!params.apartmentId) {
+    throw new Error('Chat requires apartmentId');
+  }
+  if (params.uploads.length === 0) return [];
+
+  const groupId = params.uploads.length > 1 ? generateId() : null;
+
+  const rows = params.uploads.map((u) => ({
+    sender_id: params.senderId,
+    receiver_id: params.receiverId,
+    apartment_id: params.apartmentId,
+    message_type: u.messageType,
+    attachment_path: u.attachmentPath,
+    attachment_mime_type: u.mimeType ?? null,
+    attachment_thumbnail_path: u.thumbnailPath ?? null,
+    group_id: groupId,
+    is_read: false,
+  }));
+
+  const { data, error } = await supabase
+    .from('chat')
+    .insert(rows)
+    .select(
+      'id, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
+    );
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Orchestrates a full attachment send: upload -> bulk insert -> resolve
+ * signed URLs for both the attachments and any generated thumbnails. Returns
+ * ready-to-render Message objects (as SentChatAttachment, carrying the
+ * original localUri so useChat's handleSendImages can match each one back to
+ * its optimistic pending bubble) plus any per-file upload failures, so one
+ * bad file doesn't sink the rest of the batch.
+ */
+export async function sendChatAttachments(params: {
+  senderId: string;
+  receiverId: string;
+  apartmentId: string | null;
+  assets: PickedChatAsset[];
+}): Promise<{ sent: SentChatAttachment[]; failed: AttachmentUploadFailure[] }> {
+  const { uploaded, failed } = await uploadChatAttachments(params.senderId, params.assets);
+
+  if (uploaded.length === 0) {
+    return { sent: [], failed };
+  }
+
+  try {
+    const inserted = await insertAttachmentMessagesBatch({
+      senderId: params.senderId,
+      receiverId: params.receiverId,
+      apartmentId: params.apartmentId,
+      uploads: uploaded,
+    });
+
+    const attachmentPaths = inserted
+      .map((r) => r.attachment_path)
+      .filter((p): p is string => !!p);
+    const thumbnailPaths = inserted
+      .map((r) => r.attachment_thumbnail_path)
+      .filter((p): p is string => !!p);
+
+    const [signedUrls, thumbnailUrls] = await Promise.all([
+      getChatAttachmentSignedUrls(attachmentPaths),
+      getChatAttachmentSignedUrls(thumbnailPaths),
+    ]);
+
+    const uploadByPath = new Map(uploaded.map((u) => [u.attachmentPath, u]));
+
+    const sent: SentChatAttachment[] = inserted.map((row) => {
+      const upload = uploadByPath.get(row.attachment_path as string);
+      return {
+        id: row.id,
+        message: null,
+        messageType: row.message_type as MessageType,
+        attachmentUrl: row.attachment_path ? (signedUrls[row.attachment_path] ?? null) : null,
+        attachmentPath: row.attachment_path ?? null,
+        attachmentMimeType: row.attachment_mime_type ?? null,
+        thumbnailUrl: row.attachment_thumbnail_path
+          ? (thumbnailUrls[row.attachment_thumbnail_path] ?? null)
+          : null,
+        thumbnailPath: row.attachment_thumbnail_path ?? null,
+        groupId: row.group_id ?? null,
+        timestamp: new Date(row.created_at).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        isSent: true,
+        localUri: upload?.localUri ?? '',
+      };
+    });
+
+    return { sent, failed };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : 'Failed to send messages';
+    return {
+      sent: [],
+      failed: [...failed, ...uploaded.map((u) => ({ localUri: u.localUri, error }))],
+    };
+  }
+}
+
+// ─── Conversations ────────────────────────────────────────────────────────────
 
 export async function getConversations(userId: string): Promise<Conversation[]> {
   const { data, error } = await supabase.rpc('get_conversations', {
@@ -313,10 +488,13 @@ export async function mapMessages(rows: any[], currentUserId: string): Promise<M
     message: m.message,
     messageType: (m.message_type ?? 'text') as MessageType,
     attachmentUrl: m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null,
+    attachmentPath: m.attachment_path ?? null,
     attachmentMimeType: m.attachment_mime_type ?? null,
     thumbnailUrl: m.attachment_thumbnail_path
       ? (thumbnailUrls[m.attachment_thumbnail_path] ?? null)
       : null,
+    thumbnailPath: m.attachment_thumbnail_path ?? null,
+    groupId: m.group_id ?? null,
     timestamp: getRelativeTime(new Date(m.created_at)),
     isSent: m.sender_id === currentUserId,
   }));

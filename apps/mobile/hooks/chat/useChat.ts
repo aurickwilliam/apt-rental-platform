@@ -1,19 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import * as VideoThumbnails from 'expo-video-thumbnails';
 
 import {
   getCurrentUserProfile,
   fetchMessages,
   fetchOtherUserProfile,
   insertMessage,
-  insertAttachmentMessage,
-  uploadChatAttachment,
-  uploadChatThumbnail,
-  getChatAttachmentSignedUrl,
   markMessagesAsRead,
   buildConversationKey,
   resolveMessageType,
+  sendChatAttachments,
   type Message,
+  type PickedChatAsset,
 } from '../../service/chatService';
 
 import { useChatChannel } from './useChatChannel';
@@ -69,20 +66,26 @@ export function useChat({
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
 
+  const handleStartTyping = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, true);
+  }, [trackPresence]);
+
+  const handleStopTyping = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, false);
+  }, [trackPresence]);
+
+  const handleHeartbeat = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, true);
+  }, [trackPresence]);
+
   const {
     onTextChange: onTypingTextChange,
     stop: stopTyping,
     cleanup: cleanupTyping,
   } = useChatTyping({
-    onStartTyping: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, true);
-    },
-    onStopTyping: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, false);
-    },
-    onHeartbeat: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, true);
-    },
+    onStartTyping: handleStartTyping,
+    onStopTyping: handleStopTyping,
+    onHeartbeat: handleHeartbeat,
   });
 
   // ─── Handlers exposed to the screen ────────────────────────────────────────
@@ -112,6 +115,7 @@ export function useChat({
       message: text,
       messageType: 'text',
       attachmentUrl: null,
+      attachmentPath: null,
       timestamp: 'Sending...',
       isSent: true,
       isPending: true,
@@ -134,6 +138,7 @@ export function useChat({
         message: inserted.message,
         messageType: 'text',
         attachmentUrl: null,
+        attachmentPath: null,
         timestamp: new Date(inserted.created_at).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
@@ -159,6 +164,7 @@ export function useChat({
         message: inserted.message,
         messageType: 'text',
         attachmentUrl: null,
+        attachmentPath: null,
         created_at: inserted.created_at,
         sender_id: myId,
         apartment_id: apartmentId,
@@ -172,102 +178,83 @@ export function useChat({
     }
   }, [apartmentId, broadcast, chatMessage, myId, otherUserId, sending, stopTyping]);
 
-  /** Uploads a picked image/video/gif and sends it as its own attachment-only message. */
-  const handleSendAttachment = useCallback(
-    async (localUri: string, mimeType?: string) => {
+  const handleSendImages = useCallback(
+    async (assets: PickedChatAsset[]) => {
       stopTyping();
+      if (!myId || !otherUserId || sending || assets.length === 0) return;
 
-      if (!myId || !otherUserId || sending) return;
+      const groupId = assets.length > 1 ? `pending-${Date.now()}` : null;
+      const tempIdByUri = new Map(assets.map((a) => [a.localUri, `temp-${Date.now()}-${Math.random()}`]));
 
-      const messageType = resolveMessageType(mimeType);
-      const tempId = `temp-${Date.now()}`;
-
-      const pendingMsg: Message = {
-        id: tempId,
+      const pendingMsgs: Message[] = assets.map((a) => ({
+        id: tempIdByUri.get(a.localUri)!,
         message: null,
-        messageType,
-        attachmentUrl: localUri, // local file:// uri renders fine while the upload is in flight
-        attachmentMimeType: mimeType ?? null,
+        messageType: resolveMessageType(a.mimeType),
+        attachmentUrl: a.localUri,   // local file:// renders immediately, no signed URL needed yet
+        attachmentPath: null,
+        attachmentMimeType: a.mimeType ?? null,
         thumbnailUrl: null,
+        groupId,
         timestamp: 'Sending...',
         isSent: true,
         isPending: true,
-      };
+      }));
 
-      setMessages((prev) => [pendingMsg, ...prev]);
+      setMessages((prev) => [...pendingMsgs, ...prev]);
       setSending(true);
 
       try {
-        const path = await uploadChatAttachment(myId, localUri, mimeType);
-        const signedUrl = await getChatAttachmentSignedUrl(path);
-
-        let thumbnailPath: string | null = null;
-        let thumbnailUrl: string | null = null;
-
-        if (messageType === 'video') {
-          try {
-            const { uri: thumbLocalUri } = await VideoThumbnails.getThumbnailAsync(localUri, {
-              time: 0,
-            });
-            thumbnailPath = await uploadChatThumbnail(myId, thumbLocalUri);
-            thumbnailUrl = await getChatAttachmentSignedUrl(thumbnailPath);
-          } catch (thumbErr) {
-            // Non-fatal — the video still sends, just without a poster frame.
-            console.warn('Video thumbnail generation failed:', thumbErr);
-          }
-        }
-
-        const inserted = await insertAttachmentMessage({
+        const { sent, failed } = await sendChatAttachments({
           senderId: myId,
           receiverId: otherUserId,
           apartmentId,
-          messageType,
-          attachmentPath: path,
-          attachmentMimeType: mimeType,
-          attachmentThumbnailPath: thumbnailPath,
+          assets,
         });
-
-        const sentMsg: Message = {
-          id: inserted.id,
-          message: null,
-          messageType,
-          attachmentUrl: signedUrl,
-          attachmentMimeType: mimeType ?? null,
-          thumbnailUrl,
-          timestamp: new Date(inserted.created_at).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          isSent: true,
-        };
 
         setMessages((prev) => {
-          if (prev.some((m) => m.id === sentMsg.id)) {
-            return prev.filter((m) => m.id !== tempId);
+          let next = prev;
+
+          for (const msg of sent) {
+            const tempId = tempIdByUri.get(msg.localUri);
+            const idx = next.findIndex((m) => m.id === tempId);
+            if (idx !== -1) {
+              const copy = [...next];
+              copy[idx] = msg;
+              next = copy;
+            }
           }
-          const pendingIndex = prev.findIndex((m) => m.id === tempId);
-          if (pendingIndex !== -1) {
-            const next = [...prev];
-            next[pendingIndex] = sentMsg;
-            return next;
+
+          const failedTempIds = new Set(
+            failed
+              .map((f) => tempIdByUri.get(f.localUri))
+              .filter((id): id is string => !!id)
+          );
+
+          if (failedTempIds.size > 0) {
+            next = next.filter((m) => !failedTempIds.has(m.id));
           }
-          return [sentMsg, ...prev];
+
+          return next;
         });
 
-        broadcast({
-          id: inserted.id,
-          message: null,
-          messageType,
-          attachmentUrl: signedUrl,
-          attachmentMimeType: mimeType ?? null,
-          thumbnailUrl,
-          created_at: inserted.created_at,
-          sender_id: myId,
-          apartment_id: apartmentId,
-        });
+        for (const msg of sent) {
+          broadcast({
+            id: msg.id,
+            message: null,
+            messageType: msg.messageType,
+            attachmentUrl: msg.attachmentUrl,
+            attachmentPath: msg.attachmentPath,
+            attachmentMimeType: msg.attachmentMimeType,
+            thumbnailUrl: msg.thumbnailUrl,
+            thumbnailPath: msg.thumbnailPath,
+            created_at: new Date().toISOString(),
+            sender_id: myId,
+            apartment_id: apartmentId,
+          });
+        }
       } catch (err) {
-        console.error('Attachment send failed:', err);
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        console.error('Batch attachment send failed:', err);
+        setMessages((prev) => prev.filter((m) => !tempIdByUri.has(m.attachmentUrl ?? '')));
       } finally {
         setSending(false);
       }
@@ -349,7 +336,7 @@ export function useChat({
     // Handlers
     handleChatMessageChange,
     handleSend,
-    handleSendAttachment,
     handleInputBlur,
+    handleSendImages,
   };
 }

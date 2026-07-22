@@ -15,9 +15,10 @@ interface ChatBubbleProps {
   message: string | null;
   messageType?: MessageType;
   attachmentUrl?: string | null;
-  /** Not used for rendering yet — kept for parity with the Message shape / future needs (e.g. flagging heic previews). */
+  attachmentPath?: string | null;
   attachmentMimeType?: string | null;
   thumbnailUrl?: string | null;
+  thumbnailPath?: string | null;
   timestamp: string;
   isSent?: boolean;
   onImagePress?: (uri: string) => void;
@@ -34,7 +35,10 @@ export default function ChatBubble({
   message,
   messageType = 'text',
   attachmentUrl,
+  attachmentPath,
+  attachmentMimeType,
   thumbnailUrl,
+  thumbnailPath,
   timestamp,
   isSent = false,
   onImagePress,
@@ -72,17 +76,18 @@ export default function ChatBubble({
         <VideoBubble
           uri={attachmentUrl!}
           thumbnailUrl={thumbnailUrl}
+          thumbnailPath={thumbnailPath}
         />
       ) : isVisualMedia ? (
         <Pressable
           onPress={() => onImagePress?.(attachmentUrl!)}
         >
           <Image
-            source={{ uri: attachmentUrl! }}
-              style={[
-                ATTACHMENT_SIZE,
-                {borderColor: colors.gray300}
-              ]}
+            source={{
+              uri: attachmentUrl!,
+              cacheKey: attachmentPath ?? undefined
+            }}
+            style={[ATTACHMENT_SIZE, { borderColor: colors.gray300 }]}
             cachePolicy="disk"
             contentFit="cover"
             transition={150}
@@ -124,7 +129,15 @@ export default function ChatBubble({
 // list's recycling. VideoPlayerModal is only mounted while isPlaying is true, so
 // the player resource is released automatically as soon as it unmounts.
 
-function VideoBubble({ uri, thumbnailUrl }: { uri: string; thumbnailUrl?: string | null }) {
+function VideoBubble({
+  uri,
+  thumbnailUrl,
+  thumbnailPath,
+}: {
+  uri: string;
+  thumbnailUrl?: string | null;
+  thumbnailPath?: string | null;
+}) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -138,7 +151,10 @@ function VideoBubble({ uri, thumbnailUrl }: { uri: string; thumbnailUrl?: string
       >
         {thumbnailUrl && (
           <Image
-            source={{ uri: thumbnailUrl }}
+            source={{
+              uri: thumbnailUrl,
+              cacheKey: thumbnailPath ?? undefined
+            }}
             style={ATTACHMENT_SIZE}
             className="absolute inset-0"
             cachePolicy="disk"
