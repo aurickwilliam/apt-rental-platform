@@ -271,11 +271,11 @@ export default function Chat() {
         </View>
       ) : (
         <>
-          <Separator className='my-3' />
-
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
+              <Separator className='my-3' />
+
               <Text className='text-base font-interMedium text-accent mb-3'>
                 Current Landlord
               </Text>

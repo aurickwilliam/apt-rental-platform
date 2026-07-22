@@ -147,7 +147,7 @@ function VideoBubble({
         accessibilityRole="button"
         accessibilityLabel="Play video"
         style={ATTACHMENT_SIZE}
-        className="overflow-hidden bg-black"
+        className="overflow-hidden bg-black border border-border"
       >
         {thumbnailUrl && (
           <Image
@@ -197,7 +197,7 @@ function VideoPlayerModal({ uri, onClose }: { uri: string; onClose: () => void }
         player={player}
         style={{ width: '100%', height: '60%' }}
         nativeControls
-        // allowsFullscreen
+        fullscreenOptions={{ enable: true }}
         contentFit="contain"
       />
     </View>

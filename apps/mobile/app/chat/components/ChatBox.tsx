@@ -120,8 +120,13 @@ export default function ChatBox({
             <View key={asset.id} style={{ width: THUMB_SIZE, height: THUMB_SIZE }}>
               <Image
                 source={{ uri: asset.thumbnailUri ?? asset.localUri }}
-                style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: 12 }}
+                style={{
+                  width: THUMB_SIZE,
+                  height: THUMB_SIZE,
+                  borderRadius: 12
+                }}
                 contentFit="cover"
+                cachePolicy="disk"
               />
 
               {asset.messageType === 'video' && (
@@ -140,7 +145,7 @@ export default function ChatBox({
                 onPress={() => onRemovePendingAsset?.(asset.id)}
                 accessibilityRole="button"
                 accessibilityLabel="Remove attachment"
-                className="absolute -top-1.5 -right-1.5 bg-black/70 rounded-full p-0.5"
+                className="absolute top-1 right-1 bg-black/70 rounded-full p-0.5"
               >
                 <IconX size={14} color="white" />
               </Pressable>
@@ -202,9 +207,9 @@ export default function ChatBox({
                 variant='ghost'
               >
                 {isEmojiPickerOpen ? (
-                  <IconKeyboard size={22} color={colors.textPrimary} />
+                  <IconKeyboard size={22} color={colors.gray500} />
                 ) : (
-                  <IconMoodSmile size={22} color={colors.textPrimary} />
+                  <IconMoodSmile size={22} color={colors.gray500} />
                 )}
               </Button>
             </InputGroup.Prefix>
