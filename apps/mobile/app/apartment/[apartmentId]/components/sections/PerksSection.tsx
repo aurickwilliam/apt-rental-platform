@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { SquareCheckBig } from 'lucide-react-native';
 
@@ -6,14 +7,19 @@ import PerkItem from 'components/display/PerkItem';
 
 import { useColors } from 'hooks/useTheme';
 
+const PERKS_LIMIT = 10;
+
 type PerksSectionProps = {
+  apartmentId: string;
   amenities?: string[] | null;
 };
 
-export default function PerksSection({ amenities }: PerksSectionProps) {
+export default function PerksSection({ apartmentId, amenities }: PerksSectionProps) {
   const { colors } = useColors();
+  const router = useRouter();
 
   const hasPerks = (amenities?.length ?? 0) > 0;
+  const displayAmenities = amenities?.slice(0, PERKS_LIMIT);
 
   return (
     <>
@@ -26,7 +32,16 @@ export default function PerksSection({ amenities }: PerksSectionProps) {
             </Text>
           </View>
 
-          {/* Can add a see all button */}
+          {(amenities?.length ?? 0) > PERKS_LIMIT && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
+            >
+              <Text className='font-interMedium text-sm text-accent'>
+                See All
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <Text className='text-muted font-inter text-sm'>
@@ -36,7 +51,7 @@ export default function PerksSection({ amenities }: PerksSectionProps) {
 
       <View className='flex-row flex-wrap px-5 mt-5'>
         {hasPerks ? (
-          amenities?.map((amenity, index) => (
+          displayAmenities?.map((amenity, index) => (
             <View key={index} className='w-1/2 mb-4'>
               <PerkItem perkId={amenity} />
             </View>
