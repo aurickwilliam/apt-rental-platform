@@ -9,6 +9,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useMemo } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import { File, Paths } from 'expo-file-system';
 import ImageViewing from "react-native-image-viewing";
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -16,6 +17,7 @@ import ChatHeader from '@/app/chat/components/ChatHeader';
 import ChatBubble from '@/app/chat/components/ChatBubble';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
+import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 
 import { useColors } from '@/hooks/useTheme';
@@ -61,6 +63,7 @@ export default function ChatScreen() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pendingAssets, setPendingAssets] = useState<StagedAsset[]>([]);
+  const [showGifPicker, setShowGifPicker] = useState(false);
 
   const {
     conversationId,
@@ -164,23 +167,24 @@ export default function ChatScreen() {
     await addStagedAssets(result.assets);
   }, [addStagedAssets]);
 
-  const handlePickGif = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return;
+  const handlePickGif = useCallback(() => {
+    setShowGifPicker(true);
+  }, []);
 
-    // No native GIF filter in the system picker — restrict to images and let
-    // resolveMessageType() in the send pipeline detect image/gif by mimeType.
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 1,
-      allowsMultipleSelection: true,
-      selectionLimit: MAX_ATTACHMENTS_PER_SEND,
+  const handleGifSelected = useCallback(async (gif: GiphyMedia) => {
+    const downloaded = await File.downloadFileAsync(gif.url, Paths.cache, {
+      idempotent: true,
     });
 
-    if (result.canceled || result.assets.length === 0) return;
+    const staged: StagedAsset = {
+      id: generateStagedId(),
+      localUri: downloaded.uri,
+      mimeType: 'image/gif',
+      messageType: 'gif',
+    };
 
-    await addStagedAssets(result.assets);
-  }, [addStagedAssets]);
+    setPendingAssets((prev) => [...prev, staged]);
+  }, []);
 
   const handleOpenCamera = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -299,6 +303,12 @@ export default function ChatScreen() {
         imageIndex={0}
         visible={!!selectedImage}
         onRequestClose={() => setSelectedImage(null)}
+      />
+
+      <GiphyPicker
+        visible={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onSelect={handleGifSelected}
       />
     </ScreenWrapper>
   );

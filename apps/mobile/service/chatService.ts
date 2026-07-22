@@ -64,7 +64,8 @@ export type Conversation = {
   other_user_phone: string | null;
   apartment_id: string | null;
   apartment_name: string | null;
-  last_message: string;
+  last_message: string | null;
+  last_message_type: MessageType | null;
   last_message_time: string;
   unread_count: number;
   conversation_type: 'tenant' | 'inquiry';

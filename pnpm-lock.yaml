@@ -32,6 +32,9 @@ importers:
       '@expo/vector-icons':
         specifier: ^15.0.3
         version: 15.0.3(expo-font@55.0.8)(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      '@giphy/react-native-sdk':
+        specifier: ^6.0.2
+        version: 6.0.2(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
       '@gorhom/bottom-sheet':
         specifier: ^5.2.8
         version: 5.2.8(@types/react@19.2.17)(react-native-gesture-handler@2.30.1(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native-reanimated@4.2.1(react-native-worklets@0.7.4(@babel/core@7.28.5)(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
@@ -1259,6 +1262,16 @@ packages:
 
   '@formatjs/intl-localematcher@0.6.2':
     resolution: {integrity: sha512-XOMO2Hupl0wdd172Y06h6kLpBz6Dv+J4okPLl4LPtzbr8f66WbIoy4ev98EBuZ6ZK4h5ydTN6XneT4QVpD7cdA==}
+
+  '@giphy/js-types@4.4.0':
+    resolution: {integrity: sha512-W9G6crS2oqTn7g0RpvYu1l/sna4LnivRTk25jmxdzujOFb9kvQ+VFM/v9RPYV2GIBnzT/maW/EwjFIba9jkflA==}
+
+  '@giphy/react-native-sdk@6.0.2':
+    resolution: {integrity: sha512-jwsmCiSC0thh2kfR7/nrobhFpbI1P9sh7tjpwTjI/fG+nGxy+ABl8c0BFAhlyEGRk1odyb83GQo5EjSBiWtLzA==}
+    engines: {node: '>=22.14.0'}
+    peerDependencies:
+      react: ^19.2.0
+      react-native: '>=0.83.0'
 
   '@gorhom/bottom-sheet@5.2.8':
     resolution: {integrity: sha512-+N27SMpbBxXZQ/IA2nlEV6RGxL/qSFHKfdFKcygvW+HqPG5jVNb1OqehLQsGfBP+Up42i0gW5ppI+DhpB7UCzA==}
@@ -7315,6 +7328,10 @@ packages:
     resolution: {integrity: sha512-Ne2YiiGN8bmrmJJEuTWTLJR32nh/JdL1+PSicowtNb0WFpn59GK8/lfD61bVtzguz7b3PBt74nxpv/Pw5po5Rg==}
     engines: {node: '>=8'}
 
+  type-fest@4.41.0:
+    resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
+    engines: {node: '>=16'}
+
   type-fest@5.4.4:
     resolution: {integrity: sha512-JnTrzGu+zPV3aXIUhnyWJj4z/wigMsdYajGLIYakqyOW1nPllzXEJee0QQbHj+CTIQtXGlAjuK0UY+2xTyjVAw==}
     engines: {node: '>=20'}
@@ -8867,6 +8884,15 @@ snapshots:
   '@formatjs/intl-localematcher@0.6.2':
     dependencies:
       tslib: 2.8.1
+
+  '@giphy/js-types@4.4.0': {}
+
+  '@giphy/react-native-sdk@6.0.2(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      '@giphy/js-types': 4.4.0
+      react: 19.2.0
+      react-native: 0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0)
+      type-fest: 4.41.0
 
   '@gorhom/bottom-sheet@5.2.8(@types/react@19.2.17)(react-native-gesture-handler@2.30.1(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native-reanimated@4.2.1(react-native-worklets@0.7.4(@babel/core@7.28.5)(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.28.5)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)':
     dependencies:
@@ -15996,6 +16022,8 @@ snapshots:
   type-fest@0.21.3: {}
 
   type-fest@0.7.1: {}
+
+  type-fest@4.41.0: {}
 
   type-fest@5.4.4:
     dependencies:

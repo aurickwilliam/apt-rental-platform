@@ -19,8 +19,6 @@ import * as WebBrowser from "expo-web-browser";
 
 import { COLORS } from "@repo/constants";
 
-import { supabase } from "@repo/supabase";
-
 import { Appearance } from "react-native";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
@@ -72,35 +70,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
-
-      // if (__DEV__) {
-      //   router.replace('/(auth)/personalization/step-one');
-      // }
     }
-
-    // REMOVED: Force redirect to complete profile if mobile number is missing
-
-    // Redirect incomplete profiles on every app open
-    // (async () => {
-    //   const { data: { session } } = await supabase.auth.getSession();
-    //   if (!session) return;
-
-    //   const { data: profile } = await supabase
-    //     .from('users')
-    //     .select('role, mobile_number')
-    //     .eq('user_id', session.user.id)
-    //     .single();
-
-    //   if (profile && !profile.mobile_number) {
-    //     router.replace({
-    //       pathname: '/(auth)/auth-complete-profile',
-    //       params: {
-    //         email: session.user.email ?? '',
-    //         userSide: profile.role ?? 'tenant',
-    //       },
-    //     });
-    //   }
-    // })();
   }, [fontsLoaded, fontError, router]);
 
   if (!fontsLoaded && !fontError) {
@@ -119,7 +89,6 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             >
-              <Stack.Screen name="dev" />
               <Stack.Screen name="index" />
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(auth)" />
@@ -130,6 +99,7 @@ export default function RootLayout() {
               <Stack.Screen name="settings" />
               <Stack.Screen name="document-id" />
               <Stack.Screen name="edit-profile" />
+              <Stack.Screen name="dev/giphy" />
             </Stack>
           </BottomSheetModalProvider>
           <PortalHost name="root" />
