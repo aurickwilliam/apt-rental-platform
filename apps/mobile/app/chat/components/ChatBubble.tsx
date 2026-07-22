@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
-import { Image } from 'expo-image';
+import { useState, useCallback } from 'react';
+import { Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
 import { IconPlayerPlayFilled, IconX } from '@tabler/icons-react-native';
@@ -24,12 +24,29 @@ interface ChatBubbleProps {
   onImagePress?: (uri: string) => void;
 }
 
-const ATTACHMENT_SIZE = {
-  width: 220,
-  height: 220,
-  borderRadius: 18,
-  borderWidth: 1,
-} as const;
+const ATTACHMENT_BORDER_RADIUS = 18;
+const ATTACHMENT_MAX_WIDTH = 220;
+const ATTACHMENT_MAX_HEIGHT = 280;
+
+function calculateImageSize(
+  naturalWidth: number,
+  naturalHeight: number,
+  maxWidth: number,
+  maxHeight: number
+): { width: number; height: number } {
+  if (naturalWidth <= maxWidth && naturalHeight <= maxHeight) {
+    return { width: naturalWidth, height: naturalHeight };
+  }
+
+  const widthRatio = maxWidth / naturalWidth;
+  const heightRatio = maxHeight / naturalHeight;
+  const ratio = Math.min(widthRatio, heightRatio);
+
+  return {
+    width: Math.round(naturalWidth * ratio),
+    height: Math.round(naturalHeight * ratio),
+  };
+}
 
 export default function ChatBubble({
   message,
@@ -44,6 +61,7 @@ export default function ChatBubble({
   onImagePress,
 }: ChatBubbleProps) {
   const { colors } = useColors();
+  const { width: screenWidth } = useWindowDimensions();
 
   const alignment = isSent ? 'self-end items-end' : 'self-start items-start';
   const bubbleColor = isSent ? 'bg-accent' : 'bg-surface-tertiary';
@@ -79,23 +97,20 @@ export default function ChatBubble({
           thumbnailPath={thumbnailPath}
         />
       ) : isVisualMedia ? (
-        <Pressable
-          onPress={() => onImagePress?.(attachmentUrl!)}
-        >
-          <Image
-            source={{
-              uri: attachmentUrl!,
-              cacheKey: attachmentPath ?? undefined
-            }}
-            style={[ATTACHMENT_SIZE, { borderColor: colors.gray300 }]}
-            cachePolicy="disk"
-            contentFit="cover"
-            transition={150}
-          />
-        </Pressable>
+        <VisualMediaBubble
+          uri={attachmentUrl!}
+          attachmentPath={attachmentPath}
+          onImagePress={onImagePress}
+          screenWidth={screenWidth}
+          colors={colors}
+        />
       ) : isBrokenAttachment ? (
         <View
-          style={ATTACHMENT_SIZE}
+          style={{
+            width: ATTACHMENT_MAX_WIDTH,
+            height: ATTACHMENT_MAX_HEIGHT,
+            borderRadius: ATTACHMENT_BORDER_RADIUS,
+          }}
           className="bg-surface-tertiary items-center justify-center"
         >
           <Text className="text-gray-400 text-xs font-inter">
@@ -123,6 +138,57 @@ export default function ChatBubble({
   );
 }
 
+// ─── Image / GIF attachment ───────────────────────────────────────────────────
+// Uses onLoad to capture natural dimensions and scales to fit within the
+// bubble while preserving aspect ratio. Animated GIFs play automatically
+// via expo-image's default autoplay.
+
+function VisualMediaBubble({
+  uri,
+  attachmentPath,
+  onImagePress,
+  screenWidth,
+  colors,
+}: {
+  uri: string;
+  attachmentPath?: string | null;
+  onImagePress?: (uri: string) => void;
+  screenWidth: number;
+  colors: Record<string, string>;
+}) {
+  const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  const maxBubbleWidth = Math.min(ATTACHMENT_MAX_WIDTH, screenWidth * 0.8);
+
+  const handleLoad = useCallback((event: ImageLoadEventData) => {
+    const { width, height } = event.source;
+    setDimensions(calculateImageSize(width, height, maxBubbleWidth, ATTACHMENT_MAX_HEIGHT));
+  }, [maxBubbleWidth]);
+
+  const displaySize = dimensions ?? { width: maxBubbleWidth, height: ATTACHMENT_MAX_HEIGHT };
+
+  return (
+    <Pressable
+      onPress={() => onImagePress?.(uri)}
+    >
+      <Image
+        source={{
+          uri,
+          cacheKey: attachmentPath ?? undefined
+        }}
+        style={[
+          displaySize,
+          { borderRadius: ATTACHMENT_BORDER_RADIUS, borderColor: colors.gray300, borderWidth: 1 },
+        ]}
+        cachePolicy="disk"
+        contentFit="contain"
+        transition={150}
+        onLoad={handleLoad}
+      />
+    </Pressable>
+  );
+}
+
 // ─── Video attachment ─────────────────────────────────────────────────────────
 // The native video player is only created when the user taps to play — mounting
 // a player per bubble in a long FlatList would be wasteful and would fight the
@@ -139,6 +205,14 @@ function VideoBubble({
   thumbnailPath?: string | null;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  const handleLoad = useCallback((event: ImageLoadEventData) => {
+    const { width, height } = event.source;
+    setDimensions(calculateImageSize(width, height, ATTACHMENT_MAX_WIDTH, ATTACHMENT_MAX_HEIGHT));
+  }, []);
+
+  const displaySize = dimensions ?? { width: ATTACHMENT_MAX_WIDTH, height: ATTACHMENT_MAX_HEIGHT };
 
   return (
     <>
@@ -146,7 +220,10 @@ function VideoBubble({
         onPress={() => setIsPlaying(true)}
         accessibilityRole="button"
         accessibilityLabel="Play video"
-        style={ATTACHMENT_SIZE}
+        style={[
+          displaySize,
+          { borderRadius: ATTACHMENT_BORDER_RADIUS },
+        ]}
         className="overflow-hidden bg-black border border-border"
       >
         {thumbnailUrl && (
@@ -155,10 +232,11 @@ function VideoBubble({
               uri: thumbnailUrl,
               cacheKey: thumbnailPath ?? undefined
             }}
-            style={ATTACHMENT_SIZE}
+            style={displaySize}
             className="absolute inset-0"
             cachePolicy="disk"
             contentFit="cover"
+            onLoad={handleLoad}
           />
         )}
         <View className="absolute inset-0 items-center justify-center bg-black/20">
