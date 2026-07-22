@@ -85,6 +85,7 @@ export default function ApartmentScreen() {
         otherUserAvatar: landlord.avatar_url ?? "",
         otherUserPhoneNumber: landlord.mobile_number ?? "",
         apartmentId,
+        apartmentTitle: apartment?.name,
       },
     });
   };

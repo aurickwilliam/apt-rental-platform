@@ -123,7 +123,7 @@ export default function ChatBubble({
             {message}
           </Text>
         ) : (
-          <View className={`px-3 py-2 rounded-full ${bubbleColor}`}>
+          <View className={`px-3 py-2 rounded-3xl ${bubbleColor}`}>
             <Text className={`text-sm font-inter leading-6 ${textColor}`}>
               {message}
             </Text>
