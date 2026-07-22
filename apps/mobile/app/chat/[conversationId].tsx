@@ -35,6 +35,7 @@ function useRouteParams() {
     otherUserPhone?: string;
     otherUserPhoneNumber?: string;
     apartmentId?: string;
+    apartmentTitle?: string;
   }>();
 
   const normalize = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
@@ -48,6 +49,7 @@ function useRouteParams() {
     otherUserAvatar: normalize(raw.otherUserAvatar),
     otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
     apartmentId: apartmentIdRaw || null,
+    apartmentTitle: normalize(raw.apartmentTitle),
   };
 }
 
@@ -72,6 +74,7 @@ export default function ChatScreen() {
     otherUserAvatar: routedAvatar,
     otherUserPhoneNumber,
     apartmentId,
+    apartmentTitle,
   } = useRouteParams();
 
   const {
@@ -248,8 +251,6 @@ export default function ChatScreen() {
           </View>
         ) : (
           <View className="flex-1">
-            {messages.length === 0 && <ChatEmptyState />}
-
             <FlatList
               inverted
               ref={flatListRef}
@@ -270,13 +271,25 @@ export default function ChatScreen() {
                   onImagePress={setSelectedImage}
                 />
               )}
-              contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 10 }}
+              contentContainerStyle={
+                messages.length === 0
+                  ? { flexGrow: 1, justifyContent: 'center' }
+                  : { flexGrow: 1, padding: 16, paddingBottom: 10 }
+              }
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
               maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
               nestedScrollEnabled
               ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+              ListFooterComponent={
+                <ChatEmptyState
+                  otherUserName={otherUserName}
+                  otherUserAvatar={otherUserAvatar}
+                  apartmentTitle={apartmentTitle}
+                  hasMessages={messages.length > 0}
+                />
+              }
               onContentSizeChange={handleContentSizeChange}
             />
           </View>

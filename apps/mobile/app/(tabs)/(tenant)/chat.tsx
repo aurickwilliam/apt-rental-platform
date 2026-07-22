@@ -229,6 +229,7 @@ export default function Chat() {
         otherUserAvatar: conversation.other_user_avatar ?? '',
         otherUserPhoneNumber: conversation.other_user_phone ?? '',
         apartmentId: conversation.apartment_id ?? '',
+        apartmentTitle: conversation.apartment_name ?? '',
       },
     });
   };
