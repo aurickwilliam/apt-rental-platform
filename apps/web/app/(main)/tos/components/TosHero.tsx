@@ -3,9 +3,6 @@ import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Scale } from "lucide-react";
  
-// Mirrors the fadeUp variant used in app/(main)/about/page.tsx.
-// TODO: if that variant gets pulled into a shared file, import it from there
-// instead and delete this local copy so both pages stay in sync.
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: {

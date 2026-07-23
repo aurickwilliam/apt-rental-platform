@@ -1,34 +1,5 @@
 "use client";
 
-/**
- * apps/web/app/(main)/tos/page.tsx
- * -------------------------------------------------------------
- * Terms of Service — APT (A Place to Thrive)
- *
- * This route is nested under app/(main)/layout.tsx, which already
- * renders <AppNavbar /> and <Footer /> around {children} — so this
- * file intentionally contains ONLY the page content. Do not add
- * nav/footer here.
- *
- * Content lives in ./data/tos-sections.ts; presentation is split
- * across ./components (TosHero, TosTableOfContents, TosSection,
- * TosContact). This file just wires them together and owns the
- * scrollspy state, since that state is shared between the sidebar
- * TOC and the section list.
- *
- * Built with HeroUI (https://heroui.com/en/docs/react/components).
- * Uses the project's Poppins font (font-poppins utility) and the same
- * typography/color conventions as app/(main)/about/page.tsx — font-inter
- * for headings, font-poppinsSemiBold for labels, the default-* color
- * scale for body/meta text, and border-default-200 for hairlines.
- *
- * Setup notes:
- * 1. Update BRAND.email / BRAND.address / "Last updated" date in
- *    ./data/tos-sections.ts as needed.
- * 2. The sticky TOC assumes AppNavbar is 64px tall (top-[64px] /
- *    h-[calc(100vh-64px)] in TosTableOfContents) — adjust if yours differs.
- */
-
 import { useEffect, useRef, useState } from "react";
 import TosHero from "./components/TosHero";
 import TosTableOfContents from "./components/TosTableOfContents";
