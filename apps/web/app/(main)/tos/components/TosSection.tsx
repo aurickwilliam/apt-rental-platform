@@ -1,6 +1,8 @@
 // apps/web/app/(main)/tos/components/TosSection.tsx
 import { Alert } from "@heroui/react";
+import { motion } from "framer-motion";
 import type { Section } from "../data/tos-sections";
+import { fadeUp } from "../data/animations";
 
 type TosSectionProps = {
   section: Section;
@@ -13,7 +15,15 @@ export default function TosSection({ section, isLast, sectionRef }: TosSectionPr
 
   return (
     <div>
-      <div id={section.id} ref={sectionRef} className="scroll-mt-24 mb-13">
+      <motion.div
+        id={section.id}
+        ref={sectionRef}
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        className="scroll-mt-24 mb-13"
+      >
         <div className="mb-2 text-xs font-poppinsSemiBold uppercase tracking-widest text-primary">
           {section.num}
         </div>
@@ -58,7 +68,7 @@ export default function TosSection({ section, isLast, sectionRef }: TosSectionPr
             </Alert.Content>
           </Alert>
         )}
-      </div>
+      </motion.div>
       {!isLast && <hr className="mb-13 border-t border-default-200" />}
     </div>
   );
