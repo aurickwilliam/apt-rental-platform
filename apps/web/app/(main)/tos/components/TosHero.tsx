@@ -2,16 +2,8 @@
 import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Scale } from "lucide-react";
- 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as const },
-  },
-};
- 
+import { fadeUp } from "../data/animations";
+
 export default function TosHero() {
   return (
     <section className="px-4 py-9 md:px-12 border-b border-default-200">
@@ -28,7 +20,7 @@ export default function TosHero() {
             <Breadcrumbs.Item>Terms of Service</Breadcrumbs.Item>
           </Breadcrumbs>
         </motion.div>
- 
+
         {/* Eyebrow chip */}
         <motion.div
           variants={fadeUp}
@@ -44,7 +36,7 @@ export default function TosHero() {
             </span>
           </Chip>
         </motion.div>
- 
+
         <motion.h1
           variants={fadeUp}
           initial="hidden"
@@ -57,7 +49,7 @@ export default function TosHero() {
             Service
           </em>
         </motion.h1>
- 
+
         <motion.p
           variants={fadeUp}
           initial="hidden"
@@ -68,7 +60,7 @@ export default function TosHero() {
           Please read these terms carefully before using APT. By creating an
           account or using our services, you agree to be bound by these terms.
         </motion.p>
- 
+
         {/* Meta row */}
         <motion.div
           variants={fadeUp}

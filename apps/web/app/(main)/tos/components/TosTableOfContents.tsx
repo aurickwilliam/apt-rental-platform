@@ -1,5 +1,7 @@
 // apps/web/app/(main)/tos/components/TosTableOfContents.tsx
+import { motion } from "framer-motion";
 import { TOC } from "../data/tos-sections";
+import { fadeUp } from "../data/animations";
 
 type TosTableOfContentsProps = {
   activeId: string;
@@ -8,7 +10,13 @@ type TosTableOfContentsProps = {
 
 export default function TosTableOfContents({ activeId, onNavigate }: TosTableOfContentsProps) {
   return (
-    <aside className="hidden md:block sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto py-10 pr-8">
+    <motion.aside
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-80px" }}
+      className="hidden md:block sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto py-10 pr-8"
+    >
       <div className="mb-4 text-xs font-poppinsSemiBold uppercase tracking-widest text-default-500">
         Contents
       </div>
@@ -27,6 +35,6 @@ export default function TosTableOfContents({ activeId, onNavigate }: TosTableOfC
           </button>
         ))}
       </nav>
-    </aside>
+    </motion.aside>
   );
 }
