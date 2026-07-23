@@ -188,7 +188,7 @@ export default function Footer() {
               © {new Date().getFullYear()} APT Rental Platform. All rights reserved.
             </p>
             <div className="flex items-center justify-center">
-              <Link href="#" className="text-sm text-white/80 hover:text-white mx-2">
+              <Link href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
                 Terms of Service
               </Link>
               <Link href="#" className="text-sm text-white/80 hover:text-white mx-2">
