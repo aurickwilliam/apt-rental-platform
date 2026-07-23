@@ -1,7 +1,3 @@
-// apps/web/app/(main)/tos/data/tos-sections.ts
-// Content + types for the Terms of Service page. Kept separate from the
-// components so the legal copy can be updated without touching layout code.
-
 export const BRAND = {
   email: "support@apt-rental.ph",
   address: "109 Samson Road corner Caimito Road, Caloocan, Philippines",
