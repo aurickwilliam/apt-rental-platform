@@ -6,11 +6,17 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { File, Paths } from 'expo-file-system';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import ImageViewing from "react-native-image-viewing";
+import { IconArrowDown } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from '@/app/chat/components/ChatHeader';
@@ -20,11 +26,13 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 
+import { Button } from 'heroui-native';
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
 import { resolveMessageType } from '@/service/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
+const SCROLL_BOTTOM_THRESHOLD = 150;
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{
@@ -66,6 +74,11 @@ export default function ChatScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pendingAssets, setPendingAssets] = useState<StagedAsset[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const isNearBottomRef = useRef(true);
+
+  const scrollButtonOpacity = useSharedValue(0);
+  const scrollButtonScale = useSharedValue(0.5);
 
   const {
     conversationId,
@@ -106,9 +119,36 @@ export default function ChatScreen() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      const offsetY = event.nativeEvent.contentOffset.y;
+      const near = offsetY < SCROLL_BOTTOM_THRESHOLD;
+      isNearBottomRef.current = near;
+      setIsNearBottom(near);
+    },
+    []
+  );
+
   const handleContentSizeChange = useCallback(() => {
-    scrollToBottom();
+    if (isNearBottomRef.current) {
+      scrollToBottom();
+    }
   }, [scrollToBottom]);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    opacity: scrollButtonOpacity.value,
+    transform: [{ scale: scrollButtonScale.value }],
+  }));
+
+  useEffect(() => {
+    if (isNearBottom) {
+      scrollButtonOpacity.value = withTiming(0, { duration: 150 });
+      scrollButtonScale.value = withTiming(0.5, { duration: 150 });
+    } else {
+      scrollButtonOpacity.value = withTiming(1, { duration: 200 });
+      scrollButtonScale.value = withTiming(1, { duration: 200 });
+    }
+  }, [isNearBottom, scrollButtonOpacity, scrollButtonScale]);
 
   /** Builds a local preview thumbnail for a video pick so the staging strip isn't a blank tile. */
   const buildStagedAsset = useCallback(
@@ -285,12 +325,14 @@ export default function ChatScreen() {
               ListFooterComponent={
                 <ChatEmptyState
                   otherUserName={otherUserName}
-                  otherUserAvatar={otherUserAvatar}
+                  otherUserAvatar={otherUserAvatar ?? undefined}
                   apartmentTitle={apartmentTitle}
                   hasMessages={messages.length > 0}
                 />
               }
               onContentSizeChange={handleContentSizeChange}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             />
           </View>
         )}
@@ -309,6 +351,26 @@ export default function ChatScreen() {
             onRemovePendingAsset={handleRemoveStagedAsset}
           />
         </View>
+        <Animated.View
+          pointerEvents={isNearBottom ? 'none' : 'auto'}
+          style={[{
+            position: 'absolute',
+            bottom: 80,
+            right: 16,
+            zIndex: 10,
+          }, animatedButtonStyle]}
+        >
+          <Button
+            isIconOnly
+            className="rounded-full bg-primary shadow-lg"
+            onPress={() => {
+              scrollToBottom();
+              setIsNearBottom(true);
+            }}
+          >
+            <IconArrowDown size={24} color={colors.secondaryForeground} />
+          </Button>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       <ImageViewing
