@@ -18,13 +18,15 @@ interface ChatHeaderProps {
   profilePicture?: string;
   onBackPress?: () => void;
   phoneNumber?: string;
+  apartmentTitle?: string;
 }
 
-export default function ChatHeader({ 
-  name, 
+export default function ChatHeader({
+  name,
   profilePicture,
   onBackPress,
   phoneNumber,
+  apartmentTitle,
 }: ChatHeaderProps) {
   const { colors } = useColors();
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function ChatHeader({
       Alert.alert('Error', 'Unable to open the phone dialer.');
     }
   };
-  
+
   const handleBack = () => {
     if (onBackPress) {
       onBackPress();
@@ -53,8 +55,8 @@ export default function ChatHeader({
 
   return (
     <View
-      className="flex-row items-center justify-between bg-accent px-4 py-3"
-      style={{ paddingTop: insets.top }}
+      className="flex-row items-center justify-between bg-accent px-4"
+      style={{ paddingTop: insets.top, height: insets.top + 56 }}
     >
 
       {/* Left Back Button */}
@@ -90,9 +92,24 @@ export default function ChatHeader({
           </Avatar.Fallback>
         </Avatar>
 
-        <Text className="text-base text-secondary-foreground font-interMedium">
-          {name}
-        </Text>
+        <View className="shrink">
+          <Text
+            className="text-base text-secondary-foreground font-interMedium"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {name}
+          </Text>
+          {apartmentTitle && (
+            <Text
+              className="text-xs text-secondary-foreground/70 font-interRegular"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {apartmentTitle}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Right Side Call Button */}
