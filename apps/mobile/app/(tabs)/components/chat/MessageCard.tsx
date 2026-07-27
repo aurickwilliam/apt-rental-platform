@@ -1,10 +1,26 @@
 import { View, Text } from 'react-native'
 import { Avatar, Card, PressableFeedback } from 'heroui-native'
 
+function getLastMessageDisplay(lastMessage: string | null, messageType?: string | null): string {
+  if (lastMessage) return lastMessage;
+
+  switch (messageType) {
+    case 'image':
+      return 'You sent a photo';
+    case 'video':
+      return 'You sent a video';
+    case 'gif':
+      return 'You sent a GIF';
+    default:
+      return '';
+  }
+}
+
 interface MessageCardProps {
   name: string;
   apartmentName: string;
-  lastMessage: string;
+  lastMessage: string | null;
+  messageType?: string | null;
   timestamp: string;
   profilePictureUrl?: string;
   isUserLastSender?: boolean;
@@ -16,12 +32,14 @@ export default function MessageCard({
   name,
   apartmentName,
   lastMessage,
+  messageType,
   timestamp,
   profilePictureUrl,
   isUserLastSender = false,
   unreadCount = 0,
   onPress
 }: MessageCardProps) {
+  const displayMessage = getLastMessageDisplay(lastMessage, messageType);
 
   return (
     <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden border border-border'>
@@ -62,7 +80,7 @@ export default function MessageCard({
               className='text-foreground text-xs font-inter flex-1'
               numberOfLines={1}
             >
-              {isUserLastSender ? `You: ${lastMessage}` : lastMessage}
+              {isUserLastSender && displayMessage ? `You: ${displayMessage}` : displayMessage}
             </Text>
 
             <Text className='text-gray-500 text-xs font-inter'>

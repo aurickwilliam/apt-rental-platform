@@ -7,7 +7,10 @@ import {
   insertMessage,
   markMessagesAsRead,
   buildConversationKey,
+  resolveMessageType,
+  sendChatAttachments,
   type Message,
+  type PickedChatAsset,
 } from '../../service/chatService';
 
 import { useChatChannel } from './useChatChannel';
@@ -39,7 +42,6 @@ export function useChat({
   const [sending, setSending] = useState(false);
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
-  // Keep myId accessible in callbacks without causing re-subscriptions
   const myIdRef = useRef<string | null>(null);
 
   // ─── Realtime channel ───────────────────────────────────────────────────────
@@ -64,16 +66,26 @@ export function useChat({
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
 
-  const { onTextChange: onTypingTextChange, stop: stopTyping, cleanup: cleanupTyping } = useChatTyping({
-    onStartTyping: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, true);
-    },
-    onStopTyping: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, false);
-    },
-    onHeartbeat: () => {
-      if (myIdRef.current) trackPresence(myIdRef.current, true);
-    },
+  const handleStartTyping = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, true);
+  }, [trackPresence]);
+
+  const handleStopTyping = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, false);
+  }, [trackPresence]);
+
+  const handleHeartbeat = useCallback(() => {
+    if (myIdRef.current) trackPresence(myIdRef.current, true);
+  }, [trackPresence]);
+
+  const {
+    onTextChange: onTypingTextChange,
+    stop: stopTyping,
+    cleanup: cleanupTyping,
+  } = useChatTyping({
+    onStartTyping: handleStartTyping,
+    onStopTyping: handleStopTyping,
+    onHeartbeat: handleHeartbeat,
   });
 
   // ─── Handlers exposed to the screen ────────────────────────────────────────
@@ -101,6 +113,9 @@ export function useChat({
     const pendingMsg: Message = {
       id: tempId,
       message: text,
+      messageType: 'text',
+      attachmentUrl: null,
+      attachmentPath: null,
       timestamp: 'Sending...',
       isSent: true,
       isPending: true,
@@ -121,6 +136,9 @@ export function useChat({
       const sentMsg: Message = {
         id: inserted.id,
         message: inserted.message,
+        messageType: 'text',
+        attachmentUrl: null,
+        attachmentPath: null,
         timestamp: new Date(inserted.created_at).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
@@ -144,6 +162,9 @@ export function useChat({
       broadcast({
         id: inserted.id,
         message: inserted.message,
+        messageType: 'text',
+        attachmentUrl: null,
+        attachmentPath: null,
         created_at: inserted.created_at,
         sender_id: myId,
         apartment_id: apartmentId,
@@ -156,6 +177,90 @@ export function useChat({
       setSending(false);
     }
   }, [apartmentId, broadcast, chatMessage, myId, otherUserId, sending, stopTyping]);
+
+  const handleSendImages = useCallback(
+    async (assets: PickedChatAsset[]) => {
+      stopTyping();
+      if (!myId || !otherUserId || sending || assets.length === 0) return;
+
+      const groupId = assets.length > 1 ? `pending-${Date.now()}` : null;
+      const tempIdByUri = new Map(assets.map((a) => [a.localUri, `temp-${Date.now()}-${Math.random()}`]));
+
+      const pendingMsgs: Message[] = assets.map((a) => ({
+        id: tempIdByUri.get(a.localUri)!,
+        message: null,
+        messageType: resolveMessageType(a.mimeType),
+        attachmentUrl: a.localUri,   // local file:// renders immediately, no signed URL needed yet
+        attachmentPath: null,
+        attachmentMimeType: a.mimeType ?? null,
+        thumbnailUrl: null,
+        groupId,
+        timestamp: 'Sending...',
+        isSent: true,
+        isPending: true,
+      }));
+
+      setMessages((prev) => [...pendingMsgs, ...prev]);
+      setSending(true);
+
+      try {
+        const { sent, failed } = await sendChatAttachments({
+          senderId: myId,
+          receiverId: otherUserId,
+          apartmentId,
+          assets,
+        });
+
+        setMessages((prev) => {
+          let next = prev;
+
+          for (const msg of sent) {
+            const tempId = tempIdByUri.get(msg.localUri);
+            const idx = next.findIndex((m) => m.id === tempId);
+            if (idx !== -1) {
+              const copy = [...next];
+              copy[idx] = msg;
+              next = copy;
+            }
+          }
+
+          const failedTempIds = new Set(
+            failed
+              .map((f) => tempIdByUri.get(f.localUri))
+              .filter((id): id is string => !!id)
+          );
+
+          if (failedTempIds.size > 0) {
+            next = next.filter((m) => !failedTempIds.has(m.id));
+          }
+
+          return next;
+        });
+
+        for (const msg of sent) {
+          broadcast({
+            id: msg.id,
+            message: null,
+            messageType: msg.messageType,
+            attachmentUrl: msg.attachmentUrl,
+            attachmentPath: msg.attachmentPath,
+            attachmentMimeType: msg.attachmentMimeType,
+            thumbnailUrl: msg.thumbnailUrl,
+            thumbnailPath: msg.thumbnailPath,
+            created_at: new Date().toISOString(),
+            sender_id: myId,
+            apartment_id: apartmentId,
+          });
+        }
+      } catch (err) {
+        console.error('Batch attachment send failed:', err);
+        setMessages((prev) => prev.filter((m) => !tempIdByUri.has(m.attachmentUrl ?? '')));
+      } finally {
+        setSending(false);
+      }
+    },
+    [apartmentId, broadcast, myId, otherUserId, sending, stopTyping]
+  );
 
   // ─── Init ───────────────────────────────────────────────────────────────────
 
@@ -227,9 +332,11 @@ export function useChat({
     loading,
     sending,
     otherUserIsTyping,
+
     // Handlers
     handleChatMessageChange,
     handleSend,
     handleInputBlur,
+    handleSendImages,
   };
 }

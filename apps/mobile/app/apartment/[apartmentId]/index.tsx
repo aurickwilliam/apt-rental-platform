@@ -85,6 +85,7 @@ export default function ApartmentScreen() {
         otherUserAvatar: landlord.avatar_url ?? "",
         otherUserPhoneNumber: landlord.mobile_number ?? "",
         apartmentId,
+        apartmentTitle: apartment?.name,
       },
     });
   };
@@ -148,7 +149,7 @@ export default function ApartmentScreen() {
 
         <ApartmentDescriptionSection description={apartment?.description} />
 
-        <PerksSection amenities={apartment?.amenities} />
+        <PerksSection apartmentId={apartmentId} amenities={apartment?.amenities} />
 
         <MapPreviewSection
           apartmentName={apartment?.name}
