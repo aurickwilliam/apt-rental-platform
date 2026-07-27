@@ -112,6 +112,7 @@ export default function Index() {
         otherUserAvatar: tenant.avatarUrl ?? '',
         otherUserPhoneNumber: tenant.mobileNumber,
         apartmentId,
+        apartmentTitle: apartment?.name,
       },
     });
   };

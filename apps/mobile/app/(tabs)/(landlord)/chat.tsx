@@ -74,23 +74,28 @@ export default function Chat() {
 
       const { data: chatRows, error: chatError } = await supabase
         .from('chat')
-        .select('sender_id, receiver_id, apartment_id, created_at')
+        .select('sender_id, receiver_id, apartment_id, message_type, created_at')
         .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
         .order('created_at', { ascending: false });
 
       if (chatError) throw chatError;
 
       const lastSenderIsMeByConversation: Record<string, boolean> = {};
+      const lastMessageTypeByConversation: Record<string, string> = {};
       for (const row of (chatRows ?? []) as {
         sender_id: string;
         receiver_id: string;
         apartment_id: string | null;
+        message_type: string;
       }[]) {
         const otherUserId = row.sender_id === profile.id ? row.receiver_id : row.sender_id;
         const key = getConversationMetaKey(otherUserId, row.apartment_id);
 
         if (!(key in lastSenderIsMeByConversation)) {
           lastSenderIsMeByConversation[key] = row.sender_id === profile.id;
+        }
+        if (!(key in lastMessageTypeByConversation)) {
+          lastMessageTypeByConversation[key] = row.message_type;
         }
       }
 
@@ -107,6 +112,8 @@ export default function Chat() {
             : 'inquiry',
           last_sender_is_me:
             lastSenderIsMeByConversation[conversationKey] ?? false,
+          last_message_type:
+            lastMessageTypeByConversation[conversationKey] ?? null,
         };
       });
 
@@ -150,7 +157,8 @@ export default function Chat() {
             sender_id: string;
             receiver_id: string;
             apartment_id: string | null;
-            message: string;
+            message: string | null;
+            message_type: string;
             created_at: string;
           };
 
@@ -175,6 +183,7 @@ export default function Chat() {
             const updated = {
               ...next[index],
               last_message: row.message,
+              last_message_type: row.message_type,
               last_message_time: row.created_at,
               last_sender_is_me: row.sender_id === myId,
 
@@ -201,7 +210,7 @@ export default function Chat() {
     const matchesSearch =
       c.other_user_name.toLowerCase().includes(q) ||
       (c.apartment_name ?? '').toLowerCase().includes(q) ||
-      c.last_message.toLowerCase().includes(q);
+      (c.last_message ?? '').toLowerCase().includes(q);
       
     const matchesType =
       selectedFilter === 'Tenant'
@@ -233,6 +242,7 @@ export default function Chat() {
         otherUserAvatar: conversation.other_user_avatar ?? '',
         otherUserPhoneNumber: conversation.other_user_phone ?? '',
         apartmentId: conversation.apartment_id ?? '',
+        apartmentTitle: conversation.apartment_name ?? '',
       },
     });
   };
@@ -357,6 +367,7 @@ export default function Chat() {
                     name={message.other_user_name}
                     apartmentName={message.apartment_name ?? 'Unknown Property'}
                     lastMessage={message.last_message}
+                    messageType={message.last_message_type}
                     isUserLastSender={Boolean(message.last_sender_is_me)}
                     timestamp={getRelativeTime(new Date(message.last_message_time))}
                     unreadCount={message.unread_count} 

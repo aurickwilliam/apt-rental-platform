@@ -162,10 +162,15 @@ export type Database = {
       chat: {
         Row: {
           apartment_id: string | null
+          attachment_mime_type: string | null
+          attachment_path: string | null
+          attachment_thumbnail_path: string | null
           created_at: string
+          group_id: string | null
           id: string
           is_read: boolean
-          message: string
+          message: string | null
+          message_type: string
           read_at: string | null
           receiver_id: string
           sender_id: string
@@ -173,10 +178,15 @@ export type Database = {
         }
         Insert: {
           apartment_id?: string | null
+          attachment_mime_type?: string | null
+          attachment_path?: string | null
+          attachment_thumbnail_path?: string | null
           created_at?: string
+          group_id?: string | null
           id?: string
           is_read?: boolean
-          message: string
+          message?: string | null
+          message_type?: string
           read_at?: string | null
           receiver_id: string
           sender_id: string
@@ -184,10 +194,15 @@ export type Database = {
         }
         Update: {
           apartment_id?: string | null
+          attachment_mime_type?: string | null
+          attachment_path?: string | null
+          attachment_thumbnail_path?: string | null
           created_at?: string
+          group_id?: string | null
           id?: string
           is_read?: boolean
-          message?: string
+          message?: string | null
+          message_type?: string
           read_at?: string | null
           receiver_id?: string
           sender_id?: string

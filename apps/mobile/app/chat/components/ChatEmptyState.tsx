@@ -1,18 +1,55 @@
 import { View, Text } from 'react-native'
+import { Avatar } from 'heroui-native'
+import { getInitials } from '@repo/utils'
 
-// TODO: Make this more visually appealing
+interface ChatEmptyStateProps {
+  otherUserName?: string
+  otherUserAvatar?: string
+  apartmentTitle?: string
+  hasMessages?: boolean
+}
 
-export default function ChatEmptyState() {
+export default function ChatEmptyState({
+  otherUserName,
+  otherUserAvatar,
+  apartmentTitle,
+  hasMessages,
+}: ChatEmptyStateProps) {
   return (
-    <View className="flex-1 items-center justify-center py-6">
-      <View className="max-w-[92%] rounded-xl border border-slate-200 bg-background px-3.5 py-2.5">
-        <Text className="text-center text-[14px] font-semibold text-accent">
-          No messages yet
+    <View className="items-center px-6 pb-4">
+      <Avatar
+        size="lg"
+        color="accent"
+        className="size-28 border-4 border-border mb-3"
+        alt={otherUserName}
+      >
+        {otherUserAvatar ? (
+          <Avatar.Image source={{ uri: otherUserAvatar }} />
+        ) : null}
+        <Avatar.Fallback delayMs={200} className="justify-center items-center">
+          <Text className="text-accent text-4xl font-interMedium leading-none">
+            {otherUserName ? getInitials(otherUserName) : '?'}
+          </Text>
+        </Avatar.Fallback>
+      </Avatar>
+
+      {otherUserName && (
+        <Text className="text-foreground text-xl font-interSemiBold mb-1">
+          {otherUserName}
         </Text>
-        <Text className="mt-1 text-center text-[12px] text-muted">
-          Say hi to start the conversation.
+      )}
+
+      {apartmentTitle && (
+        <Text className="text-center text-[14px] text-muted mb-4">
+          {apartmentTitle}
         </Text>
-      </View>
+      )}
+
+      {!hasMessages && (
+        <Text className="text-center text-[13px] text-muted leading-5">
+          No messages yet{otherUserName ? ` — send a message to start chatting.` : '.'}
+        </Text>
+      )}
     </View>
   )
 }

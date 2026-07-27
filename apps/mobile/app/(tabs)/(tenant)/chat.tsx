@@ -63,23 +63,28 @@ export default function Chat() {
 
       const { data: chatRows, error: chatError } = await supabase
         .from('chat')
-        .select('sender_id, receiver_id, apartment_id, created_at')
+        .select('sender_id, receiver_id, apartment_id, message_type, created_at')
         .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
         .order('created_at', { ascending: false });
 
       if (chatError) throw chatError;
 
       const lastSenderIsMeByConversation: Record<string, boolean> = {};
+      const lastMessageTypeByConversation: Record<string, string> = {};
       for (const row of (chatRows ?? []) as {
         sender_id: string;
         receiver_id: string;
         apartment_id: string | null;
+        message_type: string;
       }[]) {
         const otherUserId = row.sender_id === profile.id ? row.receiver_id : row.sender_id;
         const key = getConversationMetaKey(otherUserId, row.apartment_id);
 
         if (!(key in lastSenderIsMeByConversation)) {
           lastSenderIsMeByConversation[key] = row.sender_id === profile.id;
+        }
+        if (!(key in lastMessageTypeByConversation)) {
+          lastMessageTypeByConversation[key] = row.message_type;
         }
       }
 
@@ -89,6 +94,10 @@ export default function Chat() {
           lastSenderIsMeByConversation[
             getConversationMetaKey(conv.other_user_id, conv.apartment_id)
           ] ?? false,
+        last_message_type:
+          lastMessageTypeByConversation[
+            getConversationMetaKey(conv.other_user_id, conv.apartment_id)
+          ] ?? null,
       }));
 
       setConversations(conversationsWithMeta as ConversationWithMeta[]);
@@ -131,7 +140,8 @@ export default function Chat() {
             sender_id: string;
             receiver_id: string;
             apartment_id: string | null;
-            message: string;
+            message: string | null;
+            message_type: string;
             created_at: string;
           };
 
@@ -155,6 +165,7 @@ export default function Chat() {
             const updated = {
               ...next[index],
               last_message: row.message,
+              last_message_type: row.message_type,
               last_message_time: row.created_at,
               last_sender_is_me: row.sender_id === myId,
 
@@ -181,7 +192,7 @@ export default function Chat() {
     return (
       c.other_user_name.toLowerCase().includes(q) ||
       (c.apartment_name ?? '').toLowerCase().includes(q) ||
-      c.last_message.toLowerCase().includes(q)
+      (c.last_message ?? '').toLowerCase().includes(q)
     );
   });
 
@@ -218,6 +229,7 @@ export default function Chat() {
         otherUserAvatar: conversation.other_user_avatar ?? '',
         otherUserPhoneNumber: conversation.other_user_phone ?? '',
         apartmentId: conversation.apartment_id ?? '',
+        apartmentTitle: conversation.apartment_name ?? '',
       },
     });
   };
@@ -271,11 +283,11 @@ export default function Chat() {
         </View>
       ) : (
         <>
-          <Separator className='my-3' />
-
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
+              <Separator className='my-3' />
+
               <Text className='text-base font-interMedium text-accent mb-3'>
                 Current Landlord
               </Text>
@@ -288,6 +300,7 @@ export default function Chat() {
                   'Unknown Property'
                 }
                 lastMessage={currentLandlordConversation.last_message}
+                messageType={currentLandlordConversation.last_message_type}
                 isUserLastSender={Boolean(
                   currentLandlordConversation.last_sender_is_me
                 )}
@@ -319,6 +332,7 @@ export default function Chat() {
                     conv.apartment_name ?? 'Unknown Property'
                   }
                   lastMessage={conv.last_message}
+                  messageType={conv.last_message_type}
                   isUserLastSender={Boolean(conv.last_sender_is_me)}
                   timestamp={getRelativeTime(
                     new Date(conv.last_message_time)
