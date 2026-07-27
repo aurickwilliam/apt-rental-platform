@@ -279,6 +279,7 @@ export default function ChatScreen() {
             name={otherUserName}
             profilePicture={otherUserAvatar ?? undefined}
             phoneNumber={otherUserPhoneNumber}
+            apartmentTitle={apartmentTitle ?? undefined}
           />
         </View>
       }
