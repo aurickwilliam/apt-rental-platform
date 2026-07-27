@@ -19,9 +19,10 @@ import * as WebBrowser from "expo-web-browser";
 
 import { COLORS } from "@repo/constants";
 
-import { Appearance } from "react-native";
+import { Appearance, View } from "react-native";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
+import DevBadge from '../components/dev/DevBadge';
 
 function ThemeInitializer() {
   const { themeMode } = useThemeStore();
@@ -84,25 +85,29 @@ export default function RootLayout() {
         <PortalProvider>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           <BottomSheetModalProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="chat/[conversationId]" />
-              <Stack.Screen name="tenant" />
-              <Stack.Screen name="apartment/[apartmentId]" />
-              <Stack.Screen name="(notification)" />
-              <Stack.Screen name="settings" />
-              <Stack.Screen name="document-id" />
-              <Stack.Screen name="edit-profile" />
-              <Stack.Screen name="dev/giphy" />
-            </Stack>
+            <View style={{ flex: 1 }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="chat/[conversationId]" />
+                <Stack.Screen name="tenant" />
+                <Stack.Screen name="apartment/[apartmentId]" />
+                <Stack.Screen name="(notification)" />
+                <Stack.Screen name="settings" />
+                <Stack.Screen name="document-id" />
+                <Stack.Screen name="edit-profile" />
+                <Stack.Screen name="dev/giphy" />
+                <Stack.Screen name="dev/playground" />
+              </Stack>
+              <PortalHost name="root" />
+              <DevBadge />
+            </View>
           </BottomSheetModalProvider>
-          <PortalHost name="root" />
         </PortalProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
