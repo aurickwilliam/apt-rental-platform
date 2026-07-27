@@ -74,7 +74,6 @@ export default function ChatBubble({
   // shouldn't silently render an empty bubble.
   const isBrokenAttachment = messageType !== 'text' && !attachmentUrl;
 
-
   // Emoji-only messages are rendered
   // with a larger font size and no bubble background.
   const isEmojiMessage =
