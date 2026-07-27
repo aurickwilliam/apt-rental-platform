@@ -2,7 +2,6 @@ import {
   View,
   KeyboardAvoidingView,
   FlatList,
-  ActivityIndicator,
   LayoutChangeEvent,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
@@ -16,6 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import ImageViewing from "react-native-image-viewing";
+
 import { IconArrowDown } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -25,10 +25,13 @@ import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
+import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 
 import { Button } from 'heroui-native';
+
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
+
 import { resolveMessageType } from '@/service/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
@@ -286,9 +289,7 @@ export default function ChatScreen() {
         keyboardVerticalOffset={headerHeight}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={colors.primary} />
-          </View>
+          <ChatLoadingSkeleton />
         ) : (
           <View className="flex-1">
             <FlatList
