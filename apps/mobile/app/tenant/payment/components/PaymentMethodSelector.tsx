@@ -6,6 +6,7 @@ import PaymentMethodButton from './PaymentMethodButton'
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
 import CashPaymentForm from './CashPaymentForm'
+import { type CardFormErrors } from '@repo/utils'
 
 export type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash'
 
@@ -54,6 +55,9 @@ const METHODS: Record<string, {
 
 interface PaymentMethodSelectorProps {
   onPaymentMethodChange: (method: PaymentMethod | null) => void
+  cardInformation: CardInformation
+  onCardInformationChange: (patch: Partial<CardInformation>) => void
+  cardErrors?: CardFormErrors
 }
 
 // TODO: Implement saved payment methods functionality
@@ -64,17 +68,14 @@ const SAVED_PAYMENT_METHODS: SavedPaymentMethod[] = [
   { id: 'saved-mc', method: 'Debit/Credit-Card', label: 'Mastercard •• 1234', imageSource: PAYMENT_METHOD_LOGOS.mastercard },
 ]
 
-export default function PaymentMethodSelector({ onPaymentMethodChange }: PaymentMethodSelectorProps) {
+export default function PaymentMethodSelector({
+  onPaymentMethodChange,
+  cardInformation,
+  onCardInformationChange,
+  cardErrors,
+}: PaymentMethodSelectorProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SelectedPaymentMethod>(null)
   const [hasSavedPaymentMethod] = useState(false)
-  const [cardInformation, setCardInformation] = useState<CardInformation>({
-    cardNumber: '',
-    expiryDate: new Date(),
-    cardholderName: '',
-    cvv: '',
-    isPaymentSaved: false,
-    isCardNumberValid: false,
-  })
   const [amountPaid, setAmountPaid] = useState('')
 
   const isNewMethodSelected = (method: PaymentMethod) =>
@@ -157,7 +158,8 @@ export default function PaymentMethodSelector({ onPaymentMethodChange }: Payment
           {shouldShowCardForm && (
             <CardPaymentForm
               value={cardInformation}
-              onChange={(patch) => setCardInformation(prev => ({ ...prev, ...patch }))}
+              onChange={onCardInformationChange}
+              errors={cardErrors}
             />
           )}
 
