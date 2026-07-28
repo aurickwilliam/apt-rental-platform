@@ -10,6 +10,7 @@ import PaymentSummaryCard from './components/PaymentSummaryCard'
 import PaymentMethodSelector, { type PaymentMethod } from './components/PaymentMethodSelector'
 import PaymentFooter from './components/PaymentFooter'
 import { type CardInformation } from './components/CardPaymentForm'
+import { validateCashPayment, type CashPaymentErrors } from './components/CashPaymentForm'
 import { validateCardInfo, type CardFormErrors } from '@repo/utils'
 
 const INITIAL_CARD: CardInformation = {
@@ -27,6 +28,9 @@ export default function PaymentCheckout() {
   const [activePaymentMethod, setActivePaymentMethod] = useState<PaymentMethod | null>(null)
   const [cardInformation, setCardInformation] = useState<CardInformation>(INITIAL_CARD)
   const [cardErrors, setCardErrors] = useState<CardFormErrors>({})
+  const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null)
+  const [cashAmountPaid, setCashAmountPaid] = useState('')
+  const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({})
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
 
   const apartmentDetails = {
@@ -45,6 +49,7 @@ export default function PaymentCheckout() {
   const totalPayment = apartmentDetails.monthlyRent - apartmentDetails.paidAmount
 
   const clearCardError = () => setCardErrors({})
+  const clearCashErrors = () => setCashErrors({})
 
   const handleCardInformationChange = (patch: Partial<CardInformation>) => {
     setCardInformation((prev) => ({ ...prev, ...patch }))
@@ -67,7 +72,15 @@ export default function PaymentCheckout() {
         return
       }
       router.push('/tenant/payment/success')
-    } else {
+    } else if (activePaymentMethod === 'Cash') {
+      const errors = validateCashPayment({
+        paymentDate: cashPaymentDate,
+        amountPaid: cashAmountPaid,
+      })
+      if (Object.keys(errors).length > 0) {
+        setCashErrors(errors)
+        return
+      }
       router.push('/tenant/payment/success')
     }
   }
@@ -103,6 +116,11 @@ export default function PaymentCheckout() {
         cardInformation={cardInformation}
         onCardInformationChange={handleCardInformationChange}
         cardErrors={cardErrors}
+        cashPaymentDate={cashPaymentDate}
+        onCashPaymentDateChange={(date) => { setCashPaymentDate(date); clearCashErrors() }}
+        cashAmountPaid={cashAmountPaid}
+        onCashAmountPaidChange={(value) => { setCashAmountPaid(value); clearCashErrors() }}
+        cashErrors={cashErrors}
       />
       <ErrorDialog
         isOpen={errorDialogOpen}
