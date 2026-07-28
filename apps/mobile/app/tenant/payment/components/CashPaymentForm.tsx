@@ -2,22 +2,7 @@ import { View, Text } from 'react-native'
 import { useState } from 'react'
 import { Separator, TextField, Input, Label } from 'heroui-native'
 import DateTimeField from '@/components/inputs/DateField'
-
-const sanitizeDecimalInput = (value: string): string => {
-  let filtered = value.replace(/[^0-9.]/g, '')
-
-  const parts = filtered.split('.')
-  if (parts.length > 2) {
-    filtered = parts[0] + '.' + parts.slice(1).join('')
-  }
-
-  if (filtered.includes('.')) {
-    const [int, dec] = filtered.split('.')
-    filtered = dec.length > 2 ? `${int}.${dec.slice(0, 2)}` : filtered
-  }
-
-  return filtered
-}
+import { handlePesoChange } from '@repo/utils'
 
 interface CashPaymentFormProps {
   amountPaid: string
@@ -26,6 +11,7 @@ interface CashPaymentFormProps {
 
 export default function CashPaymentForm({ amountPaid, onAmountPaidChange }: CashPaymentFormProps) {
   const [paymentDate, setPaymentDate] = useState(new Date())
+  const displayAmount = amountPaid ? handlePesoChange(amountPaid).formatted : ''
 
   return (
     <View className='mt-5'>
@@ -54,10 +40,13 @@ export default function CashPaymentForm({ amountPaid, onAmountPaidChange }: Cash
           <Label>Amount Paid:</Label>
           <Input
             placeholder='₱ 0.00'
-            value={amountPaid}
+            value={displayAmount}
             keyboardType='decimal-pad'
             variant='primary'
-            onChangeText={(value) => onAmountPaidChange(sanitizeDecimalInput(value))}
+            onChangeText={(value) => {
+              const { raw } = handlePesoChange(value)
+              onAmountPaidChange(raw)
+            }}
           />
         </TextField>
       </View>
