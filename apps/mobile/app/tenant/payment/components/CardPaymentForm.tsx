@@ -1,10 +1,20 @@
 import { View, Text } from 'react-native'
-import { Separator, TextField, Input, Label, FieldError, Description, Checkbox, ControlField } from 'heroui-native'
-import DateTimeField from '@/components/inputs/DateField'
+import {
+  Separator,
+  TextField,
+  Input,
+  Label,
+  FieldError,
+  Description,
+  Checkbox,
+  ControlField
+} from 'heroui-native'
+
+import { validateCardNumber, formatExpiryDate } from '@repo/utils'
 
 export type CardInformation = {
   cardNumber: string
-  expiryDate: Date
+  expiryDate: string
   cardholderName: string
   cvv: string
   isPaymentSaved: boolean
@@ -18,40 +28,12 @@ interface CardPaymentFormProps {
 
 export default function CardPaymentForm({ value, onChange }: CardPaymentFormProps) {
   const handleCardNumberChange = (text: string) => {
-    const digitsOnly = text.replace(/\D/g, '').slice(0, 19)
-    const formatted = digitsOnly.replace(/(.{4})/g, '$1 ').trim()
+    const { formatted, isValid } = validateCardNumber(text)
+    onChange({ cardNumber: formatted, isCardNumberValid: isValid });
+  }
 
-    const luhnCheck = (cardNumber: string): boolean => {
-      let sum = 0
-      let shouldDouble = false
-
-      for (let i = cardNumber.length - 1; i >= 0; i--) {
-        let digit = parseInt(cardNumber.charAt(i), 10)
-        if (Number.isNaN(digit)) {
-          return false
-        }
-
-        if (shouldDouble) {
-          digit *= 2
-          if (digit > 9) {
-            digit -= 9
-          }
-        }
-
-        sum += digit
-        shouldDouble = !shouldDouble
-      }
-
-      return sum % 10 === 0
-    }
-
-    const isValidLength = digitsOnly.length >= 13 && digitsOnly.length <= 19
-    const isLuhnValid = isValidLength ? luhnCheck(digitsOnly) : false
-
-    onChange({
-      cardNumber: formatted,
-      isCardNumberValid: isLuhnValid,
-    })
+  const handleExpiryDateChange = (text: string) => {
+    onChange({ expiryDate: formatExpiryDate(text) });
   }
 
   return (
@@ -65,7 +47,7 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
       <View className='flex gap-3'>
         <TextField
           isRequired
-          isInvalid={value.cardNumber.length > 0 && !value.isCardNumberValid}
+          isInvalid={value.cardNumber.length >= 13 && !value.isCardNumberValid}
         >
           <Label>Card Number:</Label>
           <Input
@@ -81,13 +63,18 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
           )}
         </TextField>
 
-        <DateTimeField
-          label='Expiry Date:'
-          placeholder='XX/XX'
-          required
-          value={value.expiryDate}
-          onChange={(date) => onChange({ expiryDate: date })}
-        />
+        <TextField isRequired>
+          <Label>Expiry Date:</Label>
+          <Input
+            placeholder='MM/YY'
+            value={value.expiryDate}
+            maxLength={5}
+            keyboardType='number-pad'
+            variant='primary'
+            onChangeText={handleExpiryDateChange}
+          />
+          <FieldError>Please enter a valid expiry date.</FieldError>
+        </TextField>
 
         <TextField isRequired>
           <Label>Cardholder Name:</Label>
