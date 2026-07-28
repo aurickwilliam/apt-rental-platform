@@ -37,7 +37,7 @@ export default function PaymentMethodButton({
   const isTile = variant === 'tile';
 
   const containerBase = isTile
-    ? 'w-[31%] min-h-[76px] p-2 items-center justify-center bg-white rounded-xl border'
+    ? 'w-[48.5%] min-h-[76px] p-2 items-center justify-center bg-white rounded-xl border'
     : 'flex-row items-center gap-2 px-3 py-2 bg-white rounded-xl border';
 
   const borderClass = selected
@@ -57,7 +57,7 @@ export default function PaymentMethodButton({
       {selected && (
         <View className='absolute top-1 right-1 w-5 h-5 rounded-full items-center justify-center'>
           <IconCircleCheckFilled
-            size={18}
+            size={22}
             color={colors.primary}
           />
         </View>
@@ -74,10 +74,11 @@ export default function PaymentMethodButton({
               />
             ) : null}
           </View>
+
           {label ? (
             <Text
               numberOfLines={1}
-              className='text-text text-xs font-interMedium mt-1 text-center'
+              className='text-foreground text-xs font-interMedium mt-2 text-center'
             >
               {label}
             </Text>
@@ -98,7 +99,7 @@ export default function PaymentMethodButton({
           {label ? (
             <Text
               numberOfLines={1}
-              className='text-text text-sm font-interMedium'
+              className='text-foreground text-sm font-interMedium'
             >
               {label}
             </Text>

@@ -1,14 +1,14 @@
 import { View, Text } from 'react-native'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useRouter } from 'expo-router'
-import { Banknote } from 'lucide-react-native'
+
+import { IconCash } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import DetailField from '@/components/display/DetailField'
 import PaymentMethodButton from './components/PaymentMethodButton'
 import DateTimeField from '@/components/inputs/DateField'
-import CheckBox from '@/components/buttons/CheckBox'
 
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 
@@ -22,7 +22,9 @@ import {
   Input,
   Label,
   FieldError,
-  Description
+  Description,
+  Checkbox,
+  ControlField
 } from 'heroui-native'
 
 type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash';
@@ -65,6 +67,34 @@ const sanitizeDecimalInput = (value: string): string => {
   }
 
   return filtered;
+};
+
+const METHODS: Record<string, {
+  method: PaymentMethod;
+  label: string;
+  imageSource?: any;
+  icon?: ReactNode;
+}> = {
+  GCash: {
+    method: 'GCash',
+    label: 'GCash',
+    imageSource: PAYMENT_METHOD_LOGOS.gcash
+  },
+  Maya: {
+    method: 'Maya',
+    label: 'Maya',
+    imageSource: PAYMENT_METHOD_LOGOS.maya
+  },
+  'Debit/Credit-Card': {
+    method: 'Debit/Credit-Card',
+    label: 'Debit/Credit Card',
+    imageSource: PAYMENT_METHOD_LOGOS.visa
+  },
+  Cash: {
+    method: 'Cash',
+    label: 'Cash',
+    icon: <IconCash size={30} color='#16a34a' />
+  },
 };
 
 export default function PaymentCheckout() {
@@ -207,6 +237,7 @@ export default function PaymentCheckout() {
           </Button>
         </View>
       }
+      className='p-5'
     >
       {/* Apartment Details */}
       <View className='flex gap-3'>
@@ -241,7 +272,7 @@ export default function PaymentCheckout() {
       {/* Payment Summary */}
       <Card className='shadow-none rounded-3xl my-5'>
         <Card.Header>
-          <Text className='text-secondary text-lg font-interSemiBold'>
+          <Text className='text-accent text-lg font-interSemiBold'>
             Payment Summary
           </Text>
         </Card.Header>
@@ -311,7 +342,7 @@ export default function PaymentCheckout() {
 
       {/* Payment Method Selection */}
       <View className='flex mb-3'>
-        <Text className='text-secondary text-lg font-interSemiBold'>
+        <Text className='text-accent text-lg font-interSemiBold'>
           Choose Payment Method
         </Text>
 
@@ -346,44 +377,24 @@ export default function PaymentCheckout() {
 
           {hasSavedPaymentMethod && <Separator className='my-4' />}
 
-          {/* New Payment Methods (3x3 grid) */}
+          {/* New Payment Methods (2x2 grid) */}
           <View className='flex'>
             <Text className='text-foreground text-base font-interMedium mb-3'>
               {hasSavedPaymentMethod ? 'Or use a new method' : 'Use a new method'}
             </Text>
 
-            <View className='flex-row flex-wrap gap-2'>
-              <PaymentMethodButton
-                variant='tile'
-                imageSource={PAYMENT_METHOD_LOGOS.gcash}
-                label='GCash'
-                selected={isNewMethodSelected('GCash')}
-                onPress={() => selectNewMethod('GCash')}
-              />
-
-              <PaymentMethodButton
-                variant='tile'
-                imageSource={PAYMENT_METHOD_LOGOS.maya}
-                label='Maya'
-                selected={isNewMethodSelected('Maya')}
-                onPress={() => selectNewMethod('Maya')}
-              />
-
-              <PaymentMethodButton
-                variant='tile'
-                imageSource={PAYMENT_METHOD_LOGOS.visa}
-                label='Debit/Credit Card'
-                selected={isNewMethodSelected('Debit/Credit-Card')}
-                onPress={() => selectNewMethod('Debit/Credit-Card')}
-              />
-
-              <PaymentMethodButton
-                variant='tile'
-                icon={<Banknote size={20} color='#16a34a' />}
-                label='Cash'
-                selected={isNewMethodSelected('Cash')}
-                onPress={() => selectNewMethod('Cash')}
-              />
+            <View className="flex-row flex-wrap justify-between gap-y-3">
+              {Object.values(METHODS).map((method) => (
+                <PaymentMethodButton
+                  key={method.method}
+                  variant='tile'
+                  imageSource={method.imageSource}
+                  icon={method.icon}
+                  label={method.label}
+                  selected={isNewMethodSelected(method.method)}
+                  onPress={() => selectNewMethod(method.method)}
+                />
+              ))}
             </View>
           </View>
 
@@ -434,29 +445,38 @@ export default function PaymentCheckout() {
                   <FieldError>Cardholder name is required.</FieldError>
                 </TextField>
 
-                <View>
-                  <TextField isRequired>
-                    <Label>CVV:</Label>
-                    <Input
-                      placeholder='***'
-                      value={cardInformation.cvv}
-                      maxLength={3}
-                      keyboardType='number-pad'
-                      variant='primary'
-                      onChangeText={(value) => setCardInformation({ ...cardInformation, cvv: value.replace(/\D/g, '').slice(0, 3) })}
-                    />
-                  </TextField>
+                <TextField isRequired>
+                  <Label>CVV:</Label>
+                  <Input
+                    placeholder='***'
+                    value={cardInformation.cvv}
+                    maxLength={3}
+                    keyboardType='number-pad'
+                    variant='primary'
+                    onChangeText={(value) => setCardInformation({ ...cardInformation, cvv: value.replace(/\D/g, '').slice(0, 3) })}
+                  />
 
                   <Description>
                     3-digit code at the back of your card.
                   </Description>
-                </View>
+                </TextField>
 
-                <CheckBox
-                  label={'Save this card for future use?'}
-                  selected={cardInformation.isPaymentSaved}
-                  onPress={() => setCardInformation({ ...cardInformation, isPaymentSaved: !cardInformation.isPaymentSaved })}
-                />
+                <ControlField
+                  isSelected={cardInformation.isPaymentSaved}
+                  onSelectedChange={() =>
+                    setCardInformation({ ...cardInformation, isPaymentSaved: !cardInformation.isPaymentSaved })
+                  }
+                  className='mt-5'
+                >
+                  <ControlField.Indicator>
+                    <Checkbox className="size-5 border border-border shadow-none" />
+                  </ControlField.Indicator>
+                  <Label>
+                    <Label.Text className="text-sm text-foreground font-inter">
+                      Save this card for future use?
+                    </Label.Text>
+                  </Label>
+                </ControlField>
               </View>
             </View>
           )}
