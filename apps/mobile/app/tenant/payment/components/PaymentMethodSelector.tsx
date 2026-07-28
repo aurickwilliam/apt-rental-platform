@@ -5,7 +5,7 @@ import { Card, Separator } from 'heroui-native'
 import PaymentMethodButton from './PaymentMethodButton'
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
-import CashPaymentForm from './CashPaymentForm'
+import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
 import { type CardFormErrors } from '@repo/utils'
 
 export type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash'
@@ -58,6 +58,11 @@ interface PaymentMethodSelectorProps {
   cardInformation: CardInformation
   onCardInformationChange: (patch: Partial<CardInformation>) => void
   cardErrors?: CardFormErrors
+  cashPaymentDate: Date | null
+  onCashPaymentDateChange: (date: Date) => void
+  cashAmountPaid: string
+  onCashAmountPaidChange: (value: string) => void
+  cashErrors?: CashPaymentErrors
 }
 
 // TODO: Implement saved payment methods functionality
@@ -73,10 +78,14 @@ export default function PaymentMethodSelector({
   cardInformation,
   onCardInformationChange,
   cardErrors,
+  cashPaymentDate,
+  onCashPaymentDateChange,
+  cashAmountPaid,
+  onCashAmountPaidChange,
+  cashErrors,
 }: PaymentMethodSelectorProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SelectedPaymentMethod>(null)
   const [hasSavedPaymentMethod] = useState(false)
-  const [amountPaid, setAmountPaid] = useState('')
 
   const isNewMethodSelected = (method: PaymentMethod) =>
     selectedPaymentMethod?.kind === 'new' && selectedPaymentMethod.method === method
@@ -165,8 +174,11 @@ export default function PaymentMethodSelector({
 
           {shouldShowCashForm && (
             <CashPaymentForm
-              amountPaid={amountPaid}
-              onAmountPaidChange={setAmountPaid}
+              paymentDate={cashPaymentDate}
+              onPaymentDateChange={onCashPaymentDateChange}
+              amountPaid={cashAmountPaid}
+              onAmountPaidChange={onCashAmountPaidChange}
+              errors={cashErrors}
             />
           )}
         </Card.Body>
