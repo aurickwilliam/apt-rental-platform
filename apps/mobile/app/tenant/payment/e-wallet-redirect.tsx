@@ -5,7 +5,8 @@ import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native'
 
 export default function EWalletRedirect() {
   const { method } = useLocalSearchParams();
@@ -24,8 +25,8 @@ export default function EWalletRedirect() {
     >
       <View className='flex-1 items-center justify-center'>
         {/* Image of E-wallet */}
-        <View className='size-48 overflow-hidden rounded-xl'>
-          <Image 
+        <View className='size-48 overflow-hidden rounded-3xl'>
+          <Image
             source={imageSource}
             style={{
               width: '100%',
@@ -35,18 +36,19 @@ export default function EWalletRedirect() {
         </View>
 
         <View className='mt-10'>
-          <Text className='text-text text-center text-lg font-interMedium'>
-            You’ll be redirected to <Text className={`font-interSemiBold ${method === 'gcash' ? 'text-primary' : 'text-greenHulk-200'}`}>{methodText}</Text> to authorize this payment method.
+          <Text className='text-foreground text-center text-lg font-interMedium'>
+            You’ll be redirected to <Text className={`font-interSemiBold ${method === 'gcash' ? 'text-primary' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
           </Text>
         </View>
 
-        <View className='mt-5 w-full'>
-          <PillButton 
-            label={buttonLabel}
-            isFullWidth
-            onPress={() => router.push('/tenant/payment/success')}
-          />
-        </View>
+        <Button
+          onPress={() => router.push('/tenant/payment/success')}
+          className={`mt-5 ${method === 'gcash' ? 'bg-primary' : 'bg-success'}`}
+        >
+          <Button.Label>
+            {buttonLabel}
+          </Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )
