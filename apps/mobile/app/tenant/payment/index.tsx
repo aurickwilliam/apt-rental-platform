@@ -11,6 +11,7 @@ import PaymentMethodSelector, { type PaymentMethod } from './components/PaymentM
 import PaymentFooter from './components/PaymentFooter'
 import { type CardInformation } from './components/CardPaymentForm'
 import { validateCashPayment, type CashPaymentErrors } from './components/CashPaymentForm'
+
 import { validateCardInfo, type CardFormErrors } from '@repo/utils'
 
 const INITIAL_CARD: CardInformation = {
@@ -89,7 +90,12 @@ export default function PaymentCheckout() {
     <ScreenWrapper
       scrollable
       header={<StandardHeader title='Rent Payment' />}
-      footer={<PaymentFooter totalPayment={totalPayment} onPayPress={handlePay} />}
+      footer={
+        <PaymentFooter
+          totalPayment={totalPayment}
+          onPayPress={handlePay}
+        />
+      }
       className='p-5'
     >
       <View className='flex gap-3'>
@@ -122,6 +128,7 @@ export default function PaymentCheckout() {
         onCashAmountPaidChange={(value) => { setCashAmountPaid(value); clearCashErrors() }}
         cashErrors={cashErrors}
       />
+
       <ErrorDialog
         isOpen={errorDialogOpen}
         onClose={() => setErrorDialogOpen(false)}
