@@ -1,41 +1,55 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { Button } from 'heroui-native'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
+import { useColors } from '@/hooks/useTheme'
 
-import { COLORS } from '@repo/constants'
-
-import { IconConfetti } from '@tabler/icons-react-native'
-import PillButton from '@/components/buttons/PillButton'
+import ReceiptCard from './components/ReceiptCard'
 
 export default function Success() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { colors } = useColors();
 
-  const handleGoBackHome = () => {
-    router.replace('/(tabs)/(tenant)/rentals');
+  const now = new Date()
+  const receipt = {
+    apartmentName: 'Sunny Apartments',
+    landlordName: 'John Doe',
+    date: new Intl.DateTimeFormat('en-PH', { dateStyle: 'full' }).format(now),
+    time: new Intl.DateTimeFormat('en-PH', { timeStyle: 'short' }).format(now),
+    method: 'GCash',
+    amount: 1200,
+    referenceNumber: 'APT-' + now.getTime().toString(36).toUpperCase(),
+  }
+
+  const handleGoHome = () => {
+    router.replace('/(tabs)/(tenant)/rentals')
   }
 
   return (
-    <ScreenWrapper
-      className='p-5'
+    <View
+      className='flex-1 bg-primary px-5'
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
-      <View className='flex-1 items-center justify-center gap-3'>
-        <IconConfetti 
-          size={150} 
-          color={COLORS.greenHulk} 
-          strokeWidth={2}
+      <View className='flex-1 justify-center'>
+        <ReceiptCard
+          apartmentName={receipt.apartmentName}
+          landlordName={receipt.landlordName}
+          date={receipt.date}
+          time={receipt.time}
+          method={receipt.method}
+          amount={receipt.amount}
+          referenceNumber={receipt.referenceNumber}
+          backgroundColor={colors.primary}
         />
-
-        <Text className='text-greenHulk-200 text-center text-2xl font-interSemiBold mt-5'>
-          Payment Successful!
-        </Text>
       </View>
 
-      <PillButton 
-        label='Go back home'
-        isFullWidth
-        onPress={handleGoBackHome}
-      />
-    </ScreenWrapper>
+      <View className='pb-4'>
+        <Button onPress={handleGoHome} className='bg-white'>
+          <Button.Label className='text-primary'>Go to Home</Button.Label>
+        </Button>
+      </View>
+    </View>
   )
 }
