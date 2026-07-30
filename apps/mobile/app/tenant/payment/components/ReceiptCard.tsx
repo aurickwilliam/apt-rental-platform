@@ -48,7 +48,9 @@ export default function ReceiptCard({
           </View>
         </Card.Header>
         <Card.Body className='px-6 pb-0'>
+          {/* Dashed Separator */}
           <View className='border-t border-dashed border-gray-300 pt-5' />
+
           <View className='gap-4'>
             <ReceiptRow label='Apartment' value={apartmentName} />
             <ReceiptRow label='Landlord' value={landlordName} />
@@ -58,6 +60,7 @@ export default function ReceiptCard({
             <ReceiptRow label='Amount Paid' value={formatPesoDisplay(amount)} highlight />
             <ReceiptRow label='Reference No.' value={referenceNumber} />
           </View>
+
           <View className='border-t border-dashed border-gray-300 mt-5 pt-4'>
             <Text className='text-xs text-gray-300 text-center font-inter'>
               Thank you for your payment!
