@@ -105,3 +105,8 @@ web_modules/
 
 # Vercel
 .vercel
+
+# AI agent config
+.claude/
+.junie/
+skills-lock.json
