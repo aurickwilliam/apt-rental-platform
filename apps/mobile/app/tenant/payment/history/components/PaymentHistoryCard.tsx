@@ -2,7 +2,7 @@ import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Card, Chip, PressableFeedback } from 'heroui-native'
 
-import { formatDate, formatPesoDisplay } from '@repo/utils'
+import { formatPesoDisplay } from '@repo/utils'
 
 import { usePaymentStatusStyles, type PaymentStatus } from '@/hooks/payments'
 
@@ -68,7 +68,7 @@ export default function PaymentHistoryCard({ payment }: PaymentHistoryCardProps)
 
           <View className='flex-row items-center justify-between gap-3'>
             <Text className='text-muted text-xs font-inter'>
-              {formatDate(payment.date, 'medium')} · {payment.method}
+              via {payment.method}
             </Text>
 
             <Chip
