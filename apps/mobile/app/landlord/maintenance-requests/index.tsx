@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SearchField, Button } from "heroui-native";
-import { IconFilter } from "@tabler/icons-react-native";
+import { IconFilter2 } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -133,7 +133,7 @@ export default function MaintenanceRequests() {
                   variant="tertiary"
                   isIconOnly
                 >
-                  <IconFilter size={18} color={colors.textPrimary} />
+                  <IconFilter2 size={18} color={colors.textPrimary} />
                 </Button>
 
                 {activeCount > 0 && (
