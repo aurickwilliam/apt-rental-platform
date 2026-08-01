@@ -1045,9 +1045,9 @@
     "semantic_hash": "41bec60f3afac13f41be0f4ba6cb784a"
   },
   "apps/mobile/app/tenant/payment/components/CardPaymentForm.tsx": {
-    "mtime": 1785247966.857734,
-    "ast_hash": "8ba69716d5a9938c4423670737281ef0",
-    "semantic_hash": "8ba69716d5a9938c4423670737281ef0"
+    "mtime": 1785566259.0248847,
+    "ast_hash": "f38a95b944ffdb9317a6771f7dc453e9",
+    "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/components/CashPaymentForm.tsx": {
     "mtime": 1785249184.2751508,
@@ -1070,14 +1070,14 @@
     "semantic_hash": "9ba2e2979cdb38cc33657cb9a8775c9b"
   },
   "apps/mobile/app/tenant/payment/components/PaymentMethodButton.tsx": {
-    "mtime": 1785243154.3438287,
-    "ast_hash": "67635a75a19ac1cb413c3d8098023b9e",
-    "semantic_hash": "67635a75a19ac1cb413c3d8098023b9e"
+    "mtime": 1785566496.260276,
+    "ast_hash": "65351a445fc2beda89d5e73781d1f0ac",
+    "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/components/PaymentMethodSelector.tsx": {
-    "mtime": 1785249059.0713255,
-    "ast_hash": "afb15cc8708d93ed843e8da34d7f3897",
-    "semantic_hash": "afb15cc8708d93ed843e8da34d7f3897"
+    "mtime": 1785566529.0554466,
+    "ast_hash": "538d03bc9a11cec00ca0adff9717ee9f",
+    "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/components/PaymentSummaryCard.tsx": {
     "mtime": 1785244943.4590776,
@@ -2885,9 +2885,9 @@
     "semantic_hash": "f3da27a4f388d0b2d900bed9035bf587"
   },
   "AGENTS.md": {
-    "mtime": 1785414304.0888722,
-    "ast_hash": "59486f1b92bbf239a773f49eda17a3e4",
-    "semantic_hash": "59486f1b92bbf239a773f49eda17a3e4"
+    "mtime": 1785569947.156912,
+    "ast_hash": "22e765dc8f555b8c34c3ffa62dc64f78",
+    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1777602095.4659483,
@@ -3218,5 +3218,15 @@
     "mtime": 1777602095.5256786,
     "ast_hash": "648fa9faea73bcefeebcdd3c28c94c38",
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
+  },
+  "ARCHITECTURE.md": {
+    "mtime": 1785569931.093052,
+    "ast_hash": "0da9eb3016c47cbd083107a21277125d",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1785568037.2845452,
+    "ast_hash": "5fcbf58f94b35a49c5ae81204fcd2372",
+    "semantic_hash": ""
   }
 }

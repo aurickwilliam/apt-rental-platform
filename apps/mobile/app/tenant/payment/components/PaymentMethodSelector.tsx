@@ -27,19 +27,17 @@ const getSelectedMethod = (selected: SelectedPaymentMethod): PaymentMethod | nul
 
 const METHODS: Record<string, {
   method: PaymentMethod
-  label: string
+  label?: string
   imageSource?: any
   icon?: ReactNode
 }> = {
   GCash: {
     method: 'GCash',
-    label: 'GCash',
-    imageSource: PAYMENT_METHOD_LOGOS.gcash,
+    imageSource: PAYMENT_METHOD_LOGOS.gcashBig,
   },
   Maya: {
     method: 'Maya',
-    label: 'Maya',
-    imageSource: PAYMENT_METHOD_LOGOS.maya,
+    imageSource: PAYMENT_METHOD_LOGOS.mayaBig,
   },
   'Debit/Credit-Card': {
     method: 'Debit/Credit-Card',
