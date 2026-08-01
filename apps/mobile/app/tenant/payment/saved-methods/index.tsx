@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Image } from 'react-native'
 import { useRouter } from 'expo-router'
+
+import { Button } from 'heroui-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 
 import { IconPlus } from '@tabler/icons-react-native'
 
+import { EMPTY_STATE_IMAGES } from 'constants/images'
 import { useColors } from '@/hooks/useTheme'
 import PaymentMethodCard, { type PaymentMethod } from './components/PaymentMethodCard'
 
@@ -50,17 +53,45 @@ export default function Index() {
       </Text>
 
       {/* Payment Methods */}
-      <View className='mt-5 flex gap-2.5'>
-        {
-          paymentMethods.map((method) => (
-            <PaymentMethodCard
-              key={method.id}
-              method={method}
-              onDelete={() => handleDelete(method.id)}
+      {paymentMethods.length === 0 ? (
+        <View className='items-center gap-4 py-20'>
+          <View className='aspect-square size-64'>
+            <Image
+              source={EMPTY_STATE_IMAGES.emptyPaymentMethods}
+              style={{ width: '100%', height: '100%' }}
             />
-          ))
-        }
-      </View>
+          </View>
+
+          <Text className='text-xl font-interSemiBold text-foreground'>
+            No saved payment methods
+          </Text>
+          <Text className='text-gray-400 text-base font-inter text-center px-8'>
+            Add a payment method to make your rent payments faster and easier.
+          </Text>
+
+          <Button
+            variant='primary'
+            size='sm'
+            onPress={() => router.push('/tenant/payment/saved-methods/add')}
+            className='w-56 mt-2'
+          >
+            <IconPlus size={18} color='#FFFFFF' />
+            <Button.Label>Add Payment Method</Button.Label>
+          </Button>
+        </View>
+      ) : (
+        <View className='mt-5 flex gap-2.5'>
+          {
+            paymentMethods.map((method) => (
+              <PaymentMethodCard
+                key={method.id}
+                method={method}
+                onDelete={() => handleDelete(method.id)}
+              />
+            ))
+          }
+        </View>
+      )}
     </ScreenWrapper>
   )
 }

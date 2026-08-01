@@ -1,6 +1,8 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image } from 'react-native'
 
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
+
+import { Button } from 'heroui-native'
 
 import { IconTrash } from '@tabler/icons-react-native'
 
@@ -54,16 +56,15 @@ export default function PaymentMethodCard({ method, onDelete }: PaymentMethodCar
       rightThreshold={40}
       overshootRight={false}
       renderRightActions={() => (
-        <TouchableOpacity
-          className='w-24 bg-danger rounded-2xl justify-center items-center gap-1'
+        <Button
+          variant='danger'
+          size='sm'
           onPress={onDelete}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={`Delete ${method.method}`}
+          className='w-24 h-full rounded-2xl'
         >
           <IconTrash size={20} color='#FFFFFF' />
-          <Text className='text-white text-xs font-interMedium'>Delete</Text>
-        </TouchableOpacity>
+          <Button.Label>Delete</Button.Label>
+        </Button>
       )}
     >
       <View className='w-full bg-surface rounded-2xl p-3 flex-row items-center gap-3 border border-border'>
