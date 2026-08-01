@@ -30,7 +30,10 @@ export default function Success() {
   return (
     <View
       className='flex-1 bg-primary px-5'
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom
+      }}
     >
       <View className='flex-1 justify-center'>
         <ReceiptCard
@@ -46,8 +49,13 @@ export default function Success() {
       </View>
 
       <View className='pb-4'>
-        <Button onPress={handleGoHome} className='bg-white'>
-          <Button.Label className='text-primary'>Go to Home</Button.Label>
+        <Button
+          onPress={handleGoHome}
+          className='bg-white'
+        >
+          <Button.Label className='text-primary'>
+            Go to Home
+          </Button.Label>
         </Button>
       </View>
     </View>
