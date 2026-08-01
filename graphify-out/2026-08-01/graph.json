@@ -15852,8 +15852,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_auth_components_authform",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "authform.tsx"
     },
     {
@@ -15863,8 +15863,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_web_app_auth_components_authform_initialstate",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "initialstate"
     },
     {
@@ -15874,8 +15874,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_web_app_auth_components_authform_authform",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "authform()"
     },
     {
@@ -18162,8 +18162,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_components_inputs_passwordfield",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "passwordfield.tsx"
     },
     {
@@ -18173,8 +18173,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_web_app_components_inputs_passwordfield_passwordfieldprops",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "passwordfieldprops"
     },
     {
@@ -18184,8 +18184,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_web_app_components_inputs_passwordfield_passwordfield",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 28,
+      "community_name": "AuthWrapper.tsx",
       "norm_label": "passwordfield()"
     },
     {
@@ -20296,8 +20296,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_web_app_tenant_messages_page_messagespage",
-      "community": 4,
-      "community_name": "createClient",
+      "community": 26,
+      "community_name": "tenant/messages/components/ConversationView.tsx",
       "norm_label": "messagespage()"
     },
     {
@@ -22837,8 +22837,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_web_package_dependencies_clsx",
-      "community": 261,
-      "community_name": "clsx",
+      "community": 46,
+      "community_name": "dependencies",
       "norm_label": "clsx"
     },
     {
@@ -22848,8 +22848,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "clsx",
-      "community": 261,
-      "community_name": "clsx",
+      "community": 46,
+      "community_name": "dependencies",
       "norm_label": "clsx"
     },
     {
@@ -22991,8 +22991,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_web_package_dependencies_radix_ui",
-      "community": 46,
-      "community_name": "dependencies",
+      "community": 261,
+      "community_name": "radix-ui",
       "norm_label": "radix-ui"
     },
     {
@@ -23002,8 +23002,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "radix_ui",
-      "community": 46,
-      "community_name": "dependencies",
+      "community": 261,
+      "community_name": "radix-ui",
       "norm_label": "radix-ui"
     },
     {
@@ -60031,7 +60031,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/tenant/payment/history/components/PaymentHistoryCard.tsx",
-      "source_location": "L83",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_tenant_payment_history_components_paymenthistorycard_paymenthistorycard",
@@ -60043,7 +60043,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/tenant/payment/history/components/PaymentHistoryCard.tsx",
-      "source_location": "L88",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_tenant_payment_history_components_paymenthistorycard_paymenthistorycard",

@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-08-01)
 
 ## Corpus Check
-- 591 files · ~836,824 words
+- 591 files · ~836,828 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -260,7 +260,7 @@
 - payment/index.tsx
 - review-information.tsx
 - react-dom
-- clsx
+- radix-ui
 - PropertyStats.tsx
 - usePublishApartment.ts
 - useDocumentUrls.ts
@@ -332,8 +332,8 @@ Cohesion: 0.17
 Nodes (11): reactCompiler, typedRoutes, expo, experiments, icon, name, orientation, scheme (+3 more)
 
 ### Community 4 - "createClient"
-Cohesion: 0.10
-Nodes (23): checkEmailAvailability(), CheckEmailAvailabilityResult, calculateAgeFromBirthDate(), completeProfile(), CompleteProfileState, signIn(), SignInFormState, GET() (+15 more)
+Cohesion: 0.12
+Nodes (18): checkEmailAvailability(), CheckEmailAvailabilityResult, calculateAgeFromBirthDate(), completeProfile(), CompleteProfileState, signIn(), SignInFormState, GET() (+10 more)
 
 ### Community 5 - "ScreenWrapper.tsx"
 Cohesion: 0.06
@@ -420,16 +420,16 @@ Cohesion: 0.16
 Nodes (14): ATTACHMENT_OPTIONS, ChatBox(), ChatBoxProps, StagedAsset, ChatLoadingSkeleton(), ChatScreen(), generateStagedId(), useRouteParams() (+6 more)
 
 ### Community 26 - "tenant/messages/components/ConversationView.tsx"
-Cohesion: 0.15
-Nodes (15): getInitials(), LandlordCard(), LandlordCardProps, LandlordChatPanelProps, ContactSidebar(), ContactSidebarProps, ConversationView(), ConversationViewProps (+7 more)
+Cohesion: 0.14
+Nodes (16): getInitials(), LandlordCard(), LandlordCardProps, LandlordChatPanelProps, ContactSidebar(), ContactSidebarProps, ConversationView(), ConversationViewProps (+8 more)
 
 ### Community 27 - "useMaintenanceRequests.ts"
 Cohesion: 0.17
 Nodes (13): MaintenanceRequestCard(), MaintenanceRequestCardProps, MaintenanceHistory(), StatusStyle, useMaintenanceRequestHistory(), UseMaintenanceRequestHistoryParams, DB_TO_DISPLAY_STATUS, isFinalStatus() (+5 more)
 
 ### Community 28 - "AuthWrapper.tsx"
-Cohesion: 0.14
-Nodes (14): AuthContext, AuthContextValue, AuthProvider(), useAuth(), AuthContent(), AuthWrapper(), AuthWrapperProps, BottomLinks() (+6 more)
+Cohesion: 0.11
+Nodes (18): AuthContext, AuthContextValue, AuthProvider(), useAuth(), AuthForm(), initialState, AuthContent(), AuthWrapper() (+10 more)
 
 ### Community 29 - "app/_layout.tsx"
 Cohesion: 0.27
@@ -501,7 +501,7 @@ Nodes (14): Index(), BUCKET_MAP, UploadTarget, storage, CompositeTypes, Constant
 
 ### Community 46 - "dependencies"
 Cohesion: 0.10
-Nodes (21): dependencies, class-variance-authority, @heroui/react, @heroui/styles, @internationalized/date, leaflet, next, next-themes (+13 more)
+Nodes (21): dependencies, class-variance-authority, clsx, @heroui/react, @heroui/styles, @internationalized/date, leaflet, next (+13 more)
 
 ### Community 47 - "dashboard.tsx"
 Cohesion: 0.15
@@ -912,7 +912,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `$schema`, `.opencode/plugins/graphify.js`, `name` to the rest of the system?**
   _950 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `createClient` be split into smaller, more focused modules?**
-  _Cohesion score 0.10158730158730159 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12315270935960591 - nodes in this community are weakly interconnected._
 - **Should `ScreenWrapper.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.0629800307219662 - nodes in this community are weakly interconnected._
 - **Should `constants/src/index.ts` be split into smaller, more focused modules?**
