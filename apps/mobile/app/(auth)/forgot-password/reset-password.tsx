@@ -66,11 +66,11 @@ export default function ResetPassword() {
   return (
     <ScreenWrapper className="p-5">
       <View className="flex gap-1">
-        <Text className="text-3xl text-text font-nunitoSemiBold">
+        <Text className="text-3xl text-foreground font-nunitoSemiBold">
           Reset Password
         </Text>
 
-        <Text className="text-base text-text font-inter">
+        <Text className="text-base text-foreground font-inter">
           Almost done! Let’s set a fresh new password.
         </Text>
       </View>

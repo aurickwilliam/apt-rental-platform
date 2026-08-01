@@ -20,7 +20,7 @@ export default function AuthCallback() {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <ActivityIndicator size="large" />
-      <Text className="mt-4 text-text font-inter text-sm">
+      <Text className="mt-4 text-foreground font-inter text-sm">
         Completing sign-in...
       </Text>
     </View>

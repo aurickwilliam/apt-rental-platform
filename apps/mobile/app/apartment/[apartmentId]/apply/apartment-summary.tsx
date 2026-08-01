@@ -94,7 +94,7 @@ export default function ApartmentSummary() {
     return (
       <ScreenWrapper noTopPadding>
         <View className="h-full items-center justify-center bg-background p-5">
-          <Text className="text-center text-textPrimary">
+          <Text className="text-center text-foreground">
             {error ?? "Apartment not found."}
           </Text>
           <Button onPress={() => router.back()} className="mt-4">

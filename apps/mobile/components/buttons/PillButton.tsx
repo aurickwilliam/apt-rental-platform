@@ -18,9 +18,9 @@ interface PillButtonProps {
 const TYPE_STYLES = {
   primary: 'bg-primary active:bg-[#2551C7]',
   secondary: 'bg-secondary active:bg-[#CC8400]',
-  danger: 'bg-redHead-100 active:bg-[#B7070F]',
-  outline: 'bg-white border-2 border-grey-500 active:bg-[#E5E5E5]',
-  disabled: 'bg-grey-300',
+  danger: 'bg-danger active:bg-[#B7070F]',
+  outline: 'bg-white border-2 border-gray-500 active:bg-[#E5E5E5]',
+  disabled: 'bg-gray-300',
 }
 
 export default function PillButton({
@@ -36,7 +36,7 @@ export default function PillButton({
 }: PillButtonProps) {
   const widthClass = width ?? (isFullWidth ? 'w-full' : 'w-auto');
   const iconColor = type !== 'outline' ? 'white' : COLORS.grey;
-  const textColor = type !== 'outline' ? 'text-white' : 'text-grey-500';
+  const textColor = type !== 'outline' ? 'text-white' : 'text-gray-500';
 
   const sizeStyles = {
     sm: {

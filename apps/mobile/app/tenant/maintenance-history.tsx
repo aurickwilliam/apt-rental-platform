@@ -46,7 +46,7 @@ export default function MaintenanceHistory() {
           />
         )}
         ListEmptyComponent={
-          <Text className="text-gray500 text-center mt-10">
+          <Text className="text-gray-500 text-center mt-10">
             No maintenance requests yet.
           </Text>
         }

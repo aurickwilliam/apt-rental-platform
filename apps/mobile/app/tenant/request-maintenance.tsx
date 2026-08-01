@@ -228,7 +228,7 @@ export default function RequestMaintenance() {
         </TextField>
 
         <View className='flex gap-3'>
-          <Text className='text-text text-base font-interMedium'>
+          <Text className='text-foreground text-base font-interMedium'>
             How urgent is this issue? <Text className='text-danger'>*</Text>
           </Text>
 

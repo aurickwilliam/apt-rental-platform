@@ -21,7 +21,7 @@ export default function RadioButton({
       onPress={onPress}
     >
       <View className={`rounded-full border-2 size-7 items-center justify-center
-          ${selected ? "border-primary" : "border-grey-300"}
+          ${selected ? "border-primary" : "border-gray-300"}
         `}> 
         {selected && (
           <Ionicons 
@@ -32,7 +32,7 @@ export default function RadioButton({
         )}
       </View>
 
-      <Text className="text-text text-base font-inter">
+      <Text className="text-foreground text-base font-inter">
         {label}
       </Text>
     </TouchableOpacity>

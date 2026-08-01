@@ -19,7 +19,7 @@ export default function EmptyProperties({ onAdd }: Props) {
         <IconBuilding size={48} color={colors.gray500} />
       </View>
       <View className="items-center gap-1">
-        <Text className="text-text text-lg font-interSemiBold">
+        <Text className="text-foreground text-lg font-interSemiBold">
           No properties yet
         </Text>
         <Text className="text-gray-400 text-sm font-inter text-center px-8">

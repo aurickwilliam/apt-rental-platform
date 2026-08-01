@@ -281,7 +281,7 @@ export default function RateApartment() {
             cachePolicy='disk'
           />
         ) : (
-          <View className='w-full h-full items-center justify-center bg-gray50 border border-dashed border-gray300'>
+          <View className='w-full h-full items-center justify-center bg-gray-50 border border-dashed border-gray-300'>
             <IconPhotoOff size={32} color={colors.gray300} />
             <Text className='text-muted text-sm font-inter mt-2'>
               No photo available
@@ -333,7 +333,7 @@ export default function RateApartment() {
             Duration of Stay
           </Text>
 
-          <View className='mt-3 rounded-2xl bg-gray50 flex-row items-center justify-between'>
+          <View className='mt-3 rounded-2xl bg-gray-50 flex-row items-center justify-between'>
             <Text className='text-foreground text-base font-interMedium'>
               {stayDurationLabel}
             </Text>

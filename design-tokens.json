@@ -327,16 +327,13 @@
 
   "legacyTokens": {
     "doNotUse": [
-      "redHead-*",
-      "grey-* (mobile)",
-      "text-text",
-      "darkerWhite",
       "mediumGrey",
-      "COLORS.redHead",
+      "COLORS.text",
+      "COLORS.lightGrey",
       "font-noto-serif",
       "font-dm-serif",
       "font-poppinsSemiBold"
     ],
-    "note": "See DESIGN.md §24 Known Design Debt for context and migration paths."
+    "note": "See DESIGN.md §24 Known Design Debt for context and migration paths. Cleaned: redHead-*, grey-* (mobile), text-text, darkerWhite, COLORS.redHead, OptionButton."
   }
 }

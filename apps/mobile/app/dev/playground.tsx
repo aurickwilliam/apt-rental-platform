@@ -12,10 +12,10 @@ function LinkRow({ label, route }: LinkRowProps) {
   return (
     <Pressable
       onPress={() => router.push(route as any)}
-      className="flex-row items-center justify-between py-3 px-4 border-b border-grey-100 active:bg-grey-50"
+      className="flex-row items-center justify-between py-3 px-4 border-b border-gray-100 active:bg-gray-50"
     >
       <View className="flex-1">
-        <Text className="text-base font-interMedium text-text">{label}</Text>
+        <Text className="text-base font-interMedium text-foreground">{label}</Text>
         <Text className="text-xs font-inter text-muted mt-0.5">{route}</Text>
       </View>
       <IconChevronRight size={18} color="#9CA3AF" />
@@ -26,7 +26,7 @@ function LinkRow({ label, route }: LinkRowProps) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View className="mb-2">
-      <Text className="text-xs font-interSemiBold text-muted uppercase tracking-wider px-4 py-2 bg-grey-50">
+      <Text className="text-xs font-interSemiBold text-muted uppercase tracking-wider px-4 py-2 bg-gray-50">
         {title}
       </Text>
       {children}
@@ -37,7 +37,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function DevNavScreen() {
   return (
     <ScrollView className="flex-1 bg-white pt-16">
-      <Text className="text-xl font-interSemiBold text-text px-4 pb-4">Dev Navigation</Text>
+      <Text className="text-xl font-interSemiBold text-foreground px-4 pb-4">Dev Navigation</Text>
 
       <Section title="Auth">
         <LinkRow label="Sign In" route="/sign-in" />
