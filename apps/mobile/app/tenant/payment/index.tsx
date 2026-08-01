@@ -88,7 +88,7 @@ export default function PaymentCheckout() {
           redirectBaseUrl: Linking.createURL('/tenant/payment/e-wallet-redirect'),
         })
         router.push(
-          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}`
+          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}&method=${activePaymentMethod === 'GCash' ? 'gcash' : 'maya'}`
         )
       } catch (error) {
         setPaymentError({

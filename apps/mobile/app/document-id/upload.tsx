@@ -4,7 +4,6 @@ import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import UploadImageField from '@/components/inputs/UploadImageField';
 import CheckBox from '@/components/buttons/CheckBox';
 import PillButton from '@/components/buttons/PillButton'
 
