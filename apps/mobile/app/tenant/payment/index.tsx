@@ -1,6 +1,7 @@
 import { View } from 'react-native'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
+import * as Linking from 'expo-linking'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
@@ -11,6 +12,12 @@ import PaymentMethodSelector, { type PaymentMethod } from './components/PaymentM
 import PaymentFooter from './components/PaymentFooter'
 import { type CardInformation } from './components/CardPaymentForm'
 import { validateCashPayment, type CashPaymentErrors } from './components/CashPaymentForm'
+
+import {
+  createCardPayment,
+  createCheckoutSession,
+  PaymongoError,
+} from '@/service/paymongoService'
 
 import { validateCardInfo, type CardFormErrors } from '@repo/utils'
 
@@ -32,7 +39,8 @@ export default function PaymentCheckout() {
   const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null)
   const [cashAmountPaid, setCashAmountPaid] = useState('')
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({})
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false)
+  const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const apartmentDetails = {
     name: 'Sunny Apartments',
@@ -57,22 +65,85 @@ export default function PaymentCheckout() {
     clearCardError()
   }
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (!activePaymentMethod) {
-      setErrorDialogOpen(true)
+      setPaymentError({
+        message: 'Please select a payment method before proceeding.',
+        title: 'No Payment Method',
+      })
       return
     }
-    if (activePaymentMethod === 'GCash') {
-      router.push('/tenant/payment/e-wallet-redirect?method=gcash')
-    } else if (activePaymentMethod === 'Maya') {
-      router.push('/tenant/payment/e-wallet-redirect?method=maya')
+
+    const referenceId = `pay_${Date.now().toString(36)}`
+    const paymentDescription = `Rent payment for ${apartmentDetails.month} ${apartmentDetails.year} - ${apartmentDetails.name}`
+
+    if (activePaymentMethod === 'GCash' || activePaymentMethod === 'Maya') {
+      setIsProcessing(true)
+      try {
+        const session = await createCheckoutSession({
+          referenceId,
+          amount: totalPayment,
+          description: paymentDescription,
+          // Deep link carries only the session id — the backend decides the outcome.
+          redirectBaseUrl: Linking.createURL('/tenant/payment/e-wallet-redirect'),
+        })
+        router.push(
+          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}`
+        )
+      } catch (error) {
+        setPaymentError({
+          message: error instanceof PaymongoError
+            ? error.reason
+            : 'Unable to start your payment. Please try again.',
+        })
+      } finally {
+        setIsProcessing(false)
+      }
     } else if (activePaymentMethod === 'Debit/Credit-Card') {
       const errors = validateCardInfo(cardInformation)
       if (Object.keys(errors).length > 0) {
         setCardErrors(errors)
         return
       }
-      router.push('/tenant/payment/success')
+
+      const [expMonth, expYear] = cardInformation.expiryDate.split('/')
+
+      setIsProcessing(true)
+      try {
+        const result = await createCardPayment({
+          referenceId,
+          amount: totalPayment,
+          description: paymentDescription,
+          card: {
+            number: cardInformation.cardNumber.replace(/\s/g, ''),
+            expMonth: Number(expMonth),
+            expYear: Number(`20${expYear}`),
+            cvc: cardInformation.cvv,
+            name: cardInformation.cardholderName,
+          },
+        })
+
+        if (result.status === 'succeeded') {
+          // TODO: Record payment in payment_history
+          // TODO: Update tenant rent status
+          // TODO: Generate receipt
+          // TODO: Send landlord and tenant notifications
+          // TODO: Store PayMongo payment reference
+          router.push('/tenant/payment/success')
+        } else {
+          setPaymentError({
+            message: result.failureReason ?? 'Your payment could not be completed.',
+          })
+        }
+      } catch (error) {
+        setPaymentError({
+          message: error instanceof PaymongoError
+            ? error.reason
+            : 'Payment failed. Please try again.',
+        })
+      } finally {
+        setIsProcessing(false)
+      }
     } else if (activePaymentMethod === 'Cash') {
       const errors = validateCashPayment({
         paymentDate: cashPaymentDate,
@@ -94,6 +165,7 @@ export default function PaymentCheckout() {
         <PaymentFooter
           totalPayment={totalPayment}
           onPayPress={handlePay}
+          isProcessing={isProcessing}
         />
       }
       className='p-5'
@@ -130,10 +202,10 @@ export default function PaymentCheckout() {
       />
 
       <ErrorDialog
-        isOpen={errorDialogOpen}
-        onClose={() => setErrorDialogOpen(false)}
-        message='Please select a payment method before proceeding.'
-        title='No Payment Method'
+        isOpen={paymentError !== null}
+        onClose={() => setPaymentError(null)}
+        message={paymentError?.message ?? ''}
+        title={paymentError?.title ?? 'Payment Failed'}
       />
     </ScreenWrapper>
   )
