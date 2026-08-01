@@ -6,7 +6,6 @@ import * as Linking from 'expo-linking'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import ErrorDialog from '@/components/display/ErrorDialog'
-import PillButton from '@/components/buttons/PillButton'
 
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 

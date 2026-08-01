@@ -8,22 +8,18 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 import { useColors } from '@/hooks/useTheme'
 
 import ReceiptCard from '../components/ReceiptCard'
-import type { PaymentHistoryItem } from './components/PaymentHistoryCard'
+import { getPaymentById } from './mockPaymentHistory'
 
 export default function PaymentReceipt() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
-  const { payment: paymentJson } = useLocalSearchParams<{ payment: string }>();
+  const { paymentId } = useLocalSearchParams<{ paymentId: string }>();
 
-  const payment = useMemo<PaymentHistoryItem | null>(() => {
-    if (!paymentJson) return null;
-    try {
-      return JSON.parse(paymentJson) as PaymentHistoryItem;
-    } catch {
-      return null;
-    }
-  }, [paymentJson]);
+  const payment = useMemo(() => {
+    if (!paymentId) return null;
+    return getPaymentById(paymentId);
+  }, [paymentId]);
 
   useEffect(() => {
     if (!payment) {

@@ -31,7 +31,6 @@ export default function PaymentHistoryCard({ payment }: PaymentHistoryCardProps)
       pathname: '/tenant/payment/history/[paymentId]',
       params: {
         paymentId: payment.id,
-        payment: JSON.stringify(payment),
       },
     })
   }
