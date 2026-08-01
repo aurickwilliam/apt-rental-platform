@@ -110,3 +110,9 @@ web_modules/
 .claude/
 .junie/
 skills-lock.json
+
+# Graphify
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/*.txt
+graphify-out/cost.json
