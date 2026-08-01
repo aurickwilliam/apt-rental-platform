@@ -38,7 +38,9 @@ export default function PaymentMethodButton({
 
   const containerBase = isTile
     ? 'w-[48.5%] min-h-[76px] p-2 items-center justify-center bg-white rounded-xl border'
-    : 'flex-row items-center gap-2 px-3 py-2 bg-white rounded-xl border';
+    : label
+      ? 'flex-row items-center gap-2 px-3 py-2 bg-white rounded-xl border'
+      : 'flex-row items-center justify-center px-3 py-2 bg-white rounded-xl border';
 
   const borderClass = selected
     ? 'border-primary border-2'
@@ -65,7 +67,7 @@ export default function PaymentMethodButton({
 
       {isTile ? (
         <>
-          <View className='w-10 h-6 items-center justify-center'>
+          <View className={`${label ? 'w-10 h-6' : 'w-16 h-10'} items-center justify-center`}>
             {icon ? icon : imageSource ? (
               <Image
                 source={imageSource}
@@ -86,7 +88,7 @@ export default function PaymentMethodButton({
         </>
       ) : (
         <>
-          <View className='w-10 h-6 items-center justify-center'>
+          <View className={`${label ? 'w-10 h-6' : 'w-12 h-8'} items-center justify-center`}>
             {icon ? icon : imageSource ? (
               <Image
                 source={imageSource}
