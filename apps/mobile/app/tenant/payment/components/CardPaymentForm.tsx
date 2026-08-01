@@ -10,7 +10,11 @@ import {
   ControlField
 } from 'heroui-native'
 
-import { validateCardNumber, formatExpiryDate } from '@repo/utils'
+import {
+  validateCardNumber,
+  formatExpiryDate,
+  type CardFormErrors
+} from '@repo/utils'
 
 export type CardInformation = {
   cardNumber: string
@@ -24,9 +28,14 @@ export type CardInformation = {
 interface CardPaymentFormProps {
   value: CardInformation
   onChange: (patch: Partial<CardInformation>) => void
+  errors?: CardFormErrors
 }
 
-export default function CardPaymentForm({ value, onChange }: CardPaymentFormProps) {
+export default function CardPaymentForm({
+  value,
+  onChange,
+  errors
+}: CardPaymentFormProps) {
   const handleCardNumberChange = (text: string) => {
     const { formatted, isValid } = validateCardNumber(text)
     onChange({ cardNumber: formatted, isCardNumberValid: isValid });
@@ -47,7 +56,7 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
       <View className='flex gap-3'>
         <TextField
           isRequired
-          isInvalid={value.cardNumber.length >= 13 && !value.isCardNumberValid}
+          isInvalid={!!errors?.cardNumber || (value.cardNumber.length >= 13 && !value.isCardNumberValid)}
         >
           <Label>Card Number:</Label>
           <Input
@@ -58,12 +67,14 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
             variant='primary'
             onChangeText={handleCardNumberChange}
           />
-          {value.cardNumber.length > 0 && !value.isCardNumberValid && (
-            <FieldError>Please enter a valid card number.</FieldError>
-          )}
+          {errors?.cardNumber
+            ? <FieldError>{errors.cardNumber}</FieldError>
+            : value.cardNumber.length > 0 && !value.isCardNumberValid && (
+              <FieldError>Please enter a valid card number.</FieldError>
+            )}
         </TextField>
 
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors?.expiryDate}>
           <Label>Expiry Date:</Label>
           <Input
             placeholder='MM/YY'
@@ -73,10 +84,12 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
             variant='primary'
             onChangeText={handleExpiryDateChange}
           />
-          <FieldError>Please enter a valid expiry date.</FieldError>
+          {errors?.expiryDate && (
+            <FieldError>{errors.expiryDate}</FieldError>
+          )}
         </TextField>
 
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors?.cardholderName}>
           <Label>Cardholder Name:</Label>
           <Input
             placeholder='Enter cardholder name'
@@ -84,10 +97,12 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
             variant='primary'
             onChangeText={(val) => onChange({ cardholderName: val })}
           />
-          <FieldError>Cardholder name is required.</FieldError>
+          {errors?.cardholderName && (
+            <FieldError>{errors.cardholderName}</FieldError>
+          )}
         </TextField>
 
-        <TextField isRequired>
+        <TextField isRequired isInvalid={!!errors?.cvv}>
           <Label>CVV:</Label>
           <Input
             placeholder='***'
@@ -97,11 +112,15 @@ export default function CardPaymentForm({ value, onChange }: CardPaymentFormProp
             variant='primary'
             onChangeText={(val) => onChange({ cvv: val.replace(/\D/g, '').slice(0, 3) })}
           />
+          {errors?.cvv && (
+            <FieldError>{errors.cvv}</FieldError>
+          )}
           <Description>
             3-digit code at the back of your card.
           </Description>
         </TextField>
 
+        {/* Checkbox for saving the card payment method */}
         <ControlField
           isSelected={value.isPaymentSaved}
           onSelectedChange={() => onChange({ isPaymentSaved: !value.isPaymentSaved })}
