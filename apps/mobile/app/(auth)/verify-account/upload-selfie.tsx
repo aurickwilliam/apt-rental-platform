@@ -19,7 +19,7 @@ export default function UploadSelfie() {
           Take a Selfie
         </Text>
 
-        <View className='rounded-full overflow-hidden size-64 mt-10 bg-gray-200 items-center justify-center border-8 border-greenHulk-200'>
+        <View className='rounded-full overflow-hidden size-64 mt-10 bg-gray-200 items-center justify-center border-8 border-success'>
           <Image 
             source={SAMPLE_IMAGES.sampleProfilePicture}
             style={{ width: '100%', height: '100%'}}
@@ -27,7 +27,7 @@ export default function UploadSelfie() {
           />
         </View>
 
-        <Text className='text-text text-vase font-inter text-center mt-5 mx-20'>
+        <Text className='text-foreground text-muted font-inter text-center mt-5 mx-20'>
           Ensure good lighting and remove any face coverings for a clear photo.
         </Text>
       </View>

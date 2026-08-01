@@ -299,7 +299,7 @@ export default function PublicLandlordProfile() {
           </Text>
         </View>
 
-        <View className="w-px h-full bg-grey-300" />
+        <View className="w-px h-full bg-gray-300" />
 
         <View className="flex items-center gap-1 w-1/3">
           <Text className="text-base text-gray-500 font-inter">Identity</Text>

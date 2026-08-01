@@ -19,7 +19,7 @@ export default function StatusPill({
       />
 
       {/* Status Text */}
-      <Text className="text-sm font-interMedium text-text">
+      <Text className="text-sm font-interMedium text-foreground">
         {status}
       </Text>
     </View>

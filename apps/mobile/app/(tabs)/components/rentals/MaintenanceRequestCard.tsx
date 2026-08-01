@@ -68,7 +68,7 @@ export default function MaintenanceRequestCard({
 
           {/* Submitted Date and Urgency Level*/}
           <View className='flex-row items-center justify-between'>
-            <Text className="text-textSecondary text-xs font-inter mt-1">
+            <Text className="text-muted text-xs font-inter mt-1">
               Reported {formatDate(request.created_at, "medium")}
             </Text>
 

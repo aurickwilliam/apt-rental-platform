@@ -79,7 +79,7 @@ export default function CardForm() {
       }
     >
       <View className='flex'>
-        <Text className='text-text text-lg font-interSemiBold'>
+        <Text className='text-foreground text-lg font-interSemiBold'>
           Debit/Credit Card Form
         </Text>
 
@@ -124,7 +124,7 @@ export default function CardForm() {
               onChange={(value) => setCardInformation({...cardInformation, cvv: value})}
             />
 
-            <Text className='text-grey-500 text-sm font-inter mt-1'>
+            <Text className='text-gray-500 text-sm font-inter mt-1'>
               3-digit code at the back of your card.
             </Text>
           </View>
@@ -134,7 +134,7 @@ export default function CardForm() {
       <View className='flex-1' />
 
       <View className='flex gap-3 items-center'>
-        <Text className='text-grey-500 text-sm font-inter'>
+        <Text className='text-gray-500 text-sm font-inter'>
           Your card information is securely processed by PayMongo.
         </Text>
 

@@ -37,14 +37,14 @@ export default function TextField({
       {/* Label Text */}
       {
         label &&
-        <Text className='text-base text-text font-interMedium'>
-          {label} {required && <Text className='text-redHead-200'>*</Text>}
+        <Text className='text-base text-foreground font-interMedium'>
+          {label} {required && <Text className='text-danger'>*</Text>}
         </Text>
       }
 
       {/* Text Input Area */}
       <View className={`bg-white border-2 rounded-2xl pl-2 pr-4 h-16 flex-row items-center
-        ${error ? 'border-redHead-200' : isFocused ? 'border-primary' : 'border-grey-200'}`
+        ${error ? 'border-danger' : isFocused ? 'border-primary' : 'border-gray-200'}`
       }>
         <TextInput
           value={value}
@@ -97,7 +97,7 @@ export default function TextField({
 
       {/* Error Message */}
       {error && (
-        <Text className='text-redHead-200 text-base font-inter mt-[1px]'>
+        <Text className='text-danger text-base font-inter mt-[1px]'>
           {error}
         </Text>
       )}

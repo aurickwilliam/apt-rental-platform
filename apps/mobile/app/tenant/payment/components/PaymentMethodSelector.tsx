@@ -113,7 +113,7 @@ export default function PaymentMethodSelector({
         <Text className='text-accent text-lg font-interSemiBold'>
           Choose Payment Method
         </Text>
-        <Text className='text-grey-500 text-base font-inter'>
+        <Text className='text-gray-500 text-base font-inter'>
           Select how you&apos;d like to pay this month&apos;s rent.
         </Text>
       </View>
@@ -122,7 +122,7 @@ export default function PaymentMethodSelector({
         <Card.Body>
           {hasSavedPaymentMethod && (
             <View className='flex mb-2'>
-              <Text className='text-text text-base font-interMedium mb-3'>
+              <Text className='text-foreground text-base font-interMedium mb-3'>
                 Saved
               </Text>
               <View className='flex-row flex-wrap gap-2'>

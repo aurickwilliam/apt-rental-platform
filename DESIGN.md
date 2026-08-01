@@ -404,8 +404,8 @@ Never copy technical debt. Reference only, with migration direction.
 
 | # | Item | Current state | Use? | Migration |
 |---|---|---|---|---|
-| 1 | Mobile legacy components: `PillButton`, `OptionButton`, `TextField`, `TextBox`, `RadioButton`, `CheckBox`, `SearchField`, `RangeSlider`, `MultiChipGroup`, `SingleChipGroup`, `AccordionItem`, `StatusPill` | Pre-HeroUI custom; several reference undefined tokens; some still used (verify-account, document-id, payment) | ⚠ No | HeroUI equivalents; migrate call sites |
-| 2 | Undefined tokens: `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `mediumGrey`, `COLORS.redHead` | Classes silently no-op | ⚠ No | Swap to canonical tokens |
+| 1 | Mobile legacy components: `PillButton`, `TextField`, `TextBox`, `RadioButton`, `CheckBox`, `SearchField`, `RangeSlider`, `MultiChipGroup`, `SingleChipGroup`, `AccordionItem`, `StatusPill` | Pre-HeroUI custom; several reference undefined JS constants; still used in auth + document-id + payment flows | ⚠ No | HeroUI equivalents; migrate call sites |
+| 2 | Undefined JS constants in legacy inputs: `COLORS.text`, `COLORS.mediumGrey`, `COLORS.lightGrey` | Referenced removed constants; tsc errors | ⚠ No | Use `useColors()` theme hook. (Tailwind classes `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `COLORS.redHead` swapped to canonical tokens and cleaned) |
 | 3 | Web dead CSS (`@layer components` `.button--*`, `.input`, `.select__trigger`, `.toggle-button`) | Unreferenced by any TSX | ⚠ No | Delete; use HeroUI + Tailwind |
 | 4 | Web undefined fonts (`font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold`) | Fallback font renders | ⚠ No | Use `font-nunito`/`font-inter` |
 | 5 | Web tenant `zinc-*` palette (my-rental) | Diverges from canonical grey tokens | ⚠ No | Normalize to `gray-*` |

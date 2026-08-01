@@ -259,7 +259,7 @@ export default function Index() {
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-text text-xl font-interSemiBold">
+                      <Text className="text-foreground text-xl font-interSemiBold">
                         Rent Payment History
                       </Text>
                       <TouchableOpacity

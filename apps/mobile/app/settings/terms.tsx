@@ -66,7 +66,7 @@ export default function TermsScreen() {
       scrollable
       className="p-5"
     >
-      <Text className="text-xs text-default-400 mb-4">
+      <Text className="text-xs text-muted mb-4">
         Last updated: June 2025
       </Text>
       <View className="gap-4 pb-10">
@@ -75,11 +75,11 @@ export default function TermsScreen() {
             <Text className="text-sm font-semibold text-foreground mb-1">
               {section.title}
             </Text>
-            <Text className="text-sm text-default-500 leading-6">
+            <Text className="text-sm text-muted leading-6">
               {section.content}
             </Text>
             {index < sections.length - 1 && (
-              <View className="h-px bg-divider mt-4" />
+              <View className="h-px bg-border mt-4" />
             )}
           </View>
         ))}

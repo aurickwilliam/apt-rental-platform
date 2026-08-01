@@ -28,7 +28,7 @@ export default function UploadId() {
         <Text className='text-2xl text-secondary font-interMedium'>
           {selectedId}
         </Text>
-        <Text className='text-base text-grey-500 font-inter'>
+        <Text className='text-base text-gray-500 font-inter'>
           Accepted formats: JPG, PNG, or PDF (max 5MB each)
         </Text>
       </View>

@@ -75,7 +75,7 @@ export default function AnalyticsScreen() {
             return (
               <View
                 key={stat.id}
-                className="bg-default-100 rounded-xl p-4 flex-1 min-w-[44%]"
+                className="bg-default rounded-xl p-4 flex-1 min-w-[44%]"
               >
                 <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <Icon size={18} color={colors.primary} />
@@ -86,7 +86,7 @@ export default function AnalyticsScreen() {
                 <Text className="text-xs font-medium text-foreground mt-0.5">
                   {stat.label}
                 </Text>
-                <Text className="text-xs text-default-400 mt-0.5">
+                <Text className="text-xs text-muted mt-0.5">
                   {stat.sub}
                 </Text>
               </View>
@@ -95,11 +95,11 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Monthly Revenue Chart */}
-        <View className="bg-default-100 rounded-xl p-4">
+        <View className="bg-default rounded-xl p-4">
           <Text className="text-sm font-semibold text-foreground mb-1">
             Monthly Revenue
           </Text>
-          <Text className="text-xs text-default-400 mb-4">
+          <Text className="text-xs text-muted mb-4">
             Last 6 months overview
           </Text>
 
@@ -118,7 +118,7 @@ export default function AnalyticsScreen() {
                       opacity: item.month === "Jun" ? 1 : 0.4,
                     }}
                   />
-                  <Text className="text-xs text-default-400">{item.month}</Text>
+                  <Text className="text-xs text-muted">{item.month}</Text>
                 </View>
               );
             })}
@@ -126,7 +126,7 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Payment Summary */}
-        <View className="bg-default-100 rounded-xl p-4 gap-3">
+        <View className="bg-default rounded-xl p-4 gap-3">
           <Text className="text-sm font-semibold text-foreground">
             Payment Summary
           </Text>
@@ -145,7 +145,7 @@ export default function AnalyticsScreen() {
                     backgroundColor: item.color,
                   }}
                 />
-                <Text className="text-sm text-default-500">{item.label}</Text>
+                <Text className="text-sm text-muted">{item.label}</Text>
               </View>
               <Text className="text-sm font-semibold text-foreground">
                 {item.value}
@@ -155,7 +155,7 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Top Performing Unit */}
-        <View className="bg-default-100 rounded-xl p-4 gap-3">
+        <View className="bg-default rounded-xl p-4 gap-3">
           <Text className="text-sm font-semibold text-foreground">
             Top Performing Units
           </Text>
@@ -169,7 +169,7 @@ export default function AnalyticsScreen() {
               className="flex-row justify-between items-center"
             >
               <View className="flex-row items-center gap-3">
-                <Text className="text-xs font-bold text-default-400 w-4">
+                <Text className="text-xs font-bold text-muted w-4">
                   {index + 1}
                 </Text>
                 <Text className="text-sm text-foreground">{item.unit}</Text>

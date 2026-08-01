@@ -21,11 +21,11 @@ export default function Success() {
         />
 
         <View className='flex gap-2'>
-          <Text className='text-3xl text-greenHulk-200 font-interSemiBold text-center'>
+          <Text className='text-3xl text-success font-interSemiBold text-center'>
             Verification Submitted
           </Text>
 
-          <Text className='text-text text-base font-inter text-center mx-10'>
+          <Text className='text-foreground text-base font-inter text-center mx-10'>
             Our team will review your ID shortly. You’ll be notified once your account is verified.
           </Text>
         </View>
