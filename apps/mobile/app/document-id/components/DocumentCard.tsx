@@ -13,7 +13,7 @@ export default function DocumentCard({ image, label, onPress }: DocumentCardProp
       activeOpacity={0.7}
       onPress={onPress}
     >
-      <View className='w-full h-72 border-2 border-grey-200 rounded-2xl overflow-hidden'>
+      <View className='w-full h-72 border-2 border-gray-200 rounded-2xl overflow-hidden'>
         <Image 
           source={{ uri: image }} 
           style={{
@@ -24,7 +24,7 @@ export default function DocumentCard({ image, label, onPress }: DocumentCardProp
         />
       </View>
       
-      <Text className='text-base text-text font-inter'>
+      <Text className='text-base text-foreground font-inter'>
         {label}
       </Text>
     </TouchableOpacity>

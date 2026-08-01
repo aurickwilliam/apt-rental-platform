@@ -22,8 +22,8 @@ export default function MaintenanceRequestCard({
           Maintenance Request
         </Text>
 
-        <View className="flex-row items-center gap-2 bg-darkerWhite py-2 px-3 rounded-full">
-          <View className="rounded-full bg-yellowish-200 w-3 h-3" />
+        <View className="flex-row items-center gap-2 bg-surface-secondary py-2 px-3 rounded-full">
+          <View className="rounded-full bg-warning w-3 h-3" />
 
           <Text className="text-foreground text-sm font-inter">
             Pending

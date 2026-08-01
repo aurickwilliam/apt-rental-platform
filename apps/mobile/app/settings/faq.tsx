@@ -52,7 +52,7 @@ export default function FAQScreen() {
       {faqs.map((faq, index) => (
         <View
           key={faq.id}
-          className={`mb-3 rounded-xl bg-default-100 ${index === faqs.length - 1 ? "mb-8" : ""}`}
+          className={`mb-3 rounded-xl bg-default ${index === faqs.length - 1 ? "mb-8" : ""}`}
         >
           <Text className="mb-2 font-semibold text-foreground text-base">
             {faq.question}

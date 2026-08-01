@@ -81,14 +81,14 @@ export default function LandlordCard({
               <View className="flex-row items-center gap-4 mt-1">
                 <View className="flex-row items-center gap-1">
                   <Star size={12} color={colors.secondary} />
-                  <Text className="text-text text-xs font-inter">
+                  <Text className="text-foreground text-xs font-inter">
                     {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center gap-1">
                   <Home size={12} color={colors.primary} />
-                  <Text className="text-text text-xs font-inter">
+                  <Text className="text-foreground text-xs font-inter">
                     {totalRentals} {totalRentals === 1 ? "Property" : "Properties"}
                   </Text>
                 </View>

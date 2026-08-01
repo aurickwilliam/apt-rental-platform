@@ -102,7 +102,7 @@ export default function MoveInCostFooterSection({
               Estimated initial payment required to move in.
             </Text>
 
-            <View className='gap-3 bg-darkerWhite rounded-xl'>
+            <View className='gap-3 bg-surface-secondary rounded-xl'>
               <View className='flex-row justify-between items-center'>
                 <Text className='text-muted font-inter text-base'>
                   Monthly Rent

@@ -1,0 +1,339 @@
+{
+  "$schema": "./design-tokens.schema.json",
+  "$comment": "Canonical APT design tokens. Values are exact from packages/constants, apps/web/app/globals.css, apps/mobile/app/global.css, and heroui-native base variables. Values marked \"inferred\" derive from observed usage, not a declaration. See DESIGN.md §2 for authority and §24 for legacy tokens.",
+  "version": "1.0.0",
+  "sources": {
+    "primary": "packages/constants/src/colors.ts",
+    "typography": "packages/constants/src/typography.ts",
+    "webTheme": "apps/web/app/globals.css",
+    "mobileTheme": "apps/mobile/app/global.css",
+    "herouiNativeBase": "apps/mobile/node_modules/heroui-native/lib/module/styles/variables.css"
+  },
+
+  "colors": {
+    "light": {
+      "white": "#FFFFFF",
+      "surface": "#F8F9FA",
+      "primary": "#376BF5",
+      "primaryLight": "#EFF6FF",
+      "secondary": "#FFA500",
+      "secondaryForeground": "#FFFFFF",
+      "secondaryLight": "#FFF3E0",
+      "textPrimary": "#333333",
+      "textSecondary": "#6C757D",
+      "gray500": "#6C757D",
+      "gray400": "#9CA3AF",
+      "gray300": "#BDBDBD",
+      "gray200": "#D1D5DB",
+      "gray100": "#E5E7EB",
+      "success": "#22C55E",
+      "successLight": "#E6F4EA",
+      "warning": "#FACC15",
+      "warningLight": "#FFF8E1",
+      "danger": "#E50914",
+      "dangerMid": "#FF4B4B",
+      "dangerLight": "#FDA4AF"
+    },
+    "dark": {
+      "white": "#121212",
+      "surface": "#1E1E1E",
+      "surfaceRaised": "#2A2A2A",
+      "primary": "#5B8BF7",
+      "primaryLight": "#1A2340",
+      "secondary": "#FFA500",
+      "secondaryForeground": "#FFFFFF",
+      "secondaryLight": "#2E2212",
+      "textPrimary": "#F0F0F0",
+      "textSecondary": "#9CA3AF",
+      "gray500": "#6B7280",
+      "gray400": "#6B7280",
+      "gray300": "#3D3D3D",
+      "gray200": "#2A2A2A",
+      "gray100": "#1E1E1E",
+      "success": "#4ADE80",
+      "successLight": "#14291E",
+      "warning": "#FDE047",
+      "warningLight": "#2A2410",
+      "danger": "#F87171",
+      "dangerMid": "#FCA5A5",
+      "dangerLight": "#2D1515"
+    },
+    "webTheme": {
+      "light": {
+        "background": "#F8F9FA",
+        "foreground": "#333333",
+        "card": "#FFFFFF",
+        "cardForeground": "#333333",
+        "popover": "#FFFFFF",
+        "popoverForeground": "#333333",
+        "primary": "#376BF5",
+        "primaryForeground": "#FFFFFF",
+        "secondary": "#FFA500",
+        "secondaryForeground": "#FFFFFF",
+        "muted": "#E5E7EB",
+        "mutedForeground": "#6C757D",
+        "accent": "#EFF6FF",
+        "accentForeground": "#333333",
+        "destructive": "#E50914",
+        "border": "#D1D5DB",
+        "input": "#D1D5DB",
+        "ring": "#376BF5",
+        "radius": "0.625rem"
+      },
+      "dark": {
+        "background": "oklch(0.17 0 0)",
+        "foreground": "oklch(0.985 0 0)",
+        "card": "oklch(0.205 0 0)",
+        "cardForeground": "oklch(0.985 0 0)",
+        "popover": "oklch(0.205 0 0)",
+        "popoverForeground": "oklch(0.985 0 0)",
+        "primary": "#376BF5",
+        "secondary": "oklch(0.269 0 0)",
+        "muted": "oklch(0.269 0 0)",
+        "mutedForeground": "oklch(0.708 0 0)",
+        "accent": "oklch(0.269 0 0)",
+        "destructive": "oklch(0.704 0.191 22.216)",
+        "border": "oklch(1 0 0 / 10%)",
+        "input": "oklch(1 0 0 / 15%)",
+        "ring": "oklch(0.556 0 0)"
+      }
+    },
+    "mobileTheme": {
+      "light": {
+        "background": "oklch(0.9702 0 0)",
+        "foreground": "oklch(0.2103 0.0059 285.89)",
+        "surface": "oklch(100% 0 0)",
+        "surfaceSecondary": "oklch(0.9524 0.0013 286.37)",
+        "surfaceTertiary": "oklch(0.9373 0.0013 286.37)",
+        "overlay": "oklch(100% 0 0)",
+        "backdrop": "oklch(0% 0 0 / 20%)",
+        "accent": "#376BF5",
+        "accentForeground": "oklch(1 0 0)",
+        "muted": "oklch(0.5517 0.0138 285.94)",
+        "default": "oklch(94% 0.001 286.375)",
+        "border": "oklch(90% 0.004 286.32)",
+        "separator": "oklch(74% 0.004 286.32)",
+        "focus": "#376BF5",
+        "link": "oklch(0.2103 0.0059 285.89)",
+        "segment": "oklch(100% 0 0)",
+        "fieldBackground": "oklch(100% 0 0)",
+        "fieldForeground": "oklch(0.2103 0.0059 285.89)",
+        "fieldPlaceholder": "oklch(0.5517 0.0138 285.94)",
+        "fieldBorder": "oklch(0.88 0.005 264)",
+        "fieldShadow": "none",
+        "success": "#22C55E",
+        "warning": "#FACC15",
+        "danger": "#E50914"
+      },
+      "dark": {
+        "background": "oklch(12% 0.005 285.823)",
+        "foreground": "oklch(0.9911 0 0)",
+        "surface": "oklch(0.2103 0.0059 285.89)",
+        "surfaceSecondary": "oklch(0.227 0.004 285)",
+        "surfaceTertiary": "oklch(0.26 0.004 285)",
+        "overlay": "oklch(0.2103 0.0059 285.89)",
+        "backdrop": "oklch(0% 0 0 / 40%)",
+        "accent": "#5B8BF7",
+        "accentForeground": "oklch(1 0 0)",
+        "muted": "oklch(0.55 0.01 285)",
+        "default": "oklch(27.4% 0.006 286.033)",
+        "border": "oklch(28% 0.006 286.033)",
+        "separator": "oklch(40% 0.006 286.033)",
+        "focus": "#5B8BF7",
+        "link": "oklch(0.9911 0 0)",
+        "segment": "oklch(0.3964 0.01 285.93)",
+        "fieldBackground": "oklch(0.2103 0.0059 285.89)",
+        "fieldForeground": "oklch(0.9911 0 0)",
+        "fieldPlaceholder": "oklch(0.55 0.01 285)",
+        "fieldBorder": "oklch(0.35 0.02 264)",
+        "fieldShadow": "none",
+        "success": "#4ADE80",
+        "warning": "#FDE047",
+        "danger": "#F87171"
+      }
+    }
+  },
+
+  "typography": {
+    "fontFamilies": {
+      "inter": {
+        "regular": "Inter_24pt-Regular",
+        "medium": "Inter_24pt-Medium",
+        "semiBold": "Inter_24pt-SemiBold",
+        "webClass": "font-inter"
+      },
+      "nunito": {
+        "regular": "Nunito-Regular",
+        "medium": "Nunito-Medium",
+        "semiBold": "Nunito-SemiBold",
+        "bold": "Nunito-Bold",
+        "webClass": "font-nunito"
+      }
+    },
+    "roles": {
+      "body": "inter.regular",
+      "bodyMedium": "inter.medium",
+      "bodySemiBold": "inter.semiBold",
+      "heading": "nunito.regular",
+      "headingMedium": "nunito.medium",
+      "headingSemiBold": "nunito.semiBold",
+      "headingBold": "nunito.bold"
+    },
+    "fontSizes": {
+      "micro10": { "px": 10, "note": "tab labels, filter badges", "inferred": true },
+      "micro11": { "px": 11, "note": "web status chips, table headers", "inferred": true },
+      "micro12": { "px": 12, "note": "metadata, spec icons", "inferred": true },
+      "micro13": { "px": 13, "note": "chat hints, replace-photo link", "inferred": true },
+      "xs": { "px": 12, "lineHeightPx": 16, "inferred": true },
+      "sm": { "px": 14, "lineHeightPx": 20, "inferred": true },
+      "base": { "px": 16, "lineHeightPx": 24, "inferred": true },
+      "lg": { "px": 18, "lineHeightPx": 28, "inferred": true },
+      "xl": { "px": 20, "lineHeightPx": 28, "inferred": true },
+      "2xl": { "px": 24, "lineHeightPx": 32, "inferred": true },
+      "3xl": { "px": 30, "lineHeightPx": 36, "inferred": true },
+      "4xl": { "px": 36, "inferred": true },
+      "5xl": { "px": 48, "note": "web page H1", "inferred": true }
+    },
+    "conventions": {
+      "mobileScreenTitle": "text-secondary text-3xl font-nunitoSemiBold",
+      "mobileSectionHeader": "text-foreground text-lg font-interSemiBold",
+      "mobileCardTitle": "text-base font-interSemiBold",
+      "webPageHeader": "text-5xl text-secondary font-bold",
+      "webSectionTitle": "text-base font-medium",
+      "chatBody": "text-sm font-inter leading-6"
+    }
+  },
+
+  "spacing": {
+    "scale": { "0.5": 2, "1": 4, "1.5": 6, "2": 8, "2.5": 10, "3": 12, "3.5": 14, "4": 16, "5": 20, "6": 24, "7": 28, "8": 32, "10": 40, "12": 48, "16": 64, "20": 80 },
+    "pagePadding": { "mobile": 20, "web": 16 },
+    "cardPadding": { "default": 16, "dense": 8, "wide": 20 },
+    "sectionGap": { "mobile": 20, "web": 24 },
+    "listGap": 12,
+    "formStackGap": 16,
+    "gridGap": { "web": 12, "mobileGrid": 8 },
+    "tabBarBottomPadding": 84,
+    "custom": {
+      "badge18px": 18,
+      "webHeroHeightPx": 512,
+      "mobileHeroHeightPx": 672
+    }
+  },
+
+  "borderRadius": {
+    "web": {
+      "base": "0.625rem",
+      "sm": 6,
+      "md": 8,
+      "lg": 10,
+      "xl": 14,
+      "2xl": 18,
+      "3xl": 22,
+      "4xl": 26,
+      "pill": "9999px"
+    },
+    "mobile": {
+      "xl": 12,
+      "2xl": 16,
+      "3xl": 24,
+      "sheetTop": 20,
+      "receiptTop": 16,
+      "receiptBottom": 0,
+      "pill": "9999px"
+    },
+    "conventions": {
+      "mobileCard": "rounded-3xl",
+      "webCard": "rounded-xl",
+      "nestedCard": "rounded-xl | rounded-2xl",
+      "buttonsChipsAvatars": "rounded-full"
+    }
+  },
+
+  "shadows": {
+    "web": {
+      "card": "shadow-sm",
+      "default": "none"
+    },
+    "mobile": {
+      "card": "none (border border-border instead)",
+      "floatingTabBar": {
+        "color": "#000000",
+        "offsetY": 8,
+        "opacity": { "light": 0.12, "dark": 0.35 },
+        "elevation": 5
+      },
+      "fab": "shadow-lg",
+      "verifiedBadgeElevation": 3,
+      "favoriteButtonElevation": 3
+    },
+    "herouiNative": {
+      "surfaceShadow": "0 2px 4px 0 rgba(0,0,0,0.04), 0 1px 2px 0 rgba(0,0,0,0.06), 0 0 1px 0 rgba(0,0,0,0.06)",
+      "overlayShadow": "0 2px 8px 0 rgba(0,0,0,0.02), 0 -6px 12px 0 rgba(0,0,0,0.01), 0 14px 28px 0 rgba(0,0,0,0.03)",
+      "darkMode": "transparent"
+    }
+  },
+
+  "zIndex": {
+    "web": {
+      "navbar": 40,
+      "modalSheetOverlay": 50,
+      "drawerContent": 60,
+      "mapLayers": [1999, 2000],
+      "inferred": true
+    },
+    "mobile": {
+      "stickyFooter": 10,
+      "lightbox": "overFullScreen",
+      "inferred": true
+    }
+  },
+
+  "breakpoints": {
+    "web": { "sm": 640, "md": 768, "lg": 1024, "xl": 1280, "2xl": 1536, "container": "80rem (max-w-7xl)" },
+    "mobile": { "note": "no breakpoints; useWindowDimensions-based math", "gridCardWidth": "(width - 32 - 8) / 2" }
+  },
+
+  "componentSizes": {
+    "web": {
+      "navbarHeight": 64,
+      "sidebarWidth": 256,
+      "sidebarCollapsedWidth": 48,
+      "sidebarMobileWidth": 288,
+      "apartmentCardWidth": 224,
+      "inputHeight": 36,
+      "tableRowThumb": 48,
+      "lightboxStageHeight": "65vh",
+      "heroHeight": 512
+    },
+    "mobile": {
+      "floatingTabBarHeight": 68,
+      "floatingTabBarBottomOffset": 16,
+      "standardHeaderTitleSize": "text-lg font-interSemiBold",
+      "chatHeaderHeight": "insets.top + 56",
+      "avatarSizes": { "profile": 144, "initials": 48, "cardThumb": 100, "ratingThumb": 64 },
+      "inputHeights": { "heroUiDefault": "h-12 (transitional custom)", "legacyText": 64 },
+      "iconSizes": { "tabBar": 24, "sectionHeader": 24, "headerAction": 26, "inline": 16, "inlineLarge": 20, "metadata": 12, "emptyState": 64, "emptyStateLandlord": 32 }
+    }
+  },
+
+  "animation": {
+    "skeletonPulse": { "opacityRange": [0.45, 0.85], "durationMs": 700, "nativeDriver": true },
+    "webTransition": { "durationMs": 200, "property": "all" },
+    "pressFeedback": { "activeOpacity": 0.7 },
+    "sheetSnapPoints": { "filters": ["85%"], "dropdown": ["50%", "75%"] },
+    "backdropBlur": { "webNavbar": "backdrop-blur-md backdrop-saturate-150" },
+    "pageTransitions": { "note": "none exist on either platform — do not add" }
+  },
+
+  "legacyTokens": {
+    "doNotUse": [
+      "mediumGrey",
+      "COLORS.text",
+      "COLORS.lightGrey",
+      "font-noto-serif",
+      "font-dm-serif",
+      "font-poppinsSemiBold"
+    ],
+    "note": "See DESIGN.md §24 Known Design Debt for context and migration paths. Cleaned: redHead-*, grey-* (mobile), text-text, darkerWhite, COLORS.redHead, OptionButton."
+  }
+}

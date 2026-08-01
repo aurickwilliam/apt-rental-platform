@@ -31,15 +31,15 @@ export default function TextBox({
       {/* Label Text */}
       {
         label &&
-        <Text className='text-md text-text font-interMedium'>
-          {label} {required && <Text className='text-redHead-200'>*</Text>}
+        <Text className='text-md text-foreground font-interMedium'>
+          {label} {required && <Text className='text-danger'>*</Text>}
         </Text>
       }
 
       {/* Text Input Area */}
       <View 
         className={`bg-white border-2 rounded-2xl p-2 flex-row items-center
-          ${error ? 'border-redHead-200' : isFocused ? 'border-primary' : 'border-grey-200'}`}
+          ${error ? 'border-danger' : isFocused ? 'border-primary' : 'border-gray-200'}`}
         style={{ height: boxHeight }}>
         <TextInput
           value={value}
@@ -73,7 +73,7 @@ export default function TextBox({
 
       {/* Error Message */}
       {error && (
-        <Text className='text-redHead-200 text-md font-inter mt-1'>
+        <Text className='text-danger text-md font-inter mt-1'>
           {error}
         </Text>
       )}
