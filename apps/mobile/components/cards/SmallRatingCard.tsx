@@ -67,7 +67,7 @@ export default function SmallRatingCard({
         <Card.Body className='mt-3'>
           <Card.Description
             numberOfLines={2}
-            className='font-inter text-sm text-text'
+            className='font-inter text-sm text-foreground'
           >
             {comment}
           </Card.Description>

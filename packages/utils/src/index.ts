@@ -11,3 +11,12 @@ export {
   extractRawNumber
 } from './formatCurrencyInput';
 export * from './authErrors';
+export {
+  formatCardNumber,
+  luhnCheck,
+  validateCardNumber,
+  formatExpiryDate,
+  isValidExpiryDate,
+  type CardFormErrors,
+  validateCardInfo,
+} from './validateCardNumber';

@@ -8,7 +8,7 @@ interface DividerProps {
 export default function Divider({ marginVertical = 15, thickness = 2 }: DividerProps  ) {
   return (
     <View
-      className='w-full rounded-full bg-grey-100'
+      className='w-full rounded-full bg-gray-100'
       style={{ marginVertical, height: thickness }}
     />
   )

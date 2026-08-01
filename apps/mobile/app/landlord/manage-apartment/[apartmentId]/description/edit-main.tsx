@@ -342,7 +342,7 @@ export default function EditMain() {
       <Divider marginVertical={30} />
 
       <View className="flex gap-3">
-        <Text className="text-text text-base font-interMedium">
+        <Text className="text-foreground text-base font-interMedium">
           Change Lease Agreement
         </Text>
         <UploadFileField

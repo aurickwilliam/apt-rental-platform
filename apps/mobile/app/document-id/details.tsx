@@ -21,7 +21,7 @@ export default function Details() {
       className='p-5 flex items-center justify-center'
     >
       <TouchableOpacity
-        className='w-full h-[70%] rounded-3xl border border-grey-300 p-3'
+        className='w-full h-[70%] rounded-3xl border border-gray-300 p-3'
         activeOpacity={0.7}
         onPress={() => setIsDocumentVisiable(true)}
       >

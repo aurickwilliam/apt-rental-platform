@@ -4,7 +4,6 @@ import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import UploadImageField from '@/components/inputs/UploadImageField';
 import CheckBox from '@/components/buttons/CheckBox';
 import PillButton from '@/components/buttons/PillButton'
 
@@ -39,7 +38,7 @@ export default function Upload() {
           {docType}
         </Text>
 
-        <Text className='text-grey-500 text-base font-inter'>
+        <Text className='text-gray-500 text-base font-inter'>
           Accepted formats: JPG, PNG, or PDF (max 5MB each)
         </Text>
       </View>
@@ -57,8 +56,8 @@ export default function Upload() {
           onPress={() => setIsVerified(!isVerified)}          
         />
 
-        <Text className='text-sm text-grey-500 font-inter'>
-          <Text className='text-redHead-200'>*</Text> By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
+        <Text className='text-sm text-gray-500 font-inter'>
+          <Text className='text-danger'>*</Text> By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
         </Text>
       </View>
 

@@ -119,7 +119,7 @@ export default function VisitRequestCalendar({
         className="flex-row items-center justify-between p-2"
       >
         <View className="flex-row items-center gap-3">
-          <View className="bg-accent-light rounded-full p-1">
+          <View className="bg-primary-light rounded-full p-1">
             <Bell size={18} color={colors.primary} />
           </View>
           <Text className="text-foreground text-sm font-interMedium">

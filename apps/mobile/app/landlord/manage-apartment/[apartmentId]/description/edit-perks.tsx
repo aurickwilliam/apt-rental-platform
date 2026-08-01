@@ -134,7 +134,7 @@ export default function EditPerks() {
           keyboardShouldPersistTaps='handled'
         >
           <SearchField value={searchValue} onChange={setSearchValue}>
-            <SearchField.Group className="bg-darkerWhite">
+            <SearchField.Group className="bg-surface-secondary">
               <SearchField.SearchIcon />
               <SearchField.Input placeholder="Search a perk" />
               <SearchField.ClearButton />

@@ -29,7 +29,7 @@ export default function CheckBox({
         ? <IconSquareCheckFilled size={22} color={COLORS.primary} /> 
         : <IconSquare size={22} color={COLORS.grey} />
       }
-      <Text className='text-text text-base font-inter'>
+      <Text className='text-foreground text-base font-inter'>
         {label}
       </Text>
     </TouchableOpacity>

@@ -65,7 +65,7 @@ export default function AISearchScreen() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -119,7 +119,7 @@ export default function AISearchScreen() {
                   className={`rounded-2xl px-4 py-3 max-w-[78%] ${
                     isUser
                       ? "rounded-tr-sm bg-primary"
-                      : "rounded-tl-sm bg-default-100"
+                      : "rounded-tl-sm bg-default"
                   }`}
                 >
                   <Text
@@ -143,8 +143,8 @@ export default function AISearchScreen() {
               >
                 <Sparkles size={14} color="#fff" />
               </View>
-              <View className="bg-default-100 rounded-2xl rounded-tl-sm px-4 py-3">
-                <Text className="text-default-400 text-sm">Thinking...</Text>
+              <View className="bg-default rounded-2xl rounded-tl-sm px-4 py-3">
+                <Text className="text-muted text-sm">Thinking...</Text>
               </View>
             </View>
           )}
@@ -153,9 +153,9 @@ export default function AISearchScreen() {
         </ScrollView>
 
         {/* Input */}
-        <View className="px-4 py-3 border-t border-divider flex-row items-end gap-2">
+        <View className="px-4 py-3 border-t border-border flex-row items-end gap-2">
           <TextInput
-            className="flex-1 bg-default-100 rounded-2xl px-4 py-3 text-sm text-foreground"
+            className="flex-1 bg-default rounded-2xl px-4 py-3 text-sm text-foreground"
             placeholder="Ask me anything about rentals..."
             placeholderTextColor={colors.gray400}
             value={input}

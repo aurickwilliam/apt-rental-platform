@@ -105,3 +105,14 @@ web_modules/
 
 # Vercel
 .vercel
+
+# AI agent config
+.claude/
+.junie/
+skills-lock.json
+
+# Graphify
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/*.txt
+graphify-out/cost.json

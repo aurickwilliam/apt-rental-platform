@@ -33,7 +33,7 @@ export default function OnBoardingSlide({ slide, width }: OnBoardingSlideProps) 
         </Text>
         
         {/* Description */}
-        <Text className="text-text text-lg font-interMedium">
+        <Text className="text-foreground text-lg font-interMedium">
           {slide.description}
         </Text>
 

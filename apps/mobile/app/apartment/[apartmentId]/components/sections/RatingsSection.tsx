@@ -72,7 +72,7 @@ export default function RatingsSection({
               No ratings yet
             </Text>
 
-            <Text className='mt-1 text-sm text-gray500 font-interMedium text-center leading-5'>
+            <Text className='mt-1 text-sm text-gray-500 font-interMedium text-center leading-5'>
               This place hasn&apos;t been reviewed. Ratings will appear here once a tenant shares their experience.
             </Text>
 
