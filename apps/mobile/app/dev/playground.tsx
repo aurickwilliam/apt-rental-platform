@@ -68,8 +68,13 @@ export default function DevNavScreen() {
         <LinkRow label="Current Apartment" route="/tenant/current-apartment" />
         <LinkRow label="Applications" route="/tenant/applications" />
         <LinkRow label="Payment" route="/tenant/payment" />
+        <LinkRow label="Payment Success" route="/tenant/payment/success" />
+        <LinkRow label="Payment E-Wallet Redirect" route="/tenant/payment/e-wallet-redirect" />
         <LinkRow label="Payment History" route="/tenant/payment/history" />
-        <LinkRow label="Payment Methods" route="/tenant/payment/methods" />
+        <LinkRow label="Payment Methods" route="/tenant/payment/saved-methods" />
+        <LinkRow label="Add Payment Method" route="/tenant/payment/saved-methods/add" />
+        <LinkRow label="Saved Methods — Card Form" route="/tenant/payment/saved-methods/card-form" />
+        <LinkRow label="Saved Methods — E-Wallet Redirect" route="/tenant/payment/saved-methods/e-wallet-redirect" />
         <LinkRow label="Request Maintenance" route="/tenant/request-maintenance" />
         <LinkRow label="Maintenance History" route="/tenant/maintenance-history" />
       </Section>

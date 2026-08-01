@@ -14,6 +14,7 @@ import {
   getCheckoutSessionStatus,
   PaymongoError,
 } from '@/service/paymongoService'
+import { Button } from 'heroui-native'
 
 export default function EWalletRedirect() {
   const { method, sessionId, checkoutUrl } = useLocalSearchParams();
@@ -147,14 +148,20 @@ export default function EWalletRedirect() {
           </Text>
         )}
 
-        <View className='mt-5 w-full'>
-          <PillButton
-            label={isVerifying ? 'Checking…' : hasLaunched ? 'Check Payment Status' : connectLabel}
-            isFullWidth
-            isDisabled={isVerifying}
-            onPress={handlePrimaryPress}
-          />
-        </View>
+        <Button
+          isDisabled={isVerifying}
+          className='mt-5 w-full'
+          onPress={handlePrimaryPress}
+        >
+          <Button.Label>
+            {isVerifying
+              ? 'Checking…'
+              : hasLaunched
+                ? 'Check Payment Status'
+                : connectLabel
+            }
+          </Button.Label>
+        </Button>
       </View>
 
       <ErrorDialog
