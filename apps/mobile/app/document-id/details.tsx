@@ -1,13 +1,19 @@
-import { Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
+import { View, Text, TouchableOpacity, ImageSourcePropType } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import ImageViewing from 'react-native-image-viewing';
-import { useState } from 'react';
+import { Image } from 'expo-image'
+import ImageViewing from 'react-native-image-viewing'
+import { useState } from 'react'
+
+import { IconZoomIn } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 
+import { useColors } from '@/hooks/useTheme'
+
 export default function Details() {
   const { docImage, docType } = useLocalSearchParams();
+  const { colors } = useColors();
 
   const [isDocumentVisiable, setIsDocumentVisiable] = useState<boolean>(false);
 
@@ -18,22 +24,30 @@ export default function Details() {
       header={
         <StandardHeader title={docType as string} />
       }
-      className='p-5 flex items-center justify-center'
+      className='p-5'
     >
-      <TouchableOpacity
-        className='w-full h-[70%] rounded-3xl border border-gray-300 p-3'
-        activeOpacity={0.7}
-        onPress={() => setIsDocumentVisiable(true)}
-      >
-        <Image
-          source={imageSource}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-          resizeMode='contain'
-        />
-      </TouchableOpacity>
+      <View className='flex-1 gap-4'>
+        <TouchableOpacity
+          className='flex-1 bg-surface border border-border rounded-3xl shadow-none overflow-hidden'
+          activeOpacity={0.7}
+          onPress={() => setIsDocumentVisiable(true)}
+        >
+          <Image
+            source={imageSource}
+            style={{ width: '100%', height: '100%' }}
+            contentFit='contain'
+            cachePolicy='disk'
+            transition={150}
+          />
+        </TouchableOpacity>
+
+        <View className='flex-row items-center justify-center gap-1.5'>
+          <IconZoomIn size={18} color={colors.gray400} />
+          <Text className='text-muted text-sm font-interMedium'>
+            Tap to view full screen
+          </Text>
+        </View>
+      </View>
 
       {/* For Image Viewing */}
       <ImageViewing

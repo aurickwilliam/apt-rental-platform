@@ -1,23 +1,30 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Image as RNImage } from 'react-native'
+import { Image } from 'expo-image'
 import ImageViewing from 'react-native-image-viewing'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
+import { Button } from 'heroui-native'
+
+import {
+  IconFileUpload,
+  IconPlus,
+  IconQuestionMark,
+  IconShieldCheck,
+} from '@tabler/icons-react-native'
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import PillButton from '@/components/buttons/PillButton'
 import DocumentCard from './components/DocumentCard'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
 
 import { useColors } from '@/hooks/useTheme'
 
-import { CircleQuestionMark } from 'lucide-react-native';
-
 type UploadedDocument = {
   id: number;
   type: string;
-  image: string; 
+  image: string;
 }
 
 export default function Index() {
@@ -33,35 +40,33 @@ export default function Index() {
     {
       id: 1,
       type: 'Proof of Income',
-      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
+      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
     },
     {
       id: 2,
       type: 'Proof of Residency',
-      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
+      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
     },
     {
       id: 3,
       type: 'Birth Certificate',
-      image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
+      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
     }
   ]
 
   const mainValidId = {
     id: 67,
     type: 'National ID',
-    image: Image.resolveAssetSource(SAMPLE_IMAGES.sampleNationalID).uri,
+    image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleNationalID).uri,
   }
 
-  // uploadedDocuments.pop();
-  // uploadedDocuments.pop();
-  // uploadedDocuments.pop();
+  const hasDocuments = uploadedDocuments.length > 0
 
   return (
     <ScreenWrapper
       header={
-        <StandardHeader 
-          title='Document & IDs' 
+        <StandardHeader
+          title='Document & IDs'
           onBackPress={() => router.replace('/(tabs)/(tenant)/profile')}
         />
       }
@@ -69,112 +74,125 @@ export default function Index() {
       scrollable
     >
       {/* User ID upon account validation */}
-      <View>
-        <View className='flex gap-1'>
-          <Text className='text-foreground text-xl font-interSemiBold'>
-            Valid ID/Government ID
-          </Text>
-          <Text className='text-muted text-lg font-inter'>
-            {mainValidId.type}
-          </Text>
+      <View className='gap-3'>
+        <View className='flex-row items-center justify-between gap-3'>
+          <View className='flex-1 gap-0.5'>
+            <Text className='text-foreground text-lg font-interSemiBold'>
+              Valid ID / Government ID
+            </Text>
+            <Text className='text-muted text-sm font-inter'>
+              {mainValidId.type}
+            </Text>
+          </View>
+
+          <View className='flex-row items-center gap-1 px-3 py-1 rounded-full border border-success bg-success-light'>
+            <IconShieldCheck size={14} color={colors.success} />
+            <Text className='text-xs font-interMedium text-success'>
+              Verified
+            </Text>
+          </View>
         </View>
 
         <TouchableOpacity
-          className='w-full h-72 mt-3 border-2 border-accent rounded-2xl'
+          className='bg-surface border border-border rounded-3xl shadow-none overflow-hidden'
           activeOpacity={0.7}
           onPress={() => setIsIdVisible(!isIdVisible)}
         >
-          <Image 
-            source={{ uri: mainValidId.image }}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-            resizeMode='cover'
-          />
+          <View className='w-full bg-gray-200'>
+            <Image
+              source={{ uri: mainValidId.image }}
+              style={{ width: '100%', aspectRatio: 16 / 9 }}
+              contentFit='cover'
+              cachePolicy='disk'
+              transition={150}
+            />
+          </View>
         </TouchableOpacity>
       </View>
 
-      {
-        uploadedDocuments.length <= 0 ? (
-          <>
-            <View>
-              <Text className='text-foreground text-xl font-interSemiBold mt-5 mb-3'>
-                Other Documents
-              </Text>
+      {!hasDocuments ? (
+        <View className='flex-1 items-center gap-4 pt-16 px-4'>
+          <IconFileUpload size={64} color={colors.primary} />
+          <Text className='text-foreground text-xl font-interSemiBold text-center'>
+            No documents yet
+          </Text>
+          <Text className='text-gray-400 text-base font-inter text-center px-8 leading-relaxed'>
+            Add your IDs and supporting documents so they&apos;re ready when you apply for an apartment.
+          </Text>
 
-              <View>
-                <Text className='text-foreground text-base font-interMedium'>
-                  Upload additional documents such as:
-                </Text>
-                <Text className='text-muted text-base font-inter mt-1'>
-                  - Proof of Income (e.g., payslips, bank statements)
-                </Text>
-                <Text className='text-muted text-base font-inter mt-1'>
-                  - Proof of Residency (e.g., utility bills, lease agreements)
-                </Text>
-                <Text className='text-muted text-base font-inter mt-1'>
-                  - Birth Certificate (if applicable)
-                </Text>
+          <Button
+            size='lg'
+            onPress={() => router.push('/document-id/select-document')}
+          >
+            <IconPlus size={20} color='#FFFFFF' />
+            <Button.Label className='text-white font-interSemiBold'>
+              Add a Document
+            </Button.Label>
+          </Button>
+
+          {/* Info card */}
+          <View className='mt-8 w-full bg-surface border border-border rounded-3xl p-4 gap-3'>
+            <View className='flex-row gap-3'>
+              <View className='size-11 rounded-2xl bg-primary-light items-center justify-center'>
+                <IconFileUpload size={22} color={colors.primary} />
               </View>
 
-              <View className='mt-5 flex gap-3'>
-                <Text className='text-foreground text-base font-interMedium'>
+              <View className='flex-1 gap-1'>
+                <Text className='text-foreground text-base font-interMedium leading-snug'>
                   Uploading your documents early allows for faster and easier submission when applying for rentals.
                 </Text>
-                <Text className='text-muted text-base font-interMedium'>
+                <Text className='text-muted text-sm font-inter leading-snug'>
                   Note: Uploaded documents will be securely stored and only shared with landlords during the application process.
                 </Text>
-
-                <PillButton 
-                  label='Add a Document'
-                  size='sm'
-                  onPress={() => {
-                    router.push('/document-id/select-document')
-                  }}
-                />
               </View>
             </View>
-          </>
-        ) : (
-          <>
-            <Text className='text-foreground text-xl font-interSemiBold mt-8 mb-3'>
-              Uploaded Documents
-            </Text>
+          </View>
+        </View>
+      ) : (
+        <>
+          <Text className='text-foreground text-lg font-interSemiBold mt-8 mb-3'>
+            Uploaded Documents
+          </Text>
 
-            <View className='flex-row flex-wrap gap-4 gap-y-5 mb-10'>
-              {
-                uploadedDocuments.map(doc => (
-                  <DocumentCard 
-                    key={doc.id}
-                    image={doc.image}
-                    label={doc.type}
-                    onPress={() => router.push(`/document-id/details?docImage=${doc.image}&docType=${doc.type}`)}
-                  />
-                ))
-              }
-            </View>
-          </>
-        )
-      }
+          <View className='flex-row flex-wrap gap-x-4 gap-y-5'>
+            {
+              uploadedDocuments.map(doc => (
+                <DocumentCard
+                  key={doc.id}
+                  image={doc.image}
+                  label={doc.type}
+                  onPress={() => router.push(`/document-id/details?docImage=${doc.image}&docType=${doc.type}`)}
+                />
+              ))
+            }
+          </View>
 
-      <View className='flex-1'/>
+          <Button
+            variant='outline'
+            className='mt-6'
+            onPress={() => router.push('/document-id/select-document')}
+          >
+            <IconPlus size={18} color={colors.primary} />
+            <Button.Label className='text-primary font-interMedium'>
+              Add Document
+            </Button.Label>
+          </Button>
+        </>
+      )}
 
-      <View className='w-full flex items-center justify-center h-20 '>
+      {/* Need help */}
+      <View className='w-full items-center justify-center py-10'>
         <Text className='text-foreground text-base font-interMedium'>
           Need help?
         </Text>
         {
           // TODO: Implement contact support functionality, such as opening a chat with customer support or redirecting to a help center page.
         }
-        <TouchableOpacity 
-          className='flex-row gap-1 items-center justify-center'
+        <TouchableOpacity
+          className='flex-row gap-1 items-center justify-center mt-1'
           activeOpacity={0.7}
         >
-          <CircleQuestionMark 
-            size={20} 
-            color={colors.primary} 
-          />
+          <IconQuestionMark size={20} color={colors.primary} />
           <Text className='text-accent text-base font-interMedium'>
             Contact Support
           </Text>
