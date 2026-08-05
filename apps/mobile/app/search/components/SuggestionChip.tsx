@@ -1,6 +1,6 @@
-import { ScrollView, Pressable, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
-import { useColors } from '@/hooks/useTheme';
+import { Chip } from 'heroui-native';
 
 interface SuggestionChipProps {
   label: string;
@@ -8,28 +8,14 @@ interface SuggestionChipProps {
 }
 
 function SuggestionChip({ label, onPress }: SuggestionChipProps) {
-  const { colors } = useColors();
-
   return (
-    <Pressable
+    <Chip
+      variant="soft"
       onPress={onPress}
-      accessibilityRole="button"
       accessibilityLabel={`Send suggestion: ${label}`}
-      style={{
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: colors.gray300,
-        backgroundColor: colors.surface,
-        marginRight: 8,
-        marginBottom: 6,
-      }}
     >
-      <Text style={{ fontSize: 13, color: colors.textPrimary, fontFamily: 'Inter_500Medium' }}>
-        {label}
-      </Text>
-    </Pressable>
+      <Chip.Label>{label}</Chip.Label>
+    </Chip>
   );
 }
 
@@ -46,7 +32,7 @@ export function SuggestionChipScroll({ suggestions, onSelect }: SuggestionChipRo
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
       >
         {suggestions.map((suggestion) => (
           <SuggestionChip
@@ -64,7 +50,7 @@ export function SuggestionChipFlex({ suggestions, onSelect }: SuggestionChipRowP
   if (suggestions.length === 0) return null;
 
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: 4 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingVertical: 4 }}>
       {suggestions.map((suggestion) => (
         <SuggestionChip
           key={suggestion}
