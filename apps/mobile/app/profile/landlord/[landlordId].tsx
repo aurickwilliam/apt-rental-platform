@@ -2,8 +2,9 @@ import {
   View,
   Text,
   FlatList,
+  Pressable,
 } from 'react-native'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -65,15 +66,21 @@ export default function PublicLandlordProfile() {
   const firstName = fullName.split(' ')[0] || 'Landlord';
 
   const memberSince = useMemo(() => {
-    if (!profile?.created_at) return 'N/A';
+    if (!profile?.created_at) return '—';
     const parsed = new Date(profile.created_at);
-    if (Number.isNaN(parsed.getTime())) return 'N/A';
+    if (Number.isNaN(parsed.getTime())) return '—';
     return parsed.toLocaleString('default', { month: 'long', year: 'numeric' });
   }, [profile?.created_at]);
 
-  const location = [profile?.city, profile?.province].filter(Boolean).join(', ') || 'N/A';
+  const location = [profile?.city, profile?.province].filter(Boolean).join(', ') || '—';
 
   const avatarInitials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`.toUpperCase();
+
+  const VISIBLE_LISTING_LIMIT = 5;
+  const [showAllListings, setShowAllListings] = useState(false);
+  const visibleListings = showAllListings
+    ? listings
+    : listings.slice(0, VISIBLE_LISTING_LIMIT);
 
   // TODO: Implement function to handle report landlord
   const handleReportLandlord = () => {
@@ -115,7 +122,6 @@ export default function PublicLandlordProfile() {
         email={profile?.email}
         avatarInitials={avatarInitials}
         loading={loading}
-        role="landlord"
         accountStatus={profile?.account_status}
       />
 
@@ -165,7 +171,7 @@ export default function PublicLandlordProfile() {
               Contact Number
             </Text>
             <Text className="text-base text-foreground font-interMedium">
-              {profile?.mobile_number ?? 'N/A'}
+              {profile?.mobile_number ?? '—'}
             </Text>
           </View>
         </View>
@@ -220,32 +226,48 @@ export default function PublicLandlordProfile() {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={listings}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
-            contentContainerStyle={{
-              paddingBottom: 16,
-              gap: 16,
-              marginTop: 12,
-            }}
-            renderItem={({ item }) => (
-              <ApartmentCard
-                {...item}
-                isGrid={true}
-                onPress={() => router.push(`/apartment/${item.id}`)}
-              />
+          <>
+            <FlatList
+              data={visibleListings}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={2}
+              scrollEnabled={false}
+              columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
+              contentContainerStyle={{
+                paddingBottom: 16,
+                gap: 16,
+                marginTop: 12,
+              }}
+              renderItem={({ item }) => (
+                <ApartmentCard
+                  {...item}
+                  isGrid={true}
+                  onPress={() => router.push(`/apartment/${item.id}`)}
+                />
+              )}
+            />
+
+            {listings.length > VISIBLE_LISTING_LIMIT && (
+              <Pressable
+                onPress={() => setShowAllListings((prev) => !prev)}
+                hitSlop={8}
+                className="items-center py-1"
+              >
+                <Text className="text-accent text-sm font-interMedium">
+                  {showAllListings
+                    ? 'Show less'
+                    : `See more (${listings.length - VISIBLE_LISTING_LIMIT} more)`}
+                </Text>
+              </Pressable>
             )}
-          />
+          </>
         )}
       </View>
 
       {/* Reviews */}
       <View className="mt-8 mx-5">
         <Text className="text-foreground text-xl font-interSemiBold">
-          {firstName}&apos;s Reviews
+          Recent Reviews
         </Text>
 
         {reviewsLoading ? (

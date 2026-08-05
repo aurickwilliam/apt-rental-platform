@@ -7,10 +7,13 @@ import { useColors } from 'hooks/useTheme'
 
 export type ProfileStat = {
   label: string
-  value: string
+  value?: string
+  variant?: 'default' | 'icon'
+  iconSize?: number
   icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
   iconColor?: string
   valueColor?: string
+  valueClassName?: string
 }
 
 interface ProfileStatsCardProps {
@@ -30,21 +33,41 @@ export default function ProfileStatsCard({ stats }: ProfileStatsCardProps) {
             {index > 0 && <View className="w-px self-stretch bg-border mx-1" />}
 
             <View className="flex-1 items-center gap-1">
-              {Icon && (
-                <Icon
-                  size={20}
-                  color={stat.iconColor ?? colors.textPrimary}
-                  strokeWidth={2.5}
-                />
+              {stat.variant === 'icon' ? (
+                <>
+                  {Icon && (
+                    <Icon
+                      size={stat.iconSize ?? 28}
+                      color={stat.iconColor ?? colors.textPrimary}
+                      strokeWidth={2.5}
+                    />
+                  )}
+
+                  <Text className="text-sm text-muted text-center font-interMedium leading-tight">
+                    {stat.label}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text className={`text-2xl font-interSemiBold ${stat.valueColor ?? 'text-foreground'} ${stat.valueClassName ?? ''}`}>
+                    {stat.value}
+                  </Text>
+
+                  <View className="flex-row items-center gap-1">
+                    {Icon && (
+                      <Icon
+                        size={16}
+                        color={stat.iconColor ?? colors.textPrimary}
+                        strokeWidth={2.5}
+                      />
+                    )}
+
+                    <Text className="text-sm text-muted text-center font-interMedium leading-tight">
+                      {stat.label}
+                    </Text>
+                  </View>
+                </>
               )}
-
-              <Text className={`text-2xl font-interSemiBold ${stat.valueColor ?? 'text-foreground'}`}>
-                {stat.value}
-              </Text>
-
-              <Text className="text-sm text-muted text-center font-interMedium leading-tight">
-                {stat.label}
-              </Text>
             </View>
           </Fragment>
         );
