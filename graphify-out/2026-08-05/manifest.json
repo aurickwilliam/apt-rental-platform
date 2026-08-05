@@ -950,8 +950,8 @@
     "semantic_hash": "4024ae45f4964a2b7bfe918975ef4d73"
   },
   "apps/mobile/app/search/ai-search.tsx": {
-    "mtime": 1785919076.333606,
-    "ast_hash": "fc1d4ecdf535ad321626af53d4eedecc",
+    "mtime": 1785917977.2213569,
+    "ast_hash": "d1a0502916a59b66ccfcb4c1b5f987cf",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
@@ -3265,13 +3265,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/AIHeader.tsx": {
-    "mtime": 1785918541.2005153,
-    "ast_hash": "22d1abb59262464dcd58c932b440d909",
+    "mtime": 1785917921.5925074,
+    "ast_hash": "7124b21baa26dadb9ecdfa1a67a8927f",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/SuggestionChip.tsx": {
-    "mtime": 1785918262.0101573,
-    "ast_hash": "a4efb215e9be966902aedcb2dd70d571",
+    "mtime": 1785852180.5021377,
+    "ast_hash": "9100b7c0ce7f56554be9335c991dbb97",
     "semantic_hash": ""
   }
 }

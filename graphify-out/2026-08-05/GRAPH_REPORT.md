@@ -5,7 +5,7 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2718 nodes · 5564 edges · 267 communities (155 shown, 112 thin omitted)
+- 2718 nodes · 5564 edges · 266 communities (154 shown, 112 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
@@ -64,7 +64,7 @@
 - dependencies
 - useApplicationFormStore.ts
 - usePHPostalCode.ts
-- favorites.tsx
+- [landlordId].tsx
 - AppNavbar.tsx
 - FilterContainer.tsx
 - components.json
@@ -259,9 +259,8 @@
 - TenantApplicationCard.tsx
 - payment/index.tsx
 - vehicles.ts
-- [landlordId].tsx
+- expo-web-browser
 - radix-ui
-- react-dom
 - edit-main.tsx
 - deno.d.ts
 - zustand
@@ -292,8 +291,8 @@
   apps/web/app/tenant/messages/page.tsx → packages/supabase/src/server.ts
 
 ## Import Cycles
-- 2-file cycle: `apps/mobile/hooks/applications/index.ts -> apps/mobile/hooks/applications/useTenantApplications.ts -> apps/mobile/hooks/applications/index.ts`
 - 2-file cycle: `apps/mobile/hooks/applications/index.ts -> apps/mobile/hooks/applications/useApplicationActions.ts -> apps/mobile/hooks/applications/index.ts`
+- 2-file cycle: `apps/mobile/hooks/applications/index.ts -> apps/mobile/hooks/applications/useTenantApplications.ts -> apps/mobile/hooks/applications/index.ts`
 
 ## Hyperedges (group relationships)
 - **App Stack Components** — agents_web_app, agents_mobile_app, agents_supabase, agents_monorepo [EXTRACTED 1.00]
@@ -310,7 +309,7 @@
 - **APT Logo System** — apps_web_public_logo_logo_apt_brand_icon, apps_web_public_logo_logo_name_apt_full_logo, apps_web_public_logo_logo_name_transparent_apt_transparent_logo, apps_web_public_logo_logo_white_apt_white_icon, apps_web_public_logo_logo_white_name_apt_white_full_logo [EXTRACTED 1.00]
 - **Third-Party Social Login Provider Logos** — apps_web_public_third_party_apple_logo_logo, apps_web_public_third_party_facebook_logo_logo, apps_web_public_third_party_google_logo_logo [EXTRACTED 1.00]
 
-## Communities (267 total, 112 thin omitted)
+## Communities (266 total, 112 thin omitted)
 
 ### Community 0 - "images.ts"
 Cohesion: 0.07
@@ -504,9 +503,9 @@ Nodes (17): DocKey, getContentType(), MIME_MAP, SubmitArgs, SubmitResult, upload
 Cohesion: 0.29
 Nodes (8): PH_ZIP_DATABASE, PHLocation, TODO: Expand this database over time, starting with major cities and regions., TODO: The full list of Philippine ZIP codes is available from PHPost at…, isValidPHZip(), lookupLocation(), UsePHPostalCodeOptions, UsePHPostalCodeReturn
 
-### Community 49 - "favorites.tsx"
-Cohesion: 0.28
-Nodes (11): TenantFavorites(), useFavorites(), ApartmentImageRow, ApartmentRow, deleteFavorite(), FavoriteApartment, FavoriteRow, fetchApartmentsByIds() (+3 more)
+### Community 49 - "[landlordId].tsx"
+Cohesion: 0.15
+Nodes (18): LandlordListing, LandlordProfileData, TODO: Implement function to handle report landlord, ApartmentsList(), ApartmentsListProps, TenantFavorites(), ApartmentCard(), ApartmentCardProps (+10 more)
 
 ### Community 50 - "AppNavbar.tsx"
 Cohesion: 0.15
@@ -554,7 +553,7 @@ Nodes (5): GENDERS, LANGUAGES, SUFFIXES, SECONDARY_IDS, VALID_IDS
 
 ### Community 61 - "dependencies"
 Cohesion: 0.12
-Nodes (17): dependencies, expo-image-picker, expo-web-browser, @giphy/react-native-sdk, lucide-react-native, react-native-gifted-charts, react-native-reanimated, react-native-svg-transformer (+9 more)
+Nodes (17): dependencies, expo-image-picker, @giphy/react-native-sdk, lucide-react-native, react-dom, react-native-gifted-charts, react-native-reanimated, react-native-svg-transformer (+9 more)
 
 ### Community 62 - "chart.tsx"
 Cohesion: 0.18
@@ -710,7 +709,7 @@ Nodes (12): getLastMessageDisplay(), MessageCard(), MessageCardProps, Chat(), Co
 
 ### Community 100 - "formatPesoDisplay"
 Cohesion: 0.17
-Nodes (12): FieldErrors, ThirdStep(), ApartmentImage, PropertyOverview(), Props, PaymentSummaryCard(), PaymentSummaryCardProps, AddressInput (+4 more)
+Nodes (12): FieldErrors, ThirdStep(), ApartmentImage, PropertyOverview(), Props, PaymentFooter(), PaymentFooterProps, AddressInput (+4 more)
 
 ### Community 101 - "chatService.ts"
 Cohesion: 0.20
@@ -858,11 +857,7 @@ Nodes (5): getInitials(), STATUS_STYLES, TenantApplicationCard(), TenantApplicat
 
 ### Community 258 - "payment/index.tsx"
 Cohesion: 0.10
-Nodes (22): validateCashPayment(), PaymentFooter(), PaymentFooterProps, EWalletRedirect(), INITIAL_CARD, PaymentCheckout(), TODO: Record payment in payment_history, TODO: Update tenant rent status (+14 more)
-
-### Community 260 - "[landlordId].tsx"
-Cohesion: 0.29
-Nodes (7): LandlordListing, LandlordProfileData, TODO: Implement function to handle report landlord, ApartmentsList(), ApartmentsListProps, ApartmentCard(), ApartmentCardProps
+Nodes (22): validateCashPayment(), PaymentSummaryCard(), PaymentSummaryCardProps, EWalletRedirect(), INITIAL_CARD, PaymentCheckout(), TODO: Record payment in payment_history, TODO: Update tenant rent status (+14 more)
 
 ### Community 263 - "edit-main.tsx"
 Cohesion: 0.18
@@ -876,9 +871,9 @@ Nodes (13): ApartmentInformation, DisplayImage, EditMain(), validateForm(), Apar
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useColors()` connect `useColors` to `images.ts`, `DropdownField.tsx`, `[landlordId].tsx`, `applications/components/VisitRequestCard.tsx`, `applications/index.ts`, `units.tsx`, `edit-main.tsx`, `apartments/index.ts`, `maintenance-requests/index.ts`, `app/_layout.tsx`, `request-maintenance.tsx`, `PaymentMethodSelector.tsx`, `rentals.tsx`, `review-information.tsx`, `second-step.tsx`, `fifth-step.tsx`, `ai-search.tsx`, `supabase/src/index.ts`, `favorites.tsx`, `step-five.tsx`, `FilterBottomSheet.tsx`, `reviews/index.tsx`, `(auth)/otp-verification.tsx`, `ScreenWrapper.tsx`, `RescheduleSheet.tsx`, `edit-profile.tsx`, `formatDate`, `pending.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `description/index.tsx`, `visitRequests/index.ts`, `tenant-profile/[tenantId].tsx`, `useProfile`, `applications/[applicationId].tsx`, `ChatBubble.tsx`, `history/index.tsx`, `TabBar.tsx`, `hooks/src/index.ts`, `[conversationId].tsx`, `PropertyCard.tsx`, `(tenant)/chat.tsx`, `formatPesoDisplay`, `CustomTabBar.tsx`, `PropertyFilterSheet.tsx`, `current-apartment.tsx`, `MapPreviewSection.tsx`?**
+- **Why does `useColors()` connect `useColors` to `images.ts`, `DropdownField.tsx`, `applications/components/VisitRequestCard.tsx`, `applications/index.ts`, `units.tsx`, `edit-main.tsx`, `apartments/index.ts`, `maintenance-requests/index.ts`, `app/_layout.tsx`, `request-maintenance.tsx`, `PaymentMethodSelector.tsx`, `rentals.tsx`, `review-information.tsx`, `second-step.tsx`, `fifth-step.tsx`, `ai-search.tsx`, `supabase/src/index.ts`, `[landlordId].tsx`, `step-five.tsx`, `FilterBottomSheet.tsx`, `reviews/index.tsx`, `(auth)/otp-verification.tsx`, `ScreenWrapper.tsx`, `RescheduleSheet.tsx`, `edit-profile.tsx`, `formatDate`, `pending.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `description/index.tsx`, `visitRequests/index.ts`, `tenant-profile/[tenantId].tsx`, `useProfile`, `applications/[applicationId].tsx`, `ChatBubble.tsx`, `history/index.tsx`, `TabBar.tsx`, `hooks/src/index.ts`, `[conversationId].tsx`, `PropertyCard.tsx`, `(tenant)/chat.tsx`, `formatPesoDisplay`, `CustomTabBar.tsx`, `PropertyFilterSheet.tsx`, `current-apartment.tsx`, `MapPreviewSection.tsx`?**
   _High betweenness centrality (0.092) - this node is a cross-community bridge._
-- **Why does `expo-router` connect `expo-router` to `images.ts`, `payment/index.tsx`, `[landlordId].tsx`, `edit-main.tsx`, `applications/index.ts`, `units.tsx`, `apartments/index.ts`, `app/_layout.tsx`, `request-maintenance.tsx`, `rentals.tsx`, `review-information.tsx`, `second-step.tsx`, `fifth-step.tsx`, `utils/src/index.ts`, `ai-search.tsx`, `supabase/src/index.ts`, `favorites.tsx`, `step-five.tsx`, `useColors`, `FilterBottomSheet.tsx`, `reviews/index.tsx`, `(auth)/otp-verification.tsx`, `ScreenWrapper.tsx`, `edit-profile.tsx`, `formatDate`, `first-process.tsx`, `pending.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `description/index.tsx`, `onboarding.tsx`, `tenant-profile/[tenantId].tsx`, `useProfile`, `applications/[applicationId].tsx`, `plugins`, `history/index.tsx`, `hooks/src/index.ts`, `[conversationId].tsx`, `(tenant)/chat.tsx`, `formatPesoDisplay`, `CustomTabBar.tsx`, `playground.tsx`, `current-apartment.tsx`?**
+- **Why does `expo-router` connect `expo-router` to `images.ts`, `payment/index.tsx`, `edit-main.tsx`, `applications/index.ts`, `units.tsx`, `apartments/index.ts`, `app/_layout.tsx`, `request-maintenance.tsx`, `rentals.tsx`, `review-information.tsx`, `second-step.tsx`, `fifth-step.tsx`, `utils/src/index.ts`, `ai-search.tsx`, `supabase/src/index.ts`, `[landlordId].tsx`, `step-five.tsx`, `useColors`, `FilterBottomSheet.tsx`, `reviews/index.tsx`, `(auth)/otp-verification.tsx`, `ScreenWrapper.tsx`, `edit-profile.tsx`, `formatDate`, `first-process.tsx`, `pending.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `description/index.tsx`, `onboarding.tsx`, `tenant-profile/[tenantId].tsx`, `useProfile`, `applications/[applicationId].tsx`, `plugins`, `history/index.tsx`, `hooks/src/index.ts`, `[conversationId].tsx`, `(tenant)/chat.tsx`, `formatPesoDisplay`, `CustomTabBar.tsx`, `playground.tsx`, `current-apartment.tsx`?**
   _High betweenness centrality (0.056) - this node is a cross-community bridge._
 - **Why does `createClient()` connect `createClient` to `my-rental/page.tsx`, `AuthWrapper.tsx`, `create/page.tsx`, `supabase/src/index.ts`, `[apartmentId]/page.tsx`, `AppNavbar.tsx`, `landlord/messages/components/ConversationView.tsx`, `SignUpForm.tsx`, `PropertyDetailsSheet.tsx`, `ApartmentImagesModal.tsx`, `tenant/messages/components/ConversationView.tsx`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
