@@ -1475,7 +1475,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_success",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "verify-account/success.tsx"
     },
@@ -1486,7 +1486,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_success_success",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "success()"
     },
@@ -1497,7 +1497,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_upload_id",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "upload-id.tsx"
     },
@@ -1508,7 +1508,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_upload_id_uploadid",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "uploadid()"
     },
@@ -2443,8 +2443,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationlist",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationlist.tsx"
     },
     {
@@ -2454,8 +2454,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationlist_applicationslist",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationslist()"
     },
     {
@@ -2498,8 +2498,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscardskeleton",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationstatuscardskeleton.tsx"
     },
     {
@@ -2509,8 +2509,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscardskeleton_applicationstatuscardskeleton",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationstatuscardskeleton()"
     },
     {
@@ -2520,8 +2520,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationsemptystate",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationsemptystate.tsx"
     },
     {
@@ -2531,8 +2531,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationsemptystate_applicationsemptystate",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationsemptystate()"
     },
     {
@@ -4445,7 +4445,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_components_documentcard",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "documentcard.tsx"
     },
@@ -4456,7 +4456,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_components_documentcard_documentcardprops",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "documentcardprops"
     },
@@ -4467,7 +4467,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_components_documentcard_documentcard",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "documentcard()"
     },
@@ -4500,7 +4500,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_index",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "document-id/index.tsx"
     },
@@ -4511,7 +4511,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_index_uploadeddocument",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "uploadeddocument"
     },
@@ -4522,7 +4522,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_index_index",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "index()"
     },
@@ -4533,7 +4533,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_index_rationale_29",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "todo: fetch and display user's uploaded documents and ids here. this may..."
     },
@@ -4544,7 +4544,7 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_index_rationale_168",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "todo: implement contact support functionality, such as opening a chat with..."
     },
@@ -4577,7 +4577,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_upload",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "upload.tsx"
     },
@@ -4588,7 +4588,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_upload_upload",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "upload()"
     },
@@ -5039,7 +5039,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_maintenancerequestcard",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "[apartmentid]/components/maintenancerequestcard.tsx"
     },
@@ -5050,7 +5050,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_maintenancerequestcard_maintenancerequestcardprops",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "maintenancerequestcardprops"
     },
@@ -5061,7 +5061,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_maintenancerequestcard_maintenancerequestcard",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "maintenancerequestcard()"
     },
@@ -5072,7 +5072,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "[apartmentid]/components/paymenthistorycard.tsx"
     },
@@ -5083,7 +5083,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycardprops",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "paymenthistorycardprops"
     },
@@ -5094,7 +5094,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycard",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "paymenthistorycard()"
     },
@@ -5105,7 +5105,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyactionmenu",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "propertyactionmenu.tsx"
     },
@@ -5116,7 +5116,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyactionmenu_props",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "props"
     },
@@ -5127,7 +5127,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyactionmenu_propertyactionmenu",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "propertyactionmenu()"
     },
@@ -5182,7 +5182,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyoverviewskeleton",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "propertyoverviewskeleton.tsx"
     },
@@ -5193,7 +5193,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyoverviewskeleton_propertyoverviewskeleton",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "propertyoverviewskeleton()"
     },
@@ -5545,7 +5545,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_index",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "manage-apartment/[apartmentid]/index.tsx"
     },
@@ -5556,7 +5556,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_index_index",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "index()"
     },
@@ -5633,7 +5633,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_amenities_amenities",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "amenities()"
     },
@@ -5688,7 +5688,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "fourth-step.tsx"
     },
@@ -5699,7 +5699,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "fourthstep()"
     },
@@ -5710,7 +5710,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "add-apartment/index.tsx"
     },
@@ -5721,7 +5721,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index_formerrors",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "formerrors"
     },
@@ -5732,7 +5732,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index_index",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "index()"
     },
@@ -5743,7 +5743,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_map_pin",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "map-pin.tsx"
     },
@@ -5754,7 +5754,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_map_pin_default_coords",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "default_coords"
     },
@@ -5765,7 +5765,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_map_pin_map_style",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "map_style"
     },
@@ -5776,7 +5776,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_map_pin_mappin",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "mappin()"
     },
@@ -6796,7 +6796,7 @@
       "label": "PublicLandlordProfile()",
       "file_type": "code",
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L33",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "apps_mobile_app_profile_landlord_landlordid_publiclandlordprofile",
       "community": 0,
@@ -6807,9 +6807,9 @@
       "label": "TODO: Implement function to handle report landlord",
       "file_type": "rationale",
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L85",
+      "source_location": "L86",
       "_origin": "ast",
-      "id": "apps_mobile_app_profile_landlord_landlordid_rationale_85",
+      "id": "apps_mobile_app_profile_landlord_landlordid_rationale_86",
       "community": 57,
       "community_name": "useColors",
       "norm_label": "todo: implement function to handle report landlord"
@@ -7514,8 +7514,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_index",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applications/index.tsx"
     },
     {
@@ -7525,8 +7525,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_index_applicationspage",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationspage()"
     },
     {
@@ -8768,7 +8768,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_checkbox",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "checkbox.tsx"
     },
@@ -8779,7 +8779,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_checkbox_checkboxprops",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "checkboxprops"
     },
@@ -8790,7 +8790,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_checkbox_checkbox",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "checkbox()"
     },
@@ -8867,7 +8867,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_pillbutton",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "pillbutton.tsx"
     },
@@ -8878,7 +8878,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_pillbutton_pillbuttonprops",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "pillbuttonprops"
     },
@@ -8889,7 +8889,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_pillbutton_type_styles",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "type_styles"
     },
@@ -8900,7 +8900,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_components_buttons_pillbutton_pillbutton",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "pillbutton()"
     },
@@ -10143,7 +10143,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "uploadimagefield.tsx"
     },
@@ -10154,7 +10154,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield_uploadimagefieldprops",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "uploadimagefieldprops"
     },
@@ -10165,7 +10165,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield_uploadimagefield",
-      "community": 69,
+      "community": 32,
       "community_name": "document-id/index.tsx",
       "norm_label": "uploadimagefield()"
     },
@@ -11243,8 +11243,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "usetenantapplications.ts"
     },
     {
@@ -11254,8 +11254,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_applicationdocument",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "applicationdocument"
     },
     {
@@ -11265,8 +11265,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_tenantapplication",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "tenantapplication"
     },
     {
@@ -11276,8 +11276,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_usetenantapplications",
-      "community": 258,
-      "community_name": "ApplicationList.tsx",
+      "community": 7,
+      "community_name": "applications/index.ts",
       "norm_label": "usetenantapplications()"
     },
     {
@@ -12420,7 +12420,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_uselandlordtenancy_uselandlordtenancy",
-      "community": 32,
+      "community": 81,
       "community_name": "manage-apartment/[apartmentId]/index.tsx",
       "norm_label": "uselandlordtenancy()"
     },
@@ -12629,8 +12629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 25,
+      "community_name": "supabase",
       "norm_label": "usesubmitvisitrequest.ts"
     },
     {
@@ -12640,8 +12640,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_visitrequestpayload",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 25,
+      "community_name": "supabase",
       "norm_label": "visitrequestpayload"
     },
     {
@@ -12651,8 +12651,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_usesubmitvisitrequest",
-      "community": 83,
-      "community_name": "useProfile",
+      "community": 25,
+      "community_name": "supabase",
       "norm_label": "usesubmitvisitrequest()"
     },
     {
@@ -13905,8 +13905,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_mobile_package_dependencies_expo_web_browser",
-      "community": 259,
-      "community_name": "expo-web-browser",
+      "community": 61,
+      "community_name": "dependencies",
       "norm_label": "expo-web-browser"
     },
     {
@@ -13916,8 +13916,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "expo_web_browser",
-      "community": 259,
-      "community_name": "expo-web-browser",
+      "community": 61,
+      "community_name": "dependencies",
       "norm_label": "expo-web-browser"
     },
     {
@@ -14389,8 +14389,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "apps_mobile_package_dependencies_rn_emoji_keyboard",
-      "community": 61,
-      "community_name": "dependencies",
+      "community": 275,
+      "community_name": "rn-emoji-keyboard",
       "norm_label": "rn-emoji-keyboard"
     },
     {
@@ -14400,8 +14400,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "rn_emoji_keyboard",
-      "community": 61,
-      "community_name": "dependencies",
+      "community": 275,
+      "community_name": "rn-emoji-keyboard",
       "norm_label": "rn-emoji-keyboard"
     },
     {
@@ -15280,7 +15280,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "useapartmentformstore.ts"
     },
@@ -15291,7 +15291,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_apartmentformdata",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "apartmentformdata"
     },
@@ -15302,7 +15302,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_apartmentformactions",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "apartmentformactions"
     },
@@ -15313,7 +15313,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_initialstate",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "initialstate"
     },
@@ -15324,7 +15324,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
-      "community": 81,
+      "community": 69,
       "community_name": "useApartmentFormStore",
       "norm_label": "useapartmentformstore"
     },
@@ -55967,7 +55967,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_profile_landlord_landlordid",
@@ -56170,10 +56170,10 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L85",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "apps_mobile_app_profile_landlord_landlordid_rationale_85",
+      "source": "apps_mobile_app_profile_landlord_landlordid_rationale_86",
       "target": "apps_mobile_app_profile_landlord_landlordid",
       "confidence_score": 1.0
     },
@@ -56183,7 +56183,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_profile_landlord_landlordid_publiclandlordprofile",
@@ -56195,7 +56195,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/profile/landlord/[landlordId].tsx",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_profile_landlord_landlordid_publiclandlordprofile",
@@ -97288,5 +97288,5 @@
       "source_file": "apps/web/public/third-party/apple-logo.svg"
     }
   ],
-  "built_at_commit": "f17e126de181e90721cf626e904f3c2afbfb1e80"
+  "built_at_commit": "2fc4d2dd07b89a09f41f95d49c2db9e2f884d7a9"
 }

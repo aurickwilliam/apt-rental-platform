@@ -920,8 +920,8 @@
     "semantic_hash": "fdbff69cfa72853882f5c8a09f338cee"
   },
   "apps/mobile/app/profile/landlord/[landlordId].tsx": {
-    "mtime": 1785935713.1245828,
-    "ast_hash": "7835362f4c0436b1a30205c0e60d35aa",
+    "mtime": 1785938001.298995,
+    "ast_hash": "d1b6c5bc9a69de3b490b83aa753b68a4",
     "semantic_hash": ""
   },
   "apps/mobile/app/profile/tenant/[tenantId].tsx": {

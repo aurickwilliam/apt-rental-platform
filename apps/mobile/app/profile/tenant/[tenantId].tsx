@@ -155,18 +155,6 @@ export default function PublicTenantProfile() {
         </View>
 
         <View className="flex-row items-center gap-3">
-          <IconMapPin size={20} color={colors.textPrimary} />
-          <View className="flex-1">
-            <Text className="text-xs text-muted font-inter">
-              Location / Based In
-            </Text>
-            <Text className="text-base text-foreground font-interMedium">
-              {profile?.location ?? '—'}
-            </Text>
-          </View>
-        </View>
-
-        <View className="flex-row items-center gap-3">
           <IconMail size={20} color={colors.textPrimary} />
           <View className="flex-1">
             <Text className="text-xs text-muted font-inter">
@@ -174,6 +162,18 @@ export default function PublicTenantProfile() {
             </Text>
             <Text className="text-base text-foreground font-interMedium">
               {profile?.email ?? '—'}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center gap-3">
+          <IconMapPin size={20} color={colors.textPrimary} />
+          <View className="flex-1">
+            <Text className="text-xs text-muted font-inter">
+              Location / Based In
+            </Text>
+            <Text className="text-base text-foreground font-interMedium">
+              {profile?.location ?? '—'}
             </Text>
           </View>
         </View>
