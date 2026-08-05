@@ -950,8 +950,8 @@
     "semantic_hash": "4024ae45f4964a2b7bfe918975ef4d73"
   },
   "apps/mobile/app/search/ai-search.tsx": {
-    "mtime": 1785927940.5012197,
-    "ast_hash": "2c2ceef8d5433700ca66f8ceda3b246b",
+    "mtime": 1785928339.7740443,
+    "ast_hash": "d9597fabe95cde8b029dd82d9f7e4c4c",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
@@ -1480,8 +1480,8 @@
     "semantic_hash": "ad2e43a18af6fbe62a61bd6f7549e0f6"
   },
   "apps/mobile/hooks/chat/index.ts": {
-    "mtime": 1785927892.5836241,
-    "ast_hash": "6d6b50432464e44617d1b788fa38a9ef",
+    "mtime": 1785928291.119491,
+    "ast_hash": "c1dca905f17fdd011ab51b5f4db587df",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChat.ts": {
@@ -3285,8 +3285,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/MessageBubble.tsx": {
-    "mtime": 1785927918.2663932,
-    "ast_hash": "2eac991c874a77272b681836e1bed646",
+    "mtime": 1785928345.3902774,
+    "ast_hash": "54cc4a34f953b0270a753ee665e37507",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/MessageComposer.tsx": {
@@ -3299,14 +3299,9 @@
     "ast_hash": "dd2865660eea3b016a462a8a0ccda357",
     "semantic_hash": ""
   },
-  "apps/mobile/app/search/types.ts": {
-    "mtime": 1785927874.370354,
-    "ast_hash": "be3f5b188ace4ed0d808e240853e4373",
-    "semantic_hash": ""
-  },
   "apps/mobile/hooks/chat/useAIChat.ts": {
-    "mtime": 1785927887.6431363,
-    "ast_hash": "db9cb717124248dd55c127fcfc098234",
+    "mtime": 1785928286.5635872,
+    "ast_hash": "b1510df83a89cc5f92aa48aa6f4efc0b",
     "semantic_hash": ""
   }
 }
