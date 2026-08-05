@@ -25,6 +25,7 @@ import {
   IconMessageCircle,
   IconMapPin,
   IconPhone,
+  IconMail,
   IconCalendarMonth,
   IconBuildingSkyscraper,
   IconStar,
@@ -65,11 +66,11 @@ export default function PublicLandlordProfile() {
 
   const firstName = fullName.split(' ')[0] || 'Landlord';
 
-  const memberSince = useMemo(() => {
+  const memberSinceYear = useMemo(() => {
     if (!profile?.created_at) return '—';
     const parsed = new Date(profile.created_at);
     if (Number.isNaN(parsed.getTime())) return '—';
-    return parsed.toLocaleString('default', { month: 'long', year: 'numeric' });
+    return String(parsed.getFullYear());
   }, [profile?.created_at]);
 
   const location = [profile?.city, profile?.province].filter(Boolean).join(', ') || '—';
@@ -141,10 +142,10 @@ export default function PublicLandlordProfile() {
               valueColor: 'text-secondary',
             },
             {
-              label: 'Reviews',
-              value: String(totalReviews),
-              icon: IconStar,
-              iconColor: colors.secondary,
+              label: 'Member Since',
+              value: memberSinceYear,
+              icon: IconCalendarMonth,
+              iconColor: colors.textPrimary,
             },
           ]}
         />
@@ -152,18 +153,6 @@ export default function PublicLandlordProfile() {
 
       {/* Personal Information */}
       <View className="mx-5 mt-5 bg-surface rounded-3xl border border-border shadow-none p-4 gap-4">
-        <View className="flex-row items-center gap-3">
-          <IconMapPin size={20} color={colors.textPrimary} />
-          <View className="flex-1">
-            <Text className="text-xs text-muted font-inter">
-              Location / Based In
-            </Text>
-            <Text className="text-base text-foreground font-interMedium">
-              {location}
-            </Text>
-          </View>
-        </View>
-
         <View className="flex-row items-center gap-3">
           <IconPhone size={20} color={colors.textPrimary} />
           <View className="flex-1">
@@ -177,13 +166,25 @@ export default function PublicLandlordProfile() {
         </View>
 
         <View className="flex-row items-center gap-3">
-          <IconCalendarMonth size={20} color={colors.textPrimary} />
+          <IconMail size={20} color={colors.textPrimary} />
           <View className="flex-1">
             <Text className="text-xs text-muted font-inter">
-              Member Since
+              Email
             </Text>
             <Text className="text-base text-foreground font-interMedium">
-              {memberSince}
+              {profile?.email ?? '—'}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center gap-3">
+          <IconMapPin size={20} color={colors.textPrimary} />
+          <View className="flex-1">
+            <Text className="text-xs text-muted font-inter">
+              Location / Based In
+            </Text>
+            <Text className="text-base text-foreground font-interMedium">
+              {location}
             </Text>
           </View>
         </View>
