@@ -16,7 +16,8 @@ import { usePublicTenantProfile } from 'hooks/profiles'
 import { useColors } from 'hooks/useTheme'
 
 import {
-  IconShieldCheck,
+  IconShieldCheckFilled,
+  IconShieldX,
   IconCalendarMonth,
   IconStar,
   IconMapPin,
@@ -24,6 +25,7 @@ import {
   IconMail,
   IconMessageCircle,
   IconHomeSearch,
+  IconFlag,
 } from '@tabler/icons-react-native';
 
 export default function PublicTenantProfile() {
@@ -45,7 +47,7 @@ export default function PublicTenantProfile() {
     [apartmentId]
   );
 
-  const { profile, pastApartments, loading, refetch } = usePublicTenantProfile(resolvedTenantId);
+  const { profile, pastApartments, loading } = usePublicTenantProfile(resolvedTenantId);
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -55,7 +57,7 @@ export default function PublicTenantProfile() {
         .split(' ')
         .map((name) => name[0])
         .join('')
-        .toUpperCase() ?? 'U',
+        .toUpperCase() ?? '',
     [profile?.fullName]
   );
 
@@ -91,9 +93,13 @@ export default function PublicTenantProfile() {
     })
   }
 
+  // TODO: Implement function to handle report tenant
+  const handleReportTenant = () => {
+    console.log("Report Tenant Pressed");
+  }
+
   return (
     <ScreenWrapper
-      bottomPadding={50}
       scrollable
       header={<StandardHeader title="Tenant Profile" />}
     >
@@ -105,7 +111,6 @@ export default function PublicTenantProfile() {
         email={profile?.email}
         avatarInitials={avatarInitials}
         loading={loading}
-        role="tenant"
         accountStatus={profile?.isVerified ? 'verified' : (profile ? 'unverified' : null)}
       />
 
@@ -126,9 +131,9 @@ export default function PublicTenantProfile() {
               iconColor: colors.textPrimary,
             },
             {
-              label: 'Identity',
-              value: profile?.isVerified ? 'Verified' : 'Unverified',
-              icon: IconShieldCheck,
+              label: profile?.isVerified ? 'Verified' : 'Unverified',
+              variant: 'icon',
+              icon: profile?.isVerified ? IconShieldCheckFilled : IconShieldX,
               iconColor: profile?.isVerified ? colors.success : colors.gray500,
             },
           ]}
@@ -235,17 +240,15 @@ export default function PublicTenantProfile() {
         )}
       </View>
 
-      {/* Error / not found state */}
-      {!loading && !profile && (
-        <View className="items-center justify-center py-24 gap-3">
-          <Text className="text-muted font-interSemiBold text-center">
-            Could not load tenant profile.
-          </Text>
-          <Button size="sm" variant="outline" onPress={() => refetch()}>
-            <Button.Label>Retry</Button.Label>
-          </Button>
-        </View>
-      )}
+      {/* Report Button */}
+      <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
+        <Button variant="tertiary" size="md" onPress={handleReportTenant}>
+          <IconFlag size={20} color={colors.danger} />
+          <Button.Label className="text-danger font-interMedium">
+            Report {firstName}
+          </Button.Label>
+        </Button>
+      </View>
     </ScreenWrapper>
   );
 }

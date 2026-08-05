@@ -72,7 +72,7 @@ export default function ProfileHeader({
   };
 
   return (
-    <View className="relative h-80">
+    <View className="relative">
       {/* Background Photo */}
       <View
         style={{ marginTop: -insets.top, height: 180 + insets.top }}
@@ -111,8 +111,10 @@ export default function ProfileHeader({
             </Text>
           </Avatar.Fallback>
         </Avatar>
+      </View>
 
-        {/* Name and Email */}
+      {/* Name and Email */}
+      <View className="items-center pt-12">
         <View className="flex items-center justify-center">
           <Text className="text-foreground text-xl font-interSemiBold">
             {fullName}
