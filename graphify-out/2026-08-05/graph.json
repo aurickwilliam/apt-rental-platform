@@ -2630,7 +2630,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_search_apartmentslist",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "apartmentslist.tsx"
     },
@@ -2641,7 +2641,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_search_apartmentslist_apartmentslistprops",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "apartmentslistprops"
     },
@@ -2652,7 +2652,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_search_apartmentslist_apartmentslist",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "apartmentslist()"
     },
@@ -6920,7 +6920,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_profile_landlord_landlordid",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "[landlordid].tsx"
     },
@@ -6931,7 +6931,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_app_profile_landlord_landlordid_landlordprofiledata",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "landlordprofiledata"
     },
@@ -6942,7 +6942,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_mobile_app_profile_landlord_landlordid_landlordlisting",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "landlordlisting"
     },
@@ -6964,7 +6964,7 @@
       "source_location": "L193",
       "_origin": "ast",
       "id": "apps_mobile_app_profile_landlord_landlordid_rationale_193",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "todo: implement function to handle report landlord"
     },
@@ -7027,7 +7027,7 @@
       "label": "Message",
       "file_type": "code",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L28",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_app_search_ai_search_message",
       "community": 43,
@@ -7038,7 +7038,7 @@
       "label": "SUGGESTION_CHIPS",
       "file_type": "code",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L36",
+      "source_location": "L35",
       "_origin": "ast",
       "id": "apps_mobile_app_search_ai_search_suggestion_chips",
       "community": 43,
@@ -7049,7 +7049,7 @@
       "label": "INITIAL_MESSAGE",
       "file_type": "code",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L43",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "apps_mobile_app_search_ai_search_initial_message",
       "community": 43,
@@ -7669,7 +7669,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_favorites",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "favorites.tsx"
     },
     {
@@ -7680,7 +7680,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_favorites_tenantfavorites",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "tenantfavorites()"
     },
     {
@@ -7855,8 +7855,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentfooter",
-      "community": 258,
-      "community_name": "payment/index.tsx",
+      "community": 100,
+      "community_name": "formatPesoDisplay",
       "norm_label": "paymentfooter.tsx"
     },
     {
@@ -7866,8 +7866,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentfooter_paymentfooterprops",
-      "community": 258,
-      "community_name": "payment/index.tsx",
+      "community": 100,
+      "community_name": "formatPesoDisplay",
       "norm_label": "paymentfooterprops"
     },
     {
@@ -7877,8 +7877,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentfooter_paymentfooter",
-      "community": 258,
-      "community_name": "payment/index.tsx",
+      "community": 100,
+      "community_name": "formatPesoDisplay",
       "norm_label": "paymentfooter()"
     },
     {
@@ -8042,8 +8042,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentsummarycard",
-      "community": 100,
-      "community_name": "formatPesoDisplay",
+      "community": 258,
+      "community_name": "payment/index.tsx",
       "norm_label": "components/paymentsummarycard.tsx"
     },
     {
@@ -8053,8 +8053,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentsummarycard_paymentsummarycardprops",
-      "community": 100,
-      "community_name": "formatPesoDisplay",
+      "community": 258,
+      "community_name": "payment/index.tsx",
       "norm_label": "paymentsummarycardprops"
     },
     {
@@ -8064,8 +8064,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentsummarycard_paymentsummarycard",
-      "community": 100,
-      "community_name": "formatPesoDisplay",
+      "community": 258,
+      "community_name": "payment/index.tsx",
       "norm_label": "paymentsummarycard()"
     },
     {
@@ -9010,7 +9010,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_cards_apartmentcard",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "cards/apartmentcard.tsx"
     },
@@ -9021,7 +9021,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_components_cards_apartmentcard_apartmentcardprops",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "apartmentcardprops"
     },
@@ -9032,7 +9032,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_mobile_components_cards_apartmentcard_apartmentcard",
-      "community": 260,
+      "community": 49,
       "community_name": "[landlordId].tsx",
       "norm_label": "apartmentcard()"
     },
@@ -11453,7 +11453,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_index",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "favorites/index.ts"
     },
     {
@@ -11464,7 +11464,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "usefavorites.ts"
     },
     {
@@ -11475,7 +11475,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_usefavorites",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "usefavorites()"
     },
     {
@@ -13641,8 +13641,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_mobile_package_dependencies_expo_web_browser",
-      "community": 61,
-      "community_name": "dependencies",
+      "community": 260,
+      "community_name": "expo-web-browser",
       "norm_label": "expo-web-browser"
     },
     {
@@ -13652,8 +13652,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "expo_web_browser",
-      "community": 61,
-      "community_name": "dependencies",
+      "community": 260,
+      "community_name": "expo-web-browser",
       "norm_label": "expo-web-browser"
     },
     {
@@ -13729,8 +13729,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "apps_mobile_package_dependencies_react_dom",
-      "community": 262,
-      "community_name": "react-dom",
+      "community": 61,
+      "community_name": "dependencies",
       "norm_label": "react-dom"
     },
     {
@@ -13740,8 +13740,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "apps_mobile_package_json_react_dom",
-      "community": 262,
-      "community_name": "react-dom",
+      "community": 61,
+      "community_name": "dependencies",
       "norm_label": "react-dom"
     },
     {
@@ -14764,7 +14764,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "mobile/service/favoritesservice.ts"
     },
     {
@@ -14775,7 +14775,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_favoriterow",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "favoriterow"
     },
     {
@@ -14786,7 +14786,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_apartmentimagerow",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "apartmentimagerow"
     },
     {
@@ -14797,7 +14797,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_apartmentrow",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "apartmentrow"
     },
     {
@@ -14808,7 +14808,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_favoriteapartment",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "favoriteapartment"
     },
     {
@@ -14819,7 +14819,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_getcurrenttenantid",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "getcurrenttenantid()"
     },
     {
@@ -14830,7 +14830,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_fetchfavoriteapartmentids",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "fetchfavoriteapartmentids()"
     },
     {
@@ -14841,7 +14841,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_insertfavorite",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "insertfavorite()"
     },
     {
@@ -14852,7 +14852,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_deletefavorite",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "deletefavorite()"
     },
     {
@@ -14863,7 +14863,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_favoritesservice_fetchapartmentsbyids",
       "community": 49,
-      "community_name": "favorites.tsx",
+      "community_name": "[landlordId].tsx",
       "norm_label": "fetchapartmentsbyids()"
     },
     {
@@ -55924,7 +55924,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L43",
+      "source_location": "L42",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55935,7 +55935,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L28",
+      "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55946,7 +55946,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L36",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55958,7 +55958,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55970,7 +55970,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55982,7 +55982,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L24",
+      "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -55994,7 +55994,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L24",
+      "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56006,7 +56006,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L24",
+      "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56018,7 +56018,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L22",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56030,7 +56030,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L22",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56042,7 +56042,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56054,7 +56054,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56066,7 +56066,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L26",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56078,7 +56078,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L26",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search",
@@ -56101,7 +56101,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/search/ai-search.tsx",
-      "source_location": "L218",
+      "source_location": "L208",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_search_ai_search_aisearchscreen",
