@@ -1,184 +1,150 @@
-import { useState, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
+  FlatList,
+  TextInput as RNTextInput,
   KeyboardAvoidingView,
-  Platform,
+  LayoutChangeEvent,
 } from "react-native";
-import { Send, Sparkles } from "lucide-react-native";
 
-import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import TypingIndicator from "@/components/display/TypingIndicator";
+import AIHeader from "./components/AIHeader";
+import { SuggestionChipScroll } from "./components/SuggestionChip";
+import EmptyChatState from "./components/EmptyChatState";
+import MessageBubble from "./components/MessageBubble";
+import MessageComposer from "./components/MessageComposer";
+import ScrollToBottomButton from "./components/ScrollToBottomButton";
 
-import { useColors } from "@/hooks/useTheme";
+import { useAIChat, type AIChatMessage } from "hooks/chat";
 
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  text: string;
-};
+const SUGGESTION_CHIPS = [
+  "2BR under ₱15k",
+  "Near Malabon",
+  "With parking",
+  "Pet friendly",
+];
 
-const INITIAL_MESSAGE: Message = {
-  id: "0",
-  role: "assistant",
-  text: "Hi! I'm APT's AI assistant 🏠 Tell me what you're looking for in a rental — budget, location, number of rooms, or any preferences — and I'll help you find the perfect place.",
-};
+const SCROLL_BOTTOM_THRESHOLD = 150;
 
 export default function AISearchScreen() {
-  const {colors} = useColors();
+  const { input, setInput, messages, isLoading, sendMessage } = useAIChat();
 
-  const scrollRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const inputRef = useRef<RNTextInput>(null);
 
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const isNearBottomRef = useRef(true);
 
-  const sendMessage = async () => {
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+  const scrollToBottom = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, []);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      text: trimmed,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-
-    try {
-      // TODO: Replace with actual AI API call
-      // const response = await fetch(...)
-      // For now, placeholder response
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        text: "I found a few apartments that might match what you're looking for! Let me narrow it down further — do you have a preferred area in Metro Manila?",
+  const handleScroll = useCallback(
+    (event: {
+      nativeEvent: {
+        contentOffset: { y: number };
+        contentSize: { height: number };
+        layoutMeasurement: { height: number };
       };
+    }) => {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const near =
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - SCROLL_BOTTOM_THRESHOLD;
+      isNearBottomRef.current = near;
+      setIsNearBottom(near);
+    },
+    []
+  );
 
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        text: "Sorry, I couldn't process that. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => {
-        scrollRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+  const handleContentSizeChange = useCallback(() => {
+    if (isNearBottomRef.current) {
+      scrollToBottom();
     }
-  };
+  }, [scrollToBottom]);
+
+  const handleHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+    const next = Math.round(e.nativeEvent.layout.height);
+    setHeaderHeight((prev) => (prev === next ? prev : next));
+  }, []);
+
+  const handleSuggestionPress = useCallback(
+    (text: string) => {
+      sendMessage(text);
+    },
+    [sendMessage]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: AIChatMessage }) => (
+      <MessageBubble message={item} onQuickReplyPress={handleSuggestionPress} />
+    ),
+    [handleSuggestionPress]
+  );
 
   return (
-    <ScreenWrapper>
-      <StandardHeader title="AI Search" showBack />
+    <ScreenWrapper
+      dismissKeyboardOnTouch={false}
+      header={
+        <View onLayout={handleHeaderLayout}>
+          <AIHeader />
+        </View>
+      }
+    >
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={90}
+        behavior="padding"
+        keyboardVerticalOffset={headerHeight}
       >
-        {/* Messages */}
-        <ScrollView
-          ref={scrollRef}
-          className="flex-1 px-4 pt-4"
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            scrollRef.current?.scrollToEnd({ animated: true })
-          }
-        >
-          {messages.map((message) => {
-            const isUser = message.role === "user";
-            return (
-              <View
-                key={message.id}
-                className={`mb-3 flex-row ${isUser ? "justify-end" : "justify-start"}`}
-              >
-                {/* AI Avatar */}
-                {!isUser && (
-                  <View
-                    className="w-8 h-8 rounded-full items-center justify-center mr-2 mt-1"
-                    style={{ backgroundColor: colors.primary }}
-                  >
-                    <Sparkles size={14} color="#fff" />
-                  </View>
-                )}
-
-                {/* Bubble */}
-                <View
-                  className={`rounded-2xl px-4 py-3 max-w-[78%] ${
-                    isUser
-                      ? "rounded-tr-sm bg-primary"
-                      : "rounded-tl-sm bg-default"
-                  }`}
-                >
-                  <Text
-                    className={`text-sm leading-5 ${
-                      isUser ? "text-white" : "text-foreground"
-                    }`}
-                  >
-                    {message.text}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-
-          {/* Typing indicator */}
-          {isLoading && (
-            <View className="flex-row justify-start mb-3">
-              <View
-                className="w-8 h-8 rounded-full items-center justify-center mr-2 mt-1"
-                style={{ backgroundColor: colors.primary }}
-              >
-                <Sparkles size={14} color="#fff" />
-              </View>
-              <View className="bg-default rounded-2xl rounded-tl-sm px-4 py-3">
-                <Text className="text-muted text-sm">Thinking...</Text>
-              </View>
-            </View>
-          )}
-
-          <View className="h-4" />
-        </ScrollView>
-
-        {/* Input */}
-        <View className="px-4 py-3 border-t border-border flex-row items-end gap-2">
-          <TextInput
-            className="flex-1 bg-default rounded-2xl px-4 py-3 text-sm text-foreground"
-            placeholder="Ask me anything about rentals..."
-            placeholderTextColor={colors.gray400}
-            value={input}
-            onChangeText={setInput}
-            multiline
-            maxLength={500}
-            onSubmitEditing={sendMessage}
+        <View className="flex-1">
+          <FlatList
+            ref={flatListRef}
+            className="flex-1"
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={
+              messages.length === 0
+                ? { flexGrow: 1, justifyContent: "center" }
+                : { flexGrow: 1, padding: 16, paddingBottom: 10 }
+            }
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            nestedScrollEnabled
+            ListEmptyComponent={messages.length === 0 ? <EmptyChatState /> : null}
+            ListFooterComponent={isLoading ? <TypingIndicator /> : null}
+            onContentSizeChange={handleContentSizeChange}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
           />
-          <TouchableOpacity
-            onPress={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className="w-11 h-11 rounded-full items-center justify-center"
-            style={{
-              backgroundColor:
-                input.trim() && !isLoading ? colors.primary : colors.gray400,
-            }}
-          >
-            <Send
-              size={18}
-              color={input.trim() && !isLoading ? "#fff" : colors.gray400}
+
+          {/* Suggestion chips — static row above input */}
+          {!isLoading && messages.length <= 2 && (
+            <SuggestionChipScroll
+              suggestions={SUGGESTION_CHIPS}
+              onSelect={handleSuggestionPress}
             />
-          </TouchableOpacity>
+          )}
         </View>
+
+        <MessageComposer
+          inputRef={inputRef}
+          value={input}
+          onChangeText={setInput}
+          onSend={() => sendMessage()}
+          isDisabled={isLoading}
+        />
+
+        <ScrollToBottomButton
+          isNearBottom={isNearBottom}
+          onPress={() => {
+            scrollToBottom();
+            setIsNearBottom(true);
+          }}
+        />
       </KeyboardAvoidingView>
     </ScreenWrapper>
   );
