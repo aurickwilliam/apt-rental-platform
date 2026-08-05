@@ -950,8 +950,8 @@
     "semantic_hash": "4024ae45f4964a2b7bfe918975ef4d73"
   },
   "apps/mobile/app/search/ai-search.tsx": {
-    "mtime": 1785926314.0749483,
-    "ast_hash": "7d1cedc0ab784425afc36e11ece5e7ae",
+    "mtime": 1785927940.5012197,
+    "ast_hash": "2c2ceef8d5433700ca66f8ceda3b246b",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
@@ -1360,8 +1360,8 @@
     "semantic_hash": "640d45059889b410418aeba3bfd1cc8b"
   },
   "apps/mobile/constants/images.ts": {
-    "mtime": 1785926134.7817423,
-    "ast_hash": "6ae7857ef1e45caf533674aab75f27fb",
+    "mtime": 1785927259.0087905,
+    "ast_hash": "91a859dd979ddd7f28a2ac68cb6b374c",
     "semantic_hash": ""
   },
   "apps/mobile/constants/onboarding-data/onboarding-data.ts": {
@@ -1480,9 +1480,9 @@
     "semantic_hash": "ad2e43a18af6fbe62a61bd6f7549e0f6"
   },
   "apps/mobile/hooks/chat/index.ts": {
-    "mtime": 1783082165.2702425,
-    "ast_hash": "3487c6fdccaae25c0a8b2b50b35615f8",
-    "semantic_hash": "3487c6fdccaae25c0a8b2b50b35615f8"
+    "mtime": 1785927892.5836241,
+    "ast_hash": "6d6b50432464e44617d1b788fa38a9ef",
+    "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChat.ts": {
     "mtime": 1785142342.662052,
@@ -3265,18 +3265,48 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/AIHeader.tsx": {
-    "mtime": 1785918541.2005153,
-    "ast_hash": "22d1abb59262464dcd58c932b440d909",
+    "mtime": 1785927477.290373,
+    "ast_hash": "82e679637f955110ffe75cefcf791bf9",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/SuggestionChip.tsx": {
-    "mtime": 1785918262.0101573,
-    "ast_hash": "a4efb215e9be966902aedcb2dd70d571",
+    "mtime": 1785927035.0868728,
+    "ast_hash": "6a3fd7b1ce31666c909043dc6b34ba66",
     "semantic_hash": ""
   },
-  "apps/mobile/assets/images/ai-icon/ebedc416-9080-40ab-97df-8b58aba53398.png": {
-    "mtime": 1785925944.9105246,
-    "ast_hash": "83cad1d7051aaaec8cd07ec6e59fdb91",
+  "apps/mobile/assets/images/ai-icon/casa-logo.png": {
+    "mtime": 1785927190.6676812,
+    "ast_hash": "abfac8685b853b1c36cadebfcb88e748",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/components/EmptyChatState.tsx": {
+    "mtime": 1785927912.4964628,
+    "ast_hash": "f9d17c5015bad0a458d39109ce93c1a7",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/components/MessageBubble.tsx": {
+    "mtime": 1785927918.2663932,
+    "ast_hash": "2eac991c874a77272b681836e1bed646",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/components/MessageComposer.tsx": {
+    "mtime": 1785927923.1618433,
+    "ast_hash": "a551b08674d5a498013a4089a29a0e1e",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/components/ScrollToBottomButton.tsx": {
+    "mtime": 1785927928.504184,
+    "ast_hash": "dd2865660eea3b016a462a8a0ccda357",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/types.ts": {
+    "mtime": 1785927874.370354,
+    "ast_hash": "be3f5b188ace4ed0d808e240853e4373",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/chat/useAIChat.ts": {
+    "mtime": 1785927887.6431363,
+    "ast_hash": "db9cb717124248dd55c127fcfc098234",
     "semantic_hash": ""
   }
 }
