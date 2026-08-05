@@ -5,7 +5,11 @@ import type React from 'react';
 
 import { Avatar, Chip, Text } from 'heroui-native';
 
-import { IconHome, IconBuildingSkyscraper } from '@tabler/icons-react-native';
+import {
+  IconHome,
+  IconBuildingSkyscraper,
+  IconShieldCheck,
+} from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -18,6 +22,7 @@ type ProfileHeaderProps = {
   avatarInitials?: string
   loading?: boolean
   role?: string | null
+  accountStatus?: string | null
 }
 
 export default function ProfileHeader({
@@ -29,9 +34,12 @@ export default function ProfileHeader({
   avatarInitials,
   loading = false,
   role,
+  accountStatus,
 }: ProfileHeaderProps) {
   const { colors } = useColors();
   const insets = useSafeAreaInsets();
+
+  const isVerified = accountStatus === 'verified';
 
   const fullName = loading ? '...' : `${firstName} ${lastName}`;
   const displayEmail = loading ? '...' : email;
@@ -114,27 +122,45 @@ export default function ProfileHeader({
             {displayEmail}
           </Text>
 
-          {role &&
-            (() => {
-              const {
-                icon: Icon,
-                iconColor,
-                className,
-                label,
-                labelColor,
-              } = roleConfig[role];
+          {(role || isVerified) && (
+            <View className="flex-row items-center gap-2 mt-2">
+              {role &&
+                (() => {
+                  const {
+                    icon: Icon,
+                    iconColor,
+                    className,
+                    label,
+                    labelColor,
+                  } = roleConfig[role];
 
-              return (
-                <View className="items-center mt-2">
-                  <Chip className={className} variant="soft">
-                    <Icon size={18} color={iconColor} strokeWidth={2.5} />
-                    <Chip.Label className={`font-interMedium ${labelColor}`}>
-                      {label}
-                    </Chip.Label>
-                  </Chip>
-                </View>
-              );
-            })()}
+                  return (
+                    <Chip className={className} variant="soft">
+                      <Icon size={18} color={iconColor} strokeWidth={2.5} />
+                      <Chip.Label className={`font-interMedium ${labelColor}`}>
+                        {label}
+                      </Chip.Label>
+                    </Chip>
+                  );
+                })()}
+
+              {isVerified && (
+                <Chip
+                  className="bg-success-light border border-success"
+                  variant="soft"
+                >
+                  <IconShieldCheck
+                    size={18}
+                    color={colors.success}
+                    strokeWidth={2.5}
+                  />
+                  <Chip.Label className="font-interMedium text-success">
+                    Verified
+                  </Chip.Label>
+                </Chip>
+              )}
+            </View>
+          )}
         </View>
       </View>
     </View>
