@@ -6,7 +6,6 @@ import {
   TextInput as RNTextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
   LayoutChangeEvent,
 } from "react-native";
 import Animated, {
@@ -17,12 +16,14 @@ import Animated, {
 
 import { IconSend, IconSparkles, IconArrowDown } from "@tabler/icons-react-native";
 import { Button, InputGroup, TextField } from "heroui-native";
+import { Image } from "expo-image";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import TypingIndicator from "@/components/display/TypingIndicator";
 import AIHeader from "./components/AIHeader";
 import { SuggestionChipScroll, SuggestionChipFlex } from "./components/SuggestionChip";
 
+import { IMAGES } from "constants/images";
 import { useColors } from "@/hooks/useTheme";
 
 type Message = {
@@ -40,13 +41,6 @@ const SUGGESTION_CHIPS = [
   "Pet friendly",
 ];
 
-const INITIAL_MESSAGE: Message = {
-  id: "0",
-  role: "assistant",
-  text: "Hi! I'm Casa, your AI apartment assistant 🏠 Tell me what you're looking for in a rental — budget, location, number of rooms, or any preferences — and I'll help you find the perfect place.",
-  timestamp: Date.now(),
-};
-
 const SCROLL_BOTTOM_THRESHOLD = 150;
 
 function formatTimestamp(ts: number): string {
@@ -58,6 +52,27 @@ function formatTimestamp(ts: number): string {
   return `${displayHours}:${minutes} ${period}`;
 }
 
+function EmptyChatState() {
+  return (
+    <View className="items-center gap-2 px-8">
+      <View className="size-48">
+        <Image
+          source={IMAGES.aiIcon}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="contain"
+        />
+      </View>
+
+      <Text className="text-xl font-interSemiBold text-foreground text-center">
+        Hey, what would you like to ask?
+      </Text>
+      <Text className="text-gray-400 text-base font-inter text-center">
+        Try {`"`}2BR under ₱15k near Malabon{`"`}
+      </Text>
+    </View>
+  );
+}
+
 export default function AISearchScreen() {
   const { colors } = useColors();
 
@@ -66,7 +81,7 @@ export default function AISearchScreen() {
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(true);
   const isNearBottomRef = useRef(true);
@@ -75,13 +90,21 @@ export default function AISearchScreen() {
   const scrollButtonScale = useSharedValue(0.5);
 
   const scrollToBottom = useCallback(() => {
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    flatListRef.current?.scrollToEnd({ animated: true });
   }, []);
 
   const handleScroll = useCallback(
-    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
-      const offsetY = event.nativeEvent.contentOffset.y;
-      const near = offsetY < SCROLL_BOTTOM_THRESHOLD;
+    (event: {
+      nativeEvent: {
+        contentOffset: { y: number };
+        contentSize: { height: number };
+        layoutMeasurement: { height: number };
+      };
+    }) => {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const near =
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - SCROLL_BOTTOM_THRESHOLD;
       isNearBottomRef.current = near;
       setIsNearBottom(near);
     },
@@ -126,7 +149,7 @@ export default function AISearchScreen() {
         timestamp: Date.now(),
       };
 
-      setMessages((prev) => [userMessage, ...prev]);
+      setMessages((prev) => [...prev, userMessage]);
       setInput("");
       setIsLoading(true);
 
@@ -140,7 +163,7 @@ export default function AISearchScreen() {
           quickReplies: ["Caloocan", "Malabon", "Navotas", "Valenzuela"],
         };
 
-        setMessages((prev) => [assistantMessage, ...prev]);
+        setMessages((prev) => [...prev, assistantMessage]);
       } catch {
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -148,7 +171,7 @@ export default function AISearchScreen() {
           text: "Sorry, I couldn't process that. Please try again.",
           timestamp: Date.now(),
         };
-        setMessages((prev) => [errorMessage, ...prev]);
+        setMessages((prev) => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
       }
@@ -225,6 +248,7 @@ export default function AISearchScreen() {
 
   return (
     <ScreenWrapper
+      dismissKeyboardOnTouch={false}
       header={
         <View onLayout={handleHeaderLayout}>
           <AIHeader />
@@ -233,12 +257,11 @@ export default function AISearchScreen() {
     >
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         keyboardVerticalOffset={headerHeight}
       >
         <View className="flex-1">
           <FlatList
-            inverted
             ref={flatListRef}
             className="flex-1"
             data={messages}
@@ -252,9 +275,9 @@ export default function AISearchScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
             nestedScrollEnabled
-            ListHeaderComponent={isLoading ? <TypingIndicator /> : null}
+            ListEmptyComponent={messages.length === 0 ? <EmptyChatState /> : null}
+            ListFooterComponent={isLoading ? <TypingIndicator /> : null}
             onContentSizeChange={handleContentSizeChange}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -267,38 +290,38 @@ export default function AISearchScreen() {
               onSelect={handleSuggestionPress}
             />
           )}
+        </View>
 
-          {/* Input bar */}
-          <View className="px-4 py-3 border-t border-border">
-            <TextField className="flex-1">
-              <InputGroup className="rounded-full bg-surface-tertiary">
-                <InputGroup.Input
-                  ref={inputRef}
-                  className="flex-1 rounded-full px-4 py-3 text-sm text-foreground"
-                  placeholder="Ask me anything about rentals..."
-                  placeholderTextColor={colors.gray400}
-                  value={input}
-                  onChangeText={setInput}
-                  onSubmitEditing={() => sendMessage()}
-                  returnKeyType="send"
-                  maxLength={500}
-                />
+        {/* Input bar */}
+        <View className="px-3 py-2 border-t border-border">
+          <TextField>
+            <InputGroup className="rounded-full">
+              <InputGroup.Input
+                ref={inputRef}
+                className="rounded-full border"
+                placeholder="Ask me anything about rentals..."
+                placeholderTextColor={colors.gray400}
+                value={input}
+                onChangeText={setInput}
+                onSubmitEditing={() => sendMessage()}
+                returnKeyType="send"
+                maxLength={500}
+              />
 
-                {input.trim().length > 0 && (
-                  <InputGroup.Suffix className="p-0">
-                    <Button
-                      onPress={() => sendMessage()}
-                      isDisabled={isLoading}
-                      className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
-                      accessibilityLabel="Send message"
-                    >
-                      <IconSend size={20} color={colors.secondaryForeground} />
-                    </Button>
-                  </InputGroup.Suffix>
-                )}
-              </InputGroup>
-            </TextField>
-          </View>
+              {input.trim().length > 0 && (
+                <InputGroup.Suffix className="p-0">
+                  <Button
+                    onPress={() => sendMessage()}
+                    isDisabled={isLoading}
+                    className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
+                    accessibilityLabel="Send message"
+                  >
+                    <IconSend size={20} color={colors.secondaryForeground} />
+                  </Button>
+                </InputGroup.Suffix>
+              )}
+            </InputGroup>
+          </TextField>
         </View>
 
         {/* Scroll to bottom button */}

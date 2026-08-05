@@ -1,11 +1,12 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 
 import { ChevronLeft } from 'lucide-react-native';
-import { IconSparkles } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
+import { IMAGES } from "constants/images";
 
 interface AIHeaderProps {
   onBackPress?: () => void;
@@ -45,11 +46,15 @@ export default function AIHeader({ onBackPress }: AIHeaderProps) {
       {/* AI identity */}
       <View className="flex-1 flex-row items-center justify-start ml-2">
         <View
-          className="w-9 h-9 rounded-full items-center justify-center mr-3 border border-white"
+          className="w-9 h-9 rounded-full items-center justify-center mr-3 overflow-hidden border border-white"
           style={{ backgroundColor: "rgba(255,255,255,0.25)" }}
           accessibilityLabel="APT AI assistant"
         >
-          <IconSparkles size={18} color="#FFFFFF" />
+          <Image
+            source={IMAGES.aiIcon}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+          />
         </View>
 
         <View className="shrink">
@@ -58,8 +63,7 @@ export default function AIHeader({ onBackPress }: AIHeaderProps) {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            Casa
-
+            Casa AI
           </Text>
         </View>
       </View>
