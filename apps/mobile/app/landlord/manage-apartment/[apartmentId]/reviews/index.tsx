@@ -3,7 +3,7 @@ import { FlatList, RefreshControl, Text, View } from 'react-native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import RatingCard from '@/components/cards/RatingCard'
-import RatingCardSkeleton from '../components/RatingCardSkeleton'
+import RatingCardSkeleton from '@/components/cards/RatingCardSkeleton'
 import MenuSelectButton from '@/components/buttons/MenuSelectButton'
 import { useColors } from 'hooks/useTheme'
 
