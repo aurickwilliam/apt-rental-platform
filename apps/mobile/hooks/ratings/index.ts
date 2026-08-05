@@ -1,4 +1,6 @@
 export { useApartmentReviews } from './useApartmentReviews'
 export type { RatingBarCountData, ApartmentReview, ReviewSortOption } from './useApartmentReviews'
+export { useLandlordReviews } from './useLandlordReviews'
+export type { LandlordReview } from './useLandlordReviews'
 export { useReviewEligibility } from './useReviewEligibility'
 export { useSubmitReview } from './useSubmitReview'
