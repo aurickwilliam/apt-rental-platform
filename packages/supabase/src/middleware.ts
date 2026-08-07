@@ -82,7 +82,8 @@ export async function updateSession(request: NextRequest) {
     "/faq", 
     "/tos",
     "/pap",
-    "/cookies"
+    "/cookies",
+    "/tenant/maintenance"
   ];
 
   // Pages that logged-in users should be redirected away from
