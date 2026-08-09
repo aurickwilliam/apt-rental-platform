@@ -1,27 +1,5 @@
 "use client";
 
-/**
- * apps/web/app/(main)/tenant/maintenance/page.tsx
- * -------------------------------------------------------------
- * Request Maintenance — web conversion of the mobile "Request
- * Maintenance" screen.
- *
- * ASSUMPTION: placed under tenant/maintenance/ as a best guess for
- * where this belongs in your route tree — move the folder if it
- * should live elsewhere (e.g. nested under a specific property).
- *
- * This route is nested under app/(main)/layout.tsx, which already
- * renders <AppNavbar /> and <Footer /> around {children} — so this
- * file intentionally contains ONLY the page content.
- *
- * Same conventions as the About/ToS/PAP/Cookies pages: font-inter
- * for headings, font-poppinsSemiBold for labels, the default-* color
- * scale, border-default-200 hairlines, fadeUp entrance on the hero.
- * Form controls reuse the project's existing .input / .textarea /
- * .select__trigger / .button--primary global classes (globals.css)
- * so this page matches every other form in the app automatically.
- */
-
 import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Wrench } from "lucide-react";
