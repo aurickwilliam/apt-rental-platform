@@ -3,18 +3,20 @@
 // apps/web/app/(main)/tenant/maintenance/components/MaintenanceForm.tsx
 import { useRef, useState } from "react";
 import type { Key } from "@heroui/react";
-import { Card, ComboBox, Input, ListBox, ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import {
+  Card,
+  ComboBox,
+  Input,
+  Label, // 1. Added Label import
+  ListBox,
+  TextArea,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@heroui/react";
 import { UploadCloud, X, ImageIcon } from "lucide-react";
 import { CATEGORIES } from "../data/maintenance-data";
 
-// Using inline `style` instead of Tailwind bg-* classes: @heroui/styles loads
-// AFTER tailwindcss in globals.css and isn't wrapped in Tailwind's @layer
-// system, so its shipped ToggleButton background was silently beating our
-// utility classes (even with "!"), making every pill render the same default
-// grey. A plain inline style always wins against a non-!important stylesheet
-// rule regardless of import order, so this sidesteps that fight entirely.
-// `style` accepts a function of render props here (same pattern as
-// `className`), which is how we read the real isSelected state for the ring.
 const URGENCY_LEVELS: {
   id: "low" | "medium" | "high";
   label: string;
@@ -46,7 +48,6 @@ export default function MaintenanceForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: wire up to the actual maintenance-request endpoint.
     console.log({ title, categoryKey, description, urgency, files });
   };
 
@@ -63,71 +64,76 @@ export default function MaintenanceForm() {
         </div>
 
         {/* Issue Title */}
-        <div>
-          <label htmlFor="issue-title" className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Title <span className="text-primary">*</span>
-          </label>
-          <input
-            id="issue-title"
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+        <TextField
+          isRequired
+          name="issue-title"
+          value={title}
+          onChange={setTitle}
+        >
+          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
+            Issue Title <span className="text-primary"></span>
+          </Label>
+          <Input
             placeholder="Enter a short title for the issue..."
-            className="input w-full px-4 py-2.5 text-sm text-foreground"
+            style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
           />
-        </div>
+        </TextField>
 
         {/* Issue Category */}
-        <div>
-          <label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Category <span className="text-primary">*</span>
-          </label>
-          <ComboBox
-            aria-label="Issue Category"
-            className="w-full"
-            isRequired
-            selectedKey={categoryKey}
-            onSelectionChange={setCategoryKey}
-          >
-            <ComboBox.InputGroup>
-              <Input placeholder="Select a category..." />
-              <ComboBox.Trigger />
-            </ComboBox.InputGroup>
-            <ComboBox.Popover>
-              <ListBox>
-                {CATEGORIES.map((cat) => (
-                  <ListBox.Item key={cat.id} id={cat.id} textValue={cat.label}>
-                    {cat.label}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </ComboBox.Popover>
-          </ComboBox>
-        </div>
+        <ComboBox
+          aria-label="Issue Category"
+          className="w-full"
+          isRequired
+          selectedKey={categoryKey}
+          onSelectionChange={setCategoryKey}
+        >
+          {/* 2. Swapped HTML <label> to Hero UI <Label> inside <ComboBox> */}
+          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
+            Issue Category <span className="text-primary"></span>
+          </Label>
+          <ComboBox.InputGroup>
+            <Input
+              placeholder="Select a category..."
+              style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
+            />
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+          <ComboBox.Popover>
+            <ListBox>
+              {CATEGORIES.map((cat) => (
+                <ListBox.Item key={cat.id} id={cat.id} textValue={cat.label}>
+                  {cat.label}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </ComboBox.Popover>
+        </ComboBox>
 
         {/* Issue Description */}
-        <div>
-          <label htmlFor="issue-description" className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Description <span className="text-primary">*</span>
-          </label>
-          <textarea
-            id="issue-description"
-            required
+        <TextField
+          isRequired
+          name="issue-description"
+          value={description}
+          onChange={setDescription}
+        >
+          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
+            Issue Description <span className="text-primary"></span>
+          </Label>
+          <TextArea
             rows={5}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the issue in detail..."
-            className="textarea w-full px-4 py-3 text-sm text-foreground resize-none"
+            className="resize-none"
+            style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
           />
-        </div>
+        </TextField>
 
         {/* Urgency */}
         <div>
-          <label className="block text-sm font-poppinsSemiBold text-foreground mb-2">
+          {/* 3. Updated <label> to <Label> */}
+          <Label className="block text-sm font-poppinsSemibold text-foreground mb-2">
             How urgent is this issue? <span className="text-primary">*</span>
-          </label>
+          </Label>
           <ToggleButtonGroup
             aria-label="How urgent is this issue?"
             isDetached
@@ -137,6 +143,7 @@ export default function MaintenanceForm() {
               const [first] = Array.from(keys);
               setUrgency((first as "low" | "medium" | "high") ?? null);
             }}
+            
             className="flex flex-wrap gap-2"
           >
             {URGENCY_LEVELS.map((level) => (
@@ -158,9 +165,10 @@ export default function MaintenanceForm() {
 
         {/* Add Photos or Videos */}
         <div>
-          <label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
+          {/* 4. Updated <label> to <Label> */}
+          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
             Add Photos or Videos
-          </label>
+          </Label>
           <input
             ref={fileInputRef}
             type="file"
@@ -172,7 +180,7 @@ export default function MaintenanceForm() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-gray-300 bg-white py-8 flex items-center justify-center gap-2 text-sm text-default-700 hover:border-primary hover:text-primary transition-colors"
+            className="w-full rounded-xl border border-dashed border-border !bg-card py-8 flex items-center justify-center gap-2 text-sm !text-card-foreground/70 hover:border-primary hover:!text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
@@ -183,15 +191,15 @@ export default function MaintenanceForm() {
               {files.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center gap-2 rounded-lg border border-default-200 bg-white pl-2.5 pr-1.5 py-1.5 text-xs text-default-700"
+                  className="flex items-center gap-2 rounded-lg border border-border !bg-card pl-2.5 pr-1.5 py-1.5 text-xs !text-card-foreground/70"
                 >
-                  <ImageIcon size={14} className="text-default-500 shrink-0" />
+                  <ImageIcon size={14} className="!text-card-foreground/50 shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
                     aria-label={`Remove ${file.name}`}
-                    className="text-default-500 hover:text-red-600 transition-colors"
+                    className="!text-card-foreground/50 hover:!text-red-600 transition-colors"
                   >
                     <X size={14} />
                   </button>
