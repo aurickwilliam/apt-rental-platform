@@ -1,15 +1,14 @@
-import { View, Text, TouchableOpacity, Image as RNImage } from 'react-native'
+import { View, Text, TouchableOpacity, Image as RNImage, Linking } from 'react-native'
 import { Image } from 'expo-image'
 import ImageViewing from 'react-native-image-viewing'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
-import { Button } from 'heroui-native'
+import { Button, Chip, Separator } from 'heroui-native'
 
 import {
   IconFileUpload,
   IconPlus,
-  IconQuestionMark,
   IconShieldCheck,
 } from '@tabler/icons-react-native'
 
@@ -21,10 +20,12 @@ import { SAMPLE_IMAGES } from '@/constants/images'
 
 import { useColors } from '@/hooks/useTheme'
 
+import { isImageUri } from './utils/fileType'
+
 type UploadedDocument = {
   id: number;
   type: string;
-  image: string;
+  filePath: string;
 }
 
 export default function Index() {
@@ -32,6 +33,7 @@ export default function Index() {
   const { colors } = useColors();
 
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
+  const [selectedDocUri, setSelectedDocUri] = useState<string | null>(null);
 
   // TODO: Fetch and display user's uploaded documents and IDs here. This may include government-issued IDs, proof of income, or any other relevant documents required for the rental application process. Each document can be displayed with its name, type, and upload date, along with options to view or delete the document.
 
@@ -40,17 +42,17 @@ export default function Index() {
     {
       id: 1,
       type: 'Proof of Income',
-      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
+      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
     },
     {
       id: 2,
       type: 'Proof of Residency',
-      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
+      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
     },
     {
       id: 3,
       type: 'Birth Certificate',
-      image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
+      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
     }
   ]
 
@@ -62,16 +64,33 @@ export default function Index() {
 
   const hasDocuments = uploadedDocuments.length > 0
 
+  const handleDocumentPress = (filePath: string) => {
+    if (isImageUri(filePath)) {
+      setSelectedDocUri(filePath);
+    } else {
+      Linking.openURL(filePath);
+    }
+  };
+
   return (
     <ScreenWrapper
       header={
         <StandardHeader
           title='Document & IDs'
           onBackPress={() => router.replace('/(tabs)/(tenant)/profile')}
+          rightComponent={
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/document-id/select-document')}
+            >
+              <IconPlus size={24} color='#FFFFFF' />
+            </TouchableOpacity>
+          }
         />
       }
       className='p-5'
       scrollable
+      noBottomPadding
     >
       {/* User ID upon account validation */}
       <View className='gap-3'>
@@ -85,12 +104,12 @@ export default function Index() {
             </Text>
           </View>
 
-          <View className='flex-row items-center gap-1 px-3 py-1 rounded-full border border-success bg-success-light'>
+          <Chip variant="secondary" color="success" size="sm">
             <IconShieldCheck size={14} color={colors.success} />
-            <Text className='text-xs font-interMedium text-success'>
+            <Chip.Label className='text-success font-interMedium'>
               Verified
-            </Text>
-          </View>
+            </Chip.Label>
+          </Chip>
         </View>
 
         <TouchableOpacity
@@ -98,17 +117,19 @@ export default function Index() {
           activeOpacity={0.7}
           onPress={() => setIsIdVisible(!isIdVisible)}
         >
-          <View className='w-full bg-gray-200'>
+          <View className='w-full bg-gray-100'>
             <Image
               source={{ uri: mainValidId.image }}
               style={{ width: '100%', aspectRatio: 16 / 9 }}
-              contentFit='cover'
+              contentFit='contain'
               cachePolicy='disk'
               transition={150}
             />
           </View>
         </TouchableOpacity>
       </View>
+
+      <Separator className='my-3'/>
 
       {!hasDocuments ? (
         <View className='flex-1 items-center gap-4 pt-16 px-4'>
@@ -150,7 +171,7 @@ export default function Index() {
         </View>
       ) : (
         <>
-          <Text className='text-foreground text-lg font-interSemiBold mt-8 mb-3'>
+          <Text className='text-foreground text-lg font-interSemiBold mb-3'>
             Uploaded Documents
           </Text>
 
@@ -159,24 +180,13 @@ export default function Index() {
               uploadedDocuments.map(doc => (
                 <DocumentCard
                   key={doc.id}
-                  image={doc.image}
+                  filePath={doc.filePath}
                   label={doc.type}
-                  onPress={() => router.push(`/document-id/details?docImage=${doc.image}&docType=${doc.type}`)}
+                  onPress={() => handleDocumentPress(doc.filePath)}
                 />
               ))
             }
           </View>
-
-          <Button
-            variant='outline'
-            className='mt-6'
-            onPress={() => router.push('/document-id/select-document')}
-          >
-            <IconPlus size={18} color={colors.primary} />
-            <Button.Label className='text-primary font-interMedium'>
-              Add Document
-            </Button.Label>
-          </Button>
         </>
       )}
 
@@ -186,13 +196,14 @@ export default function Index() {
           Need help?
         </Text>
         {
-          // TODO: Implement contact support functionality, such as opening a chat with customer support or redirecting to a help center page.
+          // TODO: Implement contact support functionality,
+          // such as opening a chat with customer support or
+          // redirecting to a help center page.
         }
         <TouchableOpacity
-          className='flex-row gap-1 items-center justify-center mt-1'
+          className='flex-row items-center justify-center mt-1'
           activeOpacity={0.7}
         >
-          <IconQuestionMark size={20} color={colors.primary} />
           <Text className='text-accent text-base font-interMedium'>
             Contact Support
           </Text>
@@ -204,6 +215,15 @@ export default function Index() {
         imageIndex={0}
         visible={isIdVisible}
         onRequestClose={() => setIsIdVisible(false)}
+        presentationStyle='overFullScreen'
+        backgroundColor='rgb(0, 0, 0, 0.8)'
+      />
+
+      <ImageViewing
+        images={selectedDocUri ? [{ uri: selectedDocUri }] : []}
+        imageIndex={0}
+        visible={!!selectedDocUri}
+        onRequestClose={() => setSelectedDocUri(null)}
         presentationStyle='overFullScreen'
         backgroundColor='rgb(0, 0, 0, 0.8)'
       />
