@@ -8,9 +8,10 @@ import {
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 
-import { UploadCloud, XCircle, RefreshCw } from 'lucide-react-native'
+import { IconCircleX, IconFileUpload, IconRefresh } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
+import { compressImage } from '@/utils/compressImage'
 
 interface UploadImageFieldProps {
   label: string
@@ -49,26 +50,44 @@ export default function UploadImageField({
     if (!permission.granted) return
 
     setLoading(true)
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsMultipleSelection: !single,
-      quality: 0.75,
-      // Cap selection at the OS picker level when possible
-      selectionLimit: single ? 1 : remainingSlots ?? 0,
-    })
-    setLoading(false)
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsMultipleSelection: !single,
+        quality: 0.75,
+        // Cap selection at the OS picker level when possible
+        selectionLimit: single ? 1 : remainingSlots ?? 0,
+      })
 
-    if (result.canceled) return
+      if (result.canceled) return
 
-    if (single) {
-      // Single mode: pass one asset
-      onAdd(result.assets[0])
-    } else {
-      // Safety net in case the OS picker doesn't respect selectionLimit
-      const trimmed = remainingSlots !== undefined
-        ? result.assets.slice(0, remainingSlots)
-        : result.assets
-      onAdd(trimmed)
+      const compressAssets = async (assets: ImagePicker.ImagePickerAsset[]) =>
+        Promise.all(
+          assets.map(async (asset) => {
+            const compressed = await compressImage(asset.uri, asset.width, asset.height)
+            return {
+              ...asset,
+              uri: compressed.uri,
+              width: compressed.width,
+              height: compressed.height,
+            }
+          }),
+        )
+
+      if (single) {
+        // Single mode: pass one compressed asset
+        const [compressed] = await compressAssets(result.assets)
+        onAdd(compressed)
+      } else {
+        // Safety net in case the OS picker doesn't respect selectionLimit
+        const trimmed = remainingSlots !== undefined
+          ? result.assets.slice(0, remainingSlots)
+          : result.assets
+        const compressed = await compressAssets(trimmed)
+        onAdd(compressed)
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -117,7 +136,7 @@ export default function UploadImageField({
                 onPress={() => onRemove(item.uri)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <XCircle size={18} color={colors.textPrimary} />
+                <IconCircleX size={18} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           ))}
@@ -141,7 +160,7 @@ export default function UploadImageField({
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <>
-              <UploadCloud size={22} color={colors.primary} />
+              <IconFileUpload size={22} color={colors.primary} />
               <Text className="text-sm font-medium text-foreground">
                 {single ? "Choose photo" : "Add photos"}
               </Text>
@@ -159,7 +178,7 @@ export default function UploadImageField({
           onPress={pickImage}
           className="flex-row items-center gap-1 self-start"
         >
-          <RefreshCw size={16} color={colors.primary} />
+          <IconRefresh size={16} color={colors.primary} />
           <Text
             className="text-[13px] font-medium"
             style={{ color: colors.primary }}

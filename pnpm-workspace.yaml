@@ -1,3 +1,6 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+overrides:
+  react-native-awesome-gallery>react-native-reanimated: 4.2.1

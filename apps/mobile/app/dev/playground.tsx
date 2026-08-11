@@ -110,7 +110,6 @@ export default function DevNavScreen() {
       <Section title="Profile & Documents">
         <LinkRow label="Edit Profile" route="/edit-profile" />
         <LinkRow label="Document ID" route="/document-id" />
-        <LinkRow label="Document ID Details" route="/document-id/details" />
         <LinkRow label="Document Upload" route="/document-id/upload" />
       </Section>
 
