@@ -585,23 +585,18 @@
     "semantic_hash": "7adb9e29e5ddeb897c2497d867f54c52"
   },
   "apps/mobile/app/dev/playground.tsx": {
-    "mtime": 1785593140.9543414,
-    "ast_hash": "c8fe6b9aae12049fb2689bf9c739910e",
+    "mtime": 1786427309.716183,
+    "ast_hash": "9a562034879bf9cc951b101f1cc6617e",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/_layout.tsx": {
-    "mtime": 1779525520.9794598,
-    "ast_hash": "7005574bdedbddd1df7040273678ceb3",
-    "semantic_hash": "7005574bdedbddd1df7040273678ceb3"
+    "mtime": 1786427296.1103497,
+    "ast_hash": "58afa00afdb32e3dfdf3f8ea344bff2f",
+    "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/DocumentCard.tsx": {
     "mtime": 1786369860.0898933,
     "ast_hash": "dea37ee3d7d4b117603ed89c43565c77",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/document-id/details.tsx": {
-    "mtime": 1785940838.288501,
-    "ast_hash": "c406cee86b0c81cd14ad2496d8b56669",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.tsx": {
