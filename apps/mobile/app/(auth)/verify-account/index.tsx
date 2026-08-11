@@ -2,7 +2,8 @@ import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native'
 
 import { IMAGES } from 'constants/images'
 
@@ -30,10 +31,9 @@ export default function Index() {
         </View>
       </View>
 
-      <PillButton
-        label='Continue Verification'
-        onPress={() => router.push('/(auth)/verify-account/select-id')}
-      />
+      <Button onPress={() => router.push('/(auth)/verify-account/select-id')}>
+        <Button.Label>Continue Verification</Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }

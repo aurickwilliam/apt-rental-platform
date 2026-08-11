@@ -3,17 +3,20 @@ import { Text, View } from "react-native";
 type StepProgressProps = {
   currentStep: number;
   totalSteps?: number;
+  stepName?: string;
 };
 
 export default function StepProgress({
   currentStep,
   totalSteps = 5,
+  stepName,
 }: StepProgressProps) {
   return (
     <View className="flex gap-2 mb-6">
       {/* Step counter */}
       <Text className="text-foreground text-sm font-interMedium">
         Step {currentStep} of {totalSteps}
+        {stepName ? ` — ${stepName}` : ""}
       </Text>
 
       {/* Segmented bar */}

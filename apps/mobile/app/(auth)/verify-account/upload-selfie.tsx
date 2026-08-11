@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
 
@@ -14,13 +15,9 @@ export default function UploadSelfie() {
     <ScreenWrapper
       className='p-5'
     >
-      <StepProgress currentStep={3} totalSteps={4} />
+      <StepProgress currentStep={3} totalSteps={4} stepName="Take a Selfie" />
 
       <View className='flex-1 items-center justify-center'>
-        <Text className='text-3xl font-interSemiBold text-center text-primary'>
-          Take a Selfie
-        </Text>
-
         <View className='rounded-full overflow-hidden size-64 mt-10 bg-gray-200 items-center justify-center border-8 border-success'>
           <Image 
             source={SAMPLE_IMAGES.sampleProfilePicture}
@@ -34,10 +31,9 @@ export default function UploadSelfie() {
         </Text>
       </View>
 
-      <PillButton 
-        label='Submit Verification'
-        onPress={() => router.push('/verify-account/success')}
-      />
+      <Button onPress={() => router.push('/verify-account/success')}>
+        <Button.Label>Submit Verification</Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }
