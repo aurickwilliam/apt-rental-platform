@@ -2,14 +2,13 @@ import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
-import { CloseButton, Button } from 'heroui-native'
+import { CloseButton, Button, Checkbox, ControlField, Label } from 'heroui-native'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
 import UploadImageField from '@/components/inputs/UploadImageField';
-import CheckBox from '@/components/buttons/CheckBox';
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
@@ -38,7 +37,9 @@ export default function UploadId() {
           onPress={() => router.push('/verify-account/upload-selfie')}
           className='mx-5'
         >
-          <Button.Label>Continue to Selfie</Button.Label>
+          <Button.Label>
+            Continue to Selfie
+          </Button.Label>
         </Button>
       }
     >
@@ -53,7 +54,7 @@ export default function UploadId() {
       <StepProgress currentStep={2} totalSteps={4} stepName="Upload Your ID" />
 
       <View className='flex gap-2'>
-        <Text className='text-2xl text-accent font-interMedium'>
+        <Text className='text-2xl text-accent font-nunitoMedium'>
           {selectedId}
         </Text>
         <Text className='text-base text-gray-500 font-inter'>
@@ -89,11 +90,20 @@ export default function UploadId() {
       </View>
 
       <View className='mt-5'>
-        <CheckBox
-          label={'I confirm that the information provided is true and the ID belongs to me.'}
-          selected={isConfirmed}
-          onPress={() => setIsConfirmed(!isConfirmed)}
-        />
+        <ControlField
+          isSelected={isConfirmed}
+          onSelectedChange={() => setIsConfirmed(!isConfirmed)}
+        >
+          <ControlField.Indicator>
+            <Checkbox className='size-5 border border-border shadow-none' />
+          </ControlField.Indicator>
+
+          <Label>
+            <Label.Text className='text-sm text-foreground font-interMedium leading-snug'>
+              I confirm that the information provided is true and the ID belongs to me.
+            </Label.Text>
+          </Label>
+        </ControlField>
       </View>
 
       <View className='mt-20'>
