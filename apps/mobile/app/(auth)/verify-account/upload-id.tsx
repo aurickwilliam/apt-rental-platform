@@ -1,20 +1,28 @@
 import { View, Text } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
+import StepProgress from '@/components/display/StepProgress'
 import UploadImageField from '@/components/inputs/UploadImageField';
 import CheckBox from '@/components/buttons/CheckBox';
 import PillButton from '@/components/buttons/PillButton'
 
+import { useVerificationStore } from '@/stores/useVerificationStore'
+
 export default function UploadId() {
-  const { selectedId } = useLocalSearchParams();
   const router = useRouter();
 
+  const selectedId = useVerificationStore((state) => state.selectedId);
+  const frontImages = useVerificationStore((state) => state.frontImages);
+  const backImages = useVerificationStore((state) => state.backImages);
+  const setFrontImages = useVerificationStore((state) => state.setFrontImages);
+  const setBackImages = useVerificationStore((state) => state.setBackImages);
+
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
-  const [frontImages, setFrontImages] = useState<any[]>([]);
-  const [backImages, setBackImages] = useState<any[]>([]);
+
+  const canContinue = frontImages.length > 0 && backImages.length > 0 && isConfirmed;
 
   return (
     <ScreenWrapper
@@ -24,6 +32,8 @@ export default function UploadId() {
       }
       scrollable
     >
+      <StepProgress currentStep={2} totalSteps={4} />
+
       <View className='flex gap-2'>
         <Text className='text-2xl text-secondary font-interMedium'>
           {selectedId}
@@ -69,8 +79,9 @@ export default function UploadId() {
       </View>
 
       <View className='mt-20'>
-        <PillButton 
-          label='Verify ID'
+        <PillButton
+          label='Continue to Selfie'
+          isDisabled={!canContinue}
           onPress={() => router.push('/verify-account/upload-selfie')}
         />
       </View>
