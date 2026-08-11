@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
 
-import { FileText, XCircle, UploadCloud, RefreshCw } from 'lucide-react-native'
+import { IconCircleX, IconFileText, IconFileUpload, IconRefresh } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
 
@@ -78,7 +78,7 @@ export default function UploadFileField({
       {/* File preview card */}
       {hasFile && (
         <View className="flex-row items-center gap-3 rounded-2xl bg-surface border border-border px-4 py-3.5 mt-1">
-          <FileText size={28} color={colors.primary} strokeWidth={1.5} />
+          <IconFileText size={28} color={colors.primary} strokeWidth={1.5} />
 
           <Text
             className="flex-1 text-sm font-medium text-foreground"
@@ -92,7 +92,7 @@ export default function UploadFileField({
             disabled={disabled}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <XCircle
+            <IconCircleX
               size={20}
               color={colors.textPrimary}
             />
@@ -117,7 +117,7 @@ export default function UploadFileField({
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <>
-              <UploadCloud
+              <IconFileUpload
                 size={22}
                 color={colors.primary}
               />
@@ -139,7 +139,7 @@ export default function UploadFileField({
           disabled={disabled}
           className="flex-row items-center gap-1 self-start"
         >
-          <RefreshCw size={16} color={colors.primary} />
+          <IconRefresh size={16} color={colors.primary} />
           <Text
             className="text-[13px] font-medium"
             style={{ color: colors.primary }}

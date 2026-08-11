@@ -10,7 +10,6 @@ export default function _layout() {
       <Stack.Screen name="index"/>
       <Stack.Screen name="select-document"/>
       <Stack.Screen name="upload"/>
-      <Stack.Screen name="details"/>
     </Stack>
   )
 }
