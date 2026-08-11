@@ -1,17 +1,16 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
-import * as ImagePicker from 'expo-image-picker'
-import * as DocumentPicker from 'expo-document-picker'
 
-import { Button, Checkbox, ControlField, Label, Separator } from 'heroui-native'
+import { Accordion, Button, Checkbox, ControlField, Label } from 'heroui-native'
 
 import { IconFileInfo } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
-import UploadImageField from '@/components/inputs/UploadImageField'
-import UploadFileField from '@/components/inputs/UploadFileField'
+import UploadDocumentField, {
+  type UploadedDocument,
+} from '@/components/inputs/UploadDocumentField'
 
 import { useColors } from '@/hooks/useTheme'
 
@@ -21,8 +20,7 @@ export default function Upload() {
   const router = useRouter();
 
   const [isVerified, setIsVerified] = useState(false);
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [document, setDocument] = useState<UploadedDocument | null>(null);
 
   const handleAddDocument = () => {
     // TODO: Persist the uploaded document to Supabase Storage and store its
@@ -40,7 +38,7 @@ export default function Upload() {
     >
       <View className='flex gap-1.5'>
         {/* Name of Document */}
-        <Text className='text-secondary text-2xl font-nunitoSemiBold'>
+        <Text className='text-accent text-2xl font-nunitoSemiBold'>
           {docType}
         </Text>
 
@@ -52,24 +50,13 @@ export default function Upload() {
         </View>
       </View>
 
-      {/* Upload fields */}
-      <View className='mt-6 flex gap-6'>
-        <UploadImageField
-          label='Document Image'
+      {/* Upload field */}
+      <View className='mt-6'>
+        <UploadDocumentField
+          label='Document'
           required
-          single
-          images={images}
-          onAdd={(asset) => setImages(Array.isArray(asset) ? asset : [asset])}
-          onRemove={(uri) => setImages((prev) => prev.filter((item) => item.uri !== uri))}
-        />
-
-        <Separator />
-
-        <UploadFileField
-          label='Document File'
-          placeholder='Upload a PDF'
-          value={file}
-          onChange={setFile}
+          value={document}
+          onChange={setDocument}
         />
       </View>
 
@@ -84,15 +71,33 @@ export default function Upload() {
           </ControlField.Indicator>
 
           <Label>
-            <Label.Text className='text-base text-foreground font-interMedium leading-snug'>
+            <Label.Text className='text-sm text-foreground font-interMedium leading-snug'>
               I confirm that the information provided is true and the ID belongs to me.
             </Label.Text>
           </Label>
         </ControlField>
 
-        <Text className='text-sm text-gray-500 font-inter leading-relaxed'>
-          <Text className='text-danger'>*</Text> By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
-        </Text>
+        <View className='flex'>
+          <Text className='text-sm text-gray-500 font-inter leading-relaxed'>
+            <Text className='text-danger'>*</Text> By uploading, you confirm this document is valid and belongs to you. Fraudulent documents may lead to account suspension.
+          </Text>
+
+          <Accordion>
+            <Accordion.Item value='legal-notice'>
+              <Accordion.Trigger className='self-start'>
+                <Accordion.Indicator />
+                <Text className='text-sm text-gray-500 font-inter underline'>
+                  Legal notice
+                </Text>
+              </Accordion.Trigger>
+              <Accordion.Content>
+                <Text className='text-sm text-gray-500 font-inter leading-relaxed'>
+                  By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
+                </Text>
+              </Accordion.Content>
+            </Accordion.Item>
+          </Accordion>
+        </View>
       </View>
 
       <View className='flex-1' />

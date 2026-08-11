@@ -610,13 +610,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/select-document.tsx": {
-    "mtime": 1786370349.5588737,
-    "ast_hash": "18f25c1da8a60ba34bdad03054630253",
+    "mtime": 1785940776.1164465,
+    "ast_hash": "b323cc42eadf92264789585a2fa89ad5",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1786424062.0012617,
-    "ast_hash": "dd94a82adcbdb7823fc8941a665e7e7b",
+    "mtime": 1785940826.3012028,
+    "ast_hash": "4f24c65c2d3055a7819e2643b992d186",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -1305,9 +1305,9 @@
     "semantic_hash": "bc8acd55b611a7b30c65529a9bd29903"
   },
   "apps/mobile/components/inputs/UploadImageField.tsx": {
-    "mtime": 1786424073.499399,
-    "ast_hash": "1fd7b2c3d6b8e93e0c18bc03779ef0a4",
-    "semantic_hash": ""
+    "mtime": 1784309381.697868,
+    "ast_hash": "aae6f2181b19c777d47fd9a0eeed2ab9",
+    "semantic_hash": "aae6f2181b19c777d47fd9a0eeed2ab9"
   },
   "apps/mobile/components/layout/ApplicationHeader.tsx": {
     "mtime": 1781848246.6388566,
@@ -1615,9 +1615,9 @@
     "semantic_hash": "996d724ead39dbff9402e026cc0769b4"
   },
   "apps/mobile/package.json": {
-    "mtime": 1786423926.31743,
-    "ast_hash": "dc56cc8ffe27737c0c984d016be63e4a",
-    "semantic_hash": ""
+    "mtime": 1785142342.662274,
+    "ast_hash": "612e25e0443db07e1bbbf7f231546fde",
+    "semantic_hash": "612e25e0443db07e1bbbf7f231546fde"
   },
   "apps/mobile/service/chatService.ts": {
     "mtime": 1785142342.6624217,
@@ -3372,16 +3372,6 @@
   ".kiro/specs/document-file-type-detection/design.md": {
     "mtime": 1786368802.4193656,
     "ast_hash": "47f1785f1f7ca38f22c61605e262d511",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/inputs/UploadDocumentField.tsx": {
-    "mtime": 1786424044.7678175,
-    "ast_hash": "c2fbd3d9531f1fb4fd24bab02a5ad1f0",
-    "semantic_hash": ""
-  },
-  "apps/mobile/utils/compressImage.ts": {
-    "mtime": 1786424002.3218877,
-    "ast_hash": "fe7ea4b436558f848fd3ac56bb6a7680",
     "semantic_hash": ""
   }
 }
