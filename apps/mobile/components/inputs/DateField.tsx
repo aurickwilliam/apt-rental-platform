@@ -2,7 +2,7 @@ import { View, Text, Pressable, Platform, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 
-import { Calendar } from "lucide-react-native";
+import { IconCalendar } from "@tabler/icons-react-native";
 
 import { useColors } from "hooks/useTheme"
 
@@ -103,7 +103,7 @@ export default function DateField({
           {displayValue}
         </Text>
 
-        {!readOnly && <Calendar size={20} color={colors.gray400} />}
+        {!readOnly && <IconCalendar size={20} color={colors.gray400} />}
       </Pressable>
 
       {error && <Text className="text-md text-danger font-inter">{error}</Text>}

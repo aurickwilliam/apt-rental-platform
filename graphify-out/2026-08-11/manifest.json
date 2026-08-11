@@ -610,13 +610,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/select-document.tsx": {
-    "mtime": 1785940776.1164465,
-    "ast_hash": "b323cc42eadf92264789585a2fa89ad5",
+    "mtime": 1786370349.5588737,
+    "ast_hash": "18f25c1da8a60ba34bdad03054630253",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1785940826.3012028,
-    "ast_hash": "4f24c65c2d3055a7819e2643b992d186",
+    "mtime": 1786425371.188646,
+    "ast_hash": "cd00a9c67f44bbea014b666bd6afcdbc",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -1300,14 +1300,14 @@
     "semantic_hash": "b044f7407d01f4e689abdb0d1a4a2f08"
   },
   "apps/mobile/components/inputs/UploadFileField.tsx": {
-    "mtime": 1784009740.9449286,
-    "ast_hash": "bc8acd55b611a7b30c65529a9bd29903",
-    "semantic_hash": "bc8acd55b611a7b30c65529a9bd29903"
+    "mtime": 1786425947.6474419,
+    "ast_hash": "eafea8c1228b7412d541a431e783260c",
+    "semantic_hash": ""
   },
   "apps/mobile/components/inputs/UploadImageField.tsx": {
-    "mtime": 1784309381.697868,
-    "ast_hash": "aae6f2181b19c777d47fd9a0eeed2ab9",
-    "semantic_hash": "aae6f2181b19c777d47fd9a0eeed2ab9"
+    "mtime": 1786425899.013622,
+    "ast_hash": "fba1a1de596007fc75dd4a52a852f196",
+    "semantic_hash": ""
   },
   "apps/mobile/components/layout/ApplicationHeader.tsx": {
     "mtime": 1781848246.6388566,
@@ -1615,9 +1615,9 @@
     "semantic_hash": "996d724ead39dbff9402e026cc0769b4"
   },
   "apps/mobile/package.json": {
-    "mtime": 1785142342.662274,
-    "ast_hash": "612e25e0443db07e1bbbf7f231546fde",
-    "semantic_hash": "612e25e0443db07e1bbbf7f231546fde"
+    "mtime": 1786423926.31743,
+    "ast_hash": "dc56cc8ffe27737c0c984d016be63e4a",
+    "semantic_hash": ""
   },
   "apps/mobile/service/chatService.ts": {
     "mtime": 1785142342.6624217,
@@ -3372,6 +3372,16 @@
   ".kiro/specs/document-file-type-detection/design.md": {
     "mtime": 1786368802.4193656,
     "ast_hash": "47f1785f1f7ca38f22c61605e262d511",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/inputs/UploadDocumentField.tsx": {
+    "mtime": 1786426445.4729955,
+    "ast_hash": "cb4f4d4bd8fdaf9ac4074e998427ca45",
+    "semantic_hash": ""
+  },
+  "apps/mobile/utils/compressImage.ts": {
+    "mtime": 1786424002.3218877,
+    "ast_hash": "fe7ea4b436558f848fd3ac56bb6a7680",
     "semantic_hash": ""
   }
 }

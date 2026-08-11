@@ -615,8 +615,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1786424062.0012617,
-    "ast_hash": "dd94a82adcbdb7823fc8941a665e7e7b",
+    "mtime": 1786425371.188646,
+    "ast_hash": "cd00a9c67f44bbea014b666bd6afcdbc",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -1245,14 +1245,14 @@
     "semantic_hash": "6407d7e60f94b58ac10841584ea526c9"
   },
   "apps/mobile/components/inputs/DateField.tsx": {
-    "mtime": 1784309381.6976082,
-    "ast_hash": "32ce32a7d19e0c38ecfcd9df4805a3df",
-    "semantic_hash": "32ce32a7d19e0c38ecfcd9df4805a3df"
+    "mtime": 1786427037.2843277,
+    "ast_hash": "21601604fd733be0eb76d632148e346d",
+    "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DropdownField.tsx": {
-    "mtime": 1784009740.9591157,
-    "ast_hash": "5fddc7875f4f8d89e595893ec0153693",
-    "semantic_hash": "5fddc7875f4f8d89e595893ec0153693"
+    "mtime": 1786427020.909484,
+    "ast_hash": "7a4e58a59857de8623773f159dcaaa1e",
+    "semantic_hash": ""
   },
   "apps/mobile/components/inputs/MultiChipGroup.tsx": {
     "mtime": 1779525521.0225666,
@@ -1300,13 +1300,13 @@
     "semantic_hash": "b044f7407d01f4e689abdb0d1a4a2f08"
   },
   "apps/mobile/components/inputs/UploadFileField.tsx": {
-    "mtime": 1784009740.9449286,
-    "ast_hash": "bc8acd55b611a7b30c65529a9bd29903",
-    "semantic_hash": "bc8acd55b611a7b30c65529a9bd29903"
+    "mtime": 1786425947.6474419,
+    "ast_hash": "eafea8c1228b7412d541a431e783260c",
+    "semantic_hash": ""
   },
   "apps/mobile/components/inputs/UploadImageField.tsx": {
-    "mtime": 1786424073.499399,
-    "ast_hash": "1fd7b2c3d6b8e93e0c18bc03779ef0a4",
+    "mtime": 1786425899.013622,
+    "ast_hash": "fba1a1de596007fc75dd4a52a852f196",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ApplicationHeader.tsx": {
@@ -3375,8 +3375,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/UploadDocumentField.tsx": {
-    "mtime": 1786424044.7678175,
-    "ast_hash": "c2fbd3d9531f1fb4fd24bab02a5ad1f0",
+    "mtime": 1786426445.4729955,
+    "ast_hash": "cb4f4d4bd8fdaf9ac4074e998427ca45",
     "semantic_hash": ""
   },
   "apps/mobile/utils/compressImage.ts": {
