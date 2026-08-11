@@ -1,7 +1,9 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+import { usePreventRemove } from '@react-navigation/native';
 
 import {
   PROVINCES,
@@ -137,13 +139,11 @@ export default function AuthCompleteProfile() {
     validate: validateMobileNumber,
   } = usePHMobileValidation();
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (canLeave.current) return;
-      e.preventDefault(); // block all back navigation
-    });
-    return unsubscribe;
-  }, [navigation]);
+  usePreventRemove(!canLeave.current, ({ data }) => {
+    if (canLeave.current) {
+      navigation.dispatch(data.action);
+    }
+  });
 
   // Update 1 Field in the form
   const updateField = (key: keyof ProfileForm, value: string | Date | null) => {

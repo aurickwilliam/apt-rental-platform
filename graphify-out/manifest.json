@@ -20,9 +20,9 @@
     "semantic_hash": "343b052c5f6456caa99928c99f91069f"
   },
   "apps/mobile/app/(auth)/auth-complete-profile.tsx": {
-    "mtime": 1784309381.6872613,
-    "ast_hash": "b7e15b92cb578ff9433d7605affcf54c",
-    "semantic_hash": "b7e15b92cb578ff9433d7605affcf54c"
+    "mtime": 1786435375.3436718,
+    "ast_hash": "55628bcd3edf86141c4a90ccbba55c65",
+    "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/complete-profile.tsx": {
     "mtime": 1784309381.6873772,
@@ -155,13 +155,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/success.tsx": {
-    "mtime": 1786433896.007782,
-    "ast_hash": "f70d95a255e162c565203235f017e74c",
+    "mtime": 1786435309.580583,
+    "ast_hash": "30409358790b7b4c1c57aef831277d85",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-id.tsx": {
-    "mtime": 1786433802.7491918,
-    "ast_hash": "c1b21ef0fa28aa2fcdbaf10b31005b5a",
+    "mtime": 1786434529.4875293,
+    "ast_hash": "8f13bef907cb3084c43b2e042864ce17",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-selfie.tsx": {
@@ -1118,11 +1118,6 @@
     "mtime": 1779701555.8814733,
     "ast_hash": "82e9970976d64acfad5bc66378a3ddb0",
     "semantic_hash": "82e9970976d64acfad5bc66378a3ddb0"
-  },
-  "apps/mobile/components/buttons/CheckBox.tsx": {
-    "mtime": 1785593140.9632514,
-    "ast_hash": "3fdaa1a431dcd74cebea7b2b1a5526f1",
-    "semantic_hash": ""
   },
   "apps/mobile/components/buttons/DropdownButton.tsx": {
     "mtime": 1784009740.8541925,

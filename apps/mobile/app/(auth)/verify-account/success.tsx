@@ -2,6 +2,8 @@ import { View, Text, Image } from 'react-native'
 import { useNavigation, useRouter } from 'expo-router'
 import { useEffect, useRef } from 'react'
 
+import { usePreventRemove } from '@react-navigation/native'
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
 
@@ -24,13 +26,11 @@ export default function Success() {
   }, [reset]);
 
   // Terminal screen — block all back navigation (swipe, hardware, programmatic)
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (canLeave.current) return;
-      e.preventDefault();
-    });
-    return unsubscribe;
-  }, [navigation]);
+  usePreventRemove(!canLeave.current, ({ data }) => {
+    if (canLeave.current) {
+      navigation.dispatch(data.action);
+    }
+  });
 
   const handleGoToProfile = () => {
     canLeave.current = true;
