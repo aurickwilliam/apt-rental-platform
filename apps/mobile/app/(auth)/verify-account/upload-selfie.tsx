@@ -2,6 +2,7 @@ import { View, Text, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
+import StepProgress from '@/components/display/StepProgress'
 import PillButton from '@/components/buttons/PillButton'
 
 import { SAMPLE_IMAGES } from '@/constants/images'
@@ -13,7 +14,8 @@ export default function UploadSelfie() {
     <ScreenWrapper
       className='p-5'
     >
-      
+      <StepProgress currentStep={3} totalSteps={4} />
+
       <View className='flex-1 items-center justify-center'>
         <Text className='text-3xl font-interSemiBold text-center text-primary'>
           Take a Selfie
@@ -33,7 +35,7 @@ export default function UploadSelfie() {
       </View>
 
       <PillButton 
-        label='Verify Selfie'
+        label='Submit Verification'
         onPress={() => router.push('/verify-account/success')}
       />
     </ScreenWrapper>
