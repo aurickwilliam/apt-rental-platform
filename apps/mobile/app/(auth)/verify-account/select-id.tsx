@@ -1,10 +1,11 @@
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import { ListGroup, Separator } from 'heroui-native'
+import { ListGroup, Separator, CloseButton } from 'heroui-native'
+
+import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
 import StepProgress from '@/components/display/StepProgress'
 
 import { VALID_IDS, SECONDARY_IDS } from '@repo/constants'
@@ -49,13 +50,18 @@ export default function SelectId() {
   return (
     <ScreenWrapper
       className='p-5'
-      header={
-        <StandardHeader title='Select a Valid ID' />
-      }
       scrollable
     >
+      <CloseButton
+        variant="ghost"
+        className="-ml-2 mb-2"
+        onPress={router.back}
+      >
+        <IconChevronLeft size={26} color={colors.textPrimary} />
+      </CloseButton>
+
       <View className='flex gap-3'>
-        <StepProgress currentStep={1} totalSteps={4} />
+        <StepProgress currentStep={1} totalSteps={4} stepName="Select a Valid ID" />
 
         <Text className='text-foreground text-base font-interMedium'>
           List of Valid IDs:

@@ -2,17 +2,21 @@ import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 
+import { CloseButton, Button } from 'heroui-native'
+
+import { IconChevronLeft } from '@tabler/icons-react-native'
+
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
 import StepProgress from '@/components/display/StepProgress'
 import UploadImageField from '@/components/inputs/UploadImageField';
 import CheckBox from '@/components/buttons/CheckBox';
-import PillButton from '@/components/buttons/PillButton'
 
+import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 
 export default function UploadId() {
   const router = useRouter();
+  const { colors } = useColors();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const frontImages = useVerificationStore((state) => state.frontImages);
@@ -27,15 +31,29 @@ export default function UploadId() {
   return (
     <ScreenWrapper
       className='p-5'
-      header={
-        <StandardHeader title='Upload Your ID' />
-      }
       scrollable
+      footer={
+        <Button
+          isDisabled={!canContinue}
+          onPress={() => router.push('/verify-account/upload-selfie')}
+          className='mx-5'
+        >
+          <Button.Label>Continue to Selfie</Button.Label>
+        </Button>
+      }
     >
-      <StepProgress currentStep={2} totalSteps={4} />
+      <CloseButton
+        variant="ghost"
+        className="-ml-2 mb-2"
+        onPress={router.back}
+      >
+        <IconChevronLeft size={26} color={colors.textPrimary} />
+      </CloseButton>
+
+      <StepProgress currentStep={2} totalSteps={4} stepName="Upload Your ID" />
 
       <View className='flex gap-2'>
-        <Text className='text-2xl text-secondary font-interMedium'>
+        <Text className='text-2xl text-accent font-interMedium'>
           {selectedId}
         </Text>
         <Text className='text-base text-gray-500 font-inter'>
@@ -46,7 +64,7 @@ export default function UploadId() {
       {/* Upload Fields */}
       <View className='flex gap-5 mt-5'>
         {/* Front */}
-        <UploadImageField 
+        <UploadImageField
           label='Front of ID:'
           required
           images={frontImages}
@@ -58,8 +76,8 @@ export default function UploadId() {
         />
 
         {/* Back */}
-        <UploadImageField 
-          label='Back of ID:' 
+        <UploadImageField
+          label='Back of ID:'
           required
           images={backImages}
           onAdd={(images) => {
@@ -71,19 +89,15 @@ export default function UploadId() {
       </View>
 
       <View className='mt-5'>
-        <CheckBox 
-          label={'I confirm that the information provided is true and the ID belongs to me.'} 
-          selected={isConfirmed} 
-          onPress={() => setIsConfirmed(!isConfirmed)}        
+        <CheckBox
+          label={'I confirm that the information provided is true and the ID belongs to me.'}
+          selected={isConfirmed}
+          onPress={() => setIsConfirmed(!isConfirmed)}
         />
       </View>
 
       <View className='mt-20'>
-        <PillButton
-          label='Continue to Selfie'
-          isDisabled={!canContinue}
-          onPress={() => router.push('/verify-account/upload-selfie')}
-        />
+
       </View>
     </ScreenWrapper>
   )

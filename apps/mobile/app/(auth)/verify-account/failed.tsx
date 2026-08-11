@@ -2,7 +2,8 @@ import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
+
+import { Button } from 'heroui-native'
 
 import { IconShieldX } from '@tabler/icons-react-native'
 
@@ -36,16 +37,19 @@ export default function Failed() {
       </View>
 
       <View className='flex gap-3'>
-        <PillButton
-          label='Re-Apply for Verification'
+        <Button
+          variant="primary"
           onPress={() => router.replace('/(auth)/verify-account')}
-        />
+        >
+          <Button.Label>Re-Apply for Verification</Button.Label>
+        </Button>
 
-        <PillButton
-          label='Back to Profile'
-          type='outline'
+        <Button
+          variant="outline"
           onPress={() => router.replace('/(tabs)/(tenant)/profile')}
-        />
+        >
+          <Button.Label>Back to Profile</Button.Label>
+        </Button>
       </View>
     </ScreenWrapper>
   )
