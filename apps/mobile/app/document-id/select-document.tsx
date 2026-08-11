@@ -56,7 +56,7 @@ export default function SelectDocument() {
         Choose the type of document you want to add. Your files will be kept securely and ready for your rental applications.
       </Text>
 
-      <ListGroup className='shadow-none border border-border mt-5'>
+      <ListGroup className='shadow-none border border-border mt-5 rounded-3xl'>
         {
           DOCUMENT_TYPES.map((docType, index) => {
             const DocumentIcon = DOCUMENT_TYPE_ICONS[docType] ?? IconFileCertificate;
@@ -68,17 +68,22 @@ export default function SelectDocument() {
                 <ListGroup.Item onPress={() => handleDocumentTypeSelect(docType)}>
                   <ListGroup.ItemPrefix>
                     <View className='size-10 rounded-xl bg-primary-light items-center justify-center'>
-                      <DocumentIcon size={22} color={colors.primary} />
+                      <DocumentIcon size={18} color={colors.primary} />
                     </View>
                   </ListGroup.ItemPrefix>
 
                   <ListGroup.ItemContent>
-                    <ListGroup.ItemTitle className='font-interMedium'>
+                    <ListGroup.ItemTitle className='font-interMedium text-base'>
                       {docType}
                     </ListGroup.ItemTitle>
                   </ListGroup.ItemContent>
 
-                  <ListGroup.ItemSuffix iconProps={{ size: 20, color: colors.textPrimary }} />
+                  <ListGroup.ItemSuffix 
+                    iconProps={{ 
+                      size: 18, 
+                      color: colors.textPrimary 
+                    }} 
+                  />
                 </ListGroup.Item>
               </View>
             )
@@ -86,7 +91,7 @@ export default function SelectDocument() {
         }
       </ListGroup>
 
-      <View className='mt-5'>
+      <View className='mt-3'>
         <Text className='text-gray-500 text-sm font-inter text-center'>
           Make sure your document is clear and not expired.
         </Text>

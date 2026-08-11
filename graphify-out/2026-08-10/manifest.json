@@ -595,8 +595,8 @@
     "semantic_hash": "7005574bdedbddd1df7040273678ceb3"
   },
   "apps/mobile/app/document-id/components/DocumentCard.tsx": {
-    "mtime": 1786369860.0898933,
-    "ast_hash": "dea37ee3d7d4b117603ed89c43565c77",
+    "mtime": 1785940643.4776733,
+    "ast_hash": "04337f45c7df51cc458d5a835ea7c6e8",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/details.tsx": {
@@ -605,18 +605,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.tsx": {
-    "mtime": 1786369959.9000685,
-    "ast_hash": "9b5552adfba8b4622aa4c797670546fc",
+    "mtime": 1785941050.1121323,
+    "ast_hash": "e7d735ebbcee29695e1ea8658d3a9afb",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/select-document.tsx": {
-    "mtime": 1786370349.5588737,
-    "ast_hash": "18f25c1da8a60ba34bdad03054630253",
+    "mtime": 1785940776.1164465,
+    "ast_hash": "b323cc42eadf92264789585a2fa89ad5",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1786424062.0012617,
-    "ast_hash": "dd94a82adcbdb7823fc8941a665e7e7b",
+    "mtime": 1785940826.3012028,
+    "ast_hash": "4f24c65c2d3055a7819e2643b992d186",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -920,7 +920,7 @@
     "semantic_hash": "fdbff69cfa72853882f5c8a09f338cee"
   },
   "apps/mobile/app/profile/landlord/[landlordId].tsx": {
-    "mtime": 1786163039.3284504,
+    "mtime": 1785939424.3474154,
     "ast_hash": "90dfe470586f50047d16096ec345d555",
     "semantic_hash": ""
   },
@@ -1305,9 +1305,9 @@
     "semantic_hash": "bc8acd55b611a7b30c65529a9bd29903"
   },
   "apps/mobile/components/inputs/UploadImageField.tsx": {
-    "mtime": 1786424073.499399,
-    "ast_hash": "1fd7b2c3d6b8e93e0c18bc03779ef0a4",
-    "semantic_hash": ""
+    "mtime": 1784309381.697868,
+    "ast_hash": "aae6f2181b19c777d47fd9a0eeed2ab9",
+    "semantic_hash": "aae6f2181b19c777d47fd9a0eeed2ab9"
   },
   "apps/mobile/components/layout/ApplicationHeader.tsx": {
     "mtime": 1781848246.6388566,
@@ -1615,9 +1615,9 @@
     "semantic_hash": "996d724ead39dbff9402e026cc0769b4"
   },
   "apps/mobile/package.json": {
-    "mtime": 1786423926.31743,
-    "ast_hash": "dc56cc8ffe27737c0c984d016be63e4a",
-    "semantic_hash": ""
+    "mtime": 1785142342.662274,
+    "ast_hash": "612e25e0443db07e1bbbf7f231546fde",
+    "semantic_hash": "612e25e0443db07e1bbbf7f231546fde"
   },
   "apps/mobile/service/chatService.ts": {
     "mtime": 1785142342.6624217,
@@ -2530,9 +2530,9 @@
     "semantic_hash": "600788ab1ced882682cec28b080cd430"
   },
   "package.json": {
-    "mtime": 1786361920.0553384,
-    "ast_hash": "8bb2d7031385d1bfdb694f1af16b9c3e",
-    "semantic_hash": ""
+    "mtime": 1781422068.0236056,
+    "ast_hash": "bbfa14e71a43dd1405e830e645c6b4de",
+    "semantic_hash": "bbfa14e71a43dd1405e830e645c6b4de"
   },
   "packages/constants/package.json": {
     "mtime": 1777602095.5259006,
@@ -2870,9 +2870,9 @@
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
   },
   "pnpm-workspace.yaml": {
-    "mtime": 1786361871.4744413,
-    "ast_hash": "3a5f36abd485c82b13e1a025958a7253",
-    "semantic_hash": ""
+    "mtime": 1777602095.5287142,
+    "ast_hash": "92620b2977b8e1a75eb3f3962e70b66e",
+    "semantic_hash": "92620b2977b8e1a75eb3f3962e70b66e"
   },
   "apps/mobile/assets/icons/android/adaptive-icon.png": {
     "mtime": 1777602095.4769866,
@@ -3362,26 +3362,6 @@
   ".github/workflows/opencode.yml": {
     "mtime": 1785939424.346264,
     "ast_hash": "9cb3e9ef51d905f11e96eac4140d31ee",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/document-id/utils/fileType.ts": {
-    "mtime": 1786369427.5259197,
-    "ast_hash": "4b6cf113b447abf7faff31565ed6b5a3",
-    "semantic_hash": ""
-  },
-  ".kiro/specs/document-file-type-detection/design.md": {
-    "mtime": 1786368802.4193656,
-    "ast_hash": "47f1785f1f7ca38f22c61605e262d511",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/inputs/UploadDocumentField.tsx": {
-    "mtime": 1786424044.7678175,
-    "ast_hash": "c2fbd3d9531f1fb4fd24bab02a5ad1f0",
-    "semantic_hash": ""
-  },
-  "apps/mobile/utils/compressImage.ts": {
-    "mtime": 1786424002.3218877,
-    "ast_hash": "fe7ea4b436558f848fd3ac56bb6a7680",
     "semantic_hash": ""
   }
 }
