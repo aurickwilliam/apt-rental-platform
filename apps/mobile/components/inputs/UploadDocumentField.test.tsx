@@ -72,7 +72,7 @@ describe('UploadDocumentField', () => {
       />,
     );
 
-  describe('default behavior (acceptedFileMimeTypes omitted)', () => {
+  describe('default behavior (pickFile via ACCEPTED_FILE_TYPES)', () => {
     it('accepts a PDF file and calls onChange', async () => {
       (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
         canceled: false,
@@ -101,43 +101,6 @@ describe('UploadDocumentField', () => {
 
       await waitFor(() => expect(mockOnChange).toHaveBeenCalled());
     });
-  });
-
-  describe('acceptedFileMimeTypes={["application/pdf"]}', () => {
-    it('accepts a PDF and calls onChange (Req 4.1)', async () => {
-      (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
-        canceled: false,
-        assets: [{ uri: 'file://doc.pdf', name: 'doc.pdf', mimeType: 'application/pdf', size: 1000 }],
-      });
-
-      renderField({ acceptedFileMimeTypes: ['application/pdf'] });
-      await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
-
-      await waitFor(() => expect(mockOnChange).toHaveBeenCalledWith({
-        kind: 'file',
-        asset: { uri: 'file://doc.pdf', name: 'doc.pdf', mimeType: 'application/pdf', size: 1000 },
-      }));
-    });
-
-    it('rejects a DOCX file without calling onChange and shows an unsupported-type error (Req 4.2)', async () => {
-      (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
-        canceled: false,
-        assets: [{
-          uri: 'file://doc.docx',
-          name: 'doc.docx',
-          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          size: 1000,
-        }],
-      });
-
-      renderField({ acceptedFileMimeTypes: ['application/pdf'] });
-      await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
-
-      await waitFor(() => screen.getByText('This file type is unsupported.'));
-      expect(mockOnChange).not.toHaveBeenCalled();
-    });
 
     it('does not affect pickImage(): a JPG/PNG pick still calls onChange', async () => {
       (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
@@ -147,7 +110,7 @@ describe('UploadDocumentField', () => {
       });
       (compressImage as jest.Mock).mockResolvedValue({ uri: 'file://compressed.jpg', width: 80, height: 80 });
 
-      renderField({ acceptedFileMimeTypes: ['application/pdf'] });
+      renderField();
       await openAddDocumentSheet();
       fireEvent.press(screen.getByText('Choose photo'));
 
@@ -155,6 +118,20 @@ describe('UploadDocumentField', () => {
         kind: 'image',
         asset: { uri: 'file://compressed.jpg', width: 80, height: 80 },
       }));
+    });
+
+    it('rejects a file whose mimeType is outside ACCEPTED_FILE_TYPES without calling onChange', async () => {
+      (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
+        canceled: false,
+        assets: [{ uri: 'file://image.png', name: 'image.png', mimeType: 'image/png', size: 1000 }],
+      });
+
+      renderField();
+      await openAddDocumentSheet();
+      fireEvent.press(screen.getByText('Choose file'));
+
+      await waitFor(() => screen.getByText('This file type is unsupported.'));
+      expect(mockOnChange).not.toHaveBeenCalled();
     });
   });
 
