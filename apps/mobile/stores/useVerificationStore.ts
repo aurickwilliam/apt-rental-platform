@@ -17,6 +17,7 @@ export type VerificationStore = VerificationData & {
   setSelectedId: (id: string | null) => void;
   setCaptureResult: (stepId: string, result: IdCaptureResult) => void;
   clearCaptureResult: (stepId: string) => void;
+  clearCaptureResults: (stepIds: string[]) => void;
   reset: () => void;
 };
 
@@ -34,6 +35,16 @@ export const useVerificationStore = create<VerificationStore>((set) => ({
     set((state) => {
       const { [stepId]: _removed, ...rest } = state.captures;
       return { captures: rest };
+    }),
+  clearCaptureResults: (stepIds) =>
+    set((state) => {
+      const captures = { ...state.captures };
+
+      stepIds.forEach((stepId) => {
+        delete captures[stepId];
+      });
+
+      return { captures };
     }),
   reset: () => set({ ...initialVerificationState }),
 }));

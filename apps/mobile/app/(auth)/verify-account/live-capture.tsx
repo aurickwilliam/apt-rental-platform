@@ -14,7 +14,7 @@ import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
+import { getCaptureSequence, getNextCaptureStep, SELFIE_STEP } from './constants/captureSequences'
 
 type ScreenState = 'preview' | 'reviewing'
 
@@ -40,8 +40,8 @@ export default function LiveCapture() {
   const setCaptureResult = useVerificationStore((state) => state.setCaptureResult);
   const reset = useVerificationStore((state) => state.reset);
 
-  // The reserved "selfie" step id reuses this screen with a square guide
-  // frame (see SELFIE_STEP); every other stepId resolves against the
+  // The reserved "selfie" step id reuses this screen with a front-camera,
+  // circular guide (see SELFIE_STEP); every other stepId resolves against the
   // selected ID type's capture sequence.
   const captureStep =
     stepId === SELFIE_STEP.id ? SELFIE_STEP : getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
@@ -149,8 +149,18 @@ export default function LiveCapture() {
       height: capturedPhoto.height,
     });
 
+    const nextStep =
+      stepId === SELFIE_STEP.id ? null : getNextCaptureStep(idType ?? null, stepId);
+
+    if (nextStep !== null) {
+      router.replace(
+        `/(auth)/verify-account/live-capture?idType=${encodeURIComponent(idType ?? '')}&stepId=${encodeURIComponent(nextStep.id)}`,
+      );
+      return;
+    }
+
     router.back();
-  }, [capturedPhoto, stepId, router, setCaptureResult]);
+  }, [capturedPhoto, idType, stepId, router, setCaptureResult]);
 
   // Closing out of the camera always abandons the in-progress verification
   // session, then dismisses the entire flow back to select-id.tsx (skipping
@@ -201,7 +211,7 @@ export default function LiveCapture() {
           <CameraView
             ref={cameraRef}
             style={{ flex: 1 }}
-            facing="back"
+            facing={captureStep?.cameraFacing ?? 'back'}
             onCameraReady={() => setCameraReady(true)}
             onMountError={handleMountError}
           />
@@ -211,6 +221,8 @@ export default function LiveCapture() {
               viewportWidth={viewportWidth}
               viewportHeight={viewportHeight}
               aspectRatio={captureStep?.aspectRatio}
+              shape={captureStep?.guideShape ?? 'rectangle'}
+              strokeColor={captureStep?.guideShape === 'circle' ? colors.success : colors.white}
             />
           </View>
 

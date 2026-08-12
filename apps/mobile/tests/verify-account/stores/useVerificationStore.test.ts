@@ -61,6 +61,26 @@ describe('useVerificationStore', () => {
     expect(result.current.captures).toEqual({ back });
   });
 
+  it('clearCaptureResults removes only the requested ID steps and preserves unrelated captures', () => {
+    const { result } = renderHook(() => useVerificationStore());
+
+    const front: IdCaptureResult = { uri: 'file://front.jpg', width: 100, height: 100 };
+    const back: IdCaptureResult = { uri: 'file://back.jpg', width: 100, height: 100 };
+    const selfie: IdCaptureResult = { uri: 'file://selfie.jpg', width: 100, height: 100 };
+
+    act(() => {
+      result.current.setSelectedId('National ID (PhilSys/PhilID)');
+      result.current.setCaptureResult('front', front);
+      result.current.setCaptureResult('back', back);
+      result.current.setCaptureResult('selfie', selfie);
+    });
+
+    act(() => result.current.clearCaptureResults(['front', 'back']));
+
+    expect(result.current.selectedId).toBe('National ID (PhilSys/PhilID)');
+    expect(result.current.captures).toEqual({ selfie });
+  });
+
   it('reset() clears selectedId and captures back to initialVerificationState', () => {
     const { result } = renderHook(() => useVerificationStore());
 

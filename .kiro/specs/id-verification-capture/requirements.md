@@ -8,11 +8,12 @@ The new flow is **camera-first and format-less**: after the tenant taps an ID on
 
 This is a product pivot away from the prior iteration of this feature (see the previous revision of this document in version control for the removed Physical ID / Digital Document design), not an extension of it. The camera capture mechanics themselves — permission handling, the CR80 guided frame for card-shaped IDs, quality heuristics, auto-capture, manual shutter, and the retake/review step — are carried over unchanged from the prior implementation; only the format branch and the picker path are removed, and the capture sequence is generalized to support IDs that require more than two captures, exactly two captures, or a single capture, rather than hardcoding "front and back" as the only shape.
 
-Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope, as in the prior revision — this feature is ID selection → camera capture → review → local capture result → advancing to the existing selfie step (`upload-selfie.tsx`); no Supabase Storage upload occurs in this workflow.
+Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope, as in the prior revision — this feature is ID selection → camera capture → completed ID summary and authenticity confirmation → selfie preparation (`selfie-prep.tsx`) → existing selfie step (`upload-selfie.tsx`); no Supabase Storage upload occurs in this workflow.
 
 ## Glossary
 
-- **Verification_Flow**: The four-step in-app flow under `apps/mobile/app/(auth)/verify-account/` (`select-id` → `upload-id` → `upload-selfie` → `success`/`failed`) that collects a tenant's ID and selfie for identity verification.
+- **Verification_Flow**: The in-app flow under `apps/mobile/app/(auth)/verify-account/` (`select-id` → `upload-id` → `selfie-prep` → `upload-selfie` → `success`/`failed`) that collects a tenant's ID and selfie for identity verification.
+- **Selfie_Preparation_Screen**: The mandatory illustrated screen (`selfie-prep.tsx`) shown after completed ID review and before `upload-selfie.tsx`, explaining selfie-capture readiness requirements.
 - **Verification_Store**: The Zustand store at `apps/mobile/stores/useVerificationStore.ts` that holds `selectedId` and the per-ID capture progress for the Verification_Flow.
 - **Selected_Id_Type**: The ID type string the tenant chose on step 1 (`select-id.tsx`), one of the values in `VALID_IDS`/`SECONDARY_IDS` (`packages/constants/src/user/valid-ids.ts`).
 - **Capture_Sequence**: The ordered list of required capture steps for a given Selected_Id_Type (e.g. `["front", "back"]` for a card-style ID, or a single step for a booklet-style ID), each with a label (e.g. "Front", "Back", "Identity Page") and a guided-frame aspect ratio.
@@ -34,7 +35,7 @@ Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope
 1. WHEN the tenant selects an ID on step 1 (`select-id.tsx`), THE Verification_Flow SHALL navigate directly to the Live_Capture_Screen for the first Capture_Step of that Selected_Id_Type, without rendering an intermediate format-selection screen.
 2. THE Verification_Flow SHALL NOT present the tenant with a choice between a physical/card format and a digital/document format at any point in the Verification_Flow.
 3. THE Verification_Flow SHALL NOT render a gallery picker, a file picker, a "Choose photo" control, or a "Choose file" control at any point in the ID-capture portion of the Verification_Flow.
-4. WHEN step 2 (`upload-id.tsx`) loads AND the Verification_Store contains a Selected_Id_Type with no completed Capture_Steps, THE Verification_Flow SHALL render step 2 as a review/progress screen showing the Capture_Sequence for that Selected_Id_Type, with all steps shown as not yet captured.
+4. WHEN step 2 (`upload-id.tsx`) is focused AND the Verification_Store contains a Selected_Id_Type with one or more incomplete Capture_Steps, THE Verification_Flow SHALL navigate to the first incomplete Capture_Step's Live_Capture_Screen without presenting a manual capture control.
 
 ### Requirement 2: Capture Sequence Progression
 
@@ -43,12 +44,13 @@ Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope
 #### Acceptance Criteria
 
 1. THE Verification_Flow SHALL determine the Capture_Sequence for the tenant's Selected_Id_Type as an ordered list of one or more Capture_Steps.
-2. WHEN the tenant completes a Capture_Step by selecting "Use Photo" on the Live_Capture_Screen, THE Verification_Store SHALL persist an Id_Capture_Result for that Capture_Step and THE Verification_Flow SHALL return to step 2 (`upload-id.tsx`).
+2. WHEN the tenant completes a Capture_Step by selecting "Use Photo" on the Live_Capture_Screen, THE Verification_Store SHALL persist an Id_Capture_Result for that Capture_Step. IF another Capture_Step remains in the sequence, THE Verification_Flow SHALL immediately open that next Capture_Step's Live_Capture_Screen; OTHERWISE, it SHALL return to step 2 (`upload-id.tsx`).
 3. WHILE the Capture_Sequence for the Selected_Id_Type has at least one Capture_Step without a persisted Id_Capture_Result, THE Verification_Flow SHALL keep the "Continue to Selfie" control disabled.
-4. WHEN every Capture_Step in the Capture_Sequence for the Selected_Id_Type has a persisted Id_Capture_Result AND the "I confirm..." checkbox is selected, THE Verification_Flow SHALL enable the "Continue to Selfie" control.
-5. WHEN step 2 (`upload-id.tsx`) loads AND the Verification_Store contains a persisted Id_Capture_Result for one or more, but not all, Capture_Steps of the Selected_Id_Type, THE Verification_Flow SHALL render step 2 showing which Capture_Steps are complete and which remain, without re-opening the Live_Capture_Screen automatically.
-6. WHEN the tenant taps a Capture_Step entry on step 2 that does not yet have a persisted Id_Capture_Result, THE Verification_Flow SHALL navigate to the Live_Capture_Screen for that specific Capture_Step.
-7. WHEN the tenant taps a Capture_Step entry on step 2 that already has a persisted Id_Capture_Result, THE Verification_Flow SHALL navigate to the Live_Capture_Screen for that Capture_Step so the tenant may retake it, replacing the existing Id_Capture_Result on a subsequent "Use Photo" selection.
+4. WHEN every Capture_Step in the Capture_Sequence for the Selected_Id_Type has a persisted Id_Capture_Result, THE Verification_Flow SHALL render a read-only step 2 summary with labeled previews of each capture and the authenticity declaration: "I confirm that the submitted ID is authentic, valid, and belongs to me."
+5. WHEN every Capture_Step has a persisted Id_Capture_Result AND the tenant selects the authenticity declaration checkbox, THE Verification_Flow SHALL enable the "Continue to Selfie" control.
+6. WHEN step 2 (`upload-id.tsx`) is focused AND the Verification_Store contains one or more, but not all, Capture_Steps for the Selected_Id_Type, THE Verification_Flow SHALL navigate to the first missing Capture_Step without attempting navigation while step 2 is inactive beneath a Live_Capture_Screen.
+7. WHEN every Capture_Step is complete, THE Verification_Flow SHALL provide a "Retake ID Photos" action. WHEN selected, it SHALL clear every persisted Id_Capture_Result in the selected ID's Capture_Sequence, reset the authenticity declaration, and reopen the first Capture_Step. THE action SHALL preserve the Selected_Id_Type and any captures outside that Capture_Sequence.
+8. WHEN every Capture_Step is complete, the authenticity declaration is selected, and the tenant selects "Continue to Selfie", THE Verification_Flow SHALL open the Selfie_Preparation_Screen before `upload-selfie.tsx`. THE Selfie_Preparation_Screen SHALL not offer a skip action; it SHALL illustrate and explain that the tenant must remove glasses, hats, and face coverings, use bright even lighting, and keep their full face visible. Selecting "I'm Ready" SHALL open `upload-selfie.tsx`.
 
 ### Requirement 3: Live Capture
 
@@ -65,6 +67,7 @@ Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope
 7. WHEN the tenant selects "Retake" on the capture review screen, THE Live_Capture_Screen SHALL discard the captured image and return to the camera preview for the same Capture_Step.
 8. WHEN the tenant selects "Use Photo" on the capture review screen, THE Verification_Store SHALL store the captured image as the Id_Capture_Result for the current Capture_Step.
 9. IF the camera fails to initialize or the camera session errors while the Live_Capture_Screen is open, THEN THE Live_Capture_Screen SHALL display an error message and a retry control instead of an unresponsive or blank preview.
+10. WHEN the active Capture_Step is Selfie, THE Live_Capture_Screen SHALL use the front-facing device camera and a circular Guided_Frame with a success-status border. All ID-document Capture_Steps SHALL continue using the rear-facing device camera and rectangular Guided_Frame. THE captured selfie SHALL retain its original camera dimensions rather than being cropped to the circular guide.
 
 ### Requirement 4: Camera Permission Handling
 
@@ -86,8 +89,9 @@ Requirements 6.3-6.5 (Supabase Storage upload UI) remain explicitly out of scope
 #### Acceptance Criteria
 
 1. THE Live_Capture_Screen and step 2 review screen SHALL be styled exclusively using HeroUI Native components and Uniwind utility classes, with no inline style objects or StyleSheet-based styling, consistent with the rest of `apps/mobile`.
-2. THE Live_Capture_Screen and step 2 review screen SHALL be wrapped with the existing `ScreenWrapper` component for safe-area and keyboard handling, consistent with the other Verification_Flow screens.
-3-5. **Out of scope for this feature.** This feature only handles ID capture and persistence of the Id_Capture_Result in the Verification_Store; no Supabase Storage upload occurs in this workflow. Async upload loading/success/failure UI (originally scoped here) requires a separate upload workflow/spec once an actual upload step is designed, and is not implemented as part of this feature.
+2. THE Live_Capture_Screen, Selfie_Preparation_Screen, and step 2 review screen SHALL be wrapped with the existing `ScreenWrapper` component for safe-area and keyboard handling, consistent with the other Verification_Flow screens.
+3. THE Selfie_Preparation_Screen SHALL use HeroUI Native controls, Uniwind utility classes, existing Tabler Native icons, and canonical theme tokens; it SHALL provide accessible text alongside its success-status illustration.
+4-6. **Out of scope for this feature.** This feature only handles ID capture and persistence of the Id_Capture_Result in the Verification_Store; no Supabase Storage upload occurs in this workflow. Async upload loading/success/failure UI (originally scoped here) requires a separate upload workflow/spec once an actual upload step is designed, and is not implemented as part of this feature.
 
 ## Resolved Product Decisions
 

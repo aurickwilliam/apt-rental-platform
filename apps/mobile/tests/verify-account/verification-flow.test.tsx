@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import SelectId from '@/app/(auth)/verify-account/select-id';
 import UploadId from '@/app/(auth)/verify-account/upload-id';
+import SelfiePrep from '@/app/(auth)/verify-account/selfie-prep';
 import UploadSelfie from '@/app/(auth)/verify-account/upload-selfie';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 
@@ -27,6 +28,7 @@ const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, back: mockBack, replace: mockReplace, dismissTo: mockDismissTo }),
+  useFocusEffect: (callback: () => void) => callback(),
 }));
 
 // heroui-native ESM stub, matching the convention used elsewhere.
@@ -113,6 +115,15 @@ describe('verification flow (integration)', () => {
     expect(screen.UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
 
     fireEvent.press(screen.getByText('Continue to Selfie'));
+    expect(mockPush).toHaveBeenCalledWith('/verify-account/selfie-prep');
+
+    screen.unmount();
+
+    // --- selfie-prep: completed IDs are required and "I'm Ready" opens the selfie page
+    render(<SelfiePrep />);
+
+    expect(screen.getByText('Get ready for your selfie')).toBeTruthy();
+    fireEvent.press(screen.getByText("I'm Ready"));
     expect(mockPush).toHaveBeenCalledWith('/verify-account/upload-selfie');
 
     screen.unmount();

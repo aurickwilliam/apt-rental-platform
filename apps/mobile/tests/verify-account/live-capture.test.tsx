@@ -7,7 +7,7 @@ import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO, SELFIE_STEP } from '@/app/(au
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
-    colors: { white: '#FFFFFF', textPrimary: '#333333', primary: '#376BF5' },
+    colors: { white: '#FFFFFF', textPrimary: '#333333', primary: '#376BF5', success: '#22C55E' },
     isDark: false,
   }),
 }));
@@ -165,12 +165,14 @@ describe('LiveCapture', () => {
   });
 
   describe('capture step resolution (Req 3.2)', () => {
-    it('a card stepId (e.g. front) resolves to CARD_ASPECT_RATIO for the guided frame', () => {
+    it('a card stepId uses the rear camera and rectangular CARD_ASPECT_RATIO guide', () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
       render(<LiveCapture />);
 
+      expect(latestCameraProps.facing).toBe('back');
       expect(latestGuidedFrameProps.aspectRatio).toBeCloseTo(CARD_ASPECT_RATIO);
+      expect(latestGuidedFrameProps.shape).toBe('rectangle');
     });
 
     it('a Passport stepId (identity-page) resolves to PASSPORT_ASPECT_RATIO for the guided frame', () => {
@@ -191,12 +193,15 @@ describe('LiveCapture', () => {
       expect(screen.queryByTestId('camera-view')).toBeNull();
     });
 
-    it('the reserved selfie stepId resolves to the square SELFIE_STEP frame without an idType', () => {
+    it('the reserved selfie step uses the front camera with a circular success guide', () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
       render(<LiveCapture />);
 
+      expect(latestCameraProps.facing).toBe('front');
       expect(latestGuidedFrameProps.aspectRatio).toBe(1);
+      expect(latestGuidedFrameProps.shape).toBe('circle');
+      expect(latestGuidedFrameProps.strokeColor).toBe('#22C55E');
       expect(screen.getByTestId('camera-view')).toBeTruthy();
       expect(screen.getByText(/position your face within the frame/i)).toBeTruthy();
     });
@@ -371,7 +376,7 @@ describe('LiveCapture', () => {
       await waitFor(() => expect(mockTakePictureAsync).toHaveBeenCalledTimes(2));
     });
 
-    it('Use Photo commits the expected IdCaptureResult via setCaptureResult for the current stepId', async () => {
+    it('Use Photo commits the expected IdCaptureResult and replaces Front with Back capture', async () => {
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
       await captureAndReachReview();
 
@@ -382,10 +387,28 @@ describe('LiveCapture', () => {
         width: 400,
         height: 252,
       });
-      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
+      );
+      expect(mockBack).not.toHaveBeenCalled();
     });
 
-    it('Use Photo commits under a Passport identity-page stepId', async () => {
+    it('Use Photo returns to the ID summary after the final Back step', async () => {
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'back' };
+      await captureAndReachReview();
+
+      fireEvent.press(screen.getByText('Use Photo'));
+
+      expect(useVerificationStore.getState().captures.back).toEqual({
+        uri: 'file://captured.jpg',
+        width: 400,
+        height: 252,
+      });
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('Use Photo returns to the ID summary after the single Passport identity-page step', async () => {
       mockSearchParams = { idType: 'Passport', stepId: 'identity-page' };
       await captureAndReachReview();
 
@@ -396,6 +419,23 @@ describe('LiveCapture', () => {
         width: 400,
         height: 252,
       });
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('Use Photo keeps selfie navigation unchanged', async () => {
+      mockSearchParams = { stepId: SELFIE_STEP.id };
+      await captureAndReachReview();
+
+      fireEvent.press(screen.getByText('Use Photo'));
+
+      expect(useVerificationStore.getState().captures.selfie).toEqual({
+        uri: 'file://captured.jpg',
+        width: 400,
+        height: 252,
+      });
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 
