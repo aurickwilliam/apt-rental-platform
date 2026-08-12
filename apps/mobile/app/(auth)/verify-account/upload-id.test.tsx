@@ -16,8 +16,9 @@ jest.mock('react-native-safe-area-context', () => ({
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
+const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush, back: mockBack, replace: jest.fn() }),
+  useRouter: () => ({ push: mockPush, back: mockBack, replace: mockReplace }),
 }));
 
 // heroui-native ESM stub, matching the convention used elsewhere.
@@ -31,7 +32,6 @@ jest.mock('heroui-native', () => {
   );
   const ButtonLabel = ({ children }: any) => <Text>{children}</Text>;
 
-  const CardRoot = ({ children, ...rest }: any) => <View {...rest}>{children}</View>;
   const Passthrough = ({ children, ...rest }: any) => <View {...rest}>{children}</View>;
   const TextPassthrough = ({ children, ...rest }: any) => <Text {...rest}>{children}</Text>;
 
@@ -44,119 +44,159 @@ jest.mock('heroui-native', () => {
     CloseButton: ({ children, onPress }: any) => (
       <TouchableOpacity onPress={onPress}>{children}</TouchableOpacity>
     ),
-    Card: Object.assign(CardRoot, {
-      Header: Passthrough,
-      Body: Passthrough,
-      Footer: Passthrough,
-      Title: TextPassthrough,
-      Description: TextPassthrough,
-    }),
     Checkbox: () => null,
     ControlField: Object.assign(ControlFieldRoot, { Indicator: Passthrough }),
     Label: Object.assign(Passthrough, { Text: TextPassthrough }),
   };
 });
 
-// UploadDocumentField relies on BottomSheet (reanimated) — stub with a
-// minimal field exposing testable affordances, matching this file's needs.
-jest.mock('@/components/inputs/UploadDocumentField', () => {
-  const { View, Text } = require('react-native');
-  return {
-    __esModule: true,
-    default: ({ label, acceptedFileMimeTypes }: any) => (
-      <View>
-        <Text>{label}</Text>
-        <Text testID={`accepted-mime-types-${label}`}>
-          {JSON.stringify(acceptedFileMimeTypes)}
-        </Text>
-      </View>
-    ),
-  };
-});
-
-describe('UploadId conditional rendering', () => {
+describe('UploadId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
-  it('renders neither capture cards nor UploadDocumentFields when documentFormat is null (Req 1.1)', () => {
-    render(<UploadId />);
+  describe('auto-forward on first entry (Req 1.1)', () => {
+    it('with captures: {} and a non-null selectedId, mounting triggers router.push to live-capture for the first step', () => {
+      useVerificationStore.setState({ selectedId: 'National ID (PhilSys/PhilID)', captures: {} });
+      render(<UploadId />);
 
-    expect(screen.queryByText('Capture with camera')).toBeNull();
-    expect(screen.queryByText('Front of ID:')).toBeNull();
-    expect(screen.queryByText('Back of ID:')).toBeNull();
-  });
-
-  it('renders capture cards with no gallery/file picker affordance when documentFormat is physical (Req 1.5, 2.1)', () => {
-    useVerificationStore.setState({ documentFormat: 'physical' });
-    render(<UploadId />);
-
-    expect(screen.getAllByText('Capture with camera')).toHaveLength(2);
-    expect(screen.queryByText('Add document')).toBeNull();
-  });
-
-  it('tapping the front capture card navigates to live-capture with field=front', () => {
-    useVerificationStore.setState({ documentFormat: 'physical' });
-    render(<UploadId />);
-
-    const cards = screen.getAllByText('Capture with camera');
-    fireEvent.press(cards[0]);
-
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?field=front');
-  });
-
-  it('tapping the back capture card navigates to live-capture with field=back', () => {
-    useVerificationStore.setState({ documentFormat: 'physical' });
-    render(<UploadId />);
-
-    const cards = screen.getAllByText('Capture with camera');
-    fireEvent.press(cards[1]);
-
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?field=back');
-  });
-
-  it('renders UploadDocumentFields bound to frontResult/backResult with acceptedFileMimeTypes=["application/pdf"] when documentFormat is digital (Req 1.6, 4.1)', () => {
-    useVerificationStore.setState({ documentFormat: 'digital' });
-    render(<UploadId />);
-
-    expect(screen.getByText('Front of ID:')).toBeTruthy();
-    expect(screen.getByText('Back of ID:')).toBeTruthy();
-    expect(screen.getByTestId('accepted-mime-types-Front of ID:').props.children).toBe(
-      JSON.stringify(['application/pdf']),
-    );
-    expect(screen.getByTestId('accepted-mime-types-Back of ID:').props.children).toBe(
-      JSON.stringify(['application/pdf']),
-    );
-  });
-
-  it('switching documentFormat from physical to digital clears a camera-kind result, preserving the Format/Result Invariant (Req 5.4)', () => {
-    useVerificationStore.setState({
-      documentFormat: 'physical',
-      frontResult: { kind: 'camera', asset: { uri: 'file://front.jpg', width: 100, height: 63 } },
-      backResult: { kind: 'camera', asset: { uri: 'file://back.jpg', width: 100, height: 63 } },
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
+      );
     });
-    render(<UploadId />);
 
-    fireEvent.press(screen.getByText('Digital Document'));
+    it('auto-forwards to the single identity-page step for Passport', () => {
+      useVerificationStore.setState({ selectedId: 'Passport', captures: {} });
+      render(<UploadId />);
 
-    expect(useVerificationStore.getState().documentFormat).toBe('digital');
-    expect(useVerificationStore.getState().frontResult).toBeNull();
-    expect(useVerificationStore.getState().backResult).toBeNull();
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=Passport&stepId=identity-page',
+      );
+    });
+
+    it('does NOT auto-forward once at least one (but not all) captures entries exist, and instead renders the progress rows', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      render(<UploadId />);
+
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(screen.getByText('Front:')).toBeTruthy();
+      expect(screen.getByText('Back:')).toBeTruthy();
+    });
   });
 
-  it('switching documentFormat from digital to physical clears an image/file-kind result, preserving the Format/Result Invariant (Req 5.4)', () => {
-    useVerificationStore.setState({
-      documentFormat: 'digital',
-      frontResult: { kind: 'file', asset: { uri: 'file://front.pdf', name: 'front.pdf' } as any },
-      backResult: { kind: 'image', asset: { uri: 'file://back.jpg', width: 100, height: 63 } as any },
+  describe('null selectedId guard', () => {
+    it('with a null selectedId (e.g. after the camera close button reset the session), mounting redirects to select-id and does not auto-forward to live-capture', () => {
+      useVerificationStore.setState({ selectedId: null, captures: {} });
+      render(<UploadId />);
+
+      expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
+      expect(mockPush).not.toHaveBeenCalled();
     });
-    render(<UploadId />);
+  });
 
-    fireEvent.press(screen.getByText('Physical ID'));
+  describe('row rendering', () => {
+    it('reflects correct complete/incomplete state for a mixed-progress captures map', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      render(<UploadId />);
 
-    expect(useVerificationStore.getState().documentFormat).toBe('physical');
-    expect(useVerificationStore.getState().frontResult).toBeNull();
-    expect(useVerificationStore.getState().backResult).toBeNull();
+      expect(screen.getByText('Retake photo')).toBeTruthy();
+      expect(screen.getByText('Capture with camera')).toBeTruthy();
+    });
+
+    it('renders a single Identity Page row for Passport', () => {
+      useVerificationStore.setState({
+        selectedId: 'Passport',
+        captures: { 'identity-page': { uri: 'file://id.jpg', width: 100, height: 71 } },
+      });
+      render(<UploadId />);
+
+      expect(screen.getByText('Identity Page:')).toBeTruthy();
+      expect(screen.queryByText('Front:')).toBeNull();
+      expect(screen.queryByText('Back:')).toBeNull();
+    });
+  });
+
+  describe('navigation', () => {
+    it('tapping an incomplete row navigates to live-capture with the correct idType/stepId', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByText('Capture with camera'));
+
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
+      );
+    });
+
+    it('tapping a complete row (retake) navigates to live-capture with the correct idType/stepId', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByText('Retake photo'));
+
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
+      );
+    });
+  });
+
+  describe('absence of removed format/picker UI', () => {
+    it('renders no DocumentFormatSelector, UploadDocumentField, or gallery/file picker affordance', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      render(<UploadId />);
+
+      expect(screen.queryByText('Physical ID')).toBeNull();
+      expect(screen.queryByText('Digital Document')).toBeNull();
+      expect(screen.queryByText('Choose photo')).toBeNull();
+      expect(screen.queryByText('Choose file')).toBeNull();
+      expect(screen.queryByText('Add document')).toBeNull();
+    });
+  });
+
+  describe('continue gating', () => {
+    it('Continue to Selfie is disabled while any capture step is missing', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+      });
+      const { UNSAFE_getAllByProps } = render(<UploadId />);
+
+      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
+    });
+
+    it('Continue to Selfie is enabled once every step is captured and the checkbox is confirmed', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: {
+          front: { uri: 'file://front.jpg', width: 100, height: 63 },
+          back: { uri: 'file://back.jpg', width: 100, height: 63 },
+        },
+      });
+      const { UNSAFE_getAllByProps, UNSAFE_queryAllByProps } = render(<UploadId />);
+
+      // Not yet confirmed — still disabled.
+      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
+
+      fireEvent.press(screen.getByText(/I confirm/));
+
+      // All steps captured and confirmed — no longer disabled.
+      expect(UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
+    });
   });
 });

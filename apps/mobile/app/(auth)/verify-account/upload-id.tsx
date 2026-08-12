@@ -1,58 +1,61 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 
 import { CloseButton, Button, Checkbox, ControlField, Label } from 'heroui-native'
 
-import { IconChevronLeft, IconCamera } from '@tabler/icons-react-native'
+import { IconChevronLeft, IconCamera, IconCheck } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
-import UploadDocumentField from '@/components/inputs/UploadDocumentField'
-import DocumentFormatSelector from './components/DocumentFormatSelector'
 
 import { useColors } from '@/hooks/useTheme'
-import { useVerificationStore, type IdCaptureResult } from '@/stores/useVerificationStore'
-import { applyFormatSwitchClearing, computeCanContinue } from './utils/gating'
-import type { UploadedDocument } from '@/components/inputs/UploadDocumentField'
-
-const DIGITAL_ACCEPTED_FILE_MIME_TYPES = ['application/pdf']
-
-/**
- * Narrows an IdCaptureResult (front/back result) to the value type
- * UploadDocumentField accepts. Safe by construction while
- * documentFormat === 'digital': the Format/Result Invariant (enforced by
- * applyFormatSwitchClearing, see utils/gating.ts) guarantees a 'camera'-kind
- * result is cleared before this branch renders, so this narrowing never
- * silently drops a 'camera'-kind result the tenant is relying on.
- */
-function toUploadedDocument(result: IdCaptureResult | null): UploadedDocument | null {
-  if (result === null || result.kind === 'camera') return null;
-  return result;
-}
+import { useVerificationStore } from '@/stores/useVerificationStore'
+import { computeCanContinue, getCaptureProgress } from './utils/gating'
+import { getCaptureSequence, type CaptureStepConfig } from './constants/captureSequences'
+import type { IdCaptureResult } from '@/stores/useVerificationStore'
 
 export default function UploadId() {
   const router = useRouter();
   const { colors } = useColors();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
-  const documentFormat = useVerificationStore((state) => state.documentFormat);
-  const frontResult = useVerificationStore((state) => state.frontResult);
-  const backResult = useVerificationStore((state) => state.backResult);
-  const setDocumentFormat = useVerificationStore((state) => state.setDocumentFormat);
-  const setFrontResult = useVerificationStore((state) => state.setFrontResult);
-  const setBackResult = useVerificationStore((state) => state.setBackResult);
+  const captures = useVerificationStore((state) => state.captures);
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
 
-  const canContinue = computeCanContinue(frontResult, backResult, isConfirmed);
+  const sequence = getCaptureSequence(selectedId);
+  const progress = getCaptureProgress(sequence, captures);
+  const canContinue = computeCanContinue(sequence, captures, isConfirmed);
 
-  const handleFormatSelect = (format: 'physical' | 'digital') => {
-    setDocumentFormat(format);
-    setFrontResult(applyFormatSwitchClearing(frontResult, format));
-    setBackResult(applyFormatSwitchClearing(backResult, format));
+  const navigateToCapture = (stepId: string) => {
+    router.push(`/(auth)/verify-account/live-capture?idType=${encodeURIComponent(selectedId ?? '')}&stepId=${encodeURIComponent(stepId)}`);
   };
+
+  // Guard against landing here with no Selected_Id_Type — e.g. the camera's
+  // close button just called reset() and the user is backing into this
+  // screen. Redirect to select-id.tsx rather than rendering an empty
+  // progress list (getCaptureSequence(null) resolves to []). Uses replace
+  // so this stale screen doesn't remain in the back-stack.
+  useEffect(() => {
+    if (selectedId === null) {
+      router.replace('/(auth)/verify-account/select-id');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  // Immediate camera entry (Req 1.1): on a fresh session for this
+  // Selected_Id_Type (no captures made yet), forward straight to the first
+  // Capture_Step's Live_Capture_Screen without requiring a tap. Keyed on
+  // "captures is empty" rather than "progress.isComplete" so returning here
+  // after completing some (but not all) steps does not re-trigger this.
+  useEffect(() => {
+    if (Object.keys(captures).length === 0 && sequence.length > 0) {
+      navigateToCapture(sequence[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
   return (
     <ScreenWrapper
@@ -85,50 +88,20 @@ export default function UploadId() {
           {selectedId}
         </Text>
         <Text className='text-base text-gray-500 font-inter'>
-          Accepted formats: JPG, PNG, or PDF (max 5MB each)
+          Use your camera to capture each required photo below.
         </Text>
       </View>
 
-      {/* Document Format Selector */}
-      <View className='mt-5'>
-        <DocumentFormatSelector value={documentFormat} onSelect={handleFormatSelect} />
+      <View className='flex gap-5 mt-5'>
+        {progress.steps.map(({ step, result }) => (
+          <CaptureStepRow
+            key={step.id}
+            step={step}
+            result={result}
+            onPress={() => navigateToCapture(step.id)}
+          />
+        ))}
       </View>
-
-      {/* Capture / Upload Fields */}
-      {documentFormat === 'physical' && (
-        <View className='flex gap-5 mt-5'>
-          <CaptureEntryCard
-            label='Front of ID:'
-            result={frontResult}
-            onPress={() => router.push('/(auth)/verify-account/live-capture?field=front')}
-          />
-          <CaptureEntryCard
-            label='Back of ID:'
-            result={backResult}
-            onPress={() => router.push('/(auth)/verify-account/live-capture?field=back')}
-          />
-        </View>
-      )}
-
-      {documentFormat === 'digital' && (
-        <View className='flex gap-5 mt-5'>
-          <UploadDocumentField
-            label='Front of ID:'
-            required
-            value={toUploadedDocument(frontResult)}
-            onChange={setFrontResult}
-            acceptedFileMimeTypes={DIGITAL_ACCEPTED_FILE_MIME_TYPES}
-          />
-
-          <UploadDocumentField
-            label='Back of ID:'
-            required
-            value={toUploadedDocument(backResult)}
-            onChange={setBackResult}
-            acceptedFileMimeTypes={DIGITAL_ACCEPTED_FILE_MIME_TYPES}
-          />
-        </View>
-      )}
 
       <View className='mt-5'>
         <ControlField
@@ -154,29 +127,32 @@ export default function UploadId() {
   )
 }
 
-interface CaptureEntryCardProps {
-  label: string
+interface CaptureStepRowProps {
+  step: CaptureStepConfig
   result: IdCaptureResult | null
   onPress: () => void
 }
 
-function CaptureEntryCard({ label, result, onPress }: CaptureEntryCardProps) {
+function CaptureStepRow({ step, result, onPress }: CaptureStepRowProps) {
   const { colors } = useColors();
-  const thumbnailUri = result?.kind === 'camera' ? result.asset.uri : null;
+  const isComplete = result !== null;
 
   return (
     <View className='gap-2'>
-      <Text className='text-base font-semibold text-foreground'>
-        {label}
-      </Text>
+      <View className='flex-row items-center gap-2'>
+        <Text className='text-base font-semibold text-foreground'>
+          {step.label}:
+        </Text>
+        {isComplete && <IconCheck size={18} color={colors.primary} />}
+      </View>
 
       <TouchableOpacity
         onPress={onPress}
         className='flex-row items-center gap-3 border-2 border-dashed rounded-2xl py-4.5 px-4 bg-surface border-border'
       >
-        {thumbnailUri ? (
+        {isComplete ? (
           <Image
-            source={{ uri: thumbnailUri }}
+            source={{ uri: result.uri }}
             style={{ width: 56, height: 56, borderRadius: 8 }}
             contentFit="cover"
             cachePolicy="disk"
@@ -186,7 +162,7 @@ function CaptureEntryCard({ label, result, onPress }: CaptureEntryCardProps) {
         )}
 
         <Text className='flex-1 text-sm font-medium text-foreground'>
-          {thumbnailUri ? 'Retake photo' : 'Capture with camera'}
+          {isComplete ? 'Retake photo' : 'Capture with camera'}
         </Text>
       </TouchableOpacity>
     </View>

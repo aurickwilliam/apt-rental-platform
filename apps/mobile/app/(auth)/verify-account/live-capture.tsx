@@ -14,8 +14,7 @@ import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-
-type CaptureField = 'front' | 'back'
+import { getCaptureSequence } from './constants/captureSequences'
 
 type ScreenState = 'preview' | 'reviewing'
 
@@ -26,19 +25,22 @@ interface CapturedPhoto {
 }
 
 /**
- * Live_Capture_Screen — in-app camera capture for a Physical_ID's front or
- * back side, with a guided CR80 frame, real-time quality feedback,
- * auto-capture, a manual shutter, and a retake/confirm review step.
+ * Live_Capture_Screen — in-app camera capture for a single Capture_Step of
+ * the tenant's Selected_Id_Type, with a guided frame sized to that step's
+ * configured aspect ratio, real-time quality feedback, auto-capture, a
+ * manual shutter, and a retake/confirm review step.
  *
- * Validates: Requirements 2.1-2.10, 3.1-3.6, 6.1, 6.2
+ * Validates: Requirements 2.6, 2.7, 3.1-3.9, 4.1-4.6
  */
 export default function LiveCapture() {
   const router = useRouter();
   const { colors } = useColors();
-  const { field } = useLocalSearchParams<{ field: CaptureField }>();
+  const { idType, stepId } = useLocalSearchParams<{ idType: string; stepId: string }>();
 
-  const setFrontResult = useVerificationStore((state) => state.setFrontResult);
-  const setBackResult = useVerificationStore((state) => state.setBackResult);
+  const setCaptureResult = useVerificationStore((state) => state.setCaptureResult);
+  const reset = useVerificationStore((state) => state.reset);
+
+  const captureStep = getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
 
   const { state: permissionState, requestPermission, openSettings } = useCameraPermission();
 
@@ -54,9 +56,9 @@ export default function LiveCapture() {
   const autoCaptureTriggeredRef = useRef(false);
 
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
-  const guidedFrameRect = computeGuidedFrameRect(viewportWidth, viewportHeight);
+  const guidedFrameRect = computeGuidedFrameRect(viewportWidth, viewportHeight, captureStep?.aspectRatio);
 
-  const qualityCheckEnabled = permissionState === 'granted' && screenState === 'preview';
+  const qualityCheckEnabled = permissionState === 'granted' && screenState === 'preview' && captureStep != null;
 
   const { status, reasons, isStable } = useFrameQualityCheck(cameraRef, {
     enabled: qualityCheckEnabled,
@@ -135,32 +137,40 @@ export default function LiveCapture() {
   }, []);
 
   const handleUsePhoto = useCallback(() => {
-    if (capturedPhoto == null || field == null) return;
+    if (capturedPhoto == null || stepId == null) return;
 
-    const result = {
-      kind: 'camera' as const,
-      asset: { uri: capturedPhoto.uri, width: capturedPhoto.width, height: capturedPhoto.height },
-    };
-
-    if (field === 'front') setFrontResult(result);
-    if (field === 'back') setBackResult(result);
+    setCaptureResult(stepId, {
+      uri: capturedPhoto.uri,
+      width: capturedPhoto.width,
+      height: capturedPhoto.height,
+    });
 
     router.back();
-  }, [capturedPhoto, field, router, setFrontResult, setBackResult]);
+  }, [capturedPhoto, stepId, router, setCaptureResult]);
 
-  // Permission gating (Req 3.1, 3.2, 3.4, 3.5, 3.6)
+  // Closing out of the camera always abandons the in-progress verification
+  // session, then backs into upload-id.tsx — that screen guards against a
+  // null selectedId (left behind by reset()) by redirecting to select-id.tsx
+  // itself, so we don't need to skip past it here.
+  const handleClose = useCallback(() => {
+    reset();
+    router.back();
+  }, [reset, router]);
+
+  // Permission gating (Req 4.1, 4.2, 4.4, 4.5, 4.6)
   useEffect(() => {
     if (permissionState === 'undetermined') {
       void requestPermission();
     }
   }, [permissionState, requestPermission]);
 
-  const fieldLabel = field === 'back' ? 'Back of ID' : 'Front of ID';
+  const stepLabel = captureStep?.label ?? 'ID';
+  const stepNotFound = captureStep == null;
 
   return (
     <ScreenWrapper noTopPadding>
       <View className="absolute top-14 left-3 z-10">
-        <CloseButton variant="ghost" onPress={router.back}>
+        <CloseButton variant="ghost" onPress={handleClose}>
           <IconChevronLeft size={26} color={colors.white} />
         </CloseButton>
       </View>
@@ -171,11 +181,18 @@ export default function LiveCapture() {
 
       {permissionState === 'restricted' && <PermissionRestrictedView />}
 
+      {permissionState === 'granted' && !cameraError && stepNotFound && (
+        <CameraErrorView
+          message="The capture step could not be found."
+          onRetry={router.back}
+        />
+      )}
+
       {(permissionState === 'undetermined' || permissionState === 'granted') && cameraError && (
         <CameraErrorView message={cameraError} onRetry={handleRetryCamera} />
       )}
 
-      {permissionState === 'granted' && !cameraError && screenState === 'preview' && (
+      {permissionState === 'granted' && !cameraError && !stepNotFound && screenState === 'preview' && (
         <View className="flex-1">
           <CameraView
             ref={cameraRef}
@@ -186,12 +203,16 @@ export default function LiveCapture() {
           />
 
           <View className="absolute inset-0">
-            <GuidedFrameOverlay viewportWidth={viewportWidth} viewportHeight={viewportHeight} />
+            <GuidedFrameOverlay
+              viewportWidth={viewportWidth}
+              viewportHeight={viewportHeight}
+              aspectRatio={captureStep?.aspectRatio}
+            />
           </View>
 
           <View className="absolute top-24 left-0 right-0 items-center px-5">
             <Text className="text-white text-sm font-interMedium text-center">
-              {fieldLabel}: position the ID within the frame
+              {stepLabel}: position the ID within the frame
             </Text>
           </View>
 
