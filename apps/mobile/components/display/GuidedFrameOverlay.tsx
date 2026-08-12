@@ -1,11 +1,13 @@
 import { View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, Mask, Rect } from 'react-native-svg';
 
 /** CR80 card aspect ratio (width:height), per Requirement 3.2. */
 export const CARD_ASPECT_RATIO = 3.375 / 2.125;
 
 /** @deprecated Use `CARD_ASPECT_RATIO`. Retained as an alias for the same value. */
 export const CR80_ASPECT_RATIO = CARD_ASPECT_RATIO;
+
+export type GuidedFrameShape = 'rectangle' | 'circle';
 
 export interface GuidedFrameRect {
   x: number;
@@ -68,30 +70,72 @@ export function computeFillRatio(
 
 const CORNER_LENGTH = 28;
 const CORNER_THICKNESS = 4;
+const DEFAULT_STROKE_COLOR = 'white';
+const MASK_ID = 'guided-frame-mask';
 
 interface GuidedFrameOverlayProps {
   viewportWidth: number;
   viewportHeight: number;
   /** Guided_Frame aspect ratio (width / height). Defaults to the CR80 card ratio. */
   aspectRatio?: number;
+  /** Rectangle keeps document corner brackets; circle is used for selfie framing. */
+  shape?: GuidedFrameShape;
+  /** Border color for the guided frame. */
+  strokeColor?: string;
 }
 
 /**
- * Generic corner-bracket overlay sized to the given aspect ratio (defaulting
- * to the CR80 ID-card aspect ratio), centered over a camera preview, with a
- * dimmed mask outside the frame area. Presentational only — no
- * verification-specific logic.
+ * Presentational camera overlay with a dimmed mask outside the configured
+ * guide. Document steps use rectangular corner brackets; selfie capture uses
+ * the opt-in circular guide while preserving the same geometric frame bounds
+ * for quality checks.
  */
 export default function GuidedFrameOverlay({
   viewportWidth,
   viewportHeight,
   aspectRatio = CARD_ASPECT_RATIO,
+  shape = 'rectangle',
+  strokeColor = DEFAULT_STROKE_COLOR,
 }: GuidedFrameOverlayProps) {
   if (viewportWidth <= 0 || viewportHeight <= 0) {
     return null;
   }
 
   const frame = computeGuidedFrameRect(viewportWidth, viewportHeight, aspectRatio);
+
+  if (shape === 'circle') {
+    const radius = Math.min(frame.width, frame.height) / 2;
+    const centerX = frame.x + frame.width / 2;
+    const centerY = frame.y + frame.height / 2;
+
+    return (
+      <View className="absolute inset-0" pointerEvents="none">
+        <Svg width={viewportWidth} height={viewportHeight}>
+          <Defs>
+            <Mask id={MASK_ID}>
+              <Rect width={viewportWidth} height={viewportHeight} fill="white" />
+              <Circle cx={centerX} cy={centerY} r={radius} fill="black" />
+            </Mask>
+          </Defs>
+          <Rect
+            width={viewportWidth}
+            height={viewportHeight}
+            fill="black"
+            opacity={0.4}
+            mask={`url(#${MASK_ID})`}
+          />
+          <Circle
+            cx={centerX}
+            cy={centerY}
+            r={radius}
+            fill="transparent"
+            stroke={strokeColor}
+            strokeWidth={CORNER_THICKNESS}
+          />
+        </Svg>
+      </View>
+    );
+  }
 
   return (
     <View className="absolute inset-0" pointerEvents="none">
@@ -118,7 +162,6 @@ export default function GuidedFrameOverlay({
         }}
       />
 
-      {/* Corner brackets */}
       <Svg
         className="absolute"
         style={{ top: frame.y, left: frame.x }}
@@ -126,22 +169,22 @@ export default function GuidedFrameOverlay({
         height={frame.height}
       >
         {/* Top-left */}
-        <Rect x={0} y={0} width={CORNER_LENGTH} height={CORNER_THICKNESS} fill="white" />
-        <Rect x={0} y={0} width={CORNER_THICKNESS} height={CORNER_LENGTH} fill="white" />
+        <Rect x={0} y={0} width={CORNER_LENGTH} height={CORNER_THICKNESS} fill={strokeColor} />
+        <Rect x={0} y={0} width={CORNER_THICKNESS} height={CORNER_LENGTH} fill={strokeColor} />
         {/* Top-right */}
         <Rect
           x={frame.width - CORNER_LENGTH}
           y={0}
           width={CORNER_LENGTH}
           height={CORNER_THICKNESS}
-          fill="white"
+          fill={strokeColor}
         />
         <Rect
           x={frame.width - CORNER_THICKNESS}
           y={0}
           width={CORNER_THICKNESS}
           height={CORNER_LENGTH}
-          fill="white"
+          fill={strokeColor}
         />
         {/* Bottom-left */}
         <Rect
@@ -149,14 +192,14 @@ export default function GuidedFrameOverlay({
           y={frame.height - CORNER_THICKNESS}
           width={CORNER_LENGTH}
           height={CORNER_THICKNESS}
-          fill="white"
+          fill={strokeColor}
         />
         <Rect
           x={0}
           y={frame.height - CORNER_LENGTH}
           width={CORNER_THICKNESS}
           height={CORNER_LENGTH}
-          fill="white"
+          fill={strokeColor}
         />
         {/* Bottom-right */}
         <Rect
@@ -164,14 +207,14 @@ export default function GuidedFrameOverlay({
           y={frame.height - CORNER_THICKNESS}
           width={CORNER_LENGTH}
           height={CORNER_THICKNESS}
-          fill="white"
+          fill={strokeColor}
         />
         <Rect
           x={frame.width - CORNER_THICKNESS}
           y={frame.height - CORNER_LENGTH}
           width={CORNER_THICKNESS}
           height={CORNER_LENGTH}
-          fill="white"
+          fill={strokeColor}
         />
       </Svg>
     </View>

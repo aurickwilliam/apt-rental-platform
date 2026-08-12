@@ -47,6 +47,7 @@ export default function DevNavScreen() {
         <LinkRow label="Verify Account" route="/verify-account" />
         <LinkRow label="Verify — Select ID" route="/verify-account/select-id" />
         <LinkRow label="Verify — Upload ID" route="/verify-account/upload-id" />
+        <LinkRow label="Verify — Selfie Prep" route="/verify-account/selfie-prep" />
         <LinkRow label="Verify — Upload Selfie" route="/verify-account/upload-selfie" />
         <LinkRow label="Verify — Success" route="/verify-account/success" />
         <LinkRow label="Verify — Failed" route="/verify-account/failed" />

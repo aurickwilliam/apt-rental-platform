@@ -1,5 +1,8 @@
 import { VALID_IDS, SECONDARY_IDS } from '@repo/constants'
 
+export type CaptureCameraFacing = 'front' | 'back'
+export type CaptureGuideShape = 'rectangle' | 'circle'
+
 export interface CaptureStepConfig {
   /** Stable identifier for this step, persisted as the key in the store's captures map. */
   id: string
@@ -7,6 +10,10 @@ export interface CaptureStepConfig {
   label: string
   /** Guided_Frame aspect ratio (width / height) for this step. */
   aspectRatio: number
+  /** Device camera used to capture this step. Defaults to the rear camera. */
+  cameraFacing?: CaptureCameraFacing
+  /** Visual shape of the guided capture frame. Defaults to a rectangle. */
+  guideShape?: CaptureGuideShape
 }
 
 /** CR80 card aspect ratio (width:height) — unchanged from the prior design. */
@@ -31,15 +38,23 @@ export const SELFIE_STEP: CaptureStepConfig = {
   id: 'selfie',
   label: 'Selfie',
   aspectRatio: 1,
+  cameraFacing: 'front',
+  guideShape: 'circle',
 }
 
 const CARD_SEQUENCE: CaptureStepConfig[] = [
-  { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO },
-  { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO },
+  { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+  { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
 ]
 
 const PASSPORT_SEQUENCE: CaptureStepConfig[] = [
-  { id: 'identity-page', label: 'Identity Page', aspectRatio: PASSPORT_ASPECT_RATIO },
+  {
+    id: 'identity-page',
+    label: 'Identity Page',
+    aspectRatio: PASSPORT_ASPECT_RATIO,
+    cameraFacing: 'back',
+    guideShape: 'rectangle',
+  },
 ]
 
 const SEQUENCE_BY_ID_TYPE: Record<string, CaptureStepConfig[]> = {
@@ -60,6 +75,22 @@ const SEQUENCE_BY_ID_TYPE: Record<string, CaptureStepConfig[]> = {
 export function getCaptureSequence(idType: string | null): CaptureStepConfig[] {
   if (idType == null) return []
   return SEQUENCE_BY_ID_TYPE[idType] ?? CARD_SEQUENCE
+}
+
+/**
+ * Resolves the next configured capture step after a completed step. Returns
+ * null when the current step is unknown or is the final step in its sequence.
+ */
+export function getNextCaptureStep(
+  idType: string | null,
+  stepId: string,
+): CaptureStepConfig | null {
+  const sequence = getCaptureSequence(idType)
+  const currentStepIndex = sequence.findIndex((step) => step.id === stepId)
+
+  if (currentStepIndex < 0) return null
+
+  return sequence[currentStepIndex + 1] ?? null
 }
 
 // Re-exported for test coverage of the confirmed ID lists this mapping is

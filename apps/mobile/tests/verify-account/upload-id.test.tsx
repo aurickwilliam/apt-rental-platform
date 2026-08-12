@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import UploadId from '@/app/(auth)/verify-account/upload-id';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
@@ -17,11 +17,22 @@ jest.mock('react-native-safe-area-context', () => ({
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockUseFocusEffect = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, back: mockBack, replace: mockReplace }),
+  useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
 }));
 
-// heroui-native ESM stub, matching the convention used elsewhere.
+jest.mock('expo-image', () => {
+  const { View } = require('react-native');
+  return {
+    Image: ({ accessibilityLabel, ...props }: { accessibilityLabel?: string }) => (
+      <View accessibilityLabel={accessibilityLabel} {...props} />
+    ),
+  };
+});
+
+// HeroUI Native ESM stub, matching the convention used elsewhere.
 jest.mock('heroui-native', () => {
   const { View, Text, TouchableOpacity } = require('react-native');
 
@@ -50,14 +61,22 @@ jest.mock('heroui-native', () => {
   };
 });
 
+const FRONT_CAPTURE = { uri: 'file://front.jpg', width: 100, height: 63 };
+const BACK_CAPTURE = { uri: 'file://back.jpg', width: 100, height: 63 };
+const SELFIE_CAPTURE = { uri: 'file://selfie.jpg', width: 100, height: 100 };
+const AUTHENTICITY_DECLARATION = 'I confirm that the submitted ID is authentic, valid, and belongs to me.';
+
 describe('UploadId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseFocusEffect.mockImplementation((callback: () => void) => {
+      callback();
+    });
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
-  describe('auto-forward on first entry (Req 1.1)', () => {
-    it('with captures: {} and a non-null selectedId, mounting triggers router.push to live-capture for the first step', () => {
+  describe('focus-aware automatic progression', () => {
+    it('on first focused entry, opens the first card capture step', () => {
       useVerificationStore.setState({ selectedId: 'National ID (PhilSys/PhilID)', captures: {} });
       render(<UploadId />);
 
@@ -66,7 +85,7 @@ describe('UploadId', () => {
       );
     });
 
-    it('auto-forwards to the single identity-page step for Passport', () => {
+    it('on first focused entry, opens Passport identity-page capture', () => {
       useVerificationStore.setState({ selectedId: 'Passport', captures: {} });
       render(<UploadId />);
 
@@ -75,22 +94,49 @@ describe('UploadId', () => {
       );
     });
 
-    it('does NOT auto-forward once at least one (but not all) captures entries exist, and instead renders the progress rows', () => {
+    it('when focused with Front already complete, resumes at Back capture', () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+        captures: { front: FRONT_CAPTURE },
+      });
+      render(<UploadId />);
+
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
+      );
+    });
+
+    it('does not route from an inactive summary screen until it receives focus', () => {
+      mockUseFocusEffect.mockImplementation(() => undefined);
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE },
       });
       render(<UploadId />);
 
       expect(mockPush).not.toHaveBeenCalled();
-      expect(screen.getByText('Front:')).toBeTruthy();
-      expect(screen.getByText('Back:')).toBeTruthy();
+
+      const latestFocusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0] as (() => void) | undefined;
+      act(() => latestFocusCallback?.());
+
+      expect(mockPush).toHaveBeenCalledWith(
+        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
+      );
+    });
+
+    it('does not open another camera route after every ID capture is complete', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      expect(mockPush).not.toHaveBeenCalled();
     });
   });
 
   describe('null selectedId guard', () => {
-    it('with a null selectedId (e.g. after the camera close button reset the session), mounting redirects to select-id and does not auto-forward to live-capture', () => {
-      useVerificationStore.setState({ selectedId: null, captures: {} });
+    it('redirects to select-id and does not open live capture', () => {
       render(<UploadId />);
 
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
@@ -98,66 +144,113 @@ describe('UploadId', () => {
     });
   });
 
-  describe('row rendering', () => {
-    it('reflects correct complete/incomplete state for a mixed-progress captures map', () => {
+  describe('completed ID summary', () => {
+    it('renders read-only labeled previews and no manual capture or row-retake actions', () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
       render(<UploadId />);
 
-      expect(screen.getByText('Retake photo')).toBeTruthy();
-      expect(screen.getByText('Capture with camera')).toBeTruthy();
+      expect(screen.getByText('Front:')).toBeTruthy();
+      expect(screen.getByText('Back:')).toBeTruthy();
+      expect(screen.getByLabelText('Front ID photo')).toBeTruthy();
+      expect(screen.getByLabelText('Back ID photo')).toBeTruthy();
+      expect(screen.queryByText('Capture with camera')).toBeNull();
+      expect(screen.queryByText('Retake photo')).toBeNull();
     });
 
-    it('renders a single Identity Page row for Passport', () => {
+    it('renders the single Passport identity-page preview', () => {
       useVerificationStore.setState({
         selectedId: 'Passport',
-        captures: { 'identity-page': { uri: 'file://id.jpg', width: 100, height: 71 } },
+        captures: { 'identity-page': FRONT_CAPTURE },
       });
       render(<UploadId />);
 
       expect(screen.getByText('Identity Page:')).toBeTruthy();
+      expect(screen.getByLabelText('Identity Page ID photo')).toBeTruthy();
       expect(screen.queryByText('Front:')).toBeNull();
       expect(screen.queryByText('Back:')).toBeNull();
     });
+
+    it('only shows the authenticity declaration after the complete summary is available', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE },
+      });
+      const { rerender } = render(<UploadId />);
+
+      expect(screen.queryByText(AUTHENTICITY_DECLARATION)).toBeNull();
+      expect(screen.queryByText('Retake ID Photos')).toBeNull();
+
+      act(() => {
+        useVerificationStore.setState({
+          captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+        });
+      });
+      rerender(<UploadId />);
+
+      expect(screen.getByText(AUTHENTICITY_DECLARATION)).toBeTruthy();
+      expect(screen.getByText('Retake ID Photos')).toBeTruthy();
+    });
   });
 
-  describe('navigation', () => {
-    it('tapping an incomplete row navigates to live-capture with the correct idType/stepId', () => {
+  describe('authenticity declaration and retake', () => {
+    it('enables Continue to Selfie only after the completed summary declaration is selected', () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      const { UNSAFE_getAllByProps, UNSAFE_queryAllByProps } = render(<UploadId />);
 
-      fireEvent.press(screen.getByText('Capture with camera'));
+      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
 
-      expect(mockPush).toHaveBeenCalledWith(
-        '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
-      );
+      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+
+      expect(UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
     });
 
-    it('tapping a complete row (retake) navigates to live-capture with the correct idType/stepId', () => {
+    it('routes completed and confirmed ID submissions to selfie preparation', () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
       render(<UploadId />);
 
-      fireEvent.press(screen.getByText('Retake photo'));
+      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+      fireEvent.press(screen.getByText('Continue to Selfie'));
 
+      expect(mockPush).toHaveBeenCalledWith('/verify-account/selfie-prep');
+    });
+
+    it('retakes the complete ID sequence by clearing ID captures, resetting confirmation, and reopening Front', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: {
+          front: FRONT_CAPTURE,
+          back: BACK_CAPTURE,
+          selfie: SELFIE_CAPTURE,
+        },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+      fireEvent.press(screen.getByText('Retake ID Photos'));
+
+      expect(useVerificationStore.getState().selectedId).toBe('National ID (PhilSys/PhilID)');
+      expect(useVerificationStore.getState().captures).toEqual({ selfie: SELFIE_CAPTURE });
       expect(mockPush).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
       );
+      expect(screen.queryByText(AUTHENTICITY_DECLARATION)).toBeNull();
     });
   });
 
   describe('absence of removed format/picker UI', () => {
-    it('renders no DocumentFormatSelector, UploadDocumentField, or gallery/file picker affordance', () => {
+    it('renders no format selector, document uploader, gallery, or file picker affordance', () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
       render(<UploadId />);
 
@@ -166,37 +259,6 @@ describe('UploadId', () => {
       expect(screen.queryByText('Choose photo')).toBeNull();
       expect(screen.queryByText('Choose file')).toBeNull();
       expect(screen.queryByText('Add document')).toBeNull();
-    });
-  });
-
-  describe('continue gating', () => {
-    it('Continue to Selfie is disabled while any capture step is missing', () => {
-      useVerificationStore.setState({
-        selectedId: 'National ID (PhilSys/PhilID)',
-        captures: { front: { uri: 'file://front.jpg', width: 100, height: 63 } },
-      });
-      const { UNSAFE_getAllByProps } = render(<UploadId />);
-
-      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
-    });
-
-    it('Continue to Selfie is enabled once every step is captured and the checkbox is confirmed', () => {
-      useVerificationStore.setState({
-        selectedId: 'National ID (PhilSys/PhilID)',
-        captures: {
-          front: { uri: 'file://front.jpg', width: 100, height: 63 },
-          back: { uri: 'file://back.jpg', width: 100, height: 63 },
-        },
-      });
-      const { UNSAFE_getAllByProps, UNSAFE_queryAllByProps } = render(<UploadId />);
-
-      // Not yet confirmed — still disabled.
-      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
-
-      fireEvent.press(screen.getByText(/I confirm/));
-
-      // All steps captured and confirmed — no longer disabled.
-      expect(UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
     });
   });
 });
