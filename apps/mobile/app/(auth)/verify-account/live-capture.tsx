@@ -14,7 +14,7 @@ import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence } from './constants/captureSequences'
+import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
 
 type ScreenState = 'preview' | 'reviewing'
 
@@ -40,7 +40,11 @@ export default function LiveCapture() {
   const setCaptureResult = useVerificationStore((state) => state.setCaptureResult);
   const reset = useVerificationStore((state) => state.reset);
 
-  const captureStep = getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
+  // The reserved "selfie" step id reuses this screen with a square guide
+  // frame (see SELFIE_STEP); every other stepId resolves against the
+  // selected ID type's capture sequence.
+  const captureStep =
+    stepId === SELFIE_STEP.id ? SELFIE_STEP : getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
 
   const { state: permissionState, requestPermission, openSettings } = useCameraPermission();
 
@@ -149,12 +153,12 @@ export default function LiveCapture() {
   }, [capturedPhoto, stepId, router, setCaptureResult]);
 
   // Closing out of the camera always abandons the in-progress verification
-  // session, then backs into upload-id.tsx — that screen guards against a
-  // null selectedId (left behind by reset()) by redirecting to select-id.tsx
-  // itself, so we don't need to skip past it here.
+  // session, then dismisses the entire flow back to select-id.tsx (skipping
+  // upload-id's null-selectedId guard, which exists only as a deep-link
+  // safety net now that close no longer backs into this screen).
   const handleClose = useCallback(() => {
     reset();
-    router.back();
+    router.dismissTo('/(auth)/verify-account/select-id');
   }, [reset, router]);
 
   // Permission gating (Req 4.1, 4.2, 4.4, 4.5, 4.6)
@@ -212,7 +216,9 @@ export default function LiveCapture() {
 
           <View className="absolute top-24 left-0 right-0 items-center px-5">
             <Text className="text-white text-sm font-interMedium text-center">
-              {stepLabel}: position the ID within the frame
+              {stepId === SELFIE_STEP.id
+                ? `${stepLabel}: position your face within the frame`
+                : `${stepLabel}: position the ID within the frame`}
             </Text>
           </View>
 

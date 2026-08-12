@@ -7,7 +7,7 @@ import {
   BLUR_EXPOSURE_TIME_THRESHOLD_SECONDS,
   GLARE_BRIGHTNESS_MIN,
   GLARE_BRIGHTNESS_MAX,
-} from './useFrameQualityCheck';
+} from '@/hooks/verification/useFrameQualityCheck';
 
 jest.mock('expo-image-manipulator', () => ({
   SaveFormat: { JPEG: 'jpeg' },

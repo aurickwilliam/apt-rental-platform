@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
-import LiveCapture from './live-capture';
+import LiveCapture from '@/app/(auth)/verify-account/live-capture';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification';
-import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO } from './constants/captureSequences';
+import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO, SELFIE_STEP } from '@/app/(auth)/verify-account/constants/captureSequences';
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
@@ -18,9 +18,10 @@ jest.mock('react-native-safe-area-context', () => ({
 
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockDismissTo = jest.fn();
 let mockSearchParams: { idType?: string; stepId?: string } = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: mockReplace }),
+  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: mockReplace, dismissTo: mockDismissTo }),
   useLocalSearchParams: jest.fn(() => mockSearchParams),
 }));
 
@@ -188,6 +189,16 @@ describe('LiveCapture', () => {
 
       expect(screen.getByText(/capture step could not be found/i)).toBeTruthy();
       expect(screen.queryByTestId('camera-view')).toBeNull();
+    });
+
+    it('the reserved selfie stepId resolves to the square SELFIE_STEP frame without an idType', () => {
+      setPermission('granted');
+      mockSearchParams = { stepId: SELFIE_STEP.id };
+      render(<LiveCapture />);
+
+      expect(latestGuidedFrameProps.aspectRatio).toBe(1);
+      expect(screen.getByTestId('camera-view')).toBeTruthy();
+      expect(screen.getByText(/position your face within the frame/i)).toBeTruthy();
     });
   });
 
@@ -389,7 +400,7 @@ describe('LiveCapture', () => {
   });
 
   describe('close button', () => {
-    it('discards the in-progress session and navigates back, even when a capture already exists for the current step', () => {
+    it('discards the in-progress session and dismisses the flow to select-id, even when a capture already exists for the current step', () => {
       setPermission('granted');
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
@@ -402,7 +413,8 @@ describe('LiveCapture', () => {
       expect(useVerificationStore.getState()).toEqual(
         expect.objectContaining(initialVerificationState),
       );
-      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockDismissTo).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
+      expect(mockBack).not.toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
     });
   });

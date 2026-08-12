@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import UploadId from './upload-id';
+import UploadId from '@/app/(auth)/verify-account/upload-id';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 
 jest.mock('@/hooks/useTheme', () => ({

@@ -140,8 +140,8 @@
     "semantic_hash": "69d22a49b2d0d256d45a4b0db24ceed9"
   },
   "apps/mobile/app/(auth)/verify-account/failed.tsx": {
-    "mtime": 1786433929.355009,
-    "ast_hash": "fb506c7d739828632b221e8641cb3282",
+    "mtime": 1786532393.440607,
+    "ast_hash": "28dfae2a4fcf2de97c586abf606ad088",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/index.tsx": {
@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/select-id.tsx": {
-    "mtime": 1786433394.278561,
-    "ast_hash": "eb26198b5861342859308b70bb42a916",
+    "mtime": 1786532385.0031567,
+    "ast_hash": "378bc9ae5c3c1b31dd6e21acdcf6c751",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/success.tsx": {
@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-selfie.tsx": {
-    "mtime": 1786433846.0623841,
-    "ast_hash": "cb0d5baa8f6bdcdbcdd6c55c838f51cc",
+    "mtime": 1786532390.1511812,
+    "ast_hash": "19e4178b01b22e4c2ad6f934beaf4c6b",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-mobile.tsx": {
@@ -3375,8 +3375,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/stores/useVerificationStore.ts": {
-    "mtime": 1786529417.9616058,
-    "ast_hash": "18a1912440e5c5ef87e5d0a707bb2da6",
+    "mtime": 1786532392.66568,
+    "ast_hash": "ba6b0d8c9af837750a616d6a0fb9932f",
     "semantic_hash": ""
   },
   "docs/AUDIT_REPORT.md": {
@@ -3399,24 +3399,9 @@
     "ast_hash": "3ecdfc1543c7426971337375f947125b",
     "semantic_hash": ""
   },
-  "apps/mobile/app/(auth)/verify-account/live-capture.test.tsx": {
-    "mtime": 1786530878.6254075,
-    "ast_hash": "0767747f5586b04e3d4aa4c7c4942752",
-    "semantic_hash": ""
-  },
   "apps/mobile/app/(auth)/verify-account/live-capture.tsx": {
-    "mtime": 1786530866.266727,
-    "ast_hash": "36400f68aa4a79ee83a0e03863ff512a",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/(auth)/verify-account/upload-id.test.tsx": {
-    "mtime": 1786530890.8974743,
-    "ast_hash": "88a579b8b78a35b2d63bb1526dd26a0e",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/(auth)/verify-account/utils/gating.test.ts": {
-    "mtime": 1786529417.9605653,
-    "ast_hash": "bc2bceccaa797b12130aec2cd36c12e2",
+    "mtime": 1786532381.9951198,
+    "ast_hash": "32d1bd3c8f317c79aea5e0890b81843e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/utils/gating.ts": {
@@ -3449,19 +3434,9 @@
     "ast_hash": "75840c586bce8c53916c3f4a86e87553",
     "semantic_hash": ""
   },
-  "apps/mobile/hooks/verification/useCameraPermission.test.ts": {
-    "mtime": 1786519161.3438163,
-    "ast_hash": "2804d7ba73e934a0f86345f09acb7411",
-    "semantic_hash": ""
-  },
   "apps/mobile/hooks/verification/useCameraPermission.ts": {
     "mtime": 1786519110.452751,
     "ast_hash": "2592d38fda4531dd1732643b5f3c9ab8",
-    "semantic_hash": ""
-  },
-  "apps/mobile/hooks/verification/useFrameQualityCheck.test.ts": {
-    "mtime": 1786519318.7621157,
-    "ast_hash": "125f63601bd66ae049e36352fa45297c",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/verification/useFrameQualityCheck.ts": {
@@ -3474,11 +3449,6 @@
     "ast_hash": "b61a39598e63d42779c56c87fe108b93",
     "semantic_hash": ""
   },
-  "apps/mobile/stores/useVerificationStore.test.ts": {
-    "mtime": 1786529417.9615188,
-    "ast_hash": "f5c09b4454682db53a2d415cb594c94f",
-    "semantic_hash": ""
-  },
   ".kiro/specs/id-verification-capture/design.md": {
     "mtime": 1786529417.9594238,
     "ast_hash": "c9b5efed05d81e85489464866a184f43",
@@ -3489,14 +3459,54 @@
     "ast_hash": "1eca3e2c9850a6192970c86703f6f147",
     "semantic_hash": ""
   },
-  "apps/mobile/app/(auth)/verify-account/constants/captureSequences.test.ts": {
-    "mtime": 1786528749.43979,
-    "ast_hash": "a1d8a1535981a64017ee7cfbf2481640",
+  "apps/mobile/app/(auth)/verify-account/constants/captureSequences.ts": {
+    "mtime": 1786532375.2741842,
+    "ast_hash": "a38cc77e3e7ab517595120337c0ee8ad",
     "semantic_hash": ""
   },
-  "apps/mobile/app/(auth)/verify-account/constants/captureSequences.ts": {
-    "mtime": 1786528638.8637903,
-    "ast_hash": "0e42cc2f908f1aa31e93df78ef9614ed",
+  "apps/mobile/tests/verify-account/constants/captureSequences.test.ts": {
+    "mtime": 1786532439.520633,
+    "ast_hash": "15c7621c19de9911431676718448197f",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/hooks/verification/useCameraPermission.test.ts": {
+    "mtime": 1786532371.7927964,
+    "ast_hash": "dc9b0e0e74e77b31854991fdf09ca0ff",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/hooks/verification/useFrameQualityCheck.test.ts": {
+    "mtime": 1786532372.2250974,
+    "ast_hash": "f10e055c7834db3401fe4d0a25385d30",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/live-capture.test.tsx": {
+    "mtime": 1786532439.5197,
+    "ast_hash": "a2cdf1748e97d87f100c74722eaeaa54",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/upload-id.test.tsx": {
+    "mtime": 1786532439.520248,
+    "ast_hash": "92fa38a7a06d46f0aa7697bae3242a5f",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/utils/gating.test.ts": {
+    "mtime": 1786532439.5209467,
+    "ast_hash": "8558cf61af36554d3e4173bc7c477bb9",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/verification-flow.test.tsx": {
+    "mtime": 1786532532.5536933,
+    "ast_hash": "ec236f6d4316a4729c828939575de075",
+    "semantic_hash": ""
+  },
+  "docs/identity-verification-recommendation.md": {
+    "mtime": 1786532551.8395689,
+    "ast_hash": "dc1a5b296ec41ffdd8fe6eac9d4586cc",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/stores/useVerificationStore.test.ts": {
+    "mtime": 1786532643.701502,
+    "ast_hash": "c18eb837fb5d4f47cb67c100f76ca9e3",
     "semantic_hash": ""
   }
 }

@@ -18,9 +18,13 @@ export default function SelectId() {
   const { colors } = useColors();
 
   const setSelectedId = useVerificationStore((state) => state.setSelectedId);
+  const reset = useVerificationStore((state) => state.reset);
 
-  // Handle navigation when an ID is selected
+  // Handle navigation when an ID is selected. reset() first so every pick
+  // starts a fresh session — stale captures/selfie from an interrupted run
+  // must never carry into a new selection (freshest-session semantics).
   const handleIdSelection = (id: string) => {
+    reset();
     setSelectedId(id);
     router.push(`/(auth)/verify-account/upload-id`);
   }

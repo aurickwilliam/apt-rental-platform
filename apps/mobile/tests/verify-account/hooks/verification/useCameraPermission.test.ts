@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import { useFocusEffect } from 'expo-router';
 
-import { useCameraPermission } from './useCameraPermission';
+import { useCameraPermission } from '@/hooks/verification/useCameraPermission';
 
 jest.mock('expo-camera', () => ({
   useCameraPermissions: jest.fn(),

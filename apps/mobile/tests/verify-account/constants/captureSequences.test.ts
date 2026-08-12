@@ -7,7 +7,7 @@ import {
   CARD_ASPECT_RATIO,
   PASSPORT_ASPECT_RATIO,
   getCaptureSequence,
-} from './captureSequences';
+} from '@/app/(auth)/verify-account/constants/captureSequences';
 
 const NON_PASSPORT_ID_TYPES = ALL_SUPPORTED_ID_TYPES.filter((id) => id !== 'Passport');
 
