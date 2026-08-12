@@ -8,7 +8,8 @@ export interface IdCaptureResult {
 
 export type VerificationData = {
   selectedId: string | null;
-  /** Keyed by CaptureStepConfig.id (e.g. "front", "back", "identity-page"). */
+  /** Keyed by CaptureStepConfig.id (e.g. "front", "back", "identity-page"),
+   * plus the reserved "selfie" key written by the selfie capture step. */
   captures: Record<string, IdCaptureResult>;
 };
 

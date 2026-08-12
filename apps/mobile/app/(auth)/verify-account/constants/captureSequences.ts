@@ -22,6 +22,17 @@ export const CARD_ASPECT_RATIO = 3.375 / 2.125
  */
 export const PASSPORT_ASPECT_RATIO = 125 / 88
 
+/**
+ * Square (1:1) guide frame used for the tenant's selfie capture. The selfie
+ * is captured through the same live-capture screen as ID steps — the screen
+ * special-cases this step id and bypasses the ID-type sequence lookup.
+ */
+export const SELFIE_STEP: CaptureStepConfig = {
+  id: 'selfie',
+  label: 'Selfie',
+  aspectRatio: 1,
+}
+
 const CARD_SEQUENCE: CaptureStepConfig[] = [
   { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO },
   { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO },

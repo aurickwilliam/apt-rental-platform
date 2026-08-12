@@ -13,7 +13,11 @@ export default function Failed() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const { reason } = useLocalSearchParams<{ reason?: string }>();
+  const { reason: rawReason } = useLocalSearchParams<{ reason?: string }>();
+
+  // Clamp the reason to keep unbounded/whitespace-only params from breaking
+  // the layout; render it only when non-empty.
+  const reason = (rawReason ?? '').trim().slice(0, 200);
 
   return (
     <ScreenWrapper

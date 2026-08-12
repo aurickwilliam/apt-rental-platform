@@ -4,7 +4,7 @@ import {
   useVerificationStore,
   initialVerificationState,
   type IdCaptureResult,
-} from './useVerificationStore';
+} from '@/stores/useVerificationStore';
 
 describe('useVerificationStore', () => {
   beforeEach(() => {

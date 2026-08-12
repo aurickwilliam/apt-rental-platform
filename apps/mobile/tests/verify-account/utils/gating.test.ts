@@ -1,9 +1,9 @@
 import fc from 'fast-check';
 
 import type { IdCaptureResult } from '@/stores/useVerificationStore';
-import type { CaptureStepConfig } from '../constants/captureSequences';
+import type { CaptureStepConfig } from '@/app/(auth)/verify-account/constants/captureSequences';
 
-import { computeCanContinue, getCaptureProgress } from './gating';
+import { computeCanContinue, getCaptureProgress } from '@/app/(auth)/verify-account/utils/gating';
 
 const idCaptureResultArbitrary: fc.Arbitrary<IdCaptureResult> = fc.record({
   uri: fc.string(),
