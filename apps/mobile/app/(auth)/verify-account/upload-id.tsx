@@ -1,31 +1,58 @@
-import { View, Text } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
+import { Image } from 'expo-image'
 
 import { CloseButton, Button, Checkbox, ControlField, Label } from 'heroui-native'
 
-import { IconChevronLeft } from '@tabler/icons-react-native'
+import { IconChevronLeft, IconCamera } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
-import UploadImageField from '@/components/inputs/UploadImageField';
+import UploadDocumentField from '@/components/inputs/UploadDocumentField'
+import DocumentFormatSelector from './components/DocumentFormatSelector'
 
 import { useColors } from '@/hooks/useTheme'
-import { useVerificationStore } from '@/stores/useVerificationStore'
+import { useVerificationStore, type IdCaptureResult } from '@/stores/useVerificationStore'
+import { applyFormatSwitchClearing, computeCanContinue } from './utils/gating'
+import type { UploadedDocument } from '@/components/inputs/UploadDocumentField'
+
+const DIGITAL_ACCEPTED_FILE_MIME_TYPES = ['application/pdf']
+
+/**
+ * Narrows an IdCaptureResult (front/back result) to the value type
+ * UploadDocumentField accepts. Safe by construction while
+ * documentFormat === 'digital': the Format/Result Invariant (enforced by
+ * applyFormatSwitchClearing, see utils/gating.ts) guarantees a 'camera'-kind
+ * result is cleared before this branch renders, so this narrowing never
+ * silently drops a 'camera'-kind result the tenant is relying on.
+ */
+function toUploadedDocument(result: IdCaptureResult | null): UploadedDocument | null {
+  if (result === null || result.kind === 'camera') return null;
+  return result;
+}
 
 export default function UploadId() {
   const router = useRouter();
   const { colors } = useColors();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
-  const frontImages = useVerificationStore((state) => state.frontImages);
-  const backImages = useVerificationStore((state) => state.backImages);
-  const setFrontImages = useVerificationStore((state) => state.setFrontImages);
-  const setBackImages = useVerificationStore((state) => state.setBackImages);
+  const documentFormat = useVerificationStore((state) => state.documentFormat);
+  const frontResult = useVerificationStore((state) => state.frontResult);
+  const backResult = useVerificationStore((state) => state.backResult);
+  const setDocumentFormat = useVerificationStore((state) => state.setDocumentFormat);
+  const setFrontResult = useVerificationStore((state) => state.setFrontResult);
+  const setBackResult = useVerificationStore((state) => state.setBackResult);
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
 
-  const canContinue = frontImages.length > 0 && backImages.length > 0 && isConfirmed;
+  const canContinue = computeCanContinue(frontResult, backResult, isConfirmed);
+
+  const handleFormatSelect = (format: 'physical' | 'digital') => {
+    setDocumentFormat(format);
+    setFrontResult(applyFormatSwitchClearing(frontResult, format));
+    setBackResult(applyFormatSwitchClearing(backResult, format));
+  };
 
   return (
     <ScreenWrapper
@@ -62,32 +89,46 @@ export default function UploadId() {
         </Text>
       </View>
 
-      {/* Upload Fields */}
-      <View className='flex gap-5 mt-5'>
-        {/* Front */}
-        <UploadImageField
-          label='Front of ID:'
-          required
-          images={frontImages}
-          onAdd={(images) => {
-            // Only allow one image for the front, so replace any existing image
-            setFrontImages(Array.isArray(images) ? [images[0]] : [images]);
-          }}
-          onRemove={(url) => setFrontImages(frontImages.filter(img => img.uri !== url))}
-        />
-
-        {/* Back */}
-        <UploadImageField
-          label='Back of ID:'
-          required
-          images={backImages}
-          onAdd={(images) => {
-            // Only allow one image for the back, so replace any existing image
-            setBackImages(Array.isArray(images) ? [images[0]] : [images]);
-          }}
-          onRemove={(url) => setBackImages(backImages.filter(img => img.uri !== url))}
-        />
+      {/* Document Format Selector */}
+      <View className='mt-5'>
+        <DocumentFormatSelector value={documentFormat} onSelect={handleFormatSelect} />
       </View>
+
+      {/* Capture / Upload Fields */}
+      {documentFormat === 'physical' && (
+        <View className='flex gap-5 mt-5'>
+          <CaptureEntryCard
+            label='Front of ID:'
+            result={frontResult}
+            onPress={() => router.push('/(auth)/verify-account/live-capture?field=front')}
+          />
+          <CaptureEntryCard
+            label='Back of ID:'
+            result={backResult}
+            onPress={() => router.push('/(auth)/verify-account/live-capture?field=back')}
+          />
+        </View>
+      )}
+
+      {documentFormat === 'digital' && (
+        <View className='flex gap-5 mt-5'>
+          <UploadDocumentField
+            label='Front of ID:'
+            required
+            value={toUploadedDocument(frontResult)}
+            onChange={setFrontResult}
+            acceptedFileMimeTypes={DIGITAL_ACCEPTED_FILE_MIME_TYPES}
+          />
+
+          <UploadDocumentField
+            label='Back of ID:'
+            required
+            value={toUploadedDocument(backResult)}
+            onChange={setBackResult}
+            acceptedFileMimeTypes={DIGITAL_ACCEPTED_FILE_MIME_TYPES}
+          />
+        </View>
+      )}
 
       <View className='mt-5'>
         <ControlField
@@ -110,5 +151,44 @@ export default function UploadId() {
 
       </View>
     </ScreenWrapper>
+  )
+}
+
+interface CaptureEntryCardProps {
+  label: string
+  result: IdCaptureResult | null
+  onPress: () => void
+}
+
+function CaptureEntryCard({ label, result, onPress }: CaptureEntryCardProps) {
+  const { colors } = useColors();
+  const thumbnailUri = result?.kind === 'camera' ? result.asset.uri : null;
+
+  return (
+    <View className='gap-2'>
+      <Text className='text-base font-semibold text-foreground'>
+        {label}
+      </Text>
+
+      <TouchableOpacity
+        onPress={onPress}
+        className='flex-row items-center gap-3 border-2 border-dashed rounded-2xl py-4.5 px-4 bg-surface border-border'
+      >
+        {thumbnailUri ? (
+          <Image
+            source={{ uri: thumbnailUri }}
+            style={{ width: 56, height: 56, borderRadius: 8 }}
+            contentFit="cover"
+            cachePolicy="disk"
+          />
+        ) : (
+          <IconCamera size={22} color={colors.primary} />
+        )}
+
+        <Text className='flex-1 text-sm font-medium text-foreground'>
+          {thumbnailUri ? 'Retake photo' : 'Capture with camera'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   )
 }
