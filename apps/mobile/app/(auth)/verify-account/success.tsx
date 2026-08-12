@@ -1,18 +1,48 @@
 import { View, Text, Image } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useNavigation, useRouter } from 'expo-router'
+import { useEffect, useRef } from 'react'
+
+import { usePreventRemove } from '@react-navigation/native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import PillButton from '@/components/buttons/PillButton'
+import StepProgress from '@/components/display/StepProgress'
+
+import { Button } from 'heroui-native'
 
 import { IMAGES } from 'constants/images'
 
+import { useVerificationStore } from '@/stores/useVerificationStore'
+
 export default function Success() {
   const router = useRouter();
+  const navigation = useNavigation();
+
+  const canLeave = useRef(false);
+
+  const reset = useVerificationStore((state) => state.reset);
+
+  useEffect(() => {
+    reset();
+  }, [reset]);
+
+  // Terminal screen — block all back navigation (swipe, hardware, programmatic)
+  usePreventRemove(!canLeave.current, ({ data }) => {
+    if (canLeave.current) {
+      navigation.dispatch(data.action);
+    }
+  });
+
+  const handleGoToProfile = () => {
+    canLeave.current = true;
+    router.replace('/(tabs)/(tenant)/profile');
+  };
 
   return (
     <ScreenWrapper
       className='p-5'
     >
+      <StepProgress currentStep={4} totalSteps={4} stepName="Verification Submitted" />
+
       <View className='flex-1 items-center justify-center gap-5'>
         <Image 
           source={IMAGES.userCheck}
@@ -31,10 +61,9 @@ export default function Success() {
         </View>
       </View>
 
-      <PillButton 
-        label='Go to Profile'
-        onPress={() => router.push('/(tabs)/(tenant)/profile')}
-      />
+      <Button onPress={handleGoToProfile}>
+        <Button.Label>Go to Profile</Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }

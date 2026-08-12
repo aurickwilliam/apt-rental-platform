@@ -56,6 +56,7 @@ export default function UploadDocumentField({
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sizeError, setSizeError] = useState<string | null>(null);
+  const [typeError, setTypeError] = useState<string | null>(null);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -75,6 +76,7 @@ export default function UploadDocumentField({
       const compressed = await compressImage(picked.uri, picked.width, picked.height)
 
       setSizeError(null)
+      setTypeError(null)
       onChange({
         kind: 'image',
         asset: {
@@ -100,12 +102,19 @@ export default function UploadDocumentField({
       if (result.canceled) return
 
       const asset = result.assets[0]
+
+      if (asset.mimeType != null && !ACCEPTED_FILE_TYPES.includes(asset.mimeType)) {
+        setTypeError('This file type is unsupported.')
+        return
+      }
+
       if (asset.size != null && asset.size > maxFileSizeMB * 1024 * 1024) {
         setSizeError(`File must be ${maxFileSizeMB}MB or smaller.`)
         return
       }
 
       setSizeError(null)
+      setTypeError(null)
       onChange({ kind: 'file', asset })
     } finally {
       setLoading(false)
@@ -116,7 +125,7 @@ export default function UploadDocumentField({
     onChange(null)
   }
 
-  const displayError = error ?? sizeError
+  const displayError = error ?? typeError ?? sizeError
 
   return (
     <View className="gap-2">

@@ -16,7 +16,9 @@
         "tinted": "./assets/icons/ios/ios-tinted.png"
       },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "APT uses your camera to capture a clear photo of your ID for identity verification.",
+        "NSPhotoLibraryUsageDescription": "APT accesses your photo library so you can upload a digital copy of your ID."
       }
     },
     "android": {
@@ -27,7 +29,8 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.aurickwilliam.apt"
+      "package": "com.aurickwilliam.apt",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "bundler": "metro",
@@ -53,7 +56,13 @@
       "@maplibre/maplibre-react-native",
       "@react-native-community/datetimepicker",
       "expo-web-browser",
-      "expo-video"
+      "expo-video",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "APT uses your camera to capture a clear photo of your ID for identity verification."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

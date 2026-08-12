@@ -657,7 +657,7 @@ Verified patterns in production code:
 - **Pagination**: mobile search 10/page, web browse 25/page, landlord payment history limited; chat is **not** paginated (debt D2).
 - **Optimistic UI**: chat sends update immediately, reconciled after insert.
 
-Anti-patterns are documented in `apps/mobile/AUDIT_REPORT.md` (no request-dedup/caching layer, refetch storms on focus, duplicated profile resolution, signed-URL regeneration in chat) — see §21.
+Anti-patterns are documented in `docs/AUDIT_REPORT.md` (no request-dedup/caching layer, refetch storms on focus, duplicated profile resolution, signed-URL regeneration in chat) — see §21.
 
 ---
 
@@ -716,7 +716,7 @@ Before touching a subsystem, read its section:
 | State, stores, data flow | §11 (State) + §14 (Data Flow) |
 | Routing/navigation changes | §13 (Navigation) |
 | New feature placement | §12 (Feature) + §18 (Dependency Rules) |
-| Mobile perf/data concerns | §17 (Performance) + `apps/mobile/AUDIT_REPORT.md` |
+| Mobile perf/data concerns | §17 (Performance) + `docs/AUDIT_REPORT.md` |
 | Anything about "how it should look" | **DESIGN.md** (not this file) |
 | Code conventions, naming, structure rules | **AGENTS.md** (not this file) |
 
@@ -726,7 +726,7 @@ Verification workflow: run `graphify query`/`explain` for codebase questions bef
 
 ## 21. Known Architectural Debt
 
-All items below are verified against the repository. The authoritative, itemized mobile audit lives in `apps/mobile/AUDIT_REPORT.md` (6 critical, 13 medium, 8 minor as of 2026-07-26); items unique to this document are marked *(this doc)*.
+All items below are verified against the repository. The authoritative, itemized mobile audit lives in `docs/AUDIT_REPORT.md` (6 critical, 13 medium, 8 minor as of 2026-07-26); items unique to this document are marked *(this doc)*.
 
 | # | Debt | Detail | Evidence |
 |---|---|---|---|
@@ -757,7 +757,7 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 
 - **Payments (§7.2)**: the `payment` schema, `tenancy-live` realtime wiring, and `// TODO: trigger Supabase payment flow` imply a provider-backed flow (PayMongo mentioned in UI copy) with a server-side writer and webhook — **not implemented**.
 - **Admin role**: middleware maps `admin → /admin` with no routes or UI — a forward-looking stub, nothing more.
-- **Audit recommendations**: `apps/mobile/AUDIT_REPORT.md` recommends adopting React Query, paginating chat, and consolidating signed-URL caching. These are recommendations only; **no decision or migration is documented in the repo**.
+- **Audit recommendations**: `docs/AUDIT_REPORT.md` recommends adopting React Query, paginating chat, and consolidating signed-URL caching. These are recommendations only; **no decision or migration is documented in the repo**.
 - Everything else: **Not documented.**
 
 ---
@@ -792,7 +792,7 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 | **DESIGN.md** | Visual design system (colors, typography, spacing, components). Status markers (✅ canonical · 🚧 transitional · ⚠ legacy) describe UI state. Read for anything visual; not referenced by this document. |
 | **design-tokens.json** | Machine-readable tokens consumed by the apps; source of truth for values, mirroring DESIGN.md §3–§8. |
 | **graphify-out/** | Knowledge graph of the codebase (god nodes, communities, relationships). Query it (`graphify query/explain/path`) before grepping; keep current with `graphify update .`. |
-| **apps/mobile/AUDIT_REPORT.md** | Itemized performance/data-flow audit of the mobile app (2026-07-26); the detailed companion to §21 D1–D10, D16. |
+| **docs/AUDIT_REPORT.md** | Itemized performance/data-flow audit of the mobile app (2026-07-26); the detailed companion to §21 D1–D10, D16. |
 | **packages/supabase/src/types.ts** | Generated `Database` types — the repository's only schema reference (no migrations exist; §5). |
 | **Linked Supabase project** | ref `ezxirkpgfpripjydcqnt` — live schema, RLS policies, Realtime publication config, storage bucket policies; not version-controlled (D17). |
 
