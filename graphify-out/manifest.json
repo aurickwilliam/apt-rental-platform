@@ -10,9 +10,9 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "apps/mobile/app.json": {
-    "mtime": 1785142342.660253,
-    "ast_hash": "5c2bab0cb560eff64db6e11c9adc051a",
-    "semantic_hash": "5c2bab0cb560eff64db6e11c9adc051a"
+    "mtime": 1786519353.7272286,
+    "ast_hash": "3b2e78bd61649bf8fe958f70063ddae2",
+    "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/_layout.tsx": {
     "mtime": 1781160224.586738,
@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-id.tsx": {
-    "mtime": 1786434529.4875293,
-    "ast_hash": "8f13bef907cb3084c43b2e042864ce17",
+    "mtime": 1786520085.2159636,
+    "ast_hash": "8ba6bdf9b90b1fe70ce276b0c89e7070",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-selfie.tsx": {
@@ -1595,13 +1595,13 @@
     "semantic_hash": "a1592a498df725a734bbe78ab8f04eb6"
   },
   "apps/mobile/metro.config.js": {
-    "mtime": 1779701555.8854914,
-    "ast_hash": "996d724ead39dbff9402e026cc0769b4",
-    "semantic_hash": "996d724ead39dbff9402e026cc0769b4"
+    "mtime": 1786525563.260874,
+    "ast_hash": "0a091f8be196b466bd783e717c41e594",
+    "semantic_hash": ""
   },
   "apps/mobile/package.json": {
-    "mtime": 1786429635.079109,
-    "ast_hash": "dc56cc8ffe27737c0c984d016be63e4a",
+    "mtime": 1786518472.089039,
+    "ast_hash": "6837219a77ff9e485301286898044a64",
     "semantic_hash": ""
   },
   "apps/mobile/service/chatService.ts": {
@@ -3355,8 +3355,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/UploadDocumentField.tsx": {
-    "mtime": 1786429635.078186,
-    "ast_hash": "cb4f4d4bd8fdaf9ac4074e998427ca45",
+    "mtime": 1786518687.5166824,
+    "ast_hash": "82d3efb956308381a3cd5a796b132216",
     "semantic_hash": ""
   },
   "apps/mobile/utils/compressImage.ts": {
@@ -3375,8 +3375,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/stores/useVerificationStore.ts": {
-    "mtime": 1786432380.2218544,
-    "ast_hash": "0e58b79c08d153a21604b3a72cf15057",
+    "mtime": 1786518550.1295078,
+    "ast_hash": "be428b7fc388de4c9d5083bc2e2dd51b",
     "semantic_hash": ""
   },
   "docs/AUDIT_REPORT.md": {
@@ -3387,6 +3387,116 @@
   "docs/verification-backend-cons.md": {
     "mtime": 1786432317.3585486,
     "ast_hash": "d6ab348f507fd2936a3e09dad0b4a936",
+    "semantic_hash": ""
+  },
+  ".kiro/specs/id-verification-capture/requirements.md": {
+    "mtime": 1786463741.8357387,
+    "ast_hash": "806335329efb87c15d0d0c33915eb1a4",
+    "semantic_hash": ""
+  },
+  "apps/mobile/__tests__/smoke.test.ts": {
+    "mtime": 1786518437.1499174,
+    "ast_hash": "3ecdfc1543c7426971337375f947125b",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/components/DocumentFormatSelector.test.tsx": {
+    "mtime": 1786519589.234111,
+    "ast_hash": "ef6dbb8fe9f5901b80fd260ad69ef80b",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/components/DocumentFormatSelector.tsx": {
+    "mtime": 1786519546.0381534,
+    "ast_hash": "8b0e5a014e44411acf8d02edea332b7d",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/live-capture.test.tsx": {
+    "mtime": 1786520248.8655958,
+    "ast_hash": "14237c1deb1672515b0d64d533b4e859",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/live-capture.tsx": {
+    "mtime": 1786520270.4763267,
+    "ast_hash": "6ff57698098f3cede25063f71222d65c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/upload-id.test.tsx": {
+    "mtime": 1786520149.2060845,
+    "ast_hash": "4a60acfa613f1080bb26ce1afac65f11",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/utils/gating.test.ts": {
+    "mtime": 1786518606.781595,
+    "ast_hash": "6e269c5c78bcbd480f3443ae4bf8a918",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(auth)/verify-account/utils/gating.ts": {
+    "mtime": 1786518578.6171987,
+    "ast_hash": "3cf65d04f938150920937800f5971dd3",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/display/GuidedFrameOverlay.render.test.tsx": {
+    "mtime": 1786519047.4560792,
+    "ast_hash": "9d9691c0d91c37c9196d64595e443877",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/display/GuidedFrameOverlay.test.ts": {
+    "mtime": 1786518781.6020117,
+    "ast_hash": "7f127d7f841d19408236172a1d2257d6",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/display/GuidedFrameOverlay.tsx": {
+    "mtime": 1786518770.2654443,
+    "ast_hash": "b7a319637b5d06e250a13b32f818a520",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/inputs/UploadDocumentField.test.tsx": {
+    "mtime": 1786518989.5472643,
+    "ast_hash": "e21c7ce815dec851cc359ba831b4fab5",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/verification/index.ts": {
+    "mtime": 1786519261.665769,
+    "ast_hash": "75840c586bce8c53916c3f4a86e87553",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/verification/useCameraPermission.test.ts": {
+    "mtime": 1786519161.3438163,
+    "ast_hash": "2804d7ba73e934a0f86345f09acb7411",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/verification/useCameraPermission.ts": {
+    "mtime": 1786519110.452751,
+    "ast_hash": "2592d38fda4531dd1732643b5f3c9ab8",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/verification/useFrameQualityCheck.test.ts": {
+    "mtime": 1786519318.7621157,
+    "ast_hash": "125f63601bd66ae049e36352fa45297c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/verification/useFrameQualityCheck.ts": {
+    "mtime": 1786519252.228753,
+    "ast_hash": "46c2c4c60ef2abc085b86b6fc1a167c9",
+    "semantic_hash": ""
+  },
+  "apps/mobile/jest.config.js": {
+    "mtime": 1786519013.8938134,
+    "ast_hash": "b61a39598e63d42779c56c87fe108b93",
+    "semantic_hash": ""
+  },
+  "apps/mobile/stores/useVerificationStore.test.ts": {
+    "mtime": 1786518565.4518461,
+    "ast_hash": "b4d87e8b814d0ccd061413ee0d7f1d16",
+    "semantic_hash": ""
+  },
+  ".kiro/specs/id-verification-capture/design.md": {
+    "mtime": 1786463755.677327,
+    "ast_hash": "cd09a877473e97f8a7150580769f267f",
+    "semantic_hash": ""
+  },
+  ".kiro/specs/id-verification-capture/tasks.md": {
+    "mtime": 1786520354.1185098,
+    "ast_hash": "737779c174140e7d07b9febab18d7f9c",
     "semantic_hash": ""
   }
 }

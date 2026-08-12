@@ -33,6 +33,14 @@ interface UploadDocumentFieldProps {
   onChange: (document: UploadedDocument | null) => void
   error?: string
   maxFileSizeMB?: number
+  /**
+   * MIME types accepted by the file-picker path (`pickFile()`/`DocumentPicker`)
+   * only. Has no effect on `pickImage()` (the JPG/PNG image-library path),
+   * which has no accepted-types list of its own. Defaults to the existing
+   * `ACCEPTED_FILE_TYPES` (PDF + Word doc types) so existing callers are
+   * unaffected.
+   */
+  acceptedFileMimeTypes?: string[]
 }
 
 const THUMB_SIZE = 100
@@ -50,12 +58,14 @@ export default function UploadDocumentField({
   onChange,
   error,
   maxFileSizeMB = 5,
+  acceptedFileMimeTypes = ACCEPTED_FILE_TYPES,
 }: UploadDocumentFieldProps) {
   const { colors } = useColors();
 
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sizeError, setSizeError] = useState<string | null>(null);
+  const [typeError, setTypeError] = useState<string | null>(null);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -75,6 +85,7 @@ export default function UploadDocumentField({
       const compressed = await compressImage(picked.uri, picked.width, picked.height)
 
       setSizeError(null)
+      setTypeError(null)
       onChange({
         kind: 'image',
         asset: {
@@ -93,19 +104,26 @@ export default function UploadDocumentField({
     setLoading(true)
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ACCEPTED_FILE_TYPES,
+        type: acceptedFileMimeTypes,
         copyToCacheDirectory: true,
         multiple: false,
       })
       if (result.canceled) return
 
       const asset = result.assets[0]
+
+      if (asset.mimeType != null && !acceptedFileMimeTypes.includes(asset.mimeType)) {
+        setTypeError('This file type is unsupported.')
+        return
+      }
+
       if (asset.size != null && asset.size > maxFileSizeMB * 1024 * 1024) {
         setSizeError(`File must be ${maxFileSizeMB}MB or smaller.`)
         return
       }
 
       setSizeError(null)
+      setTypeError(null)
       onChange({ kind: 'file', asset })
     } finally {
       setLoading(false)
@@ -116,7 +134,7 @@ export default function UploadDocumentField({
     onChange(null)
   }
 
-  const displayError = error ?? sizeError
+  const displayError = error ?? typeError ?? sizeError
 
   return (
     <View className="gap-2">
