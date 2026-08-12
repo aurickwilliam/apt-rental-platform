@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import LiveCapture from './live-capture';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification';
+import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO } from './constants/captureSequences';
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
@@ -16,9 +17,11 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 const mockBack = jest.fn();
+const mockReplace = jest.fn();
+let mockSearchParams: { idType?: string; stepId?: string } = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: jest.fn() }),
-  useLocalSearchParams: jest.fn(() => ({ field: 'front' })),
+  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: mockReplace }),
+  useLocalSearchParams: jest.fn(() => mockSearchParams),
 }));
 
 jest.mock('@/hooks/verification', () => ({
@@ -67,8 +70,24 @@ jest.mock('heroui-native', () => {
   return {
     Button: Object.assign(ButtonRoot, { Label: ButtonLabel }),
     CloseButton: ({ children, onPress }: any) => (
-      <TouchableOpacity onPress={onPress}>{children}</TouchableOpacity>
+      <TouchableOpacity testID="close-button" onPress={onPress}>{children}</TouchableOpacity>
     ),
+  };
+});
+
+// Capture the props passed to GuidedFrameOverlay so tests can assert on the
+// resolved aspectRatio, while keeping the component lightweight.
+let latestGuidedFrameProps: any = null;
+jest.mock('@/components/display/GuidedFrameOverlay', () => {
+  const actual = jest.requireActual('@/components/display/GuidedFrameOverlay');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    ...actual,
+    default: (props: any) => {
+      latestGuidedFrameProps = props;
+      return <View testID="guided-frame-overlay" />;
+    },
   };
 });
 
@@ -86,13 +105,15 @@ describe('LiveCapture', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     latestCameraProps = null;
+    latestGuidedFrameProps = null;
+    mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
     mockTakePictureAsync = jest.fn().mockResolvedValue({ uri: 'file://captured.jpg', width: 400, height: 252 });
     (useFrameQualityCheck as jest.Mock).mockReturnValue(DEFAULT_QUALITY_RESULT);
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
   describe('permission branches', () => {
-    it('denied → renders explanation and a settings-link control (Req 3.1)', () => {
+    it('denied → renders explanation and a settings-link control (Req 4.1)', () => {
       setPermission('denied');
       render(<LiveCapture />);
 
@@ -100,7 +121,7 @@ describe('LiveCapture', () => {
       expect(screen.getByText('Open Settings')).toBeTruthy();
     });
 
-    it('tapping the settings control calls openSettings (Req 3.2)', () => {
+    it('tapping the settings control calls openSettings (Req 4.2)', () => {
       const openSettings = jest.fn();
       (useCameraPermission as jest.Mock).mockReturnValue({
         state: 'denied',
@@ -114,7 +135,7 @@ describe('LiveCapture', () => {
       expect(openSettings).toHaveBeenCalledTimes(1);
     });
 
-    it('restricted → renders explanation with no settings-link control (Req 3.6)', () => {
+    it('restricted → renders explanation with no settings-link control (Req 4.6)', () => {
       setPermission('restricted');
       render(<LiveCapture />);
 
@@ -122,7 +143,7 @@ describe('LiveCapture', () => {
       expect(screen.queryByText('Open Settings')).toBeNull();
     });
 
-    it('undetermined → requestPermission is called automatically on mount (Req 3.4)', () => {
+    it('undetermined → requestPermission is called automatically on mount (Req 4.4)', () => {
       const requestPermission = jest.fn().mockResolvedValue(undefined);
       (useCameraPermission as jest.Mock).mockReturnValue({
         state: 'undetermined',
@@ -142,7 +163,35 @@ describe('LiveCapture', () => {
     });
   });
 
-  describe('camera error handling (Req 2.10)', () => {
+  describe('capture step resolution (Req 3.2)', () => {
+    it('a card stepId (e.g. front) resolves to CARD_ASPECT_RATIO for the guided frame', () => {
+      setPermission('granted');
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
+      render(<LiveCapture />);
+
+      expect(latestGuidedFrameProps.aspectRatio).toBeCloseTo(CARD_ASPECT_RATIO);
+    });
+
+    it('a Passport stepId (identity-page) resolves to PASSPORT_ASPECT_RATIO for the guided frame', () => {
+      setPermission('granted');
+      mockSearchParams = { idType: 'Passport', stepId: 'identity-page' };
+      render(<LiveCapture />);
+
+      expect(latestGuidedFrameProps.aspectRatio).toBeCloseTo(PASSPORT_ASPECT_RATIO);
+      expect(latestGuidedFrameProps.aspectRatio).not.toBeCloseTo(CARD_ASPECT_RATIO, 2);
+    });
+
+    it('a stepId not present in the resolved sequence renders the "capture step could not be found" error view instead of crashing', () => {
+      setPermission('granted');
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'nonexistent-step' };
+      render(<LiveCapture />);
+
+      expect(screen.getByText(/capture step could not be found/i)).toBeTruthy();
+      expect(screen.queryByTestId('camera-view')).toBeNull();
+    });
+  });
+
+  describe('camera error handling (Req 3.9)', () => {
     it('onMountError renders an error message and a retry control', () => {
       setPermission('granted');
       render(<LiveCapture />);
@@ -171,7 +220,7 @@ describe('LiveCapture', () => {
     });
   });
 
-  describe('manual shutter and auto-capture (Req 2.5, 2.6)', () => {
+  describe('manual shutter and auto-capture (Req 3.4, 3.5)', () => {
     it('manual shutter capture calls takePictureAsync regardless of status', async () => {
       setPermission('granted');
       (useFrameQualityCheck as jest.Mock).mockReturnValue({ status: 'fail', reasons: ['blur'], isStable: false });
@@ -260,7 +309,7 @@ describe('LiveCapture', () => {
     });
   });
 
-  describe('capture review (Req 2.7, 2.8, 2.9)', () => {
+  describe('capture review (Req 3.6, 3.7, 3.8)', () => {
     async function captureAndReachReview() {
       setPermission('granted');
       render(<LiveCapture />);
@@ -311,16 +360,50 @@ describe('LiveCapture', () => {
       await waitFor(() => expect(mockTakePictureAsync).toHaveBeenCalledTimes(2));
     });
 
-    it('Use Photo commits the expected IdCaptureResult via setFrontResult for field=front', async () => {
+    it('Use Photo commits the expected IdCaptureResult via setCaptureResult for the current stepId', async () => {
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
       await captureAndReachReview();
 
       fireEvent.press(screen.getByText('Use Photo'));
 
-      expect(useVerificationStore.getState().frontResult).toEqual({
-        kind: 'camera',
-        asset: { uri: 'file://captured.jpg', width: 400, height: 252 },
+      expect(useVerificationStore.getState().captures.front).toEqual({
+        uri: 'file://captured.jpg',
+        width: 400,
+        height: 252,
       });
       expect(mockBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('Use Photo commits under a Passport identity-page stepId', async () => {
+      mockSearchParams = { idType: 'Passport', stepId: 'identity-page' };
+      await captureAndReachReview();
+
+      fireEvent.press(screen.getByText('Use Photo'));
+
+      expect(useVerificationStore.getState().captures['identity-page']).toEqual({
+        uri: 'file://captured.jpg',
+        width: 400,
+        height: 252,
+      });
+    });
+  });
+
+  describe('close button', () => {
+    it('discards the in-progress session and navigates back, even when a capture already exists for the current step', () => {
+      setPermission('granted');
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: { uri: 'file://captured.jpg', width: 400, height: 252 } },
+      });
+      render(<LiveCapture />);
+
+      fireEvent.press(screen.getByTestId('close-button'));
+
+      expect(useVerificationStore.getState()).toEqual(
+        expect.objectContaining(initialVerificationState),
+      );
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 });
