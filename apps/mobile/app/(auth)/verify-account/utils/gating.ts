@@ -1,40 +1,38 @@
-import type { DocumentFormat, IdCaptureResult } from '@/stores/useVerificationStore';
+import type { IdCaptureResult } from '@/stores/useVerificationStore';
+import type { CaptureStepConfig } from '../constants/captureSequences';
 
-/**
- * Determines whether the "Continue to Selfie" control should be enabled.
- * Kind-agnostic and presence-driven: it does not matter which `kind` of
- * IdCaptureResult was produced for either field, only whether one exists.
- *
- * Validates: Requirements 5.1, 5.2, 5.3
- */
-export function computeCanContinue(
-  frontResult: IdCaptureResult | null,
-  backResult: IdCaptureResult | null,
-  isConfirmed: boolean,
-): boolean {
-  return frontResult !== null && backResult !== null && isConfirmed === true;
+export interface CaptureProgress {
+  steps: Array<{ step: CaptureStepConfig; result: IdCaptureResult | null }>;
+  isComplete: boolean;
 }
 
 /**
- * Enforces the Format/Result Invariant: an IdCaptureResult whose `kind` is
- * inconsistent with the newly selected DocumentFormat is cleared (returns
- * null). Otherwise the result is returned unchanged.
+ * Reports, for an arbitrary-length Capture_Sequence and a captures map that
+ * may contain any subset of the sequence's step ids (or none, or extra
+ * unrelated ids), each step's current result and whether every step in the
+ * sequence has a persisted result.
  *
- * - newFormat === 'digital' clears a 'camera'-kind result.
- * - newFormat === 'physical' clears an 'image'- or 'file'-kind result.
- *
- * Validates: Requirements 5.4
+ * Validates: Requirements 2.3, 2.4
  */
-export function applyFormatSwitchClearing(
-  result: IdCaptureResult | null,
-  newFormat: DocumentFormat,
-): IdCaptureResult | null {
-  if (result === null) return null;
+export function getCaptureProgress(
+  sequence: CaptureStepConfig[],
+  captures: Record<string, IdCaptureResult>,
+): CaptureProgress {
+  const steps = sequence.map((step) => ({ step, result: captures[step.id] ?? null }));
+  return { steps, isComplete: steps.every((s) => s.result !== null) };
+}
 
-  if (newFormat === 'digital' && result.kind === 'camera') return null;
-  if (newFormat === 'physical' && (result.kind === 'image' || result.kind === 'file')) {
-    return null;
-  }
-
-  return result;
+/**
+ * Determines whether the "Continue to Selfie" control should be enabled:
+ * every Capture_Step in the sequence must have a persisted result, and the
+ * confirmation checkbox must be selected.
+ *
+ * Validates: Requirements 2.3, 2.4
+ */
+export function computeCanContinue(
+  sequence: CaptureStepConfig[],
+  captures: Record<string, IdCaptureResult>,
+  isConfirmed: boolean,
+): boolean {
+  return getCaptureProgress(sequence, captures).isComplete && isConfirmed === true;
 }

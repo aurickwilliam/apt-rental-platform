@@ -1,8 +1,11 @@
 import { View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 
-/** CR80 card aspect ratio (width:height), per Requirement 2.3. */
-export const CR80_ASPECT_RATIO = 3.375 / 2.125;
+/** CR80 card aspect ratio (width:height), per Requirement 3.2. */
+export const CARD_ASPECT_RATIO = 3.375 / 2.125;
+
+/** @deprecated Use `CARD_ASPECT_RATIO`. Retained as an alias for the same value. */
+export const CR80_ASPECT_RATIO = CARD_ASPECT_RATIO;
 
 export interface GuidedFrameRect {
   x: number;
@@ -12,16 +15,19 @@ export interface GuidedFrameRect {
 }
 
 /**
- * Computes the largest centered rectangle matching the CR80 (3.375:2.125)
- * aspect ratio that fits within the given viewport dimensions.
+ * Computes the largest centered rectangle matching the given aspect ratio
+ * (defaulting to the CR80 card ratio) that fits within the given viewport
+ * dimensions. The geometric algorithm is unchanged from the prior,
+ * CR80-only implementation — only the ratio itself is now a parameter.
  *
- * Validates: Requirements 2.3
+ * Validates: Requirements 3.2
  */
 export function computeGuidedFrameRect(
   viewportWidth: number,
   viewportHeight: number,
+  aspectRatio: number = CARD_ASPECT_RATIO,
 ): GuidedFrameRect {
-  const widthIfConstrainedByHeight = viewportHeight * CR80_ASPECT_RATIO;
+  const widthIfConstrainedByHeight = viewportHeight * aspectRatio;
 
   let width: number;
   let height: number;
@@ -31,7 +37,7 @@ export function computeGuidedFrameRect(
     height = viewportHeight;
   } else {
     width = viewportWidth;
-    height = viewportWidth / CR80_ASPECT_RATIO;
+    height = viewportWidth / aspectRatio;
   }
 
   return {
@@ -45,8 +51,10 @@ export function computeGuidedFrameRect(
 /**
  * Computes the fill ratio (guided frame area ÷ viewport area) — a pure
  * geometric comparison used by the Frame_Quality_Check's fill heuristic.
+ * Aspect-ratio-agnostic by construction: it only cares about the resulting
+ * rectangle's area, not how that rectangle's ratio was derived.
  *
- * Validates: Requirements 2.3
+ * Validates: Requirements 3.2
  */
 export function computeFillRatio(
   guidedFrameRect: GuidedFrameRect,
@@ -64,22 +72,26 @@ const CORNER_THICKNESS = 4;
 interface GuidedFrameOverlayProps {
   viewportWidth: number;
   viewportHeight: number;
+  /** Guided_Frame aspect ratio (width / height). Defaults to the CR80 card ratio. */
+  aspectRatio?: number;
 }
 
 /**
- * Generic corner-bracket overlay sized to the CR80 ID-card aspect ratio,
- * centered over a camera preview, with a dimmed mask outside the frame area.
- * Presentational only — no verification-specific logic.
+ * Generic corner-bracket overlay sized to the given aspect ratio (defaulting
+ * to the CR80 ID-card aspect ratio), centered over a camera preview, with a
+ * dimmed mask outside the frame area. Presentational only — no
+ * verification-specific logic.
  */
 export default function GuidedFrameOverlay({
   viewportWidth,
   viewportHeight,
+  aspectRatio = CARD_ASPECT_RATIO,
 }: GuidedFrameOverlayProps) {
   if (viewportWidth <= 0 || viewportHeight <= 0) {
     return null;
   }
 
-  const frame = computeGuidedFrameRect(viewportWidth, viewportHeight);
+  const frame = computeGuidedFrameRect(viewportWidth, viewportHeight, aspectRatio);
 
   return (
     <View className="absolute inset-0" pointerEvents="none">

@@ -33,14 +33,6 @@ interface UploadDocumentFieldProps {
   onChange: (document: UploadedDocument | null) => void
   error?: string
   maxFileSizeMB?: number
-  /**
-   * MIME types accepted by the file-picker path (`pickFile()`/`DocumentPicker`)
-   * only. Has no effect on `pickImage()` (the JPG/PNG image-library path),
-   * which has no accepted-types list of its own. Defaults to the existing
-   * `ACCEPTED_FILE_TYPES` (PDF + Word doc types) so existing callers are
-   * unaffected.
-   */
-  acceptedFileMimeTypes?: string[]
 }
 
 const THUMB_SIZE = 100
@@ -58,7 +50,6 @@ export default function UploadDocumentField({
   onChange,
   error,
   maxFileSizeMB = 5,
-  acceptedFileMimeTypes = ACCEPTED_FILE_TYPES,
 }: UploadDocumentFieldProps) {
   const { colors } = useColors();
 
@@ -104,7 +95,7 @@ export default function UploadDocumentField({
     setLoading(true)
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: acceptedFileMimeTypes,
+        type: ACCEPTED_FILE_TYPES,
         copyToCacheDirectory: true,
         multiple: false,
       })
@@ -112,7 +103,7 @@ export default function UploadDocumentField({
 
       const asset = result.assets[0]
 
-      if (asset.mimeType != null && !acceptedFileMimeTypes.includes(asset.mimeType)) {
+      if (asset.mimeType != null && !ACCEPTED_FILE_TYPES.includes(asset.mimeType)) {
         setTypeError('This file type is unsupported.')
         return
       }
