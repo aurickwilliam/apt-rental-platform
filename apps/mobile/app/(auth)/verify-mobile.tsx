@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { IconChevronLeft, IconAlertCircle } from "@tabler/icons-react-native";
+import { IconChevronLeft } from "@tabler/icons-react-native";
 
 import { usePHMobileValidation } from "@repo/hooks";
 
@@ -14,6 +14,8 @@ import { supabase } from "@repo/supabase";
 
 import { useColors } from "hooks/useTheme";
 
+import ErrorDialog from "@/components/display/ErrorDialog";
+
 import {
   CloseButton,
   TextField,
@@ -21,7 +23,6 @@ import {
   Input,
   FieldError,
   Button,
-  Dialog,
 } from "heroui-native";
 
 export default function VerifyMobile() {
@@ -112,44 +113,17 @@ export default function VerifyMobile() {
         {/* Verify Button */}
         <Button onPress={handleAndVerifyMobile} isDisabled={loading}>
           <Button.Label>
-            {loading ? "Please wait..." : "Proceed to OTP Verification"}
+            {loading ? "Please wait..." : "Continue"}
           </Button.Label>
         </Button>
       </View>
 
       {/* Error Dialog */}
-      <Dialog isOpen={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <Dialog.Close variant="ghost" className="absolute top-3 right-3" />
-
-            <View className="mb-5 gap-1.5">
-              <View className="flex-row items-center gap-2">
-                <IconAlertCircle size={20} color={colors.danger} />
-                <Dialog.Title className="text-danger">
-                  Something went wrong
-                </Dialog.Title>
-              </View>
-              <Dialog.Description className="text-foreground">
-                {error}
-              </Dialog.Description>
-            </View>
-
-            <View className="flex-row justify-end">
-              <Button
-                size="sm"
-                onPress={() => setErrorDialogOpen(false)}
-                variant="secondary"
-              >
-                <Button.Label>
-                  Dismiss
-                </Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      <ErrorDialog
+        isOpen={errorDialogOpen}
+        onClose={() => setErrorDialogOpen(false)}
+        message={error}
+      />
     </ScreenWrapper>
   );
 }

@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReactNode } from "react";
 
-import { ChevronLeft } from 'lucide-react-native';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 
 interface StandardHeaderProps {
   title: string;
@@ -42,7 +42,7 @@ export default function StandardHeader({
             onPress={handleBack} 
             className="p-1 -ml-1"
           >
-            <ChevronLeft 
+            <IconChevronLeft 
               size={24} 
               color={textColor === "text-white" ? "white" : "black"} 
             />

@@ -10,6 +10,8 @@ export default function _layout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="select-id" />
       <Stack.Screen name="upload-id" />
+      <Stack.Screen name="live-capture" />
+      <Stack.Screen name="selfie-prep" />
       <Stack.Screen name="upload-selfie" />
       <Stack.Screen name="success" />
       <Stack.Screen name="failed" />

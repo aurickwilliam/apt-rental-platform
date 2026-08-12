@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
@@ -15,6 +15,9 @@ import {
 import { IconChevronLeft } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
+import { useCountdown } from "@/hooks/auth";
+
+const RESEND_COOLDOWN = 30 // seconds
 
 export default function OTPVerification() {
   const { method } = useLocalSearchParams();
@@ -24,22 +27,17 @@ export default function OTPVerification() {
   const [value, setValue] = useState("");
   const ref = useRef<InputOTPRef>(null);
 
-  const [countdown, setCountdown] = useState<number>(30);
+  const { countdown, reset: resetCountdown } = useCountdown({
+    duration: RESEND_COOLDOWN,
+  });
 
   const mobileNum = "1234567890";
   const email = "johndoe@gmail.com";
 
   const lastFourDigits = String(mobileNum).slice(-4);
 
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
-
   const handleResend = () => {
-    setCountdown(30);
+    resetCountdown();
     setValue("");
     ref.current?.clear();
   };
@@ -65,9 +63,9 @@ export default function OTPVerification() {
         </Text>
 
         <Text className="text-base text-foreground font-inter mb-5">
-          We&apos;ve sent a 4-digit code to your{" "}
-          {method === "sms" ? "phone number" : "email"}. Please enter the code
-          sent to your {userInfo}.
+          We&apos;ve sent a 6-digit code to your{" "}
+          {method === "sms" ? "phone number ending in" : "email"}{" "}
+          {userInfo}.
         </Text>
 
         <View className="items-center mb-6">
@@ -115,7 +113,7 @@ export default function OTPVerification() {
       <View className="flex-1" />
 
       <Button onPress={handleVerify}>
-        <Button.Label>Verify OTP</Button.Label>
+        <Button.Label>Verify & Reset Password</Button.Label>
       </Button>
     </ScreenWrapper>
   );

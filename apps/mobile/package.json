@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest"
   },
   "dependencies": {
     "@expo/metro-config": "^55.0.23",
@@ -35,6 +36,7 @@
     "base64-arraybuffer": "^1.0.2",
     "emoji-regex-xs": "^2.0.1",
     "expo": "~55.0.26",
+    "expo-camera": "~55.0.21",
     "expo-constants": "~55.0.16",
     "expo-crypto": "^55.0.15",
     "expo-dev-client": "^55.0.35",
@@ -83,11 +85,16 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@testing-library/react-native": "13.3.3",
+    "@types/jest": "29.5.14",
     "@types/react": "~19.2.17",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~55.0.1",
     "eslint-import-resolver-typescript": "^4.4.4",
     "expo-doctor": "^1.19.10",
+    "fast-check": "4.9.0",
+    "jest": "29.7.0",
+    "jest-expo": "55.0.20",
     "metro-minify-terser": "^0.83.3",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^4.2.1",

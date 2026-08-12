@@ -44,6 +44,13 @@ export default function DevNavScreen() {
         <LinkRow label="Sign Up" route="/sign-up" />
         <LinkRow label="Onboarding" route="/onboarding" />
         <LinkRow label="Verify Mobile" route="/verify-mobile" />
+        <LinkRow label="Verify Account" route="/verify-account" />
+        <LinkRow label="Verify — Select ID" route="/verify-account/select-id" />
+        <LinkRow label="Verify — Upload ID" route="/verify-account/upload-id" />
+        <LinkRow label="Verify — Selfie Prep" route="/verify-account/selfie-prep" />
+        <LinkRow label="Verify — Upload Selfie" route="/verify-account/upload-selfie" />
+        <LinkRow label="Verify — Success" route="/verify-account/success" />
+        <LinkRow label="Verify — Failed" route="/verify-account/failed" />
         <LinkRow label="OTP Verification" route="/otp-verification" />
         <LinkRow label="Complete Profile" route="/complete-profile" />
         <LinkRow label="Forgot Password" route="/forgot-password" />
