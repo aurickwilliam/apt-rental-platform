@@ -14,6 +14,7 @@ import { supabase } from '@repo/supabase';
 
 import { getConversations, type Conversation } from '@/service/chatService';
 
+import { useCurrentUser } from '@/hooks/auth';
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
@@ -38,33 +39,23 @@ export default function Chat() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [conversations, setConversations] = useState<ConversationWithMeta[]>([]);
-  const [myId, setMyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const { tenancy } = useTenancy();
+  const currentUserQuery = useCurrentUser();
+  const myId = currentUserQuery.data?.id ?? null;
 
   const fetchConversations = useCallback(async () => {
     try {
-      // Get the current user's row in public.users via user_id (auth uid)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!myId) return;
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) return;
-      setMyId(profile.id);
-
-      const data = await getConversations(profile.id);
+      const data = await getConversations(myId);
 
       const { data: chatRows, error: chatError } = await supabase
         .from('chat')
         .select('sender_id, receiver_id, apartment_id, message_type, created_at')
-        .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
+        .or(`sender_id.eq.${myId},receiver_id.eq.${myId}`)
         .order('created_at', { ascending: false });
 
       if (chatError) throw chatError;
@@ -77,11 +68,11 @@ export default function Chat() {
         apartment_id: string | null;
         message_type: string;
       }[]) {
-        const otherUserId = row.sender_id === profile.id ? row.receiver_id : row.sender_id;
+        const otherUserId = row.sender_id === myId ? row.receiver_id : row.sender_id;
         const key = getConversationMetaKey(otherUserId, row.apartment_id);
 
         if (!(key in lastSenderIsMeByConversation)) {
-          lastSenderIsMeByConversation[key] = row.sender_id === profile.id;
+          lastSenderIsMeByConversation[key] = row.sender_id === myId;
         }
         if (!(key in lastMessageTypeByConversation)) {
           lastMessageTypeByConversation[key] = row.message_type;
@@ -106,7 +97,7 @@ export default function Chat() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [myId]);
 
   useFocusEffect(
     useCallback(() => {

@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@repo/supabase";
 
+import { useCurrentUser } from "@/hooks/auth";
+
 import { ApartmentStatus, VALID_APARTMENT_STATUSES } from '@repo/constants'
 
 export type Apartment = {
@@ -52,28 +54,25 @@ export function useLandlordUnits() {
   const [monthlyProfit, setMonthlyProfit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const currentUserQuery = useCurrentUser();
+  const landlordId = currentUserQuery.data?.id ?? null;
+
   const fetchApartments = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (userError || !userData) throw userError;
+      if (!landlordId) {
+        setLoading(false);
+        return;
+      }
 
       const [apartmentsResult, profit] = await Promise.all([
         supabase
           .from("apartments")
           .select("id, name, barangay, city, status, is_verified, apartment_images (url, is_cover), monthly_rent")
-          .eq("landlord_id", userData.id)
+          .eq("landlord_id", landlordId)
           .is("deleted_at", null)
           .order("created_at", { ascending: false }),
-        fetchMonthlyProfit(userData.id),
+        fetchMonthlyProfit(landlordId),
       ]);
 
       if (apartmentsResult.error) throw apartmentsResult.error;
@@ -104,7 +103,7 @@ export function useLandlordUnits() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [landlordId]);
 
   return { apartments, monthlyProfit, loading, fetchApartments };
 }
