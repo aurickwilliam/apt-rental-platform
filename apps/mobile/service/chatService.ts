@@ -38,12 +38,17 @@ export type PickedChatAsset = {
   mimeType?: string;
   /** Local poster-frame uri for video, generated client-side via expo-video-thumbnails. */
   thumbnailUri?: string;
+  /** Remote URL (e.g. Giphy CDN) — skips storage upload; the URL is stored verbatim. */
+  externalUrl?: string;
 };
 
 export type UploadedChatAttachment = {
   /** Ties the result back to the originally picked asset, for optimistic-UI reconciliation. */
   localUri: string;
-  attachmentPath: string;
+  /** Null for external-URL assets (no storage upload happened). */
+  attachmentPath: string | null;
+  /** Set for external-URL assets only — rendered directly, no signing needed. */
+  attachmentUrl?: string;
   messageType: Exclude<MessageType, 'text'>;
   mimeType?: string;
   thumbnailPath?: string;
@@ -132,7 +137,7 @@ export async function fetchMessagePage(params: {
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
     )
     .or(
       `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
@@ -320,6 +325,18 @@ export async function uploadChatAttachments(
     let asset: PickedChatAsset | undefined;
     while ((asset = queue.shift())) {
       try {
+        if (asset.externalUrl) {
+          // Giphy-style pick: the CDN URL is the attachment — no storage upload.
+          uploaded.push({
+            localUri: asset.localUri,
+            attachmentPath: null,
+            attachmentUrl: asset.externalUrl,
+            messageType: resolveMessageType(asset.mimeType),
+            mimeType: asset.mimeType,
+          });
+          continue;
+        }
+
         const messageType = resolveMessageType(asset.mimeType);
         const attachmentPath = await uploadChatAttachment(senderId, asset.localUri, asset.mimeType);
 
@@ -380,6 +397,7 @@ export async function insertAttachmentMessagesBatch(params: {
     apartment_id: params.apartmentId,
     message_type: u.messageType,
     attachment_path: u.attachmentPath,
+    attachment_url: u.attachmentUrl ?? null,
     attachment_mime_type: u.mimeType ?? null,
     attachment_thumbnail_path: u.thumbnailPath ?? null,
     group_id: groupId,
@@ -390,7 +408,7 @@ export async function insertAttachmentMessagesBatch(params: {
     .from('chat')
     .insert(rows)
     .select(
-      'id, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
+      'id, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
     );
 
   if (error) throw error;
@@ -437,15 +455,19 @@ export async function sendChatAttachments(params: {
       getChatAttachmentSignedUrls(thumbnailPaths),
     ]);
 
-    const uploadByPath = new Map(uploaded.map((u) => [u.attachmentPath, u]));
+    const uploadByPath = new Map<string | null, UploadedChatAttachment>(
+      uploaded.map((u) => [u.attachmentPath, u])
+    );
 
     const sent: SentChatAttachment[] = inserted.map((row) => {
-      const upload = uploadByPath.get(row.attachment_path as string);
+      const upload = row.attachment_path
+        ? uploadByPath.get(row.attachment_path)
+        : uploadByPath.get(null);
       return {
         id: row.id,
         message: null,
         messageType: row.message_type as MessageType,
-        attachmentUrl: row.attachment_path ? (signedUrls[row.attachment_path] ?? null) : null,
+        attachmentUrl: row.attachment_url ?? (row.attachment_path ? (signedUrls[row.attachment_path] ?? null) : null),
         attachmentPath: row.attachment_path ?? null,
         attachmentMimeType: row.attachment_mime_type ?? null,
         thumbnailUrl: row.attachment_thumbnail_path
@@ -542,7 +564,7 @@ export async function mapMessages(rows: any[], currentUserId: string): Promise<M
     id: m.id,
     message: m.message,
     messageType: (m.message_type ?? 'text') as MessageType,
-    attachmentUrl: m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null,
+    attachmentUrl: m.attachment_url ?? (m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null),
     attachmentPath: m.attachment_path ?? null,
     attachmentMimeType: m.attachment_mime_type ?? null,
     thumbnailUrl: m.attachment_thumbnail_path
