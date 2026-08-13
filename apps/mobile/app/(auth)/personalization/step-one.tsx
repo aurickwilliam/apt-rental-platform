@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
+import { CAMANAVA_CITIES } from "@repo/constants";
+
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import CityCheckBox from "./components/CityCheckBox";
 import PersonalizationProgress from "./components/PersonalizationProgress";
@@ -14,12 +16,7 @@ export default function StepOne() {
 
   const { selectedCities, toggleCity } = usePersonalizationStore();
 
-  const cities = [
-    "Caloocan",
-    "Malabon",
-    "Navotas",
-    "Valenzuela",
-  ];
+  const cities = [...CAMANAVA_CITIES];
 
   const handleNext = () => {
     router.replace("/personalization/step-two");

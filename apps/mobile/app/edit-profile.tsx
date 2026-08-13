@@ -32,6 +32,7 @@ import { usePHPostalCode } from "@repo/hooks";
 import { useImageUpload } from "@/hooks/apartments";
 
 import { supabase } from "@repo/supabase";
+import { invalidateCurrentUser } from "@/utils/queryClient";
 
 import {
   Button,
@@ -259,6 +260,7 @@ export default function EditProfile() {
 
       if (error) throw error;
 
+      await invalidateCurrentUser();
       setSuccessMessage("Your profile has been updated successfully.");
     } catch (err) {
       console.error("EditProfile: save error", err);

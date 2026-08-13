@@ -28,13 +28,14 @@ import { useFavorites } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 import { useReviewEligibility } from "@/hooks/ratings";
 
-import { Button } from "heroui-native";
+import { Button, useToast } from "heroui-native";
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
+  const { toast } = useToast();
 
   const { apartment, reviews, loading, error } =
     useApartmentDetails(apartmentId);
@@ -42,23 +43,27 @@ export default function ApartmentScreen() {
   const {
     canReview,
     checkingEligibility,
-    reviewableTenancyId
+    reviewableTenancyId,
   } = useReviewEligibility(apartmentId);
 
   const apartmentImages =
-    apartment?.apartment_images.map((img) => ({
-      id: img.id,
-      image: { uri: img.url },
+    apartment?.apartment_images.map((image) => ({
+      id: image.id,
+      image: { uri: image.url },
     })) ?? [];
 
-  // Handlers for User Navigation and Actions
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;
 
     try {
-      await toggleFavorite(apartmentId);
-    } catch (err) {
-      console.error("Error toggling favorite:", err);
+      const { wasFavorite } = await toggleFavorite(apartmentId);
+      toast.show({
+        variant: wasFavorite ? "default" : "success",
+        label: wasFavorite ? "Removed from favorites" : "Added to favorites",
+      });
+    } catch (toggleError) {
+      console.error("Error toggling favorite:", toggleError);
+      toast.show({ variant: "danger", label: "Something went wrong" });
     }
   };
 
@@ -108,20 +113,18 @@ export default function ApartmentScreen() {
 
   const handleWriteReview = () => {
     router.push({
-      pathname: `/apartment/[apartmentId]/rate-apartment`,
+      pathname: "/apartment/[apartmentId]/rate-apartment",
       params: {
-        apartmentId: apartmentId,
-        tenancyId: reviewableTenancyId
+        apartmentId,
+        tenancyId: reviewableTenancyId,
       },
-    })
-  }
+    });
+  };
 
-  // Loading State
   if (loading) {
     return <ApartmentSkeleton />;
   }
 
-  // Error State
   if (error && !apartment) {
     return (
       <View className="flex-1 bg-background items-center justify-center px-8">
@@ -132,7 +135,7 @@ export default function ApartmentScreen() {
           Please try again in a moment.
         </Text>
         <View className="mt-6">
-          <Button size={"sm"} onPress={() => router.back()}>
+          <Button size="sm" onPress={() => router.back()}>
             <Button.Label>Go Back</Button.Label>
           </Button>
         </View>
@@ -177,7 +180,6 @@ export default function ApartmentScreen() {
           leaseAgreementUrl={apartment?.lease_agreement_url}
         />
 
-        {/* Spacer */}
         <View className="h-20" />
       </ScreenWrapper>
 
@@ -188,15 +190,12 @@ export default function ApartmentScreen() {
         onApplyNow={handleApplyNow}
       />
 
-      {/* Fixed Icon Buttons */}
-      {/* Back Button */}
       <View className="absolute left-4" style={{ top: insets.top + 8 }}>
         <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
           <IconChevronLeft size={24} color={colors.textPrimary} />
         </Button>
       </View>
 
-      {/* Favorite Button */}
       <View className="absolute right-4" style={{ top: insets.top + 8 }}>
         <Button
           onPress={() => void handleFavoriteToggle()}

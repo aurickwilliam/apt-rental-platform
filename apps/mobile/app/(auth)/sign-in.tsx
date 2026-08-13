@@ -31,6 +31,7 @@ import {
 import { supabase } from "@repo/supabase";
 
 import { useGoogleAuth } from "hooks/auth";
+import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 
 import { isValidEmail } from "@repo/utils";
@@ -60,6 +61,7 @@ export default function SignIn() {
   } = useGoogleAuth();
 
   const handleGoogleSignIn = () => {
+    clearQueryClient();
     if (error) setError("");
     if (googleError) resetGoogleError();
     void signInWithGoogle(userSide);
@@ -101,6 +103,7 @@ export default function SignIn() {
 
     if (!isValid) return;
 
+    clearQueryClient();
     setLoading(true);
     setError("");
 

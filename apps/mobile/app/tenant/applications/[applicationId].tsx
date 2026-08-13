@@ -1,7 +1,7 @@
 import { View, Text, ActivityIndicator } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Image } from 'expo-image';
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
 import Animated from "react-native-reanimated";
 
@@ -50,12 +50,6 @@ export default function ApplicationApartment() {
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
-
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
   const chipConfig = status ? getStatusStyle(status) : null;
@@ -77,6 +71,9 @@ export default function ApplicationApartment() {
   const coverImage =
     apartment?.apartment_images?.find((img) => img.is_cover) ??
     apartment?.apartment_images?.[0];
+
+  const coverImageUri =
+    (coverImage?.url_thumb || coverImage?.url) ?? undefined;
 
   const handleConfirmCancel = async () => {
     setCancelError(null);
@@ -195,7 +192,7 @@ export default function ApplicationApartment() {
 
       {/* Apartment cover image */}
       <Image
-        source={{ uri: coverImage?.url }}
+        source={{ uri: coverImageUri }}
         contentFit="cover"
         style={{
           width: "100%",

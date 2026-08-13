@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -22,6 +22,7 @@ interface ChatBubbleProps {
   timestamp: string;
   isSent?: boolean;
   onImagePress?: (uri: string) => void;
+  onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
 }
 
 const ATTACHMENT_BORDER_RADIUS = 18;
@@ -59,6 +60,7 @@ export default function ChatBubble({
   timestamp,
   isSent = false,
   onImagePress,
+  onMediaLoadError,
 }: ChatBubbleProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -94,12 +96,14 @@ export default function ChatBubble({
           uri={attachmentUrl!}
           thumbnailUrl={thumbnailUrl}
           thumbnailPath={thumbnailPath}
+          onMediaLoadError={onMediaLoadError}
         />
       ) : isVisualMedia ? (
         <VisualMediaBubble
           uri={attachmentUrl!}
           attachmentPath={attachmentPath}
           onImagePress={onImagePress}
+          onMediaLoadError={onMediaLoadError}
           screenWidth={screenWidth}
           colors={colors}
         />
@@ -146,12 +150,14 @@ function VisualMediaBubble({
   uri,
   attachmentPath,
   onImagePress,
+  onMediaLoadError,
   screenWidth,
   colors,
 }: {
   uri: string;
   attachmentPath?: string | null;
   onImagePress?: (uri: string) => void;
+  onMediaLoadError?: (mediaKind: 'attachment') => void;
   screenWidth: number;
   colors: Record<string, string>;
 }) {
@@ -183,6 +189,7 @@ function VisualMediaBubble({
         contentFit="contain"
         transition={150}
         onLoad={handleLoad}
+        onError={() => onMediaLoadError?.('attachment')}
       />
     </Pressable>
   );
@@ -198,10 +205,12 @@ function VideoBubble({
   uri,
   thumbnailUrl,
   thumbnailPath,
+  onMediaLoadError,
 }: {
   uri: string;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
+  onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -236,6 +245,7 @@ function VideoBubble({
             cachePolicy="disk"
             contentFit="cover"
             onLoad={handleLoad}
+            onError={() => onMediaLoadError?.('thumbnail')}
           />
         )}
         <View className="absolute inset-0 items-center justify-center bg-black/20">
@@ -247,17 +257,41 @@ function VideoBubble({
 
       {isPlaying && (
         <Modal visible animationType="fade" transparent onRequestClose={() => setIsPlaying(false)}>
-          <VideoPlayerModal uri={uri} onClose={() => setIsPlaying(false)} />
+          <VideoPlayerModal
+            uri={uri}
+            onClose={() => setIsPlaying(false)}
+            onPlaybackError={() => onMediaLoadError?.('attachment')}
+          />
         </Modal>
       )}
     </>
   );
 }
 
-function VideoPlayerModal({ uri, onClose }: { uri: string; onClose: () => void }) {
+function VideoPlayerModal({
+  uri,
+  onClose,
+  onPlaybackError,
+}: {
+  uri: string;
+  onClose: () => void;
+  onPlaybackError: () => void;
+}) {
+  const playbackErrorReported = useRef(false);
   const player = useVideoPlayer(uri, (p) => {
     p.play();
   });
+
+  useEffect(() => {
+    const subscription = player.addListener('statusChange', ({ error }) => {
+      if (!error || playbackErrorReported.current) return;
+
+      playbackErrorReported.current = true;
+      onPlaybackError();
+    });
+
+    return () => subscription.remove();
+  }, [onPlaybackError, player]);
 
   return (
     <View className="flex-1 bg-black items-center justify-center">

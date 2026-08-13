@@ -21,6 +21,7 @@ export type Database = {
           id: string
           is_cover: boolean | null
           url: string
+          url_thumb: string | null
         }
         Insert: {
           apartment_id?: string | null
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           is_cover?: boolean | null
           url: string
+          url_thumb?: string | null
         }
         Update: {
           apartment_id?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           is_cover?: boolean | null
           url?: string
+          url_thumb?: string | null
         }
         Relationships: [
           {
@@ -165,6 +168,7 @@ export type Database = {
           attachment_mime_type: string | null
           attachment_path: string | null
           attachment_thumbnail_path: string | null
+          attachment_url: string | null
           created_at: string
           group_id: string | null
           id: string
@@ -181,6 +185,7 @@ export type Database = {
           attachment_mime_type?: string | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
+          attachment_url?: string | null
           created_at?: string
           group_id?: string | null
           id?: string
@@ -197,6 +202,7 @@ export type Database = {
           attachment_mime_type?: string | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
+          attachment_url?: string | null
           created_at?: string
           group_id?: string | null
           id?: string
@@ -819,6 +825,24 @@ export type Database = {
           conversation_type: string
           last_message: string
           last_message_time: string
+          other_user_avatar: string
+          other_user_id: string
+          other_user_name: string
+          other_user_phone: string
+          unread_count: number
+        }[]
+      }
+      get_conversations_v2: {
+        Args: never
+        Returns: {
+          apartment_id: string
+          apartment_name: string
+          conversation_key: string
+          conversation_type: string
+          last_message: string
+          last_message_time: string
+          last_message_type: string
+          last_sender_id: string
           other_user_avatar: string
           other_user_id: string
           other_user_name: string

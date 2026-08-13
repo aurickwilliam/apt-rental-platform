@@ -245,3 +245,16 @@ export const PROVINCES = Object.keys(CITIES) as Province[];
 export function getCitiesByProvince(province: Province): string[] {
   return CITIES[province] ?? [];
 }
+
+// Focus market: the CAMANAVA corridor (Caloocan, Malabon, Navotas, Valenzuela).
+export const CAMANAVA_CITIES = [
+  "Caloocan",
+  "Malabon",
+  "Navotas",
+  "Valenzuela",
+] as const;
+
+// Browse sentinel + the CAMANAVA corridor, in display order.
+export const CAMANAVA_FILTER_OPTIONS = ["CAMANAVA", ...CAMANAVA_CITIES] as const;
+
+export type CamanavaCity = (typeof CAMANAVA_CITIES)[number];

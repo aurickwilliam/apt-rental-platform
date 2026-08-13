@@ -1,5 +1,6 @@
 import { supabase } from '@repo/supabase'
 import * as ImagePicker from 'expo-image-picker'
+import { buildImageTiers } from '@/utils/compressImage'
 
 export type ApartmentMainFields = {
   name: string
@@ -15,6 +16,7 @@ export type ApartmentMainFields = {
 export type ExistingImage = {
   id: string            
   url: string
+  url_thumb: string | null
   is_cover: boolean
 }
 
@@ -30,21 +32,17 @@ export type UpdateApartmentMainParams = {
   pendingImages: PendingImage[]
 }
 
-async function uploadImage(
-  apartmentId: string,
-  asset: ImagePicker.ImagePickerAsset,
-  isCover: boolean,
-): Promise<string> {
-  const ext = asset.uri.split('.').pop() ?? 'jpg'
-  const prefix = isCover ? 'cover' : 'photo'
-  const path = `apartments/${apartmentId}/${prefix}_${Date.now()}.${ext}`
+function thumbPathFor(path: string): string {
+  return path.replace(/\.[^.]+$/, '') + '_thumb.jpg'
+}
 
-  const response = await fetch(asset.uri)
+async function uploadBytes(uri: string, path: string): Promise<string> {
+  const response = await fetch(uri)
   const blob = await response.blob()
 
   const { error } = await supabase.storage
     .from('apartment-images')
-    .upload(path, blob, { contentType: asset.mimeType ?? 'image/jpeg', upsert: true })
+    .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
 
   if (error) throw new Error(`Storage upload failed: ${error.message}`)
 
@@ -52,12 +50,29 @@ async function uploadImage(
   return data.publicUrl
 }
 
+async function uploadImage(
+  apartmentId: string,
+  asset: ImagePicker.ImagePickerAsset,
+  isCover: boolean,
+): Promise<{ url: string; url_thumb: string }> {
+  const { fullUri, thumbUri } = await buildImageTiers(asset.uri, asset.width, asset.height)
+  const prefix = isCover ? 'cover' : 'photo'
+  const base = `apartments/${apartmentId}/${prefix}_${Date.now()}`
+
+  const [url, url_thumb] = await Promise.all([
+    uploadBytes(fullUri, `${base}.jpg`),
+    uploadBytes(thumbUri, thumbPathFor(`${base}.jpg`)),
+  ])
+
+  return { url, url_thumb }
+}
+
 async function deleteStorageImage(url: string) {
   const marker = '/apartment-images/'
   const idx = url.indexOf(marker)
   if (idx === -1) return
   const path = url.slice(idx + marker.length)
-  await supabase.storage.from('apartment-images').remove([path])
+  await supabase.storage.from('apartment-images').remove([path, thumbPathFor(path)])
 }
 
 export async function updateApartmentMain({
@@ -112,8 +127,8 @@ export async function updateApartmentMain({
   if (pendingImages.length > 0) {
     const uploadedRows = await Promise.all(
       pendingImages.map(async ({ asset, is_cover }) => {
-        const url = await uploadImage(apartmentId, asset, is_cover)
-        return { apartment_id: apartmentId, url, is_cover }
+        const { url, url_thumb } = await uploadImage(apartmentId, asset, is_cover)
+        return { apartment_id: apartmentId, url, url_thumb, is_cover }
       }),
     )
 

@@ -63,7 +63,7 @@ type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
 export default function ApartmentMapViewScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
-  const { apartment } = useApartmentDetails(apartmentId);
+  const { apartment } = useApartmentDetails(apartmentId, { includeReviews: false });
   const { colors } = useColors();
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);

@@ -1,14 +1,15 @@
 import {
+  ActivityIndicator,
   View,
   KeyboardAvoidingView,
   FlatList,
   LayoutChangeEvent,
+  type ViewToken,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
-import { File, Paths } from 'expo-file-system';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -99,12 +100,17 @@ export default function ChatScreen() {
     otherUserName,
     otherUserAvatar,
     loading,
+    loadingMore,
+    hasMore,
     sending,
     otherUserIsTyping,
     handleChatMessageChange,
     handleSend,
     handleSendImages,
     handleInputBlur,
+    handleVisibleMessages,
+    retryChatMediaOnce,
+    loadOlderMessages,
   } = useChat({
     conversationId,
     otherUserId,
@@ -112,6 +118,19 @@ export default function ChatScreen() {
     initialOtherUserName: routedName,
     initialOtherUserAvatar: routedAvatar,
   });
+
+  const handleVisibleMessagesRef = useRef(handleVisibleMessages);
+  useEffect(() => {
+    handleVisibleMessagesRef.current = handleVisibleMessages;
+  }, [handleVisibleMessages]);
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      handleVisibleMessagesRef.current(
+        viewableItems.map((item) => (item.item as { id: string }).id)
+      );
+    }
+  ).current;
 
   const handleHeaderLayout = useCallback((e: LayoutChangeEvent) => {
     const next = Math.round(e.nativeEvent.layout.height);
@@ -217,14 +236,13 @@ export default function ChatScreen() {
     setShowGifPicker(true);
   }, []);
 
-  const handleGifSelected = useCallback(async (gif: GiphyMedia) => {
-    const downloaded = await File.downloadFileAsync(gif.url, Paths.cache, {
-      idempotent: true,
-    });
-
+  const handleGifSelected = useCallback((gif: GiphyMedia) => {
+    // The Giphy CDN URL is the attachment itself — staged as-is, no local
+    // download, and skipped in the storage upload path (see externalUrl).
     const staged: StagedAsset = {
       id: generateStagedId(),
-      localUri: downloaded.uri,
+      localUri: gif.url,
+      externalUrl: gif.url,
       mimeType: 'image/gif',
       messageType: 'gif',
     };
@@ -311,6 +329,9 @@ export default function ChatScreen() {
                   timestamp={item.timestamp}
                   isSent={item.isSent}
                   onImagePress={setSelectedImage}
+                  onMediaLoadError={(mediaKind) => {
+                    void retryChatMediaOnce(item.id, mediaKind);
+                  }}
                 />
               )}
               contentContainerStyle={
@@ -325,14 +346,24 @@ export default function ChatScreen() {
               nestedScrollEnabled
               ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
               ListFooterComponent={
-                <ChatEmptyState
-                  otherUserName={otherUserName}
-                  otherUserAvatar={otherUserAvatar ?? undefined}
-                  apartmentTitle={apartmentTitle}
-                  hasMessages={messages.length > 0}
-                />
+                <>
+                  {loadingMore && (
+                    <View className="py-3 items-center">
+                      <ActivityIndicator color={colors.primary} />
+                    </View>
+                  )}
+                  <ChatEmptyState
+                    otherUserName={otherUserName}
+                    otherUserAvatar={otherUserAvatar ?? undefined}
+                    apartmentTitle={apartmentTitle}
+                    hasMessages={messages.length > 0}
+                  />
+                </>
               }
               onContentSizeChange={handleContentSizeChange}
+              onViewableItemsChanged={onViewableItemsChanged}
+              onEndReached={hasMore ? loadOlderMessages : undefined}
+              onEndReachedThreshold={0.2}
               onScroll={handleScroll}
               scrollEventThrottle={16}
             />

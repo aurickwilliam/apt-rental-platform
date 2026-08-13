@@ -1,17 +1,24 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useCurrentUser } from '@/hooks/auth';
 
 import {
-  getCurrentUserProfile,
-  fetchMessages,
+  refreshVisibleChatMediaUrls,
+  retryChatMediaUrlOnce,
+} from '@/service/privateMediaResolver';
+
+import {
+  fetchMessagePage,
   fetchOtherUserProfile,
   insertMessage,
   markMessagesAsRead,
-  buildConversationKey,
   resolveMessageType,
   sendChatAttachments,
+  type ChatMessageCursor,
   type Message,
   type PickedChatAsset,
 } from '../../service/chatService';
+import { mergeChatMessages } from '../../service/chatPagination';
 
 import { useChatChannel } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';
@@ -31,7 +38,8 @@ export function useChat({
   initialOtherUserName,
   initialOtherUserAvatar,
 }: Options) {
-  const [myId, setMyId] = useState<string | null>(null);
+  const currentUserQuery = useCurrentUser();
+  const myId = currentUserQuery.data?.id ?? null;
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatMessage, setChatMessage] = useState('');
   const [otherUserName, setOtherUserName] = useState(initialOtherUserName ?? 'User');
@@ -39,25 +47,38 @@ export function useChat({
     initialOtherUserAvatar ?? null
   );
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<ChatMessageCursor | null>(null);
   const [sending, setSending] = useState(false);
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
   const myIdRef = useRef<string | null>(null);
+  const messagesRef = useRef<Message[]>([]);
+  const visibleMessageIdsRef = useRef<Set<string>>(new Set());
+  const paginationInFlightRef = useRef(false);
+
+  // Identity props are read through refs so the init effect only re-runs when
+  // the conversation itself changes (M12).
+  const initialOtherUserNameRef = useRef(initialOtherUserName);
+  const initialOtherUserAvatarRef = useRef(initialOtherUserAvatar);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // ─── Realtime channel ───────────────────────────────────────────────────────
 
   const handleNewMessage = useCallback((msg: Message) => {
-    setMessages((prev) => {
-      if (prev.some((m) => m.id === msg.id)) return prev;
-      return [msg, ...prev];
-    });
+    setMessages((prev) => mergeChatMessages(prev, [msg], 'newest'));
   }, []);
 
   const handleOtherUserTypingChange = useCallback((isTyping: boolean) => {
     setOtherUserIsTyping((prev) => (prev === isTyping ? prev : isTyping));
   }, []);
 
-  const { setup, teardown, broadcast, trackPresence } = useChatChannel({
+  const { broadcast, trackPresence } = useChatChannel({
+    currentUserId: myId,
     otherUserId,
     apartmentId,
     onNewMessage: handleNewMessage,
@@ -86,6 +107,16 @@ export function useChat({
     onStartTyping: handleStartTyping,
     onStopTyping: handleStopTyping,
     onHeartbeat: handleHeartbeat,
+  });
+
+  // Teardown callbacks are mirrored to refs so the init effect cleanup always
+  // calls the latest identity without re-running the effect (M12).
+  const stopTypingRef = useRef(stopTyping);
+  const cleanupTypingRef = useRef(cleanupTyping);
+
+  useEffect(() => {
+    stopTypingRef.current = stopTyping;
+    cleanupTypingRef.current = cleanupTyping;
   });
 
   // ─── Handlers exposed to the screen ────────────────────────────────────────
@@ -121,7 +152,7 @@ export function useChat({
       isPending: true,
     };
 
-    setMessages((prev) => [pendingMsg, ...prev]);
+    setMessages((prev) => mergeChatMessages(prev, [pendingMsg], 'newest'));
     setChatMessage('');
     setSending(true);
 
@@ -147,16 +178,16 @@ export function useChat({
       };
 
       setMessages((prev) => {
-        if (prev.some((m) => m.id === sentMsg.id)) {
-          return prev.filter((m) => m.id !== tempId);
+        if (prev.some((message) => message.id === sentMsg.id)) {
+          return prev.filter((message) => message.id !== tempId);
         }
-        const pendingIndex = prev.findIndex((m) => m.id === tempId);
+        const pendingIndex = prev.findIndex((message) => message.id === tempId);
         if (pendingIndex !== -1) {
           const next = [...prev];
           next[pendingIndex] = sentMsg;
           return next;
         }
-        return [sentMsg, ...prev];
+        return mergeChatMessages(prev, [sentMsg], 'newest');
       });
 
       broadcast({
@@ -171,7 +202,7 @@ export function useChat({
       });
     } catch (err) {
       console.error('Send failed:', err);
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setMessages((prev) => prev.filter((message) => message.id !== tempId));
       setChatMessage(text);
     } finally {
       setSending(false);
@@ -184,15 +215,17 @@ export function useChat({
       if (!myId || !otherUserId || sending || assets.length === 0) return;
 
       const groupId = assets.length > 1 ? `pending-${Date.now()}` : null;
-      const tempIdByUri = new Map(assets.map((a) => [a.localUri, `temp-${Date.now()}-${Math.random()}`]));
+      const tempIdByUri = new Map(
+        assets.map((asset) => [asset.localUri, `temp-${Date.now()}-${Math.random()}`])
+      );
 
-      const pendingMsgs: Message[] = assets.map((a) => ({
-        id: tempIdByUri.get(a.localUri)!,
+      const pendingMsgs: Message[] = assets.map((asset) => ({
+        id: tempIdByUri.get(asset.localUri)!,
         message: null,
-        messageType: resolveMessageType(a.mimeType),
-        attachmentUrl: a.localUri,   // local file:// renders immediately, no signed URL needed yet
+        messageType: resolveMessageType(asset.mimeType),
+        attachmentUrl: asset.localUri,
         attachmentPath: null,
-        attachmentMimeType: a.mimeType ?? null,
+        attachmentMimeType: asset.mimeType ?? null,
         thumbnailUrl: null,
         groupId,
         timestamp: 'Sending...',
@@ -200,7 +233,7 @@ export function useChat({
         isPending: true,
       }));
 
-      setMessages((prev) => [...pendingMsgs, ...prev]);
+      setMessages((prev) => mergeChatMessages(prev, pendingMsgs, 'newest'));
       setSending(true);
 
       try {
@@ -214,39 +247,39 @@ export function useChat({
         setMessages((prev) => {
           let next = prev;
 
-          for (const msg of sent) {
-            const tempId = tempIdByUri.get(msg.localUri);
-            const idx = next.findIndex((m) => m.id === tempId);
-            if (idx !== -1) {
+          for (const message of sent) {
+            const tempId = tempIdByUri.get(message.localUri);
+            const index = next.findIndex((entry) => entry.id === tempId);
+            if (index !== -1) {
               const copy = [...next];
-              copy[idx] = msg;
+              copy[index] = message;
               next = copy;
+            } else {
+              next = mergeChatMessages(next, [message], 'newest');
             }
           }
 
           const failedTempIds = new Set(
             failed
-              .map((f) => tempIdByUri.get(f.localUri))
-              .filter((id): id is string => !!id)
+              .map((failure) => tempIdByUri.get(failure.localUri))
+              .filter((id): id is string => Boolean(id))
           );
 
-          if (failedTempIds.size > 0) {
-            next = next.filter((m) => !failedTempIds.has(m.id));
-          }
-
-          return next;
+          return failedTempIds.size > 0
+            ? next.filter((message) => !failedTempIds.has(message.id))
+            : next;
         });
 
-        for (const msg of sent) {
+        for (const message of sent) {
           broadcast({
-            id: msg.id,
+            id: message.id,
             message: null,
-            messageType: msg.messageType,
-            attachmentUrl: msg.attachmentUrl,
-            attachmentPath: msg.attachmentPath,
-            attachmentMimeType: msg.attachmentMimeType,
-            thumbnailUrl: msg.thumbnailUrl,
-            thumbnailPath: msg.thumbnailPath,
+            messageType: message.messageType,
+            attachmentUrl: message.attachmentUrl,
+            attachmentPath: message.attachmentPath,
+            attachmentMimeType: message.attachmentMimeType,
+            thumbnailUrl: message.thumbnailUrl,
+            thumbnailPath: message.thumbnailPath,
             created_at: new Date().toISOString(),
             sender_id: myId,
             apartment_id: apartmentId,
@@ -254,7 +287,9 @@ export function useChat({
         }
       } catch (err) {
         console.error('Batch attachment send failed:', err);
-        setMessages((prev) => prev.filter((m) => !tempIdByUri.has(m.attachmentUrl ?? '')));
+        setMessages((prev) =>
+          prev.filter((message) => !tempIdByUri.has(message.attachmentUrl ?? ''))
+        );
       } finally {
         setSending(false);
       }
@@ -262,40 +297,157 @@ export function useChat({
     [apartmentId, broadcast, myId, otherUserId, sending, stopTyping]
   );
 
+  const loadOlderMessages = useCallback(async () => {
+    if (!myId || !nextCursor || !hasMore || paginationInFlightRef.current) return;
+
+    paginationInFlightRef.current = true;
+    setLoadingMore(true);
+
+    try {
+      const page = await fetchMessagePage({
+        currentUserId: myId,
+        otherUserId,
+        apartmentId,
+        cursor: nextCursor,
+      });
+
+      setMessages((prev) => mergeChatMessages(prev, page.messages, 'older'));
+      setNextCursor(page.nextCursor);
+      setHasMore(page.nextCursor !== null);
+    } catch (err) {
+      console.error('Load older chat messages failed:', err);
+    } finally {
+      paginationInFlightRef.current = false;
+      setLoadingMore(false);
+    }
+  }, [apartmentId, hasMore, myId, nextCursor, otherUserId]);
+
+  const refreshVisibleMedia = useCallback(async () => {
+    const visibleIds = visibleMessageIdsRef.current;
+    if (visibleIds.size === 0) return;
+
+    const visibleMessages = messagesRef.current.filter((message) => visibleIds.has(message.id));
+    const attachmentPaths = visibleMessages
+      .map((message) => message.attachmentPath)
+      .filter((path): path is string => Boolean(path));
+    const thumbnailPaths = visibleMessages
+      .map((message) => message.thumbnailPath)
+      .filter((path): path is string => Boolean(path));
+
+    if (attachmentPaths.length === 0 && thumbnailPaths.length === 0) return;
+
+    const [attachmentResolution, thumbnailResolution] = await Promise.all([
+      refreshVisibleChatMediaUrls(attachmentPaths),
+      refreshVisibleChatMediaUrls(thumbnailPaths),
+    ]);
+
+    setMessages((current) =>
+      current.map((message) => {
+        if (!visibleIds.has(message.id)) return message;
+
+        const attachmentUrl = message.attachmentPath
+          ? (attachmentResolution.urls[message.attachmentPath] ?? message.attachmentUrl)
+          : message.attachmentUrl;
+        const thumbnailUrl = message.thumbnailPath
+          ? (thumbnailResolution.urls[message.thumbnailPath] ?? message.thumbnailUrl)
+          : message.thumbnailUrl;
+
+        return attachmentUrl === message.attachmentUrl && thumbnailUrl === message.thumbnailUrl
+          ? message
+          : { ...message, attachmentUrl, thumbnailUrl };
+      })
+    );
+  }, []);
+
+  const handleVisibleMessages = useCallback(
+    (messageIds: string[]) => {
+      visibleMessageIdsRef.current = new Set(messageIds);
+      void refreshVisibleMedia();
+    },
+    [refreshVisibleMedia]
+  );
+
+  const retryChatMediaOnce = useCallback(
+    async (messageId: string, mediaKind: 'attachment' | 'thumbnail') => {
+      const message = messagesRef.current.find((entry) => entry.id === messageId);
+      const path = mediaKind === 'attachment' ? message?.attachmentPath : message?.thumbnailPath;
+      if (!path) return;
+
+      const { didRetry, urls } = await retryChatMediaUrlOnce(messageId, mediaKind, path);
+      if (!didRetry) return;
+
+      const refreshedUrl = urls[path] ?? null;
+      setMessages((current) =>
+        current.map((entry) => {
+          if (entry.id !== messageId) return entry;
+          return mediaKind === 'attachment'
+            ? { ...entry, attachmentUrl: refreshedUrl }
+            : { ...entry, thumbnailUrl: refreshedUrl };
+        })
+      );
+    },
+    []
+  );
+
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      void refreshVisibleMedia();
+    }, 60 * 1000);
+
+    return () => clearInterval(refreshInterval);
+  }, [refreshVisibleMedia]);
+
   // ─── Init ───────────────────────────────────────────────────────────────────
+
+  // Signed-out loading state is ended separately so the init effect below can
+  // depend only on the conversation identity (M12).
+  useEffect(() => {
+    if (!myId && !currentUserQuery.isLoading) setLoading(false);
+  }, [myId, currentUserQuery.isLoading]);
 
   useEffect(() => {
     let cancelled = false;
+    paginationInFlightRef.current = false;
+    setLoading(true);
+    setLoadingMore(false);
+    setHasMore(false);
+    setNextCursor(null);
+    setMessages([]);
 
     async function init() {
+      if (!myId) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
       try {
-        const profile = await getCurrentUserProfile();
-        if (!profile || cancelled) return;
+        myIdRef.current = myId;
 
-        myIdRef.current = profile.id;
-        setMyId(profile.id);
-
-        const [otherProfile, msgs] = await Promise.all([
+        const [otherProfile, page] = await Promise.all([
           fetchOtherUserProfile(otherUserId),
-          fetchMessages(profile.id, otherUserId, apartmentId),
+          fetchMessagePage({
+            currentUserId: myId,
+            otherUserId,
+            apartmentId,
+          }),
         ]);
 
         if (cancelled) return;
 
         if (otherProfile) {
-          if (!initialOtherUserName) {
+          if (!initialOtherUserNameRef.current) {
             const fullName = `${otherProfile.firstName} ${otherProfile.lastName}`.trim();
             if (fullName) setOtherUserName(fullName);
           }
-          if (!initialOtherUserAvatar && otherProfile.avatarUrl) {
+          if (!initialOtherUserAvatarRef.current && otherProfile.avatarUrl) {
             setOtherUserAvatar(otherProfile.avatarUrl);
           }
         }
 
-        setMessages(msgs);
-        markMessagesAsRead(profile.id, otherUserId, apartmentId).catch(console.error);
-        const channelKey = buildConversationKey(profile.id, otherUserId, apartmentId);
-        setup(profile.id, channelKey);
+        setMessages((current) => mergeChatMessages(current, page.messages, 'older'));
+        setNextCursor(page.nextCursor);
+        setHasMore(page.nextCursor !== null);
+        markMessagesAsRead(myId, otherUserId, apartmentId).catch(console.error);
       } catch (err) {
         console.error('Chat init error:', err);
       } finally {
@@ -303,40 +455,34 @@ export function useChat({
       }
     }
 
-    init();
+    void init();
 
     return () => {
       cancelled = true;
-      stopTyping();
-      cleanupTyping();
-      teardown();
+      myIdRef.current = null;
+      paginationInFlightRef.current = false;
+      stopTypingRef.current();
+      cleanupTypingRef.current();
     };
-  }, [
-    apartmentId,
-    cleanupTyping,
-    initialOtherUserAvatar,
-    initialOtherUserName,
-    otherUserId,
-    setup,
-    stopTyping,
-    teardown,
-  ]);
+  }, [apartmentId, myId, otherUserId]);
 
   return {
-    // State
     myId,
     messages,
     chatMessage,
     otherUserName,
     otherUserAvatar,
     loading,
+    loadingMore,
+    hasMore,
     sending,
     otherUserIsTyping,
-
-    // Handlers
     handleChatMessageChange,
     handleSend,
     handleInputBlur,
     handleSendImages,
+    handleVisibleMessages,
+    retryChatMediaOnce,
+    loadOlderMessages,
   };
 }

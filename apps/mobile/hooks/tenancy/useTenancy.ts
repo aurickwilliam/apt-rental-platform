@@ -1,174 +1,132 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { supabase } from '@repo/supabase';
+import { useCallback, useEffect } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { supabase } from "@repo/supabase";
 
-export type TenancyApartment = {
-  id: string;
-  name: string;
-  street_address: string;
-  barangay: string;
-  city: string;
-  province: string;
-  zip_code: string;
-  monthly_rent: number;
-  type: string;
-  no_bedrooms: number;
-  no_bathrooms: number;
-  area_sqm: number;
-  amenities: string[] | null;
-  description: string;
-  furnished_type: string | null;
-  floor_level: string | null;
-  max_occupants: number | null;
-  lease_duration: string | null;
-  lease_agreement_url: string | null;
-};
+import { useCurrentUser } from "@/hooks/auth";
+import { fetchTenancy } from "@/service/tenancyService";
 
-export type TenancyLandlord = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  mobile_number: string | null;
-  avatar_url: string | null;
-};
+import type { CurrentTenancy, TenancyPayment } from "@/service/tenancyService";
 
-export type TenancyPayment = {
-  id: string;
-  amount: number | null;
-  status: string;
-  period_start: string | null;
-  period_end: string | null;
-  due_date: string | null;
-};
+export type {
+  CurrentTenancy,
+  TenancyApartment,
+  TenancyLandlord,
+  TenancyPayment,
+} from "@/service/tenancyService";
 
-export type CurrentTenancy = {
-  id: string;
-  lease_start: string;
-  lease_end: string | null;
-  monthly_rent: number | null;
-  status: string;
-  apartment: TenancyApartment;
-  landlord: TenancyLandlord | null;
-  currentPayment: TenancyPayment | null;
-};
+export const getTenancyQueryKey = (tenantId: string) =>
+  ["tenancy", tenantId] as const;
+
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
+  return "An unexpected error occurred.";
+}
+
+function getRecordString(record: unknown, field: string): string | null {
+  if (typeof record !== "object" || record === null) return null;
+
+  const value = (record as Record<string, unknown>)[field];
+  return typeof value === "string" ? value : null;
+}
 
 export function useTenancy() {
-  const [tenancy, setTenancy] = useState<CurrentTenancy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const currentUserQuery = useCurrentUser();
+  const tenantId = currentUserQuery.data?.id ?? null;
 
-  const fetchTenancy = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const tenancyQuery = useQuery({
+    queryKey: ["tenancy", tenantId] as const,
+    queryFn: () => fetchTenancy(tenantId as string),
+    enabled: tenantId !== null,
+  });
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setTenancy(null);
-        return;
-      }
+  const tenancy = tenancyQuery.data ?? null;
 
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+  const refetch = useCallback(async () => {
+    if (!tenantId) return;
 
-      if (profileError || !profile) {
-        setError(profileError?.message ?? 'Profile not found');
-        setTenancy(null);
-        return;
-      }
+    await tenancyQuery.refetch();
+  }, [tenancyQuery, tenantId]);
 
-      const { data: tenancyData, error: tenancyError } = await supabase
-        .from('tenancies')
-        .select(`
-          id,
-          lease_start,
-          lease_end,
-          monthly_rent,
-          status,
-          apartment:apartments (
-            id, name, street_address, barangay, city, province, zip_code, monthly_rent,
-            type, no_bedrooms, no_bathrooms, area_sqm, amenities, description,
-            furnished_type, floor_level, max_occupants, lease_duration,
-            lease_agreement_url
-          ),
-          landlord:users!tenancies_landlord_id_fkey (
-            id, first_name, last_name, email, mobile_number, avatar_url
-          )
-        `)
-        .eq('tenant_id', profile.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (tenancyError) {
-        setError(tenancyError.message);
-        setTenancy(null);
-        return;
-      }
-
-      if (!tenancyData) {
-        setTenancy(null);
-        return;
-      }
-
-      const { data: paymentData } = await supabase
-        .from('payment')
-        .select('id, amount, status, period_start, period_end, due_date')
-        .eq('tenancy_id', tenancyData.id)
-        .order('period_start', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      setTenancy({ ...(tenancyData as any), currentPayment: paymentData ?? null });
-    } catch (err) {
-      console.error('useTenancy:', err);
-      setError('An unexpected error occurred.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Re-fetch every time the screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchTenancy();
-    }, [fetchTenancy])
-  );
-
-  // Realtime subscription — keeps payment status live without manual refresh
   useEffect(() => {
-    let tenancyId: string | null = null;
+    if (!tenantId) return;
 
+    const queryKey = getTenancyQueryKey(tenantId);
     const channel = supabase
-      .channel('tenancy-live')
+      .channel(`tenancy-live:${tenantId}`)
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'payment' },
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tenancies",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
         (payload) => {
-          // Only refetch if the changed payment belongs to our tenancy
-          const record = (payload.new ?? payload.old) as any;
-          if (tenancyId && record?.tenancy_id === tenancyId) {
-            fetchTenancy();
+          const record = payload.new ?? payload.old;
+          if (getRecordString(record, "tenant_id") === tenantId) {
+            void queryClient.invalidateQueries({ queryKey, exact: true });
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'tenancies' },
-        () => fetchTenancy()
-      )
-      .subscribe();
+        },
+      );
 
-    // Store tenancy id once we have it so the payment listener can filter
-    if (tenancy?.id) tenancyId = tenancy.id;
+    if (tenancy?.id) {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "payment",
+          filter: `tenancy_id=eq.${tenancy.id}`,
+        },
+        (payload) => {
+          const record = payload.new ?? payload.old;
+          if (getRecordString(record, "tenancy_id") !== tenancy.id) return;
+
+          if (payload.eventType === "DELETE") {
+            // Shape change — simplest correct path is a refetch.
+            void queryClient.invalidateQueries({ queryKey, exact: true });
+            return;
+          }
+
+          // INSERT/UPDATE: targeted merge, gated on recency so stale events
+          // (older period_start) never overwrite the current payment.
+          const periodStart = getRecordString(record, "period_start");
+          const currentTenancy = queryClient.getQueryData<CurrentTenancy>(queryKey);
+          const currentPeriodStart = currentTenancy?.currentPayment?.period_start ?? null;
+
+          if (periodStart && currentPeriodStart && periodStart < currentPeriodStart) return;
+
+          queryClient.setQueryData<CurrentTenancy>(queryKey, (current) =>
+            current
+              ? { ...current, currentPayment: (record as unknown as TenancyPayment) ?? null }
+              : current
+          );
+        },
+      );
+    }
+
+    channel.subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [tenancy?.id, fetchTenancy]);
+  }, [queryClient, tenantId, tenancy?.id]);
 
-  return { tenancy, loading, error, refetch: fetchTenancy };
+  return {
+    tenancy,
+    loading: currentUserQuery.isLoading || tenancyQuery.isLoading,
+    error: getErrorMessage(currentUserQuery.error ?? tenancyQuery.error),
+    refetch,
+  };
 }

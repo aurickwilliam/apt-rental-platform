@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
@@ -26,17 +25,14 @@ import {
 } from "heroui-native";
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
-import { VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
 const locationOptions = [
   "All",
-  "Caloocan",
-  "Malabon",
-  "Navotas",
-  "Valenzuela",
+  ...CAMANAVA_CITIES,
 ];
 
 export default function Units() {
@@ -65,14 +61,6 @@ export default function Units() {
     setSelectedLocation(locationOptions[0]);
     setSelectedSort("none");
   };
-
-  // Re-fetch whenever tab is focused
-  useFocusEffect(
-    useCallback(() => {
-      fetchApartments();
-      fetchCounts();
-    }, [fetchApartments, fetchCounts]),
-  );
 
   const filteredApartments = useMemo(() => {
     let result = apartments;

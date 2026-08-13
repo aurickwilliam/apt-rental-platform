@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_FILTER_OPTIONS,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
@@ -13,7 +14,7 @@ import { useFavorites } from "@/hooks/favorites";
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
 
-const CITIES = ["CAMANAVA", "Caloocan", "Malabon", "Navotas", "Valenzuela"];
+const CITIES = [...CAMANAVA_FILTER_OPTIONS];
 const PAGE_SIZE = 10;
 
 const MIN_BUDGET = 1000;
@@ -69,11 +70,11 @@ export default function useSearchLogic() {
         is_verified,
         apartment_images (
           url,
+          url_thumb,
           is_cover,
           created_at
-        )`,
-        { count: "exact" },
-      )
+        )
+      `, { count: "estimated" })
       .is("deleted_at", null)
       .range(from, to);
 
@@ -189,13 +190,17 @@ export default function useSearchLogic() {
   const transformData = (data: any[]): ApartmentCardProps[] =>
     data.map((apt) => {
       const images = apt.apartment_images ?? [];
-      const thumbnailUrl =
-        images.find((img: any) => img.is_cover)?.url ??
-        images.sort(
+      const cover = images.find((img: any) => img.is_cover);
+      const earliest = images
+        .slice()
+        .sort(
           (a: any, b: any) =>
             new Date(a.created_at ?? 0).getTime() -
             new Date(b.created_at ?? 0).getTime(),
-        )[0]?.url ??
+        )[0];
+      const thumbnailUrl =
+        (cover?.url_thumb || cover?.url) ??
+        (earliest?.url_thumb || earliest?.url) ??
         undefined;
 
       return {
@@ -340,13 +345,7 @@ export default function useSearchLogic() {
   }, [filters]);
 
   const handleToggleFavorite = useCallback(
-    async (id: string) => {
-      try {
-        await toggleFavorite(id);
-      } catch (err) {
-        console.error("Error toggling favorite:", err);
-      }
-    },
+    (id: string) => toggleFavorite(id),
     [toggleFavorite],
   );
 

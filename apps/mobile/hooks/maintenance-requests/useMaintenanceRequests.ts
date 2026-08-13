@@ -1,142 +1,90 @@
-import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@repo/supabase';
+import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export type MaintenanceRequestStatus = 'Pending' | 'In Progress' | 'Resolved' | 'Cancelled';
-export type MaintenanceRequestUrgency = 'low' | 'medium' | 'high';
+import {
+  cancelMaintenanceRequest,
+  fetchLatestMaintenanceRequest,
+} from '@/service/maintenanceService';
 
-export type MaintenanceRequest = {
-  id: string;
-  title: string;
-  category: string;
-  message: string;
-  urgency: MaintenanceRequestUrgency;
-  status: MaintenanceRequestStatus;
-  image_urls: string[];
-  created_at: string;
-  resolved_at: string | null;
-  resolution_notes: string | null;
-  tenant_id: string;
-  apartment_id: string;
-  landlord_id: string | null;
-  cancelled_at: string | null;
-};
+export type {
+  MaintenanceRequestStatus,
+  MaintenanceRequestUrgency,
+  MaintenanceRequest,
+} from '@/service/maintenanceService';
 
-const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
-  pending: 'Pending',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  cancelled: 'Cancelled',
-};
-
-const isFinalStatus = (status: MaintenanceRequestStatus) =>
-  status === 'Resolved' || status === 'Cancelled';
-
-export async function mapRow(row: any): Promise<MaintenanceRequest> {
-  const paths: string[] = row.image_urls ?? [];
-  let resolvedUrls: string[] = [];
-  if (paths.length > 0) {
-    const { data, error } = await supabase.storage
-      .from('maintenance-images')
-      .createSignedUrls(paths, 60 * 55); // 55 min, matches your existing TTL pattern
-    if (!error && data) {
-      resolvedUrls = data.map((d) => d.signedUrl);
-    }
-  }
-  return {
-    ...row,
-    status: DB_TO_DISPLAY_STATUS[row.status] ?? 'Pending',
-    image_urls: resolvedUrls,
-  };
-}
+export const getLatestMaintenanceRequestQueryKey = (apartmentId: string | undefined) =>
+  ['maintenance-request-latest', apartmentId] as const;
 
 type UseMaintenanceRequestsParams = {
   apartmentId?: string;
 };
 
 export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsParams) {
-  const [latestRequest, setLatestRequest] = useState<MaintenanceRequest | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  const fetchRequest = useCallback(async () => {
-    if (!apartmentId) {
-      setLatestRequest(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+  const queryKey = getLatestMaintenanceRequestQueryKey(apartmentId);
 
-    const { data, error: fetchError } = await supabase
-      .from('maintenance_request')
-      .select('*')
-      .eq('apartment_id', apartmentId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  const latestRequestQuery = useQuery({
+    queryKey,
+    queryFn: () => fetchLatestMaintenanceRequest(apartmentId as string),
+    enabled: apartmentId !== undefined,
+  });
 
-    if (fetchError) {
-      setError(fetchError.message);
-      setLatestRequest(null);
-    } else {
-      setLatestRequest(data ? await mapRow(data) : null);
-    }
-    setLoading(false);
-  }, [apartmentId]);
+  const latestRequest = latestRequestQuery.data ?? null;
 
-  useEffect(() => {
-    fetchRequest();
-  }, [fetchRequest]);
-
-  const canCancel = (status: MaintenanceRequestStatus) =>
-    status === 'Pending' || status === 'In Progress';
+  const canCancel = useCallback((status: string) => {
+    return status === 'Pending' || status === 'In Progress';
+  }, []);
 
   // Derived for backward compatibility with any code that expects "an active,
   const activeRequest =
     latestRequest && canCancel(latestRequest.status) ? latestRequest : null;
 
-  const isFinal = latestRequest ? isFinalStatus(latestRequest.status) : false;
+  const isFinal = latestRequest
+    ? latestRequest.status === 'Resolved' || latestRequest.status === 'Cancelled'
+    : false;
 
-  const cancelRequest = async (target?: MaintenanceRequest) => {
-    const requestToCancel = target ?? activeRequest;
-    if (!requestToCancel) {
-      return { success: false as const, error: 'No maintenance request to cancel.' };
-    }
-    if (!canCancel(requestToCancel.status)) {
-      return { success: false as const, error: 'This request can no longer be cancelled.' };
-    }
+  const cancelRequest = useCallback(
+    async (target?: unknown) => {
+      const requestToCancel =
+        (target as typeof latestRequest) ?? activeRequest;
+      if (!requestToCancel) {
+        return { success: false as const, error: 'No maintenance request to cancel.' };
+      }
+      if (!canCancel(requestToCancel.status)) {
+        return { success: false as const, error: 'This request can no longer be cancelled.' };
+      }
 
-    const isLocal = latestRequest?.id === requestToCancel.id;
-    const previous = latestRequest;
-    if (isLocal) {
-      setLatestRequest({ ...requestToCancel, status: 'Cancelled' });
-    }
+      const isLocal = latestRequest?.id === requestToCancel.id;
+      const previous = latestRequest;
+      if (isLocal) {
+        queryClient.setQueryData(queryKey, { ...requestToCancel, status: 'Cancelled' });
+      }
 
-    const { error: updateError } = await supabase
-      .from('maintenance_request')
-      .update({
-        status: 'cancelled',
-        cancelled_at: new Date().toISOString(),
-      })
-      .eq('id', requestToCancel.id);
+      const result = await cancelMaintenanceRequest(requestToCancel.id);
 
-    if (updateError) {
-      if (isLocal) setLatestRequest(previous);
-      setError(updateError.message);
-      return { success: false as const, error: updateError.message };
-    }
+      if (!result.success) {
+        if (isLocal) queryClient.setQueryData(queryKey, previous);
+        setMutationError(result.error ?? 'Could not cancel the request.');
+        return result as { success: false; error: string };
+      }
 
-    return { success: true as const };
-  };
+      void queryClient.invalidateQueries({ queryKey, exact: true });
+      setMutationError(null);
+      return { success: true as const };
+    },
+    [activeRequest, canCancel, latestRequest, queryClient, queryKey]
+  );
 
   return {
     latestRequest,
     activeRequest,
     isFinal,
-    loading,
-    error,
+    loading: latestRequestQuery.isLoading,
+    error: mutationError ?? (latestRequestQuery.error?.message ?? null),
     cancelRequest,
     canCancel,
-    refetch: fetchRequest,
+    refetch: latestRequestQuery.refetch,
   };
 }

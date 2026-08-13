@@ -4,6 +4,11 @@ import { File } from 'expo-file-system';
 
 import emojiRegex from 'emoji-regex-xs';
 
+import {
+  PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
+  resolvePrivateMediaUrls,
+} from './privateMediaResolver';
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type MessageType = 'text' | 'image' | 'video' | 'gif';
@@ -33,12 +38,17 @@ export type PickedChatAsset = {
   mimeType?: string;
   /** Local poster-frame uri for video, generated client-side via expo-video-thumbnails. */
   thumbnailUri?: string;
+  /** Remote URL (e.g. Giphy CDN) — skips storage upload; the URL is stored verbatim. */
+  externalUrl?: string;
 };
 
 export type UploadedChatAttachment = {
   /** Ties the result back to the originally picked asset, for optimistic-UI reconciliation. */
   localUri: string;
-  attachmentPath: string;
+  /** Null for external-URL assets (no storage upload happened). */
+  attachmentPath: string | null;
+  /** Set for external-URL assets only — rendered directly, no signing needed. */
+  attachmentUrl?: string;
   messageType: Exclude<MessageType, 'text'>;
   mimeType?: string;
   thumbnailPath?: string;
@@ -68,6 +78,8 @@ export type Conversation = {
   last_message_type: MessageType | null;
   last_message_time: string;
   unread_count: number;
+  /** Authoritative sender of the latest message — provided by get_conversations_v2. */
+  last_sender_id: string | null;
   conversation_type: 'tenant' | 'inquiry';
 };
 
@@ -75,7 +87,7 @@ export type Conversation = {
 
 // Bucket name is legacy — it now also holds video and gif attachments, not just images.
 const CHAT_IMAGES_BUCKET = 'chat-images';
-const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
+const SIGNED_URL_TTL_SECONDS = PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS;
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // must match chat-images bucket file_size_limit
 
 const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
@@ -92,46 +104,78 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
 // multi-select on a weak connection shouldn't open 8 simultaneous uploads.
 const MAX_CONCURRENT_ATTACHMENT_UPLOADS = 3;
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
-
-export async function getCurrentUserProfile(): Promise<{ id: string } | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('user_id', user.id)
-    .single();
-
-  return data ?? null;
-}
-
 // ─── Text messages ──────────────────────────────────────────────────────────
 
+export const CHAT_MESSAGES_PAGE_SIZE = 30;
+
+export type ChatMessageCursor = {
+  createdAt: string;
+  id: string;
+};
+
+export type ChatMessagePage = {
+  messages: Message[];
+  nextCursor: ChatMessageCursor | null;
+};
+
+function buildOlderThanChatMessageFilter(cursor: ChatMessageCursor): string {
+  return `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`;
+}
+
+/**
+ * Fetches one newest-first page for a conversation. The secondary ID sort and
+ * strict composite cursor retain a deterministic sequence when timestamps tie.
+ */
+export async function fetchMessagePage(params: {
+  currentUserId: string;
+  otherUserId: string;
+  apartmentId: string | null;
+  cursor?: ChatMessageCursor | null;
+  pageSize?: number;
+}): Promise<ChatMessagePage> {
+  const pageSize = params.pageSize ?? CHAT_MESSAGES_PAGE_SIZE;
+  let query = supabase
+    .from('chat')
+    .select(
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
+    )
+    .or(
+      `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
+    )
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
+
+  query = params.apartmentId
+    ? query.eq('apartment_id', params.apartmentId)
+    : query.is('apartment_id', null);
+
+  if (params.cursor) {
+    query = query.or(buildOlderThanChatMessageFilter(params.cursor));
+  }
+
+  const { data, error } = await query.limit(pageSize);
+  if (error) throw error;
+
+  const rows = data ?? [];
+  const lastRow = rows.at(-1);
+
+  return {
+    messages: await mapMessages(rows, params.currentUserId),
+    nextCursor:
+      rows.length === pageSize && lastRow
+        ? { createdAt: lastRow.created_at, id: lastRow.id }
+        : null,
+  };
+}
+
+/** Compatibility adapter for callers that only need the initial bounded page. */
 export async function fetchMessages(
   currentUserId: string,
   otherUserId: string,
   apartmentId: string | null
 ): Promise<Message[]> {
-  let query = supabase
-    .from('chat')
-    .select(
-      'id, message, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
-    )
-    .or(
-      `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
-    )
-    .order('created_at', { ascending: false });
-
-  query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
-
-  const { data, error } = await query;
-  if (error) throw error;
-
-  return mapMessages(data ?? [], currentUserId);
+  const page = await fetchMessagePage({ currentUserId, otherUserId, apartmentId });
+  return page.messages;
 }
 
 export async function insertMessage(params: {
@@ -192,6 +236,13 @@ export function resolveMessageType(mimeType?: string): Exclude<MessageType, 'tex
   return 'image';
 }
 
+/** Narrow an arbitrary stored value to MessageType; null for anything unknown. */
+export function toMessageType(value: string | null | undefined): MessageType | null {
+  return value === 'text' || value === 'image' || value === 'video' || value === 'gif'
+    ? value
+    : null;
+}
+
 /** Shared id generator for storage filenames and batch group ids — kept in one place so both stay consistent. */
 function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -240,20 +291,12 @@ export async function uploadChatThumbnail(senderId: string, localUri: string): P
   return path;
 }
 
-/** Batch-resolves storage paths to signed URLs, keyed by path. */
+/** Batch-resolves chat storage paths to cached, time-limited URLs, keyed by path. */
 export async function getChatAttachmentSignedUrls(paths: string[]): Promise<Record<string, string>> {
-  if (paths.length === 0) return {};
-
-  const { data, error } = await supabase.storage
-    .from(CHAT_IMAGES_BUCKET)
-    .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
-  if (error) throw error;
+  const { urls } = await resolvePrivateMediaUrls(CHAT_IMAGES_BUCKET, paths);
 
   return Object.fromEntries(
-    (data ?? [])
-      .filter((d) => d.signedUrl && !d.error)
-      .map((d) => [d.path as string, d.signedUrl as string])
+    Object.entries(urls).filter((entry): entry is [string, string] => entry[1] !== null)
   );
 }
 
@@ -282,6 +325,18 @@ export async function uploadChatAttachments(
     let asset: PickedChatAsset | undefined;
     while ((asset = queue.shift())) {
       try {
+        if (asset.externalUrl) {
+          // Giphy-style pick: the CDN URL is the attachment — no storage upload.
+          uploaded.push({
+            localUri: asset.localUri,
+            attachmentPath: null,
+            attachmentUrl: asset.externalUrl,
+            messageType: resolveMessageType(asset.mimeType),
+            mimeType: asset.mimeType,
+          });
+          continue;
+        }
+
         const messageType = resolveMessageType(asset.mimeType);
         const attachmentPath = await uploadChatAttachment(senderId, asset.localUri, asset.mimeType);
 
@@ -342,6 +397,7 @@ export async function insertAttachmentMessagesBatch(params: {
     apartment_id: params.apartmentId,
     message_type: u.messageType,
     attachment_path: u.attachmentPath,
+    attachment_url: u.attachmentUrl ?? null,
     attachment_mime_type: u.mimeType ?? null,
     attachment_thumbnail_path: u.thumbnailPath ?? null,
     group_id: groupId,
@@ -352,7 +408,7 @@ export async function insertAttachmentMessagesBatch(params: {
     .from('chat')
     .insert(rows)
     .select(
-      'id, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
+      'id, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
     );
 
   if (error) throw error;
@@ -399,15 +455,19 @@ export async function sendChatAttachments(params: {
       getChatAttachmentSignedUrls(thumbnailPaths),
     ]);
 
-    const uploadByPath = new Map(uploaded.map((u) => [u.attachmentPath, u]));
+    const uploadByPath = new Map<string | null, UploadedChatAttachment>(
+      uploaded.map((u) => [u.attachmentPath, u])
+    );
 
     const sent: SentChatAttachment[] = inserted.map((row) => {
-      const upload = uploadByPath.get(row.attachment_path as string);
+      const upload = row.attachment_path
+        ? uploadByPath.get(row.attachment_path)
+        : uploadByPath.get(null);
       return {
         id: row.id,
         message: null,
         messageType: row.message_type as MessageType,
-        attachmentUrl: row.attachment_path ? (signedUrls[row.attachment_path] ?? null) : null,
+        attachmentUrl: row.attachment_url ?? (row.attachment_path ? (signedUrls[row.attachment_path] ?? null) : null),
         attachmentPath: row.attachment_path ?? null,
         attachmentMimeType: row.attachment_mime_type ?? null,
         thumbnailUrl: row.attachment_thumbnail_path
@@ -440,6 +500,22 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
   const { data, error } = await supabase.rpc('get_conversations', {
     p_user_id: userId,
   });
+
+  if (error) throw error;
+
+  return (data as Conversation[]).sort(
+    (a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
+  );
+}
+
+/**
+ * Hardened conversation list: zero-argument RPC whose caller identity is
+ * derived from auth.uid() server-side, so no user ID is ever client-supplied.
+ * Returns authoritative last_sender_id / last_message_type / conversation_type,
+ * removing the need for the client-side chat/tenancies metadata scan.
+ */
+export async function getConversationsV2(): Promise<Conversation[]> {
+  const { data, error } = await supabase.rpc('get_conversations_v2');
 
   if (error) throw error;
 
@@ -488,7 +564,7 @@ export async function mapMessages(rows: any[], currentUserId: string): Promise<M
     id: m.id,
     message: m.message,
     messageType: (m.message_type ?? 'text') as MessageType,
-    attachmentUrl: m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null,
+    attachmentUrl: m.attachment_url ?? (m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null),
     attachmentPath: m.attachment_path ?? null,
     attachmentMimeType: m.attachment_mime_type ?? null,
     thumbnailUrl: m.attachment_thumbnail_path

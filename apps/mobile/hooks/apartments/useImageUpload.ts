@@ -1,7 +1,15 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { File } from "expo-file-system";
 import { supabase } from "@repo/supabase";
-import { decode } from "base64-arraybuffer";
+
+import { invalidateCurrentUser } from "@/utils/queryClient";
+import {
+  compressImageTo,
+  PROFILE_AVATAR_MAX_LONG_EDGE,
+  PROFILE_BACKGROUND_MAX_LONG_EDGE,
+  PROFILE_QUALITY,
+} from "@/utils/compressImage";
 
 type UploadTarget = "avatar" | "background";
 
@@ -46,27 +54,38 @@ export function useImageUpload(
       // Square crop for avatar, wide for background
       aspect: target === "avatar" ? [1, 1] : [16, 9],
       quality: 0.8,
-      base64: true,
     });
 
     if (result.canceled) return;
 
     const asset = result.assets[0];
-    const base64Data = asset?.base64;
-
-    if (!base64Data) return;
-
-    const ext = asset.uri.split(".").pop() ?? "jpg";
-    const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
-    const path = `${userId}/${userId}.${ext}`;
+    if (!asset) return;
 
     setUploading(target);
     try {
-      // 3. Upload to Supabase Storage
+      // Compress & resize before upload (avatars are small; backgrounds are full-bleed)
+      const maxLongEdge =
+        target === "avatar"
+          ? PROFILE_AVATAR_MAX_LONG_EDGE
+          : PROFILE_BACKGROUND_MAX_LONG_EDGE;
+      const compressed = await compressImageTo(
+        asset.uri,
+        asset.width,
+        asset.height,
+        maxLongEdge,
+        PROFILE_QUALITY,
+      );
+
+      const path = `${userId}/${userId}.jpg`;
+
+      // Upload to Supabase Storage (binary — avoids base64's ~33% overhead)
+      const file = new File(compressed.uri);
+      const bytes = await file.bytes();
+
       const { error: uploadError } = await supabase.storage
         .from(BUCKET_MAP[target])
-        .upload(path, decode(base64Data), {
-          contentType,
+        .upload(path, bytes, {
+          contentType: "image/jpeg",
           upsert: true, // overwrite existing file
         });
 
@@ -88,6 +107,7 @@ export function useImageUpload(
 
       if (dbError) throw dbError;
 
+      await invalidateCurrentUser();
       onSuccess(publicUrl);
     } catch (err) {
       console.error("Image upload failed:", err);
