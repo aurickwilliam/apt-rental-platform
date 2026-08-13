@@ -58,6 +58,11 @@ export function useChat({
   const visibleMessageIdsRef = useRef<Set<string>>(new Set());
   const paginationInFlightRef = useRef(false);
 
+  // Identity props are read through refs so the init effect only re-runs when
+  // the conversation itself changes (M12).
+  const initialOtherUserNameRef = useRef(initialOtherUserName);
+  const initialOtherUserAvatarRef = useRef(initialOtherUserAvatar);
+
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -102,6 +107,16 @@ export function useChat({
     onStartTyping: handleStartTyping,
     onStopTyping: handleStopTyping,
     onHeartbeat: handleHeartbeat,
+  });
+
+  // Teardown callbacks are mirrored to refs so the init effect cleanup always
+  // calls the latest identity without re-running the effect (M12).
+  const stopTypingRef = useRef(stopTyping);
+  const cleanupTypingRef = useRef(cleanupTyping);
+
+  useEffect(() => {
+    stopTypingRef.current = stopTyping;
+    cleanupTypingRef.current = cleanupTyping;
   });
 
   // ─── Handlers exposed to the screen ────────────────────────────────────────
@@ -384,6 +399,12 @@ export function useChat({
 
   // ─── Init ───────────────────────────────────────────────────────────────────
 
+  // Signed-out loading state is ended separately so the init effect below can
+  // depend only on the conversation identity (M12).
+  useEffect(() => {
+    if (!myId && !currentUserQuery.isLoading) setLoading(false);
+  }, [myId, currentUserQuery.isLoading]);
+
   useEffect(() => {
     let cancelled = false;
     paginationInFlightRef.current = false;
@@ -395,7 +416,7 @@ export function useChat({
 
     async function init() {
       if (!myId) {
-        if (!cancelled && !currentUserQuery.isLoading) setLoading(false);
+        if (!cancelled) setLoading(false);
         return;
       }
 
@@ -414,11 +435,11 @@ export function useChat({
         if (cancelled) return;
 
         if (otherProfile) {
-          if (!initialOtherUserName) {
+          if (!initialOtherUserNameRef.current) {
             const fullName = `${otherProfile.firstName} ${otherProfile.lastName}`.trim();
             if (fullName) setOtherUserName(fullName);
           }
-          if (!initialOtherUserAvatar && otherProfile.avatarUrl) {
+          if (!initialOtherUserAvatarRef.current && otherProfile.avatarUrl) {
             setOtherUserAvatar(otherProfile.avatarUrl);
           }
         }
@@ -440,19 +461,10 @@ export function useChat({
       cancelled = true;
       myIdRef.current = null;
       paginationInFlightRef.current = false;
-      stopTyping();
-      cleanupTyping();
+      stopTypingRef.current();
+      cleanupTypingRef.current();
     };
-  }, [
-    apartmentId,
-    cleanupTyping,
-    currentUserQuery.isLoading,
-    initialOtherUserAvatar,
-    initialOtherUserName,
-    myId,
-    otherUserId,
-    stopTyping,
-  ]);
+  }, [apartmentId, myId, otherUserId]);
 
   return {
     myId,
