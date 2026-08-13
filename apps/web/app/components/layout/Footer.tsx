@@ -96,8 +96,8 @@ export default function Footer() {
           <Link href="/company" className="text-base font-medium text-white/80 hover:text-white">
             Company
           </Link>
-          <Link href="/tenant/maintenance" className="text-base font-medium text-white/80 hover:text-white">
-            Community/Maintenace 
+          <Link href="/community" className="text-base font-medium text-white/80 hover:text-white">
+            Community
           </Link>
           <Link href="/careers" className="text-base font-medium text-white/80 hover:text-white">
             Careers
