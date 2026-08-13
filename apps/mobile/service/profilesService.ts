@@ -62,6 +62,7 @@ export async function fetchPublicLandlordProfile(
         city,
         apartment_images (
           url,
+          url_thumb,
           is_cover,
           created_at
         )
@@ -84,17 +85,19 @@ export async function fetchPublicLandlordProfile(
       average_rating: number | null;
       barangay: string;
       city: string;
-      apartment_images: { url: string; is_cover: boolean | null; created_at: string | null }[];
+      apartment_images: { url: string; url_thumb: string | null; is_cover: boolean | null; created_at: string | null }[];
     }[]).map((apt): ApartmentCardProps => {
       const images = apt.apartment_images ?? [];
+      const cover = images.find((img) => img.is_cover);
+      const earliest = images
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+        )[0];
       const thumbnailUrl =
-        images.find((img) => img.is_cover)?.url ??
-        images
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
-          )[0]?.url ??
+        (cover?.url_thumb || cover?.url) ??
+        (earliest?.url_thumb || earliest?.url) ??
         undefined;
 
       return {
@@ -223,7 +226,7 @@ export async function fetchPublicTenantProfile(
           name,
           barangay,
           city,
-          apartment_images (url, is_cover)
+          apartment_images (url, url_thumb, is_cover)
         )
       `)
       .eq("tenant_id", tenantId)
@@ -239,7 +242,7 @@ export async function fetchPublicTenantProfile(
         name: string;
         barangay: string;
         city: string;
-        apartment_images: { url: string; is_cover: boolean | null }[];
+        apartment_images: { url: string; url_thumb: string | null; is_cover: boolean | null }[];
       } | null;
     }[]).map((t) => {
       const apt = t.apartment ?? { id: "", name: "", barangay: "", city: "", apartment_images: [] };
@@ -247,7 +250,7 @@ export async function fetchPublicTenantProfile(
       const images = apt.apartment_images ?? [];
       const cover = images.find((img) => img.is_cover) ?? images[0];
       const thumbnailUrl =
-        cover?.url ??
+        (cover?.url_thumb || cover?.url) ??
         RNImage.resolveAssetSource(DEFAULT_IMAGES.defaultThumbnail).uri;
 
       return {

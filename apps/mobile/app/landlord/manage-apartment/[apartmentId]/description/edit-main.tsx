@@ -130,7 +130,7 @@ export default function EditMain() {
       // Get apartment images
       const { data: images, error: imgError } = await supabase
         .from('apartment_images')
-        .select('id, url, is_cover')
+        .select('id, url, url_thumb, is_cover')
         .eq('apartment_id', apartmentId)
 
       if (imgError) {
@@ -164,7 +164,7 @@ export default function EditMain() {
 
   function toAssets(images: DisplayImage[]): ImagePicker.ImagePickerAsset[] {
     return images.map((img) =>
-      img.kind === 'existing' ? existingToAsset(img.record.url) : img.asset,
+      img.kind === 'existing' ? existingToAsset(img.record.url_thumb || img.record.url) : img.asset,
     )
   }
 

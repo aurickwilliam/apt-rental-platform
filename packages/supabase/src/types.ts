@@ -21,6 +21,7 @@ export type Database = {
           id: string
           is_cover: boolean | null
           url: string
+          url_thumb: string | null
         }
         Insert: {
           apartment_id?: string | null
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           is_cover?: boolean | null
           url: string
+          url_thumb?: string | null
         }
         Update: {
           apartment_id?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           is_cover?: boolean | null
           url?: string
+          url_thumb?: string | null
         }
         Relationships: [
           {
@@ -830,20 +833,20 @@ export type Database = {
         }[]
       }
       get_conversations_v2: {
-        Args: Record<string, never>
+        Args: never
         Returns: {
-          apartment_id: string | null
-          apartment_name: string | null
+          apartment_id: string
+          apartment_name: string
           conversation_key: string
           conversation_type: string
-          last_message: string | null
+          last_message: string
           last_message_time: string
-          last_sender_id: string | null
-          last_message_type: string | null
-          other_user_avatar: string | null
+          last_message_type: string
+          last_sender_id: string
+          other_user_avatar: string
           other_user_id: string
           other_user_name: string
-          other_user_phone: string | null
+          other_user_phone: string
           unread_count: number
         }[]
       }
