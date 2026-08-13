@@ -4,6 +4,12 @@ import { File } from 'expo-file-system';
 
 import emojiRegex from 'emoji-regex-xs';
 
+import {
+  PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
+  resolvePrivateMediaUrls,
+  setPrivateMediaCacheUser,
+} from './privateMediaResolver';
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type MessageType = 'text' | 'image' | 'video' | 'gif';
@@ -75,7 +81,7 @@ export type Conversation = {
 
 // Bucket name is legacy — it now also holds video and gif attachments, not just images.
 const CHAT_IMAGES_BUCKET = 'chat-images';
-const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
+const SIGNED_URL_TTL_SECONDS = PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS;
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // must match chat-images bucket file_size_limit
 
 const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
@@ -98,7 +104,12 @@ export async function getCurrentUserProfile(): Promise<{ id: string } | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) {
+    setPrivateMediaCacheUser(null);
+    return null;
+  }
+
+  setPrivateMediaCacheUser(user.id);
 
   const { data } = await supabase
     .from('users')
@@ -111,27 +122,76 @@ export async function getCurrentUserProfile(): Promise<{ id: string } | null> {
 
 // ─── Text messages ──────────────────────────────────────────────────────────
 
-export async function fetchMessages(
-  currentUserId: string,
-  otherUserId: string,
-  apartmentId: string | null
-): Promise<Message[]> {
+export const CHAT_MESSAGES_PAGE_SIZE = 30;
+
+export type ChatMessageCursor = {
+  createdAt: string;
+  id: string;
+};
+
+export type ChatMessagePage = {
+  messages: Message[];
+  nextCursor: ChatMessageCursor | null;
+};
+
+function buildOlderThanChatMessageFilter(cursor: ChatMessageCursor): string {
+  return `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`;
+}
+
+/**
+ * Fetches one newest-first page for a conversation. The secondary ID sort and
+ * strict composite cursor retain a deterministic sequence when timestamps tie.
+ */
+export async function fetchMessagePage(params: {
+  currentUserId: string;
+  otherUserId: string;
+  apartmentId: string | null;
+  cursor?: ChatMessageCursor | null;
+  pageSize?: number;
+}): Promise<ChatMessagePage> {
+  const pageSize = params.pageSize ?? CHAT_MESSAGES_PAGE_SIZE;
   let query = supabase
     .from('chat')
     .select(
       'id, message, message_type, attachment_path, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
     )
     .or(
-      `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
+      `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
     )
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
 
-  query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
+  query = params.apartmentId
+    ? query.eq('apartment_id', params.apartmentId)
+    : query.is('apartment_id', null);
 
-  const { data, error } = await query;
+  if (params.cursor) {
+    query = query.or(buildOlderThanChatMessageFilter(params.cursor));
+  }
+
+  const { data, error } = await query.limit(pageSize);
   if (error) throw error;
 
-  return mapMessages(data ?? [], currentUserId);
+  const rows = data ?? [];
+  const lastRow = rows.at(-1);
+
+  return {
+    messages: await mapMessages(rows, params.currentUserId),
+    nextCursor:
+      rows.length === pageSize && lastRow
+        ? { createdAt: lastRow.created_at, id: lastRow.id }
+        : null,
+  };
+}
+
+/** Compatibility adapter for callers that only need the initial bounded page. */
+export async function fetchMessages(
+  currentUserId: string,
+  otherUserId: string,
+  apartmentId: string | null
+): Promise<Message[]> {
+  const page = await fetchMessagePage({ currentUserId, otherUserId, apartmentId });
+  return page.messages;
 }
 
 export async function insertMessage(params: {
@@ -240,20 +300,12 @@ export async function uploadChatThumbnail(senderId: string, localUri: string): P
   return path;
 }
 
-/** Batch-resolves storage paths to signed URLs, keyed by path. */
+/** Batch-resolves chat storage paths to cached, time-limited URLs, keyed by path. */
 export async function getChatAttachmentSignedUrls(paths: string[]): Promise<Record<string, string>> {
-  if (paths.length === 0) return {};
-
-  const { data, error } = await supabase.storage
-    .from(CHAT_IMAGES_BUCKET)
-    .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
-  if (error) throw error;
+  const { urls } = await resolvePrivateMediaUrls(CHAT_IMAGES_BUCKET, paths);
 
   return Object.fromEntries(
-    (data ?? [])
-      .filter((d) => d.signedUrl && !d.error)
-      .map((d) => [d.path as string, d.signedUrl as string])
+    Object.entries(urls).filter((entry): entry is [string, string] => entry[1] !== null)
   );
 }
 

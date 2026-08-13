@@ -1,117 +1,167 @@
-import { createElement, useCallback, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { useToast } from 'heroui-native';
-import { IconAlertTriangle, IconHeartFilled, IconHeartOff } from '@tabler/icons-react-native';
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useColors } from '@/hooks/useTheme';
+import { useCurrentUser } from "@/hooks/auth";
 
 import {
   deleteFavorite,
+  fetchApartmentsByIds,
   fetchFavoriteApartmentIds,
-  getCurrentTenantId,
   insertFavorite,
-} from '@/service/favoritesService';
+  type FavoriteApartment,
+} from "@/service/favoritesService";
+
+export const getFavoritesQueryKey = (tenantId: string) =>
+  ["favorites", tenantId] as const;
+export const getFavoriteApartmentsQueryKey = (tenantId: string) =>
+  ["favorite-apartments", tenantId] as const;
+
+function getErrorMessage(error: unknown, fallback: string): string | null {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
+  return fallback;
+}
 
 export function useFavorites() {
-  const { colors } = useColors();
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  const [favoriteApartmentIds, setFavoriteApartmentIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const currentUserQuery = useCurrentUser();
+  const tenantId = currentUserQuery.data?.id ?? null;
+
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites", tenantId] as const,
+    queryFn: () => fetchFavoriteApartmentIds(tenantId as string),
+    enabled: tenantId !== null,
+  });
+
+  const favoriteApartmentIdList = favoritesQuery.data ?? [];
+  const favoriteApartmentIds = useMemo(
+    () => new Set(favoriteApartmentIdList),
+    [favoriteApartmentIdList],
+  );
 
   const refreshFavorites = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    if (!tenantId) return;
 
-    try {
-      const currentTenantId = await getCurrentTenantId();
-      if (!currentTenantId) {
-        setTenantId(null);
-        setFavoriteApartmentIds(new Set());
-        return;
-      }
-
-      const apartmentIds = await fetchFavoriteApartmentIds(currentTenantId);
-      setTenantId(currentTenantId);
-      setFavoriteApartmentIds(new Set(apartmentIds));
-    } catch (err: any) {
-      console.error('useFavorites:', err);
-      setError(err?.message ?? 'Failed to load favorites.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshFavorites();
-    }, [refreshFavorites])
-  );
+    await favoritesQuery.refetch();
+  }, [favoritesQuery, tenantId]);
 
   const isFavorite = useCallback(
     (apartmentId: string) => favoriteApartmentIds.has(apartmentId),
-    [favoriteApartmentIds]
+    [favoriteApartmentIds],
   );
 
   const toggleFavorite = useCallback(
     async (apartmentId: string) => {
       if (!tenantId) {
-        toast.show({
-          variant: 'danger',
-          label: 'No tenant profile found',
-          icon: createElement(IconAlertTriangle, { size: 18, color: colors.danger }),
-        });
-        throw new Error('No tenant profile found.');
+        throw new Error("No tenant profile found.");
       }
 
-      const wasAlreadyFavorite = favoriteApartmentIds.has(apartmentId);
+      const queryKey = getFavoritesQueryKey(tenantId);
+      const previousApartmentIds =
+        queryClient.getQueryData<string[]>(queryKey) ?? favoriteApartmentIdList;
+      const wasFavorite = previousApartmentIds.includes(apartmentId);
+
+      await queryClient.cancelQueries({ queryKey, exact: true });
+      queryClient.setQueryData<string[]>(queryKey, (currentIds = []) =>
+        wasFavorite
+          ? currentIds.filter((id) => id !== apartmentId)
+          : [apartmentId, ...currentIds],
+      );
 
       try {
-        if (wasAlreadyFavorite) {
+        if (wasFavorite) {
           await deleteFavorite(tenantId, apartmentId);
         } else {
           await insertFavorite(tenantId, apartmentId);
         }
 
-        setFavoriteApartmentIds((prev) => {
-          const next = new Set(prev);
-          if (next.has(apartmentId)) next.delete(apartmentId);
-          else next.add(apartmentId);
-          return next;
+        await queryClient.invalidateQueries({
+          queryKey: getFavoriteApartmentsQueryKey(tenantId),
+          exact: true,
         });
 
-        toast.show({
-          variant: wasAlreadyFavorite ? 'default' : 'success',
-          label: wasAlreadyFavorite ? 'Removed from favorites' : 'Added to favorites',
-          icon: wasAlreadyFavorite
-            ? createElement(IconHeartOff, { size: 18, color: colors.textPrimary, style: { marginTop: 3 } })
-            : createElement(IconHeartFilled, {
-                size: 18,
-                color: colors.success,
-                style: { marginTop: 3 },
-              }),
+        return { wasFavorite };
+      } catch (error) {
+        queryClient.setQueryData<string[]>(queryKey, (currentIds = []) =>
+          wasFavorite
+            ? currentIds.includes(apartmentId)
+              ? currentIds
+              : [apartmentId, ...currentIds]
+            : currentIds.filter((id) => id !== apartmentId),
+        );
+        await queryClient.invalidateQueries({
+          queryKey: getFavoriteApartmentsQueryKey(tenantId),
+          exact: true,
         });
-      } catch (err) {
-        console.error('Error toggling favorite:', err);
-        toast.show({
-          variant: 'danger',
-          label: 'Something went wrong',
-          icon: createElement(IconAlertTriangle, { size: 18, color: colors.danger }),
-        });
-        throw err;
+        throw error;
       }
     },
-    [favoriteApartmentIds, tenantId, toast]
+    [favoriteApartmentIdList, queryClient, tenantId],
   );
 
   return {
     tenantId,
     favoriteApartmentIds,
-    loading,
-    error,
+    loading: currentUserQuery.isLoading || favoritesQuery.isLoading,
+    error:
+      getErrorMessage(currentUserQuery.error, "Failed to load favorites.") ??
+      getErrorMessage(favoritesQuery.error, "Failed to load favorites."),
     refreshFavorites,
     isFavorite,
     toggleFavorite,
+  };
+}
+
+export function useFavoriteApartments() {
+  const queryClient = useQueryClient();
+  const currentUserQuery = useCurrentUser();
+  const tenantId = currentUserQuery.data?.id ?? null;
+
+  const favoriteApartmentsQuery = useQuery({
+    queryKey: ["favorite-apartments", tenantId] as const,
+    queryFn: async (): Promise<FavoriteApartment[]> => {
+      const resolvedTenantId = tenantId as string;
+      const favoriteApartmentIds = await queryClient.ensureQueryData({
+        queryKey: getFavoritesQueryKey(resolvedTenantId),
+        queryFn: () => fetchFavoriteApartmentIds(resolvedTenantId),
+      });
+      const apartmentRows = await fetchApartmentsByIds(favoriteApartmentIds);
+      const apartmentById = new Map(apartmentRows.map((apartment) => [apartment.id, apartment]));
+
+      return favoriteApartmentIds
+        .map((id) => apartmentById.get(id))
+        .filter((apartment): apartment is FavoriteApartment => apartment !== undefined);
+    },
+    enabled: tenantId !== null,
+  });
+
+  const refreshFavoriteApartments = useCallback(async () => {
+    if (!tenantId) return;
+
+    await queryClient.invalidateQueries({
+      queryKey: getFavoritesQueryKey(tenantId),
+      exact: true,
+    });
+    await favoriteApartmentsQuery.refetch();
+  }, [favoriteApartmentsQuery, queryClient, tenantId]);
+
+  return {
+    favoriteApartments: favoriteApartmentsQuery.data ?? [],
+    loading: currentUserQuery.isLoading || favoriteApartmentsQuery.isLoading,
+    refreshing:
+      favoriteApartmentsQuery.isFetching && !favoriteApartmentsQuery.isLoading,
+    error:
+      getErrorMessage(currentUserQuery.error, "Failed to load favorites.") ??
+      getErrorMessage(favoriteApartmentsQuery.error, "Failed to load favorites."),
+    refreshFavoriteApartments,
   };
 }

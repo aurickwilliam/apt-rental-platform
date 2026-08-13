@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@repo/supabase';
 
+import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
+
 export type MaintenanceRequestStatus = 'Pending' | 'In Progress' | 'Resolved' | 'Cancelled';
 export type MaintenanceRequestUrgency = 'low' | 'medium' | 'high';
 
@@ -33,15 +35,11 @@ const isFinalStatus = (status: MaintenanceRequestStatus) =>
 
 export async function mapRow(row: any): Promise<MaintenanceRequest> {
   const paths: string[] = row.image_urls ?? [];
-  let resolvedUrls: string[] = [];
-  if (paths.length > 0) {
-    const { data, error } = await supabase.storage
-      .from('maintenance-images')
-      .createSignedUrls(paths, 60 * 55); // 55 min, matches your existing TTL pattern
-    if (!error && data) {
-      resolvedUrls = data.map((d) => d.signedUrl);
-    }
-  }
+  const { urls } = await resolvePrivateMediaUrls('maintenance-images', paths);
+  const resolvedUrls = paths
+    .map((path) => urls[path])
+    .filter((url): url is string => Boolean(url));
+
   return {
     ...row,
     status: DB_TO_DISPLAY_STATUS[row.status] ?? 'Pending',

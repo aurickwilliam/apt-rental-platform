@@ -1,6 +1,5 @@
 import { View, ScrollView } from 'react-native'
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import type React from 'react';
 
 import { supabase } from '@repo/supabase';
@@ -19,6 +18,7 @@ import { Button, ListGroup, Separator } from "heroui-native";
 
 import { useProfile } from 'hooks/auth';
 import { useColors } from 'hooks/useTheme';
+import { clearQueryClient } from '@/utils/queryClient';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
@@ -26,14 +26,8 @@ import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 
 export default function Profile() {
   const router = useRouter();
-  const { profile, loading, refetch } = useProfile();
+  const { profile, loading } = useProfile();
   const { colors } = useColors();
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
 
   const avatarInitials =
     `${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase();
@@ -46,6 +40,7 @@ export default function Profile() {
   const dateVerified = 'June 15, 2024';
 
   const handleLogout = async () => {
+    clearQueryClient();
     await supabase.auth.signOut();
     router.replace('/(auth)/sign-in');
   };

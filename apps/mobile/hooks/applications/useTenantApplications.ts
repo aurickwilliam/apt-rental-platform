@@ -3,6 +3,7 @@ import { supabase } from '@repo/supabase';
 import { useProfile } from 'hooks/auth';
 
 import type { ApplicationStatus } from '@/hooks/applications';
+import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
 
 export type ApplicationDocument = {
   label: string;
@@ -39,99 +40,119 @@ export type TenantApplication = {
   };
 };
 
-const DOCUMENTS_BUCKET = 'application-documents';
-const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour is plenty for a viewing session
+const APPLICATION_DOCUMENTS_BUCKET = 'application-documents';
 
 export function useTenantApplications() {
   const { profile, loading: profileLoading } = useProfile();
+  const profileId = profile?.id;
   const [applications, setApplications] = useState<TenantApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profileLoading) return;
+    let cancelled = false;
 
-    if (!profile?.id) {
-      setApplications([]);
-      setLoading(false);
-      return;
+    if (profileLoading) {
+      return () => {
+        cancelled = true;
+      };
     }
 
-    async function fetch() {
+    if (!profileId) {
+      setApplications([]);
+      setError(null);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const tenantId = profileId;
+
+    async function fetchApplications() {
       setLoading(true);
+      setError(null);
 
-      const { data } = await supabase
-        .from('rental_application')
-        .select(
-          `id, status, created_at, rejected_reason, apartment_id,
-          occupation, employer_name, monthly_income, employment_type,
-          prev_landlord_name, prev_landlord_contact,
-          move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
-          gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-          apartments(name, monthly_rent)`
-        )
-        .eq('tenant_id', profile!.id)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('rental_application')
+          .select(
+            `id, status, created_at, rejected_reason, apartment_id,
+            occupation, employer_name, monthly_income, employment_type,
+            prev_landlord_name, prev_landlord_contact,
+            move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+            gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
+            apartments(name, monthly_rent)`
+          )
+          .eq('tenant_id', tenantId)
+          .order('created_at', { ascending: false });
 
-      const rows = data ?? [];
+        if (fetchError) throw fetchError;
 
-      const withDocuments = await Promise.all(
-        rows.map(async (item) => {
-          const docDefs: { label: string; path: string | null }[] = [
+        const rows = data ?? [];
+        const documentDefinitions = rows.flatMap((item) => [
+          { label: 'Government ID', path: item.gov_id_url },
+          { label: 'Proof of Income', path: item.proof_of_income_url },
+          { label: 'Proof of Billing', path: item.proof_of_billing_url },
+          { label: 'NBI Clearance', path: item.nbi_clearance_url },
+        ]);
+        const documentPaths = documentDefinitions
+          .map((document) => document.path)
+          .filter((path): path is string => !!path);
+        const { urls: signedUrls, error: resolutionError } = await resolvePrivateMediaUrls(
+          APPLICATION_DOCUMENTS_BUCKET,
+          documentPaths
+        );
+
+        if (cancelled) return;
+
+        const applicationsWithDocuments = rows.map((item) => {
+          const documentDefinitions = [
             { label: 'Government ID', path: item.gov_id_url },
             { label: 'Proof of Income', path: item.proof_of_income_url },
             { label: 'Proof of Billing', path: item.proof_of_billing_url },
             { label: 'NBI Clearance', path: item.nbi_clearance_url },
           ];
-
-          const present = docDefs.filter(
-            (d): d is { label: string; path: string } => !!d.path
-          );
-
-          let signedByPath: Record<string, string> = {};
-
-          if (present.length > 0) {
-            const { data: signedData } = await supabase.storage
-              .from(DOCUMENTS_BUCKET)
-              .createSignedUrls(
-                present.map((d) => d.path),
-                SIGNED_URL_TTL_SECONDS
-              );
-
-            (signedData ?? []).forEach((entry) => {
-              if (entry.path && entry.signedUrl && !entry.error) {
-                signedByPath[entry.path] = entry.signedUrl;
-              }
-            });
-          }
-
-          const documents: ApplicationDocument[] = present.map((d) => ({
-            label: d.label,
-            path: d.path,
-            signedUrl: signedByPath[d.path] ?? null,
-          }));
-
+          const documents: ApplicationDocument[] = documentDefinitions
+            .filter((document): document is { label: string; path: string } => !!document.path)
+            .map((document) => ({
+              label: document.label,
+              path: document.path,
+              signedUrl: signedUrls[document.path] ?? null,
+            }));
           const {
             gov_id_url,
             proof_of_income_url,
             proof_of_billing_url,
             nbi_clearance_url,
-            ...rest
+            ...application
           } = item;
 
           return {
-            ...rest,
+            ...application,
             status: item.status as ApplicationStatus,
             documents,
           };
-        })
-      );
+        });
 
-      setApplications(withDocuments);
-      setLoading(false);
+        setApplications(applicationsWithDocuments);
+        setError(resolutionError);
+      } catch (fetchError) {
+        if (cancelled) return;
+        console.error('Unable to load tenant applications:', fetchError);
+        setApplications([]);
+        setError('Unable to load applications.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
-    fetch();
-  }, [profile, profileLoading]);
+    void fetchApplications();
 
-  return { applications, loading: loading || profileLoading };
+    return () => {
+      cancelled = true;
+    };
+  }, [profileId, profileLoading]);
+
+  return { applications, loading: loading || profileLoading, error };
 }

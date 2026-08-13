@@ -1,17 +1,18 @@
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { useToast } from "heroui-native";
 
-import ScreenWrapper from 'components/layout/ScreenWrapper';
+import ScreenWrapper from "components/layout/ScreenWrapper";
 import FilterBottomSheet, {
   DEFAULT_FILTERS,
-} from '@/app/(tabs)/components/search/FilterBottomSheet';
-import ApartmentsList from '../components/search/ApartmentsList';
-import SearchFiltersBar from '../components/search/SearchFiltersBar';
-import SearchHeader from '../components/search/SearchHeader';
-import useSearchLogic from '../components/search/useSearchLogic';
+} from "@/app/(tabs)/components/search/FilterBottomSheet";
+import ApartmentsList from "../components/search/ApartmentsList";
+import SearchFiltersBar from "../components/search/SearchFiltersBar";
+import SearchHeader from "../components/search/SearchHeader";
+import useSearchLogic from "../components/search/useSearchLogic";
 
 export default function Search() {
   const router = useRouter();
-
+  const { toast } = useToast();
   const {
     apartments,
     activeFilterCount,
@@ -41,6 +42,19 @@ export default function Search() {
 
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}`);
 
+  const handleFavoritePress = async (apartmentId: string) => {
+    try {
+      const { wasFavorite } = await handleToggleFavorite(apartmentId);
+      toast.show({
+        variant: wasFavorite ? "default" : "success",
+        label: wasFavorite ? "Removed from favorites" : "Added to favorites",
+      });
+    } catch (toggleError) {
+      console.error("Error toggling favorite:", toggleError);
+      toast.show({ variant: "danger", label: "Something went wrong" });
+    }
+  };
+
   return (
     <ScreenWrapper noBottomPadding>
       <SearchHeader
@@ -48,8 +62,8 @@ export default function Search() {
         selectedCity={selectedCity}
         onSelectCity={setSelectedCity}
         isGridView={isGridView}
-        onToggleView={() => setIsGridView((prev) => !prev)}
-        onFavoritesPress={() => router.push('/tenant/favorites')}
+        onToggleView={() => setIsGridView((previous) => !previous)}
+        onFavoritesPress={() => router.push("/tenant/favorites")}
       />
 
       <SearchFiltersBar
@@ -67,7 +81,7 @@ export default function Search() {
         isGridView={isGridView}
         isFavorite={isFavorite}
         onPressApartment={handleApartmentPress}
-        onToggleFavorite={handleToggleFavorite}
+        onToggleFavorite={handleFavoritePress}
         loading={loading}
         refreshing={refreshing}
         loadingMore={loadingMore}
@@ -76,7 +90,6 @@ export default function Search() {
         onLoadMore={loadMore}
       />
 
-      {/* ── Filter Bottom Sheet ── */}
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}
         onOpenChange={setIsFilterSheetOpen}
