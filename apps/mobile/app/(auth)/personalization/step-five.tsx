@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import DropdownField from "components/inputs/DropdownField";
-import TextField from "components/inputs/TextField";
+
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
@@ -17,10 +17,14 @@ import {
   Radio,
   Label,
   Checkbox,
+  Description,
+  FieldError,
+  Input,
   Button,
   ControlField,
   useToast,
-  Separator
+  Separator,
+  TextField
 } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
@@ -164,13 +168,15 @@ export default function StepFive() {
             )}
 
             {hasPets && kindOfPets === "Other" && (
-              <TextField
-                label="Please specify the kind of pet you have"
-                placeholder="Type the kind of pet you have"
-                value={nameOfPets || ""}
-                onChangeText={(value) => setNameOfPets(value)}
-                required
-              />
+              <TextField isRequired>
+                <Label>Please specify the kind of pet you have</Label>
+                <Input
+                  placeholder="Type the kind of pet you have"
+                  value={nameOfPets || ""}
+                  onChangeText={(value) => setNameOfPets(value)}
+                />
+                <Description>e.g., Poodle, Siamese</Description>
+              </TextField>
             )}
           </View>
 
