@@ -1,5 +1,6 @@
 export { useSubmitApplication } from './useSubmitApplication';
-export { useTenantApplications } from './useTenantApplications';
+export { useTenantApplications, getTenantApplicationsQueryKey } from './useTenantApplications';
+export type { TenantApplication, ApplicationDocument } from './useTenantApplications';
 export { useCancelApplication } from './useCancelApplication';
 export { useLandlordApplications } from './useLandlordApplications';
 export type { DisplayStatus, LandlordApplication } from './useLandlordApplications';

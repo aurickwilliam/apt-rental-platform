@@ -10,9 +10,8 @@ import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 
 import { Button, SkeletonGroup } from 'heroui-native'
 
-import { supabase } from '@repo/supabase'
-
 import { usePublicTenantProfile } from 'hooks/profiles'
+import { useCurrentUser } from 'hooks/auth'
 import { useColors } from 'hooks/useTheme'
 
 import {
@@ -48,6 +47,7 @@ export default function PublicTenantProfile() {
   );
 
   const { profile, pastApartments, loading } = usePublicTenantProfile(resolvedTenantId);
+  const currentUserQuery = useCurrentUser();
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -64,18 +64,9 @@ export default function PublicTenantProfile() {
   const handleMessageTenant = async () => {
     if (!profile || !resolvedTenantId || !resolvedApartmentId) return
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    const landlordId = currentUserQuery.data?.id
+    if (!landlordId) return
 
-    const { data: landlord } = await supabase
-      .from('users')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!landlord) return
-
-    const landlordId = landlord.id
     const userA = landlordId < resolvedTenantId ? landlordId : resolvedTenantId
     const userB = landlordId < resolvedTenantId ? resolvedTenantId : landlordId
     const conversationId = `${userA}-${userB}-${resolvedApartmentId}`

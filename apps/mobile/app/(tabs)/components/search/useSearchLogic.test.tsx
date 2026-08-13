@@ -59,7 +59,7 @@ describe("useSearchLogic", () => {
 
     await waitFor(() => expect(result.current.resultCount).toBe(1));
 
-    expect(query.select).toHaveBeenCalledWith(expect.any(String), { count: "exact" });
+    expect(query.select).toHaveBeenCalledWith(expect.any(String), { count: "estimated" });
     expect(query.range).toHaveBeenCalledWith(0, 9);
     expect(result.current.apartments).toHaveLength(1);
 

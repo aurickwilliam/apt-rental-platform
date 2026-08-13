@@ -11,7 +11,7 @@ import { useApartmentDetails } from '@/hooks/apartments'
 export default function IncludedPerks() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  const { apartment, loading, error } = useApartmentDetails(apartmentId);
+  const { apartment, loading, error } = useApartmentDetails(apartmentId, { includeReviews: false });
 
   const amenities = apartment?.amenities ?? [];
 

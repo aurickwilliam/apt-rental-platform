@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_FILTER_OPTIONS,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
@@ -13,7 +14,7 @@ import { useFavorites } from "@/hooks/favorites";
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
 
-const CITIES = ["CAMANAVA", "Caloocan", "Malabon", "Navotas", "Valenzuela"];
+const CITIES = [...CAMANAVA_FILTER_OPTIONS];
 const PAGE_SIZE = 10;
 
 const MIN_BUDGET = 1000;
@@ -72,7 +73,7 @@ export default function useSearchLogic() {
           is_cover,
           created_at
         )
-      `, { count: "exact" })
+      `, { count: "estimated" })
       .is("deleted_at", null)
       .range(from, to);
 

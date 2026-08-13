@@ -325,7 +325,7 @@ export default function Index() {
             <Button
               size="sm"
               variant="tertiary"
-              onPress={refetch}
+              onPress={() => void refetch()}
             >
               <Button.Label>
                 Retry

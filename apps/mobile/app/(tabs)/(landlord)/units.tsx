@@ -25,17 +25,14 @@ import {
 } from "heroui-native";
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
-import { VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
 const locationOptions = [
   "All",
-  "Caloocan",
-  "Malabon",
-  "Navotas",
-  "Valenzuela",
+  ...CAMANAVA_CITIES,
 ];
 
 export default function Units() {

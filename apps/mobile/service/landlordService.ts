@@ -798,20 +798,18 @@ export type LandlordStats = {
 export async function fetchLandlordStats(landlordId: string): Promise<LandlordStats> {
   const { data, error } = await supabase
     .from("apartments")
-    .select("average_rating")
+    .select("average_rating.avg(), count()")
     .eq("landlord_id", landlordId)
     .is("deleted_at", null);
 
   if (error) throw error;
 
-  const totalProperties = data?.length ?? 0;
-  const validRatings = (data ?? [])
-    .map((a) => a.average_rating)
-    .filter((rating): rating is number => rating !== null && rating !== undefined);
+  const row = data?.[0] as { avg?: number | null; count?: number } | null;
 
+  const totalProperties = row?.count ?? 0;
   const averageRating =
-    validRatings.length > 0
-      ? Math.round((validRatings.reduce((sum, r) => sum + r, 0) / validRatings.length) * 10) / 10
+    typeof row?.avg === "number" && !Number.isNaN(row.avg)
+      ? Math.round(row.avg * 10) / 10
       : 0;
 
   return { averageRating, totalProperties };
