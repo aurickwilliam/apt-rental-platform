@@ -3495,8 +3495,8 @@
     "semantic_hash": ""
   },
   ".kiro/specs/audit-fix/design.md": {
-    "mtime": 1786622067.7664635,
-    "ast_hash": "965532d7a7fbbb048ceb746927e72a39",
+    "mtime": 1786624050.445973,
+    "ast_hash": "02d37403a551c52e105f2fbd92465d02",
     "semantic_hash": ""
   },
   "apps/mobile/tests/audit-fix/audit-fix.characterization.test.ts": {
@@ -3730,13 +3730,13 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20260813010000_harden_get_conversations_privileges.sql": {
-    "mtime": 1786621864.4995646,
-    "ast_hash": "9a796fc85d1974b9e71ed2a97a4748d8",
+    "mtime": 1786624035.2627182,
+    "ast_hash": "717c3a64cb4c2f9aec9cd50f107804e8",
     "semantic_hash": ""
   },
   "supabase/migrations/20260813020000_create_get_conversations_v2.sql": {
-    "mtime": 1786621864.4996805,
-    "ast_hash": "0256539558b8ffee09c1dc81c32de73c",
+    "mtime": 1786624041.6249917,
+    "ast_hash": "ac7dbdc28fd9d95473d0c6d697ec83eb",
     "semantic_hash": ""
   }
 }

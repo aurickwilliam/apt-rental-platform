@@ -13,8 +13,9 @@
 --     view, and function is schema-qualified (pg_catalog builtins resolve
 --     implicitly). Caller-controlled objects/functions are unresolvable.
 --   * No dynamic SQL.
---   * EXECUTE revoked from PUBLIC and granted to authenticated + service_role
---     only.
+--   * EXECUTE revoked from PUBLIC and anon, granted to authenticated +
+--     service_role only (direct anon grants from dashboards/early migrations
+--     survive `revoke ... from public` — revoke anon explicitly too).
 --
 -- Compatibility:
 --   * conversation_key is opaque to the client (used only for optimistic
@@ -70,17 +71,20 @@ begin
     from public.chat c
     where c.sender_id = v_user_id or c.receiver_id = v_user_id
   ),
+  -------------------------------------------------------------------------
+-- EDITED IN PRODUCTION (2026-08-13): CTE aliased to match the deployed body.
+-------------------------------------------------------------------------
   latest as (
-    select distinct on (other_user_id, apartment_id)
-      other_user_id,
-      apartment_id,
-      created_at,
-      id,
-      message,
-      message_type,
-      sender_id
-    from conversations
-    order by other_user_id, apartment_id, created_at desc, id desc
+    select distinct on (co.other_user_id, co.apartment_id)
+      co.other_user_id,
+      co.apartment_id,
+      co.created_at,
+      co.id,
+      co.message,
+      co.message_type,
+      co.sender_id
+    from conversations co
+    order by co.other_user_id, co.apartment_id, co.created_at desc, co.id desc
   ),
   unread as (
     select
@@ -129,6 +133,7 @@ end;
 $$;
 
 revoke execute on function public.get_conversations_v2() from public;
+revoke execute on function public.get_conversations_v2() from anon;
 grant execute on function public.get_conversations_v2() to authenticated, service_role;
 
 comment on function public.get_conversations_v2() is
