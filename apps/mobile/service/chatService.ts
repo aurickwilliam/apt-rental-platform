@@ -229,6 +229,13 @@ export function resolveMessageType(mimeType?: string): Exclude<MessageType, 'tex
   return 'image';
 }
 
+/** Narrow an arbitrary stored value to MessageType; null for anything unknown. */
+export function toMessageType(value: string | null | undefined): MessageType | null {
+  return value === 'text' || value === 'image' || value === 'video' || value === 'gif'
+    ? value
+    : null;
+}
+
 /** Shared id generator for storage filenames and batch group ids — kept in one place so both stay consistent. */
 function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

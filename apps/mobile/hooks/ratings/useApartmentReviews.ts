@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
-import { useFocusEffect } from 'expo-router'
-import { supabase } from '@repo/supabase'
+import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { formatDate } from '@repo/utils'
 
 import { useReviewEligibility } from './useReviewEligibility'
+import { fetchApartmentReviews, getReviewImageUrls } from '@/service/reviewsService'
+
+import type { ApartmentReviewRow } from '@/service/reviewsService'
 
 export type ReviewSortOption = 'Most Recent' | 'Highest Rating' | 'Lowest Rating'
 
@@ -40,25 +42,11 @@ interface UseApartmentReviewsResult {
   refetch: () => Promise<void>
 }
 
-type ReviewRow = {
-  id: string
-  rating: number
-  comment: string | null
-  created_at: string
-  image_paths: string[] | null
-  users: {
-    first_name: string | null
-    last_name: string | null
-    avatar_url: string | null
-  } | null
-  tenancy: {
-    lease_start: string
-    lease_end: string | null
-  } | null
-}
+export const getApartmentReviewsQueryKey = (apartmentId: string | undefined) =>
+  ['apartment-reviews', apartmentId] as const
 
 function formatLeaseDuration(
-  tenancy: ReviewRow['tenancy']
+  tenancy: ApartmentReviewRow['tenancy']
 ): string | undefined {
   if (!tenancy?.lease_start) return undefined
   const start = formatDate(tenancy.lease_start, 'medium')
@@ -66,11 +54,20 @@ function formatLeaseDuration(
   return `${start} - ${end}`
 }
 
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null
+  if (error instanceof Error) return error.message
+  if (
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof (error as { message?: unknown }).message === 'string'
+  ) {
+    return (error as { message: string }).message
+  }
+  return 'Failed to load reviews.'
+}
+
 export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsResult {
-  const [rawReviews, setRawReviews] = useState<ReviewRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<ReviewSortOption>('Most Recent')
 
   const {
@@ -79,66 +76,13 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
     reviewableTenancyId
   } = useReviewEligibility(apartmentId);
 
-  const fetchReviews = useCallback(
-    async (isRefresh = false) => {
-      if (!apartmentId) return
+  const reviewsQuery = useQuery({
+    queryKey: getApartmentReviewsQueryKey(apartmentId),
+    queryFn: () => fetchApartmentReviews(apartmentId as string),
+    enabled: apartmentId !== undefined,
+  })
 
-      if (isRefresh) {
-        setRefreshing(true)
-      } else {
-        setLoading(true)
-      }
-      setError(null)
-
-      const { data, error: fetchError } = await supabase
-        .from('reviews')
-        .select(
-          `
-          id,
-          rating,
-          comment,
-          created_at,
-          image_paths,
-          users!reviews_tenant_id_fkey (
-            first_name,
-            last_name,
-            avatar_url
-          ),
-          tenancy:tenancy_id (
-            lease_start,
-            lease_end
-          )
-        `
-        )
-        .eq('apartment_id', apartmentId)
-        .order('created_at', { ascending: false })
-
-      if (fetchError) {
-        setError(fetchError.message)
-        setRawReviews([])
-      } else {
-        setRawReviews((data ?? []) as unknown as ReviewRow[])
-      }
-
-      if (isRefresh) {
-        setRefreshing(false)
-      } else {
-        setLoading(false)
-      }
-    },
-    [apartmentId]
-  )
-
-  // Refetch whenever the screen regains focus
-  useFocusEffect(useCallback(() => { fetchReviews() }, [fetchReviews]))
-
-  function getReviewImageUrls(paths: string[] | null): string[] | undefined {
-    if (!paths || paths.length === 0) return undefined
-    const urls = paths.map(
-      (path) => supabase.storage.from('review-images').getPublicUrl(path).data.publicUrl
-    )
-    return urls
-  }
+  const rawReviews = reviewsQuery.data ?? []
 
   const reviews = useMemo<ApartmentReview[]>(() => {
     const mapped = rawReviews.map((row) => {
@@ -204,9 +148,9 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
   }, [rawReviews, totalReviews])
 
   return {
-    loading,
-    refreshing,
-    error,
+    loading: reviewsQuery.isLoading,
+    refreshing: reviewsQuery.isFetching && !reviewsQuery.isLoading,
+    error: getErrorMessage(reviewsQuery.error),
     overallRating,
     totalReviews,
     ratingsCount,
@@ -216,6 +160,8 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
     canReview,
     checkingEligibility,
     reviewableTenancyId,
-    refetch: () => fetchReviews(true),
+    refetch: async () => {
+      await reviewsQuery.refetch();
+    },
   }
 }

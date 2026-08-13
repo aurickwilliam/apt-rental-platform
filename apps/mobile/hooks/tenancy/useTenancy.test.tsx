@@ -12,8 +12,10 @@ const mockUseCurrentUser = jest.fn();
 const mockFetchTenancy = jest.fn();
 const mockRemoveChannel = jest.fn();
 const mockChannel = jest.fn();
-let tenancyChangeCallback: ((payload: { new?: unknown; old?: unknown }) => void) | undefined;
+let tenancyChangeCallback: ((payload: { new?: unknown; old?: unknown; eventType?: string }) => void) | undefined;
 let tenancyChangeFilter: string | undefined;
+let paymentChangeCallback: ((payload: { new?: unknown; old?: unknown; eventType?: string }) => void) | undefined;
+let paymentChangeFilter: string | undefined;
 
 jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
@@ -44,6 +46,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   tenancyChangeCallback = undefined;
   tenancyChangeFilter = undefined;
+  paymentChangeCallback = undefined;
+  paymentChangeFilter = undefined;
   mockUseCurrentUser.mockReturnValue({
     data: { id: TENANT_ID },
     isLoading: false,
@@ -65,6 +69,10 @@ beforeEach(() => {
         if (filter.table === "tenancies") {
           tenancyChangeCallback = callback;
           tenancyChangeFilter = filter.filter;
+        }
+        if (filter.table === "payment") {
+          paymentChangeCallback = callback;
+          paymentChangeFilter = filter.filter;
         }
         return channel;
       },
@@ -145,5 +153,109 @@ describe("useTenancy", () => {
       ),
       { numRuns: 10 },
     );
+  });
+
+  /** Validates: Gap 5 — payment INSERT merges via setQueryData without refetch */
+  it("merges a newer payment event into the cached tenancy without refetching", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+
+    await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
+    await waitFor(() => expect(paymentChangeCallback).toBeDefined());
+    expect(paymentChangeFilter).toBe(`tenancy_id=eq.${TENANCY_ID}`);
+    const fetchesBeforeEvent = mockFetchTenancy.mock.calls.length;
+
+    const payment = {
+      id: "payment-1",
+      amount: 10000,
+      status: "paid",
+      period_start: "2026-08-01",
+      tenancy_id: TENANCY_ID,
+    };
+
+    await act(async () => {
+      paymentChangeCallback?.({
+        eventType: "INSERT",
+        new: payment,
+        old: null,
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.tenancy?.currentPayment?.period_start).toBe("2026-08-01"),
+    );
+    expect(mockFetchTenancy).toHaveBeenCalledTimes(fetchesBeforeEvent);
+    unmount();
+    client.clear();
+  });
+
+  /** Validates: Gap 5 — recency gate ignores older-period payment events */
+  it("ignores a payment event with an older period_start than the cached current payment", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+
+    await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
+    await waitFor(() => expect(paymentChangeCallback).toBeDefined());
+
+    await act(async () => {
+      paymentChangeCallback?.({
+        eventType: "INSERT",
+        new: {
+          id: "payment-newer",
+          amount: 10000,
+          status: "paid",
+          period_start: "2026-08-01",
+          tenancy_id: TENANCY_ID,
+        },
+        old: null,
+      });
+    });
+    await waitFor(() =>
+      expect(result.current.tenancy?.currentPayment?.period_start).toBe("2026-08-01"),
+    );
+
+    await act(async () => {
+      paymentChangeCallback?.({
+        eventType: "UPDATE",
+        new: {
+          id: "payment-newer",
+          amount: 9000,
+          status: "paid",
+          period_start: "2026-07-01",
+          tenancy_id: TENANCY_ID,
+        },
+        old: null,
+      });
+    });
+
+    // Recency gate: the older period must not overwrite the cached value.
+    expect(result.current.tenancy?.currentPayment?.period_start).toBe("2026-08-01");
+    expect(result.current.tenancy?.currentPayment?.amount).toBe(10000);
+    unmount();
+    client.clear();
+  });
+
+  /** Validates: Gap 5 — payment DELETE still invalidates (shape change) */
+  it("refetches on a payment DELETE event", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+
+    await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
+    await waitFor(() => expect(paymentChangeCallback).toBeDefined());
+    const fetchesBeforeEvent = mockFetchTenancy.mock.calls.length;
+
+    await act(async () => {
+      paymentChangeCallback?.({
+        eventType: "DELETE",
+        new: null,
+        old: { id: "payment-1", tenancy_id: TENANCY_ID, period_start: "2026-08-01" },
+      });
+    });
+
+    await waitFor(() =>
+      expect(mockFetchTenancy.mock.calls.length).toBe(fetchesBeforeEvent + 1),
+    );
+    unmount();
+    client.clear();
   });
 });

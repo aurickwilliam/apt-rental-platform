@@ -1,7 +1,7 @@
 import { View, Text, ActivityIndicator } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Image } from 'expo-image';
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
 import Animated from "react-native-reanimated";
 
@@ -49,12 +49,6 @@ export default function ApplicationApartment() {
   const { visitRequest, history, loading: visitLoading, refetch } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
 
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;

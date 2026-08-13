@@ -1,6 +1,5 @@
 import { View, Text, ActivityIndicator } from 'react-native'
-import { useCallback } from 'react'
-import { router, useRouter, useFocusEffect } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 import type React from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -117,11 +116,6 @@ export default function Rentals() {
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
 
-  useFocusEffect(
-    useCallback(() => {
-      refetchMaintenanceRequest();
-    }, [refetchMaintenanceRequest])
-  );
 
   // Loading
   if (loading) {
