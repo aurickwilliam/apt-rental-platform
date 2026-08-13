@@ -10,11 +10,7 @@ import {
 
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react-native"
+import { IconCheck, IconChevronDown, IconChevronUp } from '@tabler/icons-react-native'
 
 import { useColors } from "hooks/useTheme";
 
@@ -129,8 +125,8 @@ export default function DropdownField({
 
             {!isReadOnly && (
               isOpen
-                ? <ChevronUp size={20} color={colors.textPrimary} />
-                : <ChevronDown size={20} color={colors.textPrimary} />
+                ? <IconChevronUp size={20} color={colors.textPrimary} />
+                : <IconChevronDown size={20} color={colors.textPrimary} />
             )}
           </Pressable>
         </BottomSheet.Trigger>
@@ -168,7 +164,7 @@ export default function DropdownField({
                         {item}
                       </Text>
 
-                      {isSelected && <Check size={20} color={colors.primary} />}
+                      {isSelected && <IconCheck size={20} color={colors.primary} />}
                     </Pressable>
 
                     <Separator className="bg-gray-300 my-1" />
