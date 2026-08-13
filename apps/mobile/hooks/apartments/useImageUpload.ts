@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { File } from "expo-file-system";
 import { supabase } from "@repo/supabase";
-import { decode } from "base64-arraybuffer";
 
 import { invalidateCurrentUser } from "@/utils/queryClient";
 
@@ -48,15 +48,12 @@ export function useImageUpload(
       // Square crop for avatar, wide for background
       aspect: target === "avatar" ? [1, 1] : [16, 9],
       quality: 0.8,
-      base64: true,
     });
 
     if (result.canceled) return;
 
     const asset = result.assets[0];
-    const base64Data = asset?.base64;
-
-    if (!base64Data) return;
+    if (!asset) return;
 
     const ext = asset.uri.split(".").pop() ?? "jpg";
     const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
@@ -64,10 +61,13 @@ export function useImageUpload(
 
     setUploading(target);
     try {
-      // 3. Upload to Supabase Storage
+      // 3. Upload to Supabase Storage (binary — avoids base64's ~33% overhead)
+      const file = new File(asset.uri);
+      const bytes = await file.bytes();
+
       const { error: uploadError } = await supabase.storage
         .from(BUCKET_MAP[target])
-        .upload(path, decode(base64Data), {
+        .upload(path, bytes, {
           contentType,
           upsert: true, // overwrite existing file
         });
