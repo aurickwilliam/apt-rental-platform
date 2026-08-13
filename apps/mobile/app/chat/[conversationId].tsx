@@ -10,7 +10,6 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
-import { File, Paths } from 'expo-file-system';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -237,14 +236,13 @@ export default function ChatScreen() {
     setShowGifPicker(true);
   }, []);
 
-  const handleGifSelected = useCallback(async (gif: GiphyMedia) => {
-    const downloaded = await File.downloadFileAsync(gif.url, Paths.cache, {
-      idempotent: true,
-    });
-
+  const handleGifSelected = useCallback((gif: GiphyMedia) => {
+    // The Giphy CDN URL is the attachment itself — staged as-is, no local
+    // download, and skipped in the storage upload path (see externalUrl).
     const staged: StagedAsset = {
       id: generateStagedId(),
-      localUri: downloaded.uri,
+      localUri: gif.url,
+      externalUrl: gif.url,
       mimeType: 'image/gif',
       messageType: 'gif',
     };

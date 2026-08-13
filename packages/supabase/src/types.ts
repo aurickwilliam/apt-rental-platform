@@ -165,6 +165,7 @@ export type Database = {
           attachment_mime_type: string | null
           attachment_path: string | null
           attachment_thumbnail_path: string | null
+          attachment_url: string | null
           created_at: string
           group_id: string | null
           id: string
@@ -181,6 +182,7 @@ export type Database = {
           attachment_mime_type?: string | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
+          attachment_url?: string | null
           created_at?: string
           group_id?: string | null
           id?: string
@@ -197,6 +199,7 @@ export type Database = {
           attachment_mime_type?: string | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
+          attachment_url?: string | null
           created_at?: string
           group_id?: string | null
           id?: string
