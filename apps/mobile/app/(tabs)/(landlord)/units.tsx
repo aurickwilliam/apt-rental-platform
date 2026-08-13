@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
@@ -65,14 +64,6 @@ export default function Units() {
     setSelectedLocation(locationOptions[0]);
     setSelectedSort("none");
   };
-
-  // Re-fetch whenever tab is focused
-  useFocusEffect(
-    useCallback(() => {
-      fetchApartments();
-      fetchCounts();
-    }, [fetchApartments, fetchCounts]),
-  );
 
   const filteredApartments = useMemo(() => {
     let result = apartments;

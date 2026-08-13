@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import { readAsStringAsync } from "expo-file-system/legacy";
 
@@ -37,108 +37,29 @@ import { useColors } from "hooks/useTheme";
 
 import { formatPesoDisplay, formatDate } from "@repo/utils";
 
-type Apartment = {
-  id: string;
-  name: string;
-  description: string;
-  monthly_rent: number;
-  security_deposit: number;
-  advance_rent: number;
-  type: string;
-  street_address: string;
-  barangay: string;
-  city: string;
-  province: string;
-  no_bedrooms: number;
-  no_bathrooms: number;
-  area_sqm: number;
-  furnished_type: string | null;
-  floor_level: string | null;
-  max_occupants: number | null;
-  lease_duration: string | null;
-  amenities: string[];
-  lease_agreement_url: string | null;
-  landlord: {
-    first_name: string;
-    last_name: string;
-  } | null;
-};
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-type ActiveTenancy = {
-  lease_start: string;
-  lease_end: string | null;
-  monthly_rent: number | null;
-  tenant: {
-    first_name: string;
-    last_name: string;
-  } | null;
-};
+import {
+  fetchManageApartmentDescription,
+  getManageApartmentDescriptionQueryKey,
+} from "@/service/landlordService";
 
 export default function Index() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { colors } = useColors();
+  const queryClient = useQueryClient();
 
-  const [apartment, setApartment] = useState<Apartment | null>(null);
-  const [tenancy, setTenancy] = useState<ActiveTenancy | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: getManageApartmentDescriptionQueryKey(apartmentId),
+    queryFn: () => fetchManageApartmentDescription(apartmentId as string),
+    enabled: apartmentId !== undefined,
+  });
+
+  const apartment = data?.apartment ?? null;
+  const tenancy = data?.tenancy ?? null;
 
   const [uploading, setUploading] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    if (!apartmentId) return;
-    setLoading(true);
-
-    const { data: aptData, error: aptError } = await supabase
-      .from("apartments")
-      .select(
-        `
-        id, name, description, monthly_rent, type,
-        street_address, barangay, city, province,
-        no_bedrooms, no_bathrooms, area_sqm,
-        furnished_type, floor_level, max_occupants,
-        lease_duration, amenities, lease_agreement_url,
-        security_deposit, advance_rent,
-        landlord:landlord_id (
-          first_name,
-          last_name
-        )
-      `,
-      )
-      .eq("id", apartmentId)
-      .single();
-
-    if (!aptError && aptData) {
-      setApartment(aptData as Apartment);
-    }
-
-    const { data: tenancyData, error: tenancyError } = await supabase
-      .from("tenancies")
-      .select(
-        `
-        lease_start, lease_end, monthly_rent,
-        tenant:users!tenant_id (
-          first_name,
-          last_name
-        )
-      `,
-      )
-      .eq("apartment_id", apartmentId)
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (!tenancyError && tenancyData) {
-      setTenancy(tenancyData as ActiveTenancy);
-    }
-
-    setLoading(false);
-  }, [apartmentId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [fetchData]),
-  );
 
   const handleUploadLease = async () => {
     try {
@@ -199,7 +120,10 @@ export default function Index() {
       if (updateError) throw updateError;
 
       Alert.alert("Success", "Lease agreement uploaded successfully.");
-      fetchData();
+      queryClient.invalidateQueries({
+        queryKey: getManageApartmentDescriptionQueryKey(apartmentId),
+        exact: true,
+      });
     } catch (err) {
       Alert.alert("Error", "Failed to upload lease agreement.");
       console.error(err);
@@ -228,7 +152,7 @@ export default function Index() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <ScreenWrapper header={<StandardHeader title="Apartment Description" />}>
         <View className="flex-1 items-center justify-center mt-20">

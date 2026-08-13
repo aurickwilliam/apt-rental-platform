@@ -5,6 +5,8 @@ import { supabase } from "@repo/supabase";
 import { useCurrentUser } from "@/hooks/auth";
 import { fetchTenancy } from "@/service/tenancyService";
 
+import type { CurrentTenancy, TenancyPayment } from "@/service/tenancyService";
+
 export type {
   CurrentTenancy,
   TenancyApartment,
@@ -89,9 +91,27 @@ export function useTenancy() {
         },
         (payload) => {
           const record = payload.new ?? payload.old;
-          if (getRecordString(record, "tenancy_id") === tenancy.id) {
+          if (getRecordString(record, "tenancy_id") !== tenancy.id) return;
+
+          if (payload.eventType === "DELETE") {
+            // Shape change — simplest correct path is a refetch.
             void queryClient.invalidateQueries({ queryKey, exact: true });
+            return;
           }
+
+          // INSERT/UPDATE: targeted merge, gated on recency so stale events
+          // (older period_start) never overwrite the current payment.
+          const periodStart = getRecordString(record, "period_start");
+          const currentTenancy = queryClient.getQueryData<CurrentTenancy>(queryKey);
+          const currentPeriodStart = currentTenancy?.currentPayment?.period_start ?? null;
+
+          if (periodStart && currentPeriodStart && periodStart < currentPeriodStart) return;
+
+          queryClient.setQueryData<CurrentTenancy>(queryKey, (current) =>
+            current
+              ? { ...current, currentPayment: (record as unknown as TenancyPayment) ?? null }
+              : current
+          );
         },
       );
     }
