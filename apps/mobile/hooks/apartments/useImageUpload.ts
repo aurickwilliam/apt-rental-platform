@@ -3,6 +3,8 @@ import * as ImagePicker from "expo-image-picker";
 import { supabase } from "@repo/supabase";
 import { decode } from "base64-arraybuffer";
 
+import { invalidateCurrentUser } from "@/utils/queryClient";
+
 type UploadTarget = "avatar" | "background";
 
 const BUCKET_MAP: Record<UploadTarget, string> = {
@@ -88,6 +90,7 @@ export function useImageUpload(
 
       if (dbError) throw dbError;
 
+      await invalidateCurrentUser();
       onSuccess(publicUrl);
     } catch (err) {
       console.error("Image upload failed:", err);

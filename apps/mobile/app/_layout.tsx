@@ -18,8 +18,11 @@ import { HeroUINativeProvider } from "heroui-native";
 import * as WebBrowser from "expo-web-browser";
 
 import { COLORS } from "@repo/constants";
+import { supabase } from "@repo/supabase";
 
 import { Appearance, View } from "react-native";
+import QueryProvider from "@/components/providers/QueryProvider";
+import { setPrivateMediaCacheUser } from "@/service/privateMediaResolver";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
 import DevBadge from '../components/dev/DevBadge';
@@ -67,6 +70,16 @@ export default function RootLayout() {
     SystemUI.setBackgroundColorAsync(COLORS.light.primary);
   }, []);
 
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setPrivateMediaCacheUser(session?.user.id ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Check if the fonts have loaded or if there was an error
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -80,36 +93,38 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeInitializer />
-      <HeroUINativeProvider>
-        <PortalProvider>
-          <StatusBar style={isDark ? 'light' : 'dark'} />
-          <BottomSheetModalProvider>
-            <View style={{ flex: 1 }}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                }}
-              >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="chat/[conversationId]" />
-                <Stack.Screen name="tenant" />
-                <Stack.Screen name="apartment/[apartmentId]" />
-                <Stack.Screen name="(notification)" />
-                <Stack.Screen name="settings" />
-                <Stack.Screen name="document-id" />
-                <Stack.Screen name="edit-profile" />
-                <Stack.Screen name="dev/giphy" />
-                <Stack.Screen name="dev/playground" />
-              </Stack>
-              <PortalHost name="root" />
-              <DevBadge />
-            </View>
-          </BottomSheetModalProvider>
-        </PortalProvider>
-      </HeroUINativeProvider>
+      <QueryProvider>
+        <ThemeInitializer />
+        <HeroUINativeProvider>
+          <PortalProvider>
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <BottomSheetModalProvider>
+              <View style={{ flex: 1 }}>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                  }}
+                >
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="chat/[conversationId]" />
+                  <Stack.Screen name="tenant" />
+                  <Stack.Screen name="apartment/[apartmentId]" />
+                  <Stack.Screen name="(notification)" />
+                  <Stack.Screen name="settings" />
+                  <Stack.Screen name="document-id" />
+                  <Stack.Screen name="edit-profile" />
+                  <Stack.Screen name="dev/giphy" />
+                  <Stack.Screen name="dev/playground" />
+                </Stack>
+                <PortalHost name="root" />
+                <DevBadge />
+              </View>
+            </BottomSheetModalProvider>
+          </PortalProvider>
+        </HeroUINativeProvider>
+      </QueryProvider>
     </GestureHandlerRootView>
   );
 }

@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { View, Text, Image, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
-
-import { supabase } from "@repo/supabase";
 
 import { IconBell } from "@tabler/icons-react-native";
 
@@ -13,105 +11,26 @@ import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
 import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
 
-import { useProfile } from "hooks/auth";
+import { useDashboardStats } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";
 
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
-
-type DashboardStats = {
-  totalProperties: number;
-  unitsOccupied: number;
-  pendingPayments: number;
-  maintenanceRequests: number;
-};
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  FLOATING_TAB_BAR_BOTTOM_OFFSET,
+} from "@/app/(tabs)/components/CustomTabBar";
 
 export default function Dashboard() {
   const router = useRouter();
-  const { profile, loading: profileLoading } = useProfile();
   const { colors } = useColors();
-
-  const [stats, setStats] = useState<DashboardStats>({
-    totalProperties: 0,
-    unitsOccupied: 0,
-    pendingPayments: 0,
-    maintenanceRequests: 0,
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const { stats, loading, error } = useDashboardStats();
 
   useEffect(() => {
-    if (!profile) return;
-    fetchStats(profile.id);
-  }, [profile]);
-
-  const fetchStats = async (landlordId: string) => {
-    try {
-      const [
-        { count: totalProperties },
-        { count: unitsOccupied },
-        { count: pendingPayments },
-        { count: maintenanceRequests },
-      ] = await Promise.all([
-        // Total properties for landlord
-        supabase
-          .from("apartments")
-          .select("*", { count: "exact", head: true })
-          .eq("landlord_id", landlordId)
-          .is("deleted_at", null),
-
-        // Units with an active tenancy
-        supabase
-          .from("tenancies")
-          .select("*", { count: "exact", head: true })
-          .eq("landlord_id", landlordId)
-          .eq("status", "active"),
-
-        // Payments with status 'not paid' across landlord's apartments
-        supabase
-          .from("payment")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "not paid")
-          .in(
-            "apartment_id",
-            (
-              await supabase
-                .from("apartments")
-                .select("id")
-                .eq("landlord_id", landlordId)
-                .is("deleted_at", null)
-            ).data?.map((a) => a.id) ?? [],
-          ),
-
-        // Open maintenance requests (pending or in_progress) across landlord's apartments
-        supabase
-          .from("maintenance_request")
-          .select("*", { count: "exact", head: true })
-          .in("status", ["pending", "in_progress"])
-          .in(
-            "apartment_id",
-            (
-              await supabase
-                .from("apartments")
-                .select("id")
-                .eq("landlord_id", landlordId)
-                .is("deleted_at", null)
-            ).data?.map((a) => a.id) ?? [],
-          ),
-      ]);
-
-      setStats({
-        totalProperties: totalProperties ?? 0,
-        unitsOccupied: unitsOccupied ?? 0,
-        pendingPayments: pendingPayments ?? 0,
-        maintenanceRequests: maintenanceRequests ?? 0,
-      });
-    } catch (error) {
+    if (error) {
       console.error("Error fetching dashboard stats:", error);
-    } finally {
-      setStatsLoading(false);
     }
-  };
+  }, [error]);
 
   const upcomingRentDue = [
     {
@@ -137,10 +56,12 @@ export default function Dashboard() {
     },
   ];
 
-  const isLoading = profileLoading || statsLoading;
-
   return (
-    <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
+    <ScreenWrapper
+      scrollable
+      className="p-5"
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+    >
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
           <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
@@ -158,8 +79,7 @@ export default function Dashboard() {
         </Button>
       </View>
 
-      {/* Grid Stats */}
-      {isLoading ? (
+      {loading ? (
         <ActivityIndicator
           size="large"
           color={colors.primary}
@@ -209,13 +129,11 @@ export default function Dashboard() {
         </View>
       )}
 
-      {/* Charts */}
       <View className="flex gap-5 mt-5">
         <ProfitTrendCard />
         <ProfitByPropertyCard />
       </View>
 
-      {/* Upcoming Payment Due Date */}
       <View className="flex gap-5 mt-5">
         <Text className="text-foreground text-lg font-interSemiBold">
           Upcoming Rent Due

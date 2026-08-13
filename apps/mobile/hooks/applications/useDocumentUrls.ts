@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@repo/supabase';
 
-const BUCKET = 'application-documents';
-const EXPIRES_IN = 60 * 55; // 55 min
-const TTL_MS = 55 * 60 * 1000;
-
-// Module-level cache — persists across component mounts/unmounts
-const urlCache = new Map<string, { signedUrl: string; expiresAt: number }>();
+import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
 
 type DocEntry = { label: string; path: string | null };
 type ResolvedDoc = { label: string; path: string; signedUrl: string | null };
@@ -14,78 +8,66 @@ type ResolvedDoc = { label: string; path: string; signedUrl: string | null };
 export function useDocumentUrls(docs: DocEntry[]) {
   const [resolved, setResolved] = useState<ResolvedDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const cacheKey = useMemo(
-    () => docs.map((d) => d.path).join(','),
-    [docs]
-  );
+  const documentKey = docs
+    .map((doc) => `${doc.label}\u0000${doc.path ?? ''}`)
+    .join('\u0001');
 
-  const entries = useMemo(
-    () => docs.filter((d): d is { label: string; path: string } => !!d.path),
-    [docs]
-  );
+  const entries = useMemo(() => {
+    if (!documentKey) return [];
 
+    return documentKey.split('\u0001').map((entry) => {
+      const separatorIndex = entry.indexOf('\u0000');
+      return {
+        label: entry.slice(0, separatorIndex),
+        path: entry.slice(separatorIndex + 1),
+      };
+    });
+  }, [documentKey]);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (!entries.length) {
       setResolved([]);
       setLoading(false);
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     async function fetchUrls() {
       setLoading(true);
-      const now = Date.now();
+      const { urls, error } = await resolvePrivateMediaUrls(
+        'application-documents',
+        entries.map((entry) => entry.path)
+      );
 
-      // Split into cache hits and misses
-      const hits: ResolvedDoc[] = [];
-      const misses: { label: string; path: string }[] = [];
+      if (cancelled) return;
 
-      for (const entry of entries) {
-        const cached = urlCache.get(entry.path);
-        if (cached && cached.expiresAt > now) {
-          hits.push({ label: entry.label, path: entry.path, signedUrl: cached.signedUrl });
-        } else {
-          misses.push(entry);
-        }
-      }
-
-      // Only fetch what isn't cached
-      let freshResults: ResolvedDoc[] = [];
-      if (misses.length > 0) {
-        // Use createSignedUrls (batch) instead of one call per file
-        const paths = misses.map((m) => m.path);
-        const { data } = await supabase.storage
-          .from(BUCKET)
-          .createSignedUrls(paths, EXPIRES_IN);
-
-        freshResults = misses.map((miss) => {
-          const match = data?.find((d) => d.path === miss.path);
-          const signedUrl = match?.signedUrl ?? null;
-
-          if (signedUrl) {
-            urlCache.set(miss.path, { signedUrl, expiresAt: now + TTL_MS });
-          }
-
-          return { label: miss.label, path: miss.path, signedUrl };
-        });
-      }
-
-      // Merge and preserve original order
-      const all = entries.map((e) => {
-        return (
-          hits.find((h) => h.path === e.path) ??
-          freshResults.find((f) => f.path === e.path) ??
-          { label: e.label, path: e.path, signedUrl: null }
-        );
-      });
-
-      setResolved(all);
+      setResolved(
+        entries.map((entry) => ({
+          label: entry.label,
+          path: entry.path,
+          signedUrl: urls[entry.path] ?? null,
+        }))
+      );
+      setError(error);
       setLoading(false);
     }
 
-    fetchUrls();
-  }, [cacheKey, entries]);
+    fetchUrls().catch(() => {
+      if (cancelled) return;
+      setResolved(entries.map((entry) => ({ ...entry, signedUrl: null })));
+      setError('Unable to access private documents.');
+      setLoading(false);
+    });
 
-  return { resolved, loading };
+    return () => {
+      cancelled = true;
+    };
+  }, [documentKey, entries]);
+
+  return { resolved, loading, error };
 }

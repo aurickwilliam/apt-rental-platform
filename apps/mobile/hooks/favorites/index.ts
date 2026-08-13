@@ -1,1 +1,6 @@
-export { useFavorites } from './useFavorites';
+export {
+  getFavoriteApartmentsQueryKey,
+  getFavoritesQueryKey,
+  useFavoriteApartments,
+  useFavorites,
+} from "./useFavorites";

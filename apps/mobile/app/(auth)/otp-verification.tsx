@@ -10,6 +10,7 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 import { supabase } from '@repo/supabase'
 
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
+import { clearQueryClient } from '@/utils/queryClient'
 
 import { getProfileSubmitError } from '@repo/utils'
 
@@ -166,6 +167,7 @@ export default function OTPVerification() {
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
+        clearQueryClient()
         await supabase.auth.signOut()
 
         setError(getProfileSubmitError(err))

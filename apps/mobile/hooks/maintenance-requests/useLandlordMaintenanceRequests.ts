@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "@repo/supabase";
 import { useProfile } from "@/hooks/auth";
+import { resolvePrivateMediaUrls } from "@/service/privateMediaResolver";
 import { MaintenanceRequestStatus, MaintenanceRequestUrgency } from "./useMaintenanceRequests";
 
 const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
@@ -36,42 +37,6 @@ export function getNextStatus(
 }
 
 const MAINTENANCE_IMAGES_BUCKET = "maintenance-images";
-const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
-const SIGNED_URL_CACHE_TTL_MS = 55 * 60 * 1000; // refresh a bit before real expiry
-
-// Module-level cache so photos aren't re-signed on every focus/refetch
-const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
-
-async function resolveSignedUrls(paths: string[]): Promise<string[]> {
-  if (paths.length === 0) return [];
-
-  const now = Date.now();
-  const uncachedPaths = paths.filter((path) => {
-    const cached = signedUrlCache.get(path);
-    return !cached || cached.expiresAt <= now;
-  });
-
-  if (uncachedPaths.length > 0) {
-    const { data, error } = await supabase.storage
-      .from(MAINTENANCE_IMAGES_BUCKET)
-      .createSignedUrls(uncachedPaths, SIGNED_URL_TTL_SECONDS);
-
-    if (!error && data) {
-      data.forEach((entry) => {
-        if (entry.signedUrl && entry.path) {
-          signedUrlCache.set(entry.path, {
-            url: entry.signedUrl,
-            expiresAt: now + SIGNED_URL_CACHE_TTL_MS,
-          });
-        }
-      });
-    }
-  }
-
-  return paths
-    .map((path) => signedUrlCache.get(path)?.url)
-    .filter((url): url is string => Boolean(url));
-}
 
 export type LandlordMaintenanceRequest = {
   id: string;
@@ -133,45 +98,51 @@ export function useLandlordMaintenanceRequests() {
       return;
     }
 
-    const mapped: LandlordMaintenanceRequest[] = await Promise.all(
-      (data ?? []).map(async (row: any) => {
-        const photos = await resolveSignedUrls(row.image_urls ?? []);
-        const addressParts = [
-          row.apartment?.street_address,
-          row.apartment?.barangay,
-          row.apartment?.city,
-          row.apartment?.province,
-        ].filter(Boolean);
-
-        return {
-          id: row.id,
-          issue_title: row.title,
-          description: row.message,
-          apartment_name: row.apartment?.name ?? "Unknown apartment",
-          apartment_city: row.apartment?.city ?? "",
-          apartment_address: addressParts.join(", "),
-          tenant_name:
-            [row.tenant?.first_name, row.tenant?.last_name]
-              .filter(Boolean)
-              .join(" ") || "Unknown tenant",
-          tenant_avatar_url: row.tenant?.avatar_url ?? null,
-          contact_number: row.tenant?.mobile_number ?? "-",
-          reported_at: row.created_at,
-          status: DB_TO_DISPLAY_STATUS[row.status] ?? "Pending",
-          urgency: row.urgency,
-          photos,
-          resolution_notes: row.resolution_notes ?? null,
-        };
-      })
+    const imagePaths = (data ?? []).flatMap((row) => row.image_urls ?? []);
+    const { urls: mediaUrls, error: mediaError } = await resolvePrivateMediaUrls(
+      MAINTENANCE_IMAGES_BUCKET,
+      imagePaths
     );
+
+    if (mediaError) {
+      setError(mediaError);
+    }
+
+    const mapped: LandlordMaintenanceRequest[] = (data ?? []).map((row: any) => {
+      const photos = (row.image_urls ?? [])
+        .map((path: string) => mediaUrls[path])
+        .filter((url: string | null): url is string => Boolean(url));
+      const addressParts = [
+        row.apartment?.street_address,
+        row.apartment?.barangay,
+        row.apartment?.city,
+        row.apartment?.province,
+      ].filter(Boolean);
+
+      return {
+        id: row.id,
+        issue_title: row.title,
+        description: row.message,
+        apartment_name: row.apartment?.name ?? "Unknown apartment",
+        apartment_city: row.apartment?.city ?? "",
+        apartment_address: addressParts.join(", "),
+        tenant_name:
+          [row.tenant?.first_name, row.tenant?.last_name]
+            .filter(Boolean)
+            .join(" ") || "Unknown tenant",
+        tenant_avatar_url: row.tenant?.avatar_url ?? null,
+        contact_number: row.tenant?.mobile_number ?? "-",
+        reported_at: row.created_at,
+        status: DB_TO_DISPLAY_STATUS[row.status] ?? "Pending",
+        urgency: row.urgency,
+        photos,
+        resolution_notes: row.resolution_notes ?? null,
+      };
+    });
 
     setRequests(mapped);
     setLoading(false);
   }, [profile?.id, profileLoading]);
-
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
 
   useFocusEffect(
     useCallback(() => {

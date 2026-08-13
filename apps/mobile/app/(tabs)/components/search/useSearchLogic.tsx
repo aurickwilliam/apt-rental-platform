@@ -71,9 +71,8 @@ export default function useSearchLogic() {
           url,
           is_cover,
           created_at
-        )`,
-        { count: "exact" },
-      )
+        )
+      `, { count: "exact" })
       .is("deleted_at", null)
       .range(from, to);
 
@@ -340,13 +339,7 @@ export default function useSearchLogic() {
   }, [filters]);
 
   const handleToggleFavorite = useCallback(
-    async (id: string) => {
-      try {
-        await toggleFavorite(id);
-      } catch (err) {
-        console.error("Error toggling favorite:", err);
-      }
-    },
+    (id: string) => toggleFavorite(id),
     [toggleFavorite],
   );
 
