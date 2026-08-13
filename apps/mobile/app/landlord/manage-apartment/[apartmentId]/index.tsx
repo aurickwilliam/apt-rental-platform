@@ -93,7 +93,10 @@ export default function Index() {
   }
 
   const handleTenantProfilePress = (tenantId: string) => {
-    router.push(`/landlord/manage-apartment/${apartmentId}/tenant-profile/${tenantId}`)
+    router.push({
+      pathname: '/profile/tenant/[tenantId]',
+      params: { tenantId, apartmentId },
+    })
   }
 
   const handleMessageTenant = () => {

@@ -8,6 +8,7 @@ export const IMAGES = {
   shield: require("../assets/images/shield.png"),
   userCheck: require("../assets/images/user-check.png"),
   userError: require("../assets/images/user-error.png"),
+  aiIcon: require("../assets/images/ai-icon/casa-logo.png"),
 };
 
 export const EMPTY_STATE_IMAGES = {

@@ -1,5 +1,5 @@
 import { View, Text, Pressable } from 'react-native'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -14,6 +14,7 @@ import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { getProfileSubmitError } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
+import { useCountdown } from 'hooks/auth'
 
 import {
   CloseButton,
@@ -24,6 +25,7 @@ import {
 } from 'heroui-native'
 
 const OTP_VALIDITY_DURATION = 60 // seconds
+const MAX_OTP_ATTEMPTS = 5
 
 export default function OTPVerification() {
   const router = useRouter()
@@ -37,40 +39,60 @@ export default function OTPVerification() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
 
   const [otp, setOtp] = useState('')
-  const [countdown, setCountdown] = useState(OTP_VALIDITY_DURATION)
+  const [otpError, setOtpError] = useState<string | null>(null)
+  const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_OTP_ATTEMPTS)
+  const [otpLocked, setOtpLocked] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
   const [otpExpired, setOtpExpired] = useState(false)
 
   const otpRef = useRef<InputOTPRef>(null)
 
+  const { countdown, reset: resetCountdown } = useCountdown({
+    duration: OTP_VALIDITY_DURATION,
+  })
+
   const emailValue = Array.isArray(email) ? email[0] : email
 
-  // Function to handle countdown for OTP validity
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [countdown])
-
-  // Reset all the OTP and error
-  // Then resend the OTP to the user email
-  const handleResend = async () => {
-    setCountdown(OTP_VALIDITY_DURATION)
-    setOtpExpired(false)
+  const clearOtp = () => {
     setOtp('')
     otpRef.current?.clear()
-
-    await supabase.auth.resend({
-      type: 'signup',
-      email: emailValue || data.email!,
-    })
   }
 
-  // Check the OTP code and create the user account, 
+  // Reset the OTP, attempts, and error
+  // Then resend the OTP to the user email
+  const handleResend = async () => {
+    if (resendLoading) return
+
+    setResendLoading(true)
+    setOtpError(null)
+    setAttemptsRemaining(MAX_OTP_ATTEMPTS)
+    setOtpLocked(false)
+    setOtpExpired(false)
+    clearOtp()
+    resetCountdown()
+
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: emailValue || data.email!,
+      })
+
+      if (resendError) {
+        setError(resendError.message || 'Something went wrong')
+        setErrorDialogOpen(true)
+      }
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  // Check the OTP code and create the user account,
   // then insert the user profile to the database
   const handleVerify = async () => {
+    if (loading || otpLocked || otp.length < 6) return
+
     setLoading(true)
-    setError(null)
+    setOtpError(null)
 
     try {
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
@@ -117,17 +139,32 @@ export default function OTPVerification() {
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
         msg.includes('Email link is invalid or has expired')
-      
+      const isInvalidOtp =
+        msg.includes('invalid_otp') ||
+        msg.includes('does not match') ||
+        msg.includes('Invalid token')
+
       if (isOtpExpired) {
         // OTP expired before verify succeeded — no auth user was created, safe to skip signOut
         setOtpExpired(true)
-        setOtp('')
-        otpRef.current?.clear()
+        clearOtp()
 
         setError('Your verification code has expired. Please request a new one.')
         setErrorDialogOpen(true)
+      } else if (isInvalidOtp) {
+        // Wrong code — surface inline with attempts remaining
+        const remaining = attemptsRemaining - 1
+        setAttemptsRemaining(remaining)
+        clearOtp()
+
+        if (remaining <= 0) {
+          setOtpLocked(true)
+          setOtpError('Too many incorrect attempts. Please request a new code.')
+        } else {
+          setOtpError(`Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`)
+        }
       } else {
-        // Sign out the user if verification succeeded but inserting profile failed, 
+        // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
         await supabase.auth.signOut()
 
@@ -174,9 +211,13 @@ export default function OTPVerification() {
               ref={otpRef}
               maxLength={6}
               value={otp}
-              onChange={setOtp}
-              isInvalid={!!error}
-              isDisabled={loading}
+              onChange={(val) => {
+                setOtp(val)
+                if (otpError) setOtpError(null)
+              }}
+              onComplete={handleVerify}
+              isInvalid={!!otpError}
+              isDisabled={loading || otpLocked}
               pattern={REGEXP_ONLY_DIGITS}
               inputMode="numeric"
               textInputProps={{
@@ -196,6 +237,12 @@ export default function OTPVerification() {
                 <InputOTP.Slot index={5} />
               </InputOTP.Group>
             </InputOTP>
+
+            {otpError && (
+              <Text className="text-danger text-sm font-inter mt-3 text-center">
+                {otpError}
+              </Text>
+            )}
           </View>
 
           {/* Resend Link and Countdown */}
@@ -209,9 +256,17 @@ export default function OTPVerification() {
                 Resend in {countdown}s
               </Text>
             ) : (
-              <Pressable onPress={handleResend}>
+              <Pressable
+                onPress={handleResend}
+                disabled={resendLoading}
+                className={resendLoading ? 'opacity-50' : ''}
+              >
                 <Text className="text-accent text-base font-medium">
-                  {otpExpired ? 'Code expired — Resend' : 'Resend'}
+                  {resendLoading
+                    ? 'Sending...'
+                    : otpExpired
+                      ? 'Code expired — Resend'
+                      : 'Resend'}
                 </Text>
               </Pressable>
             )}
@@ -221,7 +276,7 @@ export default function OTPVerification() {
         {/* Verify Button */}
         <Button
           onPress={handleVerify}
-          isDisabled={loading || otp.length < 6}
+          isDisabled={loading || otpLocked || otp.length < 6}
         >
           <Button.Label>
             {loading ? 'Creating Account...' : 'Verify & Create Account'}
@@ -230,7 +285,7 @@ export default function OTPVerification() {
       </View>
 
       {/* Error Dialog */}
-      <ErrorDialog 
+      <ErrorDialog
         isOpen={errorDialogOpen}
         onClose={() => setErrorDialogOpen(false)}
         message={error}
