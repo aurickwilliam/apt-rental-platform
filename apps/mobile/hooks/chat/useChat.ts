@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useCurrentUser } from '@/hooks/auth';
+
 import {
   refreshVisibleChatMediaUrls,
   retryChatMediaUrlOnce,
@@ -8,7 +10,6 @@ import {
 import {
   fetchMessagePage,
   fetchOtherUserProfile,
-  getCurrentUserProfile,
   insertMessage,
   markMessagesAsRead,
   resolveMessageType,
@@ -37,7 +38,8 @@ export function useChat({
   initialOtherUserName,
   initialOtherUserAvatar,
 }: Options) {
-  const [myId, setMyId] = useState<string | null>(null);
+  const currentUserQuery = useCurrentUser();
+  const myId = currentUserQuery.data?.id ?? null;
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatMessage, setChatMessage] = useState('');
   const [otherUserName, setOtherUserName] = useState(initialOtherUserName ?? 'User');
@@ -392,17 +394,18 @@ export function useChat({
     setMessages([]);
 
     async function init() {
-      try {
-        const profile = await getCurrentUserProfile();
-        if (!profile || cancelled) return;
+      if (!myId) {
+        if (!cancelled && !currentUserQuery.isLoading) setLoading(false);
+        return;
+      }
 
-        myIdRef.current = profile.id;
-        setMyId(profile.id);
+      try {
+        myIdRef.current = myId;
 
         const [otherProfile, page] = await Promise.all([
           fetchOtherUserProfile(otherUserId),
           fetchMessagePage({
-            currentUserId: profile.id,
+            currentUserId: myId,
             otherUserId,
             apartmentId,
           }),
@@ -423,7 +426,7 @@ export function useChat({
         setMessages((current) => mergeChatMessages(current, page.messages, 'older'));
         setNextCursor(page.nextCursor);
         setHasMore(page.nextCursor !== null);
-        markMessagesAsRead(profile.id, otherUserId, apartmentId).catch(console.error);
+        markMessagesAsRead(myId, otherUserId, apartmentId).catch(console.error);
       } catch (err) {
         console.error('Chat init error:', err);
       } finally {
@@ -443,8 +446,10 @@ export function useChat({
   }, [
     apartmentId,
     cleanupTyping,
+    currentUserQuery.isLoading,
     initialOtherUserAvatar,
     initialOtherUserName,
+    myId,
     otherUserId,
     stopTyping,
   ]);

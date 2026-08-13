@@ -19,26 +19,6 @@ export type FavoriteApartment = Pick<
   apartment_images: Pick<ApartmentImageRow, 'url' | 'is_cover' | 'created_at'>[] | null;
 };
 
-export async function getCurrentTenantId(): Promise<string | null> {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError) throw authError;
-  if (!user) return null;
-
-  const { data: profile, error: profileError } = await supabase
-    .from('users')
-    .select('id')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (profileError) throw profileError;
-
-  return profile?.id ?? null;
-}
-
 export async function fetchFavoriteApartmentIds(tenantId: string): Promise<string[]> {
   const { data, error } = await supabase
     .from('favorites')

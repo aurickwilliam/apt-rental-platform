@@ -201,9 +201,9 @@ jest.mock('expo-router', () => {
 import {
   fetchMessages,
   getChatAttachmentSignedUrls,
-  getCurrentUserProfile,
   mapMessages,
 } from '@/service/chatService';
+import { getCurrentUser } from '@/service/currentUserService';
 import { useProfile } from '@/hooks/auth/useProfile';
 import { useTenancy } from '@/hooks/tenancy/useTenancy';
 
@@ -243,7 +243,7 @@ describe('audit-fix bug-condition characterization (unfixed flow)', () => {
         mockGetUser.mockClear();
 
         await Promise.all(
-          Array.from({ length: consumerCount }, () => getCurrentUserProfile())
+          Array.from({ length: consumerCount }, () => getCurrentUser())
         );
 
         expect(mockGetUser).toHaveBeenCalledTimes(1);

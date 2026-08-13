@@ -7,7 +7,6 @@ import emojiRegex from 'emoji-regex-xs';
 import {
   PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
   resolvePrivateMediaUrls,
-  setPrivateMediaCacheUser,
 } from './privateMediaResolver';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -97,28 +96,6 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
 // Cap concurrent uploads rather than firing all N at once — an 8-photo
 // multi-select on a weak connection shouldn't open 8 simultaneous uploads.
 const MAX_CONCURRENT_ATTACHMENT_UPLOADS = 3;
-
-// ─── Auth ────────────────────────────────────────────────────────────────────
-
-export async function getCurrentUserProfile(): Promise<{ id: string } | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    setPrivateMediaCacheUser(null);
-    return null;
-  }
-
-  setPrivateMediaCacheUser(user.id);
-
-  const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('user_id', user.id)
-    .single();
-
-  return data ?? null;
-}
 
 // ─── Text messages ──────────────────────────────────────────────────────────
 

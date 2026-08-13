@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
 
+import { useCurrentUser } from "@/hooks/auth";
+
 export type ActionBadgeCategory = "maintenance" | "visits" | "applications";
 export type ActionBadgeCounts = Record<ActionBadgeCategory, number>;
 
@@ -25,22 +27,17 @@ export function useLandlordActionBadges() {
     applications: 0,
   });
 
+  const currentUserQuery = useCurrentUser();
+  const landlordId = currentUserQuery.data?.id ?? null;
+
   const fetchCounts = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-      if (userError || !userData) throw userError;
+      if (!landlordId) return;
 
       const { data: aptData, error: aptError } = await supabase
         .from("apartments")
         .select("id")
-        .eq("landlord_id", userData.id)
+        .eq("landlord_id", landlordId)
         .is("deleted_at", null);
       if (aptError) throw aptError;
 
@@ -74,7 +71,7 @@ export function useLandlordActionBadges() {
     } catch (err) {
       console.error("Error fetching landlord action badges:", err);
     }
-  }, []);
+  }, [landlordId]);
 
   const markViewed = useCallback(async (category: ActionBadgeCategory) => {
     // Optimistic clear so the badge disappears instantly on tap

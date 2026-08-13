@@ -36,7 +36,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 
 - pnpm@10.25.0 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
 - Backend: Supabase (Postgres, Auth, Realtime, Storage)
-- No test, CI, or formatter config exists in the repo
+- No CI or formatter config exists; `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`) run via `pnpm --filter mobile test`
 
 ### `apps/web` — Next.js 16 (App Router)
 - Styling: **Tailwind CSS v4** + PostCSS (`@tailwindcss/postcss`)
@@ -49,7 +49,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 - Styling: **Uniwind** utility classes — NOT NativeWind (migrated away; don't reintroduce)
 - UI: **HeroUI Native v3** (`heroui-native`)
 - Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away; existing dep not yet cleaned up but don't use it)
-- State: Zustand for client state (`stores/`)
+- State: server state via **React Query** (`@tanstack/react-query`) — single `QueryProvider` at the root layout, shared client in `utils/queryClient.ts`; Zustand for client state only (`stores/`)
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`
 - Payment receipt: GCash-style receipt in `apps/mobile/app/tenant/payment/success.tsx` via `components/ReceiptCard.tsx` (same folder)
@@ -72,6 +72,7 @@ pnpm mobile       # pnpm --filter mobile start
 Individual app scripts:
 - `pnpm --filter web dev` / `pnpm --filter web build` / `pnpm --filter web lint`
 - `pnpm --filter mobile start` / `pnpm --filter mobile ios` / `pnpm --filter mobile android` / `pnpm --filter mobile lint` (expo lint)
+- `pnpm --filter mobile test` (jest) / `pnpm --filter mobile exec jest --runInBand` (CI-style run)
 
 No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 
@@ -181,11 +182,11 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 ## State Management Rules
 
 - **Local state** (`useState` + custom hooks) is the default — use nothing else unless needed.
+- **React Query** (mobile only): the standard layer for server data. Reads via `useQuery` on stable query keys; mutations via optimistic updates + exact-key `invalidateQueries`. Default `staleTime` 30s; `clearQueryClient()` on sign-in/sign-out (sensitive in-memory state — e.g. signed URLs — clears with it). Never put tokens or signed URLs in query keys; never mirror server data in Zustand.
 - **Zustand** (mobile only): client state shared across screens — form flows, theme, personalization. Lives in `stores/`; includes `reset()`.
-- **Supabase** is the source of truth for all server data; fetch directly in hooks/services, never mirror it in stores.
+- **Supabase** is the source of truth for all server data; fetch in hooks/services behind React Query — never mirror it in stores.
 - **URL state** (web): filters and search via `searchParams` / `useSearchParams`.
 - **Context** (web): none for session state — `AuthContext` is form-state scoped to the `(auth)` route group only. Session awareness comes from `hooks/use-user.ts` (with `onAuthStateChange`) and server pages. Avoid adding global contexts.
-- **React Query** is not used anywhere in the repo — do not introduce without strong justification.
 - Never duplicate state: derive from a single source, reset stores on completion, keep stores out of server data.
 
 ## Component Guidelines
