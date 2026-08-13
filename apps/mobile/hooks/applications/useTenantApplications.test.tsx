@@ -1,107 +1,91 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react-native";
+import type { ReactNode } from "react";
 
-import { useTenantApplications } from './useTenantApplications';
-import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
+import { useTenantApplications } from "./useTenantApplications";
+import { createMobileQueryClient } from "@/utils/queryClient";
 
-const mockFrom = jest.fn();
+const TENANT_ID = "tenant-1";
+const mockUseCurrentUser = jest.fn();
+const mockFetchTenantApplications = jest.fn();
 
-jest.mock('@repo/supabase', () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
+jest.mock("hooks/auth", () => ({
+  useCurrentUser: () => mockUseCurrentUser(),
+  useProfile: () => ({ profile: { id: TENANT_ID }, loading: false }),
 }));
 
-jest.mock('hooks/auth', () => ({
-  useProfile: () => ({ profile: { id: 'tenant-1' }, loading: false }),
+jest.mock("@/service/tenantApplicationsService", () => ({
+  fetchTenantApplications: (...args: unknown[]) => mockFetchTenantApplications(...args),
 }));
 
-jest.mock('@/service/privateMediaResolver', () => ({
-  resolvePrivateMediaUrls: jest.fn(),
-}));
+function createWrapper() {
+  const client = createMobileQueryClient();
 
-const mockResolvePrivateMediaUrls = jest.mocked(resolvePrivateMediaUrls);
+  function QueryWrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  }
 
-const applicationRow = {
-  id: 'application-1',
-  status: 'pending',
-  created_at: '2026-01-01T00:00:00.000Z',
-  rejected_reason: null,
-  apartment_id: 'apartment-1',
-  occupation: 'Engineer',
-  employer_name: 'APT',
-  monthly_income: 50000,
-  employment_type: 'Full-time',
-  prev_landlord_name: null,
-  prev_landlord_contact: null,
-  move_in_date: '2026-02-01',
-  no_occupants: 1,
-  has_pets: false,
-  has_smoker: false,
-  need_parking: false,
-  message: null,
-  gov_id_url: 'tenant/shared-document.jpg',
-  proof_of_income_url: 'tenant/shared-document.jpg',
-  proof_of_billing_url: null,
-  nbi_clearance_url: null,
-  apartments: { name: 'APT Homes', monthly_rent: 12000 },
-};
-
-function createApplicationsQuery() {
-  const query = {
-    select: jest.fn(),
-    eq: jest.fn(),
-    order: jest.fn(),
-  };
-  query.select.mockReturnValue(query);
-  query.eq.mockReturnValue(query);
-  query.order.mockResolvedValue({ data: [applicationRow], error: null });
-  return query;
+  return { client, QueryWrapper };
 }
 
-describe('useTenantApplications', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockFrom.mockReturnValue(createApplicationsQuery());
-    mockResolvePrivateMediaUrls.mockResolvedValue({
-      urls: { 'tenant/shared-document.jpg': 'https://signed.example.test/document.jpg' },
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockUseCurrentUser.mockReturnValue({
+    data: { id: TENANT_ID },
+    isLoading: false,
+    error: null,
+  });
+  mockFetchTenantApplications.mockResolvedValue([]);
+});
+
+describe("useTenantApplications", () => {
+  it("fetches applications with the tenant-scoped keyed query", async () => {
+    mockFetchTenantApplications.mockResolvedValue([
+      { id: "application-1", status: "pending", documents: [] },
+    ]);
+    const { QueryWrapper } = createWrapper();
+
+    const { result, unmount } = renderHook(() => useTenantApplications(), {
+      wrapper: QueryWrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(mockFetchTenantApplications).toHaveBeenCalledWith(TENANT_ID);
+    expect(result.current.applications[0]?.id).toBe("application-1");
+    expect(result.current.error).toBeNull();
+
+    unmount();
+  });
+
+  it("does not fetch before the current user resolves", async () => {
+    mockUseCurrentUser.mockReturnValue({
+      data: null,
+      isLoading: true,
       error: null,
     });
-  });
+    const { QueryWrapper } = createWrapper();
 
-  it('uses the shared document resolver while preserving duplicate document rows and order', async () => {
-    const { result } = renderHook(() => useTenantApplications());
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith('application-documents', [
-      'tenant/shared-document.jpg',
-      'tenant/shared-document.jpg',
-    ]);
-    expect(result.current.applications[0]?.documents).toEqual([
-      {
-        label: 'Government ID',
-        path: 'tenant/shared-document.jpg',
-        signedUrl: 'https://signed.example.test/document.jpg',
-      },
-      {
-        label: 'Proof of Income',
-        path: 'tenant/shared-document.jpg',
-        signedUrl: 'https://signed.example.test/document.jpg',
-      },
-    ]);
-  });
-
-  it('exposes a compatible resolver error while retaining application documents', async () => {
-    mockResolvePrivateMediaUrls.mockResolvedValue({
-      urls: { 'tenant/shared-document.jpg': null },
-      error: 'Unable to access private media.',
+    const { result, unmount } = renderHook(() => useTenantApplications(), {
+      wrapper: QueryWrapper,
     });
 
-    const { result } = renderHook(() => useTenantApplications());
+    expect(mockFetchTenantApplications).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(true);
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    unmount();
+  });
 
-    expect(result.current.error).toBe('Unable to access private media.');
-    expect(result.current.applications[0]?.documents[0]?.signedUrl).toBeNull();
+  it("surfaces a fetch failure as an error message", async () => {
+    mockFetchTenantApplications.mockRejectedValue(new Error("RLS blocked"));
+    const { QueryWrapper } = createWrapper();
+
+    const { result, unmount } = renderHook(() => useTenantApplications(), {
+      wrapper: QueryWrapper,
+    });
+
+    await waitFor(() => expect(result.current.error).toBe("RLS blocked"));
+    expect(result.current.applications).toEqual([]);
+
+    unmount();
   });
 });

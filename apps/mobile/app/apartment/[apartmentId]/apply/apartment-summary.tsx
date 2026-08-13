@@ -38,7 +38,7 @@ export default function ApartmentSummary() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const insets = useSafeAreaInsets();
 
-  const { apartment, loading, error } = useApartmentDetails(apartmentId);
+  const { apartment, loading, error } = useApartmentDetails(apartmentId, { includeReviews: false });
   const { setApartmentContext } = useApplicationFormStore();
 
   const imageScrollViewRef = useRef<ScrollView>(null);

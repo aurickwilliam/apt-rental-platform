@@ -29,7 +29,7 @@ export default function RequestVisit() {
     applicationId: string;
   }>();
 
-  const { apartment } = useApartmentDetails(apartmentId);
+  const { apartment } = useApartmentDetails(apartmentId, { includeReviews: false });
   const { submitVisitRequest, loading, error } = useSubmitVisitRequest();
 
   const [visitDetails, setVisitDetails] = useState({
