@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import Footer from "../components/layout/Footer";
 
 const TenantNavbar = dynamic(() => import("../components/layout/TenantNavbar"));
 
@@ -10,9 +11,9 @@ export default function TenantLayout({
   return (
     <>
       <TenantNavbar />
-      <main className="bg-white">
         {children}
-      </main>
+      <Footer />   {/*I added this temporarily*/}
     </>
+    
   );
 }
