@@ -72,6 +72,9 @@ export default function ApplicationApartment() {
     apartment?.apartment_images?.find((img) => img.is_cover) ??
     apartment?.apartment_images?.[0];
 
+  const coverImageUri =
+    (coverImage?.url_thumb || coverImage?.url) ?? undefined;
+
   const handleConfirmCancel = async () => {
     setCancelError(null);
     const { error } = await cancelApplication(applicationId, visitRequest?.id);
@@ -189,7 +192,7 @@ export default function ApplicationApartment() {
 
       {/* Apartment cover image */}
       <Image
-        source={{ uri: coverImage?.url }}
+        source={{ uri: coverImageUri }}
         contentFit="cover"
         style={{
           width: "100%",

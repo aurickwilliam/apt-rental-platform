@@ -40,6 +40,7 @@ export type ApartmentDetails = {
   apartment_images: {
     id: string;
     url: string;
+    url_thumb: string | null;
     is_cover: boolean;
   }[];
 };
@@ -96,6 +97,7 @@ const APARTMENT_SELECT = `
   apartment_images (
     id,
     url,
+    url_thumb,
     is_cover
   )
 `;

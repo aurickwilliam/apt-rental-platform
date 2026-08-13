@@ -42,13 +42,15 @@ export default function TenantFavorites() {
     () =>
       favoriteApartments.map((apartment) => {
         const images = apartment.apartment_images ?? [];
+        const cover = images.find((image) => image.is_cover);
+        const earliest = [...images].sort(
+          (firstImage, secondImage) =>
+            new Date(firstImage.created_at ?? 0).getTime() -
+            new Date(secondImage.created_at ?? 0).getTime(),
+        )[0];
         const thumbnailUrl =
-          images.find((image) => image.is_cover)?.url ??
-          [...images].sort(
-            (firstImage, secondImage) =>
-              new Date(firstImage.created_at ?? 0).getTime() -
-              new Date(secondImage.created_at ?? 0).getTime(),
-          )[0]?.url ??
+          (cover?.url_thumb || cover?.url) ??
+          (earliest?.url_thumb || earliest?.url) ??
           undefined;
 
         return {

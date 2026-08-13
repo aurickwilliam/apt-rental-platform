@@ -16,7 +16,7 @@ export type FavoriteApartment = Pick<
   | 'no_bathrooms'
   | 'area_sqm'
 > & {
-  apartment_images: Pick<ApartmentImageRow, 'url' | 'is_cover' | 'created_at'>[] | null;
+  apartment_images: Pick<ApartmentImageRow, 'url' | 'url_thumb' | 'is_cover' | 'created_at'>[] | null;
 };
 
 export async function fetchFavoriteApartmentIds(tenantId: string): Promise<string[]> {
@@ -73,6 +73,7 @@ export async function fetchApartmentsByIds(apartmentIds: string[]): Promise<Favo
       area_sqm,
       apartment_images (
         url,
+        url_thumb,
         is_cover,
         created_at
       )

@@ -4,6 +4,12 @@ import { File } from "expo-file-system";
 import { supabase } from "@repo/supabase";
 
 import { invalidateCurrentUser } from "@/utils/queryClient";
+import {
+  compressImageTo,
+  PROFILE_AVATAR_MAX_LONG_EDGE,
+  PROFILE_BACKGROUND_MAX_LONG_EDGE,
+  PROFILE_QUALITY,
+} from "@/utils/compressImage";
 
 type UploadTarget = "avatar" | "background";
 
@@ -55,20 +61,31 @@ export function useImageUpload(
     const asset = result.assets[0];
     if (!asset) return;
 
-    const ext = asset.uri.split(".").pop() ?? "jpg";
-    const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
-    const path = `${userId}/${userId}.${ext}`;
-
     setUploading(target);
     try {
-      // 3. Upload to Supabase Storage (binary — avoids base64's ~33% overhead)
-      const file = new File(asset.uri);
+      // Compress & resize before upload (avatars are small; backgrounds are full-bleed)
+      const maxLongEdge =
+        target === "avatar"
+          ? PROFILE_AVATAR_MAX_LONG_EDGE
+          : PROFILE_BACKGROUND_MAX_LONG_EDGE;
+      const compressed = await compressImageTo(
+        asset.uri,
+        asset.width,
+        asset.height,
+        maxLongEdge,
+        PROFILE_QUALITY,
+      );
+
+      const path = `${userId}/${userId}.jpg`;
+
+      // Upload to Supabase Storage (binary — avoids base64's ~33% overhead)
+      const file = new File(compressed.uri);
       const bytes = await file.bytes();
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET_MAP[target])
         .upload(path, bytes, {
-          contentType,
+          contentType: "image/jpeg",
           upsert: true, // overwrite existing file
         });
 

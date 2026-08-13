@@ -251,8 +251,9 @@ export default function RateApartment() {
   }
 
   const coverImage =
-    apartment.apartment_images.find((img) => img.is_cover)?.url ??
-    apartment.apartment_images[0]?.url ??
+    (apartment.apartment_images.find((img) => img.is_cover)?.url_thumb ||
+      apartment.apartment_images.find((img) => img.is_cover)?.url) ??
+    (apartment.apartment_images[0]?.url_thumb || apartment.apartment_images[0]?.url) ??
     null;
 
   const landlordName = apartment.landlord

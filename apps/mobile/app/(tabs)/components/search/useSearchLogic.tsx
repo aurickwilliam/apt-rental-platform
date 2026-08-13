@@ -70,6 +70,7 @@ export default function useSearchLogic() {
         is_verified,
         apartment_images (
           url,
+          url_thumb,
           is_cover,
           created_at
         )
@@ -189,13 +190,17 @@ export default function useSearchLogic() {
   const transformData = (data: any[]): ApartmentCardProps[] =>
     data.map((apt) => {
       const images = apt.apartment_images ?? [];
-      const thumbnailUrl =
-        images.find((img: any) => img.is_cover)?.url ??
-        images.sort(
+      const cover = images.find((img: any) => img.is_cover);
+      const earliest = images
+        .slice()
+        .sort(
           (a: any, b: any) =>
             new Date(a.created_at ?? 0).getTime() -
             new Date(b.created_at ?? 0).getTime(),
-        )[0]?.url ??
+        )[0];
+      const thumbnailUrl =
+        (cover?.url_thumb || cover?.url) ??
+        (earliest?.url_thumb || earliest?.url) ??
         undefined;
 
       return {

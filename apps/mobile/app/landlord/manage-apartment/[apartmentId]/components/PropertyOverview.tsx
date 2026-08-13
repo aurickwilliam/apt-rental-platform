@@ -22,6 +22,7 @@ import { formatAddress, formatPesoDisplay } from '@repo/utils'
 type ApartmentImage = {
   id: string
   url: string
+  url_thumb: string | null
   is_cover: boolean
 }
 
@@ -96,7 +97,7 @@ export default function PropertyOverview({
                 onPress={() => handleImagePress(index)}
               >
                 <Image
-                  source={{ uri: item.url }}
+                  source={{ uri: item.url_thumb || item.url }}
                   style={{ width: '100%', height: '100%' }}
                   contentFit="cover"
                   cachePolicy="disk"

@@ -4,23 +4,35 @@ import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { File } from 'expo-file-system'
 import { useProfile } from 'hooks/auth'
+import { buildImageTiers } from '@/utils/compressImage'
 
-async function uploadImage(asset: ImagePickerAsset, folder: string): Promise<string> {
-  const ext = asset.uri.split('.').pop() ?? 'jpg'
-  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const contentType = asset.mimeType ?? 'image/jpeg'
-
-  const file = new File(asset.uri)
+async function uploadBytes(uri: string, fileName: string): Promise<string> {
+  const file = new File(uri)
   const bytes = await file.bytes()
 
   const { error } = await supabase.storage
     .from('apartment-images')
-    .upload(fileName, bytes, { contentType })
+    .upload(fileName, bytes, { contentType: 'image/jpeg' })
 
   if (error) throw error
 
   const { data } = supabase.storage.from('apartment-images').getPublicUrl(fileName)
   return data.publicUrl
+}
+
+async function uploadImage(
+  asset: ImagePickerAsset,
+  folder: string,
+): Promise<{ url: string; urlThumb: string }> {
+  const { fullUri, thumbUri } = await buildImageTiers(asset.uri, asset.width, asset.height)
+  const base = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+  const [url, urlThumb] = await Promise.all([
+    uploadBytes(fullUri, `${base}.jpg`),
+    uploadBytes(thumbUri, `${base}_thumb.jpg`),
+  ])
+
+  return { url, urlThumb }
 }
 
 function getMimeType(uri: string): string {
@@ -51,10 +63,10 @@ export function usePublishApartment() {
       if (!store.thumbnail) throw new Error('Thumbnail is required.')
 
       // 1. Upload thumbnail
-      const thumbnailUrl = await uploadImage(store.thumbnail, 'thumbnails')
+      const thumbnail = await uploadImage(store.thumbnail, 'thumbnails')
 
       // 2. Upload additional photos
-      const additionalUrls: string[] = await Promise.all(
+      const additional = await Promise.all(
         store.additionalPhotos.map((photo) => uploadImage(photo, 'additional'))
       )
 
@@ -126,10 +138,11 @@ export function usePublishApartment() {
 
       // 6. Insert image records
       const imageRows = [
-        { apartment_id: apartment.id, url: thumbnailUrl, is_cover: true },
-        ...additionalUrls.map((url) => ({
+        { apartment_id: apartment.id, url: thumbnail.url, url_thumb: thumbnail.urlThumb, is_cover: true },
+        ...additional.map((img) => ({
           apartment_id: apartment.id,
-          url,
+          url: img.url,
+          url_thumb: img.urlThumb,
           is_cover: false,
         })),
       ]

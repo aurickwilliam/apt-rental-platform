@@ -64,7 +64,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
   const [apartmentsResult, monthlyProfit] = await Promise.all([
     supabase
       .from("apartments")
-      .select("id, name, barangay, city, status, is_verified, apartment_images (url, is_cover), monthly_rent")
+      .select("id, name, barangay, city, status, is_verified, apartment_images (url, url_thumb, is_cover), monthly_rent")
       .eq("landlord_id", landlordId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
@@ -87,7 +87,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
         ? (rawStatus as ApartmentStatus)
         : "available",
       isVerified: apt.is_verified ?? false,
-      coverUrl: cover?.url ?? null,
+      coverUrl: (cover?.url_thumb || cover?.url) ?? null,
       monthlyRent: apt.monthly_rent ?? undefined,
     };
   });
