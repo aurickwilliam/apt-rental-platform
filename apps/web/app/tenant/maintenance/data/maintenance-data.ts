@@ -2,6 +2,13 @@
  
 export type Category = { id: string; label: string };
  
+export const FORM_LIMITS = {
+  titleMinLength: 5,
+  descriptionMinLength: 10,
+  maxFiles: 5,
+  maxFileSizeMB: 10,
+} as const;
+
 export const CATEGORIES: Category[] = [
   { id: "plumbing", label: "Plumbing & Water Fixtures" },
   { id: "appliances", label: "Appliances" },
