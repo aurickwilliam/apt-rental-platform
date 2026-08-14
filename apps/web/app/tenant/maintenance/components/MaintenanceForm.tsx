@@ -396,8 +396,7 @@ export default function MaintenanceForm() {
         </dl>
 
         <p className="mt-4 text-xs text-default-500">
-          Stored locally in <code className="text-foreground">apt.maintenance_requests</code>{" "}
-          (frontend-only). Request ID:{" "}
+          Stored in an in-memory cache — data resets when the page reloads. Request ID:{" "}
           <code className="text-foreground">{lastStored.id}</code>
         </p>
       </Card>
