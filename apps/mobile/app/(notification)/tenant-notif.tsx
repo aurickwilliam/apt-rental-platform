@@ -1,15 +1,22 @@
-import { View } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import NotificationCard from '@/app/(notification)/components/NotificationCard';
 import DropdownButton from 'components/buttons/DropdownButton';
+import NotificationList from '@/app/(notification)/components/NotificationList';
+import { useNotifications, useNotificationActions } from '@/hooks/notifications';
+import { useCurrentUser } from '@/hooks/auth';
+
+import type { NotificationFilter } from '@/app/(notification)/components/NotificationList';
 
 export default function TenantNotification() {
+  const [filterType, setFilterType] = useState<NotificationFilter>('All');
+  const currentUserQuery = useCurrentUser();
+  const currentUserId = currentUserQuery.data?.id ?? null;
 
-  type FilterType = 'All' | 'Payment' | 'Message' | 'Maintenance' | 'Apartment' | 'System';
-  const [filterType, setFilterType] = useState<FilterType>('All');
+  const { unreadCount, refetch } = useNotifications();
+  const { markAllAsRead } = useNotificationActions(currentUserId);
 
   return (
     <ScreenWrapper
@@ -18,57 +25,36 @@ export default function TenantNotification() {
       header={
         <StandardHeader title='Notification'/>
       }
+      refreshing={false}
+      onRefresh={refetch}
     >
-      {/* Filter Type Button */}
-      <DropdownButton 
-        value={filterType}
-        bottomSheetLabel={'Filter Notifications'} 
-        options={[
-          'All',
-          'Payment',
-          'Message',
-          'Maintenance',
-          'Apartment',
-          'System'
-        ]} 
-        onSelect={(value) => setFilterType(value as FilterType)}   
-      />
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-1">
+          <DropdownButton
+            value={filterType}
+            bottomSheetLabel={'Filter Notifications'}
+            options={[
+              'All',
+              'Payment',
+              'Message',
+              'Maintenance',
+              'Apartment',
+              'System'
+            ]}
+            onSelect={(value) => setFilterType(value as NotificationFilter)}
+          />
+        </View>
 
-      {/* // TODO: Change to Mapping when DB is implemented */}
-      <View className='flex gap-3 mt-4'>
-        <NotificationCard 
-          title={'Payment Received'} 
-          type={'payment'} 
-          message='Your rent for October was successfully processed.'
-          date='1/1/2026'
-        />
-
-        <NotificationCard 
-          title={'Message from Rental Owner'} 
-          type={'message'} 
-          message='“Hi, just confirming your maintenance schedule.”'
-          date='1/1/2026'
-        />
-
-        <NotificationCard 
-          title={'Maintenance Update'} 
-          type={'maintenance'} 
-          message='Your rent for October was successfully processed.'
-          date='1/1/2026'
-        />
-
-        <NotificationCard 
-          title={'Apartment Process'} 
-          type={'apartment'} 
-          date='1/1/2026'
-        />
-
-        <NotificationCard 
-          title={'System Update'} 
-          type={'system'} 
-          date='1/1/2026'
-        />
+        {unreadCount > 0 && (
+          <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
+            <Text className="text-primary font-interMedium text-sm">
+              Mark all read
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      <NotificationList filter={filterType} />
     </ScreenWrapper>
   )
 }

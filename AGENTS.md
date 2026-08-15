@@ -90,6 +90,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - When a table has multiple FKs to `public.users` (e.g. `reviews`, `chat`), disambiguate joins explicitly: `users!reviews_tenant_id_fkey`.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
 - Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read.
+- Notifications are generated **server-side only**: DB triggers insert into `notifications` via `create_notification()` (which also fires the `push-notify` edge function through pg_net). Clients only SELECT their own rows and UPDATE `is_read` — never INSERT. Expo push tokens live in `push_tokens` (upsert on sign-in, delete on sign-out).
 
 ## Engineering Philosophy
 

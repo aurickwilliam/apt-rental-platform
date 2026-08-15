@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -20,15 +20,19 @@ import {
   ShieldCheck,
   UsersRound,
 } from 'lucide-react-native';
+import type { Icon } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
+import { useNotificationPreferences, useNotificationTypeColor, getNotificationTypeIcon } from '@/hooks/notifications'
+import type { NotificationPreferenceType } from '@/service/notificationService'
 
 type SettingItem = {
-  icon: LucideIcon
+  icon: LucideIcon | Icon
   title: string
   onPress?: () => void
   disabled?: boolean
   suffix?: React.ReactNode
+  iconColor?: string
 }
 
 type SettingSection = {
@@ -36,11 +40,34 @@ type SettingSection = {
   items: SettingItem[]
 }
 
+const NOTIFICATION_TYPE_LABELS: { type: NotificationPreferenceType; label: string }[] = [
+  { type: 'payment', label: 'Payments' },
+  { type: 'message', label: 'Messages' },
+  { type: 'maintenance', label: 'Maintenance' },
+  { type: 'apartment', label: 'Apartments' },
+  { type: 'system', label: 'System' },
+]
+
 export default function Index() {
   const router = useRouter()
   const { colors, isDark, toggleTheme } = useTheme();
 
-  const [hasNotification, setHasNotification] = useState(false)
+  const { preferences, setPreferences } = useNotificationPreferences();
+  const { getColor } = useNotificationTypeColor();
+
+  const toggleMaster = () => {
+    setPreferences((prev) => ({
+      ...prev,
+      notifications_enabled: !prev.notifications_enabled,
+    }));
+  };
+
+  const toggleType = (type: NotificationPreferenceType) => {
+    setPreferences((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+    }));
+  };
 
   const sections: SettingSection[] = [
     {
@@ -72,8 +99,8 @@ export default function Index() {
           disabled: true,
           suffix: (
             <Switch
-              isSelected={hasNotification}
-              onSelectedChange={setHasNotification}
+              isSelected={preferences.notifications_enabled}
+              onSelectedChange={toggleMaster}
             />
           ),
         },
@@ -89,6 +116,22 @@ export default function Index() {
           ),
         },
       ],
+    },
+    {
+      title: 'Notification Types',
+      items: NOTIFICATION_TYPE_LABELS.map(({ type, label }) => ({
+        icon: getNotificationTypeIcon(type),
+        title: label,
+        disabled: true,
+        iconColor: getColor(type),
+        suffix: (
+          <Switch
+            isSelected={preferences[type]}
+            onSelectedChange={() => toggleType(type)}
+            isDisabled={!preferences.notifications_enabled}
+          />
+        ),
+      })),
     },
     {
       title: 'Help & Support',
@@ -142,7 +185,7 @@ export default function Index() {
 
                 <ListGroup.Item onPress={item.onPress} disabled={item.disabled}>
                   <ListGroup.ItemPrefix>
-                    <item.icon size={20} color={colors.textPrimary} />
+                    <item.icon size={20} color={item.iconColor ?? colors.textPrimary} />
                   </ListGroup.ItemPrefix>
 
                   <ListGroup.ItemContent>

@@ -551,7 +551,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Favorites** | `useFavorites` (set state + DB writes) | `useFavorites` + `favoritesService` | `favorites` |
 | **Landlord units** | `(tabs)/(landlord)/units.tsx`, `manage-apartment/` (edit wizard, reviews, tenant profiles), `add-apartment/` (publish wizard with `useApartmentFormStore`) | `landlord/properties/` (list, create wizard with Leaflet map, edit modals) | `apartments`, `apartment_images`, `lease-agreements` |
 | **Landlord analytics** | `landlord/analytics.tsx` | `landlord/dashboard/` — **dummy data** (debt D11) | (none) |
-| **Notifications** | `(notification)/` screens with **static mock data** (debt D13) | Not implemented | none |
+| **Notifications** | `(notification)/` screens backed by `useNotifications` (React Query + realtime), DB-trigger-generated rows (`create_notification`), Expo push via `push-notify` edge function, in-app HeroUI toast banner (`useInAppNotificationBanner`, realtime-driven, works without push creds), delivery gated by per-user `notification_preferences` (master + per-type, enforced in `push-notify` and the client) | Not implemented | `notifications`, `push_tokens`, `notification_preferences` |
 | **Account verification** | `verify-account/`, `document-id/` (upload screen is a stub — nothing uploads) | Not implemented | — |
 | **Admin** | Not implemented | Not implemented (middleware role stub only) | `users.role = 'admin'` |
 | **Profile / settings** | `profile/tenant|landlord/[id]`, `edit-profile` (avatar/background upload), `settings/*` | Not implemented (navbar links are dead — debt D12) | `users`, `avatars`, `background_photos` |
@@ -742,7 +742,7 @@ All items below are verified against the repository. The authoritative, itemized
 | D10 | **GIFs re-uploaded** | Giphy URL downloaded → uploaded to `chat-images` → downloaded again by recipients | AUDIT M8 |
 | D11 | **Web dashboard is dummy data** | `landlord/dashboard` hardcoded; `landlord/payments` and `applications` placeholders; `tenant/maintenance` stub | *(this doc)* |
 | D12 | **Dead routes & links** | Web navbar links to `/profile`, `/settings`, `/my-rental`; forgot-password link; middleware allows `/help`, `/contact`, `/safety`, `/faq` (no routes); mobile `tenant/_layout` registers missing `current-lease`; playground links broken payment path | *(this doc)* |
-| D13 | **Notifications are static mock** | `(notification)/*` hardcoded, `// TODO: Change to Mapping when DB is implemented` | *(this doc)* |
+| D13 | **Push requires EAS credentials** | `push-notify` edge function + `expo-notifications` are wired, but APNs/FCM credentials are not uploaded to EAS, so push delivery is unverified on devices | `eas credentials` |
 | D14 | **Mixed icon/UI ecosystems** | Web: `@tabler/icons-react` + `lucide-react` + `react-icons`; mobile: legacy `lucide-react-native` alongside `@tabler/icons-react-native`; HeroUI + shadcn coexisting on web | AGENTS.md + *(this doc)* |
 | D15 | **`public.users` role queries in middleware** | Middleware hits `users` per protected request (needs index; RLS applies) | `packages/supabase/src/middleware.ts:117` |
 | D16 | **Duplicate profile resolution** | "get auth user → resolve users.id" independently implemented in 18+ locations (mobile) | AUDIT C4 |

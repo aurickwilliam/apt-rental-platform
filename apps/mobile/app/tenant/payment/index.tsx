@@ -127,7 +127,6 @@ export default function PaymentCheckout() {
           // TODO: Record payment in payment_history
           // TODO: Update tenant rent status
           // TODO: Generate receipt
-          // TODO: Send landlord and tenant notifications
           // TODO: Store PayMongo payment reference
           router.push('/tenant/payment/success')
         } else {
