@@ -240,7 +240,8 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 - **Mobile:** `FlatList` `gap-3`–`gap-16`, `contentContainerStyle paddingBottom: 84` when a floating bar exists; `ListGroup` for settings/profile (icon 22 + `font-interMedium` title + `Separator mx-4`); `Separator` between items; `RefreshControl` tinted `colors.primary`
 - **Web:** shadcn `Table` on `bg-darker-white`, header `text-[11px] tracking-wider`, rows `hover:bg-default-50` cursor-pointer, thumbs `w-12 h-12 rounded-lg`; search grids `grid-cols-1 sm:2 lg:4 gap-3`
-- **Chat:** `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`
+- **Chat:** `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`; inverted list (newest at bottom) with history paged in 30-message keyset loads at the top edge — loading indicator at the history edge, never a full-screen spinner
+- **Notifications:** `NotificationCard` (mobile) — `Card bg-surface rounded-3xl border p-4 shadow-none`; type icon 20 tinted by type + title `text-base` (`font-interSemiBold` unread / `font-interMedium` read) + message + footer time `text-sm text-muted`; unread adds `border-primary/30` + 10px `bg-primary` dot; tap marks read + deep-links. Screen header: filter `DropdownButton` (All/Payment/Message/Maintenance/Apartment/System) + "Mark all read" text button (shown while unread > 0)
 - Empty lists use the Empty State pattern (§15), never blank space
 
 ---
@@ -260,7 +261,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Stack:** `headerShown: false` globally; screens render their own:
   - `StandardHeader` ✅: `bg-accent`, `paddingTop: insets.top + 20`, `pb-5 px-4`, centered `font-interSemiBold text-lg` white, back chevron 24
   - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-interMedium`, sub `text-xs /70`
-  - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`)
+  - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
 - Tabs — tenant: Rentals / Search / Chat / Profile; landlord: Dashboard / Units / Chat / Profile
 
 ---
@@ -286,6 +287,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 ## 15. Feedback
 
 - **Toasts** ✅ (web): `Toast.Provider placement="top end" maxVisibleToasts={3} className="top-4 right-4"`; `toast.success / warning / danger / toast(msg)`
+- **Notification banner** ✅ (mobile in-app): realtime-driven HeroUI toast from `useInAppNotificationBanner` — foreground push substitute that works without push credentials; auto-dismiss; action press marks the row read and deep-links (role-aware); message-type toasts are suppressed while the matching chat is open (`shouldSuppressChatToast`)
 - **Loading:** web `Spinner color="accent"` centered (`py-16/20`); `Button isPending`; mobile `ActivityIndicator size="large" color={colors.primary}`; `RefreshControl colors=[primary]`
 - **Empty states** ✅: mobile — centered `gap-4 py-16/20`; tenant: bare icon 64px `primary` + `text-xl font-interSemiBold` title + `text-gray-400 text-base px-8` desc; landlord: icon 32–48px `gray500` in `bg-gray-100 rounded-full p-5/6` + `text-lg` title + `text-gray-500 text-sm` desc; optional CTA. Web — centered `text-default-400` ("No apartments found", `h-64`) or card-wrapped `text-sm text-default-500`
 - **Skeletons** ✅ (mobile): HeroUI `Skeleton`/`SkeletonGroup` blocks `rounded-lg`/`rounded-full` sized to content; custom `ApartmentSkeleton` pulses opacity 0.45↔0.85 @ 700ms (Reanimated). Web: `animate-pulse` divs (`w-8 h-8 rounded-full bg-default-200`); shadcn `Skeleton` internal only
@@ -404,7 +406,7 @@ Never copy technical debt. Reference only, with migration direction.
 
 | # | Item | Current state | Use? | Migration |
 |---|---|---|---|---|
-| 1 | Mobile legacy components: `PillButton`, `TextField`, `TextBox`, `RadioButton`, `CheckBox`, `SearchField`, `RangeSlider`, `MultiChipGroup`, `SingleChipGroup`, `AccordionItem`, `StatusPill` | Pre-HeroUI custom; several reference undefined JS constants; still used in auth + document-id + payment flows | ⚠ No | HeroUI equivalents; migrate call sites |
+| 1 | Mobile legacy components: `PillButton`, `CheckBox`, `MultiChipGroup`, `SingleChipGroup`, `AccordionItem`, `StatusPill` | Pre-HeroUI custom; several reference undefined JS constants; still used in document-id + payment flows. (`TextField`, `TextBox`, `RadioButton`, `SearchField`, `RangeSlider`, `NumberField` were deleted 2026-08-13; onboarding migrated to HeroUI `TextField`) | ⚠ No | HeroUI equivalents; migrate call sites |
 | 2 | Undefined JS constants in legacy inputs: `COLORS.text`, `COLORS.mediumGrey`, `COLORS.lightGrey` | Referenced removed constants; tsc errors | ⚠ No | Use `useColors()` theme hook. (Tailwind classes `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `COLORS.redHead` swapped to canonical tokens and cleaned) |
 | 3 | Web dead CSS (`@layer components` `.button--*`, `.input`, `.select__trigger`, `.toggle-button`) | Unreferenced by any TSX | ⚠ No | Delete; use HeroUI + Tailwind |
 | 4 | Web undefined fonts (`font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold`) | Fallback font renders | ⚠ No | Use `font-nunito`/`font-inter` |

@@ -116,7 +116,9 @@ Deno.serve(async (req: Request) => {
     to: t.token,
     title: String(body.title),
     body: body.message ? String(body.message) : undefined,
-    data: body.data ?? {},
+    // notificationId lets the client mark the feed row read when the push is
+    // tapped, keeping the in-app unread badge accurate.
+    data: { ...(body.data ?? {}), notificationId: body.notification_id ?? null },
     channelId: 'default',
     sound: 'default',
   }))

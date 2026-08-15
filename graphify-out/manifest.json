@@ -185,13 +185,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(notification)/landlord-notif.tsx": {
-    "mtime": 1786771547.7697618,
-    "ast_hash": "ced89f65ef3c8a9a6b8c38f0902c9971",
+    "mtime": 1786777989.6099424,
+    "ast_hash": "6ec25efc395f9c0a917b4366d26038cc",
     "semantic_hash": ""
   },
   "apps/mobile/app/(notification)/tenant-notif.tsx": {
-    "mtime": 1786771547.7698681,
-    "ast_hash": "c00e027f36bdf333a83ffad6d56ba507",
+    "mtime": 1786777987.637282,
+    "ast_hash": "37ffd93f14152a652184e51ed6e49b36",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/_layout.tsx": {
@@ -2800,8 +2800,8 @@
     "semantic_hash": "f3da27a4f388d0b2d900bed9035bf587"
   },
   "AGENTS.md": {
-    "mtime": 1786771547.7690787,
-    "ast_hash": "ecfda951bfa274fdaded7a5960ca5fcd",
+    "mtime": 1786779930.0481858,
+    "ast_hash": "fd7606f416f4e5d27f395199bb713bbf",
     "semantic_hash": ""
   },
   "README.md": {
@@ -3130,13 +3130,13 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1786771655.3068202,
-    "ast_hash": "fc79b5af63e73742cb1d283ddd014f94",
+    "mtime": 1786780137.815009,
+    "ast_hash": "ecae3053aa8924f2037a744edba324af",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1785939424.3464994,
-    "ast_hash": "8ae3ff80d5860f9d939a5c8a8a1068cd",
+    "mtime": 1786780089.4127748,
+    "ast_hash": "3d00a185cc90f9f4890ef3dedb1c2f01",
     "semantic_hash": ""
   },
   "apps/mobile/service/paymongoService.ts": {
@@ -3740,28 +3740,28 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(notification)/components/NotificationList.tsx": {
-    "mtime": 1786770440.3195186,
-    "ast_hash": "f322298f533cef780c0ab1ad48fedcbe",
+    "mtime": 1786777954.7372766,
+    "ast_hash": "d4392cf65d9cbaf266b4bc6b8e995b55",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/index.ts": {
-    "mtime": 1786771466.8045394,
-    "ast_hash": "518603202183b14a14d942d6005962a5",
+    "mtime": 1786779148.7110085,
+    "ast_hash": "e83677f5af3d351f6a15e034c513785d",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useNotificationActions.ts": {
-    "mtime": 1786714789.5791621,
-    "ast_hash": "1d852078ba0170ad205354e9225644b4",
+    "mtime": 1786779124.0259683,
+    "ast_hash": "d32f23f15d99f9d67a08f0019224b378",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useNotificationTapHandler.ts": {
-    "mtime": 1786714977.0806458,
-    "ast_hash": "da7a309ff44065ec360d954bade59e2a",
+    "mtime": 1786779110.4635892,
+    "ast_hash": "4a656a385b0f88a5e1a288878bddbc5e",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useNotifications.ts": {
-    "mtime": 1786714781.8181646,
-    "ast_hash": "1716a19ce778d663e6cb81d0c071df19",
+    "mtime": 1786779000.0208006,
+    "ast_hash": "93c45b8f06ab04daf6350991dede0fd3",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/usePushRegistration.ts": {
@@ -3770,13 +3770,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/notificationService.ts": {
-    "mtime": 1786771406.0480905,
-    "ast_hash": "4487fc5bf4fba01051eb0858658685c7",
+    "mtime": 1786777962.092681,
+    "ast_hash": "167ab4aa5606d7007455c34b6ac12321",
     "semantic_hash": ""
   },
   "apps/mobile/utils/notificationDeepLink.ts": {
-    "mtime": 1786715078.9580865,
-    "ast_hash": "9112ffcb64c1533190b39f36ad7362f9",
+    "mtime": 1786779084.0393124,
+    "ast_hash": "4483990b41ca7037efe514d4809b09aa",
     "semantic_hash": ""
   },
   "supabase/functions/push-notify/deno.json": {
@@ -3785,8 +3785,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/push-notify/index.ts": {
-    "mtime": 1786771286.0010884,
-    "ast_hash": "929be11fc7490bcf37f6eb41c71deff1",
+    "mtime": 1786779099.596111,
+    "ast_hash": "cf1317ce0584579015083479ac6a0c59",
     "semantic_hash": ""
   },
   "supabase/migrations/20260814000000_create_notifications.sql": {
@@ -3810,8 +3810,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useInAppNotificationBanner.tsx": {
-    "mtime": 1786772707.5959048,
-    "ast_hash": "03f30e08ee11e88eeb60f29ef491724f",
+    "mtime": 1786779146.1380222,
+    "ast_hash": "3c1875b1d5d94e2501bf1e0341778bb3",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useNotificationPreferences.ts": {
@@ -3827,6 +3827,51 @@
   "apps/mobile/hooks/notifications/useNotificationPreferences.test.tsx": {
     "mtime": 1786776174.0597699,
     "ast_hash": "f4850058809e6261186ca693c3529b69",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(notification)/components/NotificationScreen.tsx": {
+    "mtime": 1786777985.562455,
+    "ast_hash": "6d3e0f995a8281946a829c68d71558ae",
+    "semantic_hash": ""
+  },
+  "apps/mobile/utils/notificationDeepLink.test.ts": {
+    "mtime": 1786779154.6697075,
+    "ast_hash": "6622aa3b5a6d5308ebde6983b424c387",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260816000000_restrict_create_notification.sql": {
+    "mtime": 1786777911.316702,
+    "ast_hash": "3733e589d3cb4a6a74d03d48d36a53ff",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260816010000_payment_notification_apartment_id.sql": {
+    "mtime": 1786777915.7629306,
+    "ast_hash": "cbe5c6d3b2ff6cd0506754616d403f76",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/notifications/notificationSuppression.test.ts": {
+    "mtime": 1786779160.7764995,
+    "ast_hash": "1ba75f66274817a88a037ee973492ce6",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/notifications/notificationSuppression.ts": {
+    "mtime": 1786779135.4679992,
+    "ast_hash": "0f31f4d512bb1f593f19334c8b3aa123",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/notifications/useNotificationRealtime.ts": {
+    "mtime": 1786779262.6531193,
+    "ast_hash": "67dbb7b5301da1a96dc7f0fef6ddd7f6",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260816020000_maintenance_notification_apartment_id.sql": {
+    "mtime": 1786779088.3527718,
+    "ast_hash": "b1c32dc05bfcb41250b64e72b6ad7015",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260816030000_skip_tenant_self_cancel_visit_notification.sql": {
+    "mtime": 1786779096.274833,
+    "ast_hash": "888f6be6806171c953af79bf7b4cc100",
     "semantic_hash": ""
   }
 }

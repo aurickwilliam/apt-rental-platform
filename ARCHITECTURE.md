@@ -29,7 +29,7 @@ flowchart LR
     Supabase --> Auth[Auth<br/>email/OTP/Google]
 ```
 
-**Architectural style.** Backend-as-a-service. There is **no custom application server**: both clients speak to Supabase directly (PostgREST, Auth, Realtime, Storage). Authorization is enforced database-side via Row Level Security (RLS); the clients use only the public anon key. There are no API routes on web (`apps/web/app/api/` does not exist), no Supabase Edge Functions, and no migrations in the repository (see §5).
+**Architectural style.** Backend-as-a-service. There is **no custom application server**: both clients speak to Supabase directly (PostgREST, Auth, Realtime, Storage). Authorization is enforced database-side via Row Level Security (RLS); the clients use only the public anon key. There are no API routes on web (`apps/web/app/api/` does not exist). The repo does track one Edge Function (`supabase/functions/push-notify`) and a `supabase/migrations/` folder holding the notification schema only — most schema remains cloud-only (see §5 and debt D17).
 
 **Major technologies.**
 
@@ -258,9 +258,9 @@ Key files: `apps/mobile/app/_layout.tsx` (crypto polyfill for PKCE via `expo-cry
 
 ## 5. Database Architecture
 
-**Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated.
+**Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated. **Exception:** the notification schema (2026-08-14 onward) is tracked in `supabase/migrations/`; the 2026-08-13 chat/image DDL (attachment URL, RPC v2, thumbs) was applied to the live DB and its migration files later removed from the repo — see debt D17.
 
-**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus one RPC, `get_conversations`.
+**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_conversations_v2`; v1 superseded and stripped of direct anon grants).
 
 ### 5.1 Patterns
 
@@ -304,9 +304,10 @@ Key files: `apps/mobile/app/_layout.tsx` (crypto polyfill for PKCE via `expo-cry
 ### 6.2 Upload flow
 
 1. Client picks/validates the asset (per-file size caps: 25 MB chat; quality/compression on pick).
-2. Client uploads directly to the bucket with the anon key (storage is RLS-protected; uploads are scoped by bucket policies).
-3. Client stores **either** the storage path (private buckets) **or** a public URL from `getPublicUrl` (public buckets) in the relevant DB column; signed URLs are never persisted.
-4. On failure, some flows roll back (application documents delete all uploaded files; review photos clean up; web property-create deletes the apartment row) — others do not (chat attachments, apartment publish, maintenance) — see §21 debt D9.
+2. Client **compresses** in-app (`compressImage.ts`) and uploads **binary** — base64 uploads were removed (2026-08-13, egress fix). Apartment images upload **two-tier**: a compressed `url_thumb` + full-resolution variant.
+3. Client uploads directly to the bucket with the anon key (storage is RLS-protected; uploads are scoped by bucket policies).
+4. Client stores **either** the storage path (private buckets) **or** a public URL from `getPublicUrl` (public buckets) in the relevant DB column; signed URLs are never persisted.
+5. On failure, some flows roll back (application documents delete all uploaded files; review photos clean up; web property-create deletes the apartment row) — others do not (chat attachments, apartment publish, maintenance) — see §21 debt D9.
 
 ### 6.3 Download flow (private buckets)
 
@@ -321,7 +322,7 @@ flowchart LR
 ```
 
 - **Expiration**: signed URLs are created with 55–60 minute TTLs.
-- **Caching**: module-level `Map` caches exist in `useDocumentUrls`, `useLandlordMaintenanceRequests`, `useLandlordVisitRequests`, and lease-agreement reads (`useApartmentDetails`, `current-apartment.tsx` — cache refreshed 5 min before expiry); others regenerate on every fetch (debt D4). `expo-image` uses `cachePolicy="disk"` and, in chat, a `cacheKey` derived from the storage path so re-signed URLs don't re-download (ChatBubble).
+- **Caching (2026-08-13)**: private media goes through the identity-bound resolver + module cache (`privateMediaCache` / `privateMediaResolver`) — results are keyed to the current auth identity and cleared on account transition; application documents share one resolver. React Query serves as the read cache for the rest. Remaining gap: chat attachments still regenerate signed URLs on every open (debt D4). `expo-image` uses `cachePolicy="disk"` and, in chat, a `cacheKey` derived from the storage path so re-signed URLs don't re-download (ChatBubble).
 - **Public buckets** are read straight from stored URLs.
 
 ### 6.4 Deletion
@@ -441,12 +442,13 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 
 ### 8.2 Mobile conversation screen
 
-- **Fetch**: full message history for the pair (both directions via `.or()`), ascending; **no pagination** (debt D2).
+- **Fetch (2026-08-13)**: **bounded keyset pagination** — 30-message pages, descending `created_at, id` with a strictly-older compound cursor (`chatService.fetchMessagePage`); pages merge via an ID-deduplicating helper (`chatPagination.ts`); **no unbounded selects** (debt D2 resolved).
 - **Delivery**: broadcast channel `chat:msg:{key}` with event `new_message`; the sender pushes after a successful insert; receiver filters own echoes and apartment matches, and dedupes by message id. (Mobile does **not** use `postgres_changes` in the conversation screen.)
+- **Channel stability (2026-08-13)**: message + presence channels are created in one effect keyed by identity `(currentUserId, otherUserId, apartmentId)`; event callbacks flow through refs so renders never churn websocket/presence channels; cleanup removes only the effect's own channel instances (`useChatChannel`).
 - **Typing**: presence channel `chat:presence:{key}` keyed by user id; 2 s idle timer + 4 s heartbeat (`useChatTyping`); typing state considered fresh for 5 s.
 - **Optimistic sends**: text messages get a `temp-{ts}` id and a "Sending…" bubble; replaced in place by the server row, rolled back (text restored to input) on error.
-- **Attachments**: `expo-image-picker` (images/videos, 10 max, 60 s video cap); staged previews; **3-concurrent worker-pool uploads** to `chat-images` (25 MB cap); video thumbnails via `expo-video-thumbnails`; batch insert with a shared `group_id`; per-file failures filtered out; GIFs (Giphy SDK) downloaded to cache then uploaded as regular `image/gif` attachments (debt D10).
-- **List**: inverted `FlatList` (newest first) with `maintainVisibleContentPosition`, auto-scroll-to-bottom within 150 px threshold, scroll-to-bottom button; no virtualization beyond FlatList defaults.
+- **Attachments**: `expo-image-picker` (images/videos, 10 max, 60 s video cap); staged previews; **3-concurrent worker-pool uploads** to `chat-images` (25 MB cap); video thumbnails via `expo-video-thumbnails`; batch insert with a shared `group_id`; per-file failures filtered out; **GIFs reference the Giphy URL directly via the `url` column (`externalUrl`) — no download-then-re-upload** (debt D10 resolved); video playback failures hand off into the shared attachment retry path.
+- **List**: inverted `FlatList` (newest first) with `maintainVisibleContentPosition`, auto-scroll-to-bottom within 150 px threshold, scroll-to-bottom button; history loads at the visual top edge with a loading indicator; no virtualization beyond FlatList defaults.
 - **Statuses**: `is_read` boolean set on open/read; **no delivered/read receipts**; `read_at` is written on web but never on mobile.
 - **Teardown**: channels removed on unmount.
 
@@ -460,29 +462,31 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 
 ### 8.4 Attachments lifecycle (mobile only)
 
-Pick → stage (local URI preview) → upload (worker pool, `chat-images/{senderId}/{id}.{ext}` + `thumb-{id}.jpg`) → batch DB insert → batch signed URLs (60 min) → render via `expo-image` (disk cache, `cacheKey` = storage path) / `expo-video` modal. **Attachments are never deleted**; signed URLs are regenerated on every open (debt D4); no refresh-on-expiry while the screen stays open (debt D4).
+Pick → stage (local URI preview) → upload (worker pool, `chat-images/{senderId}/{id}.{ext}` + `thumb-{id}.jpg`) → batch DB insert → batch signed URLs (60 min) → render via `expo-image` (disk cache, `cacheKey` = storage path) / `expo-video` modal. GIFs skip the pipeline entirely (external URL on the row). **Attachments are never deleted**; signed URLs are regenerated on every open (debt D4); no refresh-on-expiry while the screen stays open (debt D4).
 
 ---
 
 ## 9. Realtime Architecture
 
-Complete inventory of every Realtime subscription in the codebase (verified — 7 unique channels, 13 event bindings):
+Complete inventory of every Realtime subscription in the codebase (verified — 8 unique channels, 14 event bindings):
 
 | # | Channel | Type | Table / Event | Filter | Purpose | Where |
 |---|---|---|---|---|---|---|
 | 1 | `chat:msg:{key}` | broadcast | event `new_message` | client-side (own-echo skip, apartment match) | Live message delivery (mobile conversation) | `apps/mobile/hooks/chat/useChatChannel.ts` |
 | 2 | `chat:presence:{key}` | presence | `sync`/`join`/`leave` | keyed by `presence.key = userId` | Typing indicators (mobile) | `apps/mobile/hooks/chat/useChatChannel.ts` |
-| 3 | `chat-list:{myId}` | postgres_changes | `chat` INSERT | none (client checks membership) | Reorder/refresh conversation lists | `apps/mobile/app/(tabs)/(tenant)/chat.tsx`, `(landlord)/chat.tsx` |
+| 3 | `chat-list:{myId}` | postgres_changes | `chat` INSERT | none (client checks membership) | Reorder/refresh conversation lists | `apps/mobile/hooks/chat/useConversations.ts` |
 | 4 | `tenancy-live` | postgres_changes | `payment` INSERT/UPDATE/DELETE + `tenancies` (all events, unfiltered) | payment filtered by `tenancy_id` client-side | Live payment/tenancy updates | `apps/mobile/hooks/tenancy/useTenancy.ts` |
 | 5 | `conversation:{sortedIds}` | postgres_changes + presence | `chat` INSERT (+ presence `sync`) | `sender_id=eq.contact` | Live messages + typing (web) | `apps/web/app/{tenant,landlord}/messages/components/ConversationView.tsx` |
 | 6 | `tenant-unread:{currentUserId}` | postgres_changes | `chat` INSERT | `receiver_id=eq.me` | Unread badges (web) | `apps/web/app/tenant/messages/components/MessageClient.tsx` |
 | 7 | `landlord-unread:{currentUserId}` | postgres_changes | `chat` INSERT | `receiver_id=eq.me` | Unread badges (web) | `apps/web/app/landlord/messages/components/MessageClient.tsx` |
+| 8 | `notifications:{userId}` | postgres_changes | `notifications` `*` (INSERT/UPDATE/DELETE) | `user_id=eq.{userId}` | Feed + unread count refresh and in-app toast (feed and banner share one channel via a refcounted registry) | `apps/mobile/hooks/notifications/useNotificationRealtime.ts` |
 
 Patterns:
 
 - **Delivery model**: mobile chat uses broadcast (push after DB insert); web chat uses `postgres_changes`. Both require Realtime publication config in the live project (not visible in the repo).
-- **Updates**: no `UPDATE`/`DELETE` subscriptions anywhere except the `*` event on `payment`/`tenancies` in `tenancy-live`.
-- **Optimistic behavior**: chat send is optimistic with rollback (§8.2); realtime then reconciles. Payments/tenancy are not optimistic — realtime triggers a full refetch.
+- **Channel stability (2026-08-13)**: mobile channels are keyed by data identity (user/peer/apartment), never by render callbacks; callbacks flow through refs, so renders never churn subscriptions. Consumers share one channel per identity via refcounted registries (`useChatChannel`, `useConversations`, `useNotificationRealtime`).
+- **Updates**: `UPDATE`/`DELETE` subscriptions exist only on `tenancy-live` (`*` on payment/tenancies) and the notifications `*` channel — notifications mark-read/delete events drive the feed + unread count.
+- **Optimistic behavior**: chat send is optimistic with rollback (§8.2); realtime then reconciles. Payments/tenancy are not optimistic — realtime triggers a full refetch. Notifications: read-settling mutations mark-stale (`refetchType: "none"`) — the mutation's own realtime event is the single refetch trigger; the unread count updates optimistically.
 - **Absent**: no storage-bucket realtime, no presence outside chat, nothing in `packages/`.
 
 ---
@@ -528,7 +532,7 @@ Patterns:
 | **URL state (web)** | Browse filters/search/pagination | `searchParams` → server page re-queries (`SearchContainer`, `FilterContainer`, `RenderApartments`) |
 | **Context (web)** | Auth-form state only | `AuthContext` is scoped to `(auth)` pages; **no global session context** (see §4.3) |
 
-Zustand stores follow `create<State & Actions>` with exported `interface`, `initialState`, and `reset()`; `reset()` is called when the flow completes or is cancelled. React Query is not used anywhere (by convention — see §21 debt D1). Favorites state is duplicated per consumer on web (each component runs its own `useFavorites`) and single-source in the mobile hook.
+Zustand stores follow `create<State & Actions>` with exported `interface`, `initialState`, and `reset()`; `reset()` is called when the flow completes or is cancelled. **React Query (mobile) is the server-state layer** (since 2026-08-13): single `QueryProvider` at the root layout, shared client in `utils/queryClient.ts` (process-memory, AppState focus bridge, `clearQueryClient()` on sign-in/out), default `staleTime` 30s, stable identity-keyed query keys (internal `public.users.id`), optimistic mutations with exact-key invalidation. Read-settling mutations mark-stale (`refetchType: "none"`) and let their own realtime event trigger the refetch. Favorites state is duplicated per consumer on web (each component runs its own `useFavorites`) and single-source in the mobile hook.
 
 ---
 
@@ -539,19 +543,19 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | Feature | Mobile | Web | Backing tables |
 |---|---|---|---|
 | **Authentication** | §4.4 (PKCE, OTP, Google) | §4.3 (server actions, middleware, OAuth popup) | `users` |
-| **Explore / Search** | `(tabs)/(tenant)/search.tsx` + `useSearchLogic` (debounced search, server pagination 10/page, 4 sort modes, filter sheet) | `browse/` server page: full filter set, `count: exact`, 25/page, Suspense-wrapped client children | `apartments`, `apartment_images` |
-| **Apartment detail** | `apartment/[apartmentId]` — sections + `useApartmentDetails` (apartment + landlord + top-3 reviews) | `browse/[apartmentId]/` server page → 16 client children | `apartments`, `apartment_images`, `reviews`, `users` |
+| **Explore / Search** | `(tabs)/(tenant)/search.tsx` + `useSearchLogic` (debounced search, server pagination 10/page, 4 sort modes, filter sheet; estimated result count) | `browse/` server page: full filter set, `count: exact`, 25/page, Suspense-wrapped client children | `apartments`, `apartment_images` |
+| **Apartment detail** | `apartment/[apartmentId]` — sections + `useApartmentDetails` (apartment + landlord + top-3 reviews); two-tier images (compressed thumb + full) | `browse/[apartmentId]/` server page → 16 client children | `apartments`, `apartment_images`, `reviews`, `users` |
 | **Rental application** | 5-step wizard (`apply/*`) with `useApplicationFormStore`, document uploads with rollback, `useSubmitApplication` | Not implemented (landlord `applications/` is a placeholder) | `rental_application`, `application-documents` |
 | **Visit requests** | Tenant `request-visit` + `useSubmitVisitRequest`; landlord `visit-requests/` list/detail with actions, reschedule sheet | Not implemented | `visit_request` |
-| **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (joined tenancy+apartment+landlord+latest payment, realtime-refreshed) | `tenant/my-rental/` client page + `use-tenancy` | `tenancies`, `payment` |
+| **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (React Query tenancy + payment reads keyed by internal id, filtered realtime scoped to the loaded tenancy, explicit refresh) | `tenant/my-rental/` client page + `use-tenancy` | `tenancies`, `payment` |
 | **Payments** | Mock UI flow (§7.1) | Placeholder + view-only history (§7.1) | `payment` (read-only) |
 | **Maintenance** | Tenant request/history + `useSubmitMaintenanceRequest` (uploads photos); landlord `maintenance-requests/` workflow (pending → resolved) | Stub ("Coming Soon") | `maintenance_request`, `maintenance-images` |
-| **Chat** | §8 (full: attachments, GIFs, typing, presence, optimistic) | §8.3 (text-only) | `chat`, `chat-images`, `get_conversations` RPC |
+| **Chat** | §8 (full: bounded 30-page history, attachments, direct-URL GIFs, typing, presence, optimistic; identity-keyed stable channels; `get_conversations_v2` RPC) | §8.3 (text-only) | `chat`, `chat-images`, `get_conversations_v2` RPC |
 | **Reviews & ratings** | Detail ratings, `rate-apartment`, `useSubmitReview` (photo uploads with rollback) | Read-only display (`RatingsSection`, `RenderReviews`) | `reviews`, `review-images` |
-| **Favorites** | `useFavorites` (set state + DB writes) | `useFavorites` + `favoritesService` | `favorites` |
+| **Favorites** | `useFavorites` (React Query set state + DB writes, virtualized `FlatList`, caller-owned toasts) | `useFavorites` + `favoritesService` | `favorites` |
 | **Landlord units** | `(tabs)/(landlord)/units.tsx`, `manage-apartment/` (edit wizard, reviews, tenant profiles), `add-apartment/` (publish wizard with `useApartmentFormStore`) | `landlord/properties/` (list, create wizard with Leaflet map, edit modals) | `apartments`, `apartment_images`, `lease-agreements` |
-| **Landlord analytics** | `landlord/analytics.tsx` | `landlord/dashboard/` — **dummy data** (debt D11) | (none) |
-| **Notifications** | `(notification)/` screens backed by `useNotifications` (React Query + realtime), DB-trigger-generated rows (`create_notification`), Expo push via `push-notify` edge function, in-app HeroUI toast banner (`useInAppNotificationBanner`, realtime-driven, works without push creds), delivery gated by per-user `notification_preferences` (master + per-type, enforced in `push-notify` and the client) | Not implemented | `notifications`, `push_tokens`, `notification_preferences` |
+| **Landlord analytics** | `landlord/analytics.tsx` — React Query: single apartment-ID lookup then parallel count reads (`useDashboardStats`) | `landlord/dashboard/` — **dummy data** (debt D11) | (none) |
+| **Notifications** | `(notification)/` screens (`tenant-notif` / `landlord-notif` → shared `NotificationScreen`) backed by `useNotifications` (React Query feed + unread count, both on one shared `notifications:{userId}` realtime channel via refcounted registry `useNotificationRealtime`), DB-trigger-generated rows (`create_notification`, service-role-only), Expo push via `push-notify` edge function (payload carries `notificationId`; clients mark the row read on tap/banner action), in-app HeroUI toast banner (`useInAppNotificationBanner`, realtime-driven, chat toasts suppressed while viewing that chat), role-aware deep links (`buildNotificationDeepLink`), delivery gated by per-user `notification_preferences` (master + per-type, enforced in `push-notify` and the client) | Not implemented | `notifications`, `push_tokens`, `notification_preferences` |
 | **Account verification** | `verify-account/`, `document-id/` (upload screen is a stub — nothing uploads) | Not implemented | — |
 | **Admin** | Not implemented | Not implemented (middleware role stub only) | `users.role = 'admin'` |
 | **Profile / settings** | `profile/tenant|landlord/[id]`, `edit-profile` (avatar/background upload), `settings/*` | Not implemented (navbar links are dead — debt D12) | `users`, `avatars`, `background_photos` |
@@ -573,7 +577,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 - Tabs are **platform-split**: iOS uses `NativeTabs` (SF Symbols); Android uses classic `Tabs` with a floating `CustomTabBar` (pill) whose height/bottom-offset constants are consumed by list screens for padding.
 - Role tabs: `(tabs)/(tenant)` (rentals, search, chat, profile) vs `(tabs)/(landlord)` (dashboard, units, chat, profile); the `(tabs)` layout redirects to the correct group by `users.role`.
 - `app.json` experiments: `typedRoutes: true`, `reactCompiler: true`; scheme is `mobile` (no custom deep-link list).
-- **Deep linking**: only for auth — `Linking.createURL("auth/callback")` for the Google PKCE exchange. No payment/screen deep links.
+- **Deep linking**: OS-level links are only for auth — `Linking.createURL("auth/callback")` for the Google PKCE exchange. **In-app** notification taps and banner actions navigate via role-aware hrefs from `buildNotificationDeepLink` (`apps/mobile/utils/notificationDeepLink.ts`) — router pushes, not OS-level links.
 - Known stale registrations: `tenant/_layout.tsx` lists `current-lease` (no file exists) and `edit-profile` (actually at root) — debt D12.
 
 ---
@@ -682,7 +686,7 @@ flowchart LR
 - Business logic lives in hooks/services, **not components**; mobile components never import the Supabase client directly.
 - No shared UI package — platform UI is built on HeroUI (web) / HeroUI Native (mobile) with DESIGN.md as the parity contract.
 - Allowed Supabase usage: mobile → `@repo/supabase` default client; web server → `@repo/supabase/server`; web client → `@repo/supabase/browser`; web middleware → `@repo/supabase/middleware` (root export on web is the known deviation, debt D7).
-- No new state libraries (React Query) without justification; no new icon libraries (three already in use — debt D14).
+- No new state libraries beyond React Query (mobile) and Zustand (client-only state); no new icon libraries (three already in use — debt D14).
 
 ---
 
@@ -730,23 +734,23 @@ All items below are verified against the repository. The authoritative, itemized
 
 | # | Debt | Detail | Evidence |
 |---|---|---|---|
-| D1 | **No data-caching/dedup layer** | Every fetch is `useState`+`useEffect`/`useFocusEffect`; focus refetches fire full queries; React Query deliberately absent | AUDIT C1, C6 |
-| D2 | **Chat has no pagination** | Full history fetched per open; unbounded `chat` selects | AUDIT C3; `chatService.fetchMessages` |
+| D1 | ~~**No data-caching/dedup layer**~~ | **Resolved 2026-08-13** — React Query adopted as the mobile server-state layer (§11); focus refetches replaced by stale-time + realtime-driven invalidation | AUDIT C1, C6 |
+| D2 | ~~**Chat has no pagination**~~ | **Resolved 2026-08-13** — bounded 30-message keyset pages (§8.2) | AUDIT C3; `chatService.fetchMessagePage` |
 | D3 | **Two conversation-key formats** | Mobile realtime `chat:{apt\|none}:{sortedIds}` vs RPC/web `{otherId}:{apt\|none}`; mobile conversation screen ignores the route `conversationId` | `chatService.buildConversationKey` vs web pages |
-| D4 | **Signed-URL caching is inconsistent** | Chat regenerates all URLs per open; no cache in `useMaintenanceRequests`/`useTenantApplications`; no refresh on 1 h expiry | AUDIT C2, M3, M4, M10 |
+| D4 | **Signed-URL caching is inconsistent** | **Partially mitigated 2026-08-13** — private media now flows through the identity-bound `privateMediaCache`/`privateMediaResolver`; chat attachments still regenerate all URLs per open, no refresh on 1 h expiry | AUDIT C2, M3, M4, M10 |
 | D5 | **`apartment-images` public/private inconsistency** | Publish stores public URLs; visit-requests signs them; detail reads raw URLs | AUDIT C5 |
 | D6 | **`@repo/hooks` unused on web** | Declared in web `package.json`, never imported; validation duplicated in `sign-up-form/utils.ts` | *(this doc)* |
 | D7 | **Web uses the mobile-oriented root client** | `use-user.ts`, `use-tenancy.ts` import `@repo/supabase` default (RN-aware) instead of `/browser`; requires `next.config.ts` empty-module aliases for RN deps | *(this doc)* |
 | D8 | **Status values are inconsistent strings** | `'paid'`/`'not paid'`/`'Partial'`/`'Pending'` variants across code; `PAYMENT_STATUS` constants are display-level | *(this doc)* |
 | D9 | **Orphaned storage objects** | Property delete is soft and never cleans storage; chat/maintenance attachments never deleted; some upload failures don't roll back (publish, chat batch) | *(this doc)* |
-| D10 | **GIFs re-uploaded** | Giphy URL downloaded → uploaded to `chat-images` → downloaded again by recipients | AUDIT M8 |
+| D10 | ~~**GIFs re-uploaded**~~ | **Resolved 2026-08-13** — GIFs referenced by `externalUrl` on the row; no download-then-re-upload (§8.2) | AUDIT M8 |
 | D11 | **Web dashboard is dummy data** | `landlord/dashboard` hardcoded; `landlord/payments` and `applications` placeholders; `tenant/maintenance` stub | *(this doc)* |
 | D12 | **Dead routes & links** | Web navbar links to `/profile`, `/settings`, `/my-rental`; forgot-password link; middleware allows `/help`, `/contact`, `/safety`, `/faq` (no routes); mobile `tenant/_layout` registers missing `current-lease`; playground links broken payment path | *(this doc)* |
 | D13 | **Push requires EAS credentials** | `push-notify` edge function + `expo-notifications` are wired, but APNs/FCM credentials are not uploaded to EAS, so push delivery is unverified on devices | `eas credentials` |
 | D14 | **Mixed icon/UI ecosystems** | Web: `@tabler/icons-react` + `lucide-react` + `react-icons`; mobile: legacy `lucide-react-native` alongside `@tabler/icons-react-native`; HeroUI + shadcn coexisting on web | AGENTS.md + *(this doc)* |
 | D15 | **`public.users` role queries in middleware** | Middleware hits `users` per protected request (needs index; RLS applies) | `packages/supabase/src/middleware.ts:117` |
-| D16 | **Duplicate profile resolution** | "get auth user → resolve users.id" independently implemented in 18+ locations (mobile) | AUDIT C4 |
-| D17 | **No migrations in repo** | Schema is cloud-only; generated types are the only repo reference; schema changes are untracked | *(this doc)* |
+| D16 | **Duplicate profile resolution** | **Partially mitigated 2026-08-13** — remaining inline "auth user → users.id" resolution consolidated into shared `useCurrentUser` (React Query); web unaffected | AUDIT C4 |
+| D17 | **No migrations in repo** | **Partially mitigated 2026-08-13** — `supabase/migrations/` tracks the notification schema (2026-08-14 onward, incl. 2026-08-16 policies); the 2026-08-13 chat/image DDL (attachment `url`, RPC v2, `url_thumb`) was applied to the live DB and its files removed from the repo; most schema remains cloud-only | *(this doc)* |
 | D18 | **Payments are mock** | Full §7.1 — no provider integration, no writes, hardcoded data | *(this doc)* |
 
 ---
@@ -757,7 +761,7 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 
 - **Payments (§7.2)**: the `payment` schema, `tenancy-live` realtime wiring, and `// TODO: trigger Supabase payment flow` imply a provider-backed flow (PayMongo mentioned in UI copy) with a server-side writer and webhook — **not implemented**.
 - **Admin role**: middleware maps `admin → /admin` with no routes or UI — a forward-looking stub, nothing more.
-- **Audit recommendations**: `docs/AUDIT_REPORT.md` recommends adopting React Query, paginating chat, and consolidating signed-URL caching. These are recommendations only; **no decision or migration is documented in the repo**.
+- **Audit recommendations**: `docs/AUDIT_REPORT.md` recommended adopting React Query, paginating chat, and consolidating signed-URL caching. The **audit-fix batch (merged 2026-08-13, PR #90)** implemented all three on mobile — see §11 (React Query), §8.2 (chat pagination), §6.3 (identity-bound media cache) — with specs under `.kiro/specs/audit-fix/`. Remaining audit items are tracked in §21 (D4, D5, D9, D16).
 - Everything else: **Not documented.**
 
 ---

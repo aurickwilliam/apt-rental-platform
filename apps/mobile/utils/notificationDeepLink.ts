@@ -1,10 +1,15 @@
 import type { Href } from "expo-router";
 
+import type { UserProfile } from "@/service/currentUserService";
+
 export interface NotificationData {
   screen?: string;
   apartmentId?: string;
   conversationKey?: string;
+  paymentId?: string;
 }
+
+type Role = UserProfile["role"];
 
 function parseConversationKey(key: string): { otherUserId: string; apartmentId: string | null } | null {
   const parts = key.split(":");
@@ -16,12 +21,14 @@ function parseConversationKey(key: string): { otherUserId: string; apartmentId: 
 }
 
 /**
- * Resolves the navigation target encoded in a notification's data payload.
- * Unknown or unaddressable screens return null (callers no-op).
+ * Resolves the navigation target encoded in a notification's data payload,
+ * branching on the recipient's role where landlord and tenant destinations
+ * differ. Unknown or unaddressable screens return null (callers no-op).
  */
 export function buildNotificationDeepLink(
   data: unknown,
   currentUserId: string | null,
+  role: Role | null,
 ): Href | null {
   if (!data || typeof data !== "object") return null;
 
@@ -50,9 +57,27 @@ export function buildNotificationDeepLink(
       if (!payload.apartmentId) return null;
       return `/apartment/${payload.apartmentId}` as unknown as Href;
     case "maintenance":
-      return "/tenant/maintenance-history" as Href;
+      if (role === "landlord") return "/landlord/maintenance-requests" as Href;
+      if (!payload.apartmentId) return null;
+      return {
+        pathname: "/tenant/maintenance-history",
+        params: { apartmentId: payload.apartmentId },
+      } as unknown as Href;
     case "visitRequests":
+      if (role === "tenant") return "/tenant/applications" as Href;
       return "/landlord/visit-requests" as Href;
+    case "payments":
+      if (role === "landlord") {
+        if (!payload.apartmentId) return null;
+        return `/landlord/manage-apartment/${payload.apartmentId}/payment-history` as unknown as Href;
+      }
+      if (payload.paymentId) {
+        return {
+          pathname: "/tenant/payment/history/[paymentId]",
+          params: { paymentId: payload.paymentId },
+        } as unknown as Href;
+      }
+      return "/tenant/payment/history" as Href;
     default:
       return null;
   }

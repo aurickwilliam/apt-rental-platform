@@ -7,4 +7,6 @@ export { useNotificationPreferences, getNotificationPreferencesQueryKey } from "
 export type { NotificationPreferences } from "@/service/notificationService";
 export type { NotificationPreferenceType } from "@/service/notificationService";
 export { useInAppNotificationBanner } from "./useInAppNotificationBanner";
+export { shouldSuppressChatToast } from "./notificationSuppression";
+export { useNotificationRealtime } from "./useNotificationRealtime";
 export { getNotificationTypeIcon, useNotificationTypeColor } from "./notificationVisuals";

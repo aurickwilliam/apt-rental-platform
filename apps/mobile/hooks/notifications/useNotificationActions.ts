@@ -3,10 +3,36 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { markAllNotificationsRead, markNotificationRead } from "@/service/notificationService";
 
-import { getNotificationsQueryKey } from "./useNotifications";
+import { getNotificationsQueryKey, getUnreadNotificationsQueryKey } from "./useNotifications";
 
 export function useNotificationActions(userId: string | null) {
   const queryClient = useQueryClient();
+
+  // Mark-stale only: the mutation's own realtime UPDATE event is the single
+  // refetch trigger, so settling here never double-fetches the feed.
+  const markStale = () => {
+    if (!userId) return;
+
+    void queryClient.invalidateQueries({
+      queryKey: getNotificationsQueryKey(userId),
+      exact: true,
+      refetchType: "none",
+    });
+    void queryClient.invalidateQueries({
+      queryKey: getUnreadNotificationsQueryKey(userId),
+      exact: true,
+      refetchType: "none",
+    });
+  };
+
+  const setUnreadCount = (updater: (current: number) => number) => {
+    if (!userId) return;
+
+    queryClient.setQueryData(
+      getUnreadNotificationsQueryKey(userId),
+      (current: number | undefined) => Math.max(0, updater(current ?? 0)),
+    );
+  };
 
   const markAsRead = useMutation({
     mutationFn: (notificationId: string) => markNotificationRead(notificationId),
@@ -22,18 +48,19 @@ export function useNotificationActions(userId: string | null) {
         ),
       );
 
-      return { previous };
+      const wasUnread =
+        previous?.some((n) => n.id === notificationId && !n.is_read) ?? false;
+      if (wasUnread) setUnreadCount((current) => current - 1);
+
+      return { previous, wasUnread };
     },
     onError: (_error, _notificationId, context) => {
-      if (context?.previous && userId) {
+      if (context?.wasUnread && context.previous && userId) {
         queryClient.setQueryData(getNotificationsQueryKey(userId), context.previous);
+        setUnreadCount((current) => current + 1);
       }
     },
-    onSettled: () => {
-      if (userId) {
-        void queryClient.invalidateQueries({ queryKey: getNotificationsQueryKey(userId), exact: true });
-      }
-    },
+    onSettled: markStale,
   });
 
   const markAllAsRead = useMutation({
@@ -48,18 +75,18 @@ export function useNotificationActions(userId: string | null) {
         (current ?? []).map((n) => ({ ...n, is_read: true })),
       );
 
+      setUnreadCount(() => 0);
+
       return { previous };
     },
     onError: (_error, _variables, context) => {
       if (context?.previous && userId) {
         queryClient.setQueryData(getNotificationsQueryKey(userId), context.previous);
+        const unreadInFeed = (context.previous ?? []).filter((n) => !n.is_read).length;
+        setUnreadCount(() => unreadInFeed);
       }
     },
-    onSettled: () => {
-      if (userId) {
-        void queryClient.invalidateQueries({ queryKey: getNotificationsQueryKey(userId), exact: true });
-      }
-    },
+    onSettled: markStale,
   });
 
   const markAsReadByTap = useCallback(

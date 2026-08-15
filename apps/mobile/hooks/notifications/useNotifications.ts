@@ -1,9 +1,9 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchNotifications } from "@/service/notificationService";
+import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
+import { fetchNotifications, fetchUnreadNotificationCount } from "@/service/notificationService";
 
 import type { NotificationItem } from "@/service/notificationService";
 
@@ -11,6 +11,9 @@ export type { NotificationItem, NotificationType } from "@/service/notificationS
 
 export const getNotificationsQueryKey = (userId: string) =>
   ["notifications", userId] as const;
+
+export const getUnreadNotificationsQueryKey = (userId: string) =>
+  ["notifications-unread", userId] as const;
 
 function getErrorMessage(error: unknown): string | null {
   if (!error) return null;
@@ -38,40 +41,36 @@ export function useNotifications() {
     enabled: userId !== null,
   });
 
+  const unreadCountQuery = useQuery({
+    queryKey: getUnreadNotificationsQueryKey(userId as string),
+    queryFn: () => fetchUnreadNotificationCount(userId as string),
+    enabled: userId !== null,
+  });
+
+  useNotificationRealtime(userId, {
+    onChange: () => {
+      if (!userId) return;
+
+      void queryClient.invalidateQueries({
+        queryKey: getNotificationsQueryKey(userId),
+        exact: true,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: getUnreadNotificationsQueryKey(userId),
+        exact: true,
+      });
+    },
+  });
+
   const notifications = notificationsQuery.data ?? [];
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.is_read).length;
 
   const refetch = useCallback(async () => {
     if (!userId) return;
 
-    await notificationsQuery.refetch();
-  }, [notificationsQuery, userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    const queryKey = getNotificationsQueryKey(userId);
-    const channel = supabase
-      .channel(`notifications-live:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          void queryClient.invalidateQueries({ queryKey, exact: true });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [queryClient, userId]);
+    await Promise.all([notificationsQuery.refetch(), unreadCountQuery.refetch()]);
+  }, [notificationsQuery, unreadCountQuery, userId]);
 
   return {
     notifications,

@@ -20,6 +20,7 @@ export default function NotificationList({ filter }: NotificationListProps) {
   const router = useRouter();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
+  const currentUserRole = currentUserQuery.data?.role ?? null;
 
   const { notifications, loading, error } = useNotifications();
   const { markAsRead } = useNotificationActions(currentUserId);
@@ -71,7 +72,7 @@ export default function NotificationList({ filter }: NotificationListProps) {
           unread={!n.is_read}
           onPress={() => {
             markAsRead(n.id);
-            const href = buildNotificationDeepLink(n.data, currentUserId);
+            const href = buildNotificationDeepLink(n.data, currentUserId, currentUserRole);
             if (href) router.push(href);
           }}
         />

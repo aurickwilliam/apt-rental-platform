@@ -91,6 +91,9 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
 - Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read.
 - Notifications are generated **server-side only**: DB triggers insert into `notifications` via `create_notification()` (which also fires the `push-notify` edge function through pg_net). Clients only SELECT their own rows and UPDATE `is_read` — never INSERT. Expo push tokens live in `push_tokens` (upsert on sign-in, delete on sign-out).
+- `create_notification()` EXECUTE is revoked from `authenticated` — only SECURITY DEFINER triggers (and service_role) call it. Trigger functions identify the acting user via `auth.uid()` (PostgREST JWT GUC), e.g. to skip self-notifications (tenant self-cancel of a visit request).
+- `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.
+- Trigger payloads include the `apartmentId` needed to resolve deep links (payment, maintenance); never rely on payloads without it.
 
 ## Engineering Philosophy
 
@@ -179,11 +182,16 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 - Keep bundle size reasonable — mind the icon library mix and heavy deps.
 - Avoid unnecessary network requests (reuse fetches, avoid refetch loops).
 - Prefer optimistic updates where appropriate.
+- Media uploads are **binary with client-side compression** (`compressImage.ts`) — never base64; apartment images are stored two-tier (thumb + full), thumbs render from the thumb column.
+- Lists fetch **bounded pages** with keyset cursors — never unbounded selects (chat history: 30-message pages, descending `created_at, id`, ID-deduplicating merge).
+- External media (GIFs) are referenced by `externalUrl` on the row — no download-then-re-upload round trips.
 
 ## State Management Rules
 
 - **Local state** (`useState` + custom hooks) is the default — use nothing else unless needed.
 - **React Query** (mobile only): the standard layer for server data. Reads via `useQuery` on stable query keys; mutations via optimistic updates + exact-key `invalidateQueries`. Default `staleTime` 30s; `clearQueryClient()` on sign-in/sign-out (sensitive in-memory state — e.g. signed URLs — clears with it). Never put tokens or signed URLs in query keys; never mirror server data in Zustand.
+- Read-settling mutations (mark-read, status changes) settle with exact-key `invalidateQueries({ refetchType: "none" })` — mark-stale only; the mutation's own realtime event is the single refetch trigger. UI counters (e.g. unread) update optimistically with rollback, never via extra refetches.
+- **Realtime (mobile)** — one channel per user/resource identity via refcounted registries (`useNotificationRealtime`, chat channels); never one channel per consumer. Channel identity is keyed by data identity (user/peer/apartment), never by render callbacks; event callbacks flow through refs.
 - **Zustand** (mobile only): client state shared across screens — form flows, theme, personalization. Lives in `stores/`; includes `reset()`.
 - **Supabase** is the source of truth for all server data; fetch in hooks/services behind React Query — never mirror it in stores.
 - **URL state** (web): filters and search via `searchParams` / `useSearchParams`.
