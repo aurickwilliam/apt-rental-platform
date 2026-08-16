@@ -44,9 +44,31 @@ describe("buildNotificationDeepLink", () => {
       });
     });
 
-    it("returns null when the other user is the current user", () => {
+    it("routes to the chat with the other participant when the current user is the least-sorted id", () => {
+      const href = buildNotificationDeepLink(
+        {
+          screen: "chat",
+          conversationKey: "chat:apt-1:aaaa-bbbb:cccc-dddd",
+        },
+        "aaaa-bbbb",
+        "tenant",
+      );
+
+      expect(href).toEqual({
+        pathname: "/chat/[conversationId]",
+        params: {
+          conversationId: "chat:apt-1:aaaa-bbbb:cccc-dddd",
+          otherUserId: "cccc-dddd",
+          otherUserPhoneNumber: "",
+          apartmentId: "apt-1",
+          apartmentTitle: "",
+        },
+      });
+    });
+
+    it("returns null when both participants are the current user", () => {
       expect(buildNotificationDeepLink(
-        { screen: "chat", conversationKey: "chat:none:me:you" },
+        { screen: "chat", conversationKey: "chat:none:me:me" },
         "me",
         "tenant",
       )).toBeNull();

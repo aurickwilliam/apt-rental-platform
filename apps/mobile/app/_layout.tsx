@@ -131,6 +131,7 @@ export default function RootLayout() {
                   <Stack.Screen name="edit-profile" />
                   <Stack.Screen name="dev/giphy" />
                   <Stack.Screen name="dev/playground" />
+                  <Stack.Screen name="dev/notification-toast" />
                 </Stack>
                 <PortalHost name="root" />
                 <DevBadge />

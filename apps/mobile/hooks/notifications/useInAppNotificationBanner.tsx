@@ -3,7 +3,7 @@ import { usePathname, useRouter } from "expo-router";
 import { useToast } from "heroui-native";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { getNotificationTypeIcon, useNotificationTypeColor } from "@/hooks/notifications/notificationVisuals";
+import { showNotificationToast } from "@/components/display/NotificationToast";
 import { shouldSuppressChatToast } from "@/hooks/notifications/notificationSuppression";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
@@ -11,18 +11,8 @@ import { markNotificationRead } from "@/service/notificationService";
 import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
 
 import type { NotificationRow } from "@/service/notificationService";
-import type { NotificationPreferenceType, NotificationType } from "@/service/notificationService";
-import type { ToastVariant } from "heroui-native";
-
-const TOAST_VARIANT_BY_TYPE: Record<NotificationType, ToastVariant> = {
-  payment: "success",
-  message: "accent",
-  maintenance: "warning",
-  apartment: "accent",
-  system: "default",
-};
-
-const TOAST_DURATION_MS = 4000;
+import type { NotificationPreferenceType } from "@/service/notificationService";
+import type { NotificationData } from "@/utils/notificationDeepLink";
 
 /**
  * Shows an in-app HeroUI toast whenever a new notification row arrives via
@@ -42,7 +32,6 @@ export function useInAppNotificationBanner() {
   const role = currentUserQuery.data?.role ?? null;
 
   const { preferences, loading: preferencesLoading } = useNotificationPreferences();
-  const { getColor } = useNotificationTypeColor();
 
   // Read through refs so re-renders and navigation never tear down the shared
   // realtime subscription (heroui-native's `toast` identity changes on every
@@ -69,11 +58,6 @@ export function useInAppNotificationBanner() {
     preferencesRef.current = preferences;
   }, [preferences]);
 
-  const getColorRef = useRef(getColor);
-  useEffect(() => {
-    getColorRef.current = getColor;
-  });
-
   // Subscribe only once preferences are loaded; per-type gating is still
   // enforced inside the handler for pref changes while subscribed.
   const subscribedUserId = preferencesLoading ? null : userId;
@@ -90,17 +74,13 @@ export function useInAppNotificationBanner() {
       // only explicitly-disabled types are suppressed.
       if (!currentPreferences.notifications_enabled || currentPreferences[type] === false) return;
 
-      const Icon = getNotificationTypeIcon(row.type as NotificationType);
-      const iconColor = getColorRef.current(row.type as NotificationType);
+      const data = (row.data ?? null) as unknown as NotificationData | null;
+      const senderAvatarUrl = row.type === "message" ? (data?.senderAvatarUrl ?? null) : null;
 
-      toastRef.current.show({
-        variant: TOAST_VARIANT_BY_TYPE[row.type as NotificationType],
-        label: row.title,
-        description: row.message ? row.message : undefined,
-        icon: <Icon size={20} color={iconColor} />,
-        duration: TOAST_DURATION_MS,
-        actionLabel: "View",
-        onActionPress: () => {
+      showNotificationToast(toastRef.current, {
+        row,
+        avatarUrl: senderAvatarUrl,
+        onOpen: () => {
           void markNotificationRead(row.id);
           const href = buildNotificationDeepLink(row.data, userId, roleRef.current);
           if (href) {

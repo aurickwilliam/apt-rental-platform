@@ -7,17 +7,20 @@ export interface NotificationData {
   apartmentId?: string;
   conversationKey?: string;
   paymentId?: string;
+  senderId?: string;
+  senderAvatarUrl?: string;
 }
 
 type Role = UserProfile["role"];
 
-function parseConversationKey(key: string): { otherUserId: string; apartmentId: string | null } | null {
+function parseConversationKey(key: string): { userIdA: string; userIdB: string; apartmentId: string | null } | null {
   const parts = key.split(":");
   // Format: chat:{apartmentId or 'none'}:{uuidA}:{uuidB}
+  // Participants are stored sorted (least:greatest), not by role.
   if (parts.length !== 4 || parts[0] !== "chat") return null;
 
   const apartmentId = parts[1] === "none" ? null : parts[1];
-  return { otherUserId: parts[2], apartmentId };
+  return { userIdA: parts[2], userIdB: parts[3], apartmentId };
 }
 
 /**
@@ -40,13 +43,19 @@ export function buildNotificationDeepLink(
       if (!key || !currentUserId) return null;
 
       const parsed = parseConversationKey(key);
-      if (!parsed || parsed.otherUserId === currentUserId) return null;
+      if (!parsed) return null;
+
+      // The "other" participant is whichever one is not the current user
+      // (participants are stored sorted as least:greatest).
+      const otherUserId =
+        parsed.userIdA === currentUserId ? parsed.userIdB : parsed.userIdA;
+      if (otherUserId === currentUserId) return null;
 
       return {
         pathname: "/chat/[conversationId]",
         params: {
           conversationId: key,
-          otherUserId: parsed.otherUserId,
+          otherUserId,
           otherUserPhoneNumber: "",
           apartmentId: parsed.apartmentId ?? "",
           apartmentTitle: "",
