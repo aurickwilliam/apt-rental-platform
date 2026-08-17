@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import RatingBarCount from './components/RatingBarCount'
-import MenuSelectButton from 'components/buttons/MenuSelectButton'
+import DropdownButton from 'components/buttons/DropdownButton'
 import RatingCard from 'components/cards/RatingCard'
 import StarRating from '@/components/display/StarRating'
 
@@ -112,7 +112,7 @@ export default function RatingsPage() {
             Tenant Reviews
           </Text>
 
-          <MenuSelectButton
+          <DropdownButton
             label="Sort Reviews By"
             options={['Most Recent', 'Highest Rating', 'Lowest Rating']}
             value={sortBy}

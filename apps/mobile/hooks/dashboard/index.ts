@@ -1,3 +1,10 @@
 export { useDashboardStats } from "./useDashboardStats";
 export { getDashboardStatsQueryKey } from "./useDashboardStats";
+export { useMonthlyRevenue } from "./useMonthlyRevenue";
+export { getMonthlyRevenueQueryKey } from "./useMonthlyRevenue";
+export { useRevenueByProperty } from "./useRevenueByProperty";
+export { getRevenueByPropertyQueryKey } from "./useRevenueByProperty";
+export { useRentDues } from "./useRentDues";
+export { getRentDuesQueryKey } from "./useRentDues";
 export type { DashboardStats } from "@/service/dashboard/dashboardService";
+export type { MonthlyRevenuePoint, PropertyRevenue, RentDue } from "@/service/dashboard/dashboardService";
