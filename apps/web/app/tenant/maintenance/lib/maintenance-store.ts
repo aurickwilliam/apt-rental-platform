@@ -18,10 +18,20 @@ export type StoredMaintenanceRequest = MaintenanceRequestPayload & {
   createdAt: string;
 };
 
-const requestsCache: StoredMaintenanceRequest[] = [];
+const STORAGE_KEY = "apt.maintenance_requests";
+
+function safeParse(raw: string | null): StoredMaintenanceRequest[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as StoredMaintenanceRequest[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export function getMaintenanceRequests(): StoredMaintenanceRequest[] {
-  return [...requestsCache];
+  return safeParse(localStorage.getItem(STORAGE_KEY));
 }
 
 export function saveMaintenanceRequest(
@@ -32,6 +42,7 @@ export function saveMaintenanceRequest(
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
   };
-  requestsCache.push(stored);
+  const next = [...getMaintenanceRequests(), stored];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   return stored;
 }
