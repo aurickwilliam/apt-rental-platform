@@ -2900,9 +2900,9 @@
     "semantic_hash": "e320e70b437942ff04dbd05b5a9da088"
   },
   "apps/mobile/assets/images/logo.png": {
-    "mtime": 1777602095.4802718,
-    "ast_hash": "98530afd3c5791543b605aefa1d1bf1b",
-    "semantic_hash": "98530afd3c5791543b605aefa1d1bf1b"
+    "mtime": 1786975499.310029,
+    "ast_hash": "a1f4a46890b6d11239cdc22335f0fad9",
+    "semantic_hash": ""
   },
   "apps/mobile/assets/images/payment-logos/gcash-big-logo.png": {
     "mtime": 1777602095.4809701,
@@ -3917,6 +3917,31 @@
   "supabase/migrations/20260817020000_get_landlord_dashboard.sql": {
     "mtime": 1786952335.7189867,
     "ast_hash": "d88169882f5cea3bf3cab3d0be9b02cd",
+    "semantic_hash": ""
+  },
+  "supabase/templates/otp.html": {
+    "mtime": 1786978745.904104,
+    "ast_hash": "ae2dc3b399c69c7b05da72b0c575b244",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260817030000_create_email_assets_bucket.sql": {
+    "mtime": 1786975719.3888664,
+    "ast_hash": "6a13aa82c9879b762ffb497d57d338a1",
+    "semantic_hash": ""
+  },
+  "apps/mobile/assets/images/logo-name.png": {
+    "mtime": 1786975523.6756556,
+    "ast_hash": "feb1e0ebadf547bfcacb7978a4260972",
+    "semantic_hash": ""
+  },
+  "supabase/templates/apt-logo.png": {
+    "mtime": 1786975709.7441704,
+    "ast_hash": "91fdf50bb0fe45ce3d910e611e61e556",
+    "semantic_hash": ""
+  },
+  "supabase/templates/build-payload.py": {
+    "mtime": 1786978753.280841,
+    "ast_hash": "1dbae734c99ec7789eba0691caeb4fe5",
     "semantic_hash": ""
   }
 }
