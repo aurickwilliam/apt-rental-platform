@@ -66,9 +66,12 @@ export function useInAppNotificationBanner() {
     onInsert: (row) => {
       if (!row?.type || !row?.title) return;
 
-      if (shouldSuppressChatToast(row, pathnameRef.current)) return;
-
       const currentPreferences = preferencesRef.current;
+
+      // Chat toasts for the currently-open conversation are suppressed unless
+      // the user opted in to seeing them.
+      if (!currentPreferences.show_chat_toasts && shouldSuppressChatToast(row, pathnameRef.current)) return;
+
       const type = row.type as NotificationPreferenceType;
       // Fail-open for unknown types (like the push-notify edge function):
       // only explicitly-disabled types are suppressed.

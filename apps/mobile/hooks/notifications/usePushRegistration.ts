@@ -29,7 +29,7 @@ function getProjectId(): string | null {
 
 /**
  * Registers the device's Expo push token with the backend while signed in and
- * the master notification preference is enabled; removes it when disabled or on
+ * the push notification preference is enabled; removes it when disabled or on
  * sign-out. No-op on iOS simulators (Expo push does not deliver there) and when
  * the user denies permission. Android emulators with Google Play services
  * register normally.
@@ -39,7 +39,7 @@ export function usePushRegistration() {
   const userId = currentUserQuery.data?.id ?? null;
 
   const { preferences, loading: preferencesLoading } = useNotificationPreferences();
-  const notificationsEnabled = preferences.notifications_enabled;
+  const pushEnabled = preferences.push_enabled;
 
   const registeredTokenRef = useRef<string | null>(null);
 
@@ -66,7 +66,7 @@ export function usePushRegistration() {
   useEffect(() => {
     if (!userId || preferencesLoading) return;
 
-    if (!notificationsEnabled) {
+    if (!pushEnabled) {
       const token = registeredTokenRef.current;
       registeredTokenRef.current = null;
       if (token) {
@@ -118,5 +118,5 @@ export function usePushRegistration() {
     return () => {
       cancelled = true;
     };
-  }, [userId, preferencesLoading, notificationsEnabled]);
+  }, [userId, preferencesLoading, pushEnabled]);
 }

@@ -52,7 +52,7 @@ async function fetchTokens(userId: string): Promise<{ token: string; platform: s
 }
 
 const PREFERENCE_COLUMNS = [
-  'notifications_enabled',
+  'push_enabled',
   'payment',
   'message',
   'maintenance',
@@ -74,15 +74,17 @@ async function fetchPreferences(userId: string): Promise<PreferenceRow> {
 
   if (error) {
     console.error('Failed to fetch notification preferences:', error.message)
-    return { notifications_enabled: true, payment: true, message: true, maintenance: true, apartment: true, system: true }
+    return { push_enabled: true, payment: true, message: true, maintenance: true, apartment: true, system: true }
   }
 
-  return data ?? { notifications_enabled: true, payment: true, message: true, maintenance: true, apartment: true, system: true }
+  return data ?? { push_enabled: true, payment: true, message: true, maintenance: true, apartment: true, system: true }
 }
 
-// Returns false when the user has disabled delivery entirely or for this type.
+// Returns false when the user has disabled push delivery entirely or for this
+// type. push_enabled is the OS-push master; per-type toggles are shared with
+// the in-app banner channel.
 function shouldDeliver(prefs: PreferenceRow, type: unknown): boolean {
-  if (!prefs.notifications_enabled) return false
+  if (!prefs.push_enabled) return false
   if (typeof type !== 'string') return true
   return prefs[type as keyof PreferenceRow] !== false
 }

@@ -935,9 +935,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
-    "mtime": 1781523335.7777593,
-    "ast_hash": "32173523c6bc1b69b4fa21d378a247b4",
-    "semantic_hash": "32173523c6bc1b69b4fa21d378a247b4"
+    "mtime": 1786893247.205341,
+    "ast_hash": "173d6ca826173cad5da1c7c67b85a401",
+    "semantic_hash": ""
   },
   "apps/mobile/app/settings/about.tsx": {
     "mtime": 1784009740.5574877,
@@ -950,8 +950,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/index.tsx": {
-    "mtime": 1786772712.5541544,
-    "ast_hash": "ebea610830ea1ce94463597ab473267a",
+    "mtime": 1786893266.1789858,
+    "ast_hash": "8a5fcbebe1f7b59f48bc0c1b229f7687",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/language-region.tsx": {
@@ -2720,8 +2720,8 @@
     "semantic_hash": "3f166c0526796d745a39384bcde66082"
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1786771547.77657,
-    "ast_hash": "d85055287ffac493809200fa3fb9fd0c",
+    "mtime": 1786893309.218667,
+    "ast_hash": "e920d3f89db06171b4a632e9775e7b60",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -3765,13 +3765,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/usePushRegistration.ts": {
-    "mtime": 1786771421.4320915,
-    "ast_hash": "74d52d9fd39256c1b90ad41d62f84fea",
+    "mtime": 1786893199.393968,
+    "ast_hash": "64be99b7ae7c129eff49f178a1497591",
     "semantic_hash": ""
   },
   "apps/mobile/service/notificationService.ts": {
-    "mtime": 1786777962.092681,
-    "ast_hash": "167ab4aa5606d7007455c34b6ac12321",
+    "mtime": 1786893181.624557,
+    "ast_hash": "d0f392916e920520bb09be056b6b1d11",
     "semantic_hash": ""
   },
   "apps/mobile/utils/notificationDeepLink.ts": {
@@ -3785,8 +3785,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/push-notify/index.ts": {
-    "mtime": 1786779099.596111,
-    "ast_hash": "cf1317ce0584579015083479ac6a0c59",
+    "mtime": 1786893063.2295134,
+    "ast_hash": "e9f8a36422dc0af53097fcfb87ec8533",
     "semantic_hash": ""
   },
   "supabase/migrations/20260814000000_create_notifications.sql": {
@@ -3810,8 +3810,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useInAppNotificationBanner.tsx": {
-    "mtime": 1786890984.079688,
-    "ast_hash": "118cfb6511b002b2127e953a098c2f1b",
+    "mtime": 1786893205.1992838,
+    "ast_hash": "8c58315789268876ea7d092c18f5b296",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useNotificationPreferences.ts": {
@@ -3880,13 +3880,28 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/NotificationToast.tsx": {
-    "mtime": 1786891131.5377388,
-    "ast_hash": "f642662d82c2b73f651ddbee6f161a68",
+    "mtime": 1786892236.2484186,
+    "ast_hash": "38792290104af3213d3f767944db5de3",
     "semantic_hash": ""
   },
   "supabase/migrations/20260817000000_chat_notification_sender_payload.sql": {
     "mtime": 1786890898.1459665,
     "ast_hash": "da3ee86e6fbfb491b90b0c4fbaf11f7e",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/notifications.tsx": {
+    "mtime": 1786893241.6604128,
+    "ast_hash": "0b3dee2ce58e6f624c38a8283fa719d1",
+    "semantic_hash": ""
+  },
+  "apps/mobile/constants/notifications.ts": {
+    "mtime": 1786893210.9346983,
+    "ast_hash": "7f64c3af198dbb6be0b0c2fc872364c0",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260817010000_notification_preference_channels.sql": {
+    "mtime": 1786893041.4923694,
+    "ast_hash": "90003cf5d772668d29cefcc6313050e9",
     "semantic_hash": ""
   }
 }

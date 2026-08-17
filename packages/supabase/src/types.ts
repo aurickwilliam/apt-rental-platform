@@ -477,6 +477,8 @@ export type Database = {
           message: boolean
           notifications_enabled: boolean
           payment: boolean
+          push_enabled: boolean
+          show_chat_toasts: boolean
           system: boolean
           updated_at: string
           user_id: string
@@ -487,6 +489,8 @@ export type Database = {
           message?: boolean
           notifications_enabled?: boolean
           payment?: boolean
+          push_enabled?: boolean
+          show_chat_toasts?: boolean
           system?: boolean
           updated_at?: string
           user_id: string
@@ -497,6 +501,8 @@ export type Database = {
           message?: boolean
           notifications_enabled?: boolean
           payment?: boolean
+          push_enabled?: boolean
+          show_chat_toasts?: boolean
           system?: boolean
           updated_at?: string
           user_id?: string

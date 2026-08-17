@@ -12,6 +12,8 @@ export type NotificationType = NotificationItem['type'];
 
 export interface NotificationPreferences {
   notifications_enabled: boolean;
+  push_enabled: boolean;
+  show_chat_toasts: boolean;
   payment: boolean;
   message: boolean;
   maintenance: boolean;
@@ -19,10 +21,12 @@ export interface NotificationPreferences {
   system: boolean;
 }
 
-export type NotificationPreferenceType = Exclude<keyof NotificationPreferences, 'notifications_enabled'>;
+export type NotificationPreferenceType = 'payment' | 'message' | 'maintenance' | 'apartment' | 'system';
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   notifications_enabled: true,
+  push_enabled: true,
+  show_chat_toasts: false,
   payment: true,
   message: true,
   maintenance: true,
@@ -31,7 +35,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 };
 
 const NOTIFICATION_PREFERENCE_FIELDS =
-  'notifications_enabled, payment, message, maintenance, apartment, system';
+  'notifications_enabled, push_enabled, show_chat_toasts, payment, message, maintenance, apartment, system';
 
 export async function fetchNotificationPreferences(userId: string): Promise<NotificationPreferences> {
   const { data, error } = await supabase

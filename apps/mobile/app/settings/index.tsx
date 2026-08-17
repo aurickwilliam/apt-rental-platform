@@ -21,10 +21,10 @@ import {
   UsersRound,
 } from 'lucide-react-native';
 import type { Icon } from '@tabler/icons-react-native';
+import { IconChevronRight } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
-import { useNotificationPreferences, useNotificationTypeColor, getNotificationTypeIcon } from '@/hooks/notifications'
-import type { NotificationPreferenceType } from '@/service/notificationService'
+import { useNotificationPreferences } from '@/hooks/notifications'
 
 type SettingItem = {
   icon: LucideIcon | Icon
@@ -40,34 +40,19 @@ type SettingSection = {
   items: SettingItem[]
 }
 
-const NOTIFICATION_TYPE_LABELS: { type: NotificationPreferenceType; label: string }[] = [
-  { type: 'payment', label: 'Payments' },
-  { type: 'message', label: 'Messages' },
-  { type: 'maintenance', label: 'Maintenance' },
-  { type: 'apartment', label: 'Apartments' },
-  { type: 'system', label: 'System' },
-]
-
 export default function Index() {
   const router = useRouter()
   const { colors, isDark, toggleTheme } = useTheme();
 
-  const { preferences, setPreferences } = useNotificationPreferences();
-  const { getColor } = useNotificationTypeColor();
+  const { preferences } = useNotificationPreferences();
 
-  const toggleMaster = () => {
-    setPreferences((prev) => ({
-      ...prev,
-      notifications_enabled: !prev.notifications_enabled,
-    }));
-  };
-
-  const toggleType = (type: NotificationPreferenceType) => {
-    setPreferences((prev) => ({
-      ...prev,
-      [type]: !prev[type],
-    }));
-  };
+  // Both masters on → "On", both off → "Off", mixed → "Partial".
+  const notificationSummary =
+    preferences.notifications_enabled && preferences.push_enabled
+      ? 'On'
+      : !preferences.notifications_enabled && !preferences.push_enabled
+        ? 'Off'
+        : 'Partial';
 
   const sections: SettingSection[] = [
     {
@@ -96,12 +81,14 @@ export default function Index() {
         {
           icon: Bell,
           title: 'Notifications',
-          disabled: true,
+          onPress: () => router.push('/settings/notifications'),
           suffix: (
-            <Switch
-              isSelected={preferences.notifications_enabled}
-              onSelectedChange={toggleMaster}
-            />
+            <View className="flex-row items-center gap-1">
+              <Text className='text-muted text-sm font-inter'>
+                {notificationSummary}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
           ),
         },
         {
@@ -116,22 +103,6 @@ export default function Index() {
           ),
         },
       ],
-    },
-    {
-      title: 'Notification Types',
-      items: NOTIFICATION_TYPE_LABELS.map(({ type, label }) => ({
-        icon: getNotificationTypeIcon(type),
-        title: label,
-        disabled: true,
-        iconColor: getColor(type),
-        suffix: (
-          <Switch
-            isSelected={preferences[type]}
-            onSelectedChange={() => toggleType(type)}
-            isDisabled={!preferences.notifications_enabled}
-          />
-        ),
-      })),
     },
     {
       title: 'Help & Support',
