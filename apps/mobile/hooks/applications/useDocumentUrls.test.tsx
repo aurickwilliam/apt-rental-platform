@@ -1,10 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
+import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
 
 import { useDocumentUrls } from './useDocumentUrls';
 
-jest.mock('@/service/privateMediaResolver', () => ({
+jest.mock('@/service/media/privateMediaResolver', () => ({
   resolvePrivateMediaUrls: jest.fn(),
 }));
 

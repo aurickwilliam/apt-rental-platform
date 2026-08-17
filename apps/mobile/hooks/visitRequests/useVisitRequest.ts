@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useProfile } from "hooks/auth";
 
-import { fetchVisitRequest } from "@/service/visitRequestsService";
+import { fetchVisitRequest } from "@/service/visitRequests/visitRequestsService";
 
-export type { VisitRequest } from "@/service/visitRequestsService";
+export type { VisitRequest } from "@/service/visitRequests/visitRequestsService";
 
 export const getVisitRequestQueryKey = (
   applicationId: string | undefined,

@@ -3,16 +3,16 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchTenancy } from "@/service/tenancyService";
+import { fetchTenancy } from "@/service/tenancy/tenancyService";
 
-import type { CurrentTenancy, TenancyPayment } from "@/service/tenancyService";
+import type { CurrentTenancy, TenancyPayment } from "@/service/tenancy/tenancyService";
 
 export type {
   CurrentTenancy,
   TenancyApartment,
   TenancyLandlord,
   TenancyPayment,
-} from "@/service/tenancyService";
+} from "@/service/tenancy/tenancyService";
 
 export const getTenancyQueryKey = (tenantId: string) =>
   ["tenancy", tenantId] as const;

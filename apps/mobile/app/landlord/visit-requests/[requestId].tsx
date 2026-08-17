@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 
-import { Button, Chip } from "heroui-native";
+import { Button, Chip, Spinner } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -78,7 +78,7 @@ export default function VisitRequestDetails() {
     return (
       <ScreenWrapper header={<StandardHeader title="Visit Request" />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Spinner size="lg" color={colors.primary} />
         </View>
       </ScreenWrapper>
     );

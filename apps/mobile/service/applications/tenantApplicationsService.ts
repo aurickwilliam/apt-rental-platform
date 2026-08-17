@@ -1,7 +1,7 @@
 import { supabase } from '@repo/supabase';
 
 import type { ApplicationStatus } from '@/hooks/applications';
-import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
+import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
 
 export type ApplicationDocument = {
   label: string;

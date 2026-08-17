@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchPublicTenantProfile } from '@/service/profilesService'
+import { fetchPublicTenantProfile } from '@/service/profiles/profilesService'
 
-export type { PublicTenantProfile, PastApartment } from '@/service/profilesService'
+export type { PublicTenantProfile, PastApartment } from '@/service/profiles/profilesService'
 
 export const getPublicTenantProfileQueryKey = (tenantId: string | undefined) =>
   ['public-tenant-profile', tenantId] as const

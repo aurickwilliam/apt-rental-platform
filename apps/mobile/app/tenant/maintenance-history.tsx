@@ -1,5 +1,6 @@
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Spinner } from 'heroui-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import MaintenanceRequestCard from '@/app/(tabs)/components/rentals/MaintenanceRequestCard';
@@ -18,7 +19,7 @@ export default function MaintenanceHistory() {
     return (
       <ScreenWrapper className="p-5">
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Spinner size="lg" color={colors.primary} />
         </View>
       </ScreenWrapper>
     );

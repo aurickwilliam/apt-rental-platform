@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
 import { getNotificationTypeIcon, useNotificationTypeColor } from '@/hooks/notifications';
-import type { NotificationType } from '@/service/notificationService';
+import type { NotificationType } from '@/service/notifications/notificationService';
 
 export type NotificationCardType = NotificationType;
 

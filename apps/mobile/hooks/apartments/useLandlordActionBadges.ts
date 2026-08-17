@@ -3,9 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchLandlordBadges } from "@/service/landlordService";
+import { fetchLandlordBadges } from "@/service/landlord/landlordService";
 
-export type { ActionBadgeCategory, ActionBadgeCounts } from "@/service/landlordService";
+export type { ActionBadgeCategory, ActionBadgeCounts } from "@/service/landlord/landlordService";
 
 const STORAGE_PREFIX = "badge_last_viewed:";
 

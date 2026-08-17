@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -15,7 +14,7 @@ import StandardHeader from "components/layout/StandardHeader";
 import Divider from "components/display/Divider";
 import PerkItem from "components/display/PerkItem";
 
-import { Button } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
 
 import {
   FileText,
@@ -42,7 +41,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchManageApartmentDescription,
   getManageApartmentDescriptionQueryKey,
-} from "@/service/landlordService";
+} from "@/service/landlord/landlordService";
 
 export default function Index() {
   const router = useRouter();
@@ -156,7 +155,7 @@ export default function Index() {
     return (
       <ScreenWrapper header={<StandardHeader title="Apartment Description" />}>
         <View className="flex-1 items-center justify-center mt-20">
-          <ActivityIndicator color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       </ScreenWrapper>
     );

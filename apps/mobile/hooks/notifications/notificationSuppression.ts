@@ -1,4 +1,4 @@
-import type { NotificationRow } from "@/service/notificationService";
+import type { NotificationRow } from "@/service/notifications/notificationService";
 
 import type { NotificationData } from "@/utils/notificationDeepLink";
 

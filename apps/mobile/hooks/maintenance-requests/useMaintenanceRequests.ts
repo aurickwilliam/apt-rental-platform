@@ -4,13 +4,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   cancelMaintenanceRequest,
   fetchLatestMaintenanceRequest,
-} from '@/service/maintenanceService';
+} from '@/service/maintenance-requests/maintenanceService';
 
 export type {
   MaintenanceRequestStatus,
   MaintenanceRequestUrgency,
   MaintenanceRequest,
-} from '@/service/maintenanceService';
+} from '@/service/maintenance-requests/maintenanceService';
 
 export const getLatestMaintenanceRequestQueryKey = (apartmentId: string | undefined) =>
   ['maintenance-request-latest', apartmentId] as const;

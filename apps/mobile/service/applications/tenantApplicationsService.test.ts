@@ -1,5 +1,5 @@
 import { fetchTenantApplications } from "./tenantApplicationsService";
-import { resolvePrivateMediaUrls } from "@/service/privateMediaResolver";
+import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
 
 const mockFrom = jest.fn();
 
@@ -9,7 +9,7 @@ jest.mock("@repo/supabase", () => ({
   },
 }));
 
-jest.mock("@/service/privateMediaResolver", () => ({
+jest.mock("@/service/media/privateMediaResolver", () => ({
   resolvePrivateMediaUrls: jest.fn(),
 }));
 

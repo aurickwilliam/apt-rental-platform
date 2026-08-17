@@ -1,4 +1,4 @@
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
@@ -17,6 +17,7 @@ import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(
 import {
   SearchField,
   Separator,
+  Spinner,
 } from 'heroui-native';
 
 export default function Chat() {
@@ -101,7 +102,7 @@ export default function Chat() {
 
       {loading ? (
         <View className='flex-1 items-center justify-center mt-20'>
-          <ActivityIndicator color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       ) : filteredConversations.length === 0 ? (
         <View className='flex-1 items-center justify-center'>

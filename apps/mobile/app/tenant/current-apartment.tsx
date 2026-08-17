@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { View, Text, ActivityIndicator, Alert, Linking } from 'react-native'
+import { View, Text, Alert, Linking } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -7,7 +7,7 @@ import PerkItem from 'components/display/PerkItem'
 
 import { formatPesoDisplay } from '@repo/utils'
 
-import { Button, Separator } from 'heroui-native'
+import { Button, Separator, Spinner } from 'heroui-native'
 
 import {
   House,
@@ -84,7 +84,7 @@ export default function CurrentApartmentDetails() {
     return (
       <ScreenWrapper header={<StandardHeader title="Apartment Details" />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Spinner size="lg" color={colors.primary} />
           <Text className="text-foreground text-sm font-inter mt-3">
             Loading your tenancy details...
           </Text>

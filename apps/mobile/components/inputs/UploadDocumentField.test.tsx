@@ -47,6 +47,7 @@ jest.mock('heroui-native', () => {
       Content: Passthrough,
     }),
     Separator: () => null,
+    Spinner: () => null,
   };
 });
 

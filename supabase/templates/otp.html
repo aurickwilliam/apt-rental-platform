@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Your APT verification code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F9FA; font-family: Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8F9FA;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%;">
+
+          <!-- Header: logo -->
+          <tr>
+            <td align="center" style="padding: 0 0 24px;">
+              <img src="https://ezxirkpgfpripjydcqnt.supabase.co/storage/v1/object/public/email-assets/apt-logo.png" width="96" height="96" alt="APT" style="display: block; margin: 0 auto; border: 0;" />
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; padding: 40px 32px;">
+              <h1 style="margin: 0 0 8px; font-family: Nunito, 'Nunito Sans', ui-rounded, 'Segoe UI', Roboto, Arial, sans-serif; font-weight: 600; font-size: 24px; line-height: 32px; color: #333333; text-align: center;">Confirm your signup</h1>
+              <p style="margin: 0 0 28px; font-size: 16px; line-height: 24px; color: #6C757D; text-align: center;">Enter this 6-digit code to verify your email address:</p>
+
+              <!-- Code box -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #EFF6FF; border: 1px dashed #D1D5DB; border-radius: 12px;">
+                <tr>
+                  <td align="center" style="padding: 24px 16px;">
+                    <span style="display: inline-block; font-family: Nunito, 'Nunito Sans', ui-rounded, 'Segoe UI', Roboto, Arial, sans-serif; font-weight: 700; font-size: 44px; line-height: 56px; color: #333333; letter-spacing: 8px; margin-right: -8px;">{{ .Token }}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 20px 0 0; font-size: 13px; line-height: 20px; color: #6C757D; text-align: center;">This code expires in 5 minutes. Do not share it with anyone.</p>
+              <p style="margin: 4px 0 0; font-size: 13px; line-height: 20px; color: #9CA3AF; text-align: center;">Sent to {{ .Email }}</p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 32px;">
+                <tr>
+                  <td style="border-top: 1px solid #E5E7EB; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0; font-size: 13px; line-height: 20px; color: #6C757D; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 24px 16px 0;">
+              <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6C757D;">APT</p>
+              <p style="margin: 4px 0 0; font-size: 12px; line-height: 18px; color: #9CA3AF;">You're receiving this email because someone used this address to sign up for an APT account.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

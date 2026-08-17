@@ -1,11 +1,11 @@
-import { View, Text, Image, ActivityIndicator } from 'react-native'
+import { View, Text, Image } from 'react-native'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import MessageCard from '@/app/(tabs)/components/chat/MessageCard'
 
-import { SearchField, Tabs, Separator } from 'heroui-native'
+import { SearchField, Tabs, Separator, Spinner } from 'heroui-native'
 
 import { getRelativeTime } from '@repo/utils'
 
@@ -95,7 +95,7 @@ export default function Chat() {
       {
         loading ? (
           <View className='flex-1 items-center justify-center mt-20'>
-            <ActivityIndicator color={colors.primary} />
+            <Spinner size="sm" color={colors.primary} />
           </View>
         ) : conversations.length === 0 ? (
           <View className='flex-1 items-center justify-center'>

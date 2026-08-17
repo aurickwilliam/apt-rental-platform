@@ -9,7 +9,7 @@ import {
   fetchFavoriteApartmentIds,
   insertFavorite,
   type FavoriteApartment,
-} from "@/service/favoritesService";
+} from "@/service/favorites/favoritesService";
 
 export const getFavoritesQueryKey = (tenantId: string) =>
   ["favorites", tenantId] as const;

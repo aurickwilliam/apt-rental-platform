@@ -9,7 +9,7 @@ const APARTMENT_ID = "apartment-1";
 const mockFetchApartmentDetails = jest.fn();
 const mockFetchReviewsPreview = jest.fn();
 
-jest.mock("@/service/apartmentDetailsService", () => ({
+jest.mock("@/service/apartments/apartmentDetailsService", () => ({
   fetchApartmentDetails: (...args: unknown[]) => mockFetchApartmentDetails(...args),
   fetchApartmentReviewsPreview: (...args: unknown[]) => mockFetchReviewsPreview(...args),
 }));

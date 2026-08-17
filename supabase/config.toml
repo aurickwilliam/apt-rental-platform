@@ -35,6 +35,17 @@ enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 
+# Mirrors the hosted Email Templates config (Authentication > Emails > Magic link or OTP).
+# Local dev only — hosted projects apply via the Management API or the dashboard.
+[auth.email.template.magic_link]
+subject = "Your APT verification code"
+content_path = "./supabase/templates/otp.html"
+
+# Signup verification uses the confirmation flow (sendEmailOtp -> supabase.auth.signUp).
+[auth.email.template.confirmation]
+subject = "Your APT verification code"
+content_path = "./supabase/templates/otp.html"
+
 # Edge function invoked by the mobile app with the anon key, so JWT
 # verification is enforced (default) — the key is checked, not a specific role.
 [functions.paymongo]

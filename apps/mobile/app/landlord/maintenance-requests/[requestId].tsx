@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import ImageView from "react-native-image-viewing";
 
-import { Button, Chip, Separator } from "heroui-native";
+import { Button, Chip, Separator, Spinner } from "heroui-native";
 
 import { IconHammer } from "@tabler/icons-react-native";
 
@@ -74,7 +74,7 @@ export default function MaintenanceRequestDetails() {
         className="p-5"
       >
         <View className="flex-1 items-center justify-center py-20">
-          <ActivityIndicator color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       </ScreenWrapper>
     );
