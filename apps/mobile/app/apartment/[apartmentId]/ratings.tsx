@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -12,7 +12,7 @@ import StarRating from '@/components/display/StarRating'
 import { useApartmentReviews } from 'hooks/ratings'
 import { useColors } from 'hooks/useTheme'
 
-import { Button } from 'heroui-native'
+import { Button, Spinner } from 'heroui-native'
 
 export default function RatingsPage() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -50,7 +50,7 @@ export default function RatingsPage() {
     return (
       <ScreenWrapper header={<StandardHeader title="Ratings & Reviews" />} className='p-5'>
         <View className='flex-1 items-center justify-center py-20'>
-          <ActivityIndicator size='large' color={colors.primary} />
+          <Spinner size='lg' color={colors.primary} />
         </View>
       </ScreenWrapper>
     )

@@ -3,13 +3,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 
-import { BottomSheet, Separator } from 'heroui-native'
+import { BottomSheet, Separator, Spinner } from 'heroui-native'
 
 import {
   IconCircleX,
@@ -187,7 +186,7 @@ export default function UploadDocumentField({
       {/* Upload / replace area */}
       {loading ? (
         <View className="flex-row items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4.5 bg-surface opacity-50">
-          <ActivityIndicator size="small" color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       ) : value ? (
         <TouchableOpacity

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import Divider from 'components/display/Divider'
 
-import { Button, Chip, SearchField } from "heroui-native"
+import { Button, Chip, SearchField, Spinner } from "heroui-native"
 
 import { PERKS } from 'constants/perks'
 
@@ -104,7 +104,7 @@ export default function EditPerks() {
     return (
       <ScreenWrapper header={<StandardHeader title='Edit Perks' />}>
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       </ScreenWrapper>
     )

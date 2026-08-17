@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text } from 'react-native'
 import { router, useRouter } from 'expo-router'
 import type React from 'react'
 
@@ -28,7 +28,7 @@ import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
 
-import { Button, Separator } from 'heroui-native';
+import { Button, Separator, Spinner } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
@@ -122,7 +122,7 @@ export default function Rentals() {
     return (
       <ScreenWrapper className='p-5'>
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size='large' color={colors.primary} />
+          <Spinner size='lg' color={colors.primary} />
         </View>
       </ScreenWrapper>
     );

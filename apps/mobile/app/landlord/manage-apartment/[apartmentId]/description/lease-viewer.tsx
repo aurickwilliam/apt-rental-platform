@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { View, ActivityIndicator } from 'react-native'
+import { View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { WebView } from 'react-native-webview'
+import { Spinner } from 'heroui-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -31,7 +32,7 @@ export default function LeaseViewer() {
     >
       {loading && (
         <View className="absolute inset-0 items-center justify-center z-10">
-          <ActivityIndicator color={colors.primary} />
+          <Spinner size="sm" color={colors.primary} />
         </View>
       )}
       

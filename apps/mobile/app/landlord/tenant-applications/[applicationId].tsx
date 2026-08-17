@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Text, View, ActivityIndicator } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
-import { Avatar, Button, Card, Chip, Separator } from 'heroui-native';
+import { Avatar, Button, Card, Chip, Separator, Spinner } from 'heroui-native';
 import { Mail, MapPin } from 'lucide-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
@@ -280,11 +280,11 @@ export default function TenantApplicationDetails() {
             </Text>
 
             {docsLoading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+              <Spinner size="sm" color={colors.primary} />
             ) : (
               resolvedDocs.map((doc) => (
                 <DocumentRow
-                  key={doc.path}
+                  key={doc.label}
                   label={doc.label}
                   path={doc.path}
                   signedUrl={doc.signedUrl}
