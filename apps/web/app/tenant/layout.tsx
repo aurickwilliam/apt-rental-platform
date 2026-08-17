@@ -12,7 +12,6 @@ export default function TenantLayout({
     <>
       <TenantNavbar />
         {children}
-      <Footer />   {/*I added this temporarily*/}
     </>
     
   );

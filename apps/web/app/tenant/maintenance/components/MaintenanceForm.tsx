@@ -6,6 +6,7 @@ import type { Key } from "@heroui/react";
 import {
   Card,
   ComboBox,
+  FieldError,
   Input,
   Label,
   ListBox,
@@ -13,9 +14,15 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  toast,
 } from "@heroui/react";
-import { UploadCloud, X, ImageIcon } from "lucide-react";
-import { CATEGORIES } from "../data/maintenance-data";
+import { UploadCloud, X, ImageIcon, CheckCircle2 } from "lucide-react";
+import { CATEGORIES, FORM_LIMITS } from "../data/maintenance-data";
+import {
+  saveMaintenanceRequest,
+  type MaintenanceRequestPayload,
+  type StoredMaintenanceRequest,
+} from "../lib/maintenance-store";
 
 const URGENCY_LEVELS: {
   id: "low" | "medium" | "high";
@@ -29,29 +36,117 @@ const URGENCY_LEVELS: {
   { id: "high", label: "High", bg: "#FDA4AF", text: "#E50914", ring: "#E50914" },
 ];
 
+const MAX_FILE_SIZE_BYTES = FORM_LIMITS.maxFileSizeMB * 1024 * 1024;
+
+type FormErrors = {
+  title?: string;
+  category?: string;
+  description?: string;
+  urgency?: string;
+};
+
 export default function MaintenanceForm() {
   const [title, setTitle] = useState("");
   const [categoryKey, setCategoryKey] = useState<Key | null>(null);
   const [description, setDescription] = useState("");
   const [urgency, setUrgency] = useState<"low" | "medium" | "high" | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [lastStored, setLastStored] = useState<StoredMaintenanceRequest | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const clearError = (field: keyof FormErrors) => {
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;
-    setFiles((prev) => [...prev, ...Array.from(list)]);
+    const incoming = Array.from(list);
+    const accepted: File[] = [];
+    const messages: string[] = [];
+
+    for (const file of incoming) {
+      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+        messages.push(`${file.name}: only image and video files are allowed.`);
+      } else if (file.size > MAX_FILE_SIZE_BYTES) {
+        messages.push(
+          `${file.name}: each file must be ${FORM_LIMITS.maxFileSizeMB}MB or smaller.`
+        );
+      } else {
+        accepted.push(file);
+      }
+    }
+
+    const remaining = FORM_LIMITS.maxFiles - files.length;
+    if (accepted.length > remaining) {
+      accepted.length = Math.max(remaining, 0);
+      messages.push(`You can attach up to ${FORM_LIMITS.maxFiles} files.`);
+    }
+
+    if (accepted.length > 0) {
+      setFiles((prev) => [...prev, ...accepted]);
+    }
+    setFileError(messages.length > 0 ? messages.join(" ") : null);
   };
 
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFileError(null);
+  };
+
+  const validateForm = (): FormErrors => {
+    const next: FormErrors = {};
+    if (title.trim().length < FORM_LIMITS.titleMinLength) {
+      next.title = `Title must be at least ${FORM_LIMITS.titleMinLength} characters.`;
+    }
+    if (!categoryKey) {
+      next.category = "Please select a category.";
+    }
+    if (description.trim().length < FORM_LIMITS.descriptionMinLength) {
+      next.description = `Description must be at least ${FORM_LIMITS.descriptionMinLength} characters.`;
+    }
+    if (!urgency) {
+      next.urgency = "Please select an urgency level.";
+    }
+    return next;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ title, categoryKey, description, urgency, files });
+
+    const nextErrors = validateForm();
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) {
+      toast.danger("Please fix the highlighted fields.");
+      return;
+    }
+
+    const category = CATEGORIES.find((cat) => cat.id === categoryKey);
+    const payload: MaintenanceRequestPayload = {
+      title: title.trim(),
+      categoryId: category!.id,
+      categoryLabel: category!.label,
+      description: description.trim(),
+      urgency: urgency!,
+      files: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
+    };
+
+    const stored = saveMaintenanceRequest(payload);
+    setLastStored(stored);
+    toast.success("Maintenance request submitted");
+
+    setTitle("");
+    setCategoryKey(null);
+    setDescription("");
+    setUrgency(null);
+    setFiles([]);
+    setFileError(null);
+    setErrors({});
   };
 
   return (
+    <>
     <Card className="bg-surface border border-default-200 shadow-none p-6 md:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
@@ -59,7 +154,7 @@ export default function MaintenanceForm() {
             Maintenance Details
           </p>
           <p className="text-sm text-default-500">
-            Tell us what's going on and we'll pass it along to your landlord.
+            Tell us what&apos;s going on and we&apos;ll pass it along to your landlord.
           </p>
         </div>
 
@@ -68,7 +163,11 @@ export default function MaintenanceForm() {
           isRequired
           name="issue-title"
           value={title}
-          onChange={setTitle}
+          onChange={(value) => {
+            setTitle(value);
+            clearError("title");
+          }}
+          isInvalid={!!errors.title}
         >
           <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
             Issue Title <span className="text-primary"></span>
@@ -77,6 +176,7 @@ export default function MaintenanceForm() {
             placeholder="Enter a short title for the issue..."
             style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
           />
+          <FieldError>{errors.title}</FieldError>
         </TextField>
 
         {/* Issue Category */}
@@ -85,7 +185,11 @@ export default function MaintenanceForm() {
           className="w-full"
           isRequired
           selectedKey={categoryKey}
-          onSelectionChange={setCategoryKey}
+          onSelectionChange={(key) => {
+            setCategoryKey(key);
+            clearError("category");
+          }}
+          isInvalid={!!errors.category}
         >
           {/* 2. Swapped HTML <label> to Hero UI <Label> inside <ComboBox> */}
           <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
@@ -108,6 +212,7 @@ export default function MaintenanceForm() {
               ))}
             </ListBox>
           </ComboBox.Popover>
+          <FieldError>{errors.category}</FieldError>
         </ComboBox>
 
         {/* Issue Description */}
@@ -115,7 +220,11 @@ export default function MaintenanceForm() {
           isRequired
           name="issue-description"
           value={description}
-          onChange={setDescription}
+          onChange={(value) => {
+            setDescription(value);
+            clearError("description");
+          }}
+          isInvalid={!!errors.description}
         >
           <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
             Issue Description <span className="text-primary"></span>
@@ -126,6 +235,7 @@ export default function MaintenanceForm() {
             className="resize-none"
             style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
           />
+          <FieldError>{errors.description}</FieldError>
         </TextField>
 
         {/* Urgency */}
@@ -142,6 +252,7 @@ export default function MaintenanceForm() {
             onSelectionChange={(keys) => {
               const [first] = Array.from(keys);
               setUrgency((first as "low" | "medium" | "high") ?? null);
+              clearError("urgency");
             }}
             
             className="flex flex-wrap gap-2"
@@ -161,6 +272,7 @@ export default function MaintenanceForm() {
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
+          {errors.urgency && <p className="text-xs text-danger mt-1">{errors.urgency}</p>}
         </div>
 
         {/* Add Photos or Videos */}
@@ -207,6 +319,7 @@ export default function MaintenanceForm() {
               ))}
             </ul>
           )}
+          {fileError && <p className="text-xs text-danger mt-2">{fileError}</p>}
         </div>
 
         {/* Submit */}
@@ -215,5 +328,80 @@ export default function MaintenanceForm() {
         </button>
       </form>
     </Card>
+
+    {lastStored && (
+      <Card className="bg-surface border border-default-200 shadow-none p-6 md:p-8 mt-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={20} className="text-success shrink-0" />
+            <p className="text-sm font-poppinsSemiBold text-foreground">
+              Request received & stored
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLastStored(null)}
+            aria-label="Dismiss summary"
+            className="!text-card-foreground/50 hover:!text-card-foreground transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
+          <div>
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Issue Title
+            </dt>
+            <dd className="text-foreground">{lastStored.title}</dd>
+          </div>
+          <div>
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Category
+            </dt>
+            <dd className="text-foreground">{lastStored.categoryLabel}</dd>
+          </div>
+          <div>
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Urgency
+            </dt>
+            <dd className="text-foreground">
+              {URGENCY_LEVELS.find((level) => level.id === lastStored.urgency)?.label}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Submitted
+            </dt>
+            <dd className="text-foreground">
+              {new Date(lastStored.createdAt).toLocaleString()}
+            </dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Description
+            </dt>
+            <dd className="text-foreground whitespace-pre-line">{lastStored.description}</dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+              Attachments
+            </dt>
+            <dd className="text-foreground">
+              {lastStored.files.length > 0
+                ? lastStored.files.map((file) => file.name).join(", ")
+                : "None"}
+            </dd>
+          </div>
+        </dl>
+
+        <p className="mt-4 text-xs text-default-500">
+          Stored locally in <code className="text-foreground">apt.maintenance_requests</code>{" "}
+          (frontend-only). Request ID:{" "}
+          <code className="text-foreground">{lastStored.id}</code>
+        </p>
+      </Card>
+    )}
+  </>
   );
 }
