@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Firebase (injected via EAS secret GOOGLE_SERVICES_JSON at build time)
+google-services.json
+
 # typescript
 *.tsbuildinfo
 

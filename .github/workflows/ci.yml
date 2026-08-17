@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Mobile lint
+        run: pnpm --filter mobile lint
+
+      - name: Mobile tests
+        run: pnpm --filter mobile exec jest --runInBand
