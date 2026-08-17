@@ -42,7 +42,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchManageApartmentDescription,
   getManageApartmentDescriptionQueryKey,
-} from "@/service/landlordService";
+} from "@/service/landlord/landlordService";
 
 export default function Index() {
   const router = useRouter();

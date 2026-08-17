@@ -17,7 +17,7 @@ import {
   createCardPayment,
   createCheckoutSession,
   PaymongoError,
-} from '@/service/paymongoService'
+} from '@/service/payments/paymongoService'
 
 import { validateCardInfo, type CardFormErrors } from '@repo/utils'
 

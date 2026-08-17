@@ -33,7 +33,7 @@ import { Button } from 'heroui-native';
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
 
-import { resolveMessageType } from '@/service/chatService';
+import { resolveMessageType } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;

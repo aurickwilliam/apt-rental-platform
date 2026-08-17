@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchLandlordReviews } from '@/service/reviewsService'
+import { fetchLandlordReviews } from '@/service/ratings/reviewsService'
 
-export type { LandlordReview } from '@/service/reviewsService'
+export type { LandlordReview } from '@/service/ratings/reviewsService'
 
 export const getLandlordReviewsQueryKey = (landlordId: string | undefined) =>
   ['landlord-reviews', landlordId] as const

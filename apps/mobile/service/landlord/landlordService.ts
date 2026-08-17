@@ -3,9 +3,9 @@ import { supabase } from "@repo/supabase";
 import { formatAddress } from "@repo/utils";
 import { ApartmentStatus, VALID_APARTMENT_STATUSES } from "@repo/constants";
 
-import { resolvePrivateMediaUrls } from "@/service/privateMediaResolver";
+import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
 
-import type { MaintenanceRequestStatus } from "@/service/maintenanceService";
+import type { MaintenanceRequestStatus } from "@/service/maintenance-requests/maintenanceService";
 
 export type { MaintenanceRequestStatus };
 

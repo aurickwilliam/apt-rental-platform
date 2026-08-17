@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchLandlordTenancy } from '@/service/landlordService';
+import { fetchLandlordTenancy } from '@/service/landlord/landlordService';
 
 export type {
   LandlordTenant,
   LandlordTenancyMaintenanceRequest as MaintenanceRequest,
   PaymentRecord,
-} from '@/service/landlordService';
+} from '@/service/landlord/landlordService';
 
 export const getLandlordTenancyQueryKey = (apartmentId: string | undefined) =>
   ['landlord-tenancy', apartmentId] as const;

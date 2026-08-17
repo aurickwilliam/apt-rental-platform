@@ -22,7 +22,7 @@ jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
 }));
 
-jest.mock("@/service/favoritesService", () => ({
+jest.mock("@/service/favorites/favoritesService", () => ({
   deleteFavorite: (...args: unknown[]) => mockDeleteFavorite(...args),
   fetchApartmentsByIds: (...args: unknown[]) => mockFetchApartmentsByIds(...args),
   fetchFavoriteApartmentIds: (...args: unknown[]) => mockFetchFavoriteApartmentIds(...args),

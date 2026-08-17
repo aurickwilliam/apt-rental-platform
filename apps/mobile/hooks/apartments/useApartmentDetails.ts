@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import {
   fetchApartmentDetails,
   fetchApartmentReviewsPreview,
-} from '@/service/apartmentDetailsService';
+} from '@/service/apartments/apartmentDetailsService';
 
-export type { ApartmentDetails, ReviewWithTenant } from '@/service/apartmentDetailsService';
+export type { ApartmentDetails, ReviewWithTenant } from '@/service/apartments/apartmentDetailsService';
 
 export const getApartmentDetailsQueryKey = (apartmentId: string | undefined) =>
   ['apartment-details', apartmentId] as const;

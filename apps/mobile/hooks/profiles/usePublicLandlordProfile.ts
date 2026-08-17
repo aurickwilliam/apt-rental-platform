@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useLandlordStats } from 'hooks/landlord'
 import { useLandlordReviews } from 'hooks/ratings'
-import { fetchPublicLandlordProfile } from '@/service/profilesService'
+import { fetchPublicLandlordProfile } from '@/service/profiles/profilesService'
 
-export type { LandlordProfileData } from '@/service/profilesService'
+export type { LandlordProfileData } from '@/service/profiles/profilesService'
 
 export const getPublicLandlordProfileQueryKey = (landlordId: string | undefined) =>
   ['public-landlord-profile', landlordId] as const

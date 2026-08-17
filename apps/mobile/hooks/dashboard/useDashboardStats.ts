@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchDashboardStats, type DashboardStats } from "@/service/dashboardService";
+import { fetchDashboardStats, type DashboardStats } from "@/service/dashboard/dashboardService";
 
 const EMPTY_DASHBOARD_STATS: DashboardStats = {
   totalProperties: 0,

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useCurrentUser } from 'hooks/auth';
-import { fetchTenantApplications } from '@/service/tenantApplicationsService';
+import { fetchTenantApplications } from '@/service/applications/tenantApplicationsService';
 
-export type { ApplicationDocument, TenantApplication } from '@/service/tenantApplicationsService';
+export type { ApplicationDocument, TenantApplication } from '@/service/applications/tenantApplicationsService';
 
 export const getTenantApplicationsQueryKey = (tenantId: string | undefined) =>
   ['tenant-applications', tenantId] as const;

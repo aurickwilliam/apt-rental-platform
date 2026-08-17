@@ -1,4 +1,4 @@
-import type { NotificationPreferenceType } from '@/service/notificationService';
+import type { NotificationPreferenceType } from '@/service/notifications/notificationService';
 
 export const NOTIFICATION_TYPE_LABELS: { type: NotificationPreferenceType; label: string }[] = [
   { type: 'payment', label: 'Payments' },

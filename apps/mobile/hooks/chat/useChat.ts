@@ -5,7 +5,7 @@ import { useCurrentUser } from '@/hooks/auth';
 import {
   refreshVisibleChatMediaUrls,
   retryChatMediaUrlOnce,
-} from '@/service/privateMediaResolver';
+} from '@/service/media/privateMediaResolver';
 
 import {
   fetchMessagePage,
@@ -17,8 +17,8 @@ import {
   type ChatMessageCursor,
   type Message,
   type PickedChatAsset,
-} from '../../service/chatService';
-import { mergeChatMessages } from '../../service/chatPagination';
+} from '../../service/chat/chatService';
+import { mergeChatMessages } from '../../service/chat/chatPagination';
 
 import { useChatChannel } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';

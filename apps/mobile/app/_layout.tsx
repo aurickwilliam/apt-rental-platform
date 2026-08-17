@@ -22,7 +22,7 @@ import { supabase } from "@repo/supabase";
 
 import { Appearance, View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
-import { setPrivateMediaCacheUser } from "@/service/privateMediaResolver";
+import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
 import {
   useInAppNotificationBanner,
   usePushRegistration,

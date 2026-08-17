@@ -1,6 +1,6 @@
 import type { Href } from "expo-router";
 
-import type { UserProfile } from "@/service/currentUserService";
+import type { UserProfile } from "@/service/auth/currentUserService";
 
 export interface NotificationData {
   screen?: string;

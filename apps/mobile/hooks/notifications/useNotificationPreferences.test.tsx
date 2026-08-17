@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useNotificationPreferences } from "./useNotificationPreferences";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
-import type { NotificationPreferences } from "@/service/notificationService";
+import type { NotificationPreferences } from "@/service/notifications/notificationService";
 
 const USER_ID = "user-1";
 const mockUseCurrentUser = jest.fn();
@@ -17,7 +17,7 @@ jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
 }));
 
-jest.mock("@/service/notificationService", () => ({
+jest.mock("@/service/notifications/notificationService", () => ({
   DEFAULT_NOTIFICATION_PREFERENCES: {
     notifications_enabled: true,
     payment: true,

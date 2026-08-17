@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchLandlordStats } from "@/service/landlordService";
+import { fetchLandlordStats } from "@/service/landlord/landlordService";
 
-import type { LandlordStats } from "@/service/landlordService";
+import type { LandlordStats } from "@/service/landlord/landlordService";
 
 export function useLandlordStats(landlordId: string | undefined) {
   const statsQuery = useQuery({
