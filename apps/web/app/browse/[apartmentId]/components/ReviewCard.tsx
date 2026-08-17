@@ -43,7 +43,7 @@ export default function ReviewCard({
 
   return (
     <Card className="gap-0">
-      <Card.Header className="flex gap-3">
+      <Card.Header className="flex flex-row items-center gap-3">
         <Avatar size="md">
           {reviewerAvatar && <Avatar.Image src={reviewerAvatar} alt={reviewerName} />}
           <Avatar.Fallback>

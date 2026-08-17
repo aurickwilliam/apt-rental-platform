@@ -2,13 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-import { Button, Card, Dropdown, Label, Separator } from "@heroui/react";
+import { Button, Card, Dropdown, Label } from "@heroui/react";
 import { ChevronDown } from "lucide-react";
 
 import BackBtn from "../components/BackBtn";
+import RatingBreakdown from "../components/RatingBreakdown";
 import ReviewCard from "../components/ReviewCard";
-import RatingSummary from "./components/RatingSummary";
-import RatingBreakdown from "./components/RatingBreakdown";
 
 type ReviewSortOption = "Most Recent" | "Highest Rating" | "Lowest Rating";
 
@@ -109,6 +108,9 @@ const RATINGS_COUNT = [
   { rating: 1, ratingCount: 0 },
 ];
 
+const countFor = (rating: number) =>
+  RATINGS_COUNT.find((r) => r.rating === rating)?.ratingCount ?? 0;
+
 function formatReviewDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
@@ -144,13 +146,14 @@ export default function RatingsPage() {
       </div>
 
       <Card className="mt-6 p-6 md:p-8">
-        <RatingSummary overallRate={OVERALL_RATING} totalReviews={TOTAL_REVIEWS} />
-
-        <Separator className="my-6" />
-
         <RatingBreakdown
-          ratingsCount={RATINGS_COUNT}
+          overallRate={OVERALL_RATING}
           totalReviews={TOTAL_REVIEWS}
+          no5Star={countFor(5)}
+          no4Star={countFor(4)}
+          no3Star={countFor(3)}
+          no2Star={countFor(2)}
+          no1Star={countFor(1)}
         />
       </Card>
 
@@ -180,18 +183,19 @@ export default function RatingsPage() {
         </Dropdown>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="mt-5 columns-1 gap-3 md:columns-2">
         {sortedReviews.map((review) => (
-          <ReviewCard
-            key={review.id}
-            reviewerName={review.name}
-            reviewerAvatar={review.profilePictureUrl}
-            reviewDate={formatReviewDate(review.date)}
-            reviewText={review.review}
-            stayPeriod={review.durationOfStay}
-            rating={review.rating}
-            images={review.images}
-          />
+          <div key={review.id} className="mb-3 break-inside-avoid">
+            <ReviewCard
+              reviewerName={review.name}
+              reviewerAvatar={review.profilePictureUrl}
+              reviewDate={formatReviewDate(review.date)}
+              reviewText={review.review}
+              stayPeriod={review.durationOfStay}
+              rating={review.rating}
+              images={review.images}
+            />
+          </div>
         ))}
       </div>
     </div>
