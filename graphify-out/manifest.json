@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/dashboard.tsx": {
-    "mtime": 1786951072.4804308,
-    "ast_hash": "2a7caa121c5b9ee47d8e28b8c7db3e83",
+    "mtime": 1786952477.8797677,
+    "ast_hash": "6af353a49b5108c77eb01b87fd208912",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/profile.tsx": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/units.tsx": {
-    "mtime": 1786628242.288327,
-    "ast_hash": "d1b87f69e2c53d0c8ef1647faed88a17",
+    "mtime": 1786952616.901952,
+    "ast_hash": "850736f696b227a7a92a9e5a0544d1aa",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/_layout.tsx": {
@@ -265,13 +265,13 @@
     "semantic_hash": "665b62de075675fdf7853e7497f1c827"
   },
   "apps/mobile/app/(tabs)/components/dashboard/ProfitByPropertyCard.tsx": {
-    "mtime": 1786950793.7837236,
-    "ast_hash": "ed54852c4a50c4767133bff39f963b0f",
+    "mtime": 1786952460.098289,
+    "ast_hash": "af0fe01748444cabaf128e0ce4cc32b6",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/ProfitTrendCard.tsx": {
-    "mtime": 1786950786.3282926,
-    "ast_hash": "16644aa3b5354d3aa539afde946be83b",
+    "mtime": 1786952451.9292588,
+    "ast_hash": "fde61d3250cdfcd67588d5190fc5218f",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/RentDueCard.tsx": {
@@ -2705,8 +2705,8 @@
     "semantic_hash": "3f166c0526796d745a39384bcde66082"
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1786939937.0332756,
-    "ast_hash": "e920d3f89db06171b4a632e9775e7b60",
+    "mtime": 1786952534.1825554,
+    "ast_hash": "51a284af02f519a6fb152533ef308212",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -3505,13 +3505,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/dashboard/index.ts": {
-    "mtime": 1786949477.8260968,
-    "ast_hash": "3160b11de91e6cdbe18f79e14feff304",
-    "semantic_hash": ""
-  },
-  "apps/mobile/hooks/dashboard/useDashboardStats.ts": {
-    "mtime": 1786946467.771655,
-    "ast_hash": "3d2f21c67661f920fc3f0fd1134d8ff0",
+    "mtime": 1786952434.5349193,
+    "ast_hash": "256f174e30ecab561a5b7733d6c9047f",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/favorites/useFavorites.test.tsx": {
@@ -3835,13 +3830,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/dashboard/dashboardService.test.ts": {
-    "mtime": 1786949730.8854215,
-    "ast_hash": "c8b7dd48e7826ba8d6ddb3f9064d1c2a",
+    "mtime": 1786952489.8332946,
+    "ast_hash": "223913833e9b2c49b46afbd5bfccf22e",
     "semantic_hash": ""
   },
   "apps/mobile/service/dashboard/dashboardService.ts": {
-    "mtime": 1786949557.7558634,
-    "ast_hash": "cd40fadb513a4413b225e72e2d821e87",
+    "mtime": 1786952549.590321,
+    "ast_hash": "0d655601221c600830be362f08f8b260",
     "semantic_hash": ""
   },
   "apps/mobile/service/favorites/favoritesService.ts": {
@@ -3904,24 +3899,24 @@
     "ast_hash": "637839d1a90e6d59d77c0aca27ba637a",
     "semantic_hash": ""
   },
-  "apps/mobile/hooks/dashboard/useMonthlyRevenue.ts": {
-    "mtime": 1786949475.1183016,
-    "ast_hash": "23b7ae82cd37880b4ddc8e96df336650",
-    "semantic_hash": ""
-  },
-  "apps/mobile/hooks/dashboard/useRentDues.ts": {
-    "mtime": 1786949476.994976,
-    "ast_hash": "8c5010e44bb3f20bef57a6bf4cd0d1f4",
-    "semantic_hash": ""
-  },
-  "apps/mobile/hooks/dashboard/useRevenueByProperty.ts": {
-    "mtime": 1786949476.0904074,
-    "ast_hash": "a9a8f996a68dfbd1f35efd854a6f1048",
-    "semantic_hash": ""
-  },
   "apps/mobile/components/display/EmptyState.tsx": {
     "mtime": 1786950570.3980377,
     "ast_hash": "681ccd3a4855c9e592234358c91925a2",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/dashboard/DashboardSkeleton.tsx": {
+    "mtime": 1786952801.422792,
+    "ast_hash": "2a64d33cbbd98c456cf708a4cf065b21",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/dashboard/useDashboardData.ts": {
+    "mtime": 1786952430.2545526,
+    "ast_hash": "6a66ca3d854deff38be58b4a5b4b42ce",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260817020000_get_landlord_dashboard.sql": {
+    "mtime": 1786952335.7189867,
+    "ast_hash": "d88169882f5cea3bf3cab3d0be9b02cd",
     "semantic_hash": ""
   }
 }

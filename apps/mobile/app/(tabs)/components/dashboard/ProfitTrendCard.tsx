@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text } from "react-native";
 import { useState } from "react";
 import { LineChart } from "react-native-gifted-charts";
 import { IconChartLine } from "@tabler/icons-react-native";
@@ -6,37 +6,38 @@ import { IconChartLine } from "@tabler/icons-react-native";
 import DropdownButton from "@/components/buttons/DropdownButton";
 import EmptyState from "@/components/display/EmptyState";
 
-import { useMonthlyRevenue } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
 
-import type { MonthlyRevenuePoint } from "@/service/dashboard/dashboardService";
+import {
+  monthLabel,
+  type MonthlyRevenuePoint,
+} from "@/service/dashboard/dashboardService";
 
 const filterOptions: FilterOption[] = ["Monthly", "Quarterly", "Yearly"];
 type FilterOption = "Monthly" | "Quarterly" | "Yearly";
 
 type ChartDatum = { value: number; label: string };
 
-function monthDateIndexes(points: MonthlyRevenuePoint[]): { year: number; monthIndex: number }[] {
-  const now = new Date();
-  const total = points.length;
-  return points.map((_, i) => {
-    const date = new Date(now.getFullYear(), now.getMonth() - (total - 1 - i), 1);
-    return { year: date.getFullYear(), monthIndex: date.getMonth() };
-  });
+interface ProfitTrendCardProps {
+  monthlyRevenue: MonthlyRevenuePoint[];
 }
 
 function toMonthly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  return points.map((point) => ({ value: point.amount, label: point.month }));
+  return points.map((point) => ({
+    value: point.amount,
+    label: monthLabel(point.month),
+  }));
 }
 
 function toQuarterly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<string, { value: number; label: string }>();
-  monthDateIndexes(points).forEach(({ year, monthIndex }, i) => {
-    const quarter = Math.floor(monthIndex / 3);
+  const totals = new Map<string, ChartDatum>();
+  points.forEach((point) => {
+    const year = point.month.slice(0, 4);
+    const quarter = Math.floor((Number(point.month.slice(5, 7)) - 1) / 3);
     const key = `${year}-${quarter}`;
     const current = totals.get(key);
     totals.set(key, {
-      value: (current?.value ?? 0) + points[i].amount,
+      value: (current?.value ?? 0) + point.amount,
       label: `Q${quarter + 1}`,
     });
   });
@@ -44,12 +45,13 @@ function toQuarterly(points: MonthlyRevenuePoint[]): ChartDatum[] {
 }
 
 function toYearly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<number, ChartDatum>();
-  monthDateIndexes(points).forEach(({ year }, i) => {
+  const totals = new Map<string, ChartDatum>();
+  points.forEach((point) => {
+    const year = point.month.slice(0, 4);
     const current = totals.get(year);
     totals.set(year, {
-      value: (current?.value ?? 0) + points[i].amount,
-      label: String(year),
+      value: (current?.value ?? 0) + point.amount,
+      label: year,
     });
   });
   return [...totals.values()];
@@ -61,13 +63,12 @@ const BUILDERS: Record<FilterOption, (points: MonthlyRevenuePoint[]) => ChartDat
   Yearly: toYearly,
 };
 
-export default function ProfitTrendCard() {
+export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps) {
   const { colors } = useColors();
 
-  const { data = [], isLoading } = useMonthlyRevenue();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Monthly");
 
-  const chartData = BUILDERS[selectedFilter](data);
+  const chartData = BUILDERS[selectedFilter](monthlyRevenue);
   const maxValue = chartData.reduce((max, datum) => Math.max(max, datum.value), 0);
   const hasRevenue = chartData.some((datum) => datum.value > 0);
 
@@ -94,11 +95,7 @@ export default function ProfitTrendCard() {
 
       {/* CHART */}
       <View className="mt-4 overflow-hidden">
-        {isLoading ? (
-          <View className="h-45 items-center justify-center">
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : !hasRevenue ? (
+        {!hasRevenue ? (
           <EmptyState
             icon={<IconChartLine size={36} color={colors.gray500} />}
             title="No earnings yet"

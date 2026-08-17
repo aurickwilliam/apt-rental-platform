@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { View, Text, Image, ActivityIndicator } from "react-native";
+import { View, Text, Image } from "react-native";
 import { useRouter } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
@@ -12,10 +12,11 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
 import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
+import DashboardSkeleton from "./../components/dashboard/DashboardSkeleton";
 import EmptyProperties from "./../components/units/EmptyProperties";
 import EmptyState from "@/components/display/EmptyState";
 
-import { useDashboardStats, useMonthlyRevenue, useRentDues } from "@/hooks/dashboard";
+import { useDashboardData } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";
@@ -28,19 +29,18 @@ import {
 export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColors();
-  const { stats, loading, error } = useDashboardStats();
-  const { data: rentDues = [], isLoading: rentDuesLoading } = useRentDues();
-  const { data: monthlyRevenue = [], isLoading: revenueLoading } = useMonthlyRevenue();
+  const { data, isLoading, error } = useDashboardData();
+  const { stats, monthlyRevenue, revenueByProperty, rentDues } = data;
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching dashboard stats:", error);
+      console.error("Error fetching dashboard data:", error);
     }
   }, [error]);
 
   const totalDue = rentDues.reduce((sum, rent) => sum + rent.amount, 0);
   const hasAnyRevenue = monthlyRevenue.some((point) => point.amount > 0);
-  const showCombinedChartEmpty = !revenueLoading && !hasAnyRevenue;
+  const showCombinedChartEmpty = !hasAnyRevenue;
 
   return (
     <ScreenWrapper
@@ -65,12 +65,8 @@ export default function Dashboard() {
         </Button>
       </View>
 
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={colors.primary}
-          className="my-6"
-        />
+      {isLoading ? (
+        <DashboardSkeleton />
       ) : stats.totalProperties === 0 ? (
         <EmptyProperties
           onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
@@ -130,8 +126,8 @@ export default function Dashboard() {
               </View>
             ) : (
               <>
-                <ProfitTrendCard />
-                <ProfitByPropertyCard />
+                <ProfitTrendCard monthlyRevenue={monthlyRevenue} />
+                <ProfitByPropertyCard revenueByProperty={revenueByProperty} />
               </>
             )}
           </View>
@@ -148,15 +144,13 @@ export default function Dashboard() {
               </View>
             </View>
 
-            {rentDuesLoading ? (
-              <ActivityIndicator size="large" color={colors.primary} className="my-6" />
-            ) : rentDues.length === 0 ? (
+            {rentDues.length === 0 ? (
               <View className="items-center py-10 gap-2">
                 <Text className="text-gray-400 font-interSemiBold">
                   No upcoming rent dues
                 </Text>
                 <Text className="text-gray-400 text-sm font-inter text-center px-8">
-                  You&apos;re all caught up, new dues will appear here as they come due.
+                  You&apos;re all caught up — new dues will appear here as they come due.
                 </Text>
               </View>
             ) : (

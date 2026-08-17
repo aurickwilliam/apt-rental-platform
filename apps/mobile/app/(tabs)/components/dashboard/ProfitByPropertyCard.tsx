@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text } from "react-native";
 import { useState } from "react";
 import { BarChart } from "react-native-gifted-charts";
 import { IconChartBar } from "@tabler/icons-react-native";
@@ -8,8 +8,13 @@ import EmptyState from "@/components/display/EmptyState";
 
 import { MONTHS } from "@repo/constants";
 
-import { useRevenueByProperty } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
+
+import type { PropertyRevenue } from "@/service/dashboard/dashboardService";
+
+interface ProfitByPropertyCardProps {
+  revenueByProperty: PropertyRevenue[];
+}
 
 function chartLabel(name: string): string {
   const words = name.split(" ");
@@ -22,7 +27,9 @@ function chartLabel(name: string): string {
   return name.length > 12 ? `${name.slice(0, 11)}…` : name;
 }
 
-export default function ProfitByPropertyCard() {
+export default function ProfitByPropertyCard({
+  revenueByProperty,
+}: ProfitByPropertyCardProps) {
   const { colors } = useColors();
 
   const now = new Date();
@@ -33,14 +40,16 @@ export default function ProfitByPropertyCard() {
 
   const monthIndex = MONTHS.indexOf(selectedMonth);
   const year = monthIndex > currentMonthIndex ? currentYear - 1 : currentYear;
+  const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
-  const { data = [], isLoading } = useRevenueByProperty(year, monthIndex);
+  const chartData = revenueByProperty
+    .map((entry) => ({
+      value: entry.months.find((month) => month.month === monthKey)?.amount ?? 0,
+      label: chartLabel(entry.apartmentName),
+      frontColor: colors.primary,
+    }))
+    .filter((datum) => datum.value > 0);
 
-  const chartData = data.map((entry) => ({
-    value: entry.amount,
-    label: chartLabel(entry.apartmentName),
-    frontColor: colors.primary,
-  }));
   const maxValue = chartData.reduce((max, datum) => Math.max(max, datum.value), 0);
 
   return (
@@ -63,11 +72,7 @@ export default function ProfitByPropertyCard() {
 
       {/* CHART */}
       <View className="mt-4 overflow-hidden">
-        {isLoading ? (
-          <View className="h-45 items-center justify-center">
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : chartData.length === 0 ? (
+        {chartData.length === 0 ? (
           <EmptyState
             icon={<IconChartBar size={36} color={colors.gray500} />}
             title="No earnings this month"
