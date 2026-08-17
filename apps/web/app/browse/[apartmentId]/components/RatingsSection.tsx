@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { Meter, Button } from "@heroui/react"
 
 import { Star } from "lucide-react";
 
 interface RatingSectionProps {
+  apartmentId: string;
   overallRate: number;
   totalReviews: number;
   no5Star: number;
@@ -15,6 +18,7 @@ interface RatingSectionProps {
 }
 
 export default function RatingSection({
+  apartmentId,
   overallRate,
   totalReviews,
   no5Star,
@@ -23,6 +27,7 @@ export default function RatingSection({
   no2Star,
   no1Star
 }: RatingSectionProps) {
+  const router = useRouter();
 
   return (
     <div>
@@ -34,9 +39,7 @@ export default function RatingSection({
         <Button
           size="sm"
           variant="ghost"
-          onPress={() => {
-            alert("SEE ALL REVIEWS");
-          }}
+          onPress={() => router.push(`/browse/${apartmentId}/ratings`)}
           className="-mr-3 text-secondary"
         >
           See all reviews
