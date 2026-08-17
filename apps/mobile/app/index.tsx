@@ -1,14 +1,12 @@
-import { View, ActivityIndicator } from "react-native";
+import { View } from "react-native";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
-import { useColors } from "hooks/useTheme";
-
-export default function Index() {  
-  const {colors} = useColors();
+export default function Index() {
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -38,28 +36,31 @@ export default function Index() {
     // Listen to auth state — fires once session is restored from storage
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        const wentToOnboarding = await checkOnboarding();
-        if (wentToOnboarding) {
-          subscription.unsubscribe();
-          return;
-        }
+        try {
+          const wentToOnboarding = await checkOnboarding();
+          if (wentToOnboarding) {
+            return;
+          }
 
-        if (!session) {
+          if (!session) {
+            router.replace("/sign-in");
+          } else {
+            await redirectByRole(session.user.id);
+          }
+        } catch (error) {
+          console.error("Error during app boot:", error);
           router.replace("/sign-in");
-        } else {
-          await redirectByRole(session.user.id);
+        } finally {
+          subscription.unsubscribe();
         }
-
-        subscription.unsubscribe();
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  return (
-    <View className="bg-background flex-1 justify-center items-center">
-      <ActivityIndicator size="large" color={colors.primary} />
-    </View>
-  );
+  // Splash-colored backdrop while the boot redirect runs — no spinner, so
+  // the splash-to-home transition is seamless (also covers JS reloads, where
+  // the native splash does not re-appear)
+  return <View style={{ flex: 1, backgroundColor: COLORS.light.primary }} />;
 }

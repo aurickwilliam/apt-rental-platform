@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 
+import { COLORS } from '@repo/constants';
+
 import { useProfile } from 'hooks/auth';
-import { useColors } from 'hooks/useTheme';
 
 export default function TabsLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { profile, loading } = useProfile();
-  const { colors } = useColors();
 
   useEffect(() => {
     if (loading || !profile?.role) return;
@@ -27,11 +27,9 @@ export default function TabsLayout() {
   }, [profile, loading, router, segments]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    // Splash-colored backdrop while the profile loads — no spinner, so the
+    // splash-to-home transition is seamless
+    return <View style={{ flex: 1, backgroundColor: COLORS.light.primary }} />;
   }
 
   return (

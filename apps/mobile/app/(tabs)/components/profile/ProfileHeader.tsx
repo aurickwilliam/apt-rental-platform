@@ -72,7 +72,7 @@ export default function ProfileHeader({
   };
 
   return (
-    <View className="relative">
+    <View className="relative mb-3">
       {/* Background Photo */}
       <View
         style={{ marginTop: -insets.top, height: 180 + insets.top }}
