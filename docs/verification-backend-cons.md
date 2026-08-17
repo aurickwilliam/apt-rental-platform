@@ -4,8 +4,6 @@ Companion to the UI-fix plan. Captures the backend/flow cons identified during t
 verification-flow audit (2026-08). The UI fixes are done; this document lists the
 backend work to be implemented later.
 
-Related: `docs/AUDIT_REPORT.md` (architecture/performance audit).
-
 ---
 
 ## Backend Cons

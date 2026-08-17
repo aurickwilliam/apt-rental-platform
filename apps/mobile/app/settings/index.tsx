@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -20,15 +20,19 @@ import {
   ShieldCheck,
   UsersRound,
 } from 'lucide-react-native';
+import type { Icon } from '@tabler/icons-react-native';
+import { IconChevronRight } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
+import { useNotificationPreferences } from '@/hooks/notifications'
 
 type SettingItem = {
-  icon: LucideIcon
+  icon: LucideIcon | Icon
   title: string
   onPress?: () => void
   disabled?: boolean
   suffix?: React.ReactNode
+  iconColor?: string
 }
 
 type SettingSection = {
@@ -40,7 +44,15 @@ export default function Index() {
   const router = useRouter()
   const { colors, isDark, toggleTheme } = useTheme();
 
-  const [hasNotification, setHasNotification] = useState(false)
+  const { preferences } = useNotificationPreferences();
+
+  // Both masters on → "On", both off → "Off", mixed → "Partial".
+  const notificationSummary =
+    preferences.notifications_enabled && preferences.push_enabled
+      ? 'On'
+      : !preferences.notifications_enabled && !preferences.push_enabled
+        ? 'Off'
+        : 'Partial';
 
   const sections: SettingSection[] = [
     {
@@ -69,12 +81,14 @@ export default function Index() {
         {
           icon: Bell,
           title: 'Notifications',
-          disabled: true,
+          onPress: () => router.push('/settings/notifications'),
           suffix: (
-            <Switch
-              isSelected={hasNotification}
-              onSelectedChange={setHasNotification}
-            />
+            <View className="flex-row items-center gap-1">
+              <Text className='text-muted text-sm font-inter'>
+                {notificationSummary}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
           ),
         },
         {
@@ -142,7 +156,7 @@ export default function Index() {
 
                 <ListGroup.Item onPress={item.onPress} disabled={item.disabled}>
                   <ListGroup.ItemPrefix>
-                    <item.icon size={20} color={colors.textPrimary} />
+                    <item.icon size={20} color={item.iconColor ?? colors.textPrimary} />
                   </ListGroup.ItemPrefix>
 
                   <ListGroup.ItemContent>

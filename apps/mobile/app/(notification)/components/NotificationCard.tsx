@@ -1,22 +1,17 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
-import {
-  IconUserCog,
-  IconMessage,
-  IconCashBanknote,
-  IconHammer,
-  IconHome,
-  IconInfoCircle,
-} from '@tabler/icons-react-native';
+import { getNotificationTypeIcon, useNotificationTypeColor } from '@/hooks/notifications';
+import type { NotificationType } from '@/service/notificationService';
 
-import { useColors } from '@/hooks/useTheme';
+export type NotificationCardType = NotificationType;
 
 interface NotificationCardProps {
   title: string;
-  type: 'payment' | 'message' | 'maintenance' | 'apartment' | 'system';
+  type: NotificationCardType;
   message?: string;
   date?: string;
+  unread?: boolean;
   onPress?: () => void;
 }
 
@@ -25,42 +20,37 @@ export default function NotificationCard({
   type = "system",
   message = "New Message",
   date = "0/0/0000",
+  unread = false,
   onPress,
 }: NotificationCardProps) {
-  const { colors } = useColors();
+  const { getColor } = useNotificationTypeColor();
 
-  const iconMap = {
-    payment: IconCashBanknote,
-    message: IconMessage,
-    maintenance: IconHammer,
-    apartment: IconHome,
-    system: IconUserCog,
-  }
-
-  const colorMap = {
-    payment: colors.success,
-    message: colors.primary,
-    maintenance: colors.warning,
-    apartment: colors.primary,
-    system: colors.gray500,
-  }
-
-  const Icon = iconMap[type] ?? IconInfoCircle;
-  const iconColor = colorMap[type] ?? colors.gray500;
+  const Icon = getNotificationTypeIcon(type);
+  const iconColor = getColor(type);
 
   return (
-    <TouchableOpacity 
-      activeOpacity={0.7} 
+    <TouchableOpacity
+      activeOpacity={0.7}
       onPress={onPress}
     >
-      <Card className="bg-surface rounded-3xl border border-border p-4 shadow-none">
+      <Card
+        className={
+          unread
+            ? "bg-surface rounded-3xl border border-primary/30 p-4 shadow-none"
+            : "bg-surface rounded-3xl border border-border p-4 shadow-none"
+        }
+      >
         <Card.Header>
           <View className="flex-row items-center gap-2">
             <Icon size={20} color={iconColor} />
 
-            <Card.Title className="text-base font-interMedium">
+            <Card.Title className={`flex-1 text-base ${unread ? "font-interSemiBold" : "font-interMedium"}`}>
               {title}
             </Card.Title>
+
+            {unread && (
+              <View className="h-2.5 w-2.5 rounded-full bg-primary" />
+            )}
           </View>
         </Card.Header>
 

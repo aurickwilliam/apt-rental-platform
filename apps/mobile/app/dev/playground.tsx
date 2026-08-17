@@ -123,6 +123,7 @@ export default function DevNavScreen() {
       <Section title="Notifications">
         <LinkRow label="Landlord Notifications" route="/landlord-notif" />
         <LinkRow label="Tenant Notifications" route="/tenant-notif" />
+        <LinkRow label="Notification Toasts (mock)" route="/dev/notification-toast" />
       </Section>
 
       <Section title="Chat">

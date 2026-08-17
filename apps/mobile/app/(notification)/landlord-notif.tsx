@@ -1,9 +1,5 @@
-import { View, Text } from 'react-native'
+import NotificationScreen from '@/app/(notification)/components/NotificationScreen';
 
 export default function LandlordNotification() {
-  return (
-    <View>
-      <Text>LandlordNotification</Text>
-    </View>
-  )
+  return <NotificationScreen title="Notification" />
 }

@@ -30,6 +30,7 @@
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.aurickwilliam.apt",
+      "googleServicesFile": "./google-services.json",
       "permissions": ["android.permission.CAMERA"]
     },
     "web": {
@@ -53,6 +54,14 @@
         }
       ],
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#376BF5",
+          "defaultChannel": "default",
+          "sounds": []
+        }
+      ],
       "@maplibre/maplibre-react-native",
       "@react-native-community/datetimepicker",
       "expo-web-browser",

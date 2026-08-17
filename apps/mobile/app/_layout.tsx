@@ -23,9 +23,22 @@ import { supabase } from "@repo/supabase";
 import { Appearance, View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { setPrivateMediaCacheUser } from "@/service/privateMediaResolver";
+import {
+  useInAppNotificationBanner,
+  usePushRegistration,
+  useNotificationTapHandler,
+} from "@/hooks/notifications";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
 import DevBadge from '../components/dev/DevBadge';
+
+function NotificationManager() {
+  usePushRegistration();
+  useNotificationTapHandler();
+  useInAppNotificationBanner();
+
+  return null;
+}
 
 function ThemeInitializer() {
   const { themeMode } = useThemeStore();
@@ -96,6 +109,7 @@ export default function RootLayout() {
       <QueryProvider>
         <ThemeInitializer />
         <HeroUINativeProvider>
+          <NotificationManager />
           <PortalProvider>
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <BottomSheetModalProvider>
@@ -117,6 +131,7 @@ export default function RootLayout() {
                   <Stack.Screen name="edit-profile" />
                   <Stack.Screen name="dev/giphy" />
                   <Stack.Screen name="dev/playground" />
+                  <Stack.Screen name="dev/notification-toast" />
                 </Stack>
                 <PortalHost name="root" />
                 <DevBadge />

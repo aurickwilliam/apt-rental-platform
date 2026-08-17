@@ -23,6 +23,7 @@ export default function GiphyPicker({
 }: GiphyPickerProps) {
   const onSelectRef = useRef(onSelect);
   const onCloseRef = useRef(onClose);
+  const hasShownRef = useRef(false);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -56,8 +57,9 @@ export default function GiphyPicker({
 
   useEffect(() => {
     if (visible) {
+      hasShownRef.current = true;
       GiphyDialog.show();
-    } else {
+    } else if (hasShownRef.current) {
       GiphyDialog.hide();
     }
 
