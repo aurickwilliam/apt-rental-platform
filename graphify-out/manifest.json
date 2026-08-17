@@ -3349,14 +3349,9 @@
     "ast_hash": "17b8b2e4a7eca1bc6784896557cf4540",
     "semantic_hash": ""
   },
-  "docs/AUDIT_REPORT.md": {
-    "mtime": 1786538774.7794783,
-    "ast_hash": "6b50fac7db90c5ce9ddec16de9120400",
-    "semantic_hash": ""
-  },
   "docs/verification-backend-cons.md": {
-    "mtime": 1786538774.779924,
-    "ast_hash": "d6ab348f507fd2936a3e09dad0b4a936",
+    "mtime": 1786932200.182396,
+    "ast_hash": "7c223960038367368afdb0f464222545",
     "semantic_hash": ""
   },
   ".kiro/specs/id-verification-capture/requirements.md": {
@@ -3902,6 +3897,11 @@
   "supabase/migrations/20260817010000_notification_preference_channels.sql": {
     "mtime": 1786893041.4923694,
     "ast_hash": "90003cf5d772668d29cefcc6313050e9",
+    "semantic_hash": ""
+  },
+  "docs/ios-push-notifications.md": {
+    "mtime": 1786932213.9698246,
+    "ast_hash": "24548325fef226e662f7c263804649d8",
     "semantic_hash": ""
   }
 }
