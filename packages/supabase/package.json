@@ -15,7 +15,7 @@
     "@supabase/ssr": "^0.9.0"
   },
   "peerDependencies": {
-    "next": ">=14",
+    "next": ">=16.2.12",
     "react-native": ">=0.70.0",
     "@react-native-async-storage/async-storage": ">=1.17.0"
   },
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.19.26",
-    "next": ">=14",
+    "next": ">=16.2.12",
     "typescript": "^5.3.3"
   }
 }
