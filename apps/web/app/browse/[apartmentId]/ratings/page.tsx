@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import { useParams, useRouter } from "next/navigation";
+
 import { Button, Card, Dropdown, Label } from "@heroui/react";
 import { ChevronDown } from "lucide-react";
 
@@ -120,6 +122,9 @@ function formatReviewDate(iso: string): string {
 }
 
 export default function RatingsPage() {
+  const router = useRouter();
+  const { apartmentId } = useParams<{ apartmentId: string }>();
+
   const [sortBy, setSortBy] = useState<ReviewSortOption>("Most Recent");
 
   const sortedReviews = useMemo(() => {
@@ -160,11 +165,19 @@ export default function RatingsPage() {
       <div className="mt-10 flex items-center justify-between gap-4">
         <h2 className="text-lg font-medium">Tenant Reviews</h2>
 
-        <Dropdown>
-          <Button variant="outline" size="sm" className="h-9 rounded-full">
-            {sortBy}
-            <ChevronDown size={16} />
+        <div className="flex items-center gap-3">
+          <Button
+            size="sm"
+            onPress={() => router.push(`/browse/${apartmentId}/rate-apartment`)}
+          >
+            Write a Review
           </Button>
+
+          <Dropdown>
+            <Button variant="outline" size="sm" className="h-9 rounded-full">
+              {sortBy}
+              <ChevronDown size={16} />
+            </Button>
 
           <Dropdown.Popover>
             <Dropdown.Menu
@@ -180,7 +193,8 @@ export default function RatingsPage() {
               ))}
             </Dropdown.Menu>
           </Dropdown.Popover>
-        </Dropdown>
+          </Dropdown>
+        </div>
       </div>
 
       <div className="mt-5 columns-1 gap-3 md:columns-2">
