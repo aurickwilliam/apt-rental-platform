@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { resolvePrivateMediaUrls } from '@/service/privateMediaResolver';
+import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
 
 type DocEntry = { label: string; path: string | null };
 type ResolvedDoc = { label: string; path: string; signedUrl: string | null };

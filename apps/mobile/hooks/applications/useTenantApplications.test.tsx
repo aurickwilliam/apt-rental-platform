@@ -14,7 +14,7 @@ jest.mock("hooks/auth", () => ({
   useProfile: () => ({ profile: { id: TENANT_ID }, loading: false }),
 }));
 
-jest.mock("@/service/tenantApplicationsService", () => ({
+jest.mock("@/service/applications/tenantApplicationsService", () => ({
   fetchTenantApplications: (...args: unknown[]) => mockFetchTenantApplications(...args),
 }));
 

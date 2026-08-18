@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 
-import { clearPrivateMediaUrlCache } from "@/service/privateMediaCache";
+import { clearPrivateMediaUrlCache } from "@/service/media/privateMediaCache";
 
 export const CURRENT_USER_QUERY_KEY = ["current-user"] as const;
 export const MOBILE_QUERY_STALE_TIME = 30_000;

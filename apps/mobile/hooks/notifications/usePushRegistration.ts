@@ -8,7 +8,7 @@ import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
-import { deletePushToken, upsertPushToken } from "@/service/notificationService";
+import { deletePushToken, upsertPushToken } from "@/service/notifications/notificationService";
 
 // Foreground presentation: in-app toasts handle the visible banner while the
 // app is open, so the OS banner/list are suppressed here. Sound is kept for an

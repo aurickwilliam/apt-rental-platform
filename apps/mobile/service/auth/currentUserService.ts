@@ -1,6 +1,6 @@
 import { supabase, type Database } from "@repo/supabase";
 
-import { setPrivateMediaCacheUser } from "./privateMediaResolver";
+import { setPrivateMediaCacheUser } from "../media/privateMediaResolver";
 
 export type UserProfile = Pick<
   Database["public"]["Tables"]["users"]["Row"],

@@ -96,7 +96,7 @@ export default function Units() {
   return (
     <ScreenWrapper className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       {/* Header */}
-      <Text className="text-secondary text-3xl font-nunitoSemiBold">
+      <Text className="text-foreground text-3xl font-nunitoSemiBold">
         My Properties
       </Text>
 

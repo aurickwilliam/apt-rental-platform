@@ -21,7 +21,7 @@ jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
 }));
 
-jest.mock("@/service/tenancyService", () => ({
+jest.mock("@/service/tenancy/tenancyService", () => ({
   fetchTenancy: (...args: unknown[]) => mockFetchTenancy(...args),
 }));
 

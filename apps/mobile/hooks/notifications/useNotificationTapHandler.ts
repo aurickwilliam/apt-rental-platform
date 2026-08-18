@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { markNotificationRead } from "@/service/notificationService";
+import { markNotificationRead } from "@/service/notifications/notificationService";
 import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
 
 /**

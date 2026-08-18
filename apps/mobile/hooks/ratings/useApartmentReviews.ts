@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { formatDate } from '@repo/utils'
 
 import { useReviewEligibility } from './useReviewEligibility'
-import { fetchApartmentReviews, getReviewImageUrls } from '@/service/reviewsService'
+import { fetchApartmentReviews, getReviewImageUrls } from '@/service/ratings/reviewsService'
 
-import type { ApartmentReviewRow } from '@/service/reviewsService'
+import type { ApartmentReviewRow } from '@/service/ratings/reviewsService'
 
 export type ReviewSortOption = 'Most Recent' | 'Highest Rating' | 'Lowest Rating'
 

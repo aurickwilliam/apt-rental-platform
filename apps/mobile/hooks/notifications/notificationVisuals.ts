@@ -10,7 +10,7 @@ import {
 
 import { useColors } from "@/hooks/useTheme";
 
-import type { NotificationType } from "@/service/notificationService";
+import type { NotificationType } from "@/service/notifications/notificationService";
 
 const iconMap: Record<NotificationType, Icon> = {
   payment: IconCashBanknote,

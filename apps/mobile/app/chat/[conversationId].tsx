@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   View,
   KeyboardAvoidingView,
   FlatList,
@@ -28,12 +27,12 @@ import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 
-import { Button } from 'heroui-native';
+import { Button, Spinner } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
 
-import { resolveMessageType } from '@/service/chatService';
+import { resolveMessageType } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
@@ -349,7 +348,7 @@ export default function ChatScreen() {
                 <>
                   {loadingMore && (
                     <View className="py-3 items-center">
-                      <ActivityIndicator color={colors.primary} />
+                      <Spinner size="sm" color={colors.primary} />
                     </View>
                   )}
                   <ChatEmptyState

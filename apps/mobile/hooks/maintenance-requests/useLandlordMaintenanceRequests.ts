@@ -5,14 +5,14 @@ import { useProfile } from "@/hooks/auth";
 import {
   fetchLandlordMaintenanceRequests,
   updateLandlordMaintenanceStatus,
-} from "@/service/landlordService";
+} from "@/service/landlord/landlordService";
 
 import type {
   LandlordMaintenanceRequest,
   MaintenanceRequestStatus,
-} from "@/service/landlordService";
+} from "@/service/landlord/landlordService";
 
-export type { LandlordMaintenanceRequest } from "@/service/landlordService";
+export type { LandlordMaintenanceRequest } from "@/service/landlord/landlordService";
 
 // Only the "advance" flow moves forward through these three.
 // Resolved and Cancelled are terminal states.

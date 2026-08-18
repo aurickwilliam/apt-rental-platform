@@ -1,110 +1,63 @@
-import { Select, useSelect } from "heroui-native";
-import { TouchableOpacity, Text } from "react-native";
+import { Pressable, Text } from "react-native";
+import { Menu } from "heroui-native";
+import { IconChevronDown } from "@tabler/icons-react-native";
 
-import {
-  LucideIcon,
-  LucideProps,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react-native';
-
-import { useColors } from "hooks/useTheme";
-
-interface DropdownButtonProps {
-  bottomSheetLabel: string;
-  options: string[];
-  value?: string | null;
-  onSelect: (value: string) => void;
+interface DropdownButtonProps<T extends string> {
+  label?: string;
+  options: T[];
+  value: T | null;
+  onSelect: (value: T) => void;
+  width?: number | "trigger" | "content-fit" | "full";
   buttonClassName?: string;
   textClassName?: string;
-  iconProps?: LucideProps;
-  openIcon?: LucideIcon;
-  closeIcon?: LucideIcon;
 }
 
-export default function DropdownButton({
-  bottomSheetLabel,
+export default function DropdownButton<T extends string>({
+  label,
   options,
   value,
   onSelect,
+  width = 200,
   buttonClassName,
   textClassName,
-  iconProps,
-  openIcon = ChevronUp,
-  closeIcon = ChevronDown,
-}: DropdownButtonProps) {
-  const { colors } = useColors();
-
-  const resolvedIconProps: Partial<LucideProps> = {
-    size: 24,
-    color: colors.textPrimary,
-    ...iconProps,
-  };
-
-  // Inner component — must live inside <Select> to access context
-  function TriggerIcon({
-    openIcon: OpenIcon = ChevronUp,
-    closeIcon: CloseIcon = ChevronDown,
-    iconProps,
-  }: Pick<DropdownButtonProps, "openIcon" | "closeIcon" | "iconProps">) {
-    const { isOpen } = useSelect();
-    const Icon = isOpen ? OpenIcon : CloseIcon;
-    return <Icon {...iconProps} />;
-  }
-
-  // HeroUI Select expects SelectOption ({ value, label })
-  // Since options are plain strings, value === label
-  const selectedOption = value ? { value, label: value } : undefined;
+}: DropdownButtonProps<T>) {
+  const selectedKeys = value ? new Set([value]) : new Set<string>();
 
   const defaultButtonClassName =
     "bg-surface-secondary px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1";
   const defaultTextClassName = "text-foreground text-base font-interMedium";
 
   return (
-    <Select
-      presentation="bottom-sheet"
-      value={selectedOption}
-      onValueChange={(option) => {
-        if (option && !Array.isArray(option)) {
-          onSelect(option.value);
-        }
-      }}
-    >
-      {/* Custom trigger button */}
-      <Select.Trigger variant="unstyled" asChild>
-        <TouchableOpacity className={buttonClassName || defaultButtonClassName}>
+    <Menu>
+      <Menu.Trigger asChild>
+        <Pressable className={buttonClassName || defaultButtonClassName}>
           <Text className={textClassName || defaultTextClassName}>{value}</Text>
-          <TriggerIcon
-            openIcon={openIcon}
-            closeIcon={closeIcon}
-            iconProps={resolvedIconProps}
-          />
-        </TouchableOpacity>
-      </Select.Trigger>
+          <IconChevronDown size={16} color="currentColor" />
+        </Pressable>
+      </Menu.Trigger>
 
-      <Select.Portal>
-        <Select.Overlay />
-        <Select.Content
-          presentation="bottom-sheet"
-          snapPoints={["50%", "75%"]}
-          contentContainerClassName="px-4 pt-4 pb-20"
-        >
-          <Select.ListLabel className="text-lg text-center text-foreground font-interMedium border-b border-gray-200 pb-3 mb-4">
-            {bottomSheetLabel}
-          </Select.ListLabel>
+      <Menu.Portal>
+        <Menu.Overlay />
+        <Menu.Content presentation="popover" align="end" width={width}>
+          {label ? <Menu.Label className="mb-1">{label}</Menu.Label> : null}
 
-          {options.map((option) => (
-            <Select.Item
-              key={option}
-              value={option}
-              label={option}
-              className={`p-4 rounded-xl mb-2 ${
-                option === value ? "bg-accent/10" : ""
-              }`}
-            />
-          ))}
-        </Select.Content>
-      </Select.Portal>
-    </Select>
+          <Menu.Group
+            selectionMode="single"
+            selectedKeys={selectedKeys}
+            onSelectionChange={(keys) => {
+              const next = Array.from(keys)[0] as T | undefined;
+              if (next) onSelect(next);
+            }}
+          >
+            {options.map((option) => (
+              <Menu.Item key={option} id={option}>
+                <Menu.ItemIndicator />
+                <Menu.ItemTitle>{option}</Menu.ItemTitle>
+              </Menu.Item>
+            ))}
+          </Menu.Group>
+        </Menu.Content>
+      </Menu.Portal>
+    </Menu>
   );
 }

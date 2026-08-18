@@ -1,10 +1,13 @@
 "use client";
 
-import { Meter, Button } from "@heroui/react"
+import { useRouter } from "next/navigation";
 
-import { Star } from "lucide-react";
+import { Button } from "@heroui/react";
+
+import RatingBreakdown from "./RatingBreakdown";
 
 interface RatingSectionProps {
+  apartmentId: string;
   overallRate: number;
   totalReviews: number;
   no5Star: number;
@@ -15,6 +18,7 @@ interface RatingSectionProps {
 }
 
 export default function RatingSection({
+  apartmentId,
   overallRate,
   totalReviews,
   no5Star,
@@ -23,6 +27,7 @@ export default function RatingSection({
   no2Star,
   no1Star
 }: RatingSectionProps) {
+  const router = useRouter();
 
   return (
     <div>
@@ -34,86 +39,22 @@ export default function RatingSection({
         <Button
           size="sm"
           variant="ghost"
-          onPress={() => {
-            alert("SEE ALL REVIEWS");
-          }}
+          onPress={() => router.push(`/browse/${apartmentId}/ratings`)}
           className="-mr-3 text-secondary"
         >
           See all reviews
         </Button>
       </div>
 
-      <div className="w-full flex gap-3">
-        <div className="w-1/3 flex flex-col items-center justify-center">
-          <h3 className="text-6xl font-medium font-dm-serif text-secondary">
-            {overallRate}
-          </h3>
-
-          <div className="flex gap-2 mt-2">
-            {[1, 2, 3, 4, 5].map((i) => {
-              const filled = overallRate >= i;
-              const half = !filled && overallRate >= i - 0.5;
-
-              return (
-                <span key={i} className="relative inline-flex">
-                  {/* Empty star (base) */}
-                  <Star size={22} className="text-secondary" fill="transparent" />
-                  {/* Filled overlay — full or half */}
-                  {(filled || half) && (
-                    <span
-                      className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
-                    >
-                      <Star size={22} className="text-secondary" fill="currentColor" />
-                    </span>
-                  )}
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="mt-2 text-center">
-            <p className="font-medium">
-              Overall Rating
-            </p>
-
-            <p className="text-sm">
-              Based on {totalReviews} reviews
-            </p>
-          </div>
-        </div>
-
-        <div className="w-2/3 flex flex-col justify-center gap-2">
-          {[
-            { label: 5, count: no5Star },
-            { label: 4, count: no4Star },
-            { label: 3, count: no3Star },
-            { label: 2, count: no2Star },
-            { label: 1, count: no1Star },
-          ].map(({ label, count }) => (
-            <div key={label} className="flex gap-2 items-center">
-              <div className="flex items-center gap-1 w-8 shrink-0">
-                <span className="text-sm font-medium">{label}</span>
-                <Star size={14} className="text-secondary" fill="currentColor" />
-              </div>
-
-              <Meter
-                value={totalReviews > 0 ? (count / totalReviews) * 100 : 0}
-                aria-label={`${label} Star`}
-                className="flex-1"
-                color="accent"
-              >
-                <Meter.Track>
-                  <Meter.Fill />
-                </Meter.Track>
-              </Meter>
-
-              <p className="text-sm w-20 shrink-0 text-right text-grey-700">
-                {count} reviews
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <RatingBreakdown
+        overallRate={overallRate}
+        totalReviews={totalReviews}
+        no5Star={no5Star}
+        no4Star={no4Star}
+        no3Star={no3Star}
+        no2Star={no2Star}
+        no1Star={no1Star}
+      />
     </div>
   );
 }

@@ -3,10 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchConversationsWithMetadata } from "@/service/conversationService";
-import { toMessageType } from "@/service/chatService";
+import { fetchConversationsWithMetadata } from "@/service/chat/conversationService";
+import { toMessageType } from "@/service/chat/chatService";
 
-import type { ConversationRole, ConversationWithMeta } from "@/service/conversationService";
+import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conversationService";
 
 export const getConversationsQueryKey = (myId: string | null) =>
   ["conversations", myId] as const;

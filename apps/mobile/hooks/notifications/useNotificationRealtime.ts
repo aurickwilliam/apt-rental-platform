@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { supabase } from "@repo/supabase";
 
-import type { NotificationRow } from "@/service/notificationService";
+import type { NotificationRow } from "@/service/notifications/notificationService";
 
 export interface NotificationRealtimeCallbacks {
   /** Called on every event (INSERT/UPDATE/DELETE) — feed + count invalidation. */

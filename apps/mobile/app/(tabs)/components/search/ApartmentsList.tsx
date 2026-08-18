@@ -2,9 +2,10 @@ import {
   View,
   FlatList,
   RefreshControl,
-  ActivityIndicator,
   Text,
 } from 'react-native';
+
+import { Spinner } from 'heroui-native';
 
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 
@@ -64,7 +65,7 @@ export default function ApartmentsList({
     if (!loadingMore) return null;
     return (
       <View className='py-4 items-center'>
-        <ActivityIndicator size='small' color={colors.primary} />
+        <Spinner size='sm' color={colors.primary} />
       </View>
     );
   };
@@ -72,7 +73,7 @@ export default function ApartmentsList({
   if (loading && !refreshing) {
     return (
       <View className='flex-1 items-center justify-center'>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <Spinner size='lg' color={colors.primary} />
       </View>
     );
   }

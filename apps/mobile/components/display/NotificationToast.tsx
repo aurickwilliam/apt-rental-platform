@@ -8,7 +8,7 @@ import { getInitials } from '@repo/utils';
 import { getNotificationTypeIcon, useNotificationTypeColor } from '@/hooks/notifications/notificationVisuals';
 import { useColors } from '@/hooks/useTheme';
 
-import type { NotificationRow, NotificationType } from '@/service/notificationService';
+import type { NotificationRow, NotificationType } from '@/service/notifications/notificationService';
 
 const TOAST_VARIANT_BY_TYPE: Record<NotificationType, ToastVariant> = {
   payment: 'success',

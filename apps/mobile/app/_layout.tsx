@@ -1,5 +1,5 @@
 import * as Crypto from "expo-crypto";
-import { Stack, useRouter } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from 'expo-system-ui';
 import "./global.css";
@@ -22,7 +22,7 @@ import { supabase } from "@repo/supabase";
 
 import { Appearance, View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
-import { setPrivateMediaCacheUser } from "@/service/privateMediaResolver";
+import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
 import {
   useInAppNotificationBanner,
   usePushRegistration,
@@ -67,6 +67,11 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   const router = useRouter();
   const { isDark } = useTheme();
+  // True once navigation has left the "/" boot screen (index) — the
+  // redirect to the role-based home has committed and the destination
+  // screen is mounted and rendering.
+  const pathname = usePathname();
+  const navigatedAway = pathname !== "/";
 
   // Initialize custom fonts
   const [fontsLoaded, fontError] = useFonts({
@@ -93,12 +98,20 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Check if the fonts have loaded or if there was an error
+  // Keep the splash up until fonts are ready AND the boot redirect has
+  // committed (root navigation left "/"), so the "/" spinner is never visible
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && navigatedAway) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, router]);
+  }, [fontsLoaded, fontError, navigatedAway, router]);
+
+  // Fallback: never leave the splash up forever (e.g. deep-link cold starts
+  // that bypass the index boot route)
+  useEffect(() => {
+    const timeout = setTimeout(() => SplashScreen.hideAsync(), 10_000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

@@ -5,9 +5,9 @@ import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   fetchNotificationPreferences,
   updateNotificationPreferences,
-} from "@/service/notificationService";
+} from "@/service/notifications/notificationService";
 
-import type { NotificationPreferences } from "@/service/notificationService";
+import type { NotificationPreferences } from "@/service/notifications/notificationService";
 
 export const getNotificationPreferencesQueryKey = (userId: string) =>
   ["notification-preferences", userId] as const;

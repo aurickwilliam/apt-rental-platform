@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { createElement, type ReactNode } from 'react';
 import fc from 'fast-check';
 
-import { clearPrivateMediaUrlCache } from '@/service/privateMediaResolver';
+import { clearPrivateMediaUrlCache } from '@/service/media/privateMediaResolver';
 import { createMobileQueryClient } from '@/utils/queryClient';
 
 const CURRENT_USER_ID = 'user-internal-1';
@@ -202,8 +202,8 @@ import {
   fetchMessages,
   getChatAttachmentSignedUrls,
   mapMessages,
-} from '@/service/chatService';
-import { getCurrentUser } from '@/service/currentUserService';
+} from '@/service/chat/chatService';
+import { getCurrentUser } from '@/service/auth/currentUserService';
 import { useProfile } from '@/hooks/auth/useProfile';
 import { useTenancy } from '@/hooks/tenancy/useTenancy';
 

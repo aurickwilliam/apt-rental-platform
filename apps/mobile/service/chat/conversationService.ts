@@ -6,7 +6,7 @@ import {
   toMessageType,
   type Conversation,
   type MessageType,
-} from "@/service/chatService";
+} from "./chatService";
 
 export type ConversationWithMeta = Conversation & {
   last_sender_is_me?: boolean;

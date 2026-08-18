@@ -7,11 +7,11 @@ import { showNotificationToast } from "@/components/display/NotificationToast";
 import { shouldSuppressChatToast } from "@/hooks/notifications/notificationSuppression";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
-import { markNotificationRead } from "@/service/notificationService";
+import { markNotificationRead } from "@/service/notifications/notificationService";
 import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
 
-import type { NotificationRow } from "@/service/notificationService";
-import type { NotificationPreferenceType } from "@/service/notificationService";
+import type { NotificationRow } from "@/service/notifications/notificationService";
+import type { NotificationPreferenceType } from "@/service/notifications/notificationService";
 import type { NotificationData } from "@/utils/notificationDeepLink";
 
 /**

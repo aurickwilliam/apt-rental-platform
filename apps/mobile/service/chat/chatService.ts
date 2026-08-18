@@ -7,7 +7,7 @@ import emojiRegex from 'emoji-regex-xs';
 import {
   PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
   resolvePrivateMediaUrls,
-} from './privateMediaResolver';
+} from '../media/privateMediaResolver';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

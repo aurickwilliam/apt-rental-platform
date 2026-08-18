@@ -986,6 +986,10 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_landlord_dashboard: {
+        Args: { p_landlord_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

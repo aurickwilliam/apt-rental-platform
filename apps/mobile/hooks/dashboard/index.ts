@@ -1,3 +1,2 @@
-export { useDashboardStats } from "./useDashboardStats";
-export { getDashboardStatsQueryKey } from "./useDashboardStats";
-export type { DashboardStats } from "@/service/dashboardService";
+export { useDashboardData } from "./useDashboardData";
+export { getDashboardDataQueryKey } from "./useDashboardData";

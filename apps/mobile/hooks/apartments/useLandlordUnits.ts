@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
-import { fetchLandlordUnits } from "@/service/landlordService";
+import { fetchLandlordUnits } from "@/service/landlord/landlordService";
 
-export type { LandlordUnitApartment as Apartment } from "@/service/landlordService";
+export type { LandlordUnitApartment as Apartment } from "@/service/landlord/landlordService";
 
 export const getLandlordUnitsQueryKey = (landlordId: string | null) =>
   ["landlord-units", landlordId] as const;

@@ -1,6 +1,6 @@
 import { supabase } from "@repo/supabase";
 
-import { resolvePrivateMediaUrls } from "@/service/privateMediaResolver";
+import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
 
 export type MaintenanceRequestStatus = "Pending" | "In Progress" | "Resolved" | "Cancelled";
 export type MaintenanceRequestUrgency = "low" | "medium" | "high";
