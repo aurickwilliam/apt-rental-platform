@@ -512,7 +512,7 @@ importers:
         specifier: ^20.19.26
         version: 20.19.43
       next:
-        specifier: '>=16.1.7'
+        specifier: '>=16.2.12'
         version: 16.2.12(@babel/core@7.29.7)(@types/node@20.19.43)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       typescript:
         specifier: ^5.3.3
