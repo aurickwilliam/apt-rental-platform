@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { Spinner } from "heroui-native";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,7 +20,7 @@ export default function AuthCallback() {
 
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <ActivityIndicator size="large" />
+      <Spinner size="lg" />
       <Text className="mt-4 text-foreground font-inter text-sm">
         Completing sign-in...
       </Text>

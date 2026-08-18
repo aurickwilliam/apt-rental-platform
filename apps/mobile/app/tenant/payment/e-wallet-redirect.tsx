@@ -12,7 +12,7 @@ import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 import {
   getCheckoutSessionStatus,
   PaymongoError,
-} from '@/service/paymongoService'
+} from '@/service/payments/paymongoService'
 import { Button } from 'heroui-native'
 
 export default function EWalletRedirect() {

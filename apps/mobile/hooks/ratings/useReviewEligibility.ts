@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useCurrentUser } from '@/hooks/auth'
-import { fetchReviewEligibility } from '@/service/reviewsService'
+import { fetchReviewEligibility } from '@/service/ratings/reviewsService'
 
 export const getReviewEligibilityQueryKey = (apartmentId: string, tenantId: string) =>
   ['review-eligibility', apartmentId, tenantId] as const

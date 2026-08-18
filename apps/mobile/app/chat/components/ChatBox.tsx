@@ -18,7 +18,7 @@ import {
 import { Button, TextField, InputGroup, Menu } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
-import type { PickedChatAsset, MessageType } from '@/service/chatService';
+import type { PickedChatAsset, MessageType } from '@/service/chat/chatService';
 
 /** A locally-picked attachment sitting in the review strip, not yet sent. */
 export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageType };

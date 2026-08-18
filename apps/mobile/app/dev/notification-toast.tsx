@@ -3,7 +3,7 @@ import { Button, useToast } from 'heroui-native';
 
 import { showNotificationToast } from '@/components/display/NotificationToast';
 
-import type { NotificationRow } from '@/service/notificationService';
+import type { NotificationRow } from '@/service/notifications/notificationService';
 
 type MockRow = Pick<NotificationRow, 'type' | 'title' | 'data'> & {
   message?: string | null;

@@ -3,7 +3,6 @@ import {
   Text,
   Image,
   ImageSourcePropType,
-  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import type { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -275,7 +274,7 @@ export default function EditProfile() {
     return (
       <ScreenWrapper header={<StandardHeader title="Edit Profile" />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
+          <Spinner size="lg" />
         </View>
       </ScreenWrapper>
     );

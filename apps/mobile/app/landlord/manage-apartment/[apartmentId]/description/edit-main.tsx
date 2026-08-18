@@ -1,4 +1,4 @@
-import { View, Text, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, Alert } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
@@ -11,7 +11,7 @@ import Divider from 'components/display/Divider'
 import UploadImageField from 'components/inputs/UploadImageField'
 import UploadFileField from 'components/inputs/UploadFileField'
 
-import { TextField, Label, Input, Button} from "heroui-native"
+import { TextField, Label, Input, Button, Spinner} from "heroui-native"
 
 import {
   updateApartmentMain,
@@ -356,7 +356,7 @@ export default function EditMain() {
       <View className="h-36" />
 
       {saving ? (
-        <ActivityIndicator size="large" />
+        <Spinner size="lg" />
       ) : (
         <Button onPress={handleSaveChanges}>
           <Button.Label>

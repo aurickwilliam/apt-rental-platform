@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useConversations, getConversationsQueryKey } from "./useConversations";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
-import type { ConversationWithMeta } from "@/service/conversationService";
+import type { ConversationWithMeta } from "@/service/chat/conversationService";
 
 const MY_ID = "user-1";
 const mockUseCurrentUser = jest.fn();
@@ -32,7 +32,7 @@ jest.mock("@repo/supabase", () => ({
   },
 }));
 
-jest.mock("@/service/conversationService", () => ({
+jest.mock("@/service/chat/conversationService", () => ({
   fetchConversationsWithMetadata: (...args: unknown[]) =>
     mockFetchConversations(...args),
 }));

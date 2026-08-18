@@ -1,6 +1,6 @@
 import { useCurrentUser } from "./useCurrentUser";
 
-export type { UserProfile } from "@/service/currentUserService";
+export type { UserProfile } from "@/service/auth/currentUserService";
 
 export function useProfile() {
   const { data, isLoading, refetch } = useCurrentUser();

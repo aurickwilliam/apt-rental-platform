@@ -3,9 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
+
+import { Spinner } from 'heroui-native'
 
 import { IconCircleX, IconFileText, IconFileUpload, IconRefresh } from '@tabler/icons-react-native'
 
@@ -114,7 +115,7 @@ export default function UploadFileField({
           ].join(" ")}
         >
           {loading ? (
-            <ActivityIndicator size="small" color={colors.primary} />
+            <Spinner size="sm" color={colors.primary} />
           ) : (
             <>
               <IconFileUpload

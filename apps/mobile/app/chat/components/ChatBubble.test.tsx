@@ -30,7 +30,7 @@ jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({ colors: { gray300: '#BDBDBD' } }),
 }));
 
-jest.mock('@/service/chatService', () => ({
+jest.mock('@/service/chat/chatService', () => ({
   isEmojiOnly: () => false,
 }));
 

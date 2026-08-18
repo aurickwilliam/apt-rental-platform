@@ -6,7 +6,6 @@ import {
   Image,
   Animated,
   Dimensions,
-  ActivityIndicator,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useRef, useState } from "react";
@@ -25,7 +24,7 @@ import ApplicationHeader from "@/components/layout/ApplicationHeader";
 import PerkItem from "components/display/PerkItem";
 import LandlordCard from "components/cards/LandlordCard";
 
-import { Button, Dialog } from "heroui-native";
+import { Button, Dialog, Spinner } from "heroui-native";
 
 import {
   MapPin,
@@ -471,7 +470,7 @@ export default function FifthStep() {
       <View className="px-5 mt-3">
         {isLoading ? (
           <View className="h-40 items-center justify-center">
-            <ActivityIndicator color={colors.primary} />
+            <Spinner size="sm" color={colors.primary} />
           </View>
         ) : profile ? (
           <LandlordCard

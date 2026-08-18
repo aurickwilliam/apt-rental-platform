@@ -38,7 +38,7 @@ export default function SearchHeader({
         <IconMapPin size={30} color={colors.primary} />
 
         <DropdownButton
-          bottomSheetLabel='Select Location'
+          label='Select Location'
           options={cities}
           value={selectedCity}
           onSelect={onSelectCity}

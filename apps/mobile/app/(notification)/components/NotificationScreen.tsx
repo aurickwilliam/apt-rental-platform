@@ -36,7 +36,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
         <View className="flex-1">
           <DropdownButton
             value={filterType}
-            bottomSheetLabel={'Filter Notifications'}
+            label={'Filter Notifications'}
             options={[
               'All',
               'Payment',

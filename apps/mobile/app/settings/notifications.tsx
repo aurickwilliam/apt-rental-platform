@@ -8,8 +8,8 @@ import StandardHeader from 'components/layout/StandardHeader'
 import { NOTIFICATION_TYPE_LABELS } from 'constants/notifications'
 import { useNotificationPreferences, useNotificationTypeColor, getNotificationTypeIcon } from '@/hooks/notifications'
 import { useColors } from '@/hooks/useTheme'
-import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/service/notificationService'
-import type { NotificationPreferenceType } from '@/service/notificationService'
+import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/service/notifications/notificationService'
+import type { NotificationPreferenceType } from '@/service/notifications/notificationService'
 
 type GeneralToggleKey = 'notifications_enabled' | 'push_enabled' | 'show_chat_toasts'
 

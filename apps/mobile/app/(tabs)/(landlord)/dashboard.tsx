@@ -1,17 +1,22 @@
 import { useEffect } from "react";
-import { View, Text, Image, ActivityIndicator } from "react-native";
+import { View, Text, Image } from "react-native";
 import { useRouter } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
 
-import { IconBell } from "@tabler/icons-react-native";
+import { IconBell, IconChartBar } from "@tabler/icons-react-native";
+
+import { formatPesoDisplay } from "@repo/utils";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
 import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
+import DashboardSkeleton from "./../components/dashboard/DashboardSkeleton";
+import EmptyProperties from "./../components/units/EmptyProperties";
+import EmptyState from "@/components/display/EmptyState";
 
-import { useDashboardStats } from "@/hooks/dashboard";
+import { useDashboardData } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
 
 import { Button } from "heroui-native";
@@ -24,37 +29,18 @@ import {
 export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColors();
-  const { stats, loading, error } = useDashboardStats();
+  const { data, isLoading, error } = useDashboardData();
+  const { stats, monthlyRevenue, revenueByProperty, rentDues } = data;
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching dashboard stats:", error);
+      console.error("Error fetching dashboard data:", error);
     }
   }, [error]);
 
-  const upcomingRentDue = [
-    {
-      id: 1,
-      tenantName: "John Doe",
-      propertyName: "Sunset Apartments - Unit 3B",
-      dueDate: "2024-07-05",
-      amount: 1_200.0,
-    },
-    {
-      id: 2,
-      tenantName: "Jane Smith",
-      propertyName: "Maple Residences - Unit 2A",
-      dueDate: "2024-07-10",
-      amount: 1_500.0,
-    },
-    {
-      id: 3,
-      tenantName: "Michael Johnson",
-      propertyName: "Oakwood Villas - Unit 1C",
-      dueDate: "2024-07-15",
-      amount: 1_000.0,
-    },
-  ];
+  const totalDue = rentDues.reduce((sum, rent) => sum + rent.amount, 0);
+  const hasAnyRevenue = monthlyRevenue.some((point) => point.amount > 0);
+  const showCombinedChartEmpty = !hasAnyRevenue;
 
   return (
     <ScreenWrapper
@@ -65,7 +51,7 @@ export default function Dashboard() {
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
           <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
-          <Text className="text-secondary text-3xl font-nunitoSemiBold mt-1">
+          <Text className="text-foreground text-3xl font-nunitoSemiBold mt-1">
             Dashboard
           </Text>
         </View>
@@ -79,75 +65,114 @@ export default function Dashboard() {
         </Button>
       </View>
 
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={colors.primary}
-          className="my-6"
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : stats.totalProperties === 0 ? (
+        <EmptyProperties
+          onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
         />
       ) : (
-        <View className="flex gap-3">
-          <View className="flex-row gap-3">
-            <View className="flex-1 bg-primary rounded-3xl p-4 gap-1 justify-center">
-              <Text className="text-sm text-gray-100 font-interMedium">
-                Total Properties
-              </Text>
-              <Text className="text-3xl text-white font-interSemiBold">
-                {stats.totalProperties}
-              </Text>
+        <>
+          <View className="flex gap-3">
+            <View className="flex-row gap-3">
+              <View className="flex-1 bg-primary rounded-3xl p-4 gap-1 justify-center">
+                <Text className="text-sm text-gray-100 font-interMedium">
+                  Total Properties
+                </Text>
+                <Text className="text-3xl text-white font-interSemiBold">
+                  {stats.totalProperties}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
+                <Text className="text-sm text-muted font-interMedium">
+                  Units Occupied
+                </Text>
+                <Text className="text-3xl text-foreground font-interSemiBold">
+                  {stats.unitsOccupied}/{stats.totalProperties}
+                </Text>
+              </View>
             </View>
 
-            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-              <Text className="text-sm text-muted font-interMedium">
-                Units Occupied
-              </Text>
-              <Text className="text-3xl text-foreground font-interSemiBold">
-                {stats.unitsOccupied}/{stats.totalProperties}
-              </Text>
+            <View className="flex-row gap-3">
+              <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
+                <Text className="text-sm text-muted font-interMedium">
+                  Pending Payments
+                </Text>
+                <Text className="text-3xl text-foreground font-interSemiBold">
+                  {stats.pendingPayments}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
+                <Text className="text-sm text-muted font-interMedium">
+                  Maintenance Requests
+                </Text>
+                <Text className="text-3xl text-foreground font-interSemiBold">
+                  {stats.maintenanceRequests}
+                </Text>
+              </View>
             </View>
           </View>
 
-          <View className="flex-row gap-3">
-            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-              <Text className="text-sm text-muted font-interMedium">
-                Pending Payments
+          <View className="flex gap-5 mt-5">
+            {showCombinedChartEmpty ? (
+              <View className="bg-surface rounded-3xl border border-border p-4">
+                <EmptyState
+                  icon={<IconChartBar size={36} color={colors.gray500} />}
+                  title="No earnings yet"
+                  description="Once tenants start paying rent, your earnings will show up here."
+                />
+              </View>
+            ) : (
+              <>
+                <ProfitTrendCard monthlyRevenue={monthlyRevenue} />
+                <ProfitByPropertyCard revenueByProperty={revenueByProperty} />
+              </>
+            )}
+          </View>
+
+          <View className="flex gap-5 mt-5">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-foreground text-lg font-interSemiBold">
+                Upcoming Rent Due
               </Text>
-              <Text className="text-3xl text-foreground font-interSemiBold">
-                {stats.pendingPayments}
-              </Text>
+              <View className="bg-primary rounded-full px-3 py-1">
+                <Text className="text-white font-interSemiBold">
+                  {formatPesoDisplay(totalDue)}
+                </Text>
+              </View>
             </View>
 
-            <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-              <Text className="text-sm text-muted font-interMedium">
-                Maintenance Requests
-              </Text>
-              <Text className="text-3xl text-foreground font-interSemiBold">
-                {stats.maintenanceRequests}
-              </Text>
-            </View>
+            {rentDues.length === 0 ? (
+              <View className="items-center py-10 gap-2">
+                <Text className="text-gray-400 font-interSemiBold">
+                  No upcoming rent dues
+                </Text>
+                <Text className="text-gray-400 text-sm font-inter text-center px-8">
+                  You&apos;re all caught up — new dues will appear here as they come due.
+                </Text>
+              </View>
+            ) : (
+              <View className="flex gap-3">
+                {rentDues.map((rent) => (
+                  <RentDueCard
+                    key={rent.id}
+                    tenantName={rent.tenantName}
+                    propertyName={rent.apartmentName}
+                    dueDate={rent.dueDate}
+                    amount={rent.amount}
+                    isOverdue={rent.isOverdue}
+                    onPress={() =>
+                      router.push(`/landlord/manage-apartment/${rent.apartmentId}`)
+                    }
+                  />
+                ))}
+              </View>
+            )}
           </View>
-        </View>
+        </>
       )}
-
-      <View className="flex gap-5 mt-5">
-        <ProfitTrendCard />
-        <ProfitByPropertyCard />
-      </View>
-
-      <View className="flex gap-5 mt-5">
-        <Text className="text-foreground text-lg font-interSemiBold">
-          Upcoming Rent Due
-        </Text>
-        <View className="flex gap-3">
-          {upcomingRentDue.map((rent) => (
-            <RentDueCard
-              key={rent.id}
-              {...rent}
-              onPress={() => console.log("Rent due card pressed:", rent.id)}
-            />
-          ))}
-        </View>
-      </View>
     </ScreenWrapper>
   );
 }

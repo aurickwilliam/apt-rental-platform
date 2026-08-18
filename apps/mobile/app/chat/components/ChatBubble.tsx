@@ -5,11 +5,11 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 
 import { IconPlayerPlayFilled, IconX } from '@tabler/icons-react-native';
 
-import type { MessageType } from '@/service/chatService';
+import type { MessageType } from '@/service/chat/chatService';
 
 import { useColors } from '@/hooks/useTheme';
 
-import { isEmojiOnly } from '@/service/chatService';
+import { isEmojiOnly } from '@/service/chat/chatService';
 
 interface ChatBubbleProps {
   message: string | null;

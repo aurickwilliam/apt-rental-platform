@@ -3,11 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
-import { fetchNotifications, fetchUnreadNotificationCount } from "@/service/notificationService";
+import { fetchNotifications, fetchUnreadNotificationCount } from "@/service/notifications/notificationService";
 
-import type { NotificationItem } from "@/service/notificationService";
+import type { NotificationItem } from "@/service/notifications/notificationService";
 
-export type { NotificationItem, NotificationType } from "@/service/notificationService";
+export type { NotificationItem, NotificationType } from "@/service/notifications/notificationService";
 
 export const getNotificationsQueryKey = (userId: string) =>
   ["notifications", userId] as const;

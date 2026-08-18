@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { markAllNotificationsRead, markNotificationRead } from "@/service/notificationService";
+import { markAllNotificationsRead, markNotificationRead } from "@/service/notifications/notificationService";
 
 import { getNotificationsQueryKey, getUnreadNotificationsQueryKey } from "./useNotifications";
 

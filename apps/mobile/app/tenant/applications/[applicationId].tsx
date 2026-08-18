@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text } from "react-native";
 import { useState } from "react";
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -30,6 +30,7 @@ import {
   Chip,
   Accordion,
   AccordionLayoutTransition,
+  Spinner,
 } from "heroui-native";
 
 import { Ban, ChevronLeft } from "lucide-react-native";
@@ -154,7 +155,7 @@ export default function ApplicationApartment() {
   if (apartmentLoading || appsLoading || visitLoading) {
     return (
       <ScreenWrapper scrollable className="p-5 flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color={colors.primary} className="mt-10" />
+        <Spinner size="lg" color={colors.primary} className="mt-10" />
       </ScreenWrapper>
     );
   }
@@ -398,7 +399,7 @@ export default function ApplicationApartment() {
                     {application.documents.length > 0 ? (
                       application.documents.map((doc) => (
                         <DocumentRow
-                          key={doc.path}
+                          key={doc.label}
                           label={doc.label}
                           path={doc.path}
                           signedUrl={doc.signedUrl}

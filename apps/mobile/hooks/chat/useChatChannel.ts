@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@repo/supabase';
 import { getRelativeTime } from '@repo/utils';
 
-import { buildConversationKey, type Message, type MessageType } from '../../service/chatService';
+import { buildConversationKey, type Message, type MessageType } from '../../service/chat/chatService';
 
 type PresenceState = {
   userId: string;

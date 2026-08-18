@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   Text,
@@ -8,7 +7,7 @@ import {
 } from "react-native";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
-import { useToast } from "heroui-native";
+import { Spinner, useToast } from "heroui-native";
 
 import { LayoutGrid, Rows3 } from "lucide-react-native";
 
@@ -125,7 +124,7 @@ export default function TenantFavorites() {
     >
       {isLoading ? (
         <View className="flex-1 items-center justify-center py-10">
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Spinner size="lg" color={colors.primary} />
         </View>
       ) : (
         <FlatList
