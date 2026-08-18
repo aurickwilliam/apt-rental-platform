@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,10 @@ import {
 import { Star } from "lucide-react";
 
 import BackBtn from "../components/BackBtn";
+import ReviewPhotosInput, {
+  MAX_REVIEW_IMAGES,
+  type ReviewPhoto,
+} from "./components/ReviewPhotosInput";
 import StarRatingInput from "./components/StarRatingInput";
 
 const MOCK_APARTMENT = {
@@ -41,7 +45,41 @@ export default function RateApartmentPage() {
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [reviewImages, setReviewImages] = useState<ReviewPhoto[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const reviewImagesRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      reviewImagesRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  const handleAddImages = (files: File[]) => {
+    setReviewImages((prev) => {
+      const next = [
+        ...prev,
+        ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+      ].slice(0, MAX_REVIEW_IMAGES);
+
+      reviewImagesRef.current = next.map((photo) => photo.url);
+
+      return next;
+    });
+  };
+
+  const handleRemoveImage = (url: string) => {
+    setReviewImages((prev) => {
+      const target = prev.find((photo) => photo.url === url);
+      if (target) URL.revokeObjectURL(target.url);
+
+      const next = prev.filter((photo) => photo.url !== url);
+      reviewImagesRef.current = next.map((photo) => photo.url);
+
+      return next;
+    });
+  };
 
   const handleStarChange = (value: number) => {
     setRating(value);
@@ -176,6 +214,15 @@ export default function RateApartmentPage() {
           />
           <FieldError>{errors.reviewText}</FieldError>
         </TextField>
+      </div>
+
+      {/* Photos (optional) */}
+      <div className="mt-6">
+        <ReviewPhotosInput
+          images={reviewImages}
+          onAdd={handleAddImages}
+          onRemove={handleRemoveImage}
+        />
       </div>
 
       <Button className="mt-8 w-full" onPress={handleSubmit}>
