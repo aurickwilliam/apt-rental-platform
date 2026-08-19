@@ -1,8 +1,10 @@
 import { View, Text } from "react-native";
 
-import { Hammer } from 'lucide-react-native';
+import { IconHammer } from "@tabler/icons-react-native";
 
-import { Button } from "heroui-native";
+import { Button, Card, Chip } from "heroui-native";
+
+import { useColors } from "hooks/useTheme";
 
 interface MaintenanceRequestCardProps {
   issueName: string;
@@ -15,48 +17,58 @@ export default function MaintenanceRequestCard({
   reportedDate,
   onUpdatePress,
 }: MaintenanceRequestCardProps) {
+  const { colors } = useColors();
+
   return (
-    <View className="w-full bg-surface border border-border p-4 rounded-xl">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-foreground font-interSemiBold text-lg">
-          Maintenance Request
-        </Text>
+    <Card className="border border-border shadow-none rounded-3xl">
+      <Card.Header>
+        <View className="flex-row items-center justify-between gap-3">
+          <Text
+            className="text-foreground font-interSemiBold text-base flex-1"
+            numberOfLines={1}
+          >
+            Maintenance Request
+          </Text>
 
-        <View className="flex-row items-center gap-2 bg-surface-secondary py-2 px-3 rounded-full">
-          <View className="rounded-full bg-warning w-3 h-3" />
+          <Chip
+            variant="soft"
+            size="sm"
+            animation="disable-all"
+            style={{ backgroundColor: colors.warningLight }}
+          >
+            <Chip.Label
+              style={{ color: colors.warning }}
+              className="text-xs font-interMedium"
+            >
+              Pending
+            </Chip.Label>
+          </Chip>
+        </View>
+      </Card.Header>
 
-          <Text className="text-foreground text-sm font-inter">
-            Pending
+      <Card.Body className="pt-0 gap-2">
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="text-muted text-xs font-inter">Issue</Text>
+          <Text
+            className="text-foreground text-sm font-interMedium flex-1 text-right"
+            numberOfLines={2}
+          >
+            {issueName}
           </Text>
         </View>
-      </View>
 
-      <View className="mt-3">
-        <Text className="text-muted text-base font-inter">
-          Name/Issue:
-        </Text>
-        <Text className="text-foreground text-base font-interMedium">
-          {issueName}
-        </Text>
-      </View>
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="text-muted text-xs font-inter">Reported</Text>
+          <Text className="text-foreground text-sm font-interMedium">
+            {reportedDate}
+          </Text>
+        </View>
 
-      <View className="mt-3">
-        <Text className="text-muted text-base font-inter">
-          Reported Date:
-        </Text>
-        <Text className="text-foreground text-base font-interMedium">
-          {reportedDate}
-        </Text>
-      </View>
-
-      <View className="mt-3">
-        <Button size="sm" onPress={onUpdatePress}>
-          <Hammer size={16} color="#4B5563" />
-          <Button.Label>
-            Update Maintenance
-          </Button.Label>
+        <Button size="sm" className="mt-1 self-start" onPress={onUpdatePress}>
+          <IconHammer size={16} color="#4B5563" />
+          <Button.Label>Update Maintenance</Button.Label>
         </Button>
-      </View>
-    </View>
+      </Card.Body>
+    </Card>
   );
 }

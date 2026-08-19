@@ -16,10 +16,10 @@ import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 import { Button } from 'heroui-native'
 
 import {
-  User,
-  CircleCheck,
-  Building,
-} from 'lucide-react-native';
+  IconUser,
+  IconCircleCheck,
+  IconBuilding,
+} from '@tabler/icons-react-native';
 
 import { IMAGES } from 'constants/images'
 import { APARTMENT_STATUS_LABELS } from '@repo/constants'
@@ -188,7 +188,7 @@ export default function Index() {
 
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Status</Text>
-                <CircleCheck
+                <IconCircleCheck
                   size={32}
                   color={isOccupied ? colors.success : colors.primary}
                 />
@@ -228,7 +228,7 @@ export default function Index() {
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
-                      <User size={26} color={colors.textPrimary} />
+                      <IconUser size={26} color={colors.textPrimary} />
                       <Text className="text-foreground text-lg font-interSemiBold">
                         Tenant Information
                       </Text>
@@ -262,9 +262,11 @@ export default function Index() {
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-foreground text-xl font-interSemiBold">
+
+                      <Text className="text-foreground text-lg font-interSemiBold">
                         Rent Payment History
                       </Text>
+
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={() =>
@@ -317,7 +319,7 @@ export default function Index() {
           </>
         ) : (
           <View className="flex-1 items-center justify-center py-24 gap-4">
-            <Building size={48} color={colors.gray400} />
+            <IconBuilding size={48} color={colors.gray400} />
             <Text className="text-gray-400 font-interSemiBold text-center">
               Could not load property details.
             </Text>

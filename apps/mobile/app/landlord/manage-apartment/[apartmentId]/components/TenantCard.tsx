@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { Image } from "expo-image";
 import { Avatar, Button, Card, PressableFeedback } from "heroui-native";
 import { useColors } from "hooks/useTheme";
-import { FileText, MessageCircleMore } from "lucide-react-native";
+import { IconFileText, IconMessageCircle } from "@tabler/icons-react-native";
 import { getInitials } from "@repo/utils";
 
 interface TenantCardProps {
@@ -93,7 +93,7 @@ export default function TenantCard({
               isDisabled={!onDocumentsPress}
               size="sm"
             >
-              <FileText size={16} color={colors.primary} />
+              <IconFileText size={16} color={colors.primary} />
               <Button.Label>Documents</Button.Label>
             </Button>
             <Button
@@ -103,7 +103,7 @@ export default function TenantCard({
               isDisabled={!onMessagePress}
               size="sm"
             >
-              <MessageCircleMore size={16} color={colors.primary} />
+              <IconMessageCircle size={16} color={colors.primary} />
               <Button.Label>Message</Button.Label>
             </Button>
           </View>

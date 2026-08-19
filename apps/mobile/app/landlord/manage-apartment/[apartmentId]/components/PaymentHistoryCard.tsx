@@ -1,15 +1,25 @@
-import { TouchableOpacity, View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import { IconCalendar } from "@tabler/icons-react-native";
 
+import { Card, Chip } from "heroui-native";
+
+import { formatPesoDisplay } from "@repo/utils";
+
 import { useColors } from "hooks/useTheme";
+import { usePaymentStatusStyles } from "hooks/payments";
+import { paymentStatusLabel } from "@/service/payments/paymentService";
 
 interface PaymentHistoryCardProps {
   month: string;
   year: string;
   amount: number;
   paidDate: string;
-  status: "paid" | "partial";
+  status: string;
+  method?: string | null;
+  reference?: string | null;
+  onFlipPress?: () => void;
+  flipDisabled?: boolean;
 }
 
 export default function PaymentHistoryCard({
@@ -18,51 +28,84 @@ export default function PaymentHistoryCard({
   amount = 0,
   paidDate = "0/0/0000",
   status = "paid",
+  method,
+  reference,
+  onFlipPress,
+  flipDisabled = false,
 }: PaymentHistoryCardProps) {
   const { colors } = useColors();
+  const statusStyles = usePaymentStatusStyles();
+
+  const label = paymentStatusLabel(status);
+  const style = statusStyles[label];
 
   return (
-    <TouchableOpacity
-      className="bg-surface p-2.5 rounded-xl"
-      activeOpacity={0.7}
-    >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          {/* Calendar Icon */}
-          <IconCalendar size={20} color={colors.gray500} />
+    <Card className="border border-border shadow-none rounded-3xl">
+      <Card.Header>
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-row items-center gap-2 flex-1">
+            <IconCalendar size={20} color={colors.gray500} />
+            <Text
+              className="text-foreground font-interSemiBold text-base"
+              numberOfLines={1}
+            >
+              {month} {year}
+            </Text>
+          </View>
 
-          {/* Month Year */}
-          <Text className="text-gray-500 text-base font-interSemiBold">
-            {month} {year}
-          </Text>
-        </View>
-
-        {/* Status Indicator */}
-        <View
-          className={`px-4 py-0.5 self-start rounded-full
-          border-2 ${status === "paid" ? "border-success bg-success-light" : "border-warning bg-warning-light"}`}
-        >
-          <Text
-            className={`${status === "paid" ? "text-success" : "text-warning"} font-interMedium`}
+          <Chip
+            variant="soft"
+            size="sm"
+            animation="disable-all"
+            style={{ backgroundColor: style.backgroundColor }}
           >
-            {status === "paid" ? "Paid" : "Partial"}
-          </Text>
+            <Chip.Label
+              style={{ color: style.textColor }}
+              className="text-xs font-interMedium"
+            >
+              {label}
+            </Chip.Label>
+          </Chip>
         </View>
-      </View>
+      </Card.Header>
 
-      {/* Amount Paid */}
-      <View className="mt-2">
+      <Card.Body className="pt-0 gap-1">
         <Text className="text-foreground text-xl font-interMedium">
-          ₱ {amount}
+          {formatPesoDisplay(amount)}
         </Text>
-      </View>
 
-      {/* Paid Date */}
-      <View className="mt-2">
         <Text className="text-gray-500 text-sm font-inter">
-          Paid on: {paidDate}
+          {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
         </Text>
-      </View>
-    </TouchableOpacity>
+        {method ? (
+          <Text className="text-gray-500 text-sm font-inter">
+            Method: {method}
+          </Text>
+        ) : null}
+        {reference ? (
+          <Text className="text-gray-500 text-sm font-inter">
+            Reference: {reference}
+          </Text>
+        ) : null}
+      </Card.Body>
+
+      {onFlipPress && (
+        <View className="px-4 pb-4">
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onFlipPress}
+            disabled={flipDisabled}
+            className={`px-4 py-2 rounded-full items-center ${
+              flipDisabled ? "opacity-50" : ""
+            }`}
+            style={{ backgroundColor: colors.successLight }}
+          >
+            <Text className="text-success font-interSemiBold">
+              Mark as Paid
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </Card>
   );
 }

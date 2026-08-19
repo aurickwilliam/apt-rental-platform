@@ -77,6 +77,13 @@ Individual app scripts:
 
 No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 
+## Git & CI Workflow
+
+- `main` is protected by the `main-protection` ruleset: PR required, `ci` check (expo lint + jest) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
+- Sync with `main` before opening/merging a PR: `git merge main` on your branch (the `ci` check runs against the PR's merge commit).
+- If CI fails with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install` locally and commit the updated `pnpm-lock.yaml` (CI installs with `--frozen-lockfile`).
+- Stale branches (long-diverged from `main`) commonly fail CI on lockfile drift or moved tests — merge `main` first, then re-run.
+
 ## Config & Hoisting
 
 - `.npmrc` hoists `@heroui/*` and `@types/*` to root `node_modules`

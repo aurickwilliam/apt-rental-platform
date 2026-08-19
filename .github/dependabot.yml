@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # npm ecosystem intentionally omitted: Dependabot's npm_and_yarn updater
+  # cannot parse pnpm-lock.yaml (pnpm workspace), producing failing PRs.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

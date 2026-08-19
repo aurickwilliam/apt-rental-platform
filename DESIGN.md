@@ -171,7 +171,7 @@ Minimal — flat + hairline border is the aesthetic.
 
 | Platform | Standard | Legacy (⚠) |
 |---|---|---|
-| Mobile | `@tabler/icons-react-native` | `lucide-react-native` (PropertyOverview, TenantCard, Chat, DateField, DropdownField) |
+| Mobile | `@tabler/icons-react-native` | `lucide-react-native` (Chat, DateField, DropdownField) |
 | Web | `lucide-react` + `@tabler/icons-react` (both accepted) | — |
 
 Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocused outline 1.8); header actions 24–26; section icons 24; inline/button 16–20; metadata 12–18; empty-state 64 (tenant bare primary) / 32–48 (landlord, in gray circle); status 18–26 (receipt check 48). Filled variants for active/selected; neutral `gray500`/`textPrimary`, emphasis `primary`/`secondary`. Never add a new icon library.
@@ -292,7 +292,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Empty states** ✅: mobile — centered `gap-4 py-16/20`; tenant: bare icon 64px `primary` + `text-xl font-interSemiBold` title + `text-gray-400 text-base px-8` desc; landlord: icon 32–48px `gray500` in `bg-gray-100 rounded-full p-5/6` + `text-lg` title + `text-gray-500 text-sm` desc; optional CTA. Web — centered `text-default-400` ("No apartments found", `h-64`) or card-wrapped `text-sm text-default-500`
 - **Skeletons** ✅ (mobile): HeroUI `Skeleton`/`SkeletonGroup` blocks `rounded-lg`/`rounded-full` sized to content; custom `ApartmentSkeleton` pulses opacity 0.45↔0.85 @ 700ms (Reanimated). Web: `animate-pulse` divs (`w-8 h-8 rounded-full bg-default-200`); shadcn `Skeleton` internal only
 - **Error banners** (web): `mt-4 p-3 bg-red-200 border border-red-400 rounded-lg text-sm text-red-600`; inline `FieldError` on fields
-- **Status chips** ✅: web `Chip size="sm" variant="soft"` + `text-[11px]`; mobile pills `px-4 py-0.5 rounded-full border-2` (`border-success bg-success-light text-success`, etc.)
+- **Status chips** ✅: web `Chip size="sm" variant="soft"` + `text-[11px]`; mobile HeroUI Native `Chip variant="soft" size="sm" animation="disable-all"` with `Chip.Label` colored via status style hooks (`usePaymentStatusStyles`, `useMaintenanceRequestStatusStyles`, etc.) — bg/text from `colors` tokens
 
 ---
 
@@ -411,7 +411,7 @@ Never copy technical debt. Reference only, with migration direction.
 | 3 | Web dead CSS (`@layer components` `.button--*`, `.input`, `.select__trigger`, `.toggle-button`) | Unreferenced by any TSX | ⚠ No | Delete; use HeroUI + Tailwind |
 | 4 | Web undefined fonts (`font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold`) | Fallback font renders | ⚠ No | Use `font-nunito`/`font-inter` |
 | 5 | Web tenant `zinc-*` palette (my-rental) | Diverges from canonical grey tokens | ⚠ No | Normalize to `gray-*` |
-| 6 | `lucide-react-native` on mobile | ~31 files (chat, settings, apartment detail, manage-apartment, inputs; public landlord/tenant profile screens migrated) | ⚠ No | `@tabler/icons-react-native` |
+| 6 | `lucide-react-native` on mobile | ~29 files (chat, settings, apartment detail, inputs; public landlord/tenant profile screens + manage-apartment migrated) | ⚠ No | `@tabler/icons-react-native` |
 | 7 | Dead components (`TabBar`, `TabBarIcon`, unused inputs/display components) | Unused | ⚠ Delete | Remove when touched |
 | 8 | Legacy RN `Modal` (MoveInCost, DateField picker, video) | Works, outside HeroUI overlay system | 🚧 OK | Migrate to HeroUI `Dialog`/`BottomSheet` |
 | 9 | Custom form inputs (`DateField`, `DropdownField`, `UploadImageField`, `UploadFileField`, `TimeField`, `QuantityField`, `AppInput`) | Token-correct custom implementations | 🚧 Reuse | Re-evaluate HeroUI equivalents |
