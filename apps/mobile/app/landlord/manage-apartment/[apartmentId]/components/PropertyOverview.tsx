@@ -110,7 +110,10 @@ export default function PropertyOverview({
 
       {/* Name & Address */}
       <View className="flex gap-1">
-        <Text className="text-accent text-2xl font-nunito">{name}</Text>
+        <Text className="text-accent text-2xl font-nunitoBold">
+          {name}
+        </Text>
+
         <Text className="text-foreground font-inter">
           {formatAddress({
             street_address,
@@ -124,9 +127,11 @@ export default function PropertyOverview({
 
       {/* Monthly Rent */}
       <View className='flex-row'>
-        <Text className="text-accent text-lg font-interMedium flex-1">
+        <Text className="text-accent text-lg font-nunitoSemiBold flex-1">
           {formatPesoDisplay(monthly_rent)}
-          <Text className="text-gray-500 font-inter text-base">/month</Text>
+          <Text className="text-gray-500 font-inter text-base">
+            /month
+          </Text>
         </Text>
 
         {is_verified && (

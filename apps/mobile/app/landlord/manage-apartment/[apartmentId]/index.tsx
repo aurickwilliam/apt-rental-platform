@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text } from 'react-native'
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react';
@@ -13,12 +13,13 @@ import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 
-import { Button } from 'heroui-native'
+import { Button, Separator } from 'heroui-native'
 
 import {
   IconUser,
   IconCircleCheck,
   IconBuilding,
+  IconChevronRight,
 } from '@tabler/icons-react-native';
 
 import { IMAGES } from 'constants/images'
@@ -29,9 +30,12 @@ import { supabase } from '@repo/supabase'
 import { useColors } from 'hooks/useTheme'
 import { useApartmentDetails } from 'hooks/apartments'
 import { useLandlordTenancy } from 'hooks/tenancy'
+import { useLandlordPaymentConfirmation } from 'hooks/landlord'
 import { useProfile } from 'hooks/auth'
 
-import { formatDate } from '@repo/utils';
+import { formatDate, formatPesoDisplay } from '@repo/utils';
+import { methodLabel } from '@/service/payments/paymentService'
+import type { PaymentRecord } from '@/service/landlord/landlordService'
 
 export default function Index() {
   const router = useRouter()
@@ -40,10 +44,12 @@ export default function Index() {
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
+  const [pendingFlipPayment, setPendingFlipPayment] = useState<PaymentRecord | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
   const { profile } = useProfile();
+  const confirmMutation = useLandlordPaymentConfirmation(apartmentId);
 
   const handleVacateUnit = () => {
     setIsVacateDialogOpen(true)
@@ -121,6 +127,13 @@ export default function Index() {
   };
 
   const isOccupied = apartment?.status === 'occupied';
+
+  const handleConfirmFlip = () => {
+    if (!pendingFlipPayment) return
+    confirmMutation.mutate(pendingFlipPayment.id, {
+      onSettled: () => setPendingFlipPayment(null),
+    })
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -256,6 +269,8 @@ export default function Index() {
                       reportedDate={maintenanceRequest.reportedDate}
                       onUpdatePress={() => console.log('Update Maintenance Pressed')}
                     />
+
+                    <Separator className="mt-5" />
                   </View>
                 )}
 
@@ -263,23 +278,25 @@ export default function Index() {
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
 
-                      <Text className="text-foreground text-lg font-interSemiBold">
+                      <Text className="text-foreground text-lg font-nunitoBold">
                         Rent Payment History
                       </Text>
 
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() =>
-                          router.push(
-                            `/landlord/manage-apartment/${apartmentId}/payment-history`,
-                          )
-                        }
-                      >
-                        <Text className="text-primary text-base font-inter">See All</Text>
-                      </TouchableOpacity>
+                      <Button
+                          variant="ghost"
+                          isIconOnly
+                          aria-label="See all payments"
+                          onPress={() =>
+                            router.push(
+                              `/landlord/manage-apartment/${apartmentId}/payment-history`,
+                            )
+                          }
+                        >
+                          <IconChevronRight size={20} color={colors.primary} />
+                        </Button>
                     </View>
 
-                    <View className="mt-5 flex gap-2">
+                    <View className="flex gap-2">
                       {paymentHistory.map((payment) => (
                         <PaymentHistoryCard
                           key={payment.id}
@@ -288,6 +305,14 @@ export default function Index() {
                           amount={payment.amount}
                           paidDate={payment.paidDate}
                           status={payment.status}
+                          method={payment.method}
+                          reference={payment.reference}
+                          onFlipPress={
+                            payment.status === 'pending' && payment.method === 'cash'
+                              ? () => setPendingFlipPayment(payment)
+                              : undefined
+                          }
+                          flipDisabled={confirmMutation.isPending}
                         />
                       ))}
                     </View>
@@ -359,6 +384,22 @@ export default function Index() {
         description="Are you sure you want to mark this unit as vacant? The current tenant's lease will be ended and the unit will be listed as available."
         confirmLabel="Vacate"
         onConfirm={handleConfirmVacate}
+      />
+
+      <ConfirmDialog
+        isOpen={pendingFlipPayment !== null}
+        onOpenChange={(open) => { if (!open) setPendingFlipPayment(null) }}
+        title="Mark as Paid"
+        description={
+          pendingFlipPayment
+            ? `Confirm the ${formatPesoDisplay(pendingFlipPayment.amount)} ${methodLabel(pendingFlipPayment.method)} payment for ${pendingFlipPayment.month} ${pendingFlipPayment.year}? This notifies the tenant that their payment was received.`
+            : ''
+        }
+        confirmLabel="Confirm"
+        confirmVariant="primary"
+        onConfirm={handleConfirmFlip}
+        isConfirmDisabled={confirmMutation.isPending}
+        errorMessage={confirmMutation.isError ? confirmMutation.error?.message ?? 'Could not update payment.' : null}
       />
     </View>
   );

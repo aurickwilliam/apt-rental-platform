@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { getLandlordTenancyQueryKey } from '@/hooks/tenancy'
+
 import {
   fetchLandlordPayments,
   updateLandlordPaymentStatus,
@@ -29,11 +31,20 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
   return useMutation({
     mutationFn: (paymentId: string) => updateLandlordPaymentStatus(paymentId),
     onMutate: async (paymentId) => {
-      const queryKey = getLandlordPaymentsQueryKey(apartmentId)
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData(queryKey)
+      const paymentsKey = getLandlordPaymentsQueryKey(apartmentId)
+      const tenancyKey = getLandlordTenancyQueryKey(apartmentId)
 
-      queryClient.setQueryData(queryKey, (rows: unknown) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: paymentsKey }),
+        queryClient.cancelQueries({ queryKey: tenancyKey }),
+      ])
+
+      const previous = {
+        payments: queryClient.getQueryData(paymentsKey),
+        tenancy: queryClient.getQueryData(tenancyKey),
+      }
+
+      queryClient.setQueryData(paymentsKey, (rows: unknown) => {
         const list = Array.isArray(rows) ? rows : []
         return list.map((row) =>
           typeof row === 'object' && row !== null && (row as { id?: string }).id === paymentId
@@ -42,16 +53,37 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
         )
       })
 
+      queryClient.setQueryData(tenancyKey, (data: unknown) => {
+        if (typeof data !== 'object' || data === null) return data
+        const tenancy = data as { paymentHistory?: { id: string; status: string }[] }
+        const paymentHistory = tenancy.paymentHistory
+          ? tenancy.paymentHistory.map((payment) =>
+              payment.id === paymentId ? { ...payment, status: 'paid' } : payment
+            )
+          : undefined
+        return { ...tenancy, paymentHistory }
+      })
+
       return { previous }
     },
     onError: (_error, _paymentId, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(getLandlordPaymentsQueryKey(apartmentId), context.previous)
+        if (context.previous.payments !== undefined) {
+          queryClient.setQueryData(getLandlordPaymentsQueryKey(apartmentId), context.previous.payments)
+        }
+        if (context.previous.tenancy !== undefined) {
+          queryClient.setQueryData(getLandlordTenancyQueryKey(apartmentId), context.previous.tenancy)
+        }
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: getLandlordPaymentsQueryKey(apartmentId),
+        exact: true,
+        refetchType: 'none',
+      })
+      queryClient.invalidateQueries({
+        queryKey: getLandlordTenancyQueryKey(apartmentId),
         exact: true,
         refetchType: 'none',
       })

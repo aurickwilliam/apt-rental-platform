@@ -12,11 +12,7 @@ import {
   useLandlordPayments,
   useLandlordPaymentConfirmation,
 } from 'hooks/landlord'
-import {
-  formatReferenceId,
-  methodLabel,
-  periodMonthLabel,
-} from '@/service/payments/paymentService'
+import { methodLabel, periodMonthLabel } from '@/service/payments/paymentService'
 import { formatPesoDisplay } from '@repo/utils'
 
 import PaymentHistoryCard from './components/PaymentHistoryCard'
@@ -53,8 +49,8 @@ const toFlatPayment = (payment: {
     month: periodMonthLabel(payment.period_start, payment.date),
     amount: payment.amount ?? 0,
     status: payment.status as FlatPayment['status'],
-    method: methodLabel(payment.method),
-    reference: formatReferenceId(payment.reference_id),
+    method: payment.method,
+    reference: payment.reference_id,
     paidDate,
     isFlipable: payment.status === 'pending' && payment.method === 'cash',
   }
@@ -184,7 +180,7 @@ export default function PaymentHistoryScreen() {
         title='Mark as Paid'
         description={
           pendingFlip
-            ? `Confirm the ${formatPesoDisplay(pendingFlip.amount)} ${pendingFlip.method} payment for ${pendingFlip.month} ${pendingFlip.year}? This notifies the tenant that their payment was received.`
+            ? `Confirm the ${formatPesoDisplay(pendingFlip.amount)} ${methodLabel(pendingFlip.method)} payment for ${pendingFlip.month} ${pendingFlip.year}? This notifies the tenant that their payment was received.`
             : ''
         }
         confirmLabel='Confirm'

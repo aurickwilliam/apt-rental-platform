@@ -188,6 +188,8 @@ export type PaymentRecord = {
   amount: number;
   paidDate: string;
   status: "paid" | "partial" | "pending";
+  method: string | null;
+  reference: string | null;
 };
 
 export type LandlordTenancyResult = {
@@ -228,7 +230,7 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status")
+      .select("id, amount, date, status, method, reference_id")
       .eq("apartment_id", apartmentId)
       .in("status", ["paid", "partial", "pending"])
       .order("date", { ascending: false })
@@ -294,6 +296,8 @@ export async function fetchLandlordTenancy(
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,
       status: p.status as "paid" | "partial" | "pending",
+      method: p.method ?? null,
+      reference: p.reference_id ?? null,
     };
   });
 

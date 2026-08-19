@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       apartment_images: {
@@ -350,6 +375,53 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          apartment: boolean
+          maintenance: boolean
+          message: boolean
+          notifications_enabled: boolean
+          payment: boolean
+          push_enabled: boolean
+          show_chat_toasts: boolean
+          system: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apartment?: boolean
+          maintenance?: boolean
+          message?: boolean
+          notifications_enabled?: boolean
+          payment?: boolean
+          push_enabled?: boolean
+          show_chat_toasts?: boolean
+          system?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apartment?: boolean
+          maintenance?: boolean
+          message?: boolean
+          notifications_enabled?: boolean
+          payment?: boolean
+          push_enabled?: boolean
+          show_chat_toasts?: boolean
+          system?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -403,10 +475,13 @@ export type Database = {
           due_date: string | null
           id: string
           method: string
+          paymongo_intent_id: string | null
+          paymongo_session_id: string | null
           period_end: string | null
           period_start: string | null
           proof_url: string | null
-          reference_no: number
+          reference_id: string | null
+          reference_no: number | null
           status: string
           tenancy_id: string | null
           tenant_id: string | null
@@ -420,10 +495,13 @@ export type Database = {
           due_date?: string | null
           id?: string
           method: string
+          paymongo_intent_id?: string | null
+          paymongo_session_id?: string | null
           period_end?: string | null
           period_start?: string | null
           proof_url?: string | null
-          reference_no: number
+          reference_id?: string | null
+          reference_no?: number | null
           status?: string
           tenancy_id?: string | null
           tenant_id?: string | null
@@ -437,10 +515,13 @@ export type Database = {
           due_date?: string | null
           id?: string
           method?: string
+          paymongo_intent_id?: string | null
+          paymongo_session_id?: string | null
           period_end?: string | null
           period_start?: string | null
           proof_url?: string | null
-          reference_no?: number
+          reference_id?: string | null
+          reference_no?: number | null
           status?: string
           tenancy_id?: string | null
           tenant_id?: string | null
@@ -465,53 +546,6 @@ export type Database = {
             foreignKeyName: "payment_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notification_preferences: {
-        Row: {
-          apartment: boolean
-          maintenance: boolean
-          message: boolean
-          notifications_enabled: boolean
-          payment: boolean
-          push_enabled: boolean
-          show_chat_toasts: boolean
-          system: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          apartment?: boolean
-          maintenance?: boolean
-          message?: boolean
-          notifications_enabled?: boolean
-          payment?: boolean
-          push_enabled?: boolean
-          show_chat_toasts?: boolean
-          system?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          apartment?: boolean
-          maintenance?: boolean
-          message?: boolean
-          notifications_enabled?: boolean
-          payment?: boolean
-          push_enabled?: boolean
-          show_chat_toasts?: boolean
-          system?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -986,10 +1020,7 @@ export type Database = {
           unread_count: number
         }[]
       }
-      get_landlord_dashboard: {
-        Args: { p_landlord_id: string }
-        Returns: Json
-      }
+      get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
@@ -1118,6 +1149,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
