@@ -11,9 +11,12 @@
     "singleQuote": true
   },
   "lint": {
-    "include": ["paymongo"]
+    "include": ["paymongo", "paymongo-webhook"]
+  },
+  "imports": {
+    "jsr:@supabase/supabase-js@2": "jsr:@supabase/supabase-js@2"
   },
   "tasks": {
-    "check": "deno check paymongo/index.ts"
+    "check": "deno check paymongo/index.ts paymongo-webhook/index.ts"
   }
 }

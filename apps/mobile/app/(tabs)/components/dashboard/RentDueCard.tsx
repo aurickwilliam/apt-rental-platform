@@ -59,7 +59,7 @@ export default function RentDueCard({
           Due: {formattedDate}
         </Text>
         <Text className={`text-base font-interSemiBold ${isOverdue ? "text-danger" : "text-accent"}`}>
-          ₱ {formattedAmount}
+          {formattedAmount}
         </Text>
       </View>
     </TouchableOpacity>

@@ -30,6 +30,13 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
     titleClass: 'text-warning',
     footer: 'A balance is still due.',
   },
+  Pending: {
+    icon: IconAlertCircleFilled,
+    color: 'warning',
+    title: 'Payment Pending',
+    titleClass: 'text-warning',
+    footer: 'Awaiting payment confirmation.',
+  },
   Unpaid: {
     icon: IconCircleXFilled,
     color: 'danger',

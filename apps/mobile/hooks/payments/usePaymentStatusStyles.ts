@@ -16,6 +16,10 @@ export function usePaymentStatusStyles(): Record<PaymentStatus, StatusStyle> {
       backgroundColor: colors.warningLight,
       textColor: colors.warning,
     },
+    Pending: {
+      backgroundColor: colors.gray100,
+      textColor: colors.gray500,
+    },
     Unpaid: {
       backgroundColor: colors.dangerLight,
       textColor: colors.danger,

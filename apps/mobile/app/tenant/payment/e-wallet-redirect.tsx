@@ -16,7 +16,7 @@ import {
 import { Button } from 'heroui-native'
 
 export default function EWalletRedirect() {
-  const { method, sessionId, checkoutUrl } = useLocalSearchParams();
+  const { method, sessionId, checkoutUrl, referenceId } = useLocalSearchParams();
   const router = useRouter();
 
   const [hasLaunched, setHasLaunched] = useState(false);
@@ -41,11 +41,14 @@ export default function EWalletRedirect() {
       const paymentStatus = await getCheckoutSessionStatus(sessionIdValue);
 
       if (paymentStatus === 'paid') {
-        // TODO: Record payment in payment_history
-        // TODO: Update tenant rent status
-        // TODO: Generate receipt
-        // TODO: Store PayMongo payment reference
-        router.replace('/tenant/payment/success');
+        // The payment row was created and flipped by the backend; the success
+        // screen renders the receipt from that row (identified by the
+        // reference id — the deep link only carries this, never an outcome).
+        const successReferenceId =
+          typeof referenceId === 'string' && referenceId
+            ? referenceId
+            : sessionIdValue;
+        router.replace(`/tenant/payment/success?referenceId=${successReferenceId}`);
         return;
       }
 
@@ -66,7 +69,7 @@ export default function EWalletRedirect() {
       verifyingRef.current = false;
       setIsVerifying(false);
     }
-  }, [router]);
+  }, [router, referenceId]);
 
   // Initial launch: open the hosted PayMongo checkout page so the user can
   // authorize the payment inside the e-wallet. On deep-link return (or a cold
@@ -88,19 +91,28 @@ export default function EWalletRedirect() {
 
   // Deep-link return handler: extracts only the session id from the URL and
   // always re-verifies with the backend. Never trusts query params like result.
+  // The deep link carries the reference id (see the edge function's
+  // success_url) — it matches when the warm-start params hold the cs session
+  // id AND the reference id; on cold starts the sessionId param IS the
+  // reference id, which the backend resolves to the session.
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const { queryParams } = Linking.parse(event.url);
       const returnedSessionId = queryParams?.sessionId;
 
-      if (typeof returnedSessionId === 'string' && returnedSessionId === sessionId) {
+      const matchesSession =
+        typeof returnedSessionId === 'string' &&
+        (returnedSessionId === sessionId ||
+          returnedSessionId === referenceId);
+
+      if (matchesSession) {
         verifyPayment(returnedSessionId);
       }
     };
 
     const subscription = Linking.addEventListener('url', handleDeepLink);
     return () => subscription.remove();
-  }, [sessionId, verifyPayment]);
+  }, [sessionId, referenceId, verifyPayment]);
 
   const handlePrimaryPress = () => {
     if (hasLaunched) {
