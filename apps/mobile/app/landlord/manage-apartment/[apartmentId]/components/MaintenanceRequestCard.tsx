@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-import { IconHammer } from "@tabler/icons-react-native";
+import { IconHammer, IconTool } from "@tabler/icons-react-native";
 
 import { Button, Card, Chip } from "heroui-native";
 
@@ -23,16 +23,19 @@ export default function MaintenanceRequestCard({
     <Card className="border border-border shadow-none rounded-3xl">
       <Card.Header>
         <View className="flex-row items-center justify-between gap-3">
-          <Text
-            className="text-foreground font-interSemiBold text-base flex-1"
-            numberOfLines={1}
-          >
-            Maintenance Request
-          </Text>
+          <View className="flex-row items-center gap-2 flex-1">
+            <IconTool size={20} color={colors.primary} />
+            <Text
+              className="text-foreground font-interSemiBold text-base flex-1"
+              numberOfLines={1}
+            >
+              Maintenance Request
+            </Text>
+          </View>
 
           <Chip
             variant="soft"
-            size="sm"
+            size="md"
             animation="disable-all"
             style={{ backgroundColor: colors.warningLight }}
           >
@@ -46,28 +49,39 @@ export default function MaintenanceRequestCard({
         </View>
       </Card.Header>
 
-      <Card.Body className="pt-0 gap-2">
-        <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-muted text-xs font-inter">Issue</Text>
+      <Card.Body className="pt-3 gap-2">
+        <View>
+          <Text className="text-muted text-xs font-inter">
+            Issue Name
+          </Text>
+
           <Text
-            className="text-foreground text-sm font-interMedium flex-1 text-right"
+            className="text-foreground text-base font-interMedium"
             numberOfLines={2}
           >
             {issueName}
           </Text>
         </View>
 
-        <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-muted text-xs font-inter">Reported</Text>
-          <Text className="text-foreground text-sm font-interMedium">
-            {reportedDate}
-          </Text>
-        </View>
+        <View className="flex-row items-end justify-between gap-3">
+          <View>
+            <Text className="text-muted text-xs font-inter">
+              Reported Date
+            </Text>
 
-        <Button size="sm" className="mt-1 self-start" onPress={onUpdatePress}>
-          <IconHammer size={16} color="#4B5563" />
-          <Button.Label>Update Maintenance</Button.Label>
-        </Button>
+            <Text className="text-foreground text-sm font-interMedium">
+              {reportedDate}
+            </Text>
+          </View>
+
+          <Button 
+            size={"sm"}
+            onPress={onUpdatePress}
+          >
+            <IconHammer size={16} color={colors.white} />
+            <Button.Label>Update Maintenance</Button.Label>
+          </Button>
+        </View>
       </Card.Body>
     </Card>
   );
