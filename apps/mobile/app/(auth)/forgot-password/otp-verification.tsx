@@ -58,7 +58,7 @@ export default function OTPVerification() {
       </View>
 
       <View className="flex gap-3">
-        <Text className="text-foreground text-2xl font-interSemiBold">
+        <Text className="text-foreground text-2xl font-nunitoBold">
           OTP was Sent!
         </Text>
 
@@ -97,12 +97,12 @@ export default function OTPVerification() {
             Didn&apos;t get the code?{" "}
           </Text>
           {countdown > 0 ? (
-            <Text className="text-accent text-base font-medium">
+            <Text className="text-accent text-base font-nunitoSemiBold">
               Resend in {countdown}s
             </Text>
           ) : (
             <Pressable onPress={handleResend}>
-              <Text className="text-accent text-base font-medium">
+              <Text className="text-accent text-base font-nunitoSemiBold">
                 Resend
               </Text>
             </Pressable>

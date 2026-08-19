@@ -42,7 +42,7 @@ export default function SearchHeader({
           options={cities}
           value={selectedCity}
           onSelect={onSelectCity}
-          textClassName='text-xl text-foreground font-nunitoSemiBold leading-[34px]'
+          textClassName='text-xl text-foreground font-nunitoBold leading-[34px]'
           buttonClassName='bg-transparent flex-row items-center justify-center gap-1'
         />
       </View>

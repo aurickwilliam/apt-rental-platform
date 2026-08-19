@@ -278,7 +278,7 @@ export default function FirstProcess() {
         <Separator className="my-5" />
 
         {/* Employment Information */}
-        <Text className="text-foreground text-lg font-interMedium mb-5">
+        <Text className="text-foreground text-lg font-nunitoSemiBold mb-5">
           Employment & Income Details
         </Text>
 
@@ -396,7 +396,7 @@ export default function FirstProcess() {
         <Separator className="my-5" />
 
         {/* References */}
-        <Text className="text-foreground text-lg font-interMedium">
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
           References
         </Text>
         <Text className="text-muted font-inter mb-5">

@@ -83,12 +83,12 @@ export default function AboutScreen() {
           style={{ width: 80, height: 80, borderRadius: 20 }}
           contentFit="contain"
         />
-        <Text className="mt-4 text-2xl font-bold text-foreground">APT</Text>
+        <Text className="mt-4 text-2xl font-nunitoBold text-foreground">APT</Text>
         <Text className="text-muted text-sm mt-1">
           A Place to Thrive
         </Text>
         <View className="mt-3 px-3 py-1 rounded-full bg-primary/10">
-          <Text className="text-accent text-xs font-medium">
+          <Text className="text-accent text-xs font-nunitoSemiBold">
             Version {APP_VERSION}
           </Text>
         </View>
@@ -99,7 +99,7 @@ export default function AboutScreen() {
 
       {/* Description */}
       <View className="mb-6">
-        <Text className="text-sm font-semibold text-foreground mb-2">
+        <Text className="text-sm font-nunitoSemiBold text-foreground mb-2">
           About the App
         </Text>
         <Text className="text-sm text-muted leading-6">
@@ -115,7 +115,7 @@ export default function AboutScreen() {
 
       {/* Meet the Team */}
       <View className="mb-6">
-        <Text className="text-sm font-semibold text-foreground mb-3">
+        <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
           Meet the Team
         </Text>
         <View className="gap-3">
@@ -125,12 +125,12 @@ export default function AboutScreen() {
               className="flex-row items-center gap-3 bg-surface rounded-xl px-4 py-3"
             >
               <View className="w-9 h-9 rounded-full bg-surface-tertiary items-center justify-center">
-                <Text className="text-accent font-semibold text-sm">
+                <Text className="text-accent font-nunitoSemiBold text-sm">
                   {dev.name.charAt(0)}
                 </Text>
               </View>
               <View>
-                <Text className="text-sm font-medium text-foreground">
+                <Text className="text-sm font-nunitoSemiBold text-foreground">
                   {dev.name}
                 </Text>
                 <Text className="text-xs text-muted">{dev.role}</Text>
@@ -145,7 +145,7 @@ export default function AboutScreen() {
 
       {/* Social Links */}
       <View className="mb-6">
-        <Text className="text-sm font-semibold text-foreground mb-3">
+        <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
           Connect with Us
         </Text>
         <View className="gap-2">
@@ -175,7 +175,7 @@ export default function AboutScreen() {
         <Text className="text-xs text-muted text-center leading-5">
           Developed as a capstone project at
         </Text>
-        <Text className="text-xs font-semibold text-muted text-center">
+        <Text className="text-xs font-nunitoSemiBold text-muted text-center">
           STI College Caloocan
         </Text>
         <Text className="text-xs text-muted text-center mt-1">

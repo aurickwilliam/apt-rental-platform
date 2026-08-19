@@ -147,7 +147,7 @@ export default function Rentals() {
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
             <IconMapPin size={30} color={colors.primary} />
-            <Text className="text-secondary text-2xl font-nunitoSemiBold">
+            <Text className="text-secondary text-2xl font-nunitoBold">
               {apartment.name}
             </Text>
           </View>
@@ -178,7 +178,7 @@ export default function Rentals() {
         <View className="flex mt-5">
           <View className="flex-row items-center justify-start gap-2">
             <IconLink size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Quick Actions
             </Text>
           </View>
@@ -198,7 +198,7 @@ export default function Rentals() {
         <View className="mt-5 flex gap-3">
           <View className="flex-row items-center justify-start gap-2">
             <IconUser size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Landlord Information
             </Text>
           </View>
@@ -214,7 +214,7 @@ export default function Rentals() {
         <View className="mt-5 flex gap-3">
           <View className="flex-row items-center justify-start gap-2">
             <IconFileText size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Apartment Description
             </Text>
           </View>
@@ -244,7 +244,7 @@ export default function Rentals() {
             <View className="flex gap-3">
               <View className="flex-row items-center justify-start gap-2">
                 <IconHammer size={24} color={colors.textPrimary} />
-                <Text className="text-foreground text-lg font-interSemiBold">
+                <Text className="text-foreground text-lg font-nunitoSemiBold">
                   {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
                 </Text>
               </View>

@@ -45,13 +45,13 @@ export default function PaymentHistoryCard({ payment }: PaymentHistoryCardProps)
         <Card.Header>
           <View className='flex-row items-center justify-between gap-3'>
             <Text
-              className='text-foreground font-interSemiBold text-base flex-1'
+              className='text-foreground font-nunitoSemiBold text-base flex-1'
               numberOfLines={1}
             >
               {payment.month}
             </Text>
 
-            <Text className='text-accent text-base font-interSemiBold'>
+            <Text className='text-accent text-base font-nunitoSemiBold'>
               {formatPesoDisplay(payment.amount)}
             </Text>
           </View>
@@ -78,7 +78,7 @@ export default function PaymentHistoryCard({ payment }: PaymentHistoryCardProps)
             >
               <Chip.Label
                 style={{ color: statusStyle.textColor }}
-                className='text-xs font-interMedium'
+                className='text-xs font-nunitoSemiBold'
               >
                 {payment.status}
               </Chip.Label>

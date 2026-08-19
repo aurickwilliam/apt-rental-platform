@@ -23,7 +23,7 @@ export default function MultiChipGroup({
             activeOpacity={0.7}
           >
             <Text
-              className={`font-[Poppins_500Medium] text-[13px] ${
+              className={`font-nunitoSemiBold text-[13px] ${
                 active ? 'text-white' : 'text-[#555555]'
               }`}
             >

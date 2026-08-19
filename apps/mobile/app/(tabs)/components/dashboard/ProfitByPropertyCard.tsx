@@ -57,7 +57,7 @@ export default function ProfitByPropertyCard({
       {/* HEADER */}
       <View className="flex-row items-center justify-between">
         <View className="flex">
-          <Text className="text-accent font-interSemiBold text-xl">
+          <Text className="text-accent font-nunitoBold text-xl">
             Profit by Property
           </Text>
         </View>
@@ -91,11 +91,11 @@ export default function ProfitByPropertyCard({
             xAxisColor="#e5e7eb"
             rulesColor="#f3f4f6"
             rulesType="solid"
-            yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Inter" }}
+            yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
             xAxisLabelTextStyle={{
               color: colors.textPrimary,
               fontSize: 9,
-              fontFamily: "Inter",
+              fontFamily: "Nunito-SemiBold",
               textAlign: "center",
             }}
             formatYLabel={(val) => `₱${Number(val) / 1000}k`}
@@ -104,7 +104,7 @@ export default function ProfitByPropertyCard({
               color: colors.gray500,
               fontSize: 9,
               fontWeight: "600",
-              fontFamily: "Inter",
+              fontFamily: "Nunito-SemiBold",
             }}
             topLabelContainerStyle={{ paddingBottom: 4 }}
             renderTooltip={(item: any) => (

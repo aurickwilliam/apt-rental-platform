@@ -91,7 +91,7 @@ export default function VerifyMobile() {
           </CloseButton>
 
           {/* Title */}
-          <Text className="text-2xl text-foreground font-interMedium my-5">
+          <Text className="text-2xl text-foreground font-nunitoBold my-5">
             Enter Your Mobile Number
           </Text>
 

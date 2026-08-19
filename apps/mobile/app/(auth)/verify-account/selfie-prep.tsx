@@ -69,13 +69,13 @@ export default function SelfiePrep() {
         </View>
 
         <View className='gap-3'>
-          <Text className='text-center text-base font-interMedium text-foreground'>
+          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
             Remove glasses, hats, and face coverings.
           </Text>
-          <Text className='text-center text-base font-interMedium text-foreground'>
+          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
             Use bright, even lighting.
           </Text>
-          <Text className='text-center text-base font-interMedium text-foreground'>
+          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
             Keep your full face visible in the frame.
           </Text>
         </View>

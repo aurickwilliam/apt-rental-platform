@@ -14,7 +14,7 @@ export default function EmptyChatState() {
         />
       </View>
 
-      <Text className="text-xl font-interSemiBold text-foreground text-center">
+      <Text className="text-xl font-nunitoBold text-foreground text-center">
         Hey, what would you like to ask?
       </Text>
       <Text className="text-gray-400 text-base font-inter text-center">

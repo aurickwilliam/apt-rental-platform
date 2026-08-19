@@ -40,7 +40,7 @@ export default function Success() {
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
         <View className='flex-1 items-center justify-center gap-4'>
-          <Text className='text-white text-lg font-interSemiBold text-center'>
+          <Text className='text-white text-lg font-nunitoSemiBold text-center'>
             We could not load your payment details.
           </Text>
           <Button

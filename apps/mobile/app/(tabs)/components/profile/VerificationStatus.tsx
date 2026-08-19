@@ -73,7 +73,7 @@ export default function VerificationStatus({
     <Card className='mx-5 shadow-none border border-border bg-surface'>
       <Card.Header className='flex-row gap-3 items-center pb-0'>
         <IconId size={24} color={colors.textPrimary} />
-        <Card.Title className='text-foreground font-interSemiBold'>
+        <Card.Title className='text-foreground font-nunitoSemiBold'>
           Verification Status
         </Card.Title>
       </Card.Header>
@@ -81,7 +81,7 @@ export default function VerificationStatus({
       <Card.Body className='gap-3 mt-3'>
         <View className='flex-row items-center gap-2'>
           <Icon size={26} color={config.iconColor} />
-          <Text className={`text-lg ${config.style} font-interMedium`}>
+          <Text className={`text-lg ${config.style} font-nunitoSemiBold`}>
             {config.text}
           </Text>
         </View>

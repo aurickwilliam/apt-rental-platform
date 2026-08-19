@@ -48,7 +48,7 @@ export default function CircleProgress({ currentStep, totalSteps }: CircleProgre
         />
       </Svg>
       
-      <Text className="text-2xl font-interSemiBold text-foreground absolute">
+      <Text className="text-2xl font-nunitoBold text-foreground absolute">
         {currentStep} of {totalSteps}
       </Text>
     </View>

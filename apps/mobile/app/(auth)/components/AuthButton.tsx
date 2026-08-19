@@ -32,7 +32,7 @@ export default function AuthButton({
         style={{ width: 20, height: 20 }}
         resizeMode="contain"
       />
-      <Button.Label className="font-interMedium text-foreground">
+      <Button.Label className="font-nunitoSemiBold text-foreground">
         {label}
       </Button.Label>
 

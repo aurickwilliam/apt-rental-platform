@@ -12,7 +12,7 @@ export default function EmptyApproved() {
       <View className="bg-white rounded-full p-5 mb-4">
         <House size={28} color={colors.gray500} />
       </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-nunitoSemiBold">
         No approved visits
       </Text>
       <Text className="text-muted text-sm font-inter text-center mt-1">

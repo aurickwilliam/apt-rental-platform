@@ -320,7 +320,7 @@ export default function CompleteProfile() {
       />
 
       {/* Title */}
-      <Text className="text-2xl text-foreground font-interSemiBold my-5">
+      <Text className="text-2xl text-foreground font-nunitoBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
@@ -338,7 +338,7 @@ export default function CompleteProfile() {
         {/*
           ===== Personal Information Section =====
         */}
-        <Text className="text-xl text-foreground font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Personal Information
         </Text>
 
@@ -442,7 +442,7 @@ export default function CompleteProfile() {
         {/*
           ===== Address Information Section =====
         */}
-        <Text className="text-xl text-foreground font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Address Information
         </Text>
 
@@ -536,7 +536,7 @@ export default function CompleteProfile() {
         {/*
           ===== Account Security Section =====
         */}
-        <Text className="text-xl text-foreground font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Account Security
         </Text>
 
@@ -611,7 +611,7 @@ export default function CompleteProfile() {
 
         {/* Password Checker */}
         <View className="flex-col gap-1">
-          <Text className="text-foreground font-interMedium mb-2">
+          <Text className="text-foreground font-nunitoSemiBold mb-2">
             Your password must contain:
           </Text>
 

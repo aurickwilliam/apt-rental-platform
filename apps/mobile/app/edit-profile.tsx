@@ -323,7 +323,7 @@ export default function EditProfile() {
               />
             ) : (
               <View className="size-32 rounded-full bg-surface flex items-center justify-center">
-                <Text className="text-accent text-4xl font-interMedium">
+                <Text className="text-accent text-4xl font-nunitoBold">
                   {`${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`.toUpperCase()}
                 </Text>
               </View>
@@ -393,7 +393,7 @@ export default function EditProfile() {
         <View className="flex gap-3">
           <View className="flex-row gap-2">
             <IconUser size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Personal Information
             </Text>
           </View>
@@ -443,7 +443,7 @@ export default function EditProfile() {
         <View className="flex gap-3">
           <View className="flex-row gap-2">
             <IconHome size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Address Information
             </Text>
           </View>

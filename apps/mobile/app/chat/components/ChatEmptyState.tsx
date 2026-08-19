@@ -27,14 +27,14 @@ export default function ChatEmptyState({
           <Avatar.Image source={{ uri: otherUserAvatar }} />
         ) : null}
         <Avatar.Fallback delayMs={200} className="justify-center items-center">
-          <Text className="text-accent text-4xl font-interMedium leading-none">
+          <Text className="text-accent text-4xl font-nunitoSemiBold leading-none">
             {otherUserName ? getInitials(otherUserName) : '?'}
           </Text>
         </Avatar.Fallback>
       </Avatar>
 
       {otherUserName && (
-        <Text className="text-foreground text-xl font-interSemiBold mb-1">
+        <Text className="text-foreground text-xl font-nunitoBold mb-1">
           {otherUserName}
         </Text>
       )}

@@ -128,7 +128,7 @@ export default function Profile() {
                   <item.icon size={22} color={colors.textPrimary} />
                 </ListGroup.ItemPrefix>
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className='font-interMedium'>{item.title}</ListGroup.ItemTitle>
+                  <ListGroup.ItemTitle className='font-nunitoSemiBold'>{item.title}</ListGroup.ItemTitle>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix />
               </ListGroup.Item>

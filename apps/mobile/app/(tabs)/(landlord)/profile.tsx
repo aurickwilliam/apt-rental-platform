@@ -108,7 +108,7 @@ export default function Profile() {
                 </ListGroup.ItemPrefix>
 
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className='font-interMedium'>
+                  <ListGroup.ItemTitle className='font-nunitoSemiBold'>
                     {item.title}
                   </ListGroup.ItemTitle>
                 </ListGroup.ItemContent>

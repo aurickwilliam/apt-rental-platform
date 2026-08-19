@@ -20,11 +20,11 @@ export default function ApplicationHeader({
     <View className='w-screen bg-surface p-5 flex-row items-center justify-between'>
       {/* Title and Next Title */}
       <View className='flex-1 gap-1'>
-        <Text className='text-2xl font-interSemiBold text-foreground'>
+        <Text className='text-2xl font-nunitoBold text-foreground'>
           {currentTitle}
         </Text>
 
-        <Text className='text-base font-interMedium text-gray-500'>
+        <Text className='text-base font-nunitoSemiBold text-gray-500'>
           Next: {nextTitle}
         </Text>
       </View>

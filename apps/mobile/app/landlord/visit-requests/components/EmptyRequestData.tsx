@@ -18,7 +18,7 @@ export default function EmptyRequestData() {
           <FileXCorner size={48} color={colors.gray400}  />
         </View>
 
-        <Text className="text-foreground text-base font-interSemiBold">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           Visit request not found
         </Text>
         <Text className="text-gray-500 text-sm font-inter text-center mt-2">

@@ -12,6 +12,10 @@ export const FONT_FAMILIES = {
   },
 } as const;
 
+// Mobile: all emphasized text (titles, section headers, card titles, labels,
+// values, prices, tab/badge labels) uses Nunito — `font-nunitoSemiBold` /
+// `font-nunitoBold` (big titles & stat values). `font-inter` remains body
+// copy only. Inter medium/semibold classes are web-only.
 export const THEME_FONTS = {
   body: FONT_FAMILIES.inter.regular,
   bodyMedium: FONT_FAMILIES.inter.medium,

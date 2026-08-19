@@ -130,7 +130,7 @@ export default function UploadId() {
               </ControlField.Indicator>
 
               <Label>
-                <Label.Text className='text-sm text-foreground font-interMedium leading-snug'>
+                <Label.Text className='text-sm text-foreground font-nunitoSemiBold leading-snug'>
                   {AUTHENTICITY_DECLARATION}
                 </Label.Text>
               </Label>
@@ -153,7 +153,7 @@ function CaptureStepSummary({ step, result }: CaptureStepSummaryProps) {
   return (
     <View className='gap-2'>
       <View className='flex-row items-center gap-2'>
-        <Text className='text-base font-semibold text-foreground'>
+        <Text className='text-base font-nunitoSemiBold text-foreground'>
           {step.label}:
         </Text>
         <IconCheck size={18} color={colors.primary} />
@@ -167,7 +167,7 @@ function CaptureStepSummary({ step, result }: CaptureStepSummaryProps) {
           cachePolicy="disk"
           accessibilityLabel={`${step.label} ID photo`}
         />
-        <Text className='flex-1 text-sm font-interMedium text-foreground'>
+        <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
           Captured photo
         </Text>
       </View>

@@ -71,7 +71,7 @@ export default function UploadFileField({
   return (
     <View className="gap-2">
       {/* Label */}
-      <Text className="text-base font-semibold text-foreground">
+      <Text className="text-base font-nunitoSemiBold text-foreground">
         {label}
         {required && <Text className="text-danger"> *</Text>}
       </Text>
@@ -82,7 +82,7 @@ export default function UploadFileField({
           <IconFileText size={28} color={colors.primary} strokeWidth={1.5} />
 
           <Text
-            className="flex-1 text-sm font-medium text-foreground"
+            className="flex-1 text-sm font-nunitoSemiBold text-foreground"
             numberOfLines={1}
           >
             {displayName}
@@ -122,7 +122,7 @@ export default function UploadFileField({
                 size={22}
                 color={colors.primary}
               />
-              <Text className="text-sm font-medium text-foreground">
+              <Text className="text-sm font-nunitoSemiBold text-foreground">
                 {placeholder ?? "Upload a file"}
               </Text>
             </>
@@ -142,7 +142,7 @@ export default function UploadFileField({
         >
           <IconRefresh size={16} color={colors.primary} />
           <Text
-            className="text-[13px] font-medium"
+            className="text-[13px] font-nunitoSemiBold"
             style={{ color: colors.primary }}
           >
             Replace file

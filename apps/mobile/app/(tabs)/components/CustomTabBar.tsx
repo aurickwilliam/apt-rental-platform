@@ -143,7 +143,7 @@ function TabItems({ state, navigation, tabs, colors, isDark }: TabItemsProps) {
                 />
               )}
               <Text
-                className="font-interSemiBold text-[10px]"
+                className="font-nunitoSemiBold text-[10px]"
                 style={{ color: isFocused ? colors.primary : colors.gray300 }}
               >
                 {config.label}

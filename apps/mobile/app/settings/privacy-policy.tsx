@@ -78,7 +78,7 @@ export default function PrivacyPolicyScreen() {
       <View className="gap-4 pb-10">
         {sections.map((section, index) => (
           <View key={section.id}>
-            <Text className="text-sm font-semibold text-foreground mb-1">
+            <Text className="text-sm font-nunitoSemiBold text-foreground mb-1">
               {section.title}
             </Text>
             <Text className="text-sm text-muted leading-6">

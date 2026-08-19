@@ -50,7 +50,7 @@ export default function VisitRequestCard({
             <View className="flex-row items-start justify-between gap-3">
               <View className="flex-1 min-w-0">
                 <Text
-                  className="text-foreground text-sm font-interMedium"
+                  className="text-foreground text-sm font-nunitoSemiBold"
                   numberOfLines={1}
                 >
                   {tenantName}
@@ -83,7 +83,7 @@ export default function VisitRequestCard({
                     style={{ backgroundColor: statusStyle.backgroundColor }}
                   >
                     <Chip.Label
-                      className="font-interMedium"
+                      className="font-nunitoSemiBold"
                       style={{ color: statusStyle.textColor }}
                     >
                       {statusStyle.label}

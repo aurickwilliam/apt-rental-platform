@@ -96,7 +96,7 @@ export default function Index() {
       <View className='gap-3'>
         <View className='flex-row items-center justify-between gap-3'>
           <View className='flex-1 gap-0.5'>
-            <Text className='text-foreground text-lg font-interSemiBold'>
+            <Text className='text-foreground text-lg font-nunitoSemiBold'>
               Valid ID / Government ID
             </Text>
             <Text className='text-muted text-sm font-inter'>
@@ -106,7 +106,7 @@ export default function Index() {
 
           <Chip variant="secondary" color="success" size="sm">
             <IconShieldCheck size={14} color={colors.success} />
-            <Chip.Label className='text-success font-interMedium'>
+            <Chip.Label className='text-success font-nunitoSemiBold'>
               Verified
             </Chip.Label>
           </Chip>
@@ -134,7 +134,7 @@ export default function Index() {
       {!hasDocuments ? (
         <View className='flex-1 items-center gap-4 pt-16 px-4'>
           <IconFileUpload size={64} color={colors.primary} />
-          <Text className='text-foreground text-xl font-interSemiBold text-center'>
+          <Text className='text-foreground text-xl font-nunitoBold text-center'>
             No documents yet
           </Text>
           <Text className='text-gray-400 text-base font-inter text-center px-8 leading-relaxed'>
@@ -146,7 +146,7 @@ export default function Index() {
             onPress={() => router.push('/document-id/select-document')}
           >
             <IconPlus size={20} color='#FFFFFF' />
-            <Button.Label className='text-white font-interSemiBold'>
+            <Button.Label className='text-white font-nunitoSemiBold'>
               Add a Document
             </Button.Label>
           </Button>
@@ -159,7 +159,7 @@ export default function Index() {
               </View>
 
               <View className='flex-1 gap-1'>
-                <Text className='text-foreground text-base font-interMedium leading-snug'>
+                <Text className='text-foreground text-base font-nunitoSemiBold leading-snug'>
                   Uploading your documents early allows for faster and easier submission when applying for rentals.
                 </Text>
                 <Text className='text-muted text-sm font-inter leading-snug'>
@@ -171,7 +171,7 @@ export default function Index() {
         </View>
       ) : (
         <>
-          <Text className='text-foreground text-lg font-interSemiBold mb-3'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold mb-3'>
             Uploaded Documents
           </Text>
 
@@ -192,7 +192,7 @@ export default function Index() {
 
       {/* Need help */}
       <View className='w-full items-center justify-center py-10'>
-        <Text className='text-foreground text-base font-interMedium'>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
           Need help?
         </Text>
         {
@@ -204,7 +204,7 @@ export default function Index() {
           className='flex-row items-center justify-center mt-1'
           activeOpacity={0.7}
         >
-          <Text className='text-accent text-base font-interMedium'>
+          <Text className='text-accent text-base font-nunitoSemiBold'>
             Contact Support
           </Text>
         </TouchableOpacity>

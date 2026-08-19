@@ -31,7 +31,7 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
 
   return (
     <View className="size-12 rounded-full border border-border bg-primary items-center justify-center">
-      <Text className="text-white font-interMedium text-lg">
+      <Text className="text-white font-nunitoSemiBold text-lg">
         {initials}
       </Text>
     </View>
@@ -70,7 +70,7 @@ export default function LandlordCard({
 
           {/* Name + Email */}
           <View className="flex-1">
-            <Text className="text-foreground font-interSemiBold text-base" numberOfLines={1}>
+            <Text className="text-foreground font-nunitoSemiBold text-base" numberOfLines={1}>
               {fullName}
             </Text>
             <Text className="text-gray-500 font-inter text-xs" numberOfLines={1}>

@@ -26,7 +26,7 @@ export default function MaintenanceRequestCard({
           <View className="flex-row items-center gap-2 flex-1">
             <IconTool size={20} color={colors.primary} />
             <Text
-              className="text-foreground font-interSemiBold text-base flex-1"
+              className="text-foreground font-nunitoSemiBold text-base flex-1"
               numberOfLines={1}
             >
               Maintenance Request
@@ -41,7 +41,7 @@ export default function MaintenanceRequestCard({
           >
             <Chip.Label
               style={{ color: colors.warning }}
-              className="text-xs font-interMedium"
+              className="text-xs font-nunitoSemiBold"
             >
               Pending
             </Chip.Label>
@@ -56,7 +56,7 @@ export default function MaintenanceRequestCard({
           </Text>
 
           <Text
-            className="text-foreground text-base font-interMedium"
+            className="text-foreground text-base font-nunitoSemiBold"
             numberOfLines={2}
           >
             {issueName}
@@ -69,7 +69,7 @@ export default function MaintenanceRequestCard({
               Reported Date
             </Text>
 
-            <Text className="text-foreground text-sm font-interMedium">
+            <Text className="text-foreground text-sm font-nunitoSemiBold">
               {reportedDate}
             </Text>
           </View>

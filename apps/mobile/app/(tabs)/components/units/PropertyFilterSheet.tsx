@@ -70,7 +70,7 @@ export default function PropertyFilterSheet({
             className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center"
             style={{ zIndex: 10 }}
           >
-            <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
+            <Text className="text-white text-[10px] font-nunitoSemiBold leading-none -mb-0.5">
               {activeFilterCount}
             </Text>
           </View>
@@ -84,7 +84,7 @@ export default function PropertyFilterSheet({
 
           <View className="gap-5 mt-4">
             <View className="gap-2">
-              <Text className="text-foreground font-interMedium text-sm">
+              <Text className="text-foreground font-nunitoSemiBold text-sm">
                 Status
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -107,7 +107,7 @@ export default function PropertyFilterSheet({
             <Separator />
 
             <View className="gap-2">
-              <Text className="text-foreground font-interMedium text-sm">
+              <Text className="text-foreground font-nunitoSemiBold text-sm">
                 Location
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function PropertyFilterSheet({
             <Separator />
 
             <View className="gap-2">
-              <Text className="text-foreground font-interMedium text-sm">
+              <Text className="text-foreground font-nunitoSemiBold text-sm">
                 Sort by Price
               </Text>
               <View className="flex-row flex-wrap gap-2">

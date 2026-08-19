@@ -38,7 +38,7 @@ export default function Upload() {
     >
       <View className='flex gap-1.5'>
         {/* Name of Document */}
-        <Text className='text-accent text-2xl font-nunitoSemiBold'>
+        <Text className='text-accent text-2xl font-nunitoBold'>
           {docType}
         </Text>
 
@@ -71,7 +71,7 @@ export default function Upload() {
           </ControlField.Indicator>
 
           <Label>
-            <Label.Text className='text-sm text-foreground font-interMedium leading-snug'>
+            <Label.Text className='text-sm text-foreground font-nunitoSemiBold leading-snug'>
               I confirm that the information provided is true and the ID belongs to me.
             </Label.Text>
           </Label>
@@ -107,7 +107,7 @@ export default function Upload() {
         isDisabled={!isVerified}
         onPress={handleAddDocument}
       >
-        <Button.Label className='text-white font-interSemiBold'>
+        <Button.Label className='text-white font-nunitoSemiBold'>
           Add Document
         </Button.Label>
       </Button>

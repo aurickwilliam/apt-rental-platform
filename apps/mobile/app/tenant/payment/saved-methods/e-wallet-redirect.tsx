@@ -35,8 +35,8 @@ export default function EWalletRedirect() {
         </View>
 
         <View className='mt-10'>
-          <Text className='text-foreground text-center text-lg font-interMedium'>
-            You’ll be redirected to <Text className={`font-interSemiBold ${method === 'GCash' ? 'text-primary' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
+          <Text className='text-foreground text-center text-lg font-nunitoSemiBold'>
+            You’ll be redirected to <Text className={`font-nunitoSemiBold ${method === 'GCash' ? 'text-primary' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
           </Text>
         </View>
 

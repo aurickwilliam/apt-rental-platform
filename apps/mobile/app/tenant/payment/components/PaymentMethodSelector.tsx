@@ -110,7 +110,7 @@ export default function PaymentMethodSelector({
   return (
     <View>
       <View className='flex mb-3'>
-        <Text className='text-accent text-lg font-interSemiBold'>
+        <Text className='text-accent text-lg font-nunitoSemiBold'>
           Choose Payment Method
         </Text>
         <Text className='text-gray-500 text-base font-inter'>
@@ -122,7 +122,7 @@ export default function PaymentMethodSelector({
         <Card.Body>
           {hasSavedPaymentMethod && (
             <View className='flex mb-2'>
-              <Text className='text-foreground text-base font-interMedium mb-3'>
+              <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
                 Saved
               </Text>
               <View className='flex-row flex-wrap gap-2'>
@@ -143,7 +143,7 @@ export default function PaymentMethodSelector({
           {hasSavedPaymentMethod && <Separator className='my-4' />}
 
           <View className='flex'>
-            <Text className='text-foreground text-base font-interMedium mb-3'>
+            <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
               {hasSavedPaymentMethod ? 'Or use a new method' : 'Use a new method'}
             </Text>
 

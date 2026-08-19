@@ -31,7 +31,7 @@ export default function DocumentRow({
   if (!signedUrl) {
     return (
       <View className="flex-row items-center justify-between py-2">
-        <Text className="text-foreground font-interMedium">{label}</Text>
+        <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
         <Text className="text-muted text-sm">Unavailable</Text>
       </View>
     );
@@ -57,7 +57,7 @@ export default function DocumentRow({
           cachePolicy="disk"
         />
         <View className="flex-1">
-          <Text className="text-foreground font-interMedium">{label}</Text>
+          <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
           <Text className="text-muted text-sm">Tap to view</Text>
         </View>
       </TouchableOpacity>
@@ -74,7 +74,7 @@ export default function DocumentRow({
         <FileText size={22} color={colors.gray400} />
       </View>
       <View className="flex-1">
-        <Text className="text-foreground font-interMedium">{label}</Text>
+        <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
         <Text className="text-muted text-sm">
           Tap to open · {ext.toUpperCase()}
         </Text>

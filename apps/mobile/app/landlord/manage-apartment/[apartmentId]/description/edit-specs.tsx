@@ -205,7 +205,7 @@ export default function EditSpecs() {
 
       {/* Bathrooms */}
       <View className="flex-row items-center justify-between mt-5">
-        <Text className="text-foreground text-lg font-interMedium">Bathrooms:</Text>
+        <Text className="text-foreground text-lg font-nunitoSemiBold">Bathrooms:</Text>
         <View className="flex-row items-center gap-7">
           <TouchableOpacity
             onPress={() => handleSubtract("bathrooms")}
@@ -214,7 +214,7 @@ export default function EditSpecs() {
           >
             <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text className="text-foreground text-xl font-interMedium">
+          <Text className="text-foreground text-xl font-nunitoBold">
             {bathrooms}
           </Text>
           <TouchableOpacity onPress={() => handleAdd("bathrooms")}>
@@ -225,7 +225,7 @@ export default function EditSpecs() {
 
       {/* Bedrooms */}
       <View className="flex-row items-center justify-between mt-5">
-        <Text className="text-foreground text-lg font-interMedium">Bedrooms:</Text>
+        <Text className="text-foreground text-lg font-nunitoSemiBold">Bedrooms:</Text>
         <View className="flex-row items-center gap-7">
           <TouchableOpacity
             onPress={() => handleSubtract("bedrooms")}
@@ -234,7 +234,7 @@ export default function EditSpecs() {
           >
             <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text className="text-foreground text-xl font-interMedium">{bedrooms}</Text>
+          <Text className="text-foreground text-xl font-nunitoBold">{bedrooms}</Text>
           <TouchableOpacity onPress={() => handleAdd("bedrooms")}>
             <CirclePlus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
@@ -243,7 +243,7 @@ export default function EditSpecs() {
 
       {/* Max Occupants */}
       <View className="flex-row items-center justify-between mt-5">
-        <Text className="text-foreground text-lg font-interMedium">
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
           Max Occupants:
         </Text>
         <View className="flex-row items-center gap-7">
@@ -254,7 +254,7 @@ export default function EditSpecs() {
           >
             <CircleMinus size={30} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text className="text-foreground text-xl font-interMedium">
+          <Text className="text-foreground text-xl font-nunitoBold">
             {maxOccupants}
           </Text>
           <TouchableOpacity onPress={() => handleAdd("maxOccupants")}>

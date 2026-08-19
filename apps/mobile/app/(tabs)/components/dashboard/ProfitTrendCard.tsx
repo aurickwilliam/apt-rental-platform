@@ -77,7 +77,7 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
       {/* HEADER */}
       <View className="flex-row items-center justify-between">
         <View className="flex">
-          <Text className="text-accent font-interSemiBold text-xl">
+          <Text className="text-accent font-nunitoBold text-xl">
             Profit Trend
           </Text>
           <Text className="text-muted font-inter">
@@ -122,8 +122,8 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
             xAxisColor="#e5e7eb"
             rulesColor="#f3f4f6"
             rulesType="solid"
-            yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Inter" }}
-            xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Inter" }}
+            yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
+            xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
             hideDataPoints={false}
             showVerticalLines={false}
             formatYLabel={(val) => `₱${Number(val) / 1000}k`}

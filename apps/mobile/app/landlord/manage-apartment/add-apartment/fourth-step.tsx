@@ -81,7 +81,7 @@ export default function FourthStep() {
         {/* Amenities Section */}
         <View className="mt-5 flex gap-3">
           <View>
-            <Text className="text-foreground text-xl font-interSemiBold">
+            <Text className="text-foreground text-xl font-nunitoBold">
               Add Included Perks & Amenities
             </Text>
             <Text className="text-muted text-base font-inter">

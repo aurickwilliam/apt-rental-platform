@@ -81,7 +81,7 @@ export default function Chat() {
       refreshing={refreshing}
       onRefresh={refetch}
     >
-      <Text className='text-accent text-3xl font-nunitoSemiBold'>
+      <Text className='text-accent text-3xl font-nunitoBold'>
         Messages
       </Text>
 
@@ -112,10 +112,10 @@ export default function Chat() {
               style={{ width: '100%', height: '100%' }}
             />
           </View>
-          <Text className='text-2xl text-accent  font-interSemiBold mb-2 mt-5'>
+          <Text className='text-2xl text-accent  font-nunitoBold mb-2 mt-5'>
             No Messages Yet
           </Text>
-          <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
+          <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
             Start a conversation with a landlord to see your messages here.
           </Text>
         </View>
@@ -126,7 +126,7 @@ export default function Chat() {
             <View>
               <Separator className='my-3' />
 
-              <Text className='text-base font-interMedium text-accent mb-3'>
+              <Text className='text-base font-nunitoSemiBold text-accent mb-3'>
                 Current Landlord
               </Text>
 
@@ -158,7 +158,7 @@ export default function Chat() {
           {/* Other conversations */}
           {otherConversations.length > 0 && (
             <View className='gap-3'>
-              <Text className='text-base font-interMedium text-gray-500'>
+              <Text className='text-base font-nunitoSemiBold text-gray-500'>
                 Past Conversations
               </Text>
 

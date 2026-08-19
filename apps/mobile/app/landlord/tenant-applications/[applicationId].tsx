@@ -113,10 +113,10 @@ export default function TenantApplicationDetails() {
       >
         <View className="gap-4">
           <View>
-            <Text className="text-foreground text-sm font-interMedium">
+            <Text className="text-foreground text-sm font-nunitoSemiBold">
               Tenant Application For
             </Text>
-            <Text className='text-secondary font-interSemiBold text-lg'>
+            <Text className='text-secondary font-nunitoSemiBold text-lg'>
               {application.apartment_name}
             </Text>
             <Text className="text-muted font-inter text-sm">
@@ -136,7 +136,7 @@ export default function TenantApplicationDetails() {
 
               <View className="flex-1 min-w-0">
                 <Text
-                  className="text-foreground text-base font-interSemiBold"
+                  className="text-foreground text-base font-nunitoSemiBold"
                   numberOfLines={1}
                 >
                   {application.tenant_name}
@@ -166,7 +166,7 @@ export default function TenantApplicationDetails() {
                 style={{ backgroundColor: statusStyle.backgroundColor }}
               >
                 <Chip.Label
-                  className="font-interMedium"
+                  className="font-nunitoSemiBold"
                   style={{ color: statusStyle.textColor }}
                 >
                   {displayStatus}
@@ -184,7 +184,7 @@ export default function TenantApplicationDetails() {
 
           {/* Application details */}
           <View className="gap-3">
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Application Details
             </Text>
 
@@ -215,7 +215,7 @@ export default function TenantApplicationDetails() {
 
           {/* Employment */}
           <View className="gap-3">
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Employment
             </Text>
 
@@ -237,7 +237,7 @@ export default function TenantApplicationDetails() {
 
           {/* Preferences */}
           <View className='gap-3'>
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Preferences
             </Text>
 
@@ -255,7 +255,7 @@ export default function TenantApplicationDetails() {
 
           {/* Previous Landlord */}
           <View className="gap-3">
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Previous Landlord
             </Text>
 
@@ -275,7 +275,7 @@ export default function TenantApplicationDetails() {
 
           {/* Documents */}
           <View className="gap-3">
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Documents
             </Text>
 
@@ -298,7 +298,7 @@ export default function TenantApplicationDetails() {
 
           {/* Message */}
           <View>
-            <Text className="text-foreground text-lg font-interSemiBold">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Message from Tenant
             </Text>
             <Text className="text-muted text-base font-inter">
@@ -314,14 +314,14 @@ export default function TenantApplicationDetails() {
                 isDisabled={actionLoading}
                 onPress={openRejectDialog}
               >
-                <Button.Label className="font-interSemiBold">Reject</Button.Label>
+                <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
               </Button>
               <Button
                 className="flex-1"
                 isDisabled={actionLoading}
                 onPress={approve}
               >
-                <Button.Label className="font-interSemiBold">Approve</Button.Label>
+                <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
               </Button>
             </View>
           )}

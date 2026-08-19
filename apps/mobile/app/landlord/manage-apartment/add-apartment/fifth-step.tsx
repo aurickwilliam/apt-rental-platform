@@ -222,13 +222,13 @@ export default function FifthStep() {
         >
           {/* Apartment Details */}
           <View className="mb-5">
-            <Text className="text-white font-interSemiBold text-2xl">
+            <Text className="text-white font-nunitoBold text-2xl">
               {name || "Unnamed Apartment"}
             </Text>
 
             <View className="flex-row items-center mt-2 gap-2">
               <MapPin size={24} color={colors.secondaryForeground} />
-              <Text className="text-white font-interMedium text-base">
+              <Text className="text-white font-nunitoSemiBold text-base">
                 {locationString || "No location provided"}
               </Text>
             </View>
@@ -239,7 +239,7 @@ export default function FifthStep() {
                 color={colors.secondary}
                 fill={colors.secondary}
               />
-              <Text className="text-white font-interMedium text-base">
+              <Text className="text-white font-nunitoSemiBold text-base">
                 No ratings yet
               </Text>
             </View>
@@ -247,21 +247,21 @@ export default function FifthStep() {
             <View className="flex-row items-center justify-between mt-5 gap-6">
               <View className="flex-row items-center gap-2">
                 <BedDouble size={24} color={colors.secondaryForeground} />
-                <Text className="text-white font-interMedium text-base">
+                <Text className="text-white font-nunitoSemiBold text-base">
                   {bedrooms} {bedrooms === 1 ? "Bed" : "Beds"}
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <Bath size={24} color={colors.secondaryForeground} />
-                <Text className="text-white font-interMedium text-base">
+                <Text className="text-white font-nunitoSemiBold text-base">
                   {bathrooms} {bathrooms === 1 ? "Bath" : "Baths"}
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <Maximize size={24} color={colors.secondaryForeground} />
-                <Text className="text-white font-interMedium text-base">
+                <Text className="text-white font-nunitoSemiBold text-base">
                   {floorArea ? `${floorArea} Sqm` : "N/A"}
                 </Text>
               </View>
@@ -305,14 +305,14 @@ export default function FifthStep() {
         <View className="flex-row gap-6">
           <View className="flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border">
             <Users size={24} color={colors.textPrimary} />
-            <Text className="text-foreground font-interMedium text-base">
+            <Text className="text-foreground font-nunitoSemiBold text-base">
               Max {maxOccupants} {maxOccupants === 1 ? "Occupant" : "Occupants"}
             </Text>
           </View>
 
           <View className="flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border">
             <Building2 size={24} color={colors.textPrimary} />
-            <Text className="text-foreground font-interMedium text-base">
+            <Text className="text-foreground font-nunitoSemiBold text-base">
               {floorLevel ? `${floorLevel}` : "N/A"}
             </Text>
           </View>
@@ -321,14 +321,14 @@ export default function FifthStep() {
         <View className="flex-row mt-4 mb-5 gap-6">
           <View className="flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border">
             <House size={24} color={colors.textPrimary} />
-            <Text className="text-foreground font-interMedium text-base">
+            <Text className="text-foreground font-nunitoSemiBold text-base">
               {apartmentType || "N/A"}
             </Text>
           </View>
 
           <View className="flex-1 flex-row items-center gap-2 bg-surface p-3 rounded-2xl border border-border">
             <Calendar size={24} color={colors.textPrimary} />
-            <Text className="text-foreground font-interMedium text-base">
+            <Text className="text-foreground font-nunitoSemiBold text-base">
               {leaseDuration || "N/A"}
             </Text>
           </View>
@@ -338,7 +338,7 @@ export default function FifthStep() {
       {/* Apartment Description */}
       <View className="mt-5 px-5 flex-row items-center gap-2">
         <Building size={26} color={colors.textPrimary} />
-        <Text className="font-interSemiBold text-lg text-foreground">
+        <Text className="font-nunitoSemiBold text-lg text-foreground">
           Everything About Your Apartment
         </Text>
       </View>
@@ -372,7 +372,7 @@ export default function FifthStep() {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
             <SquareCheck size={26} color={colors.textPrimary} />
-            <Text className="font-interSemiBold text-lg text-foreground">
+            <Text className="font-nunitoSemiBold text-lg text-foreground">
               Included Perks
             </Text>
           </View>
@@ -401,7 +401,7 @@ export default function FifthStep() {
       {/* Map View */}
       <View className="flex-row items-center gap-2 mt-10 px-5">
         <Map size={26} color={colors.textPrimary} />
-        <Text className="font-interSemiBold text-lg text-foreground">
+        <Text className="font-nunitoSemiBold text-lg text-foreground">
           View on Map
         </Text>
       </View>
@@ -462,7 +462,7 @@ export default function FifthStep() {
       {/* Landlord Card */}
       <View className="flex-row items-center gap-2 mt-10 px-5">
         <User size={26} color={colors.textPrimary} />
-        <Text className="font-interSemiBold text-lg text-foreground">
+        <Text className="font-nunitoSemiBold text-lg text-foreground">
           Meet Your Rental Owner
         </Text>
       </View>
@@ -486,7 +486,7 @@ export default function FifthStep() {
       <View className="mt-10 px-5 flex gap-2">
         <View className="flex-row items-center gap-2">
           <FileText size={26} color={colors.textPrimary} />
-          <Text className="font-interSemiBold text-lg text-foreground">
+          <Text className="font-nunitoSemiBold text-lg text-foreground">
             Lease Agreement & Rules
           </Text>
         </View>
@@ -505,10 +505,10 @@ export default function FifthStep() {
         <View className="flex-row gap-5 items-center">
           <View className="flex-col">
             <View className="flex-row items-baseline">
-              <Text className="text-2xl font-interSemiBold text-accent">
+              <Text className="text-2xl font-nunitoBold text-accent">
                 {formatPesoDisplay(monthlyRent)}
               </Text>
-              <Text className="text-sm font-interMedium text-muted ml-1">
+              <Text className="text-sm font-nunitoSemiBold text-muted ml-1">
                 /month
               </Text>
             </View>
@@ -580,7 +580,7 @@ export default function FifthStep() {
         onRequestClose={() => setIsImageViewVisible(false)}
         FooterComponent={({ imageIndex }) => (
           <View className="p-10 items-center">
-            <Text className="text-white font-interMedium">
+            <Text className="text-white font-nunitoSemiBold">
               {imageIndex + 1} / {apartmentImages.length}
             </Text>
           </View>

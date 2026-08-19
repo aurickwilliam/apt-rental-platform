@@ -40,7 +40,7 @@ export default function MaintenanceRequestCard({
         <Card.Header>
           <View className="flex-row items-center justify-between">
             <Text
-              className="text-foreground font-interSemiBold text-base"
+              className="text-foreground font-nunitoSemiBold text-base"
               numberOfLines={1}
             >
               {request.title}
@@ -53,7 +53,7 @@ export default function MaintenanceRequestCard({
             >
               <Chip.Label
                 style={{ color: status.textColor }}
-                className="text-xs font-interMedium"
+                className="text-xs font-nunitoSemiBold"
               >
                 {request.status}
               </Chip.Label>
@@ -80,7 +80,7 @@ export default function MaintenanceRequestCard({
             >
               <Chip.Label
                 style={{ color: urgency.textColor }}
-                className="text-xs font-interMedium"
+                className="text-xs font-nunitoSemiBold"
               >
                 {urgencyLabel} Urgency
               </Chip.Label>

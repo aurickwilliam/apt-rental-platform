@@ -24,7 +24,7 @@ export default function RatingBarCount({
       accessibilityLabel={`${rating} star: ${ratingCount} of ${totalReviews} reviews`}
     >
       <View className='flex-row items-center w-10'>
-        <Text className='text-foreground text-sm font-interMedium mr-1 flex-1 text-center'>
+        <Text className='text-foreground text-sm font-nunitoSemiBold mr-1 flex-1 text-center'>
           {rating}
         </Text>
         <IconStarFilled size={16} color={colors.secondary} />
@@ -46,7 +46,7 @@ export default function RatingBarCount({
       </View>
 
       <View className='w-10 items-end'>
-        <Text className='text-foreground text-sm font-interMedium'>
+        <Text className='text-foreground text-sm font-nunitoSemiBold'>
           {ratingCount}
         </Text>
       </View>

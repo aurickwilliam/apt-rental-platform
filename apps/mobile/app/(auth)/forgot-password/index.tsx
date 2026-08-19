@@ -40,7 +40,7 @@ export default function Index() {
       </View>
 
       <View className='flex gap-3'>
-        <Text className='text-secondary text-3xl font-nunitoSemiBold'>
+        <Text className='text-secondary text-3xl font-nunitoBold'>
           Forgot Password
         </Text>
 
@@ -59,7 +59,7 @@ export default function Index() {
             onPress={() => handleForgotPassword('sms')}
           >
             <IconMessageCircle size={20} color={colors.textPrimary} />
-            <Button.Label className='font-interMedium'>
+            <Button.Label className='font-nunitoSemiBold'>
               Send via SMS
             </Button.Label>
           </Button>
@@ -70,7 +70,7 @@ export default function Index() {
             onPress={() => handleForgotPassword('email')}
           >
             <IconMail size={20} color={colors.textPrimary} />
-            <Button.Label className='font-interMedium text-foreground'>
+            <Button.Label className='font-nunitoSemiBold text-foreground'>
               Send via Email
             </Button.Label>
           </Button>

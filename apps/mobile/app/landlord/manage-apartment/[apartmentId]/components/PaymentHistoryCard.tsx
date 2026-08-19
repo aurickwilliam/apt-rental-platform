@@ -50,7 +50,7 @@ export default function PaymentHistoryCard({
           <View className="flex-row items-center gap-2 flex-1">
             <IconCalendar size={20} color={colors.gray500} />
             <Text
-              className="text-foreground font-interSemiBold text-base"
+              className="text-foreground font-nunitoSemiBold text-base"
               numberOfLines={1}
             >
               {month} {year}
@@ -67,7 +67,7 @@ export default function PaymentHistoryCard({
               >
                 <Chip.Label
                   style={{ color: colors.gray500 }}
-                  className="text-xs font-interMedium"
+                  className="text-xs font-nunitoSemiBold"
                 >
                   {methodLabel(method ?? null)}
                 </Chip.Label>
@@ -82,7 +82,7 @@ export default function PaymentHistoryCard({
             >
               <Chip.Label
                 style={{ color: style.textColor }}
-                className="text-xs font-interMedium"
+                className="text-xs font-nunitoSemiBold"
               >
                 {label}
               </Chip.Label>
@@ -92,7 +92,7 @@ export default function PaymentHistoryCard({
       </Card.Header>
 
       <Card.Body className="pt-3 gap-1">
-        <Text className="text-foreground text-xl font-interMedium">
+        <Text className="text-foreground text-xl font-nunitoBold">
           {formatPesoDisplay(amount)}
         </Text>
       </Card.Body>
@@ -120,7 +120,7 @@ export default function PaymentHistoryCard({
             }`}
             style={{ backgroundColor: colors.successLight }}
           >
-            <Text className="text-success font-interSemiBold">
+            <Text className="text-success font-nunitoSemiBold">
               Mark as Paid
             </Text>
           </TouchableOpacity>

@@ -177,12 +177,12 @@ export default function Index() {
             <View className="mt-5 p-2 border-t border-b border-border flex-row items-center justify-between">
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Ratings</Text>
-                <Text className="text-3xl text-secondary font-interMedium">
+                <Text className="text-3xl text-secondary font-nunitoBold">
                   {apartment.average_rating !== null
                     ? `${apartment.average_rating}`
                     : '—'}
                 </Text>
-                <Text className="text-base text-foreground font-interMedium">
+                <Text className="text-base text-foreground font-nunitoSemiBold">
                   Average
                 </Text>
               </View>
@@ -191,10 +191,10 @@ export default function Index() {
 
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Reviews</Text>
-                <Text className="text-3xl text-foreground font-interMedium">
+                <Text className="text-3xl text-foreground font-nunitoBold">
                   {apartment.no_ratings}
                 </Text>
-                <Text className="text-base text-foreground font-interMedium">Total</Text>
+                <Text className="text-base text-foreground font-nunitoSemiBold">Total</Text>
               </View>
 
               <View className="w-px h-full bg-border" />
@@ -205,7 +205,7 @@ export default function Index() {
                   size={32}
                   color={isOccupied ? colors.success : colors.primary}
                 />
-                <Text className="text-base text-foreground font-interMedium">
+                <Text className="text-base text-foreground font-nunitoSemiBold">
                   {APARTMENT_STATUS_LABELS[apartment.status]}
                 </Text>
               </View>
@@ -242,7 +242,7 @@ export default function Index() {
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
                       <IconUser size={26} color={colors.textPrimary} />
-                      <Text className="text-foreground text-lg font-interSemiBold">
+                      <Text className="text-foreground text-lg font-nunitoSemiBold">
                         Tenant Information
                       </Text>
                     </View>
@@ -327,7 +327,7 @@ export default function Index() {
                     style={{ width: 100, height: 100 }}
                     contentFit="contain"
                   />
-                  <Text className="text-danger text-lg font-interMedium">
+                  <Text className="text-danger text-lg font-nunitoSemiBold">
                     This property is currently vacant.
                   </Text>
                 </View>
@@ -345,7 +345,7 @@ export default function Index() {
         ) : (
           <View className="flex-1 items-center justify-center py-24 gap-4">
             <IconBuilding size={48} color={colors.gray400} />
-            <Text className="text-gray-400 font-interSemiBold text-center">
+            <Text className="text-gray-400 font-nunitoSemiBold text-center">
               Could not load property details.
             </Text>
 

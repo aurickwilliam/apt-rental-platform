@@ -147,12 +147,12 @@ export default function FilterBottomSheet({
           {/* Sticky Header */}
           <View className="border-b border-border">
             <View className="flex-row items-center justify-between">
-              <Text className="font-interSemiBold text-base text-foreground mb-3">
+              <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
                 Filters
               </Text>
 
               {resultCount !== undefined && (
-                <Text className="text-muted font-interSemiBold text-[13px]">
+                <Text className="text-muted font-nunitoSemiBold text-[13px]">
                   {resultCount} results found
                 </Text>
               )}
@@ -170,7 +170,7 @@ export default function FilterBottomSheet({
           >
             {/* Verification */}
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="font-interSemiBold text-base text-foreground">
+              <Text className="font-nunitoSemiBold text-base text-foreground">
                 Verification
               </Text>
             </View>
@@ -201,12 +201,12 @@ export default function FilterBottomSheet({
               step={500}
             >
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-interSemiBold text-base text-foreground">
+                <Text className="font-nunitoSemiBold text-base text-foreground">
                   Budget
                 </Text>
                 <Slider.Output>
                   {({ state }) => (
-                    <Text className="font-interSemiBold text-sm text-accent">
+                    <Text className="font-nunitoSemiBold text-sm text-accent">
                       ₱ {state.values[0].toLocaleString()} –{" "}
                       {state.values[1] >= MAX_BUDGET
                         ? `₱ ${MAX_BUDGET.toLocaleString()}+`
@@ -226,10 +226,10 @@ export default function FilterBottomSheet({
                 )}
               </Slider.Track>
               <View className="flex-row justify-between mt-1">
-                <Text className="text-muted text-xs font-interRegular">
+                <Text className="text-muted text-xs font-inter">
                   ₱ 1,000
                 </Text>
-                <Text className="text-muted text-xs font-interRegular">
+                <Text className="text-muted text-xs font-inter">
                   ₱ 50,000+
                 </Text>
               </View>
@@ -248,12 +248,12 @@ export default function FilterBottomSheet({
               step={5}
             >
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-interSemiBold text-base text-foreground">
+                <Text className="font-nunitoSemiBold text-base text-foreground">
                   Size Range
                 </Text>
                 <Slider.Output>
                   {({ state }) => (
-                    <Text className="font-interSemiBold text-sm text-accent">
+                    <Text className="font-nunitoSemiBold text-sm text-accent">
                       {state.values[0]} sqm – {state.values[1]} sqm
                     </Text>
                   )}
@@ -270,10 +270,10 @@ export default function FilterBottomSheet({
                 )}
               </Slider.Track>
               <View className="flex-row justify-between mt-1">
-                <Text className="text-muted text-xs font-interRegular">
+                <Text className="text-muted text-xs font-inter">
                   10 sqm
                 </Text>
-                <Text className="text-muted text-xs font-interRegular">
+                <Text className="text-muted text-xs font-inter">
                   300 sqm
                 </Text>
               </View>
@@ -282,7 +282,7 @@ export default function FilterBottomSheet({
             <Separator className="my-4" />
 
             {/* Sort By */}
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Sort By
             </Text>
             <TagGroup
@@ -305,7 +305,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Bedrooms
             </Text>
             <TagGroup
@@ -324,7 +324,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Bathrooms
             </Text>
             <TagGroup
@@ -343,7 +343,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Unit Type
             </Text>
             <TagGroup
@@ -362,7 +362,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Furnishing
             </Text>
             <TagGroup
@@ -381,7 +381,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Floor Level
             </Text>
             <TagGroup
@@ -400,7 +400,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Lease Duration
             </Text>
             <TagGroup
@@ -419,7 +419,7 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-interSemiBold text-base text-foreground mb-3">
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Amenities
             </Text>
             <SearchField value={amenitySearch} onChange={setAmenitySearch}>
@@ -450,7 +450,7 @@ export default function FilterBottomSheet({
               })}
 
               {filteredPerks.length === 0 && (
-                <Text className="text-foreground font-interSemiBold text-[13px]">
+                <Text className="text-foreground font-nunitoSemiBold text-[13px]">
                   No amenities match your search.
                 </Text>
               )}

@@ -138,7 +138,7 @@ export default function PropertyOverview({
           <View className="flex-row items-center gap-1">
             <IconShieldCheck size={20} color={colors.success} />
             <Text
-              className="text-base font-interMedium"
+              className="text-base font-nunitoSemiBold"
               style={{ color: colors.success }}>
               Verified
             </Text>
@@ -211,7 +211,7 @@ export default function PropertyOverview({
         backgroundColor="rgb(0, 0, 0, 0.8)"
         FooterComponent={({ imageIndex: idx }) => (
           <View className="p-10 items-center">
-            <Text className="text-white font-interMedium">
+            <Text className="text-white font-nunitoSemiBold">
               {idx + 1} / {images.length}
             </Text>
           </View>

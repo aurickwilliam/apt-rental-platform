@@ -12,7 +12,7 @@ export default function EmptyMaintenanceRequestDetail() {
       <View className="bg-surface rounded-full p-5 mb-4">
         <IconHammer size={32} color={colors.gray500} />
       </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-nunitoSemiBold">
         Request not found
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center mt-1">

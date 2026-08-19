@@ -132,7 +132,7 @@ export default function MapPreviewSection({
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
         <Map size={26} color={colors.textPrimary} />
-        <Text className='font-interSemiBold text-lg text-foreground'>
+        <Text className='font-nunitoSemiBold text-lg text-foreground'>
           View on Map
         </Text>
       </View>
@@ -222,7 +222,7 @@ export default function MapPreviewSection({
 
             {/* Header */}
             <View>
-              <Text className="font-interSemiBold text-lg text-foreground">
+              <Text className="font-nunitoSemiBold text-lg text-foreground">
                 Choose Route Type
               </Text>
               <Text className="mt-1 font-inter text-muted">

@@ -16,7 +16,7 @@ export default function ApplicationsEmptyState() {
       <IconClipboardOff size={64} color={colors.primary} />
 
       <View className='items-center gap-1'>
-        <Text className='text-foreground text-xl font-interSemiBold text-center'>
+        <Text className='text-foreground text-xl font-nunitoBold text-center'>
           No Applications Yet
         </Text>
         <Text className='text-gray-400 text-base font-inter text-center px-8'>

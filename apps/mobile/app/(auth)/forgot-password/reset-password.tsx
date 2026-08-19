@@ -66,7 +66,7 @@ export default function ResetPassword() {
   return (
     <ScreenWrapper className="p-5">
       <View className="flex gap-1">
-        <Text className="text-3xl text-foreground font-nunitoSemiBold">
+        <Text className="text-3xl text-foreground font-nunitoBold">
           Reset Password
         </Text>
 
@@ -140,7 +140,7 @@ export default function ResetPassword() {
 
         {/* Password Checker */}
         <View className="flex-col gap-1 mt-5">
-          <Text className="text-foreground font-interMedium mb-2">
+          <Text className="text-foreground font-nunitoSemiBold mb-2">
             Your password must contain:
           </Text>
 

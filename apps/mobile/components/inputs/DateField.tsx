@@ -77,7 +77,7 @@ export default function DateField({
     <View className="w-full flex-col gap-2">
       {label && (
         <Text
-          className={`text-base font-interMedium ${error ? "text-danger" : "text-foreground"}`}
+          className={`text-base font-nunitoSemiBold ${error ? "text-danger" : "text-foreground"}`}
         >
           {label} {required && <Text className="text-danger">*</Text>}
         </Text>
@@ -131,11 +131,11 @@ export default function DateField({
                   Cancel
                 </Text>
               </Pressable>
-              <Text className="text-base font-interMedium text-foreground">
+              <Text className="text-base font-nunitoSemiBold text-foreground">
                 {label ?? "Select Date"}
               </Text>
               <Pressable onPress={handleDone} className="py-1 px-2">
-                <Text className="text-base text-accent font-interMedium">
+                <Text className="text-base text-accent font-nunitoSemiBold">
                   Done
                 </Text>
               </Pressable>

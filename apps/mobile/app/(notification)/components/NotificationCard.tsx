@@ -44,7 +44,7 @@ export default function NotificationCard({
           <View className="flex-row items-center gap-2">
             <Icon size={20} color={iconColor} />
 
-            <Card.Title className={`flex-1 text-base ${unread ? "font-interSemiBold" : "font-interMedium"}`}>
+            <Card.Title className={`flex-1 text-base ${unread ? "font-nunitoBold" : "font-nunitoSemiBold"}`}>
               {title}
             </Card.Title>
 

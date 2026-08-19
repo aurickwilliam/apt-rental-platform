@@ -48,11 +48,11 @@ const GROUP_ORDER: Group[] = ["Today", "This Week", "Next Week", "Later", "Past"
 function SectionHeader({ group, count }: { group: string; count: number }) {
   return (
     <View className="flex-row items-center gap-2 mb-3 mt-1">
-      <Text className="text-foreground text-sm font-interSemiBold">
+      <Text className="text-foreground text-sm font-nunitoSemiBold">
         {group}
       </Text>
       <View className="bg-surface-tertiary rounded-full px-2 py-0.5">
-        <Text className="text-gray-700 text-xs font-interMedium">
+        <Text className="text-gray-700 text-xs font-nunitoSemiBold">
           {count}
         </Text>
       </View>
@@ -76,11 +76,11 @@ function PastToggle({
       className="flex-row items-center justify-between py-3 mb-1"
     >
       <View className="flex-row items-center gap-2">
-        <Text className="text-foreground text-sm font-interSemiBold">
+        <Text className="text-foreground text-sm font-nunitoSemiBold">
           Past
         </Text>
         <View className="bg-surface-tertiary rounded-full px-2 py-0.5">
-          <Text className="text-gray-700 text-xs font-interMedium">
+          <Text className="text-gray-700 text-xs font-nunitoSemiBold">
             {count}
           </Text>
         </View>
@@ -240,7 +240,7 @@ export default function VisitRequests() {
 
             <View className="gap-3 mb-3">
               <View className="flex-row items-center justify-between">
-                <Text className="text-foreground text-base font-interSemiBold">
+                <Text className="text-foreground text-base font-nunitoSemiBold">
                   Approved Visit Requests
                 </Text>
                 {(searchQuery || selectedDate) && (

@@ -51,7 +51,7 @@ export default function Dashboard() {
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
           <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
-          <Text className="text-foreground text-3xl font-nunitoSemiBold mt-1">
+          <Text className="text-foreground text-3xl font-nunitoBold mt-1">
             Dashboard
           </Text>
         </View>
@@ -76,19 +76,19 @@ export default function Dashboard() {
           <View className="flex gap-3">
             <View className="flex-row gap-3">
               <View className="flex-1 bg-primary rounded-3xl p-4 gap-1 justify-center">
-                <Text className="text-sm text-gray-100 font-interMedium">
+                <Text className="text-sm text-gray-100 font-nunitoSemiBold">
                   Total Properties
                 </Text>
-                <Text className="text-3xl text-white font-interSemiBold">
+                <Text className="text-3xl text-white font-nunitoBold">
                   {stats.totalProperties}
                 </Text>
               </View>
 
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-interMedium">
+                <Text className="text-sm text-muted font-nunitoSemiBold">
                   Units Occupied
                 </Text>
-                <Text className="text-3xl text-foreground font-interSemiBold">
+                <Text className="text-3xl text-foreground font-nunitoBold">
                   {stats.unitsOccupied}/{stats.totalProperties}
                 </Text>
               </View>
@@ -96,19 +96,19 @@ export default function Dashboard() {
 
             <View className="flex-row gap-3">
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-interMedium">
+                <Text className="text-sm text-muted font-nunitoSemiBold">
                   Pending Payments
                 </Text>
-                <Text className="text-3xl text-foreground font-interSemiBold">
+                <Text className="text-3xl text-foreground font-nunitoBold">
                   {stats.pendingPayments}
                 </Text>
               </View>
 
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-interMedium">
+                <Text className="text-sm text-muted font-nunitoSemiBold">
                   Maintenance Requests
                 </Text>
-                <Text className="text-3xl text-foreground font-interSemiBold">
+                <Text className="text-3xl text-foreground font-nunitoBold">
                   {stats.maintenanceRequests}
                 </Text>
               </View>
@@ -134,11 +134,11 @@ export default function Dashboard() {
 
           <View className="flex gap-5 mt-5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-foreground text-lg font-interSemiBold">
+              <Text className="text-foreground text-lg font-nunitoSemiBold">
                 Upcoming Rent Due
               </Text>
               <View className="bg-primary rounded-full px-3 py-1">
-                <Text className="text-white font-interSemiBold">
+                <Text className="text-white font-nunitoSemiBold">
                   {formatPesoDisplay(totalDue)}
                 </Text>
               </View>
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
             {rentDues.length === 0 ? (
               <View className="items-center py-10 gap-2">
-                <Text className="text-gray-400 font-interSemiBold">
+                <Text className="text-gray-400 font-nunitoSemiBold">
                   No upcoming rent dues
                 </Text>
                 <Text className="text-gray-400 text-sm font-inter text-center px-8">

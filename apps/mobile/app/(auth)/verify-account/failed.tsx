@@ -29,7 +29,7 @@ export default function Failed() {
         </View>
 
         <View className='flex gap-2'>
-          <Text className='text-3xl text-danger font-interSemiBold text-center'>
+          <Text className='text-3xl text-danger font-nunitoBold text-center'>
             Verification Failed
           </Text>
 

@@ -263,7 +263,7 @@ export default function PaymentCheckout() {
     return (
       <ScreenWrapper header={<StandardHeader title='Rent Payment' />} className='p-5'>
         <View className='flex-1 items-center justify-center gap-4'>
-          <Text className='text-foreground text-lg font-interSemiBold text-center'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
             {tenancyError ?? 'No active rental found on this account.'}
           </Text>
           <Button onPress={() => { void refetch() }}>

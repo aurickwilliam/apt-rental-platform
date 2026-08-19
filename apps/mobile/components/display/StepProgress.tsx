@@ -14,7 +14,7 @@ export default function StepProgress({
   return (
     <View className="flex gap-2 mb-6">
       {/* Step counter */}
-      <Text className="text-foreground text-sm font-interMedium">
+      <Text className="text-foreground text-sm font-nunitoSemiBold">
         Step {currentStep} of {totalSteps}
         {stepName ? ` — ${stepName}` : ""}
       </Text>

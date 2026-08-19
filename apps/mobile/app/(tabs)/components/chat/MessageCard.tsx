@@ -57,7 +57,7 @@ export default function MessageCard({
 
           {unreadCount > 0 && (
             <View className='absolute -top-1 -right-1 bg-accent rounded-full min-w-5 h-5 px-1 items-center justify-center'>
-              <Text className='text-white text-xs font-interMedium'>
+              <Text className='text-white text-xs font-nunitoSemiBold'>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>
             </View>
@@ -67,7 +67,7 @@ export default function MessageCard({
         {/* Message Details */}
         <View className='flex-1 justify-between'>
           <View>
-            <Text className='font-interMedium text-foreground text-sm'>
+            <Text className='font-nunitoSemiBold text-foreground text-sm'>
               {name}
             </Text>
             <Text className='text-gray-500 text-xs font-inter'>

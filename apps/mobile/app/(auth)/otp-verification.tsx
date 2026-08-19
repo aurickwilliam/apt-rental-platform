@@ -198,7 +198,7 @@ export default function OTPVerification() {
           </CloseButton>
 
           {/* Title */}
-          <Text className="text-2xl text-foreground font-interMedium my-5">
+          <Text className="text-2xl text-foreground font-nunitoBold my-5">
             OTP was Sent!
           </Text>
 
@@ -254,7 +254,7 @@ export default function OTPVerification() {
             </Text>
 
             {countdown > 0 && !otpExpired ? (
-              <Text className="text-accent text-base font-medium">
+              <Text className="text-accent text-base font-nunitoSemiBold">
                 Resend in {countdown}s
               </Text>
             ) : (
@@ -263,7 +263,7 @@ export default function OTPVerification() {
                 disabled={resendLoading}
                 className={resendLoading ? 'opacity-50' : ''}
               >
-                <Text className="text-accent text-base font-medium">
+                <Text className="text-accent text-base font-nunitoSemiBold">
                   {resendLoading
                     ? 'Sending...'
                     : otpExpired

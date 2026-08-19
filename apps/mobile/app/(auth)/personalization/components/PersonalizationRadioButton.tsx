@@ -38,7 +38,7 @@ export default function PersonalizationRadioButton({
       </View>
 
       {/* Label */}
-      <Text className="text-lg font-interMedium text-foreground mt-2">
+      <Text className="text-lg font-nunitoSemiBold text-foreground mt-2">
         {label}
       </Text>
     </Pressable>

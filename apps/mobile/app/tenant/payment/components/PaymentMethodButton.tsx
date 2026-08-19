@@ -80,7 +80,7 @@ export default function PaymentMethodButton({
           {label ? (
             <Text
               numberOfLines={1}
-              className='text-foreground text-xs font-interMedium mt-2 text-center'
+              className='text-foreground text-xs font-nunitoSemiBold mt-2 text-center'
             >
               {label}
             </Text>
@@ -101,7 +101,7 @@ export default function PaymentMethodButton({
           {label ? (
             <Text
               numberOfLines={1}
-              className='text-foreground text-sm font-interMedium'
+              className='text-foreground text-sm font-nunitoSemiBold'
             >
               {label}
             </Text>

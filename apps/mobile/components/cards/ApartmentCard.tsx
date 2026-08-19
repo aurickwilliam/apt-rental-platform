@@ -96,7 +96,7 @@ export default function ApartmentCard({
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                className={`text-foreground font-interMedium ${isGrid ? "text-base" : "text-xl"}`}
+                className={`text-foreground font-nunitoSemiBold ${isGrid ? "text-base" : "text-xl"}`}
               >
                 {name}
               </Text>
@@ -134,7 +134,7 @@ export default function ApartmentCard({
             {/* Price + Rating */}
             <View className="flex-row items-center justify-between">
               <Text
-                className={`text-accent font-interSemiBold ${isGrid ? "text-lg" : "text-xl"}`}
+                className={`text-accent font-nunitoSemiBold ${isGrid ? "text-lg" : "text-xl"}`}
               >
                 {formatPesoDisplay(monthlyRent)}
               </Text>
@@ -159,7 +159,7 @@ export default function ApartmentCard({
             >
               <ShieldCheck size={isGrid ? 14 : 16} color={colors.success} />
               <Text
-                className={`text-success font-interMedium ${isGrid ? "text-xs" : "text-sm"}`}
+                className={`text-success font-nunitoSemiBold ${isGrid ? "text-xs" : "text-sm"}`}
               >
                 Verified
               </Text>

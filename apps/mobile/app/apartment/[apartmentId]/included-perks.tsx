@@ -19,7 +19,7 @@ export default function IncludedPerks() {
     return (
       <ScreenWrapper header={<StandardHeader title='Included Perks' />} className='p-5'>
         <View className='flex-1 items-center justify-center'>
-          <Text className='text-gray-500 font-interMedium text-base'>
+          <Text className='text-gray-500 font-nunitoSemiBold text-base'>
             Failed to load perks.
           </Text>
         </View>
@@ -43,7 +43,7 @@ export default function IncludedPerks() {
               <PerkItem key={perkId} perkId={perkId} />
             ))
           ) : (
-            <Text className='text-gray-500 font-interMedium text-base'>
+            <Text className='text-gray-500 font-nunitoSemiBold text-base'>
               No perks included for this apartment.
             </Text>
           )}

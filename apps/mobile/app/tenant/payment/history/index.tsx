@@ -116,7 +116,7 @@ export default function History() {
     return (
       <ScreenWrapper header={<StandardHeader title='Payment History' />} className='p-5'>
         <View className='flex-1 items-center justify-center gap-4'>
-          <Text className='text-foreground text-lg font-interSemiBold text-center'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
             We could not load your payment history.
           </Text>
           <Button onPress={() => { void refetch(); void paymentsQuery.refetch() }}>
@@ -144,7 +144,7 @@ export default function History() {
 
               {activeCount > 0 && (
                 <View className='absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-white items-center justify-center'>
-                  <Text className='text-accent text-[10px] font-interMedium leading-none -mb-0.5'>
+                  <Text className='text-accent text-[10px] font-nunitoSemiBold leading-none -mb-0.5'>
                     {activeCount}
                   </Text>
                 </View>
@@ -177,8 +177,8 @@ export default function History() {
             <Text
               className={
                 section.title === currentYear
-                  ? 'text-accent font-interSemiBold text-base'
-                  : 'text-muted font-interSemiBold text-base'
+                  ? 'text-accent font-nunitoSemiBold text-base'
+                  : 'text-muted font-nunitoSemiBold text-base'
               }
             >
               {section.title}
@@ -192,7 +192,7 @@ export default function History() {
         ListEmptyComponent={
           <View className='items-center gap-4 py-20'>
             <IconReceipt size={64} color={colors.primary} />
-            <Text className='text-xl font-interSemiBold text-foreground'>
+            <Text className='text-xl font-nunitoBold text-foreground'>
               No payments found
             </Text>
             <Text className='text-gray-400 text-base font-inter text-center px-8'>

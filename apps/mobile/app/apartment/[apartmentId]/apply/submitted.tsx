@@ -30,11 +30,11 @@ export default function Submitted() {
           />
         </View>
 
-        <Text className="text-accent font-interSemiBold text-3xl mb-5">
+        <Text className="text-accent font-nunitoBold text-3xl mb-5">
           Application Sent!
         </Text>
 
-        <Text className="text-foreground font-interMedium text-base mt-2 text-center mx-10">
+        <Text className="text-foreground font-nunitoSemiBold text-base mt-2 text-center mx-10">
           Your application for {apartmentName} has been submitted. Rental Owner
           will review your application and get back to you soon.
         </Text>

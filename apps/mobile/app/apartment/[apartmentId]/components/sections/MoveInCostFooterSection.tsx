@@ -45,10 +45,10 @@ export default function MoveInCostFooterSection({
               onPress={() => setIsMoveInCostModalVisible(true)}
             >
               <View className='flex-row items-baseline'>
-                <Text className='text-2xl font-interSemiBold text-accent'>
+                <Text className='text-2xl font-nunitoBold text-accent'>
                   {formatPesoDisplay(monthlyRent)}
                 </Text>
-                <Text className='text-sm font-interMedium text-muted ml-1'>
+                <Text className='text-sm font-nunitoSemiBold text-muted ml-1'>
                   /month
                 </Text>
               </View>
@@ -95,7 +95,7 @@ export default function MoveInCostFooterSection({
               <X size={20} color={colors.textPrimary} />
             </TouchableOpacity>
 
-            <Text className='text-foreground font-interSemiBold text-xl pr-8'>
+            <Text className='text-foreground font-nunitoBold text-xl pr-8'>
               Move-in Cost Breakdown
             </Text>
             <Text className='text-muted font-inter mt-1 mb-5'>
@@ -107,7 +107,7 @@ export default function MoveInCostFooterSection({
                 <Text className='text-muted font-inter text-base'>
                   Monthly Rent
                 </Text>
-                <Text className='text-foreground font-interMedium text-base'>
+                <Text className='text-foreground font-nunitoSemiBold text-base'>
                   {formatPesoDisplay(monthlyRent)}
                 </Text>
               </View>
@@ -116,7 +116,7 @@ export default function MoveInCostFooterSection({
                 <Text className='text-muted font-inter text-base'>
                   Security Deposit
                 </Text>
-                <Text className='text-foreground font-interMedium text-base'>
+                <Text className='text-foreground font-nunitoSemiBold text-base'>
                   {securityDeposit != null
                     ? `${formatPesoDisplay(securityDeposit)}`
                     : 'None'}
@@ -127,7 +127,7 @@ export default function MoveInCostFooterSection({
                 <Text className='text-muted font-inter text-base'>
                   Advance Rent
                 </Text>
-                <Text className='text-foreground font-interMedium text-base'>
+                <Text className='text-foreground font-nunitoSemiBold text-base'>
                   {advanceRent != null
                     ? `${formatPesoDisplay(advanceRent)}`
                     : 'None'}
@@ -137,10 +137,10 @@ export default function MoveInCostFooterSection({
               <View className='h-px bg-muted my-1' />
 
               <View className='flex-row justify-between items-center'>
-                <Text className='text-foreground font-interSemiBold text-lg'>
+                <Text className='text-foreground font-nunitoSemiBold text-lg'>
                   Total Move-in
                 </Text>
-                <Text className='text-accent font-interSemiBold text-lg'>
+                <Text className='text-accent font-nunitoSemiBold text-lg'>
                   {formatPesoDisplay(totalMoveIn)}
                 </Text>
               </View>

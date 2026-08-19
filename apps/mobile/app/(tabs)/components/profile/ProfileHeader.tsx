@@ -104,8 +104,8 @@ export default function ProfileHeader({
             delayMs={200}
             className="justify-center items-center"
           >
-            <Text className="text-accent text-4xl font-interMedium leading-none mt-3">
-              {/* mt-3 compensates for font-interMedium's vertical metrics
+            <Text className="text-accent text-4xl font-nunitoBold leading-none mt-3">
+              {/* mt-3 compensates for font-nunitoSemiBold's vertical metrics
               so the initials sit centered in the circle */}
               {avatarInitials ?? ""}
             </Text>
@@ -116,7 +116,7 @@ export default function ProfileHeader({
       {/* Name and Email */}
       <View className="items-center pt-12">
         <View className="flex items-center justify-center">
-          <Text className="text-foreground text-xl font-interSemiBold">
+          <Text className="text-foreground text-xl font-nunitoBold">
             {fullName}
           </Text>
 
@@ -139,7 +139,7 @@ export default function ProfileHeader({
                   return (
                     <Chip className={className} variant="soft">
                       <Icon size={18} color={iconColor} strokeWidth={2.5} />
-                      <Chip.Label className={`font-interMedium ${labelColor}`}>
+                      <Chip.Label className={`font-nunitoSemiBold ${labelColor}`}>
                         {label}
                       </Chip.Label>
                     </Chip>
@@ -156,7 +156,7 @@ export default function ProfileHeader({
                     color={colors.success}
                     strokeWidth={2.5}
                   />
-                  <Chip.Label className="font-interMedium text-success">
+                  <Chip.Label className="font-nunitoSemiBold text-success">
                     Verified
                   </Chip.Label>
                 </Chip>

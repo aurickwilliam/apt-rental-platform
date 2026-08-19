@@ -16,11 +16,11 @@ export default function Success() {
       <Image source={IMAGES.houseCheck} style={{ width: 200, height: 200 }} />
 
       <View>
-        <Text className="text-lg font-interSemiBold text-center mt-5 text-accent">
+        <Text className="text-lg font-nunitoSemiBold text-center mt-5 text-accent">
           You’ve successfully posted your property!
         </Text>
 
-        <Text className="text-sm font-interMedium text-center mt-2 text-foreground">
+        <Text className="text-sm font-nunitoSemiBold text-center mt-2 text-foreground">
           Great job! Tenants can now view and apply for your listing. Keep it
           updated to attract more renters.
         </Text>

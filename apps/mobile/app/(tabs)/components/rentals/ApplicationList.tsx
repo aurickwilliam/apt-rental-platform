@@ -17,7 +17,7 @@ export default function ApplicationsList() {
     <>
       <View className="flex-row items-center justify-start gap-2 mb-5">
         <IconClipboardList size={24} color={colors.textPrimary} />
-        <Text className="text-foreground text-lg font-interSemiBold">
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
           My Applications
         </Text>
       </View>

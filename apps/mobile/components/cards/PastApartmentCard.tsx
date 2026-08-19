@@ -42,7 +42,7 @@ export default function PastApartmentCard({
         <Card.Body className='p-3 justify-between'>
           <View>
             <Card.Title
-              className='text-base font-interMedium text-foreground leading-snug'
+              className='text-base font-nunitoSemiBold text-foreground leading-snug'
               numberOfLines={1}
               ellipsizeMode='tail'
             >

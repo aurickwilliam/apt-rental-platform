@@ -145,7 +145,7 @@ export default function Index() {
     >
       {sections.map((section, sIndex) => (
         <View key={section.title} className={`flex gap-3 ${sIndex > 0 ? 'mt-5' : ''}`}>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             {section.title}
           </Text>
 

@@ -139,7 +139,7 @@ export default function PublicTenantProfile() {
             <Text className="text-xs text-muted font-inter">
               Contact Number
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {profile?.phoneNumber ?? '—'}
             </Text>
           </View>
@@ -151,7 +151,7 @@ export default function PublicTenantProfile() {
             <Text className="text-xs text-muted font-inter">
               Email
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {profile?.email ?? '—'}
             </Text>
           </View>
@@ -163,7 +163,7 @@ export default function PublicTenantProfile() {
             <Text className="text-xs text-muted font-inter">
               Location / Based In
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {profile?.location ?? '—'}
             </Text>
           </View>
@@ -182,7 +182,7 @@ export default function PublicTenantProfile() {
 
       {/* Past Apartments */}
       <View className="mx-5 mt-8">
-        <Text className="text-foreground text-xl font-interSemiBold">
+        <Text className="text-foreground text-xl font-nunitoBold">
           {firstName}&apos;s Past Listings
         </Text>
 
@@ -202,7 +202,7 @@ export default function PublicTenantProfile() {
         ) : pastApartments.length === 0 ? (
           <View className="items-center py-12 px-8 gap-3">
             <IconHomeSearch size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-interSemiBold text-center">
+            <Text className="text-foreground text-xl font-nunitoBold text-center">
               No rental history yet
             </Text>
             <Text className="text-gray-400 text-base font-inter text-center">
@@ -235,7 +235,7 @@ export default function PublicTenantProfile() {
       <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
         <Button variant="tertiary" size="md" onPress={handleReportTenant}>
           <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-interMedium">
+          <Button.Label className="text-danger font-nunitoSemiBold">
             Report {firstName}
           </Button.Label>
         </Button>

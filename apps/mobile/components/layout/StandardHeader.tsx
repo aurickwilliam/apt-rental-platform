@@ -56,7 +56,7 @@ export default function StandardHeader({
       {/* Center (Title) */}
       <View className="flex-1 items-center justify-center">
         <Text 
-          className={`font-interSemiBold text-lg ${textColor}`} 
+          className={`font-nunitoBold text-lg ${textColor}`} 
           numberOfLines={1}
         >
           {title}

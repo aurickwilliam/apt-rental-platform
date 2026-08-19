@@ -35,7 +35,7 @@ export default function CityCheckBox({
       </View>
 
       {/* Label */}
-      <Text className="text-xl font-interMedium text-foreground mt-2">
+      <Text className="text-xl font-nunitoSemiBold text-foreground mt-2">
         {cityName}
       </Text>
     </Pressable>

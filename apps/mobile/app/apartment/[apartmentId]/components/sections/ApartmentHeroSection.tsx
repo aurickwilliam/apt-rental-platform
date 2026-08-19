@@ -97,20 +97,20 @@ export default function ApartmentHeroSection({
         pointerEvents='none'
       >
         <View>
-          <Text className='text-white font-interSemiBold text-2xl'>
+          <Text className='text-white font-nunitoBold text-2xl'>
             {apartment?.name || 'Unnamed Apartment'}
           </Text>
 
           <View className='flex-row items-center mt-2 gap-2'>
             <MapPin size={24} color={colors.secondaryForeground} />
-            <Text className={`text-white font-interMedium text-base`}>
+            <Text className={`text-white font-nunitoSemiBold text-base`}>
               {location || 'No location provided'}
             </Text>
           </View>
 
           <View className='flex-row items-center mt-5 gap-2'>
             <Star size={20} color={colors.secondary} fill={colors.secondary} />
-            <Text className={`text-white font-interMedium text-base`}>
+            <Text className={`text-white font-nunitoSemiBold text-base`}>
               No ratings yet
             </Text>
           </View>
@@ -118,7 +118,7 @@ export default function ApartmentHeroSection({
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
               <BedDouble size={24} color={colors.secondaryForeground} />
-              <Text className={`text-white font-interMedium text-sm`}>
+              <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
               </Text>
@@ -126,7 +126,7 @@ export default function ApartmentHeroSection({
 
             <View className='flex-row items-center gap-2'>
               <Bath size={24} color={colors.secondaryForeground} />
-              <Text className={`text-white font-interMedium text-sm`}>
+              <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.no_bathrooms}{' '}
                 {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
               </Text>
@@ -134,7 +134,7 @@ export default function ApartmentHeroSection({
 
             <View className='flex-row items-center gap-2'>
               <Maximize size={24} color={colors.secondaryForeground} />
-              <Text className={`text-white font-interMedium text-sm`}>
+              <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
               </Text>
             </View>
@@ -185,7 +185,7 @@ export default function ApartmentHeroSection({
         onRequestClose={() => setIsImageViewVisible(false)}
         FooterComponent={({ imageIndex: currentIndex }) => (
           <View className='p-10 items-center'>
-            <Text className='text-white font-interMedium'>
+            <Text className='text-white font-nunitoSemiBold'>
               {currentIndex + 1} / {images.length}
             </Text>
           </View>

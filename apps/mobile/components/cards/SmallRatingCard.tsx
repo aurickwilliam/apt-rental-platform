@@ -36,14 +36,14 @@ export default function SmallRatingCard({
               )}
 
               <Avatar.Fallback>
-                <Text className='text-accent text-sm font-interMedium'>
+                <Text className='text-accent text-sm font-nunitoSemiBold'>
                   {getInitials(accountName)}
                 </Text>
               </Avatar.Fallback>
             </Avatar>
             <View>
               <Card.Title
-                className='font-interMedium text-sm text-foreground'
+                className='font-nunitoSemiBold text-sm text-foreground'
                 numberOfLines={1}
               >
                 {accountName}
@@ -59,7 +59,7 @@ export default function SmallRatingCard({
               size={16}
             />
 
-            <Text className='font-interMedium text-xs text-foreground'>
+            <Text className='font-nunitoSemiBold text-xs text-foreground'>
               {rating.toFixed(1)}
             </Text>
           </View>

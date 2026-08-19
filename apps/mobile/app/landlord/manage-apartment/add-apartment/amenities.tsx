@@ -68,7 +68,7 @@ export default function Amenities() {
 
       {filteredSelected.length > 0 && (
         <View className='flex gap-3'>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             Added Perks ({amenities.length})
           </Text>
           <View className='flex-row flex-wrap gap-3'>
@@ -94,7 +94,7 @@ export default function Amenities() {
 
       {filteredUnselected.length > 0 ? (
         <View className='flex gap-3 mt-3'>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             All Perks
           </Text>
           <View className='flex-row flex-wrap gap-3'>

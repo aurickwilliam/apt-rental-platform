@@ -49,7 +49,7 @@ export default function CardPaymentForm({
     <View className='mt-5'>
       <Separator className='mb-5' />
 
-      <Text className='text-foreground text-base font-interSemiBold mb-3'>
+      <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
         Card Details
       </Text>
 

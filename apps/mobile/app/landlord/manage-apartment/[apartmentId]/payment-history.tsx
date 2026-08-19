@@ -103,7 +103,7 @@ export default function PaymentHistoryScreen() {
     return (
       <ScreenWrapper header={<StandardHeader title='Payment History' />} className='p-5'>
         <View className='flex-1 items-center justify-center gap-4'>
-          <Text className='text-foreground text-lg font-interSemiBold text-center'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
             We could not load the payment history.
           </Text>
           <Button onPress={() => { void paymentsQuery.refetch() }}>
@@ -139,8 +139,8 @@ export default function PaymentHistoryScreen() {
             <Text
               className={
                 section.title === currentYear
-                  ? 'text-accent font-interSemiBold text-base'
-                  : 'text-muted font-interSemiBold text-base'
+                  ? 'text-accent font-nunitoSemiBold text-base'
+                  : 'text-muted font-nunitoSemiBold text-base'
               }
             >
               {section.title}
@@ -164,7 +164,7 @@ export default function PaymentHistoryScreen() {
         ListEmptyComponent={
           <View className='items-center gap-4 py-20'>
             <IconWallet size={64} color={colors.primary} />
-            <Text className='text-xl font-interSemiBold text-foreground'>
+            <Text className='text-xl font-nunitoBold text-foreground'>
               No payments found
             </Text>
             <Text className='text-gray-400 text-base font-inter text-center px-8'>

@@ -56,7 +56,7 @@ export default function TenantCard({
             </Avatar>
             <View className="flex-1">
               <Text
-                className="text-foreground font-interSemiBold text-base"
+                className="text-foreground font-nunitoSemiBold text-base"
                 numberOfLines={1}
               >
                 {fullName}
@@ -71,14 +71,14 @@ export default function TenantCard({
           <View className="flex-row rounded-xl border border-border overflow-hidden">
             <View className="flex-1 items-center py-2.5 gap-0.5">
               <Text className="text-muted font-inter text-xs">Lease Start</Text>
-              <Text className="text-foreground font-interMedium text-sm">
+              <Text className="text-foreground font-nunitoSemiBold text-sm">
                 {leaseStartMonthYear}
               </Text>
             </View>
             <View className="w-px bg-border" />
             <View className="flex-1 items-center py-2.5 gap-0.5">
               <Text className="text-muted font-inter text-xs">Lease End</Text>
-              <Text className="text-foreground font-interMedium text-sm">
+              <Text className="text-foreground font-nunitoSemiBold text-sm">
                 {leaseEndMonthYear}
               </Text>
             </View>

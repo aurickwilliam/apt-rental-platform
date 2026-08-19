@@ -195,9 +195,9 @@
       "5xl": { "px": 48, "note": "web page H1", "inferred": true }
     },
     "conventions": {
-      "mobileScreenTitle": "text-secondary text-3xl font-nunitoSemiBold",
-      "mobileSectionHeader": "text-foreground text-lg font-interSemiBold",
-      "mobileCardTitle": "text-base font-interSemiBold",
+      "mobileScreenTitle": "text-secondary text-3xl font-nunitoBold",
+      "mobileSectionHeader": "text-foreground text-lg font-nunitoSemiBold",
+      "mobileCardTitle": "text-base font-nunitoSemiBold",
       "webPageHeader": "text-5xl text-secondary font-bold",
       "webSectionTitle": "text-base font-medium",
       "chatBody": "text-sm font-inter leading-6"

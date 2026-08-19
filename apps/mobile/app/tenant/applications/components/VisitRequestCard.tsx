@@ -75,7 +75,7 @@ function InfoRow({
       {icon}
       <View className="flex-1 flex-row items-center justify-between">
         <Text className="text-sm text-muted font-inter">{label}</Text>
-        <Text className="text-sm text-foreground font-interMedium">
+        <Text className="text-sm text-foreground font-nunitoSemiBold">
           {value}
         </Text>
       </View>
@@ -92,7 +92,7 @@ function SectionLabel({
 }) {
   return (
     <Text
-      className={`text-xs font-interMedium ${className}`}
+      className={`text-xs font-nunitoSemiBold ${className}`}
     >
       {children}
     </Text>
@@ -184,7 +184,7 @@ export default function VisitRequestCard({
         <Card.Body className="gap-3">
           {/* Header row */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               Visit Request Details
             </Text>
             <View
@@ -195,7 +195,7 @@ export default function VisitRequestCard({
             >
               <Text
                 style={{ color: statusStyle.textColor }}
-                className="text-xs font-interMedium"
+                className="text-xs font-nunitoSemiBold"
               >
                 {statusStyle.label}
               </Text>
@@ -207,7 +207,7 @@ export default function VisitRequestCard({
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-warning-light px-3 py-2.5">
                 <Hourglass size={iconSize} color={colors.warning} />
-                <Text className="flex-1 text-sm text-warning font-interMedium">
+                <Text className="flex-1 text-sm text-warning font-nunitoSemiBold">
                   Waiting for the landlord to respond
                 </Text>
               </View>
@@ -236,7 +236,7 @@ export default function VisitRequestCard({
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-success/10 px-3 py-2.5">
                 <CheckCircle2 size={iconSize} color={colors.success} />
-                <Text className="flex-1 text-sm text-success font-interMedium">
+                <Text className="flex-1 text-sm text-success font-nunitoSemiBold">
                   Visit confirmed
                 </Text>
               </View>
@@ -398,7 +398,7 @@ export default function VisitRequestCard({
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-muted/10 px-3 py-2.5">
                 <CalendarX size={iconSize} color={iconColor} />
-                <Text className="flex-1 text-sm text-muted font-interMedium">
+                <Text className="flex-1 text-sm text-muted font-nunitoSemiBold">
                   {isDeclinedReschedule
                     ? "You declined the reschedule"
                     : "You cancelled this visit"}
@@ -447,7 +447,7 @@ export default function VisitRequestCard({
             <>
               <Separator />
               <View className="flex-1 gap-1">
-                <Text className="text-sm text-muted font-interMedium leading-0">
+                <Text className="text-sm text-muted font-nunitoSemiBold leading-0">
                   Additional Notes
                 </Text>
                 <Text className="text-sm text-foreground font-inter leading-5">
@@ -479,7 +479,7 @@ export default function VisitRequestCard({
                 onPress={onCancel}
                 className="h-auto px-0 py-0"
               >
-                <Button.Label className="text-xs text-danger font-interMedium">
+                <Button.Label className="text-xs text-danger font-nunitoSemiBold">
                   Cancel Request
                 </Button.Label>
               </Button>

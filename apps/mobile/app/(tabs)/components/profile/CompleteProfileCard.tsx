@@ -41,7 +41,7 @@ export default function CompleteProfileCard({
     <Card className='mx-5 mb-5 shadow-none border border-border bg-surface'>
       <Card.Header className="flex-row gap-3 items-center">
         <IconUserEdit size={24} color={colors.textPrimary} />
-        <Card.Title className='text-foreground font-interSemiBold'>
+        <Card.Title className='text-foreground font-nunitoSemiBold'>
           Complete Your Profile
         </Card.Title>
       </Card.Header>

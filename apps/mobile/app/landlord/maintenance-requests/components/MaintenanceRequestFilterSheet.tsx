@@ -65,7 +65,7 @@ export default function MaintenanceRequestFilterSheet({
         <BottomSheet.Content>
           {/* Header */}
           <View className="flex-row items-center justify-between pb-4">
-            <Text className="text-lg font-interMedium text-foreground">
+            <Text className="text-lg font-nunitoSemiBold text-foreground">
               Filters
             </Text>
             {activeCount > 0 && (

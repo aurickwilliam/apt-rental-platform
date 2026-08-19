@@ -33,7 +33,7 @@ export default function ApartmentDetailsSection({
     return (
       <View className='flex-row items-center gap-2 bg-surface p-3 rounded-2xl mb-2 border border-border'>
         <Icon size={24} color={colors.gray500} />
-        <Text className='text-foreground font-interMedium text-sm'>
+        <Text className='text-foreground font-nunitoSemiBold text-sm'>
           {value}
         </Text>
       </View>

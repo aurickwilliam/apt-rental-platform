@@ -71,7 +71,7 @@ export default function Chat() {
       onRefresh={refetch}
     >
       {/* Title Messages */}
-      <Text className='text-primary text-3xl font-nunitoSemiBold mb-3'>
+      <Text className='text-primary text-3xl font-nunitoBold mb-3'>
         Messages
       </Text>
 
@@ -110,10 +110,10 @@ export default function Chat() {
               />
             </View>
 
-            <Text className='text-2xl text-accent font-interSemiBold mb-2 mt-5'>
+            <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
               No Messages Yet
             </Text>
-            <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
+            <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
               Start a conversation with a tenant to see your messages here.
             </Text>
           </View>
@@ -155,19 +155,19 @@ export default function Chat() {
               <View className='flex-1 items-center justify-center mt-10'>
                 {searchQuery.trim().length > 0 ? (
                   <>
-                    <Text className='text-lg text-accent font-interSemiBold mb-2'>
+                    <Text className='text-lg text-accent font-nunitoSemiBold mb-2'>
                       No results found
                     </Text>
-                    <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
+                    <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
                       No conversations match &quot;{searchQuery}&quot;. Try a different name, property, or message.
                     </Text>
                   </>
                 ) : (
                   <>
-                    <Text className='text-lg text-accent font-interSemiBold mb-2'>
+                    <Text className='text-lg text-accent font-nunitoSemiBold mb-2'>
                       No {selectedFilter} Messages
                     </Text>
-                    <Text className='text-base text-gray-500 font-interSemiBold text-center px-10'>
+                    <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
                       Try switching filters to view your other conversations.
                     </Text>
                   </>

@@ -197,7 +197,7 @@ export default function ApartmentMapViewScreen() {
       <View className='flex-row items-center justify-between bg-background px-5 py-3 gap-1'>
         <View className='flex-1 shrink gap-1'>
           <Text
-            className='text-lg font-interSemiBold text-accent'
+            className='text-lg font-nunitoSemiBold text-accent'
             numberOfLines={1}
           >
             {apartmentName}
@@ -301,7 +301,7 @@ export default function ApartmentMapViewScreen() {
 
             {/* Header */}
             <View>
-              <Text className="text-foreground font-interSemiBold text-lg">
+              <Text className="text-foreground font-nunitoSemiBold text-lg">
                 Choose Route Type
               </Text>
               <Text className="text-muted font-inter mt-1">
