@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import {
   Button,
@@ -17,6 +17,7 @@ import {
 import { Star } from "lucide-react";
 
 import BackBtn from "../components/BackBtn";
+import { saveApartmentReview } from "../lib/review-store";
 import ReviewPhotosInput, {
   MAX_REVIEW_IMAGES,
   type ReviewPhoto,
@@ -42,6 +43,7 @@ type FormErrors = {
 
 export default function RateApartmentPage() {
   const router = useRouter();
+  const { apartmentId } = useParams<{ apartmentId: string }>();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -107,6 +109,12 @@ export default function RateApartmentPage() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) return;
+
+    saveApartmentReview(apartmentId, {
+      rating,
+      reviewText: reviewText.trim(),
+      stayPeriod: MOCK_STAY_DURATION,
+    });
 
     toast("Review submitted!");
     router.back();

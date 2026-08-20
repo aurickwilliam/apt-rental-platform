@@ -84,7 +84,7 @@ export default function RatingBreakdown({
               color="accent"
             >
               <Meter.Track>
-                <Meter.Fill />
+                <Meter.Fill style={{ backgroundColor: "var(--secondary)" }} />
               </Meter.Track>
             </Meter>
 
