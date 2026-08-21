@@ -19,6 +19,7 @@ interface ReviewCardProps {
   stayPeriod?: string;
   rating?: number;
   images?: string[];
+  className?: string;
 }
 
 export default function ReviewCard({
@@ -29,6 +30,7 @@ export default function ReviewCard({
   stayPeriod,
   rating,
   images,
+  className,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -42,7 +44,7 @@ export default function ReviewCard({
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0;
 
   return (
-    <Card className="gap-0">
+    <Card className={["gap-0 shadow-none border border-default-200", className].filter(Boolean).join(" ")}>
       <Card.Header className="flex flex-row items-center gap-3">
         <Avatar size="md">
           {reviewerAvatar && <Avatar.Image src={reviewerAvatar} alt={reviewerName} />}

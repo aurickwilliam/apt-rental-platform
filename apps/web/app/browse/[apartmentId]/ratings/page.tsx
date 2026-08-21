@@ -91,7 +91,7 @@ export default function RatingsPage() {
       </div>
 
       {stats.total > 0 && (
-        <Card className="mt-6 p-6 md:p-8">
+        <Card className="mt-6 p-6 md:p-8 shadow-none border border-default-200">
           <RatingBreakdown
             overallRate={stats.average}
             totalReviews={stats.total}
@@ -139,7 +139,7 @@ export default function RatingsPage() {
       </div>
 
       {stats.total === 0 ? (
-        <Card className="mt-5 flex flex-col items-center gap-3 p-10 text-center">
+        <Card className="mt-5 flex flex-col items-center gap-3 p-10 text-center shadow-none border border-default-200">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
             <MessageSquareText size={26} className="text-primary" />
           </div>
