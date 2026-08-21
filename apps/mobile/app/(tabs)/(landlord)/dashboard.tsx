@@ -50,8 +50,13 @@ export default function Dashboard() {
     >
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
-          <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
-          <Text className="text-foreground text-3xl font-nunitoBold mt-1">
+          <Image
+            source={IMAGES.logo}
+            className="size-9"
+            resizeMode="contain"
+          />
+
+          <Text className="text-secondary text-3xl font-nunitoBold mt-1">
             Dashboard
           </Text>
         </View>
@@ -76,7 +81,7 @@ export default function Dashboard() {
           <View className="flex gap-3">
             <View className="flex-row gap-3">
               <View className="flex-1 bg-primary rounded-3xl p-4 gap-1 justify-center">
-                <Text className="text-sm text-gray-100 font-nunitoSemiBold">
+                <Text className="text-sm text-gray-100 font-interMedium">
                   Total Properties
                 </Text>
                 <Text className="text-3xl text-white font-nunitoBold">
@@ -85,7 +90,7 @@ export default function Dashboard() {
               </View>
 
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-nunitoSemiBold">
+                <Text className="text-sm text-muted font-interMedium">
                   Units Occupied
                 </Text>
                 <Text className="text-3xl text-foreground font-nunitoBold">
@@ -96,7 +101,7 @@ export default function Dashboard() {
 
             <View className="flex-row gap-3">
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-nunitoSemiBold">
+                <Text className="text-sm text-muted font-interMedium">
                   Pending Payments
                 </Text>
                 <Text className="text-3xl text-foreground font-nunitoBold">
@@ -105,7 +110,7 @@ export default function Dashboard() {
               </View>
 
               <View className="flex-1 bg-surface rounded-3xl p-4 gap-1 border border-border justify-center">
-                <Text className="text-sm text-muted font-nunitoSemiBold">
+                <Text className="text-sm text-muted font-interMedium">
                   Maintenance Requests
                 </Text>
                 <Text className="text-3xl text-foreground font-nunitoBold">
