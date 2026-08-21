@@ -1930,9 +1930,9 @@
     "semantic_hash": "3ecd74d0dd2e358ebce78e25de93c369"
   },
   "apps/web/app/browse/[apartmentId]/components/RatingsSection.tsx": {
-    "mtime": 1787069505.858789,
-    "ast_hash": "add6e1f917f881fa4c24e1235ef8adc4",
-    "semantic_hash": "add6e1f917f881fa4c24e1235ef8adc4"
+    "mtime": 1787302544.0625863,
+    "ast_hash": "eb1e4a168c53d3f2f180ad6397c9b1dd",
+    "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RelatedApartments.tsx": {
     "mtime": 1787060341.9448476,
@@ -1945,9 +1945,9 @@
     "semantic_hash": "5c5a82e2fe0841854bfa5da7cb38b596"
   },
   "apps/web/app/browse/[apartmentId]/components/ReviewCard.tsx": {
-    "mtime": 1787069505.8589063,
-    "ast_hash": "5fe81a3e72dea88b50290e53a93dd443",
-    "semantic_hash": "5fe81a3e72dea88b50290e53a93dd443"
+    "mtime": 1787302544.0629416,
+    "ast_hash": "9a55afb37faca9749c990858d041d45b",
+    "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/ShareBtn.tsx": {
     "mtime": 1787060341.9451413,
@@ -1955,9 +1955,9 @@
     "semantic_hash": "e155fd61acfd8ed7be00e9ba27df7434"
   },
   "apps/web/app/browse/[apartmentId]/page.tsx": {
-    "mtime": 1787069505.8591425,
-    "ast_hash": "19b1036733b9db5fdefcf7fa14f24026",
-    "semantic_hash": "19b1036733b9db5fdefcf7fa14f24026"
+    "mtime": 1787302544.063395,
+    "ast_hash": "7d280f13cff1b14d5d640e0bb0cbe5e2",
+    "semantic_hash": ""
   },
   "apps/web/app/browse/components/FilterContainer.tsx": {
     "mtime": 1787060341.9457314,
@@ -2675,9 +2675,9 @@
     "semantic_hash": "4d70dcb772950db902ef38e4cc11ccd3"
   },
   "packages/supabase/package.json": {
-    "mtime": 1787069505.8603792,
-    "ast_hash": "00b57e8a3a590ae378b435e6423bd113",
-    "semantic_hash": "00b57e8a3a590ae378b435e6423bd113"
+    "mtime": 1787302544.0646534,
+    "ast_hash": "33d54b301eced55e9690832a7460397a",
+    "semantic_hash": ""
   },
   "packages/supabase/src/browser.ts": {
     "mtime": 1777602095.5272944,
@@ -2805,8 +2805,8 @@
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
   },
   "pnpm-workspace.yaml": {
-    "mtime": 1787130679.653005,
-    "ast_hash": "c44e376848699ad934962d0c93737cfc",
+    "mtime": 1787302875.5170171,
+    "ast_hash": "3ffcee0d05c8773b794138c1488f7cf8",
     "semantic_hash": ""
   },
   "apps/mobile/assets/icons/android/adaptive-icon.png": {
@@ -4067,6 +4067,36 @@
   "docs/live-payment-golive-runbook.md": {
     "mtime": 1787301707.2154784,
     "ast_hash": "6ecb90bc162849f4cd5f0b43a5eeffe7",
+    "semantic_hash": ""
+  },
+  "apps/web/app/browse/[apartmentId]/components/RatingBreakdown.tsx": {
+    "mtime": 1787302544.062258,
+    "ast_hash": "a91ccf53e05cc4f9b4bb37602557521f",
+    "semantic_hash": ""
+  },
+  "apps/web/app/browse/[apartmentId]/rate-apartment/components/ReviewPhotosInput.tsx": {
+    "mtime": 1787302544.0635488,
+    "ast_hash": "070171d3316593a37a43e3c4d4c885ac",
+    "semantic_hash": ""
+  },
+  "apps/web/app/browse/[apartmentId]/rate-apartment/components/StarRatingInput.tsx": {
+    "mtime": 1787302544.0636125,
+    "ast_hash": "c1e9ef5d42dc5d73fb4416f5d311c418",
+    "semantic_hash": ""
+  },
+  "apps/web/app/browse/[apartmentId]/rate-apartment/page.tsx": {
+    "mtime": 1787302544.0640004,
+    "ast_hash": "cbe51e40fbbd569d67e7ac6070c589b2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/browse/[apartmentId]/ratings/page.tsx": {
+    "mtime": 1787302544.0641854,
+    "ast_hash": "acb352ec8f0f71429886fc732462cc2c",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/display/StarRating.tsx": {
+    "mtime": 1787302544.0644464,
+    "ast_hash": "497b91b1b2a8d49c5fb2c590bcae77e5",
     "semantic_hash": ""
   }
 }
