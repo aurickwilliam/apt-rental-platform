@@ -114,6 +114,13 @@ type CardPaymentPayload = {
   dueDate?: string | null
 }
 
+type RefundPayload = {
+  paymentId: string
+  amount: number
+  reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'others'
+  notes?: string
+}
+
 // --- Real PayMongo plumbing -------------------------------------------------
 
 class PayMongoApiError extends Error {
@@ -176,7 +183,12 @@ async function resolveTenantId(req: Request): Promise<string | null> {
   return data?.id ?? null
 }
 
-type TenancyContext = { id: string; apartment_id: string; monthly_rent: number | null }
+type TenancyContext = {
+  id: string
+  apartment_id: string
+  monthly_rent: number | null
+  landlord_id: string | null
+}
 
 // Resolve the caller's tenancy: the requested tenancyId when provided (must
 // belong to the caller and be active), otherwise the newest active tenancy.
@@ -186,7 +198,7 @@ async function resolveTenancy(req: Request, tenancyId?: string): Promise<{ tenan
 
   let query = dbClient
     .from('tenancies')
-    .select('id, apartment_id, monthly_rent')
+    .select('id, apartment_id, monthly_rent, apartment:apartments (landlord_id)')
     .eq('tenant_id', tenantId)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -203,7 +215,25 @@ async function resolveTenancy(req: Request, tenancyId?: string): Promise<{ tenan
     )
   }
 
-  return { tenantId, tenancy: data }
+  // PostgREST returns a single object for a to-one embed; the generated types
+  // may type it as an array — normalize both defensively.
+  const tenancy = data as unknown as {
+    id: string
+    apartment_id: string
+    monthly_rent: number | null
+    apartment?: { landlord_id: string | null } | { landlord_id: string | null }[] | null
+  }
+  const apartment = tenancy.apartment
+  const landlordId = Array.isArray(apartment) ? apartment[0]?.landlord_id ?? null : apartment?.landlord_id ?? null
+  return {
+    tenantId,
+    tenancy: {
+      id: tenancy.id,
+      apartment_id: tenancy.apartment_id,
+      monthly_rent: tenancy.monthly_rent,
+      landlord_id: landlordId,
+    },
+  }
 }
 
 type PaymentRecord = {
@@ -228,6 +258,7 @@ async function recordPayment(params: PaymentRecord): Promise<void> {
     tenant_id: params.tenantId,
     tenancy_id: params.tenancy.id,
     apartment_id: params.tenancy.apartment_id,
+    landlord_id: params.tenancy.landlord_id,
     reference_id: params.referenceId,
     method: params.method,
     amount: params.amount,
@@ -381,12 +412,28 @@ async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response
     payment_intent?: {
       attributes?: { status?: string }
     }
-    payments?: { attributes?: { status?: string } }[]
+    payments?: { id: string; attributes?: { status?: string; type?: string } }[]
   }>(`${PAYMONGO_API_V1}/checkout_sessions/${paymongoId}`)
 
   const attrs = session.attributes
+  const payments = attrs.payments ?? []
   const intentStatus = attrs.payment_intent?.attributes?.status
-  const hasPaidPayment = (attrs.payments ?? []).some((payment) => payment.attributes?.status === 'paid')
+  const hasPaidPayment = payments.some((payment) => payment.attributes?.status === 'paid')
+
+  // FIX 1 — capture the PayMongo payment resource id + the exact rail used
+  // (payment method type) so refund eligibility metadata exists even when the
+  // webhook misses. Never clobber a value the webhook already captured.
+  const firstPaid = payments.find((payment) => payment.attributes?.status === 'paid') ?? payments[0]
+  if (firstPaid?.id?.startsWith('pay_')) {
+    await dbClient
+      .from('payment')
+      .update({
+        paymongo_payment_id: firstPaid.id,
+        paymongo_payment_method_type: firstPaid.attributes?.type ?? null,
+      })
+      .eq('paymongo_session_id', paymongoId)
+      .is('paymongo_payment_id', null)
+  }
 
   // The session itself only reports active/expired; the payment outcome is
   // derived from the embedded intent and payments. Normalize to the statuses
@@ -565,6 +612,194 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
   })
 }
 
+// --- Refunds (tenant payouts) ------------------------------------------------
+//
+// FIX 1 — server-side eligibility, typed errors only (never a raw PayMongo
+// 4xx). Refundable rails are card + standard e-wallet checkout (gcash /
+// paymaya); QR Ph, direct online banking and OTC payments are refunded
+// manually. The pending refund row is inserted BEFORE calling PayMongo; the
+// one_active_refund_per_payment partial unique index closes the double-tap /
+// two-device race — the losing INSERT (23505) surfaces as REFUND_ALREADY_PENDING.
+
+async function createRefund(req: Request, payload: RefundPayload): Promise<Response> {
+  const { paymentId, amount, reason = 'requested_by_customer', notes } = payload
+
+  if (!paymentId || !amount) {
+    return badRequest('paymentId and amount are required.')
+  }
+
+  const tenantId = await resolveTenantId(req)
+  if (!tenantId) {
+    throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to request a refund.')
+  }
+
+  const { data: paymentRow, error: paymentError } = await dbClient
+    .from('payment')
+    .select(
+      'id, tenant_id, status, amount, is_refundable, paymongo_payment_id'
+    )
+    .eq('id', paymentId)
+    .maybeSingle()
+  if (paymentError || !paymentRow) {
+    throw new PayMongoApiError(404, 'PAYMENT_NOT_FOUND', 'Payment not found.')
+  }
+
+  if (paymentRow.tenant_id !== tenantId) {
+    throw new PayMongoApiError(403, 'PAYMENT_NOT_OWNED', 'This payment does not belong to your account.')
+  }
+  if (paymentRow.status !== 'paid') {
+    throw new PayMongoApiError(400, 'PAYMENT_NOT_PAID', 'Only completed payments can be refunded.')
+  }
+  if (!paymentRow.is_refundable) {
+    throw new PayMongoApiError(
+      400,
+      'REFUND_NOT_SUPPORTED',
+      'This payment method cannot be refunded online. Cash, QR and over-the-counter payments are refunded manually.',
+    )
+  }
+  if (amount < 1) {
+    throw new PayMongoApiError(400, 'REFUND_INVALID_AMOUNT', 'The minimum refund is ₱1.00.')
+  }
+
+  const { data: refundRows } = await dbClient
+    .from('refund')
+    .select('amount')
+    .eq('payment_id', paymentId)
+    .in('status', ['pending', 'processing', 'succeeded'])
+
+  const refunded = (refundRows ?? []).reduce((sum, row) => sum + Number(row.amount), 0)
+  const remaining = Number(paymentRow.amount ?? 0) - refunded
+  if (amount > remaining) {
+    throw new PayMongoApiError(400, 'REFUND_EXCEEDS_AMOUNT', 'The refund amount exceeds what can be refunded for this payment.')
+  }
+
+  const { data: refundRow, error: insertError } = await dbClient
+    .from('refund')
+    .insert({
+      payment_id: paymentId,
+      user_id: tenantId,
+      amount,
+      reason,
+      created_by: tenantId,
+      status: 'pending',
+    })
+    .select('id')
+    .single()
+
+  if (insertError) {
+    if (insertError.code === '23505') {
+      throw new PayMongoApiError(409, 'REFUND_ALREADY_PENDING', 'A refund is already being processed for this payment.')
+    }
+    console.error('createRefund insert:', insertError)
+    throw new PayMongoApiError(500, 'database_error', 'Could not record the refund.')
+  }
+
+  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  if (!secretKey) {
+    // Mock — mirrors the other mock branches; payment ids ending in "-fail"
+    // produce a failed refund.
+    const mockSucceeded = !paymentId.endsWith('-fail')
+    const mockStatus = mockSucceeded ? 'succeeded' : 'failed'
+    await dbClient
+      .from('refund')
+      .update({
+        status: mockStatus,
+        ...(mockSucceeded
+          ? { completed_at: new Date().toISOString() }
+          : { failure_reason: 'Mock refund declined.' }),
+      })
+      .eq('id', refundRow.id)
+
+    return json({
+      data: {
+        id: refundRow.id,
+        type: 'refund',
+        attributes: { status: mockStatus, failure_reason: mockSucceeded ? null : 'Mock refund declined.' },
+      },
+    })
+  }
+
+  try {
+    const { data: refund } = await paymongoFetch<{
+      status: string
+      failure_reason?: string | null
+    }>(`${PAYMONGO_API_V1}/refunds`, {
+      method: 'POST',
+      body: {
+        data: {
+          attributes: {
+            amount: Math.round(amount * 100),
+            payment_id: paymentRow.paymongo_payment_id,
+            reason,
+            ...(notes ? { notes } : {}),
+          },
+        },
+      },
+    })
+
+    await dbClient
+      .from('refund')
+      .update({ status: 'processing', paymongo_refund_id: refund.id })
+      .eq('id', refundRow.id)
+
+    return json({
+      data: {
+        id: refund.id,
+        type: 'refund',
+        attributes: { status: 'processing' },
+      },
+    })
+  } catch (err) {
+    const detail = err instanceof PayMongoApiError
+      ? err.message
+      : 'Refund could not be processed.'
+    await dbClient
+      .from('refund')
+      .update({ status: 'failed', failure_reason: detail })
+      .eq('id', refundRow.id)
+    throw err instanceof PayMongoApiError
+      ? err
+      : new PayMongoApiError(500, 'refund_error', detail)
+  }
+}
+
+// --- Transfer status (fallback poll) -----------------------------------------
+//
+// The webhook (transfer.outward.*) is the primary settlement path; this
+// endpoint is the manual/fallback poll. PayMongo transfer event/status names
+// are verified against the dashboard catalog at go-live.
+
+function getTransferStatus({ transferId }: { transferId: string }) {
+  if (!transferId) return badRequest('transferId is required.')
+
+  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  if (!secretKey) {
+    return json({
+      data: {
+        id: transferId,
+        type: 'transfer',
+        attributes: { status: transferId.endsWith('-fail') ? 'failed' : 'successful' },
+      },
+    })
+  }
+
+  return getRealTransferStatus(transferId)
+}
+
+async function getRealTransferStatus(transferId: string): Promise<Response> {
+  const { data: transfer } = await paymongoFetch<{ status: string }>(
+    `${PAYMONGO_API_V2}/transfers/${transferId}`
+  )
+
+  return json({
+    data: {
+      id: transferId,
+      type: 'transfer',
+      attributes: { status: transfer.attributes.status },
+    },
+  })
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -580,6 +815,10 @@ Deno.serve(async (req) => {
         return getCheckoutSessionStatus(payload)
       case 'createCardPayment':
         return await createCardPayment(req, payload)
+      case 'createRefund':
+        return await createRefund(req, payload)
+      case 'getTransferStatus':
+        return getTransferStatus(payload)
       default:
         return badRequest(`Unknown action: ${action}`)
     }

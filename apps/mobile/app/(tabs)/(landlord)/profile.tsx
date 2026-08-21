@@ -9,6 +9,7 @@ import {
   IconFileText,
   IconSettings,
   IconLogout,
+  IconWallet,
 } from '@tabler/icons-react-native';
 
 import { Button, ListGroup, Separator } from 'heroui-native';
@@ -56,6 +57,11 @@ export default function Profile() {
       title: 'Document & IDs',
       icon: IconFileText,
       onPress: () => router.push('/document-id'),
+    },
+    {
+      title: 'Payout Account',
+      icon: IconWallet,
+      onPress: () => router.push('/payout-account'),
     },
     {
       title: 'Settings',

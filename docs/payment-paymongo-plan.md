@@ -67,6 +67,83 @@
 - ✅ Cash flow — row created `pending` (was `unpaid`; semantic change: tenant paid but awaiting landlord confirmation), receipt shows **Pending**
 - ⏳ Landlord flip E2E pending: landlord notification → payment-history screen → Mark as Paid → row `paid`, tenant "Payment Successful" notification fires (landlord self-skipped via `auth.uid()`)
 
+## Part 6 — Payouts (landlord disbursement) & refunds (tenant) 🚧 IN PROGRESS
+
+**Status:** Planned + schema/edge-function pass (2026-08-20). Landlord destination-management UI, payout history screens, and landlord balance dashboard are follow-ups (explicitly out of scope here).
+
+**Decisions (locked):**
+1. Tenant payout = **refund to the original payment method** via PayMongo `/v1/refunds`. Cash/OTC payments are refunded manually (offline) — never via the API.
+2. Landlord payout = **automated scheduled disbursement** from APT's PayMongo Wallet to the landlord's bank (instapay/pesonet) or GCash/Maya via `POST /v2/batch_transfers`.
+3. **No platform commission.** Landlord receives full rent; PayMongo per-payment processing fees are taken at settlement; the ₱10 transfer fee (config) is recorded and deducted.
+4. Destinations: bank + GCash/Maya; adding/changing a destination requires `users.account_status = 'verified'`; every add/change fires a "Payout Destination Changed" fraud-tripwire notification.
+5. Refund initiator: **tenant only** (owner of the payment). Landlord-initiated refunds (e.g. deposit refunds) are a follow-up.
+6. Failed-transfer requeue policy: **auto-retry with a 3-attempt cap** → payments past the cap surface as the manual admin-review queue (failed payout rows + `payout_run.failures`). `returned` transfers (bad/closed destination) do **not** auto-retry: the destination is deactivated and payments wait for a healthy one.
+
+### Money flow
+
+- Paid card/e-wallet rent clears into APT's PayMongo Wallet (card 3 banking days, e-wallet 2 — `payout_eligible_at` set by the `payment_set_payout_eligible_at` trigger on paid flips). **Owner action:** APT's PayMongo payout destination must be the PayMongo Wallet (min ₱1) so funds accumulate for disbursement.
+- **Landlord payout:** pg_cron (daily 02:00 Asia/Manila) → `process-payouts` edge function (service-role JWT from vault secret) → per landlord (own try/catch, logged to `payout_run.failures`): active default destination → RPC `create_payout_and_claim` (atomic claim, see below) → `POST /v2/batch_transfers` (instapay ≤ ₱50,000, pesonet above) → payout `processing` → webhook settles `completed` / `failed` (requeue) / `returned` (deactivate destination + requeue).
+- **Tenant refund:** tenant requests on a paid, refundable payment → `createRefund` edge action (server-side eligibility + typed errors) inserts `refund` row `pending` → `POST /v1/refunds` → `processing` with `paymongo_refund_id` → webhook `refund.updated` settles `succeeded`/`failed` + notifies.
+
+### FIX 1 — Refund eligibility (design-review)
+
+- `payment.paymongo_payment_id` + `payment.paymongo_payment_method_type` captured from the webhook (`payment.paid` resource, or `payments[]` inside `checkout_session.payment.paid`) and from `getCheckoutSessionStatus` as a resilience net (never clobbers a captured value).
+- Generated column `is_refundable` = `method IN ('card','gcash','maya') AND paymongo_payment_id IS NOT NULL AND paymongo_payment_method_type IN ('card','gcash','paymaya')` — **allowlist**, so Maya QR Ph (`qrph`), direct online banking (`dob`) and OTC rails are never refundable via the API.
+- `createRefund` rejects server-side with typed errors (`REFUND_NOT_SUPPORTED`, `PAYMENT_NOT_FOUND`, `PAYMENT_NOT_OWNED`, `PAYMENT_NOT_PAID`, `REFUND_INVALID_AMOUNT`, `REFUND_EXCEEDS_AMOUNT`, `REFUND_ALREADY_PENDING`) — never raw PayMongo 4xx.
+- **Double-refund race** closed by `one_active_refund_per_payment` partial unique index on `refund(payment_id) WHERE status IN ('pending','processing')`; the losing INSERT (SQLSTATE 23505) maps to `REFUND_ALREADY_PENDING`.
+- Mobile: "Request Refund" only on `is_refundable && status='paid'`; otherwise a short explanatory message (cash/QR/OTC refunded manually).
+
+### FIX 2 — Atomic payout aggregation (design-review)
+
+- RPC `create_payout_and_claim(p_landlord_id, p_destination_id, p_period_start, p_period_end, p_max_attempts)` (SECURITY DEFINER) — **one transaction**: validate destination (active + owned) → read `payout_config` → insert `payout` (`pending`) → `UPDATE payment SET payout_id = <new> WHERE landlord_id = … AND status='paid' AND payout_id IS NULL AND payout_eligible_at <= now() AND payout_attempts < cap AND method IN ('gcash','maya','card') RETURNING sum(amount)` → below min amount / zero rows → roll the claim back (payout deleted, payments unclaimed) → finalize amount/net + bump `payout_attempts`. Two overlapping `process-payouts` runs can never claim the same payments (row locks + `payout_id IS NULL` re-check).
+- `payment.landlord_id` denormalized (backfilled from `apartments`) so the claim is single-table; partial index `(landlord_id, payout_eligible_at) WHERE status='paid' AND payout_id IS NULL`.
+- `payout.reference_number` = `APT-PO-{landlord_id no dashes}-{YYYYMMDD period}-{attempt}` — deterministic prefix for traceability but **changes per attempt** (fresh reference to PayMongo each retry, per PayMongo's guidance). `payout.attempt` is derived inside the RPC as `1 + max(attempt) for (landlord, period)`. Deliberately **not unique-constrained** (a concurrent losing run may compute the same value; its row is rolled back). PayMongo does **not** dedupe `batch_transfers` — the reference goes in the transfer `description` for cross-referencing; it is our identifier, not PayMongo's.
+
+### FIX 3 — Payout status semantics (design-review)
+
+- `payout.status`: `pending → processing → completed | failed | returned`. `processing` = submitted to PayMongo, **awaiting rail settlement** — never treated as delivered. PESONet clears on PayMongo's 11:00/14:00/17:00 Manila cycles, so a 02:00 submission lands later the same banking day.
+- Landlord copy avoids instant-delivery claims: "Payout Sent — typically arrives the same banking day" (processing), "Payout Successful" (completed), "Payout Failed — will retry automatically" (failed), "Payout Returned — destination deactivated; add a new one" (returned).
+- `returned` handling (real InstaPay/PESONet failure mode — funds bounced back): payout `returned`, **destination deactivated** (`payout_destination.status='inactive'`), payments requeued — but `process-payouts` only claims landlords with an active default destination, so attempts are not burned on a broken destination. `transfer.outward.returned` event name not confirmed in PayMongo's catalog — handled defensively (also detectable via `getTransferStatus` poll); verify against the dashboard event list at go-live.
+
+### Schema (migration `20260820000000_payouts_refunds.sql`)
+
+- `payment` +: `paymongo_payment_id`, `paymongo_payment_method_type`, `landlord_id` (FK `users.id`, backfilled), `payout_eligible_at` (trigger `payment_set_payout_eligible_at` sets on paid flips: card +3d, e-wallet +2d), `payout_id` (FK `payout`), `payout_attempts int default 0`, generated `is_refundable`.
+- `payout_destination`: `user_id → users.id`, `type bank|gcash|maya`, `bic` (provider code from PayMongo receiving institutions), `account_number`, `account_name`, `is_default`, `status active|inactive`. RLS: users manage own rows; INSERT/UPDATE `WITH CHECK` requires `account_status='verified'`. Trigger fires the fraud-tripwire notification.
+- `payout`: `user_id`, `destination_id`, `amount`, `fee`, `net_amount`, `status pending|processing|completed|failed|returned`, `reference_number`, `attempt`, `period_start/end`, `paymongo_batch_id`, `paymongo_transfer_id`, `failure_reason`, `completed_at`. RLS: landlord reads own; **all writes service_role-only**.
+- `refund`: `payment_id`, `user_id`, `amount`, `reason duplicate|fraudulent|requested_by_customer|others`, `status pending|processing|succeeded|failed`, `paymongo_refund_id`, `failure_reason`, `created_by`, `completed_at` + partial unique index (FIX 1). RLS: tenant reads own; **all writes service_role-only**.
+- `payout_run`: `started_at`, `finished_at`, `landlords_processed`, `payouts_created`, `failures jsonb` (one landlord's failure never swallows the run). service_role-only.
+- `payout_config`: single row (`id=1`) `transfer_fee` (default ₱10 — config value, not a literal), `min_payout_amount` (default ₱100). service_role-only.
+- Triggers: `payment_set_payout_eligible_at` (BEFORE insert/update on paid), `notify_payout_status_changed`, `notify_refund_status_changed`, `notify_payout_destination_changed` (all via `create_notification`, type `payment`).
+- pg_cron: `create extension if not exists pg_cron` + `cron.schedule_in_timezone('Asia/Manila', 'process-payouts', '0 2 * * *', net.http_post → process-payouts with vault secret PAYOUT_SERVICE_ROLE_KEY)`.
+
+### Edge functions
+
+- `paymongo/index.ts` +: `createRefund` (eligibility + typed errors + mock branch: refs ending `-fail` → failed), `getTransferStatus` (`GET /v2/transfers/{id}` fallback poll; event name/status values verified at go-live); `getCheckoutSessionStatus` captures payment id + rail; `recordPayment` stores `landlord_id` (tenancy join); `resolveTenancy` returns `landlord_id`.
+- `paymongo-webhook/index.ts` +: `parseEvent` extracts `paymentId`/`paymentMethodType`/`errorMessage`; `checkout_session.payment.paid` + `payment.paid` capture rail + flip paid (idempotent, pending/unpaid only); **`transfer.outward.successful` → completed, `transfer.outward.failed` → failed + requeue (`payout_id = NULL`), `transfer.outward.returned` → returned + requeue + deactivate destination**; `refund.updated` (+ granular `refund.succeeded|failed|pending`) → settle refund, never downgrade a completed row.
+- `process-payouts/index.ts` (new, `verify_jwt=true`): service-role JWT check → `payout_run` row → per-landlord try/catch → RPC claim → `batch_transfers` (env: `APT_WALLET_ACCOUNT_NUMBER`, `APT_WALLET_ACCOUNT_NAME`, `PAYMONGO_SECRET_KEY`; source bic `PAEYPHM2XXX`; `provider` instapay ≤₱50k / pesonet above) → payout `processing` with transfer id. Manual single-landlord mode via `{"landlordId": "…"}`.
+
+### Mobile (tenant)
+
+- `service/payments/paymentService.ts`: `PaymentRecord.is_refundable`, `fetchRefundsForPayment` (refund status on the receipt).
+- `service/payments/paymongoService.ts`: `PaymongoError.code` (typed-error mapping), `requestRefund`.
+- `hooks/payments/usePayments.ts`: `useRequestRefund` mutation (invalidates payment + refund queries), `useRefundForPayment`.
+- `app/tenant/payment/history/[paymentId].tsx`: "Request Refund" button only when refundable + paid (ConfirmDialog → mutation); explanatory message otherwise; refund status line (Refunded / Refund in progress / Refund failed) on the receipt.
+
+### Owner actions
+
+1. Set APT PayMongo payout destination to the **PayMongo Wallet** (min ₱1) so funds accumulate for disbursement.
+2. Grab the wallet account number + name (batch `source_account`) → `supabase secrets set APT_WALLET_ACCOUNT_NUMBER=… APT_WALLET_ACCOUNT_NAME=…`.
+3. Store the service role key for the cron job: `select vault.create_secret('<service_role>', 'PAYOUT_SERVICE_ROLE_KEY')`.
+4. Register webhook events: `transfer.outward.successful`, `transfer.outward.failed` (+ verify whether `transfer.outward.returned` exists in the catalog), `refund.updated`.
+5. Test-mode: fund the test wallet, add a test bank/GCash destination (SQL/service role), run `process-payouts` manually (single landlord), verify claim atomicity (double invocation), refund a GCash sandbox payment (succeeds) vs a `qrph`-typed row (typed `REFUND_NOT_SUPPORTED`).
+
+### Out of scope (Part 6 follow-ups)
+
+- Landlord payout-destination management UI (bank picker via `listReceivingInstitutions` — action not built this pass), payout history screen, landlord balance dashboard
+- Landlord-initiated refunds (deposit refund at lease end)
+- Web payout/refund parity
+- Partial-amount refund selection (client always refunds the full amount)
+
 ## Owner action items (only you can do these)
 
 **Before Part 1:** ✅ Done — DB access granted (MCP works against project `ezxirkpgfpripjydcqnt`)
@@ -93,4 +170,4 @@ pnpm --filter mobile test && pnpm --filter mobile lint  # Part 3
 
 - Web payment flow (my-rental `PaymentModal` TODO)
 - Saved payment methods (Part 4)
-- Refunds, recurring/billing, payment verification — future edge function actions
+- Recurring/billing — future edge function actions (refunds now live in Part 6)

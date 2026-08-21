@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { Card, Separator } from 'heroui-native'
-import { formatPesoDisplay } from '@repo/utils'
+import { formatDate, formatPesoDisplay } from '@repo/utils'
 
 interface PaymentSummaryCardProps {
   month: string
@@ -38,7 +38,9 @@ export default function PaymentSummaryCard({
 
           <View className='flex-row justify-between items-center'>
             <Text className='text-sm text-foreground font-inter'>Due Date</Text>
-            <Text className='text-sm text-foreground font-inter'>{dueDate}</Text>
+            <Text className='text-sm text-foreground font-inter'>
+              {formatDate(dueDate, "short")}
+            </Text>
           </View>
 
           <View className='flex-row justify-between items-center'>

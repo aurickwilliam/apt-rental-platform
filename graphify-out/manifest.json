@@ -205,18 +205,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/dashboard.tsx": {
-    "mtime": 1787150281.5861304,
-    "ast_hash": "db1b9c2aba3df2dbfffbf6a142ccc6a6",
+    "mtime": 1787197883.6104167,
+    "ast_hash": "db2453e27b1005655c63a9ed889f8140",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/profile.tsx": {
-    "mtime": 1787150137.3798466,
-    "ast_hash": "c3e92f0e944b94fe3fc4fba95e0859db",
+    "mtime": 1787294332.7493608,
+    "ast_hash": "1e0f9dcec1101b65bb591a84a8dd942b",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/units.tsx": {
-    "mtime": 1787150281.5864587,
-    "ast_hash": "03e598a7d12ee9a524985f738873e846",
+    "mtime": 1787152833.8810241,
+    "ast_hash": "18f3220d9ca846bf1fcf1394619a8209",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/_layout.tsx": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/components/PaymentSummaryCard.tsx": {
-    "mtime": 1787150137.3463762,
-    "ast_hash": "648a1328b41770763f5e47a7695926ee",
+    "mtime": 1787285323.8313293,
+    "ast_hash": "2fe4e70fa3c8e42d3fc115257f0905e3",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/components/ReceiptCard.tsx": {
@@ -2590,9 +2590,9 @@
     "semantic_hash": "a2ba55969173d6a0fa9339a42e562974"
   },
   "packages/constants/src/index.ts": {
-    "mtime": 1787060342.068839,
-    "ast_hash": "31ca6f8c0c3e5e0b117397ee4d633ba0",
-    "semantic_hash": "31ca6f8c0c3e5e0b117397ee4d633ba0"
+    "mtime": 1787294037.9628081,
+    "ast_hash": "11d1ea3d226eea7a0f92def8a3298b67",
+    "semantic_hash": ""
   },
   "packages/constants/src/months.ts": {
     "mtime": 1777602095.526403,
@@ -2705,8 +2705,8 @@
     "semantic_hash": "3f166c0526796d745a39384bcde66082"
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1787148053.2173343,
-    "ast_hash": "0078c9dffaab218eb03d0b68daf8d073",
+    "mtime": 1787205293.584702,
+    "ast_hash": "7310f8512e7926eb1395dff267bb0b3a",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -3125,8 +3125,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
-    "mtime": 1787124179.3794634,
-    "ast_hash": "636cbd224fb579913d0bd0b26f379fd2",
+    "mtime": 1787202937.1247344,
+    "ast_hash": "31d7a73fc7ffd3d90e1e3aa63b8e79cf",
     "semantic_hash": ""
   },
   "supabase/functions/.zed/settings.json": {
@@ -3145,8 +3145,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/history/[paymentId].tsx": {
-    "mtime": 1787126077.1998334,
-    "ast_hash": "5e9cda14ddd213958fc422c4a061add2",
+    "mtime": 1787205364.7329426,
+    "ast_hash": "e6387065982c2a5aac1c9aa38e26679a",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/history/components/PaymentHistoryCard.tsx": {
@@ -3165,8 +3165,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/payments/index.ts": {
-    "mtime": 1787125998.5797794,
-    "ast_hash": "4486dc038d27c8f713461a1789bceada",
+    "mtime": 1787294174.0364776,
+    "ast_hash": "3ff38a79d505a6bd8d4baa3681d14403",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/payments/usePaymentStatusStyles.ts": {
@@ -3870,8 +3870,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/payments/paymongoService.ts": {
-    "mtime": 1787060342.3101447,
-    "ast_hash": "b1929ad99ed41f7e9a8966620e4f1e60",
+    "mtime": 1787203063.8407834,
+    "ast_hash": "f3a49ffa4e512b9db95cedbbe0fbda39",
     "semantic_hash": ""
   },
   "apps/mobile/service/profiles/profilesService.ts": {
@@ -3955,28 +3955,28 @@
     "semantic_hash": ""
   },
   "docs/payment-paymongo-plan.md": {
-    "mtime": 1787140063.6865048,
-    "ast_hash": "7e1d5ac4d89e1b40e97e75d0ffb5561d",
+    "mtime": 1787202340.3853567,
+    "ast_hash": "46274d7f28e6564843ac214888f2d0ad",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/payments/usePayments.ts": {
-    "mtime": 1787140765.748514,
-    "ast_hash": "4799e73535c56075df5b0bebd15acc8c",
+    "mtime": 1787203097.689255,
+    "ast_hash": "670d345080740360dee3afe52fefb640",
     "semantic_hash": ""
   },
   "apps/mobile/service/payments/paymentService.test.ts": {
-    "mtime": 1787138751.2642527,
-    "ast_hash": "7aea7d16167b4ae3d6a0131aa1cc8ba8",
+    "mtime": 1787203588.9819608,
+    "ast_hash": "112976aa6f72f58fa6729f9687621b02",
     "semantic_hash": ""
   },
   "apps/mobile/service/payments/paymentService.ts": {
-    "mtime": 1787138733.4019337,
-    "ast_hash": "8cbc213cfdd1d9f5316e7db45576585d",
+    "mtime": 1787203040.7221727,
+    "ast_hash": "ac8c3293a0961794366d520b09e8cba3",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo-webhook/index.ts": {
-    "mtime": 1787123914.1657276,
-    "ast_hash": "f3a690d43252bd0044d62b5452ff5c1d",
+    "mtime": 1787285717.244706,
+    "ast_hash": "f2f31577fa8152c9900c96e4710947fc",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx": {
@@ -3997,6 +3997,71 @@
   "supabase/migrations/20260819030000_pending_cash_landlord_notification.sql": {
     "mtime": 1787141771.0664914,
     "ast_hash": "ffb171e329d8b3658455d6b255bb465e",
+    "semantic_hash": ""
+  },
+  "supabase/functions/process-payouts/index.ts": {
+    "mtime": 1787217004.4917538,
+    "ast_hash": "f75e59c93899df11787fc611f2f15969",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260820000000_payouts_refunds.sql": {
+    "mtime": 1787218610.4952126,
+    "ast_hash": "4a037678e3b72c2dd7d480da80c622a3",
+    "semantic_hash": ""
+  },
+  "docs/payout-e2e-checklist.md": {
+    "mtime": 1787291945.3976912,
+    "ast_hash": "2dd300c518b7e16e2097f4ad9c2c7e20",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/payout-account/[destinationId].tsx": {
+    "mtime": 1787298963.0775545,
+    "ast_hash": "6da4ca99ccd5e436ccfb0310f3bc87a1",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/payout-account/_layout.tsx": {
+    "mtime": 1787294186.6272998,
+    "ast_hash": "9249759946f13fd571bc4c464eae3582",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/payout-account/index.tsx": {
+    "mtime": 1787299619.5487592,
+    "ast_hash": "a9fc18a7a18d2f333a0df0b43e5ea8dc",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/payments/usePayoutDestinations.ts": {
+    "mtime": 1787294074.975029,
+    "ast_hash": "72446336a11fcc870cab85e04c97e7ba",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/payments/payoutDestinationService.test.ts": {
+    "mtime": 1787300612.5956743,
+    "ast_hash": "cb5872706bd8907dcad43e86c183ea8e",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/payments/payoutDestinationService.ts": {
+    "mtime": 1787300599.1799726,
+    "ast_hash": "9139a2b80186f7245a31ab6c05c39146",
+    "semantic_hash": ""
+  },
+  "packages/constants/src/payout/index.ts": {
+    "mtime": 1787294018.5807607,
+    "ast_hash": "d4a4c3775ef0b810b35e91aff8bf4460",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260821000000_grant_payout_tables_to_authenticated.sql": {
+    "mtime": 1787298054.7596655,
+    "ast_hash": "ff3f339aa1600ec90ab35761f7eacef1",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260821000001_fix_payout_destination_verified_policies.sql": {
+    "mtime": 1787298510.1760194,
+    "ast_hash": "b821777a7dd2c43a72aa394ea5ec79e0",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260821000002_payout_destination_tripwire_relevance.sql": {
+    "mtime": 1787300354.2664626,
+    "ast_hash": "b7d3980e20b54dc76f205c3eed8335e7",
     "semantic_hash": ""
   }
 }

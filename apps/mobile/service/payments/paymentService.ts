@@ -21,6 +21,9 @@ export interface PaymentRecord {
   due_date: string | null
   apartment_name: string | null
   landlord_name: string | null
+  // FIX 1 — server-derived refund eligibility (GCash/Maya/card only, with a
+  // captured PayMongo payment). Generated column; tenants only read it.
+  is_refundable: boolean
 }
 
 type PaymentRow = {
@@ -34,6 +37,7 @@ type PaymentRow = {
   period_start: string | null
   period_end: string | null
   due_date: string | null
+  is_refundable: boolean
   apartment: { name: string | null; landlord: { first_name: string | null; last_name: string | null } | null } | null
 }
 
@@ -48,6 +52,7 @@ const PAYMENT_SELECT = `
   period_start,
   period_end,
   due_date,
+  is_refundable,
   apartment:apartments (
     name,
     landlord:users (first_name, last_name)
@@ -67,6 +72,7 @@ const toPaymentRecord = (row: PaymentRow): PaymentRecord => {
     period_start: row.period_start,
     period_end: row.period_end,
     due_date: row.due_date,
+    is_refundable: row.is_refundable,
     apartment_name: row.apartment?.name ?? null,
     landlord_name:
       landlord?.first_name || landlord?.last_name
@@ -108,6 +114,43 @@ export async function fetchPaymentByReferenceId(referenceId: string): Promise<Pa
 
   if (error) throw error
   return data ? toPaymentRecord(data as unknown as PaymentRow) : null
+}
+
+// --- Refunds (tenant-facing; rows are written by the edge function) ---------
+
+export interface RefundRecord {
+  id: string
+  payment_id: string
+  amount: number
+  status: string
+  reason: string | null
+  failure_reason: string | null
+  created_at: string
+  completed_at: string | null
+}
+
+export async function fetchRefundsForPayment(paymentId: string): Promise<RefundRecord[]> {
+  const { data, error } = await supabase
+    .from('refund')
+    .select(
+      'id, payment_id, amount, status, reason, failure_reason, created_at, completed_at'
+    )
+    .eq('payment_id', paymentId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data as RefundRecord[]
+}
+
+const REFUND_STATUS_LABELS: Record<string, string> = {
+  pending: 'Refund in progress',
+  processing: 'Refund in progress',
+  succeeded: 'Refunded',
+  failed: 'Refund failed',
+}
+
+export function refundStatusLabel(status: string): string {
+  return REFUND_STATUS_LABELS[status] ?? 'Refund in progress'
 }
 
 export type CreateCashPaymentParams = {
