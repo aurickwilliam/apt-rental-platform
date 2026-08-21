@@ -99,7 +99,7 @@ export default function CurrentApartmentDetails() {
       <ScreenWrapper header={<StandardHeader title="Apartment Details" />}>
         <View className="flex-1 items-center justify-center px-6">
           <AlertCircle size={40} color={colors.gray300} />
-          <Text className="text-foreground text-base font-interSemiBold mt-3 text-center">
+          <Text className="text-foreground text-base font-nunitoSemiBold mt-3 text-center">
             No Active Tenancy
           </Text>
           <Text className="text-muted text-sm font-inter mt-1 text-center">
@@ -126,7 +126,7 @@ export default function CurrentApartmentDetails() {
     >
       {/* Name and Address */}
       <View>
-        <Text className="text-2xl font-nunitoSemiBold text-foreground">
+        <Text className="text-2xl font-nunitoBold text-foreground">
           {apartment.name}
         </Text>
         <Text className="text-base text-foreground">
@@ -137,7 +137,7 @@ export default function CurrentApartmentDetails() {
       {/* Landlord */}
       <View className="mt-5">
         <Text className="text-muted text-xs font-inter">Landlord</Text>
-        <Text className="text-foreground text-base font-interMedium">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           {landlordName}
         </Text>
       </View>
@@ -146,13 +146,13 @@ export default function CurrentApartmentDetails() {
       <View className="flex-row mt-5">
         <View className="flex w-1/2">
           <Text className="text-muted text-xs font-inter">Lease Start</Text>
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             {formatDateToMonthYear(tenancy.lease_start)}
           </Text>
         </View>
         <View className="flex w-1/2">
           <Text className="text-muted text-xs font-inter">Lease End</Text>
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             {tenancy.lease_end
               ? formatDateToMonthYear(tenancy.lease_end)
               : 'Ongoing'}
@@ -163,7 +163,7 @@ export default function CurrentApartmentDetails() {
       {/* Monthly Rent */}
       <View className="mt-5">
         <Text className="text-muted text-xs font-inter">Monthly Rent</Text>
-        <Text className="text-foreground text-base font-interMedium">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           {`${formattedMonthlyRent}`}
         </Text>
       </View>
@@ -171,7 +171,7 @@ export default function CurrentApartmentDetails() {
       <Separator className="my-5" />
 
       {/* Full Description */}
-      <Text className="text-foreground text-base font-interSemiBold">
+      <Text className="text-foreground text-base font-nunitoSemiBold">
         Apartment Full Description
       </Text>
       <View className="mt-3 bg-surface-secondary p-4 rounded-2xl">
@@ -181,7 +181,7 @@ export default function CurrentApartmentDetails() {
       </View>
 
       {/* Room/Unit Details */}
-      <Text className="text-foreground text-lg font-interSemiBold mt-5">
+      <Text className="text-foreground text-lg font-nunitoSemiBold mt-5">
         Room/Unit Details
       </Text>
       <View className="flex-row flex-wrap justify-between mt-5">
@@ -263,7 +263,7 @@ export default function CurrentApartmentDetails() {
       {/* Included Perks */}
       {apartment.amenities && apartment.amenities.length > 0 && (
         <>
-          <Text className="text-foreground text-lg font-interSemiBold mt-5">
+          <Text className="text-foreground text-lg font-nunitoSemiBold mt-5">
             Included Perks
           </Text>
           <View className="flex-row flex-wrap justify-between mt-5">

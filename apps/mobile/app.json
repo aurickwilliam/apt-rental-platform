@@ -26,7 +26,6 @@
         "backgroundColor": "#376BF5",
         "foregroundImage": "./assets/icons/android/adaptive-icon.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.aurickwilliam.apt",

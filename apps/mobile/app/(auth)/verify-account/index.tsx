@@ -21,7 +21,7 @@ export default function Index() {
         />
 
         <View className='flex mt-5 gap-3'>
-          <Text className='text-lg font-interMedium text-center'>
+          <Text className='text-lg font-nunitoSemiBold text-center'>
             Help us keep our community safe.
           </Text>
 

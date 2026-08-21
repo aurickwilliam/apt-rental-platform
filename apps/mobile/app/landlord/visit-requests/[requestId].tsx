@@ -137,7 +137,7 @@ export default function VisitRequestDetails() {
 
         <View className="gap-3">
           <View className="gap-1">
-            <Text className="text-accent text-xl font-interSemiBold">
+            <Text className="text-accent text-xl font-nunitoBold">
               {request.apartment.name}
             </Text>
             <Text className="text-foreground font-inter">
@@ -168,7 +168,7 @@ export default function VisitRequestDetails() {
               style={{ backgroundColor: statusStyle.backgroundColor }}
             >
               <Chip.Label
-                className="font-interMedium"
+                className="font-nunitoSemiBold"
                 style={{ color: statusStyle.textColor }}
               >
                 {statusStyle.label}

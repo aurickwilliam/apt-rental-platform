@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text } from 'react-native'
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react';
@@ -13,13 +13,14 @@ import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 
-import { Button } from 'heroui-native'
+import { Button, Separator } from 'heroui-native'
 
 import {
-  User,
-  CircleCheck,
-  Building,
-} from 'lucide-react-native';
+  IconUser,
+  IconCircleCheck,
+  IconBuilding,
+  IconChevronRight,
+} from '@tabler/icons-react-native';
 
 import { IMAGES } from 'constants/images'
 import { APARTMENT_STATUS_LABELS } from '@repo/constants'
@@ -29,9 +30,12 @@ import { supabase } from '@repo/supabase'
 import { useColors } from 'hooks/useTheme'
 import { useApartmentDetails } from 'hooks/apartments'
 import { useLandlordTenancy } from 'hooks/tenancy'
+import { useLandlordPaymentConfirmation } from 'hooks/landlord'
 import { useProfile } from 'hooks/auth'
 
-import { formatDate } from '@repo/utils';
+import { formatDate, formatPesoDisplay } from '@repo/utils';
+import { methodLabel } from '@/service/payments/paymentService'
+import type { PaymentRecord } from '@/service/landlord/landlordService'
 
 export default function Index() {
   const router = useRouter()
@@ -40,10 +44,12 @@ export default function Index() {
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
+  const [pendingFlipPayment, setPendingFlipPayment] = useState<PaymentRecord | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
   const { profile } = useProfile();
+  const confirmMutation = useLandlordPaymentConfirmation(apartmentId);
 
   const handleVacateUnit = () => {
     setIsVacateDialogOpen(true)
@@ -122,6 +128,13 @@ export default function Index() {
 
   const isOccupied = apartment?.status === 'occupied';
 
+  const handleConfirmFlip = () => {
+    if (!pendingFlipPayment) return
+    confirmMutation.mutate(pendingFlipPayment.id, {
+      onSettled: () => setPendingFlipPayment(null),
+    })
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <ScreenWrapper
@@ -164,12 +177,12 @@ export default function Index() {
             <View className="mt-5 p-2 border-t border-b border-border flex-row items-center justify-between">
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Ratings</Text>
-                <Text className="text-3xl text-secondary font-interMedium">
+                <Text className="text-3xl text-secondary font-nunitoBold">
                   {apartment.average_rating !== null
                     ? `${apartment.average_rating}`
                     : '—'}
                 </Text>
-                <Text className="text-base text-foreground font-interMedium">
+                <Text className="text-base text-foreground font-nunitoSemiBold">
                   Average
                 </Text>
               </View>
@@ -178,21 +191,21 @@ export default function Index() {
 
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Reviews</Text>
-                <Text className="text-3xl text-foreground font-interMedium">
+                <Text className="text-3xl text-foreground font-nunitoBold">
                   {apartment.no_ratings}
                 </Text>
-                <Text className="text-base text-foreground font-interMedium">Total</Text>
+                <Text className="text-base text-foreground font-nunitoSemiBold">Total</Text>
               </View>
 
               <View className="w-px h-full bg-border" />
 
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Status</Text>
-                <CircleCheck
+                <IconCircleCheck
                   size={32}
                   color={isOccupied ? colors.success : colors.primary}
                 />
-                <Text className="text-base text-foreground font-interMedium">
+                <Text className="text-base text-foreground font-nunitoSemiBold">
                   {APARTMENT_STATUS_LABELS[apartment.status]}
                 </Text>
               </View>
@@ -228,8 +241,8 @@ export default function Index() {
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
-                      <User size={26} color={colors.textPrimary} />
-                      <Text className="text-foreground text-lg font-interSemiBold">
+                      <IconUser size={26} color={colors.textPrimary} />
+                      <Text className="text-foreground text-lg font-nunitoSemiBold">
                         Tenant Information
                       </Text>
                     </View>
@@ -256,28 +269,34 @@ export default function Index() {
                       reportedDate={maintenanceRequest.reportedDate}
                       onUpdatePress={() => console.log('Update Maintenance Pressed')}
                     />
+
+                    <Separator className="mt-5" />
                   </View>
                 )}
 
                 {paymentHistory.length > 0 && (
                   <View className="mt-5">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-foreground text-xl font-interSemiBold">
+
+                      <Text className="text-foreground text-lg font-nunitoBold">
                         Rent Payment History
                       </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() =>
-                          router.push(
-                            `/landlord/manage-apartment/${apartmentId}/payment-history`,
-                          )
-                        }
-                      >
-                        <Text className="text-primary text-base font-inter">See All</Text>
-                      </TouchableOpacity>
+
+                      <Button
+                          variant="ghost"
+                          isIconOnly
+                          aria-label="See all payments"
+                          onPress={() =>
+                            router.push(
+                              `/landlord/manage-apartment/${apartmentId}/payment-history`,
+                            )
+                          }
+                        >
+                          <IconChevronRight size={20} color={colors.primary} />
+                        </Button>
                     </View>
 
-                    <View className="mt-5 flex gap-2">
+                    <View className="flex gap-2">
                       {paymentHistory.map((payment) => (
                         <PaymentHistoryCard
                           key={payment.id}
@@ -286,6 +305,14 @@ export default function Index() {
                           amount={payment.amount}
                           paidDate={payment.paidDate}
                           status={payment.status}
+                          method={payment.method}
+                          reference={payment.reference}
+                          onFlipPress={
+                            payment.status === 'pending' && payment.method === 'cash'
+                              ? () => setPendingFlipPayment(payment)
+                              : undefined
+                          }
+                          flipDisabled={confirmMutation.isPending}
                         />
                       ))}
                     </View>
@@ -300,7 +327,7 @@ export default function Index() {
                     style={{ width: 100, height: 100 }}
                     contentFit="contain"
                   />
-                  <Text className="text-danger text-lg font-interMedium">
+                  <Text className="text-danger text-lg font-nunitoSemiBold">
                     This property is currently vacant.
                   </Text>
                 </View>
@@ -317,8 +344,8 @@ export default function Index() {
           </>
         ) : (
           <View className="flex-1 items-center justify-center py-24 gap-4">
-            <Building size={48} color={colors.gray400} />
-            <Text className="text-gray-400 font-interSemiBold text-center">
+            <IconBuilding size={48} color={colors.gray400} />
+            <Text className="text-gray-400 font-nunitoSemiBold text-center">
               Could not load property details.
             </Text>
 
@@ -357,6 +384,22 @@ export default function Index() {
         description="Are you sure you want to mark this unit as vacant? The current tenant's lease will be ended and the unit will be listed as available."
         confirmLabel="Vacate"
         onConfirm={handleConfirmVacate}
+      />
+
+      <ConfirmDialog
+        isOpen={pendingFlipPayment !== null}
+        onOpenChange={(open) => { if (!open) setPendingFlipPayment(null) }}
+        title="Mark as Paid"
+        description={
+          pendingFlipPayment
+            ? `Confirm the ${formatPesoDisplay(pendingFlipPayment.amount)} ${methodLabel(pendingFlipPayment.method)} payment for ${pendingFlipPayment.month} ${pendingFlipPayment.year}? This notifies the tenant that their payment was received.`
+            : ''
+        }
+        confirmLabel="Confirm"
+        confirmVariant="primary"
+        onConfirm={handleConfirmFlip}
+        isConfirmDisabled={confirmMutation.isPending}
+        errorMessage={confirmMutation.isError ? confirmMutation.error?.message ?? 'Could not update payment.' : null}
       />
     </View>
   );

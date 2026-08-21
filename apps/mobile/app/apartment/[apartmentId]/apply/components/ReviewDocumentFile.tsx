@@ -18,7 +18,7 @@ export default function ReviewDocumentFile({ label, fileName }: ReviewDocumentFi
         {fileName && <IconFileText size={20} color={colors.primary} />}
 
         <Text
-          className={`text-sm ${fileName ? "text-foreground" : "text-muted"} font-interMedium`}
+          className={`text-sm ${fileName ? "text-foreground" : "text-muted"} font-nunitoSemiBold`}
           numberOfLines={1}
         >
           {fileName ?? "Not uploaded"}

@@ -120,14 +120,14 @@ export default function MapPin() {
 
         <View className="p-5 gap-4">
           <View className="flex-row justify-between">
-            <Text className="text-foreground font-interMedium">Latitude:</Text>
+            <Text className="text-foreground font-nunitoSemiBold">Latitude:</Text>
 
             <Text className="text-muted font-inter">
               {markerCoords.latitude.toFixed(6)}
             </Text>
           </View>
           <View className="flex-row justify-between">
-            <Text className="text-foreground font-interMedium">Longitude:</Text>
+            <Text className="text-foreground font-nunitoSemiBold">Longitude:</Text>
 
             <Text className="text-muted font-inter">
               {markerCoords.longitude.toFixed(6)}

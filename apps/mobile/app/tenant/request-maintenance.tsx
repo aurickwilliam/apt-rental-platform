@@ -163,14 +163,14 @@ export default function RequestMaintenance() {
         <View className='flex-row items-center gap-2'>
           <Building2 size={24} color={colors.primary} />
           <Text
-            className='text-accent text-xl font-interSemiBold'
+            className='text-accent text-xl font-nunitoBold'
             numberOfLines={1}
           >
             {apartmentName}
           </Text>
         </View>
 
-        <Text className='text-foreground font-interMedium'>
+        <Text className='text-foreground font-nunitoSemiBold'>
           {apartmentAddress}
         </Text>
       </View>
@@ -187,7 +187,7 @@ export default function RequestMaintenance() {
 
       {/* Maintenance Issue Form */}
       <View className='flex gap-3'>
-        <Text className='text-foreground text-lg font-interMedium'>
+        <Text className='text-foreground text-lg font-nunitoSemiBold'>
           Maintenance Details
         </Text>
 
@@ -228,7 +228,7 @@ export default function RequestMaintenance() {
         </TextField>
 
         <View className='flex gap-3'>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             How urgent is this issue? <Text className='text-danger'>*</Text>
           </Text>
 

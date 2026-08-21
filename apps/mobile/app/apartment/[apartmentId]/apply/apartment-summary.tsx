@@ -155,13 +155,13 @@ export default function ApartmentSummary() {
           pointerEvents="box-none"
         >
           <View pointerEvents="none">
-            <Text className="text-white font-interSemiBold text-2xl">
+            <Text className="text-white font-nunitoBold text-2xl">
               {apartment.name}
             </Text>
 
             <View className="flex-row items-center mt-2 gap-2">
               <IconMapPin size={24} color={colors.secondaryForeground} />
-              <Text className="text-secondary-foreground font-interMedium text-base">
+              <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                 {fullAddress}
               </Text>
             </View>
@@ -169,14 +169,14 @@ export default function ApartmentSummary() {
             <View className="flex-row items-center justify-between mt-8 gap-6">
               <View className="flex-row items-center gap-2">
                 <IconHome size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.type}
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <IconStarFilled size={20} color={colors.secondary} />
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
                 </Text>
               </View>
@@ -188,21 +188,21 @@ export default function ApartmentSummary() {
             >
               <View className="flex-row items-center gap-2">
                 <IconBed size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.no_bedrooms} Bedrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <IconBath size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.no_bathrooms} Bathrooms
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2">
                 <IconArrowsMaximize size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.area_sqm} Sqm
                 </Text>
               </View>
@@ -222,14 +222,14 @@ export default function ApartmentSummary() {
                 <Text className="text-secondary-foreground font-inter text-sm">
                   Rental Owner
                 </Text>
-                <Text className="text-secondary-foreground font-interMedium text-base">
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {landlordFullName}
                 </Text>
               </View>
             </View>
 
             <View className="mt-5 mb-10" pointerEvents="none">
-              <Text className="text-secondary-foreground font-interSemiBold text-2xl">
+              <Text className="text-secondary-foreground font-nunitoBold text-2xl">
                 {formattedMonthlyRent}/month
               </Text>
             </View>

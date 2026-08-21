@@ -29,13 +29,20 @@ export type PaymongoCardPaymentResult = {
   failureReason: string | null
 }
 
+// Typed error codes surfaced by the paymongo edge function (server-side
+// eligibility checks in createRefund): REFUND_NOT_SUPPORTED,
+// REFUND_ALREADY_PENDING, PAYMENT_NOT_FOUND, PAYMENT_NOT_OWNED,
+// PAYMENT_NOT_PAID, REFUND_INVALID_AMOUNT, REFUND_EXCEEDS_AMOUNT. Code is null
+// for transport/unknown failures.
 export class PaymongoError extends Error {
   reason: string
+  code: string | null
 
-  constructor(reason: string) {
+  constructor(reason: string, code: string | null = null) {
     super(reason)
     this.name = 'PaymongoError'
     this.reason = reason
+    this.code = code
   }
 }
 
@@ -43,18 +50,22 @@ type PaymongoEnvelope<T> = {
   data: T
 }
 
-const extractFailureReason = async (error: unknown): Promise<string> => {
+const extractError = async (error: unknown): Promise<{ reason: string; code: string | null }> => {
   const response = (error as { context?: Response }).context
   if (response) {
     try {
-      const body = (await response.json()) as { errors?: { detail?: string }[] }
-      const detail = body.errors?.[0]?.detail
-      if (detail) return detail
+      const body = (await response.json()) as { errors?: { detail?: string; code?: string }[] }
+      const first = body.errors?.[0]
+      if (first?.detail) return { reason: first.detail, code: first.code ?? null }
+      if (first?.code) return { reason: first.code, code: first.code }
     } catch {
       // Response body was not JSON — fall through to the generic message.
     }
   }
-  return (error as { message?: string }).message ?? 'Payment failed. Please try again.'
+  return {
+    reason: (error as { message?: string }).message ?? 'Payment failed. Please try again.',
+    code: null,
+  }
 }
 
 const invoke = async <T>(action: string, payload: Record<string, unknown>): Promise<T> => {
@@ -63,7 +74,8 @@ const invoke = async <T>(action: string, payload: Record<string, unknown>): Prom
   })
 
   if (error) {
-    throw new PaymongoError(await extractFailureReason(error))
+    const { reason, code } = await extractError(error)
+    throw new PaymongoError(reason, code)
   }
 
   return data as T
@@ -121,5 +133,31 @@ export async function createCardPayment(params: {
   return {
     status: response.data.attributes.status === 'succeeded' ? 'succeeded' : 'failed',
     failureReason: response.data.attributes.failure_reason,
+  }
+}
+
+export type RefundRequestResult = {
+  status: 'processing' | 'succeeded' | 'failed'
+}
+
+// Full-amount refund for a paid, refundable payment. The backend checks
+// eligibility (method + PayMongo rail) and inserts the pending refund row
+// before calling PayMongo — duplicate requests fail with REFUND_ALREADY_PENDING.
+export async function requestRefund(params: {
+  paymentId: string
+  amount: number
+}): Promise<RefundRequestResult> {
+  const response = await invoke<PaymongoEnvelope<{
+    id: string
+    attributes: { status: string }
+  }>>('createRefund', {
+    paymentId: params.paymentId,
+    amount: params.amount,
+    reason: 'requested_by_customer',
+  })
+
+  const status = response.data.attributes.status
+  return {
+    status: status === 'succeeded' ? 'succeeded' : status === 'failed' ? 'failed' : 'processing',
   }
 }

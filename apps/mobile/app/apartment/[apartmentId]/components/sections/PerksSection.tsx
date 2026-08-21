@@ -27,7 +27,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
             <SquareCheckBig size={26} color={colors.textPrimary} />
-            <Text className='font-interSemiBold text-lg text-foreground'>
+            <Text className='font-nunitoSemiBold text-lg text-foreground'>
               Included Perks
             </Text>
           </View>
@@ -37,7 +37,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
               activeOpacity={0.7}
               onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
             >
-              <Text className='font-interMedium text-sm text-accent'>
+              <Text className='font-nunitoSemiBold text-sm text-accent'>
                 See All
               </Text>
             </TouchableOpacity>
@@ -58,7 +58,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
           ))
         ) : (
           <View className='w-full items-center py-6'>
-            <Text className='text-gray-500 font-interMedium text-base'>
+            <Text className='text-gray-500 font-nunitoSemiBold text-base'>
               No perks included for this apartment.
             </Text>
           </View>

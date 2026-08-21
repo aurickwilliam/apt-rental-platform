@@ -98,10 +98,11 @@ Two families (via `packages/constants/src/typography.ts`, both platforms):
 
 | Role | Family | Weights |
 |---|---|---|
-| Body | **Inter** (`Inter_24pt-*` / `font-inter`) | regular, medium, semibold |
+| Body | **Inter** (`Inter_24pt-*` / `font-inter`) | regular |
+| Primary text & labels | **Nunito** (`Nunito-*` / `font-nunito`) | semibold, bold |
 | Headings | **Nunito** (`Nunito-*` / `font-nunito`) | regular, medium, semibold, bold |
 
-Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile classes: `font-inter`, `font-interMedium`, `font-interSemiBold`, `font-nunitoMedium/SemiBold/Bold`.
+Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile classes: `font-inter` (body copy), `font-nunitoMedium/SemiBold/Bold`. On mobile, all emphasized text (titles, section headers, card titles, labels, values, prices, tab/badge labels) uses Nunito — Inter medium/semibold classes (`font-interMedium`/`font-interSemiBold`) are web-only.
 
 ### Scale & roles (Tailwind sizes, both platforms)
 
@@ -116,7 +117,7 @@ Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile class
 | Primary mobile role headers | `text-3xl` | 30px |
 | Web page H1 | `text-5xl` | 48px |
 
-**Conventions:** mobile screen titles `text-secondary text-2xl/3xl font-nunitoSemiBold`; section headers `text-foreground text-lg font-interSemiBold` + 24px icon; card titles `text-base/xl font-interSemiBold`, labels `text-muted text-sm`; web headers `text-5xl text-secondary font-bold` + `text-sm text-muted-foreground` subtitle; labels `font-interMedium` (mobile) / HeroUI `Label` (web), required `*` in `text-danger`; web eyebrows/table headers `text-[11px] uppercase tracking-wider`; money `font-interSemiBold`/`font-medium` in `text-primary`/`text-accent` via `formatPesoDisplay`; chat `text-sm leading-6`.
+**Conventions:** mobile screen titles and big stat values `font-nunitoBold` (`text-xl`+; e.g. `text-secondary text-3xl font-nunitoBold`); section headers `text-foreground text-lg font-nunitoSemiBold` + 24px icon; card titles `text-base/xl font-nunitoSemiBold`, labels `text-muted text-sm font-nunitoSemiBold`; web headers `text-5xl text-secondary font-bold` + `text-sm text-muted-foreground` subtitle; labels HeroUI `Label` (web), required `*` in `text-danger`; web eyebrows/table headers `text-[11px] uppercase tracking-wider`; money `font-nunitoSemiBold` (line items) / `font-nunitoBold` (totals, stat values) in `text-primary`/`text-accent` via `formatPesoDisplay`; chat `text-sm leading-6` (body copy, `font-inter`).
 
 ⚠ Do NOT use `font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold` (no font loaded — silent fallback). New families require `typography.ts` + both `globals.css` + mobile font loading.
 
@@ -171,7 +172,7 @@ Minimal — flat + hairline border is the aesthetic.
 
 | Platform | Standard | Legacy (⚠) |
 |---|---|---|
-| Mobile | `@tabler/icons-react-native` | `lucide-react-native` (PropertyOverview, TenantCard, Chat, DateField, DropdownField) |
+| Mobile | `@tabler/icons-react-native` | `lucide-react-native` (Chat, DateField, DropdownField) |
 | Web | `lucide-react` + `@tabler/icons-react` (both accepted) | — |
 
 Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocused outline 1.8); header actions 24–26; section icons 24; inline/button 16–20; metadata 12–18; empty-state 64 (tenant bare primary) / 32–48 (landlord, in gray circle); status 18–26 (receipt check 48). Filled variants for active/selected; neutral `gray500`/`textPrimary`, emphasis `primary`/`secondary`. Never add a new icon library.
@@ -204,7 +205,7 @@ Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-c
 
 - **Focus (web):** `border-gray-300` rest → `focus-within:border-[#376BF5] focus-within:ring-2 ring-[#376BF5]/15`; fields `rounded-xl bg-white`
 - **Focus (mobile):** `border-focus` focused / `border-field-border` rest / `border-danger` error / `bg-surface-tertiary` disabled
-- **Labels** above field (`font-interMedium` mobile / HeroUI `Label` web), required `*` in danger; **validation** `isInvalid` + `FieldError` (HeroUI) or inline `text-danger text-xs mt-1`
+- **Labels** above field (`font-nunitoSemiBold` mobile / HeroUI `Label` web), required `*` in danger; **validation** `isInvalid` + `FieldError` (HeroUI) or inline `text-danger text-xs mt-1`
 - **Password:** `InputGroup` suffix eye toggle (`IconEye/EyeOff size 20 gray400`); **search:** `SearchField` w/ icon prefix, `rounded-full` on web browse; **selects:** `Select` with `rounded-xl`/`rounded-lg` trigger, `ListBox.Item hover:bg-light-blue!`; placeholders `text-gray-400`/`text-muted`
 
 **🚧 Transitional (custom, token-correct, raw RN):** `DateField`, `DropdownField`, `UploadImageField`, `UploadFileField`, `TimeField`, `QuantityField`, `AppInput` — current implementation for apply/add-apartment/edit-profile flows; follow canonical border rules (`rounded-2xl h-12 border-field-border`). Prefer HeroUI for new code.
@@ -219,17 +220,17 @@ Standard anatomy (both platforms): surface bg, hairline border, no shadow, round
 
 | Card | Spec |
 |---|---|
-| **ApartmentCard** (mobile ✅) | `bg-surface rounded-2xl border-border shadow-none`; square thumbnail; body `p-2 gap-2` grid / `p-3 gap-3` list; name `font-interMedium text-base/xl`; location `text-muted text-[12px]/base`; price `text-accent font-interSemiBold text-lg/xl`; `Verified` pill top-left (`bg-success-light`); favorite circle top-right (white/75) |
+| **ApartmentCard** (mobile ✅) | `bg-surface rounded-2xl border-border shadow-none`; square thumbnail; body `p-2 gap-2` grid / `p-3 gap-3` list; name `font-nunitoSemiBold text-base/xl`; location `text-muted text-[12px]/base`; price `text-accent font-nunitoSemiBold text-lg/xl`; `Verified` pill top-left (`bg-success-light`); favorite circle top-right (white/75) |
 | **ApartmentCard** (web ✅) | `w-56 rounded-xl overflow-hidden hover:border-primary transition-all duration-200`; thumb `size-56 rounded-xl`; price `text-[15px] font-medium text-primary`; star `text-yellow-400` 18px; favorite `ghost isIconOnly bg-black/30` |
 | **PropertyCard / rows** (mobile ✅) | `bg-surface rounded-3xl p-4 border-border`; thumb `w-20 h-20 rounded-xl` |
 | **StatCard** (web ✅) | `p-4 gap-3 rounded-xl`; primary `bg-primary text-white`, others `bg-white border-grey-300`; icon chip `p-1.5 rounded-md`; label `text-base font-medium`; value `text-3xl font-semibold`; sub `text-xs` |
-| **Dashboard hero stats** (mobile ✅) | `bg-primary rounded-3xl p-4` (label `text-sm text-gray-100 font-interMedium`, value `text-3xl text-white font-interSemiBold`) or `bg-surface rounded-3xl border-border` |
-| **PaymentSummaryCard** (mobile ✅) | `shadow-none rounded-3xl my-5`; title `text-accent text-lg font-interSemiBold`; rows `text-sm`; `Separator my-3`; total `font-interMedium text-accent` |
+| **Dashboard hero stats** (mobile ✅) | `bg-primary rounded-3xl p-4` (label `text-sm text-gray-100 font-nunitoSemiBold`, value `text-3xl text-white font-nunitoBold`) or `bg-surface rounded-3xl border-border` |
+| **PaymentSummaryCard** (mobile ✅) | `shadow-none rounded-3xl my-5`; title `text-accent text-lg font-nunitoSemiBold`; rows `text-sm`; `Separator my-3`; total `font-nunitoSemiBold text-accent` |
 | **ReceiptCard** (mobile ✅) | GCash-style `bg-white rounded-t-2xl rounded-b-none`; success icon 48; dashed separators; scalloped bottom via `ZigzagEdge` (depth 13, tooth 20) |
 | **RatingCard** (mobile ✅) | `rounded-3xl border p-3`; avatar sm + name/date; `StarRating` 14px; review `text-sm` w/ "Read more" >150 chars; thumbs `w-16 h-16 rounded-xl` w/ `+N` |
 | **LandlordCard** (mobile ✅) | `rounded-3xl border`; avatar `size-12 rounded-full`; message icon button |
-| **TenantCard** (mobile ✅) | `rounded-3xl border`; lease split-row (`py-2.5`, label `text-xs text-muted`, value `text-sm font-interMedium`); tertiary actions |
-| **PropertyOverview** (mobile ✅) | name `text-accent text-2xl font-nunito`; rent `text-accent text-lg font-interMedium`; specs `w-1/2` rows; images `rounded-2xl w-36 h-52` |
+| **TenantCard** (mobile ✅) | `rounded-3xl border`; lease split-row (`py-2.5`, label `text-xs text-muted`, value `text-sm font-nunitoSemiBold`); tertiary actions |
+| **PropertyOverview** (mobile ✅) | name `text-accent text-2xl font-nunitoBold`; rent `text-accent text-lg font-nunitoSemiBold`; specs `w-1/2` rows; images `rounded-2xl w-36 h-52` |
 | **DashboardCard** (web tenant ⚠) | zinc palette — one-off, do not copy |
 
 Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3xl` (mobile) / `rounded-xl` (web), nested `rounded-xl`.
@@ -238,10 +239,10 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 ## 12. Lists
 
-- **Mobile:** `FlatList` `gap-3`–`gap-16`, `contentContainerStyle paddingBottom: 84` when a floating bar exists; `ListGroup` for settings/profile (icon 22 + `font-interMedium` title + `Separator mx-4`); `Separator` between items; `RefreshControl` tinted `colors.primary`
+- **Mobile:** `FlatList` `gap-3`–`gap-16`, `contentContainerStyle paddingBottom: 84` when a floating bar exists; `ListGroup` for settings/profile (icon 22 + `font-nunitoSemiBold` title + `Separator mx-4`); `Separator` between items; `RefreshControl` tinted `colors.primary`
 - **Web:** shadcn `Table` on `bg-darker-white`, header `text-[11px] tracking-wider`, rows `hover:bg-default-50` cursor-pointer, thumbs `w-12 h-12 rounded-lg`; search grids `grid-cols-1 sm:2 lg:4 gap-3`
 - **Chat:** `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`; inverted list (newest at bottom) with history paged in 30-message keyset loads at the top edge — loading indicator at the history edge, never a full-screen spinner
-- **Notifications:** `NotificationCard` (mobile) — `Card bg-surface rounded-3xl border p-4 shadow-none`; type icon 20 tinted by type + title `text-base` (`font-interSemiBold` unread / `font-interMedium` read) + message + footer time `text-sm text-muted`; unread adds `border-primary/30` + 10px `bg-primary` dot; tap marks read + deep-links. Screen header: filter `DropdownButton` (All/Payment/Message/Maintenance/Apartment/System) + "Mark all read" text button (shown while unread > 0)
+- **Notifications:** `NotificationCard` (mobile) — `Card bg-surface rounded-3xl border p-4 shadow-none`; type icon 20 tinted by type + title `text-base` (`font-nunitoBold` unread / `font-nunitoSemiBold` read) + message + footer time `text-sm text-muted`; unread adds `border-primary/30` + 10px `bg-primary` dot; tap marks read + deep-links. Screen header: filter `DropdownButton` (All/Payment/Message/Maintenance/Apartment/System) + "Mark all read" text button (shown while unread > 0)
 - Empty lists use the Empty State pattern (§15), never blank space
 
 ---
@@ -257,10 +258,10 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 ### Mobile
 
-- **Tabs:** iOS = `NativeTabs` (system chrome, `tintColor primary`); **Android = floating pill** ✅ (`CustomTabBar`): absolute `bottom: max(insets.bottom, 16)`, `left/right 20`, `rounded-full bg-surface`, height 68px, inner `border p-1 gap-3`; focused icon filled 24 `primary` `strokeWidth 2.5` + label `text-[10px] font-interSemiBold`; unfocused outline `gray300` `strokeWidth 1.8`; no badges
+- **Tabs:** iOS = `NativeTabs` (system chrome, `tintColor primary`); **Android = floating pill** ✅ (`CustomTabBar`): absolute `bottom: max(insets.bottom, 16)`, `left/right 20`, `rounded-full bg-surface`, height 68px, inner `border p-1 gap-3`; focused icon filled 24 `primary` `strokeWidth 2.5` + label `text-[10px] font-nunitoSemiBold`; unfocused outline `gray300` `strokeWidth 1.8`; no badges
 - **Stack:** `headerShown: false` globally; screens render their own:
-  - `StandardHeader` ✅: `bg-accent`, `paddingTop: insets.top + 20`, `pb-5 px-4`, centered `font-interSemiBold text-lg` white, back chevron 24
-  - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-interMedium`, sub `text-xs /70`
+  - `StandardHeader` ✅: `bg-accent`, `paddingTop: insets.top + 20`, `pb-5 px-4`, centered `font-nunitoBold text-lg` white, back chevron 24
+  - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-nunitoSemiBold`, sub `text-xs /70`
   - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
 - Tabs — tenant: Rentals / Search / Chat / Profile; landlord: Dashboard / Units / Chat / Profile
 
@@ -289,10 +290,10 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Toasts** ✅ (web): `Toast.Provider placement="top end" maxVisibleToasts={3} className="top-4 right-4"`; `toast.success / warning / danger / toast(msg)`
 - **Notification banner** ✅ (mobile in-app): realtime-driven HeroUI toast from `useInAppNotificationBanner` — foreground push substitute that works without push credentials; auto-dismiss; action press marks the row read and deep-links (role-aware); message-type toasts are suppressed while the matching chat is open (`shouldSuppressChatToast`)
 - **Loading:** web `Spinner color="accent"` centered (`py-16/20`); `Button isPending`; mobile HeroUI Native `Spinner size="lg" color={colors.primary}` (`sm` for inline); `RefreshControl colors=[primary]`
-- **Empty states** ✅: mobile — centered `gap-4 py-16/20`; tenant: bare icon 64px `primary` + `text-xl font-interSemiBold` title + `text-gray-400 text-base px-8` desc; landlord: icon 32–48px `gray500` in `bg-gray-100 rounded-full p-5/6` + `text-lg` title + `text-gray-500 text-sm` desc; optional CTA. Web — centered `text-default-400` ("No apartments found", `h-64`) or card-wrapped `text-sm text-default-500`
+- **Empty states** ✅: mobile — centered `gap-4 py-16/20`; tenant: bare icon 64px `primary` + `text-xl font-nunitoBold` title + `text-gray-400 text-base px-8` desc; landlord: icon 32–48px `gray500` in `bg-gray-100 rounded-full p-5/6` + `text-lg font-nunitoBold` title + `text-gray-500 text-sm` desc; optional CTA. Web — centered `text-default-400` ("No apartments found", `h-64`) or card-wrapped `text-sm text-default-500`
 - **Skeletons** ✅ (mobile): HeroUI `Skeleton`/`SkeletonGroup` blocks `rounded-lg`/`rounded-full` sized to content; custom `ApartmentSkeleton` pulses opacity 0.45↔0.85 @ 700ms (Reanimated). Web: `animate-pulse` divs (`w-8 h-8 rounded-full bg-default-200`); shadcn `Skeleton` internal only
 - **Error banners** (web): `mt-4 p-3 bg-red-200 border border-red-400 rounded-lg text-sm text-red-600`; inline `FieldError` on fields
-- **Status chips** ✅: web `Chip size="sm" variant="soft"` + `text-[11px]`; mobile pills `px-4 py-0.5 rounded-full border-2` (`border-success bg-success-light text-success`, etc.)
+- **Status chips** ✅: web `Chip size="sm" variant="soft"` + `text-[11px]`; mobile HeroUI Native `Chip variant="soft" size="sm" animation="disable-all"` with `Chip.Label` colored via status style hooks (`usePaymentStatusStyles`, `useMaintenanceRequestStatusStyles`, etc.) — bg/text from `colors` tokens
 
 ---
 
@@ -411,7 +412,7 @@ Never copy technical debt. Reference only, with migration direction.
 | 3 | Web dead CSS (`@layer components` `.button--*`, `.input`, `.select__trigger`, `.toggle-button`) | Unreferenced by any TSX | ⚠ No | Delete; use HeroUI + Tailwind |
 | 4 | Web undefined fonts (`font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold`) | Fallback font renders | ⚠ No | Use `font-nunito`/`font-inter` |
 | 5 | Web tenant `zinc-*` palette (my-rental) | Diverges from canonical grey tokens | ⚠ No | Normalize to `gray-*` |
-| 6 | `lucide-react-native` on mobile | ~31 files (chat, settings, apartment detail, manage-apartment, inputs; public landlord/tenant profile screens migrated) | ⚠ No | `@tabler/icons-react-native` |
+| 6 | `lucide-react-native` on mobile | ~29 files (chat, settings, apartment detail, inputs; public landlord/tenant profile screens + manage-apartment migrated) | ⚠ No | `@tabler/icons-react-native` |
 | 7 | Dead components (`TabBar`, `TabBarIcon`, unused inputs/display components) | Unused | ⚠ Delete | Remove when touched |
 | 8 | Legacy RN `Modal` (MoveInCost, DateField picker, video) | Works, outside HeroUI overlay system | 🚧 OK | Migrate to HeroUI `Dialog`/`BottomSheet` |
 | 9 | Custom form inputs (`DateField`, `DropdownField`, `UploadImageField`, `UploadFileField`, `TimeField`, `QuantityField`, `AppInput`) | Token-correct custom implementations | 🚧 Reuse | Re-evaluate HeroUI equivalents |

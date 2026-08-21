@@ -134,11 +134,11 @@ export default function SignUp() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className="text-3xl text-foreground font-nunitoSemiBold">
+        <Text className="text-3xl text-foreground font-nunitoBold">
           Create Your Account
         </Text>
 
-        <Text className="text-base text-muted font-interMedium">
+        <Text className="text-base text-muted font-nunitoSemiBold">
           {userSide === "tenant"
             ? "Join as tenant to start renting."
             : "Join us and start listing your properties in minutes."}
@@ -180,7 +180,7 @@ export default function SignUp() {
           onPress={handleSignUp}
           isDisabled={checkingEmail}
         >
-          <Button.Label className="font-interMedium">
+          <Button.Label className="font-nunitoSemiBold">
             {checkingEmail ? "Please wait..." : "Continue"}
           </Button.Label>
           {checkingEmail && (
@@ -219,7 +219,7 @@ export default function SignUp() {
             onPress={() => router.replace("/sign-in")}
             className="p-0"
           >
-            <LinkButton.Label className="text-accent font-interMedium underline">
+            <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
               Sign In
             </LinkButton.Label>
           </LinkButton>

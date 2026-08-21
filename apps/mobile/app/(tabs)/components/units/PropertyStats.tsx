@@ -30,10 +30,10 @@ export default function PropertyStats({
   return (
     <View className="flex gap-3 mt-3">
       <View className="bg-accent p-4 rounded-3xl flex gap-2">
-        <Text className="text-gray-100 text-base font-interSemiBold">
+        <Text className="text-gray-100 text-base font-nunitoSemiBold">
           {currentMonthLabel} Total Profit
         </Text>
-        <Text className="text-accent-foreground text-4xl font-interSemiBold">
+        <Text className="text-accent-foreground text-4xl font-nunitoBold">
           {loading
             ? "—"
             : monthlyProfit === null
@@ -44,19 +44,19 @@ export default function PropertyStats({
 
       <View className="flex-row gap-3">
         <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-          <Text className="text-sm text-gray-500 font-interMedium">
+          <Text className="text-sm text-gray-500 font-nunitoSemiBold">
             Total Properties
           </Text>
-          <Text className="text-3xl text-foreground font-interSemiBold">
+          <Text className="text-3xl text-foreground font-nunitoBold">
             {loading ? "—" : totalProperties}
           </Text>
         </View>
 
         <View className="flex-1 bg-surface-secondary rounded-3xl p-4 gap-1 border border-border justify-center">
-          <Text className="text-sm text-gray-500 font-interMedium">
+          <Text className="text-sm text-gray-500 font-nunitoSemiBold">
             Units Occupied
           </Text>
-          <Text className="text-3xl text-foreground font-interSemiBold">
+          <Text className="text-3xl text-foreground font-nunitoBold">
             {loading ? "—" : occupiedCount}
           </Text>
         </View>

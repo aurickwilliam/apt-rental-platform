@@ -178,10 +178,10 @@ export default function ThirdStep() {
 
               {/* Total Move-in Cost */}
               <View className="flex-row items-center justify-between">
-                <Text className="text-base font-interMedium text-foreground">
+                <Text className="text-base font-nunitoSemiBold text-foreground">
                   Total Move-in Cost:
                 </Text>
-                <Text className="text-base font-interMedium text-accent">
+                <Text className="text-base font-nunitoSemiBold text-accent">
                   {formatPesoDisplay(totalMoveInCost.toString())}
                 </Text>
               </View>

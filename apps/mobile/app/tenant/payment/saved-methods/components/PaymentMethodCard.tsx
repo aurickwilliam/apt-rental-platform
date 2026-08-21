@@ -79,13 +79,13 @@ export default function PaymentMethodCard({ method, onDelete }: PaymentMethodCar
           </View>
         ) : (
           <View className='h-8 px-2.5 bg-surface-secondary rounded-md items-center justify-center'>
-            <Text className='text-muted text-xs font-interMedium'>{method.method}</Text>
+            <Text className='text-muted text-xs font-nunitoSemiBold'>{method.method}</Text>
           </View>
         )}
 
         {/* Number and Details */}
         <View className='flex-1'>
-          <Text className='text-foreground text-sm font-interMedium' numberOfLines={1}>
+          <Text className='text-foreground text-sm font-nunitoSemiBold' numberOfLines={1}>
             {displayNumber}
           </Text>
           <Text className='text-muted text-xs font-inter' numberOfLines={1}>

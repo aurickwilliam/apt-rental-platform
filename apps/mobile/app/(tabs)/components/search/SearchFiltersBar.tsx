@@ -49,7 +49,7 @@ export default function SearchFiltersBar({
               pointerEvents='none'
               className='absolute -top-1 -right-1 min-w-4.5 h-4.5 rounded-full bg-accent items-center justify-center px-1'
             >
-              <Text className='text-[10px] font-interSemiBold text-white'>
+              <Text className='text-[10px] font-nunitoSemiBold text-white'>
                 {activeFilterCount > 9 ? '9+' : activeFilterCount}
               </Text>
             </View>

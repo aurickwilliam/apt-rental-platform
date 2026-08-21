@@ -62,7 +62,7 @@ export default function Index() {
             />
           </View>
 
-          <Text className='text-xl font-interSemiBold text-foreground'>
+          <Text className='text-xl font-nunitoBold text-foreground'>
             No saved payment methods
           </Text>
           <Text className='text-gray-400 text-base font-inter text-center px-8'>

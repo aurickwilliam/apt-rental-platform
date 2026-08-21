@@ -227,7 +227,7 @@ export default function LiveCapture() {
           </View>
 
           <View className="absolute top-24 left-0 right-0 items-center px-5">
-            <Text className="text-white text-sm font-interMedium text-center">
+            <Text className="text-white text-sm font-nunitoSemiBold text-center">
               {stepId === SELFIE_STEP.id
                 ? `${stepLabel}: position your face within the frame`
                 : `${stepLabel}: position the ID within the frame`}
@@ -261,7 +261,7 @@ export default function LiveCapture() {
 function PermissionDeniedView({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
-      <Text className="text-foreground text-base font-interMedium text-center">
+      <Text className="text-foreground text-base font-nunitoSemiBold text-center">
         Camera access is required to capture a photo of your ID.
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">
@@ -277,7 +277,7 @@ function PermissionDeniedView({ onOpenSettings }: { onOpenSettings: () => void }
 function PermissionRestrictedView() {
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
-      <Text className="text-foreground text-base font-interMedium text-center">
+      <Text className="text-foreground text-base font-nunitoSemiBold text-center">
         Camera access is blocked by device policy.
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">
@@ -290,7 +290,7 @@ function PermissionRestrictedView() {
 function CameraErrorView({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
-      <Text className="text-foreground text-base font-interMedium text-center">
+      <Text className="text-foreground text-base font-nunitoSemiBold text-center">
         The camera couldn&apos;t start.
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">{message}</Text>
@@ -322,7 +322,7 @@ function QualityIndicator({
     <View className="absolute bottom-32 left-0 right-0 items-center">
       <View className="flex-row items-center gap-2 bg-black/50 rounded-full px-4 py-2">
         <View className={`size-2.5 rounded-full ${dotColor}`} />
-        <Text className="text-white text-xs font-interMedium">{message}</Text>
+        <Text className="text-white text-xs font-nunitoSemiBold">{message}</Text>
       </View>
     </View>
   )

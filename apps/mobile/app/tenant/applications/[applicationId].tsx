@@ -248,7 +248,7 @@ export default function ApplicationApartment() {
 
       {application?.status === "rejected" && application.rejected_reason && (
         <View className="mb-3 p-4 rounded-3xl bg-danger-soft border border-danger-light">
-          <Text className="text-sm font-interSemiBold text-danger mb-1">
+          <Text className="text-sm font-nunitoSemiBold text-danger mb-1">
             Application Rejected
           </Text>
           <Text className="text-sm text-foreground">
@@ -259,7 +259,7 @@ export default function ApplicationApartment() {
 
       {application?.status === "closed" && application.rejected_reason && (
         <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
-          <Text className="text-sm font-interSemiBold text-secondary mb-1">
+          <Text className="text-sm font-nunitoSemiBold text-secondary mb-1">
             Application Closed
           </Text>
           <Text className="text-sm text-foreground">
@@ -289,7 +289,7 @@ export default function ApplicationApartment() {
       {application && (
         <>
           <View className="mb-3">
-            <Text className="text-lg text-foreground font-interMedium">
+            <Text className="text-lg text-foreground font-nunitoSemiBold">
               Application Details
             </Text>
             <Text className="text-sm text-muted">
@@ -446,7 +446,7 @@ export default function ApplicationApartment() {
         <>
           <Separator className="my-5" />
           <View className="mb-3">
-            <Text className="text-lg text-foreground font-interMedium">
+            <Text className="text-lg text-foreground font-nunitoSemiBold">
               Visit History
             </Text>
             <Text className="text-sm text-muted">

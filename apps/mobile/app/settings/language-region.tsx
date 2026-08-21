@@ -18,7 +18,7 @@ export default function LanguageAndRegion() {
 
   const renderSheetHeader = (label: string) => (
     <View>
-      <Text className='text-lg text-center text-foreground font-interMedium border-b border-border pb-3 mb-4'>
+      <Text className='text-lg text-center text-foreground font-nunitoSemiBold border-b border-border pb-3 mb-4'>
         {label}
       </Text>
     </View>

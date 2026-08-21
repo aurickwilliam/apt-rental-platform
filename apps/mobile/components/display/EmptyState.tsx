@@ -20,7 +20,7 @@ export default function EmptyState({
         {icon}
       </View>
       <View className="items-center gap-1">
-        <Text className="text-foreground text-lg font-interSemiBold">
+        <Text className="text-foreground text-lg font-nunitoBold">
           {title}
         </Text>
         {description ? (

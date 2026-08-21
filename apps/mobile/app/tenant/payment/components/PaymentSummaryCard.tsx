@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { Card, Separator } from 'heroui-native'
-import { formatPesoDisplay } from '@repo/utils'
+import { formatDate, formatPesoDisplay } from '@repo/utils'
 
 interface PaymentSummaryCardProps {
   month: string
@@ -22,7 +22,7 @@ export default function PaymentSummaryCard({
   return (
     <Card className='shadow-none rounded-3xl my-5'>
       <Card.Header>
-        <Text className='text-accent text-lg font-interSemiBold'>
+        <Text className='text-accent text-lg font-nunitoSemiBold'>
           Payment Summary
         </Text>
       </Card.Header>
@@ -38,7 +38,9 @@ export default function PaymentSummaryCard({
 
           <View className='flex-row justify-between items-center'>
             <Text className='text-sm text-foreground font-inter'>Due Date</Text>
-            <Text className='text-sm text-foreground font-inter'>{dueDate}</Text>
+            <Text className='text-sm text-foreground font-inter'>
+              {formatDate(dueDate, "short")}
+            </Text>
           </View>
 
           <View className='flex-row justify-between items-center'>
@@ -68,8 +70,8 @@ export default function PaymentSummaryCard({
 
       <Card.Footer>
         <View className='flex-row justify-between items-center mt-2'>
-          <Text className='text-sm text-accent font-interMedium'>Total Payment</Text>
-          <Text className='text-sm text-accent font-interMedium'>
+          <Text className='text-sm text-accent font-nunitoSemiBold'>Total Payment</Text>
+          <Text className='text-sm text-accent font-nunitoSemiBold'>
             {formatPesoDisplay(totalPayment)}
           </Text>
         </View>

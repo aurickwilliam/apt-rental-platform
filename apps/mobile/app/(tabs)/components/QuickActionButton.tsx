@@ -36,7 +36,7 @@ export default function QuickActionButton({
           {/* Badge Count */}
           {(badgeCount ?? 0) > 0 && (
             <View className="absolute -top-1 -right-1 min-w-5.5 h-5.5 px-1 rounded-full bg-accent items-center justify-center border-2 border-background">
-              <Text className="text-white text-[10px] font-interSemiBold">
+              <Text className="text-white text-[10px] font-nunitoSemiBold">
                 {badgeCount && badgeCount > 9 ? "9+" : badgeCount}
               </Text>
             </View>

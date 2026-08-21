@@ -74,7 +74,7 @@ export default function ReviewInformation() {
       />
 
       <View className="p-5 flex-1">
-        <Text className="text-lg font-interSemiBold text-foreground">
+        <Text className="text-lg font-nunitoSemiBold text-foreground">
           Apartment Information
         </Text>
         <Text className="text-sm font-inter text-muted mt-1 mb-5">
@@ -168,7 +168,7 @@ export default function ReviewInformation() {
 
         {/* Summary */}
         <View className="flex-1">
-          <Text className="text-lg font-interSemiBold text-foreground">
+          <Text className="text-lg font-nunitoSemiBold text-foreground">
             Summary of Application
           </Text>
           <Text className="text-sm font-inter text-muted mt-1">

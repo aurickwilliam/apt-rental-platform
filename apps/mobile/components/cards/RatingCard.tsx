@@ -55,14 +55,14 @@ export default function RatingCard({
                   <Avatar.Image source={{ uri: profilePictureUrl }} />
                 )}
                 <Avatar.Fallback className='bg-gray-100'>
-                  <Text className='text-accent text-sm font-interMedium'>
+                  <Text className='text-accent text-sm font-nunitoSemiBold'>
                     {getInitials(name)}
                   </Text>
                 </Avatar.Fallback>
               </Avatar>
               <View className='flex-1'>
                 <Text
-                  className='text-foreground text-sm font-interMedium'
+                  className='text-foreground text-sm font-nunitoSemiBold'
                   numberOfLines={1}
                 >
                   {name}
@@ -75,7 +75,7 @@ export default function RatingCard({
             {/* Star Rating */}
             <View className='flex-row items-center gap-1'>
               <StarRating rating={rating} size={14} />
-              <Text className='text-foreground text-sm font-interMedium'>
+              <Text className='text-foreground text-sm font-nunitoSemiBold'>
                 {rating.toFixed(1)}
               </Text>
             </View>
@@ -91,7 +91,7 @@ export default function RatingCard({
                 onPress={() => setIsExpanded((prev) => !prev)}
                 hitSlop={8}
               >
-                <Text className='text-accent text-sm font-interMedium mt-1'>
+                <Text className='text-accent text-sm font-nunitoSemiBold mt-1'>
                   {isExpanded ? 'Show less' : 'Read more'}
                 </Text>
               </Pressable>
@@ -119,7 +119,7 @@ export default function RatingCard({
                     />
                     {showOverlay && (
                       <View className='absolute inset-0 bg-black/50 items-center justify-center'>
-                        <Text className='text-white text-sm font-interMedium'>
+                        <Text className='text-white text-sm font-nunitoSemiBold'>
                           +{remainingCount}
                         </Text>
                       </View>

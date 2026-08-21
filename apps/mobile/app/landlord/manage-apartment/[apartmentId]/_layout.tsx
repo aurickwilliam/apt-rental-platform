@@ -9,6 +9,7 @@ export default function _layout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="description" />
+      <Stack.Screen name="payment-history" />
     </Stack>
   )
 }

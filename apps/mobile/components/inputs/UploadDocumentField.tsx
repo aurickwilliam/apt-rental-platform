@@ -129,7 +129,7 @@ export default function UploadDocumentField({
   return (
     <View className="gap-2">
       {/* Label */}
-      <Text className="text-base font-semibold text-foreground">
+      <Text className="text-base font-nunitoSemiBold text-foreground">
         {label}
         {required && <Text className="text-danger"> *</Text>}
       </Text>
@@ -168,7 +168,7 @@ export default function UploadDocumentField({
           <IconFileText size={28} color={colors.primary} strokeWidth={1.5} />
 
           <Text
-            className="flex-1 text-sm font-medium text-foreground"
+            className="flex-1 text-sm font-nunitoSemiBold text-foreground"
             numberOfLines={1}
           >
             {value.asset.name}
@@ -195,7 +195,7 @@ export default function UploadDocumentField({
         >
           <IconRefresh size={16} color={colors.primary} />
           <Text
-            className="text-[13px] font-medium"
+            className="text-[13px] font-nunitoSemiBold"
             style={{ color: colors.primary }}
           >
             Replace document
@@ -212,7 +212,7 @@ export default function UploadDocumentField({
           ].join(' ')}
         >
           <IconFileUpload size={22} color={colors.primary} />
-          <Text className="text-sm font-medium text-foreground">
+          <Text className="text-sm font-nunitoSemiBold text-foreground">
             Add document
           </Text>
         </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function UploadDocumentField({
           <BottomSheet.Overlay />
           <BottomSheet.Content>
             <View className="flex gap-1 pb-4">
-              <Text className="text-lg font-interMedium text-foreground pb-2">
+              <Text className="text-lg font-nunitoSemiBold text-foreground pb-2">
                 Add document
               </Text>
 

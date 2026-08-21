@@ -38,7 +38,7 @@ export default function SelectId() {
 
             <ListGroup.Item onPress={() => handleIdSelection(id)}>
               <ListGroup.ItemContent>
-                <ListGroup.ItemTitle className='font-interMedium'>
+                <ListGroup.ItemTitle className='font-nunitoSemiBold'>
                   {id}
                 </ListGroup.ItemTitle>
               </ListGroup.ItemContent>
@@ -67,12 +67,12 @@ export default function SelectId() {
       <View className='flex gap-3'>
         <StepProgress currentStep={1} totalSteps={4} stepName="Select a Valid ID" />
 
-        <Text className='text-foreground text-base font-interMedium'>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
           List of Valid IDs:
         </Text>
         {renderListGroup(VALID_IDS)}
 
-        <Text className='text-foreground text-base font-interMedium'>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
           List of Secondary IDs:
         </Text>
         {renderListGroup(SECONDARY_IDS)}

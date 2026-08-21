@@ -45,7 +45,7 @@ export default function VisitRequestCalendar({
           // date here is a XDate object from the library
           const label = formatDate(date, "month") + " " + formatDate(date, "year");
           return (
-            <Text className="text-base font-interSemiBold text-foreground">
+            <Text className="text-base font-nunitoSemiBold text-foreground">
               {label}
             </Text>
           );
@@ -95,7 +95,7 @@ export default function VisitRequestCalendar({
               >
                 <Text
                   style={{ color: textColor }}
-                  className="font-interMedium text-foreground"
+                  className="font-nunitoSemiBold text-foreground"
                 >
                   {date.day}
                 </Text>
@@ -107,7 +107,7 @@ export default function VisitRequestCalendar({
           backgroundColor: "transparent",
           calendarBackground: "transparent",
           textSectionTitleColor: colors.gray500,
-          textDayHeaderFontFamily: "Inter_24pt-Medium",
+          textDayHeaderFontFamily: "Nunito-SemiBold",
           textDayHeaderFontSize: 12,
         }}
       />
@@ -122,7 +122,7 @@ export default function VisitRequestCalendar({
           <View className="bg-primary-light rounded-full p-1">
             <Bell size={18} color={colors.primary} />
           </View>
-          <Text className="text-foreground text-sm font-interMedium">
+          <Text className="text-foreground text-sm font-nunitoSemiBold">
             Pending Visit Requests
           </Text>
         </View>
@@ -130,7 +130,7 @@ export default function VisitRequestCalendar({
         <View className="flex-row items-center gap-1">
           {pendingCount > 0 && (
             <View className="bg-accent rounded-full px-2 py-1">
-              <Text className="text-white text-xs font-interSemiBold">
+              <Text className="text-white text-xs font-nunitoSemiBold">
                 {pendingCount}
               </Text>
             </View>

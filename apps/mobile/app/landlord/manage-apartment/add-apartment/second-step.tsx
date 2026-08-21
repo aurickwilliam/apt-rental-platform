@@ -327,7 +327,7 @@ export default function SecondStep() {
 
         {/* Apartment Details */}
         <View className="flex">
-          <Text className="text-foreground text-lg font-interSemiBold">
+          <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Details
           </Text>
 
@@ -432,7 +432,7 @@ export default function SecondStep() {
           {!bathroomsHidden && (
             <View>
               <View className="flex-row items-center justify-between mt-5">
-                <Text className="text-foreground text-lg font-interMedium">
+                <Text className="text-foreground text-lg font-nunitoSemiBold">
                   Bathrooms
                   {typeRoomLimits
                     ? formatRange(
@@ -453,7 +453,7 @@ export default function SecondStep() {
                     <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
-                  <Text className="text-foreground text-xl font-interMedium">
+                  <Text className="text-foreground text-xl font-nunitoSemiBold">
                     {bathrooms}
                   </Text>
 
@@ -480,7 +480,7 @@ export default function SecondStep() {
           {!bedroomsHidden && (
             <View>
               <View className="flex-row items-center justify-between mt-5">
-                <Text className="text-foreground text-lg font-interMedium">
+                <Text className="text-foreground text-lg font-nunitoSemiBold">
                   Bedrooms
                   {typeRoomLimits
                     ? formatRange(
@@ -501,7 +501,7 @@ export default function SecondStep() {
                     <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
-                  <Text className="text-foreground text-xl font-interMedium">
+                  <Text className="text-foreground text-xl font-nunitoSemiBold">
                     {bedrooms}
                   </Text>
 
@@ -528,7 +528,7 @@ export default function SecondStep() {
           {!maxOccupantsHidden && (
             <View>
               <View className="flex-row items-center justify-between mt-5">
-                <Text className="text-foreground text-lg font-interMedium">
+                <Text className="text-foreground text-lg font-nunitoSemiBold">
                   Max Occupants
                   {typeRoomLimits
                     ? formatRange(
@@ -550,7 +550,7 @@ export default function SecondStep() {
                     <CircleMinus size={30} color={colors.textPrimary} />
                   </TouchableOpacity>
 
-                  <Text className="text-foreground text-xl font-interMedium">
+                  <Text className="text-foreground text-xl font-nunitoSemiBold">
                     {maxOccupants}
                   </Text>
 
@@ -577,7 +577,7 @@ export default function SecondStep() {
 
         {/* Apartment Address */}
         <View className="flex gap-3 mt-10">
-          <Text className="text-foreground text-lg font-interSemiBold">
+          <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Address
           </Text>
 
@@ -668,7 +668,7 @@ export default function SecondStep() {
 
         {/* Apartment Location */}
         <View className="flex gap-2 mt-10">
-          <Text className="text-foreground text-lg font-interSemiBold">
+          <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Map Location
           </Text>
 
@@ -751,7 +751,7 @@ export default function SecondStep() {
                   <Text
                     style={{
                       color: "#fff",
-                      fontFamily: "InterMedium",
+                      fontFamily: "Nunito-SemiBold",
                       fontSize: 13,
                     }}
                   >

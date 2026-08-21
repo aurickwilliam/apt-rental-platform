@@ -46,10 +46,10 @@ export default function ApplicationStatusCard({
           <View className="flex-row items-center gap-3">
             <Icon size={28} color={iconColor} />
             <View className="flex-1">
-              <Card.Title className="text-lg text-foreground font-interSemiBold">
+              <Card.Title className="text-lg text-foreground font-nunitoSemiBold">
                 {label}
               </Card.Title>
-              <Card.Description className="text-sm text-accent font-interMedium">
+              <Card.Description className="text-sm text-accent font-nunitoSemiBold">
                 {apartmentName}
               </Card.Description>
             </View>

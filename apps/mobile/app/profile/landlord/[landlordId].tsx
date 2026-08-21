@@ -159,7 +159,7 @@ export default function PublicLandlordProfile() {
             <Text className="text-xs text-muted font-inter">
               Contact Number
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {profile?.mobile_number ?? '—'}
             </Text>
           </View>
@@ -171,7 +171,7 @@ export default function PublicLandlordProfile() {
             <Text className="text-xs text-muted font-inter">
               Email
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {profile?.email ?? '—'}
             </Text>
           </View>
@@ -183,7 +183,7 @@ export default function PublicLandlordProfile() {
             <Text className="text-xs text-muted font-inter">
               Location / Based In
             </Text>
-            <Text className="text-base text-foreground font-interMedium">
+            <Text className="text-base text-foreground font-nunitoSemiBold">
               {location}
             </Text>
           </View>
@@ -205,7 +205,7 @@ export default function PublicLandlordProfile() {
 
       {/* Listings */}
       <View className="mt-8">
-        <Text className="text-foreground text-xl font-interSemiBold mx-5">
+        <Text className="text-foreground text-xl font-nunitoBold mx-5">
           {firstName}&apos;s Listings
         </Text>
 
@@ -219,7 +219,7 @@ export default function PublicLandlordProfile() {
         ) : listings.length === 0 ? (
           <View className="items-center py-12 px-8 gap-3">
             <IconBuildingSkyscraper size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-interSemiBold text-center">
+            <Text className="text-foreground text-xl font-nunitoBold text-center">
               No listings yet
             </Text>
             <Text className="text-gray-400 text-base font-inter text-center">
@@ -254,7 +254,7 @@ export default function PublicLandlordProfile() {
                 hitSlop={8}
                 className="items-center py-1"
               >
-                <Text className="text-accent text-sm font-interMedium">
+                <Text className="text-accent text-sm font-nunitoSemiBold">
                   {showAllListings
                     ? 'Show less'
                     : `See more (${listings.length - VISIBLE_LISTING_LIMIT} more)`}
@@ -267,7 +267,7 @@ export default function PublicLandlordProfile() {
 
       {/* Reviews */}
       <View className="mt-8 mx-5">
-        <Text className="text-foreground text-xl font-interSemiBold">
+        <Text className="text-foreground text-xl font-nunitoBold">
           Recent Reviews
         </Text>
 
@@ -279,7 +279,7 @@ export default function PublicLandlordProfile() {
         ) : totalReviews === 0 ? (
           <View className="items-center py-12 px-8 gap-3">
             <IconStar size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-interSemiBold text-center">
+            <Text className="text-foreground text-xl font-nunitoBold text-center">
               No reviews yet
             </Text>
             <Text className="text-gray-400 text-base font-inter text-center">
@@ -300,7 +300,7 @@ export default function PublicLandlordProfile() {
       <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
         <Button variant="tertiary" size="md" onPress={handleReportLandlord}>
           <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-interMedium">
+          <Button.Label className="text-danger font-nunitoSemiBold">
             Report {firstName}
           </Button.Label>
         </Button>

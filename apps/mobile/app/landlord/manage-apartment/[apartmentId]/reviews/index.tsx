@@ -61,7 +61,7 @@ export default function ReviewsPage() {
             <View className='flex-row items-center justify-between mb-2'>
               <View className='flex-row items-center gap-1.5'>
                 <StarRating rating={overallRating} size={20} />
-                <Text className='text-foreground text-base font-interMedium'>
+                <Text className='text-foreground text-base font-nunitoSemiBold'>
                   {overallRating.toFixed(1)}
                 </Text>
                 <Text className='text-muted text-sm font-inter'>
@@ -80,7 +80,7 @@ export default function ReviewsPage() {
         }
         ListEmptyComponent={
           <View className='items-center justify-center py-16 gap-1'>
-            <Text className='text-foreground text-base font-interMedium'>
+            <Text className='text-foreground text-base font-nunitoSemiBold'>
               No reviews yet
             </Text>
             <Text className='text-muted text-sm font-inter text-center'>

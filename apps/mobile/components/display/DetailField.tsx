@@ -11,7 +11,7 @@ export default function DetailField({ label, value }: DetailFieldProps) {
       <Text className="text-sm text-muted font-inter">
         {label}
       </Text>
-      <Text className="text-base font-interMedium text-foreground">
+      <Text className="text-base font-nunitoSemiBold text-foreground">
         {value ?? 'N/A'}
       </Text>
     </View>

@@ -187,7 +187,9 @@ export type PaymentRecord = {
   year: string;
   amount: number;
   paidDate: string;
-  status: "paid" | "partial";
+  status: "paid" | "partial" | "pending";
+  method: string | null;
+  reference: string | null;
 };
 
 export type LandlordTenancyResult = {
@@ -228,9 +230,9 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status")
+      .select("id, amount, date, status, method, reference_id")
       .eq("apartment_id", apartmentId)
-      .in("status", ["paid", "partial"])
+      .in("status", ["paid", "partial", "pending"])
       .order("date", { ascending: false })
       .limit(4),
   ]);
@@ -293,7 +295,9 @@ export async function fetchLandlordTenancy(
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,
-      status: p.status as "paid" | "partial",
+      status: p.status as "paid" | "partial" | "pending",
+      method: p.method ?? null,
+      reference: p.reference_id ?? null,
     };
   });
 
@@ -848,6 +852,102 @@ export async function updateLandlordMaintenanceStatus(
 
   if (error || !data || data.length === 0) {
     return { success: false, error: error?.message ?? "Could not update request status." };
+  }
+
+  return { success: true };
+}
+
+// ─── Landlord payment history + status updates ────────────────────────────────
+
+export type LandlordPaymentRecord = {
+  id: string;
+  created_at: string;
+  date: string;
+  amount: number | null;
+  status: string;
+  method: string | null;
+  reference_id: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  due_date: string | null;
+  tenant_name: string | null;
+};
+
+export async function fetchLandlordPayments(apartmentId: string): Promise<LandlordPaymentRecord[]> {
+  const { data, error } = await supabase
+    .from("payment")
+    .select(
+      `
+        id,
+        created_at,
+        date,
+        amount,
+        status,
+        method,
+        reference_id,
+        period_start,
+        period_end,
+        due_date,
+        tenant:users!payment_tenant_id_fkey (first_name, last_name)
+      `
+    )
+    .eq("apartment_id", apartmentId)
+    .order("period_start", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const p = row as {
+      id: string;
+      created_at: string;
+      date: string;
+      amount: number | null;
+      status: string;
+      method: string | null;
+      reference_id: string | null;
+      period_start: string | null;
+      period_end: string | null;
+      due_date: string | null;
+      tenant: { first_name: string | null; last_name: string | null } | null;
+    };
+    const tenant = p.tenant;
+    return {
+      id: p.id,
+      created_at: p.created_at,
+      date: p.date,
+      amount: p.amount,
+      status: p.status,
+      method: p.method,
+      reference_id: p.reference_id,
+      period_start: p.period_start,
+      period_end: p.period_end,
+      due_date: p.due_date,
+      tenant_name:
+        tenant?.first_name || tenant?.last_name
+          ? `${tenant.first_name ?? ""} ${tenant.last_name ?? ""}`.trim()
+          : null,
+    };
+  });
+}
+
+// Only cash rows awaiting landlord confirmation are flippable by hand; the
+// webhook owns e-wallet/card rows. RLS (landlord_update_payment_status) and the
+// status column grant already gate this server-side.
+export async function updateLandlordPaymentStatus(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error, data } = await supabase
+    .from("payment")
+    .update({ status: "paid" })
+    .eq("id", id)
+    .eq("method", "cash")
+    .eq("status", "pending")
+    .select("id");
+
+  if (error || !data || data.length === 0) {
+    return { success: false, error: error?.message ?? "Could not update payment status." };
   }
 
   return { success: true };

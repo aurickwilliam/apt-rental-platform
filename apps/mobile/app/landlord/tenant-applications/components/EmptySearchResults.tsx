@@ -9,7 +9,7 @@ export default function EmptySearchResults({ query }: { query: string }) {
     <View className="flex-1 items-center justify-center gap-3 py-16">
       <SearchX size={40} color={colors.textSecondary} />
       <View className="items-center gap-1">
-        <Text className="text-base font-interSemiBold text-foreground">
+        <Text className="text-base font-nunitoSemiBold text-foreground">
           No results found
         </Text>
         {query.trim() && (

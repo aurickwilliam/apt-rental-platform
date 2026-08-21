@@ -98,7 +98,7 @@ export default function UploadImageField({
     <View className="gap-2">
       {/* Label */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold text-foreground">
+        <Text className="text-base font-nunitoSemiBold text-foreground">
           {label}
           {required && <Text className="text-danger"> *</Text>}
         </Text>
@@ -162,7 +162,7 @@ export default function UploadImageField({
           ) : (
             <>
               <IconFileUpload size={22} color={colors.primary} />
-              <Text className="text-sm font-medium text-foreground">
+              <Text className="text-sm font-nunitoSemiBold text-foreground">
                 {single ? "Choose photo" : "Add photos"}
               </Text>
             </>
@@ -181,7 +181,7 @@ export default function UploadImageField({
         >
           <IconRefresh size={16} color={colors.primary} />
           <Text
-            className="text-[13px] font-medium"
+            className="text-[13px] font-nunitoSemiBold"
             style={{ color: colors.primary }}
           >
             Replace photo

@@ -59,7 +59,7 @@ export default function AIHeader({ onBackPress }: AIHeaderProps) {
 
         <View className="shrink">
           <Text
-            className="text-base text-secondary-foreground font-interMedium"
+            className="text-base text-secondary-foreground font-nunitoSemiBold"
             numberOfLines={1}
             ellipsizeMode="tail"
           >

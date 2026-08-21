@@ -48,7 +48,7 @@ export default function Add() {
       </ListGroup.ItemPrefix>
 
       <ListGroup.ItemContent>
-        <ListGroup.ItemTitle className='font-interMedium'>
+        <ListGroup.ItemTitle className='font-nunitoSemiBold'>
           {item.title}
         </ListGroup.ItemTitle>
       </ListGroup.ItemContent>
@@ -73,7 +73,7 @@ export default function Add() {
         <StandardHeader title='Add Payment Method' />
       }
     >
-      <Text className='text-foreground text-sm font-interMedium'>
+      <Text className='text-foreground text-sm font-nunitoSemiBold'>
         Select a payment method type to add. You can add credit/debit cards or link your e-wallet accounts for faster rent payments.
       </Text>
 

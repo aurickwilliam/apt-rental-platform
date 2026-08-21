@@ -15,7 +15,7 @@ export default function ReviewAccordionItem({
   return (
     <Accordion.Item value={value}>
       <Accordion.Trigger>
-        <Text className="text-base font-interMedium text-foreground flex-1">
+        <Text className="text-base font-nunitoSemiBold text-foreground flex-1">
           {title}
         </Text>
         <Accordion.Indicator />

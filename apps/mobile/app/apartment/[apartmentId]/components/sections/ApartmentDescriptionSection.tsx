@@ -24,7 +24,7 @@ export default function ApartmentDescriptionSection({
     <>
       <View className='mt-5 px-5 flex-row items-center gap-2'>
         <Building size={26} color={colors.textPrimary} />
-        <Text className='font-interSemiBold text-lg text-foreground'>
+        <Text className='font-nunitoSemiBold text-lg text-foreground'>
           Everything About Your Apartment
         </Text>
       </View>

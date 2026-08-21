@@ -30,6 +30,13 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
     titleClass: 'text-warning',
     footer: 'A balance is still due.',
   },
+  Pending: {
+    icon: IconAlertCircleFilled,
+    color: 'warning',
+    title: 'Payment Pending',
+    titleClass: 'text-warning',
+    footer: 'Awaiting payment confirmation.',
+  },
   Unpaid: {
     icon: IconCircleXFilled,
     color: 'danger',
@@ -78,7 +85,7 @@ export default function ReceiptCard({
         <Card.Header>
           <View className='items-center mb-6'>
             <StatusIcon size={48} color={colors[meta.color]} />
-            <Text className={`text-xl font-interSemiBold ${meta.titleClass} mt-3`}>
+            <Text className={`text-xl font-nunitoBold ${meta.titleClass} mt-3`}>
               {meta.title}
             </Text>
           </View>
@@ -144,7 +151,7 @@ function ReceiptRow({
     <View className='flex-row justify-between items-center'>
       <Text className='text-sm text-foreground font-inter'>{label}</Text>
       <Text
-        className={`text-sm font-interSemiBold ${
+        className={`text-sm font-nunitoSemiBold ${
           highlight ? 'text-accent' : 'text-foreground'
         }`}
       >

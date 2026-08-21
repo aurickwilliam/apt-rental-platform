@@ -102,7 +102,7 @@ export default function MaintenanceDetails() {
       <View className="flex-row items-center justify-between">
         <View className="flex-row gap-2 items-center">
           <Hammer size={24} color={colors.primary} />
-          <Text className="text-accent text-lg font-interSemiBold">
+          <Text className="text-accent text-lg font-nunitoSemiBold">
             Maintenance
           </Text>
         </View>
@@ -127,7 +127,7 @@ export default function MaintenanceDetails() {
             >
               <Chip.Label
                 style={{ color: urgency.textColor }}
-                className="font-interMedium"
+                className="font-nunitoSemiBold"
               >
                 {urgencyLabel}
               </Chip.Label>
@@ -147,7 +147,7 @@ export default function MaintenanceDetails() {
             >
               <Chip.Label
                 style={{ color: status.textColor }}
-                className="font-interMedium"
+                className="font-nunitoSemiBold"
               >
                 {maintenanceRequest.status}
               </Chip.Label>
@@ -185,7 +185,7 @@ export default function MaintenanceDetails() {
           <Separator className="my-4" />
 
           <View className="gap-3">
-            <Text className="text-foreground text-base font-interMedium">
+            <Text className="text-foreground text-base font-nunitoSemiBold">
               Photos of the issue:
             </Text>
 
@@ -222,7 +222,7 @@ export default function MaintenanceDetails() {
               backgroundColor="rgb(0, 0, 0, 0.8)"
               FooterComponent={({ imageIndex: idx }) => (
                 <View className="p-10 items-center">
-                  <Text className="text-white font-interMedium">
+                  <Text className="text-white font-nunitoSemiBold">
                     {idx + 1} / {images.length}
                   </Text>
                 </View>

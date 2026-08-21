@@ -39,11 +39,11 @@ export default function RatingsSection({
       <View className='px-5 mt-10 flex-row items-center justify-between'>
         <View className='flex-row items-center gap-2'>
           <IconStarFilled size={26} color={colors.secondary} />
-          <Text className='font-interSemiBold text-lg text-foreground'>Ratings</Text>
+          <Text className='font-nunitoSemiBold text-lg text-foreground'>Ratings</Text>
         </View>
         {hasReviews && onSeeAll && (
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
-            <Text className='font-interMedium text-sm text-accent'>See All</Text>
+            <Text className='font-nunitoSemiBold text-sm text-accent'>See All</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -68,11 +68,11 @@ export default function RatingsSection({
               <IconStarOff size={24} color={colors.gray400} strokeWidth={1.75} />
             </View>
 
-            <Text className='font-interSemiBold text-base text-foreground'>
+            <Text className='font-nunitoSemiBold text-base text-foreground'>
               No ratings yet
             </Text>
 
-            <Text className='mt-1 text-sm text-gray-500 font-interMedium text-center leading-5'>
+            <Text className='mt-1 text-sm text-gray-500 font-nunitoSemiBold text-center leading-5'>
               This place hasn&apos;t been reviewed. Ratings will appear here once a tenant shares their experience.
             </Text>
 

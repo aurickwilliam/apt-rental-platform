@@ -1,5 +1,6 @@
 export * from "./address";
 export * from "./apartment";
+export * from "./payout";
 export * from "./user";
 
 export { COLORS } from "./colors";

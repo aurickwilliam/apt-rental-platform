@@ -43,13 +43,13 @@ export default function ProfileStatsCard({ stats }: ProfileStatsCardProps) {
                     />
                   )}
 
-                  <Text className="text-sm text-muted text-center font-interMedium leading-tight">
+                  <Text className="text-sm text-muted text-center font-nunitoSemiBold leading-tight">
                     {stat.label}
                   </Text>
                 </>
               ) : (
                 <>
-                  <Text className={`text-2xl font-interSemiBold ${stat.valueColor ?? 'text-foreground'} ${stat.valueClassName ?? ''}`}>
+                  <Text className={`text-2xl font-nunitoBold ${stat.valueColor ?? 'text-foreground'} ${stat.valueClassName ?? ''}`}>
                     {stat.value}
                   </Text>
 
@@ -62,7 +62,7 @@ export default function ProfileStatsCard({ stats }: ProfileStatsCardProps) {
                       />
                     )}
 
-                    <Text className="text-sm text-muted text-center font-interMedium leading-tight">
+                    <Text className="text-sm text-muted text-center font-nunitoSemiBold leading-tight">
                       {stat.label}
                     </Text>
                   </View>

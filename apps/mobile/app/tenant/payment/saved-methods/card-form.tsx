@@ -91,13 +91,13 @@ export default function CardForm() {
       }
     >
       <View className='p-5'>
-        <Text className='text-foreground text-lg font-interSemiBold'>
+        <Text className='text-foreground text-lg font-nunitoSemiBold'>
           Debit/Credit Card Form
         </Text>
 
         <Separator className='my-5' />
 
-        <Text className='text-foreground text-base font-interSemiBold mb-3'>
+        <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
           Card Details:
         </Text>
 

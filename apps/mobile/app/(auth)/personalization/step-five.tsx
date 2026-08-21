@@ -125,7 +125,7 @@ export default function StepFive() {
           {/* Pets */}
           <View className="flex gap-5">
             <View className="flex gap-3">
-              <Text className="text-foreground text-base font-interMedium">
+              <Text className="text-foreground text-base font-nunitoSemiBold">
                 Do you have any pets?
               </Text>
 
@@ -184,7 +184,7 @@ export default function StepFive() {
           {/* Parking */}
           <View className="flex gap-5">
             <View className="flex gap-3">
-              <Text className="text-foreground text-lg font-interMedium">
+              <Text className="text-foreground text-lg font-nunitoSemiBold">
                 Do you need a parking space?
               </Text>
 
@@ -229,7 +229,7 @@ export default function StepFive() {
 
             {hasParking && noOfParkingSpots > 0 && (
               <View className="flex gap-3">
-                <Text className="text-foreground text-base font-interMedium">
+                <Text className="text-foreground text-base font-nunitoSemiBold">
                   Select the kinds of vehicles you have:
                 </Text>
 
@@ -254,7 +254,7 @@ export default function StepFive() {
 
           {/* Smoker */}
           <View className="flex gap-3">
-            <Text className="text-foreground text-lg font-interMedium">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Is anyone in your household a smoker?
             </Text>
 
@@ -287,7 +287,7 @@ export default function StepFive() {
 
           {/* Disability */}
           <View className="flex gap-3">
-            <Text className="text-foreground text-lg font-interMedium">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
               Do you have any household members with a disability?
             </Text>
 

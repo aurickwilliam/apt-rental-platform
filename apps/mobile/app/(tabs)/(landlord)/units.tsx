@@ -96,7 +96,7 @@ export default function Units() {
   return (
     <ScreenWrapper className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       {/* Header */}
-      <Text className="text-foreground text-3xl font-nunitoSemiBold">
+      <Text className="text-secondary text-3xl font-nunitoBold">
         My Properties
       </Text>
 
@@ -113,7 +113,7 @@ export default function Units() {
 
       {/* Property Actions */}
       <View className="flex gap-5">
-        <Text className="text-foreground text-base font-interMedium">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           Property Actions
         </Text>
 
@@ -146,7 +146,7 @@ export default function Units() {
 
       {/* List of Properties */}
       <View className="mt-5">
-        <Text className="text-accent text-lg font-interMedium">
+        <Text className="text-accent text-lg font-nunitoSemiBold">
           List of Properties
         </Text>
 
@@ -193,7 +193,7 @@ export default function Units() {
             />
           ) : (
             <View className="items-center py-12 gap-2">
-              <Text className="text-gray-400 font-interSemiBold">
+              <Text className="text-gray-400 font-nunitoSemiBold">
                 No properties match your search.
               </Text>
             </View>

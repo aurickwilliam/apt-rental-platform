@@ -75,7 +75,7 @@ export default function TenantApplicationCard({
             <View className="flex-row items-start justify-between gap-3">
               <View className="flex-1 min-w-0 h-full">
                 <Text
-                  className="text-foreground text-sm font-interSemiBold"
+                  className="text-foreground text-sm font-nunitoSemiBold"
                   numberOfLines={1}
                 >
                   {tenantName}
@@ -94,7 +94,7 @@ export default function TenantApplicationCard({
                   style={{ backgroundColor: statusStyle.backgroundColor }}
                 >
                   <Chip.Label
-                    className="font-interMedium"
+                    className="font-nunitoSemiBold"
                     style={{ color: statusStyle.textColor }}
                   >
                     {status}

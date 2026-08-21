@@ -1,2 +1,2 @@
 export { useTenancy } from './useTenancy';
-export { useLandlordTenancy } from './useLandlordTenancy';
+export { useLandlordTenancy, getLandlordTenancyQueryKey } from './useLandlordTenancy';

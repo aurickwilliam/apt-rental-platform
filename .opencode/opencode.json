@@ -7,6 +7,14 @@
     "supabase": {
       "type": "remote",
       "url": "https://mcp.supabase.com/mcp"
+    },
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "enabled": true,
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
     }
   }
 }

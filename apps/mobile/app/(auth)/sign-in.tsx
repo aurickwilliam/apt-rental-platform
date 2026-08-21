@@ -189,11 +189,11 @@ export default function SignIn() {
 
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
-        <Text className="text-4xl text-foreground font-nunitoSemiBold">
+        <Text className="text-4xl text-foreground font-nunitoBold">
           Welcome Back!
         </Text>
 
-        <Text className="text-base text-muted font-interMedium">
+        <Text className="text-base text-muted font-nunitoSemiBold">
           {userSide === "tenant"
             ? "Log in to continue your apartment journey."
             : "Access your listings and manage your tenants easily."}
@@ -273,7 +273,7 @@ export default function SignIn() {
         onPress={() => router.push("/forgot-password")}
         className="mt-3 self-start p-0"
       >
-        <LinkButton.Label className="text-secondary font-interMedium underline">
+        <LinkButton.Label className="text-secondary font-nunitoSemiBold underline">
           Forgot Password?
         </LinkButton.Label>
       </LinkButton>
@@ -284,7 +284,7 @@ export default function SignIn() {
           onPress={handleSignIn}
           isDisabled={loading}
         >
-          <Button.Label className="font-interMedium">
+          <Button.Label className="font-nunitoSemiBold">
             {loading ? "Signing In..." : "Sign In"}
           </Button.Label>
 
@@ -324,7 +324,7 @@ export default function SignIn() {
             onPress={() => router.replace("/sign-up")}
             className="p-0"
           >
-            <LinkButton.Label className="text-accent font-interMedium underline">
+            <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
               Sign Up
             </LinkButton.Label>
           </LinkButton>

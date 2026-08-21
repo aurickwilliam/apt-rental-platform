@@ -77,7 +77,7 @@ export default function PropertyCard({
           <View>
             <View className="flex-row items-center">
               <Card.Title
-                className="flex-1 mr-2 text-base font-interMedium text-foreground leading-snug"
+                className="flex-1 mr-2 text-base font-nunitoSemiBold text-foreground leading-snug"
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -102,7 +102,7 @@ export default function PropertyCard({
 
           <View className='flex-row items-center justify-between'>
             {/* Monthly Rent */}
-            <Text className='text-sm font-interMedium text-accent'>
+            <Text className='text-sm font-nunitoSemiBold text-accent'>
               {monthlyRent ? formatPesoDisplay(monthlyRent) : 'N/A'}
             </Text>
             {/* Status chip */}

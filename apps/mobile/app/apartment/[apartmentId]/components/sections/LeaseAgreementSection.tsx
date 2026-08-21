@@ -56,7 +56,7 @@ export default function LeaseAgreementSection({
     <View className='mt-10 px-5 flex gap-2'>
       <View className='flex-row items-center gap-2'>
         <FileText size={26} color={colors.textPrimary} />
-        <Text className='font-interSemiBold text-lg text-foreground'>
+        <Text className='font-nunitoSemiBold text-lg text-foreground'>
           Lease Agreement & Rules
         </Text>
       </View>

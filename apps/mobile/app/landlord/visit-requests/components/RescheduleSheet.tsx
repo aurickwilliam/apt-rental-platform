@@ -86,7 +86,7 @@ export default function RescheduleSheet({
           <View className="gap-4">
             {/* Header */}
             <View className="gap-1">
-              <BottomSheet.Title className="text-foreground text-lg font-interSemiBold">
+              <BottomSheet.Title className="text-foreground text-lg font-nunitoSemiBold">
                 Propose New Schedule
               </BottomSheet.Title>
               <BottomSheet.Description className="text-muted text-sm font-inter">
@@ -102,7 +102,7 @@ export default function RescheduleSheet({
                 // date here is a XDate object from the library
                 const label = formatDate(date, "month") + " " + formatDate(date, "year");
                 return (
-                  <Text className="text-base font-interSemiBold text-foreground">
+                  <Text className="text-base font-nunitoSemiBold text-foreground">
                     {label}
                   </Text>
                 );
@@ -134,7 +134,7 @@ export default function RescheduleSheet({
                 dayTextColor: colors.textPrimary,
                 arrowColor: colors.primary,
                 monthTextColor: colors.textPrimary,
-                textDayFontFamily: "Inter_24pt-Medium",
+                textDayFontFamily: "Nunito-SemiBold",
               }}
             />
 

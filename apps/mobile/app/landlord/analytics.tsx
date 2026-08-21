@@ -80,10 +80,10 @@ export default function AnalyticsScreen() {
                 <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <Icon size={18} color={colors.primary} />
                 </View>
-                <Text className="text-lg font-bold text-foreground">
+                <Text className="text-lg font-nunitoBold text-foreground">
                   {stat.value}
                 </Text>
-                <Text className="text-xs font-medium text-foreground mt-0.5">
+                <Text className="text-xs font-nunitoSemiBold text-foreground mt-0.5">
                   {stat.label}
                 </Text>
                 <Text className="text-xs text-muted mt-0.5">
@@ -96,7 +96,7 @@ export default function AnalyticsScreen() {
 
         {/* Monthly Revenue Chart */}
         <View className="bg-default rounded-xl p-4">
-          <Text className="text-sm font-semibold text-foreground mb-1">
+          <Text className="text-sm font-nunitoSemiBold text-foreground mb-1">
             Monthly Revenue
           </Text>
           <Text className="text-xs text-muted mb-4">
@@ -127,7 +127,7 @@ export default function AnalyticsScreen() {
 
         {/* Payment Summary */}
         <View className="bg-default rounded-xl p-4 gap-3">
-          <Text className="text-sm font-semibold text-foreground">
+          <Text className="text-sm font-nunitoSemiBold text-foreground">
             Payment Summary
           </Text>
           {[
@@ -147,7 +147,7 @@ export default function AnalyticsScreen() {
                 />
                 <Text className="text-sm text-muted">{item.label}</Text>
               </View>
-              <Text className="text-sm font-semibold text-foreground">
+              <Text className="text-sm font-nunitoSemiBold text-foreground">
                 {item.value}
               </Text>
             </View>
@@ -156,7 +156,7 @@ export default function AnalyticsScreen() {
 
         {/* Top Performing Unit */}
         <View className="bg-default rounded-xl p-4 gap-3">
-          <Text className="text-sm font-semibold text-foreground">
+          <Text className="text-sm font-nunitoSemiBold text-foreground">
             Top Performing Units
           </Text>
           {[
@@ -169,12 +169,12 @@ export default function AnalyticsScreen() {
               className="flex-row justify-between items-center"
             >
               <View className="flex-row items-center gap-3">
-                <Text className="text-xs font-bold text-muted w-4">
+                <Text className="text-xs font-nunitoBold text-muted w-4">
                   {index + 1}
                 </Text>
                 <Text className="text-sm text-foreground">{item.unit}</Text>
               </View>
-              <Text className="text-sm font-semibold text-primary">
+              <Text className="text-sm font-nunitoSemiBold text-primary">
                 {item.revenue}
               </Text>
             </View>

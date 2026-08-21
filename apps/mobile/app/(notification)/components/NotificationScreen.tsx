@@ -51,7 +51,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
 
         {unreadCount > 0 && (
           <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
-            <Text className="text-primary font-interMedium text-sm">
+            <Text className="text-primary font-nunitoSemiBold text-sm">
               Mark all read
             </Text>
           </TouchableOpacity>

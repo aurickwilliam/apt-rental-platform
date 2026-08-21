@@ -9,7 +9,7 @@ export default function ReviewField({ label, value }: ReviewFieldProps) {
   return (
     <View className="flex">
       <Text className="text-sm text-muted">{label}</Text>
-      <Text className="text-base text-foreground font-interMedium">
+      <Text className="text-base text-foreground font-nunitoSemiBold">
         {value}
       </Text>
     </View>

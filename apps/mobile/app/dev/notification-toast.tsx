@@ -94,7 +94,7 @@ export default function NotificationToastDevScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white pt-16 px-4">
-      <Text className="text-xl font-interSemiBold text-foreground">
+      <Text className="text-xl font-nunitoBold text-foreground">
         Notification Toasts
       </Text>
       <Text className="text-sm text-muted font-inter mt-1 mb-4">

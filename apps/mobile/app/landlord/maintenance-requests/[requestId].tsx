@@ -126,7 +126,7 @@ export default function MaintenanceRequestDetails() {
     >
       <View className="flex-row items-center gap-3">
         <IconHammer size={20} color={colors.primary} />
-        <Text className="text-foreground text-lg font-interSemiBold">
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
           Maintenance Information
         </Text>
       </View>
@@ -146,7 +146,7 @@ export default function MaintenanceRequestDetails() {
               style={{ backgroundColor: urgencyStyle.backgroundColor }}
             >
               <Chip.Label
-                className="font-interMedium"
+                className="font-nunitoSemiBold"
                 style={{ color: urgencyStyle.textColor }}
               >
                 {urgencyLabel}
@@ -163,7 +163,7 @@ export default function MaintenanceRequestDetails() {
               style={{ backgroundColor: statusStyle.backgroundColor }}
             >
               <Chip.Label
-                className="font-interMedium"
+                className="font-nunitoSemiBold"
                 style={{ color: statusStyle.textColor }}
               >
                 {request.status}
@@ -192,7 +192,7 @@ export default function MaintenanceRequestDetails() {
       <Separator className="my-3" />
 
       <View className="gap-1">
-        <Text className="text-foreground text-base font-interMedium">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           Issue Description
         </Text>
         <View className="bg-surface rounded-3xl p-3 min-h-20">
@@ -204,7 +204,7 @@ export default function MaintenanceRequestDetails() {
 
       {request.photos.length > 0 ? (
         <View className="gap-3 mt-3">
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             Issue Photos
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -226,7 +226,7 @@ export default function MaintenanceRequestDetails() {
         </View>
       ) : (
         <View className="gap-1 mt-3">
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             Issue Photos
           </Text>
           <View className="bg-surface rounded-3xl p-3">
@@ -242,7 +242,7 @@ export default function MaintenanceRequestDetails() {
           <Separator className="my-3" />
 
           <View className="gap-1">
-            <Text className="text-foreground text-base font-interMedium">
+            <Text className="text-foreground text-base font-nunitoSemiBold">
               Resolution Notes
             </Text>
             <View className="bg-surface rounded-3xl p-3 min-h-20">
@@ -274,7 +274,7 @@ export default function MaintenanceRequestDetails() {
         backgroundColor="rgb(0, 0, 0, 0.8)"
         FooterComponent={({ imageIndex: index }) => (
           <View className="p-10 items-center">
-            <Text className="text-white font-interMedium">
+            <Text className="text-white font-nunitoSemiBold">
               {index + 1} / {photoImages.length}
             </Text>
           </View>

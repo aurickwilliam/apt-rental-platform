@@ -54,7 +54,7 @@ export default function FAQScreen() {
           key={faq.id}
           className={`mb-3 rounded-xl bg-default ${index === faqs.length - 1 ? "mb-8" : ""}`}
         >
-          <Text className="mb-2 font-semibold text-foreground text-base">
+          <Text className="mb-2 font-nunitoSemiBold text-foreground text-base">
             {faq.question}
           </Text>
           <Text className="text-muted text-sm leading-5">

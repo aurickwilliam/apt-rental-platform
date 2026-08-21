@@ -91,7 +91,7 @@ export default function DropdownField({
 
   return (
     <View className="w-full flex-col gap-2">
-      <Text className={`text-base font-interMedium ${error ? 'text-danger' : 'text-foreground'}`}>
+      <Text className={`text-base font-nunitoSemiBold ${error ? 'text-danger' : 'text-foreground'}`}>
         {label} {required && <Text className="text-danger">*</Text>}
       </Text>
 
@@ -173,7 +173,7 @@ export default function DropdownField({
               }}
               ListHeaderComponent={
                 <View>
-                  <Text className="text-base text-center text-foreground font-interMedium border-b border-gray-200 pb-3 mb-4">
+                  <Text className="text-base text-center text-foreground font-nunitoSemiBold border-b border-gray-200 pb-3 mb-4">
                     {bottomSheetLabel}
                   </Text>
                   {enableSearch && (

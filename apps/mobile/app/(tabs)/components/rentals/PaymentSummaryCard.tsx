@@ -35,7 +35,7 @@ export default function PaymentSummaryCard({
     >
       {/* Title Header */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-white text-xl font-interSemiBold">
+        <Text className="text-white text-xl font-nunitoBold">
           Payment Summary
         </Text>
 
@@ -50,7 +50,7 @@ export default function PaymentSummaryCard({
           }}
         >
           <Chip.Label
-            className="font-interMedium"
+            className="font-nunitoSemiBold"
             style={{ color: isPending ? colors.warning : colors.success }}
           >
             {status}
@@ -64,7 +64,7 @@ export default function PaymentSummaryCard({
         <View className="flex w-1/2">
           <Text className="text-gray-100 text-sm font-inter">Period</Text>
 
-          <Text className="text-white text-base font-interMedium">
+          <Text className="text-white text-base font-nunitoSemiBold">
             {periodMonth} {periodYear}
           </Text>
         </View>
@@ -73,7 +73,7 @@ export default function PaymentSummaryCard({
         <View className="flex w-1/2">
           <Text className="text-gray-100 text-sm font-inter">Total Rent</Text>
 
-          <Text className="text-white text-base font-interMedium">
+          <Text className="text-white text-base font-nunitoSemiBold">
             ₱ {totalRent}
           </Text>
         </View>
@@ -84,7 +84,7 @@ export default function PaymentSummaryCard({
         <View className="flex w-1/2">
           <Text className="text-gray-100 text-sm font-inter">Balance Left</Text>
 
-          <Text className="text-white text-base font-interMedium">
+          <Text className="text-white text-base font-nunitoSemiBold">
             ₱ {balanceLeft}
           </Text>
         </View>
@@ -93,7 +93,7 @@ export default function PaymentSummaryCard({
         <View className="flex w-1/2">
           <Text className="text-gray-100 text-sm font-inter">Paid</Text>
 
-          <Text className="text-white text-base font-interMedium">
+          <Text className="text-white text-base font-nunitoSemiBold">
             ₱ {balancePaid}
           </Text>
         </View>

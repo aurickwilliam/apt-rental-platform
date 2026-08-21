@@ -37,7 +37,7 @@ export default function DocumentCard({ filePath, label, onPress }: DocumentCardP
         </View>
 
         <Card.Body className='p-3 gap-0.5'>
-          <Card.Title className='text-base text-foreground font-interMedium' numberOfLines={1}>
+          <Card.Title className='text-base text-foreground font-nunitoSemiBold' numberOfLines={1}>
             {label}
           </Card.Title>
 

@@ -61,7 +61,7 @@ function TimeSelect<T extends string>({
           snapPoints={["50%"]}
           contentContainerClassName="px-4 pt-4 pb-10"
         >
-          <Select.ListLabel className="text-base text-foreground text-center font-interMedium pb-3 mb-2">
+          <Select.ListLabel className="text-base text-foreground text-center font-nunitoSemiBold pb-3 mb-2">
             {sheetLabel}
           </Select.ListLabel>
           {options.map((opt, i) => (

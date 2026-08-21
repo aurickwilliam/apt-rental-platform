@@ -31,7 +31,7 @@ export default function ApartmentDescriptionCard({
     <View className='w-full bg-surface rounded-3xl p-4 border border-border'>
       {/* Name and Address */}
       <View>
-        <Text className='text-lg font-interSemiBold text-foreground'>
+        <Text className='text-lg font-nunitoSemiBold text-foreground'>
           {apartmentName}
         </Text>
         <Text className='text-sm font-inter text-foreground'>
@@ -46,7 +46,7 @@ export default function ApartmentDescriptionCard({
           <Text className='text-muted text-sm font-inter'>
             Lease Start
           </Text>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             {`${leaseStartMonth} ${leaseStartYear}`}
           </Text>
         </View>
@@ -56,7 +56,7 @@ export default function ApartmentDescriptionCard({
           <Text className='text-muted text-sm font-inter'>
             Lease End
           </Text>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             {`${leaseEndMonth} ${leaseEndYear}`}
           </Text>
         </View>
@@ -67,7 +67,7 @@ export default function ApartmentDescriptionCard({
         <Text className='text-muted text-sm font-inter'>
           Monthly Rent
         </Text>
-        <Text className='text-foreground text-base font-interMedium'>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
           {`${formattedMonthlyRent}`}
         </Text>
       </View>

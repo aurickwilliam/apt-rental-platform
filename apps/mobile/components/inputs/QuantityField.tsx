@@ -39,7 +39,7 @@ export default function QuantityField({
         </View>
         <Slider.Output>
           {({ state }) => (
-            <Text className="text-foreground font-interMedium text-base">
+            <Text className="text-foreground font-nunitoSemiBold text-base">
               {state.values[0]} {state.values[0] === 1 ? unit[0] : unit[1]}
             </Text>
           )}

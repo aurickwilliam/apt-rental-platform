@@ -52,7 +52,7 @@ export default function SelectDocument() {
       }
       className='p-5'
     >
-      <Text className='text-foreground text-sm font-interMedium leading-relaxed'>
+      <Text className='text-foreground text-sm font-nunitoSemiBold leading-relaxed'>
         Choose the type of document you want to add. Your files will be kept securely and ready for your rental applications.
       </Text>
 
@@ -73,7 +73,7 @@ export default function SelectDocument() {
                   </ListGroup.ItemPrefix>
 
                   <ListGroup.ItemContent>
-                    <ListGroup.ItemTitle className='font-interMedium text-base'>
+                    <ListGroup.ItemTitle className='font-nunitoSemiBold text-base'>
                       {docType}
                     </ListGroup.ItemTitle>
                   </ListGroup.ItemContent>

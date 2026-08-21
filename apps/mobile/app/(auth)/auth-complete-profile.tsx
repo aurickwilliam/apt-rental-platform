@@ -290,7 +290,7 @@ export default function AuthCompleteProfile() {
   return (
     <ScreenWrapper scrollable ref={scrollRef} className="p-5">
       {/* Title */}
-      <Text className="text-2xl text-foreground font-interSemiBold my-5">
+      <Text className="text-2xl text-foreground font-nunitoBold my-5">
         Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
@@ -306,7 +306,7 @@ export default function AuthCompleteProfile() {
         {/*
           ===== Personal Information Section =====
         */}
-        <Text className="text-xl text-foreground font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Personal Information
         </Text>
 
@@ -413,7 +413,7 @@ export default function AuthCompleteProfile() {
         {/*
           ===== Address Information Section =====
         */}
-        <Text className="text-xl text-foreground font-interMedium mt-3">
+        <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Address Information
         </Text>
 

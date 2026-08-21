@@ -4,16 +4,16 @@ import ImageViewing from 'react-native-image-viewing'
 import { useState } from 'react'
 
 import {
-  Bath,
-  BedDouble,
-  House,
-  Maximize,
-  Armchair,
-  Calendar,
-  Users,
-  Building,
-  ShieldCheck,
-} from 'lucide-react-native'
+  IconBath,
+  IconBed,
+  IconHome,
+  IconMaximize,
+  IconArmchair,
+  IconCalendar,
+  IconUsers,
+  IconBuilding,
+  IconShieldCheck,
+} from '@tabler/icons-react-native'
 
 import { useColors } from 'hooks/useTheme'
 
@@ -110,7 +110,10 @@ export default function PropertyOverview({
 
       {/* Name & Address */}
       <View className="flex gap-1">
-        <Text className="text-accent text-2xl font-nunito">{name}</Text>
+        <Text className="text-accent text-2xl font-nunitoBold">
+          {name}
+        </Text>
+
         <Text className="text-foreground font-inter">
           {formatAddress({
             street_address,
@@ -124,16 +127,18 @@ export default function PropertyOverview({
 
       {/* Monthly Rent */}
       <View className='flex-row'>
-        <Text className="text-accent text-lg font-interMedium flex-1">
+        <Text className="text-accent text-lg font-nunitoSemiBold flex-1">
           {formatPesoDisplay(monthly_rent)}
-          <Text className="text-gray-500 font-inter text-base">/month</Text>
+          <Text className="text-gray-500 font-inter text-base">
+            /month
+          </Text>
         </Text>
 
         {is_verified && (
           <View className="flex-row items-center gap-1">
-            <ShieldCheck size={20} color={colors.success} />
+            <IconShieldCheck size={20} color={colors.success} />
             <Text
-              className="text-base font-interMedium"
+              className="text-base font-nunitoSemiBold"
               style={{ color: colors.success }}>
               Verified
             </Text>
@@ -144,26 +149,26 @@ export default function PropertyOverview({
       {/* Specs Grid */}
       <View className="flex-row flex-wrap">
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <House size={24} color={colors.gray500} />
+          <IconHome size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">{type}</Text>
         </View>
 
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Calendar size={24} color={colors.gray500} />
+          <IconCalendar size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">{lease_duration}</Text>
         </View>
       </View>
 
       <View className="flex-row flex-wrap">
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <BedDouble size={24} color={colors.gray500} />
+          <IconBed size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">
             {no_bedrooms} Bedroom{no_bedrooms !== 1 ? 's' : ''}
           </Text>
         </View>
 
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Bath size={24} color={colors.gray500} />
+          <IconBath size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">
             {no_bathrooms} Bathroom{no_bathrooms !== 1 ? 's' : ''}
           </Text>
@@ -172,26 +177,26 @@ export default function PropertyOverview({
 
       <View className="flex-row flex-wrap">
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Armchair size={24} color={colors.gray500} />
+          <IconArmchair size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">{furnished_type}</Text>
         </View>
 
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Building size={24} color={colors.gray500} />
+          <IconBuilding size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">{floor_level}</Text>
         </View>
       </View>
 
       <View className="flex-row flex-wrap">
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Users size={24} color={colors.gray500} />
+          <IconUsers size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">
             Max {max_occupants} Occupant{max_occupants !== 1 ? 's' : ''}
           </Text>
         </View>
 
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
-          <Maximize size={24} color={colors.gray500} />
+          <IconMaximize size={24} color={colors.gray500} />
           <Text className="text-foreground text-base">{area_sqm} Sqm</Text>
         </View>
       </View>
@@ -206,7 +211,7 @@ export default function PropertyOverview({
         backgroundColor="rgb(0, 0, 0, 0.8)"
         FooterComponent={({ imageIndex: idx }) => (
           <View className="p-10 items-center">
-            <Text className="text-white font-interMedium">
+            <Text className="text-white font-nunitoSemiBold">
               {idx + 1} / {images.length}
             </Text>
           </View>

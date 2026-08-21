@@ -74,7 +74,7 @@ export default function NotificationSettingsScreen() {
       className='p-5'
     >
       <View className='flex gap-3'>
-        <Text className='text-foreground text-base font-interMedium'>General</Text>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>General</Text>
 
         <ListGroup className="shadow-none border border-border">
           {GENERAL_TOGGLES.map(({ key, icon: Icon, title, description }, index) => (
@@ -104,7 +104,7 @@ export default function NotificationSettingsScreen() {
       </View>
 
       <View className='flex gap-3 mt-5'>
-        <Text className='text-foreground text-base font-interMedium'>Notification Types</Text>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>Notification Types</Text>
 
         <ListGroup className="shadow-none border border-border">
           {NOTIFICATION_TYPE_LABELS.map(({ type, label }, index) => (

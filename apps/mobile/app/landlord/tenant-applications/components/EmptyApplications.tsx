@@ -9,7 +9,7 @@ export default function EmptyApplications() {
       <View className="bg-surface rounded-full p-5 mb-4">
         <FileText size={32} color={colors.gray500} />
       </View>
-      <Text className="text-foreground text-lg font-interSemiBold">
+      <Text className="text-foreground text-lg font-nunitoSemiBold">
         No applications yet
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center mt-1">

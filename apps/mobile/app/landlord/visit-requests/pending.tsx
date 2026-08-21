@@ -156,7 +156,7 @@ export default function PendingVisitRequests() {
 
                 {activeCount > 0 && (
                   <View className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-accent items-center justify-center">
-                    <Text className="text-white text-[10px] font-interMedium leading-none -mb-0.5">
+                    <Text className="text-white text-[10px] font-nunitoSemiBold leading-none -mb-0.5">
                       {activeCount}
                     </Text>
                   </View>

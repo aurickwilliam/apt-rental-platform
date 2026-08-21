@@ -50,7 +50,7 @@ export default function VisitRequestHistoryItem({ visitRequest }: Props) {
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2.5">
           <Calendar size={14} color={colors.gray500} />
-          <Text className="text-sm text-foreground font-interMedium">
+          <Text className="text-sm text-foreground font-nunitoSemiBold">
             {formatDate(displayDate, "long")}
           </Text>
           <Clock size={14} color={colors.gray500} />
@@ -62,7 +62,7 @@ export default function VisitRequestHistoryItem({ visitRequest }: Props) {
           className="rounded-full px-2.5 py-1"
           style={{ backgroundColor: statusStyle.backgroundColor }}
         >
-          <Text style={{ color: statusStyle.textColor }} className="text-xs font-interMedium">
+          <Text style={{ color: statusStyle.textColor }} className="text-xs font-nunitoSemiBold">
             {statusStyle.label}
           </Text>
         </View>

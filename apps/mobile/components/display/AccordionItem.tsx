@@ -67,7 +67,7 @@ export default function AccordionItem({
         onPress={toggleExpand}
         className='flex-row items-center justify-between py-5 px-6'
       >
-        <Text className='text-foreground font-interSemiBold text-lg'>
+        <Text className='text-foreground font-nunitoSemiBold text-lg'>
           {title}
         </Text>
         <Animated.View style={animatedChevronStyle}>

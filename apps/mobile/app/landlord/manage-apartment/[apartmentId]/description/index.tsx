@@ -183,7 +183,7 @@ export default function Index() {
       }
     >
       <View className="flex-row items-center justify-between">
-        <Text className="text-foreground text-lg font-interSemiBold">
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
           Main Information
         </Text>
         <TouchableOpacity
@@ -198,7 +198,7 @@ export default function Index() {
       </View>
 
       <View className="mt-3">
-        <Text className="text-xl font-interSemiBold text-foreground">
+        <Text className="text-xl font-nunitoBold text-foreground">
           {apartment?.name ?? "—"}
         </Text>
         <Text className="text-sm text-foreground">{fullAddress}</Text>
@@ -206,7 +206,7 @@ export default function Index() {
 
       <View className="mt-5">
         <Text className="text-muted text-xs font-inter">Landlord</Text>
-        <Text className="text-foreground text-base font-interMedium">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           {landlordName}
         </Text>
       </View>
@@ -215,13 +215,13 @@ export default function Index() {
         <View className="flex-row mt-5">
           <View className="flex w-1/2">
             <Text className="text-muted text-xs font-inter">Lease Start</Text>
-            <Text className="text-foreground text-base font-interMedium">
+            <Text className="text-foreground text-base font-nunitoSemiBold">
               {formatDate(tenancy.lease_start)}
             </Text>
           </View>
           <View className="flex w-1/2">
             <Text className="text-muted text-xs font-inter">Lease End</Text>
-            <Text className="text-foreground text-base font-interMedium">
+            <Text className="text-foreground text-base font-nunitoSemiBold">
               {formatDate(tenancy.lease_end!)}
             </Text>
           </View>
@@ -231,19 +231,19 @@ export default function Index() {
       <View className="flex-row flex-wrap">
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Monthly Rent</Text>
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             {formatPesoDisplay(effectiveRent)}
           </Text>
         </View>
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Security Deposit</Text>
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             {formatPesoDisplay(apartment?.security_deposit ?? 0)}
           </Text>
         </View>
         <View className="mt-5 flex w-1/2">
           <Text className="text-muted text-xs font-inter">Advance Rent</Text>
-          <Text className="text-foreground text-base font-interMedium">
+          <Text className="text-foreground text-base font-nunitoSemiBold">
             {formatPesoDisplay(apartment?.advance_rent ?? 0)}
           </Text>
         </View>
@@ -252,7 +252,7 @@ export default function Index() {
       <Divider />
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-foreground text-base font-interSemiBold">
+        <Text className="text-foreground text-base font-nunitoSemiBold">
           Apartment Full Description
         </Text>
         <TouchableOpacity
@@ -273,7 +273,7 @@ export default function Index() {
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-foreground text-base font-interSemiBold mt-5">
+        <Text className="text-foreground text-base font-nunitoSemiBold mt-5">
           Room/Unit Details
         </Text>
         <TouchableOpacity
@@ -353,7 +353,7 @@ export default function Index() {
       {(apartment?.amenities?.length ?? 0) > 0 && (
         <>
           <View className="flex-row items-center justify-between">
-            <Text className="text-foreground text-base font-interSemiBold mt-5">
+            <Text className="text-foreground text-base font-nunitoSemiBold mt-5">
               Included Perks
             </Text>
             <TouchableOpacity

@@ -42,7 +42,7 @@ export default function MaintenanceRequestCard({
 
               <View className="flex-1">
                 <Text
-                  className="text-foreground text-sm font-interMedium"
+                  className="text-foreground text-sm font-nunitoSemiBold"
                   numberOfLines={1}
                 >
                   {issueTitle}
@@ -63,7 +63,7 @@ export default function MaintenanceRequestCard({
                 style={{ backgroundColor: statusStyle.backgroundColor }}
               >
                 <Chip.Label
-                  className="font-interMedium"
+                  className="font-nunitoSemiBold"
                   style={{ color: statusStyle.textColor }}
                 >
                   {status}

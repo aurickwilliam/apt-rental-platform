@@ -73,7 +73,7 @@ export default function RatingsPage() {
 
         {/* Overall Rating */}
         <View className='flex items-center justify-center gap-3'>
-          <Text className='text-muted text-lg font-interMedium'>
+          <Text className='text-muted text-lg font-nunitoSemiBold'>
             Overall Rating
           </Text>
 
@@ -87,7 +87,7 @@ export default function RatingsPage() {
             className='flex-row gap-2'
           />
 
-          <Text className='text-muted text-base font-interMedium'>
+          <Text className='text-muted text-base font-nunitoSemiBold'>
             based on {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}
           </Text>
         </View>
@@ -108,7 +108,7 @@ export default function RatingsPage() {
 
         {/* Title */}
         <View className='mt-10 flex-row items-center justify-between'>
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             Tenant Reviews
           </Text>
 

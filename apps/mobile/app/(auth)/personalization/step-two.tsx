@@ -36,7 +36,7 @@ export default function StepTwo() {
 
           <View className="flex-1 items-center justify-center gap-10">
             {/* Rent Amount */}
-            <Text className="text-primary text-3xl font-nunitoSemiBold">
+            <Text className="text-primary text-3xl font-nunitoBold">
               ₱ {budgetMin.toLocaleString()} - ₱ {budgetMax.toLocaleString()}
             </Text>
 

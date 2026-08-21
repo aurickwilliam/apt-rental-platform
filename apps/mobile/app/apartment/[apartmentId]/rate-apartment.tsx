@@ -295,11 +295,11 @@ export default function RateApartment() {
       <View className='flex mt-3 gap-3'>
         {/* Apartment Name and Address */}
         <View className='flex gap-1'>
-          <Text className='text-xl font-interSemiBold text-accent'>
+          <Text className='text-xl font-nunitoBold text-accent'>
             {apartment.name}
           </Text>
 
-          <Text className='text-foreground text-base font-interMedium'>
+          <Text className='text-foreground text-base font-nunitoSemiBold'>
             {address}
           </Text>
         </View>
@@ -322,7 +322,7 @@ export default function RateApartment() {
               size={22}
               color={colors.secondary}
             />
-            <Text className='text-foreground text-base font-interMedium'>
+            <Text className='text-foreground text-base font-nunitoSemiBold'>
               {(apartment.average_rating ?? 0).toFixed(1)} ({apartment.no_ratings})
             </Text>
           </View>
@@ -330,12 +330,12 @@ export default function RateApartment() {
 
         {/* Duration of Stay — read-only, sourced from tenancy lease dates */}
         <View>
-          <Text className='text-muted text-sm font-interMedium'>
+          <Text className='text-muted text-sm font-nunitoSemiBold'>
             Duration of Stay
           </Text>
 
           <View className='mt-3 rounded-2xl bg-gray-50 flex-row items-center justify-between'>
-            <Text className='text-foreground text-base font-interMedium'>
+            <Text className='text-foreground text-base font-nunitoSemiBold'>
               {stayDurationLabel}
             </Text>
 
@@ -351,7 +351,7 @@ export default function RateApartment() {
 
         {/* Rating Input */}
         <View className='flex items-center'>
-          <Text className='text-foreground text-lg font-interMedium'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold'>
             Overall Rating
           </Text>
 

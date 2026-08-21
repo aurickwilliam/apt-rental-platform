@@ -1,15 +1,29 @@
-import { TouchableOpacity, View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import { IconCalendar } from "@tabler/icons-react-native";
 
+import { Card, Chip } from "heroui-native";
+
+import { formatPesoDisplay } from "@repo/utils";
+
 import { useColors } from "hooks/useTheme";
+import { usePaymentStatusStyles } from "hooks/payments";
+import {
+  formatReferenceId,
+  methodLabel,
+  paymentStatusLabel,
+} from "@/service/payments/paymentService";
 
 interface PaymentHistoryCardProps {
   month: string;
   year: string;
   amount: number;
   paidDate: string;
-  status: "paid" | "partial";
+  status: string;
+  method?: string | null;
+  reference?: string | null;
+  onFlipPress?: () => void;
+  flipDisabled?: boolean;
 }
 
 export default function PaymentHistoryCard({
@@ -18,51 +32,100 @@ export default function PaymentHistoryCard({
   amount = 0,
   paidDate = "0/0/0000",
   status = "paid",
+  method,
+  reference,
+  onFlipPress,
+  flipDisabled = false,
 }: PaymentHistoryCardProps) {
   const { colors } = useColors();
+  const statusStyles = usePaymentStatusStyles();
+
+  const label = paymentStatusLabel(status);
+  const style = statusStyles[label];
 
   return (
-    <TouchableOpacity
-      className="bg-surface p-2.5 rounded-xl"
-      activeOpacity={0.7}
-    >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          {/* Calendar Icon */}
-          <IconCalendar size={20} color={colors.gray500} />
+    <Card className="border border-border shadow-none rounded-3xl">
+      <Card.Header>
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-row items-center gap-2 flex-1">
+            <IconCalendar size={20} color={colors.gray500} />
+            <Text
+              className="text-foreground font-nunitoSemiBold text-base"
+              numberOfLines={1}
+            >
+              {month} {year}
+            </Text>
+          </View>
 
-          {/* Month Year */}
-          <Text className="text-gray-500 text-base font-interSemiBold">
-            {month} {year}
+          <View className="flex-row items-center gap-2">
+            {method ? (
+              <Chip
+                variant="soft"
+                size="md"
+                animation="disable-all"
+                style={{ backgroundColor: colors.gray100 }}
+              >
+                <Chip.Label
+                  style={{ color: colors.gray500 }}
+                  className="text-xs font-nunitoSemiBold"
+                >
+                  {methodLabel(method ?? null)}
+                </Chip.Label>
+              </Chip>
+            ) : null}
+
+            <Chip
+              variant="soft"
+              size="md"
+              animation="disable-all"
+              style={{ backgroundColor: style.backgroundColor }}
+            >
+              <Chip.Label
+                style={{ color: style.textColor }}
+                className="text-xs font-nunitoSemiBold"
+              >
+                {label}
+              </Chip.Label>
+            </Chip>
+          </View>
+        </View>
+      </Card.Header>
+
+      <Card.Body className="pt-3 gap-1">
+        <Text className="text-foreground text-xl font-nunitoBold">
+          {formatPesoDisplay(amount)}
+        </Text>
+      </Card.Body>
+
+      <Card.Footer>
+        <View className="flex-row items-center justify-between gap-3 mt-3">
+          <Text className="text-gray-500 text-xs font-inter">
+            Ref. No: {formatReferenceId(reference ?? null)}
+          </Text>
+
+          <Text className="text-gray-500 text-xs font-inter">
+            {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
           </Text>
         </View>
+      </Card.Footer>
 
-        {/* Status Indicator */}
-        <View
-          className={`px-4 py-0.5 self-start rounded-full
-          border-2 ${status === "paid" ? "border-success bg-success-light" : "border-warning bg-warning-light"}`}
-        >
-          <Text
-            className={`${status === "paid" ? "text-success" : "text-warning"} font-interMedium`}
+      {onFlipPress && (
+        <View className="px-4 pb-4">
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onFlipPress}
+            disabled={flipDisabled}
+            className={`px-4 py-2 rounded-full items-center ${
+              flipDisabled ? "opacity-50" : ""
+            }`}
+            style={{ backgroundColor: colors.successLight }}
           >
-            {status === "paid" ? "Paid" : "Partial"}
-          </Text>
+            <Text className="text-success font-nunitoSemiBold">
+              Mark as Paid
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Amount Paid */}
-      <View className="mt-2">
-        <Text className="text-foreground text-xl font-interMedium">
-          ₱ {amount}
-        </Text>
-      </View>
-
-      {/* Paid Date */}
-      <View className="mt-2">
-        <Text className="text-gray-500 text-sm font-inter">
-          Paid on: {paidDate}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      )}
+    </Card>
   );
 }

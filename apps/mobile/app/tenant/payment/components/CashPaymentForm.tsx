@@ -55,7 +55,7 @@ export default function CashPaymentForm({
     <View className='mt-5'>
       <Separator className='mb-5' />
 
-      <Text className='text-foreground text-base font-interSemiBold mb-1'>
+      <Text className='text-foreground text-base font-nunitoSemiBold mb-1'>
         Cash Payment
       </Text>
       <Text className='text-muted font-inter text-sm'>

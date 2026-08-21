@@ -25,7 +25,7 @@ export default function DropdownButton<T extends string>({
 
   const defaultButtonClassName =
     "bg-surface-secondary px-2 py-1 rounded-xl flex-row items-center justify-start self-start gap-1";
-  const defaultTextClassName = "text-foreground text-base font-interMedium";
+  const defaultTextClassName = "text-foreground text-base font-nunitoSemiBold";
 
   return (
     <Menu>

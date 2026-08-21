@@ -1,17 +1,24 @@
 import { useMemo, useState } from 'react'
-import { View, Text, SectionList } from 'react-native'
+import { View, Text, SectionList, ActivityIndicator } from 'react-native'
 import { Button } from 'heroui-native'
 import { IconFilter2, IconReceipt } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import { useColors } from '@/hooks/useTheme'
+import { usePayments } from '@/hooks/payments'
+import { useTenancy } from '@/hooks/tenancy/useTenancy'
+import {
+  methodLabel,
+  paymentStatusLabel,
+  periodMonthLabel,
+  type PaymentRecord,
+} from '@/service/payments/paymentService'
 
 import PaymentHistoryCard, { type PaymentHistoryItem } from './components/PaymentHistoryCard'
 import PaymentHistoryFilterSheet, {
   type PaymentHistoryFilters,
 } from './components/PaymentHistoryFilterSheet'
-import paymentHistory from './mockPaymentHistory'
 
 const EMPTY_FILTERS: PaymentHistoryFilters = {
   years: [],
@@ -19,7 +26,23 @@ const EMPTY_FILTERS: PaymentHistoryFilters = {
   sort: 'Newest',
 }
 
-type FlatPayment = PaymentHistoryItem & { year: string; month: string };
+type FlatPayment = PaymentHistoryItem & { year: string };
+
+const toHistoryItem = (payment: PaymentRecord): FlatPayment => {
+  const sourceDate = payment.period_start ?? payment.date
+  const year = sourceDate.slice(0, 4)
+  return {
+    id: payment.id,
+    date: payment.date,
+    month: periodMonthLabel(payment.period_start, payment.date),
+    amount: payment.amount ?? 0,
+    status: paymentStatusLabel(payment.status),
+    apartmentName: payment.apartment_name ?? '—',
+    landlordName: payment.landlord_name ?? '—',
+    method: methodLabel(payment.method),
+    year,
+  }
+}
 
 export default function History() {
   const { colors } = useColors()
@@ -27,19 +50,17 @@ export default function History() {
   const [filters, setFilters] = useState<PaymentHistoryFilters>(EMPTY_FILTERS)
   const [filterOpen, setFilterOpen] = useState(false)
 
+  const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
+  const paymentsQuery = usePayments(tenancy?.id ?? null)
+
   const allPayments = useMemo<FlatPayment[]>(
-    () =>
-      Object.entries(paymentHistory).flatMap(([year, months]) =>
-        Object.entries(months).flatMap(([month, payments]) =>
-          payments.map((payment) => ({ ...payment, year }))
-        )
-      ),
-    []
+    () => (paymentsQuery.data ?? []).map(toHistoryItem),
+    [paymentsQuery.data]
   )
 
   const availableYears = useMemo(
-    () => Object.keys(paymentHistory).sort((a, b) => Number(b) - Number(a)),
-    []
+    () => [...new Set(allPayments.map((payment) => payment.year))].sort((a, b) => Number(b) - Number(a)),
+    [allPayments]
   )
 
   const activeCount = filters.years.length + filters.statuses.length
@@ -81,6 +102,31 @@ export default function History() {
     [grouped]
   );
 
+  if (tenancyLoading || paymentsQuery.isLoading) {
+    return (
+      <ScreenWrapper header={<StandardHeader title='Payment History' />}>
+        <View className='flex-1 items-center justify-center'>
+          <ActivityIndicator size='large' />
+        </View>
+      </ScreenWrapper>
+    )
+  }
+
+  if (tenancyError || paymentsQuery.error) {
+    return (
+      <ScreenWrapper header={<StandardHeader title='Payment History' />} className='p-5'>
+        <View className='flex-1 items-center justify-center gap-4'>
+          <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
+            We could not load your payment history.
+          </Text>
+          <Button onPress={() => { void refetch(); void paymentsQuery.refetch() }}>
+            <Button.Label>Try Again</Button.Label>
+          </Button>
+        </View>
+      </ScreenWrapper>
+    )
+  }
+
   return (
     <ScreenWrapper
       header={
@@ -98,7 +144,7 @@ export default function History() {
 
               {activeCount > 0 && (
                 <View className='absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-white items-center justify-center'>
-                  <Text className='text-accent text-[10px] font-interMedium leading-none -mb-0.5'>
+                  <Text className='text-accent text-[10px] font-nunitoSemiBold leading-none -mb-0.5'>
                     {activeCount}
                   </Text>
                 </View>
@@ -131,8 +177,8 @@ export default function History() {
             <Text
               className={
                 section.title === currentYear
-                  ? 'text-accent font-interSemiBold text-base'
-                  : 'text-muted font-interSemiBold text-base'
+                  ? 'text-accent font-nunitoSemiBold text-base'
+                  : 'text-muted font-nunitoSemiBold text-base'
               }
             >
               {section.title}
@@ -146,7 +192,7 @@ export default function History() {
         ListEmptyComponent={
           <View className='items-center gap-4 py-20'>
             <IconReceipt size={64} color={colors.primary} />
-            <Text className='text-xl font-interSemiBold text-foreground'>
+            <Text className='text-xl font-nunitoBold text-foreground'>
               No payments found
             </Text>
             <Text className='text-gray-400 text-base font-inter text-center px-8'>
