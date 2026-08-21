@@ -186,6 +186,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
           <Separator className="my-8" />
 
           <RatingSection
+            apartmentId={apartment.id}
             overallRate={apartment.average_rating ?? 0}
             totalReviews={apartment.no_ratings ?? 0}
             no5Star={countStars(5)}
