@@ -8,7 +8,7 @@ import { Separator } from "@heroui/react";
 
 import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } from "lucide-react";
 
-import RenderReviews from "./components/RenderReviews";
+import ApartmentReviewsPreview from "./components/ApartmentReviewsPreview";
 import RelatedApartments from "./components/RelatedApartments";
 import PriceCard from "./components/PriceCard";
 import ShareBtn from "./components/ShareBtn";
@@ -56,15 +56,6 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         .eq('role', 'landlord')
         .single()
     : { data: null };
-
-  // Fetch star ratings for the apartment
-  const { data: starCounts } = await supabase
-    .from('reviews')
-    .select('rating')
-    .eq('apartment_id', apartmentId);
-
-  const countStars = (star: number) =>
-    starCounts?.filter((r) => r.rating === star).length ?? 0;
 
   if (error || !apartment) {
     // handle not found
@@ -185,19 +176,10 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
 
           <Separator className="my-8" />
 
-          <RatingSection
-            apartmentId={apartment.id}
-            overallRate={apartment.average_rating ?? 0}
-            totalReviews={apartment.no_ratings ?? 0}
-            no5Star={countStars(5)}
-            no4Star={countStars(4)}
-            no3Star={countStars(3)}
-            no2Star={countStars(2)}
-            no1Star={countStars(1)}
-          />
+          <RatingSection apartmentId={apartment.id} />
 
           <div className="mt-8">
-            <RenderReviews apartmentId={apartment.id} />
+            <ApartmentReviewsPreview apartmentId={apartment.id} />
           </div>
         </div>
 
