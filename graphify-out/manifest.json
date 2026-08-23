@@ -1,6 +1,6 @@
 {
   ".opencode/opencode.json": {
-    "mtime": 1787069505.8585563,
+    "mtime": 1787329433.7965508,
     "ast_hash": "7374815ececfccc7ca3006d8fabd8fe3",
     "semantic_hash": ""
   },
@@ -1505,8 +1505,8 @@
     "semantic_hash": "e71f96fad5b127121b9ab5e675242da0"
   },
   "apps/mobile/hooks/tenancy/index.ts": {
-    "mtime": 1787148944.226034,
-    "ast_hash": "15ea67d532242dd0780940908f717ceb",
+    "mtime": 1787446243.4114692,
+    "ast_hash": "0304683823507bf1161073ade39b5fe1",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/useLandlordTenancy.ts": {
@@ -1515,8 +1515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/useTenancy.ts": {
-    "mtime": 1787060342.3066466,
-    "ast_hash": "252bf7730a8dc17cde29ade171cd9390",
+    "mtime": 1787446243.4119685,
+    "ast_hash": "25b22e96ff1dfad0b48d2c9587e3c91c",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/useTheme.ts": {
@@ -3510,8 +3510,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/useTenancy.test.tsx": {
-    "mtime": 1787060342.3064754,
-    "ast_hash": "9163140ada87d397e89a2ace98c91d82",
+    "mtime": 1787446243.411794,
+    "ast_hash": "7d5727c17e986919e5e02ee590b81cd8",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchLogic.test.tsx": {
@@ -4097,6 +4097,16 @@
   "apps/web/app/components/display/StarRating.tsx": {
     "mtime": 1787302544.0644464,
     "ast_hash": "497b91b1b2a8d49c5fb2c590bcae77e5",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/tenancy/useTenancyRealtime.test.ts": {
+    "mtime": 1787446243.4229221,
+    "ast_hash": "81ce5352b76398cf14c61e1935ac4420",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/tenancy/useTenancyRealtime.ts": {
+    "mtime": 1787446243.4231317,
+    "ast_hash": "38d36df46837852e742f6eab714ad08d",
     "semantic_hash": ""
   }
 }

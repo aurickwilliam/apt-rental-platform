@@ -45,5 +45,5 @@ export function useLandlordActionBadges() {
     [queryClient, queryKey]
   );
 
-  return { counts, fetchCounts: countsQuery.refetch, markViewed };
+  return { counts, markViewed };
 }

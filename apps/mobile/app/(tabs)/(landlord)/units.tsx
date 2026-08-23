@@ -40,8 +40,8 @@ export default function Units() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { apartments, monthlyProfit, loading, fetchApartments } = useLandlordUnits();
-  const { counts, fetchCounts } = useLandlordActionBadges();
+  const { apartments, monthlyProfit, loading } = useLandlordUnits();
+  const { counts } = useLandlordActionBadges();
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
