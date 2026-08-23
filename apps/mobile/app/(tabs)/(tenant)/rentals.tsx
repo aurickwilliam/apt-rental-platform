@@ -4,6 +4,7 @@ import type React from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
+import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
@@ -16,8 +17,7 @@ import {
   IconUser,
   IconFileText,
   IconHammer,
-  IconMapPin,
-  IconBell,
+  IconMapPinFilled,
   IconReceipt,
   IconSettings,
   IconHelpCircle,
@@ -142,22 +142,20 @@ export default function Rentals() {
     const address = formatAddress(apartment);
 
     return (
-      <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      >
         {/* Apartment Header */}
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
-            <IconMapPin size={30} color={colors.primary} />
+            <IconMapPinFilled size={30} color={colors.primary} />
             <Text className="text-secondary text-2xl font-nunitoBold">
               {apartment.name}
             </Text>
           </View>
-          <Button
-            isIconOnly
-            variant="ghost"
-            onPress={() => router.push("/tenant-notif")}
-          >
-            <IconBell size={26} color={colors.gray500} />
-          </Button>
+          <NotificationBellButton route="/tenant-notif" />
         </View>
 
         {/* Payment Summary Card */}
@@ -302,6 +300,13 @@ export default function Rentals() {
   if (!tenancy) {
     return (
       <ScreenWrapper className="p-5">
+        <View className="flex-row items-center justify-between mb-5">
+          <Text className="text-secondary text-2xl font-nunitoBold">
+            Rentals
+          </Text>
+          <NotificationBellButton route="/tenant-notif" />
+        </View>
+
         <ApplicationsList />
       </ScreenWrapper>
     );
@@ -310,6 +315,13 @@ export default function Rentals() {
   // Brand new user, nothing at all
   return (
     <ScreenWrapper className='p-5'>
+      <View className="flex-row items-center justify-between mb-5">
+        <Text className="text-secondary text-2xl font-nunitoBold">
+          Rentals
+        </Text>
+        <NotificationBellButton route="/tenant-notif" />
+      </View>
+
       <TenancyEmptyState />
     </ScreenWrapper>
   );

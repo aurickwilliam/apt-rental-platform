@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/units.tsx": {
-    "mtime": 1787152833.8810241,
-    "ast_hash": "18f3220d9ca846bf1fcf1394619a8209",
+    "mtime": 1787493519.1919687,
+    "ast_hash": "0c5f525a86e5f522a9475285dccdb78e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/_layout.tsx": {
@@ -1345,13 +1345,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/useLandlordActionBadges.ts": {
-    "mtime": 1787060342.2993596,
-    "ast_hash": "f0906fd745d5a51e6c93eab7439ab9ab",
+    "mtime": 1787493521.0211794,
+    "ast_hash": "6cfa5b0b3b656aff2965985938278c91",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/useLandlordUnits.ts": {
-    "mtime": 1787060342.2994938,
-    "ast_hash": "963cb1974e862a086692891dedf9655b",
+    "mtime": 1787493520.1868064,
+    "ast_hash": "1162e7ddb50b813f4cfff4fed02015a9",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/usePublishApartment.ts": {

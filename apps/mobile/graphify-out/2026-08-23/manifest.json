@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/(landlord)/dashboard.tsx": {
-    "mtime": 1787494867.5604973,
-    "ast_hash": "415915a36282fc32ef1d46f3dc3a3822",
+    "mtime": 1787197883.6104167,
+    "ast_hash": "db2453e27b1005655c63a9ed889f8140",
     "semantic_hash": ""
   },
   "app/(tabs)/(landlord)/profile.tsx": {
@@ -260,8 +260,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/(tenant)/rentals.tsx": {
-    "mtime": 1787494903.6652868,
-    "ast_hash": "b7279622ee3fe0117524531ff37f6785",
+    "mtime": 1787150281.5837717,
+    "ast_hash": "074b507eb6c85883d79234a431c7327c",
     "semantic_hash": ""
   },
   "app/(tabs)/(tenant)/search.tsx": {
@@ -1750,8 +1750,8 @@
     "semantic_hash": ""
   },
   "hooks/notifications/index.ts": {
-    "mtime": 1787494826.1397183,
-    "ast_hash": "c3bc1a9ff1de9178eb4b9fb3b44f1712",
+    "mtime": 1787060342.3032596,
+    "ast_hash": "c55a4c14dda5c9e0a0cd79ec90cccf0f",
     "semantic_hash": ""
   },
   "hooks/notifications/notificationSuppression.test.ts": {
@@ -2442,16 +2442,6 @@
   "assets/images/user-error.png": {
     "mtime": 1777602095.505443,
     "ast_hash": "d11e6b0906db588f7058e4860c19ae8d",
-    "semantic_hash": ""
-  },
-  "app/(tabs)/components/NotificationBellButton.tsx": {
-    "mtime": 1787494821.8332849,
-    "ast_hash": "3447778d700fff1fd1549510286bf086",
-    "semantic_hash": ""
-  },
-  "hooks/notifications/useUnreadNotificationCount.ts": {
-    "mtime": 1787494812.063371,
-    "ast_hash": "afd7c64f3872276fa77155b835e992df",
     "semantic_hash": ""
   }
 }
