@@ -253,18 +253,27 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       )}
 
       {step === 1 && (
-        <Card className="border shadow-none overflow-hidden bg-white">
-          <div className="relative h-64 md:h-80">
-            <NextImage src={apartment.cover} alt={apartment.name ?? "Apartment"} fill className="object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <h1 className="text-white text-2xl md:text-3xl font-bold">{apartment.name}</h1>
-              <p className="text-white/90 text-sm flex items-center gap-1 mt-1">
-                <MapPin size={14} /> {apartment.address}
+        <div className="border bg-white rounded-3xl overflow-hidden shadow-sm ring-1 ring-black/5 isolate">
+          <div className="relative h-80 md:h-[560px] rounded-3xl overflow-hidden isolate">
+            <NextImage
+              src={apartment.cover}
+              alt={apartment.name ?? "Apartment"}
+              fill
+              sizes="(max-width:768px) 100vw, 896px"
+              priority
+              quality={90}
+              className="object-cover"
+              style={{ borderRadius: "1.375rem" }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 h-[58%] bg-gradient-to-t from-black via-black/80 to-transparent" style={{ borderRadius: "1.375rem" }} />
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+              <h1 className="text-white text-2xl md:text-[28px] font-bold leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.9)]">{apartment.name}</h1>
+              <p className="text-white text-sm font-semibold flex items-center gap-1.5 mt-2 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">
+                <MapPin size={14} className="shrink-0 text-white" /> {apartment.address}
               </p>
             </div>
           </div>
-          <Card.Content className="p-5 md:p-6 flex flex-col gap-5">
+          <div className="p-5 md:p-6 flex flex-col gap-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-2 text-sm">
                 <House size={18} className="text-grey-700" /> <span className="font-medium">{apartment.type ?? "—"}</span>
@@ -340,9 +349,9 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
                 Continue Application
               </Button>
             </div>
-          </Card.Content>
-        </Card>
-      )}
+          </div>
+        </div>
+       )}
 
       {step === 2 && (
         <Card className="border shadow-none bg-white p-5 md:p-8">
