@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
+import ApplicationHeader from "./ApplicationHeader";
 import { formatPesoDisplay, handlePesoChange, isValidEmail } from "@repo/utils";
 import {
   EMPLOYMENT_TYPES,
@@ -83,58 +84,12 @@ type ApartmentContext = {
   averageRating: number | null;
 };
 
-const STEPS = [
-  { title: "Apartment Preview", subtitle: "Review listing" },
-  { title: "Tenant Information", subtitle: "Your details" },
-  { title: "Rental Preferences", subtitle: "Move-in & occupants" },
-  { title: "Documents", subtitle: "Upload required files" },
-  { title: "Review", subtitle: "Confirm & submit" },
-  { title: "Submitted", subtitle: "Confirmation" },
-];
-
-function StepIndicator({ current }: { current: number }) {
-  return (
-    <div className="w-full">
-      <div className="hidden md:flex items-center justify-between gap-2">
-        {STEPS.slice(0, 5).map((s, idx) => {
-          const stepNum = idx + 1;
-          const isDone = current > stepNum;
-          const isActive = current === stepNum && current < 6;
-          const isSubmitted = current === 6;
-          return (
-            <div key={s.title} className="flex items-center flex-1 gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 transition-colors ${
-                  isDone || (isSubmitted && stepNum === 5)
-                    ? "bg-primary text-white"
-                    : isActive
-                      ? "bg-primary text-white"
-                      : "bg-white border border-grey-300 text-grey-700"
-                }`}
-              >
-                {isDone || (isSubmitted && stepNum === 5) ? <Check size={16} /> : stepNum}
-              </div>
-              <div className="hidden lg:block min-w-0">
-                <p className={`text-xs font-medium leading-none ${isActive ? "text-primary" : "text-black"}`}>{s.title}</p>
-                <p className="text-[11px] text-grey-700">{s.subtitle}</p>
-              </div>
-              {idx < 4 && <div className={`h-px flex-1 mx-2 ${isDone ? "bg-primary" : "bg-grey-200"}`} />}
-            </div>
-          );
-        })}
-      </div>
-      <div className="md:hidden">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-black">Step {Math.min(current, 5)} of 5</p>
-          <p className="text-xs text-grey-700">{current <= 5 ? STEPS[current - 1]?.title : STEPS[5].title}</p>
-        </div>
-        <div className="h-2 bg-grey-200 rounded-full overflow-hidden">
-          <div className="h-full bg-primary transition-all" style={{ width: `${(Math.min(current, 5) / 5) * 100}%` }} />
-        </div>
-      </div>
-    </div>
-  );
-}
+const WIZARD_TITLES: Record<number, { currentTitle: string; nextTitle: string }> = {
+  2: { currentTitle: "Tenant Information", nextTitle: "Rental Preferences" },
+  3: { currentTitle: "Rental Preferences", nextTitle: "Upload Required Documents" },
+  4: { currentTitle: "Upload Required Documents", nextTitle: "Review Application" },
+  5: { currentTitle: "Review Application", nextTitle: "Submit Application" },
+};
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -272,6 +227,8 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       e.target.value = "";
     };
 
+  const wizardStep = Math.min(Math.max(step - 1, 1), 4);
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 pb-12">
       <div className="flex items-center gap-2 mb-4">
@@ -284,9 +241,16 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
         </div>
       </div>
 
-      <Card className="border shadow-none p-4 md:p-6 mb-6 bg-white">
-        <StepIndicator current={step} />
-      </Card>
+      {step >= 2 && step <= 5 && WIZARD_TITLES[step] && (
+        <div className="mb-6">
+          <ApplicationHeader
+            currentTitle={WIZARD_TITLES[step].currentTitle}
+            nextTitle={WIZARD_TITLES[step].nextTitle}
+            step={wizardStep}
+            totalSteps={4}
+          />
+        </div>
+      )}
 
       {step === 1 && (
         <Card className="border shadow-none overflow-hidden bg-white">
