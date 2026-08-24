@@ -82,7 +82,7 @@ export default function ReceiptCard({
   return (
     <View className='relative w-full'>
       <Card className='bg-white rounded-t-2xl rounded-b-none w-full overflow-hidden shadow-none'>
-        <Card.Header>
+        <Card.Header className='flex items-center justify-center'>
           <View className='items-center mb-6'>
             <StatusIcon size={48} color={colors[meta.color]} />
             <Text className={`text-xl font-nunitoBold ${meta.titleClass} mt-3`}>
