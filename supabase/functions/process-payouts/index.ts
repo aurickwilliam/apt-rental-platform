@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     await requireServiceRole(req)
 
     const payload = await req.json().catch(() => ({}))
-    const { landlordId } = payload as { landlordId?: string }
+    const { landlordId, apartmentId } = payload as { landlordId?: string; apartmentId?: string }
     const period = currentPeriod()
 
     const { data: run, error: runError } = await dbClient
@@ -216,9 +216,10 @@ Deno.serve(async (req) => {
       .is('payout_id', null)
       .lte('payout_eligible_at', new Date().toISOString())
       .lt('payout_attempts', MAX_ATTEMPTS)
-      .in('method', ['gcash', 'maya', 'card'])
+      .in('method', ['gcash', 'maya', 'card', 'qrph'])
       .not('landlord_id', 'is', null)
     if (landlordId) query = query.eq('landlord_id', landlordId)
+    if (apartmentId) query = query.eq('apartment_id', apartmentId)
 
     const { data: rows } = await query
     const landlordIds = [...new Set((rows ?? []).map((row) => row.landlord_id))]
@@ -249,6 +250,7 @@ Deno.serve(async (req) => {
           p_period_start: period.start,
           p_period_end: period.end,
           p_max_attempts: MAX_ATTEMPTS,
+          p_apartment_id: apartmentId ?? null,
         })
         if (rpcError) throw rpcError
 

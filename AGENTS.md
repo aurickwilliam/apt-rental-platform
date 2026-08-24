@@ -103,6 +103,12 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.
 - Trigger payloads include the `apartmentId` needed to resolve deep links (payment, maintenance); never rely on payloads without it.
 
+## PayMongo MCP (OpenCode)
+
+- Server: `.opencode/opencode.json:19-25` `paymongo` via `npx -y @theyahia/paymongo-mcp` (project scope, preserves `supabase` + `github`). Package `@theyahia/paymongo-mcp` from https://github.com/theYahia/paymongo-mcp.
+- Env: `PAYMONGO_SECRET_KEY="{env:PAYMONGO_SECRET_KEY}"` required (`sk_test_...` test, `sk_live_...` live). **Readonly from 2026-08-24:** `PAYMONGO_ALLOW_LIVE` removed — live money-moves (`create_payment_intent`, `create_source`, `create_payment`, `create_checkout`, `create_link`, `create_payment_method`, `create_refund`) are always blocked when `sk_live_...` is used; read-only tools (`get_*`, `list_*`, `verify_webhook_signature`) always allowed. To handle real rent, use QR Ph links via the hosted checkout edge (`supabase/functions/paymongo` with `qrph`) or the PayMongo Dashboard — do not re-enable `PAYMONGO_ALLOW_LIVE` without explicit owner approval. See upstream Safety section.
+- Amounts are centavos integers (`10000` = ₱100.00, min `2000`). Validate with `python3 -m json.tool .opencode/opencode.json`.
+
 ## Engineering Philosophy
 
 - Prefer reuse over duplication.

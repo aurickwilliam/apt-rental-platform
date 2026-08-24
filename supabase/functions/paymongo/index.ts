@@ -90,7 +90,7 @@ type CheckoutSessionPayload = {
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya'
+  method?: 'gcash' | 'maya' | 'qrph'
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null
@@ -240,7 +240,7 @@ type PaymentRecord = {
   tenantId: string
   tenancy: TenancyContext
   referenceId: string
-  method: 'gcash' | 'maya' | 'card'
+  method: 'gcash' | 'maya' | 'qrph' | 'card'
   amount: number
   status?: 'pending' | 'paid'
   sessionId?: string | null
@@ -331,7 +331,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
               quantity: 1,
             },
           ],
-          payment_method_types: ['gcash', 'paymaya'],
+          payment_method_types: payload.method === 'qrph' ? ['qrph'] : ['gcash', 'paymaya'],
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.

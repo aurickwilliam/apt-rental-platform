@@ -150,20 +150,26 @@ export default function PaymentCheckout() {
       dueDate: period.dueDate,
     }
 
-    if (activePaymentMethod === 'GCash' || activePaymentMethod === 'Maya') {
+    if (activePaymentMethod === 'GCash' || activePaymentMethod === 'Maya' || activePaymentMethod === 'QRPh') {
       setIsProcessing(true)
       try {
+        const methodMap: Record<string, 'gcash' | 'maya' | 'qrph'> = {
+          GCash: 'gcash',
+          Maya: 'maya',
+          QRPh: 'qrph',
+        }
         const session = await createCheckoutSession({
           referenceId,
           amount: totalPayment,
           description: paymentDescription,
           // Deep link carries only the session id — the backend decides the outcome.
+          // e-wallet-redirect handles immediate Linking.openURL(checkoutUrl) on mount.
           redirectBaseUrl: Linking.createURL('/tenant/payment/e-wallet-redirect'),
-          method: activePaymentMethod === 'GCash' ? 'gcash' : 'maya',
+          method: methodMap[activePaymentMethod],
           ...periodFields,
         })
         router.push(
-          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}&method=${activePaymentMethod === 'GCash' ? 'gcash' : 'maya'}&referenceId=${referenceId}`
+          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}&method=${methodMap[activePaymentMethod]}&referenceId=${referenceId}`
         )
       } catch (error) {
         setPaymentError({

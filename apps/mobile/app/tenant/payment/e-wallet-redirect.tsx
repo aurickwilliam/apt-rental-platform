@@ -24,9 +24,15 @@ export default function EWalletRedirect() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const verifyingRef = useRef(false);
 
-  const imageSource = method === 'gcash' ? PAYMENT_METHOD_LOGOS.gcashBig : PAYMENT_METHOD_LOGOS.mayaBig;
-  const methodText = method === 'gcash' ? 'GCash' : 'Maya';
-  const connectLabel = method === 'gcash' ? 'Connect to GCash' : 'Connect to Maya';
+  const imageSource =
+    method === 'gcash'
+      ? PAYMENT_METHOD_LOGOS.gcashBig
+      : method === 'qrph'
+        ? PAYMENT_METHOD_LOGOS.qrphBig
+        : PAYMENT_METHOD_LOGOS.mayaBig;
+  const methodText = method === 'gcash' ? 'GCash' : method === 'qrph' ? 'QR Ph' : 'Maya';
+  const connectLabel =
+    method === 'gcash' ? 'Connect to GCash' : method === 'qrph' ? 'Scan QR Ph' : 'Connect to Maya';
 
   const verifyPayment = useCallback(async (sessionIdValue: string) => {
     if (verifyingRef.current) return;
@@ -146,7 +152,7 @@ export default function EWalletRedirect() {
 
         <View className='mt-10'>
           <Text className='text-foreground text-center text-lg font-nunitoSemiBold'>
-            You’ll be redirected to <Text className={`font-nunitoSemiBold ${method === 'gcash' ? 'text-primary' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
+            You’ll be redirected to <Text className={`font-nunitoSemiBold ${method === 'gcash' ? 'text-primary' : method === 'qrph' ? 'text-foreground' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
           </Text>
         </View>
 

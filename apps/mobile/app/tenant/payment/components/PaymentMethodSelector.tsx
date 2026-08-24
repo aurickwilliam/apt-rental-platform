@@ -8,7 +8,7 @@ import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
 import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
 import { type CardFormErrors } from '@repo/utils'
 
-export type PaymentMethod = 'GCash' | 'Maya' | 'Debit/Credit-Card' | 'Cash'
+export type PaymentMethod = 'GCash' | 'Maya' | 'QRPh' | 'Debit/Credit-Card' | 'Cash'
 
 type SelectedPaymentMethod =
   | { kind: 'saved'; id: string; method: PaymentMethod }
@@ -38,6 +38,10 @@ const METHODS: Record<string, {
   Maya: {
     method: 'Maya',
     imageSource: PAYMENT_METHOD_LOGOS.mayaBig,
+  },
+  QRPh: {
+    method: 'QRPh',
+    imageSource: PAYMENT_METHOD_LOGOS.qrphBig,
   },
   'Debit/Credit-Card': {
     method: 'Debit/Credit-Card',

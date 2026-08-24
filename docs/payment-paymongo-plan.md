@@ -67,9 +67,9 @@
 - ✅ Cash flow — row created `pending` (was `unpaid`; semantic change: tenant paid but awaiting landlord confirmation), receipt shows **Pending**
 - ⏳ Landlord flip E2E pending: landlord notification → payment-history screen → Mark as Paid → row `paid`, tenant "Payment Successful" notification fires (landlord self-skipped via `auth.uid()`)
 
-## Part 6 — Payouts (landlord disbursement) & refunds (tenant) 🚧 IN PROGRESS
+## Part 6 — Payouts (landlord disbursement) & refunds (tenant) ✅ DONE (2026-08-24) — Full build
 
-**Status:** Planned + schema/edge-function pass (2026-08-20). Landlord destination-management UI, payout history screens, and landlord balance dashboard are follow-ups (explicitly out of scope here).
+**Status:** Full build (2026-08-24): DB + per-apartment indefinite override (Irene's Housing `56510e01...` fee 0/min 20, `is_active` indefinite until `false`), edge `process-payouts` + `qrph` eligible, payout history + balance, destination UI, webhooks all deployed + E2E. See per-apartment override below.
 
 **Decisions (locked):**
 1. Tenant payout = **refund to the original payment method** via PayMongo `/v1/refunds`. Cash/OTC payments are refunded manually (offline) — never via the API.
@@ -137,9 +137,16 @@
 4. Register webhook events: `transfer.outward.successful`, `transfer.outward.failed` (+ verify whether `transfer.outward.returned` exists in the catalog), `refund.updated`.
 5. Test-mode: fund the test wallet, add a test bank/GCash destination (SQL/service role), run `process-payouts` manually (single landlord), verify claim atomicity (double invocation), refund a GCash sandbox payment (succeeds) vs a `qrph`-typed row (typed `REFUND_NOT_SUPPORTED`).
 
+### Per-Apartment Indefinite Override (Irene's Housing)
+
+- **Table** `supabase/migrations/20260824000000_payout_apartment_override.sql` `payout_apartment_override(apartment_id pk, transfer_fee, min_payout_amount, is_active, expires_at null, reason)` indefinite (`is_active` true until you `update ... set is_active=false`).
+- **RPC** `create_payout_and_claim(p_landlord_id, p_destination_id, p_period_start, p_period_end, p_max_attempts, p_apartment_id default null)` coalesces `override.min/fee` when `p_apartment_id='56510e01...'` and `is_active && expires_at>now()`, eligible `method in ('gcash','maya','card','qrph') and (p_apartment_id is null or apartment_id=p_apartment_id)` — Irene's `qrph` 20 fee-waived `net 20`.
+- **Edge** `process-payouts` accepts `{"landlordId":"6e06ac91...","apartmentId":"56510e01..."}` + global `qrph` discovery.
+- **Mobile** `service/payments/payoutService.ts` + `hooks/payments/usePayouts.ts` + `app/payouts/index.tsx` + `app/payouts/[payoutId].tsx` + `PayoutHistoryCard` + `hooks/payments/usePayoutBalances.ts` (Available/Upcoming/In Transit) — landlord payout history + balance now built.
+
 ### Out of scope (Part 6 follow-ups)
 
-- Landlord payout-destination management UI (bank picker via `listReceivingInstitutions` — action not built this pass), payout history screen, landlord balance dashboard
+- Bank picker via `listReceivingInstitutions` — action not built this pass (DB allows `bank` but mobile is `gcash|maya` only via `PAYOUT_DESTINATION_BICS`)
 - Landlord-initiated refunds (deposit refund at lease end)
 - Web payout/refund parity
 - Partial-amount refund selection (client always refunds the full amount)
