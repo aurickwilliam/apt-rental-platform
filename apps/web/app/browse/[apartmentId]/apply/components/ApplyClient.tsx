@@ -17,6 +17,12 @@ import {
   Description,
   ToggleButtonGroup,
   ToggleButton,
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionIndicator,
+  AccordionPanel,
+  AccordionBody,
 } from "@heroui/react";
 import {
   MapPin,
@@ -673,56 +679,77 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
           <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-6">
             <h3 className="text-base font-semibold text-card-foreground">Summary of Application</h3>
             <p className="text-xs text-muted-foreground mb-4">Please review your details. Make sure everything is accurate before submitting.</p>
-            <div className="flex flex-col gap-4">
-              <div className="rounded-xl border border-border bg-muted p-4">
-                <h4 className="text-sm font-semibold text-card-foreground mb-3">Tenant Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DetailRow label="Full Name" value={fullName} />
-                  <DetailRow label="Email" value={email} />
-                  <DetailRow label="Date of Birth" value={dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : "—"} />
-                  <DetailRow label="Contact Number" value={contactNumber} />
-                  <div className="md:col-span-2"><DetailRow label="Current Address" value={currentAddress} /></div>
-                  <DetailRow label="Employment Type" value={employmentType || "—"} />
-                  <DetailRow label="Occupation" value={occupation || "—"} />
-                  <DetailRow label="Company Name" value={companyName || "—"} />
-                  <DetailRow label="Monthly Income" value={monthlyIncomeText || "—"} />
-                  <DetailRow label="Previous Landlord Name" value={prevLandlordName || "—"} />
-                  <DetailRow label="Previous Landlord Contact" value={prevLandlordContact || "—"} />
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-muted p-4">
-                <h4 className="text-sm font-semibold text-card-foreground mb-3">Rental Preferences</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DetailRow label="Move-in Date" value={moveInDate ? new Date(moveInDate).toLocaleDateString() : "—"} />
-                  <DetailRow label="Number of Occupants" value={noOccupants ? `${noOccupants} Person(s)` : "—"} />
-                  <DetailRow label="Has Pets?" value={hasPets ? (hasPets === "yes" ? "Yes" : "No") : "—"} />
-                  <DetailRow label="Smoker?" value={isSmoker ? (isSmoker === "yes" ? "Yes" : "No") : "—"} />
-                  <DetailRow label="Need Parking?" value={needParking ? (needParking === "yes" ? "Yes" : "No") : "—"} />
-                  <div className="md:col-span-2"><DetailRow label="Additional Notes" value={additionalNotes || "—"} /></div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-muted p-4">
-                <h4 className="text-sm font-semibold text-card-foreground mb-3">Uploaded Documents</h4>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
-                    {govIdPreview ? <img src={govIdPreview} alt="Gov ID" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
-                    <div><p className="text-sm font-medium text-card-foreground">Valid Government-issued ID</p><p className="text-xs text-muted-foreground">{govIdFile?.name ?? "Not uploaded"}</p></div>
-                  </div>
-                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
-                    <FileText size={20} className="text-muted-foreground" />
-                    <div><p className="text-sm font-medium text-card-foreground">Proof of Income</p><p className="text-xs text-muted-foreground">{proofOfIncomeFile?.name ?? "Not uploaded"}</p></div>
-                  </div>
-                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
-                    {proofOfBillingPreview ? <img src={proofOfBillingPreview} alt="Billing" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
-                    <div><p className="text-sm font-medium text-card-foreground">Proof of Billing</p><p className="text-xs text-muted-foreground">{proofOfBillingFile?.name ?? "Not uploaded"}</p></div>
-                  </div>
-                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
-                    <FileText size={20} className="text-muted-foreground" />
-                    <div><p className="text-sm font-medium text-card-foreground">NBI Clearance</p><p className="text-xs text-muted-foreground">{nbiClearanceFile?.name ?? "Not uploaded"}</p></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Accordion allowsMultipleExpanded defaultExpandedKeys={new Set(["tenant"]) as never} className="flex flex-col gap-3">
+              <AccordionItem id="tenant" className="border border-border rounded-xl bg-muted overflow-hidden">
+                <AccordionTrigger className="w-full flex items-center justify-between p-4 text-sm font-semibold text-card-foreground">
+                  Tenant Information
+                  <AccordionIndicator />
+                </AccordionTrigger>
+                <AccordionPanel>
+                  <AccordionBody className="px-4 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <DetailRow label="Full Name" value={fullName} />
+                      <DetailRow label="Email" value={email} />
+                      <DetailRow label="Date of Birth" value={dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : "—"} />
+                      <DetailRow label="Contact Number" value={contactNumber} />
+                      <div className="md:col-span-2"><DetailRow label="Current Address" value={currentAddress} /></div>
+                      <DetailRow label="Employment Type" value={employmentType || "—"} />
+                      <DetailRow label="Occupation" value={occupation || "—"} />
+                      <DetailRow label="Company Name" value={companyName || "—"} />
+                      <DetailRow label="Monthly Income" value={monthlyIncomeText || "—"} />
+                      <DetailRow label="Previous Landlord Name" value={prevLandlordName || "—"} />
+                      <DetailRow label="Previous Landlord Contact" value={prevLandlordContact || "—"} />
+                    </div>
+                  </AccordionBody>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem id="prefs" className="border border-border rounded-xl bg-muted overflow-hidden">
+                <AccordionTrigger className="w-full flex items-center justify-between p-4 text-sm font-semibold text-card-foreground">
+                  Rental Preferences
+                  <AccordionIndicator />
+                </AccordionTrigger>
+                <AccordionPanel>
+                  <AccordionBody className="px-4 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <DetailRow label="Move-in Date" value={moveInDate ? new Date(moveInDate).toLocaleDateString() : "—"} />
+                      <DetailRow label="Number of Occupants" value={noOccupants ? `${noOccupants} Person(s)` : "—"} />
+                      <DetailRow label="Has Pets?" value={hasPets ? (hasPets === "yes" ? "Yes" : "No") : "—"} />
+                      <DetailRow label="Smoker?" value={isSmoker ? (isSmoker === "yes" ? "Yes" : "No") : "—"} />
+                      <DetailRow label="Need Parking?" value={needParking ? (needParking === "yes" ? "Yes" : "No") : "—"} />
+                      <div className="md:col-span-2"><DetailRow label="Additional Notes" value={additionalNotes || "—"} /></div>
+                    </div>
+                  </AccordionBody>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem id="docs" className="border border-border rounded-xl bg-muted overflow-hidden">
+                <AccordionTrigger className="w-full flex items-center justify-between p-4 text-sm font-semibold text-card-foreground">
+                  Uploaded Documents
+                  <AccordionIndicator />
+                </AccordionTrigger>
+                <AccordionPanel>
+                  <AccordionBody className="px-4 pb-4">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                        {govIdPreview ? <img src={govIdPreview} alt="Gov ID" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+                        <div><p className="text-sm font-medium text-card-foreground">Valid Government-issued ID</p><p className="text-xs text-muted-foreground">{govIdFile?.name ?? "Not uploaded"}</p></div>
+                      </div>
+                      <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                        <FileText size={20} className="text-muted-foreground" />
+                        <div><p className="text-sm font-medium text-card-foreground">Proof of Income</p><p className="text-xs text-muted-foreground">{proofOfIncomeFile?.name ?? "Not uploaded"}</p></div>
+                      </div>
+                      <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                        {proofOfBillingPreview ? <img src={proofOfBillingPreview} alt="Billing" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+                        <div><p className="text-sm font-medium text-card-foreground">Proof of Billing</p><p className="text-xs text-muted-foreground">{proofOfBillingFile?.name ?? "Not uploaded"}</p></div>
+                      </div>
+                      <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                        <FileText size={20} className="text-muted-foreground" />
+                        <div><p className="text-sm font-medium text-card-foreground">NBI Clearance</p><p className="text-xs text-muted-foreground">{nbiClearanceFile?.name ?? "Not uploaded"}</p></div>
+                      </div>
+                    </div>
+                  </AccordionBody>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onPress={() => setStep(4)}>Back</Button>
               <Button className="flex-1" onPress={() => setStep(6)}>Submit Application</Button>
