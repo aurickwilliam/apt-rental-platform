@@ -4009,11 +4009,6 @@
     "ast_hash": "4a037678e3b72c2dd7d480da80c622a3",
     "semantic_hash": ""
   },
-  "docs/payout-e2e-checklist.md": {
-    "mtime": 1787291945.3976912,
-    "ast_hash": "2dd300c518b7e16e2097f4ad9c2c7e20",
-    "semantic_hash": ""
-  },
   "apps/mobile/app/payout-account/[destinationId].tsx": {
     "mtime": 1787298963.0775545,
     "ast_hash": "6da4ca99ccd5e436ccfb0310f3bc87a1",
@@ -4062,11 +4057,6 @@
   "supabase/migrations/20260821000002_payout_destination_tripwire_relevance.sql": {
     "mtime": 1787300354.2664626,
     "ast_hash": "b7d3980e20b54dc76f205c3eed8335e7",
-    "semantic_hash": ""
-  },
-  "docs/live-payment-golive-runbook.md": {
-    "mtime": 1787301707.2154784,
-    "ast_hash": "6ecb90bc162849f4cd5f0b43a5eeffe7",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingBreakdown.tsx": {
@@ -4172,6 +4162,11 @@
   "apps/mobile/assets/images/payment-logos/qrph-logo.png": {
     "mtime": 1787539420.0664003,
     "ast_hash": "adc3e9666f1a966c8f092d612ab34f2a",
+    "semantic_hash": ""
+  },
+  "docs/payment-settlement.md": {
+    "mtime": 1787572879.7215147,
+    "ast_hash": "031a3a63ede182131f79624251ead604",
     "semantic_hash": ""
   }
 }
