@@ -20,7 +20,7 @@ export default function CircleProgress({ currentStep, totalSteps, size = 80 }: C
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#F8F9FA"
+          stroke="var(--muted)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -36,7 +36,7 @@ export default function CircleProgress({ currentStep, totalSteps, size = 80 }: C
           strokeLinecap="round"
         />
       </svg>
-      <span className="text-sm md:text-base font-bold font-nunito text-black">
+      <span className="text-sm md:text-base font-bold font-nunito text-card-foreground">
         {currentStep} of {totalSteps}
       </span>
     </div>

@@ -17,10 +17,10 @@ export default function ApplicationHeader({
   totalSteps = 4,
 }: ApplicationHeaderProps) {
   return (
-    <Card className="bg-[#F8F9FA] md:bg-surface border shadow-none p-5 flex flex-row items-center justify-between">
+    <Card className="bg-card md:bg-card border border-border shadow-none p-5 flex flex-row items-center justify-between">
       <div className="flex-1 flex flex-col gap-1 min-w-0 pr-4">
-        <h2 className="text-2xl font-nunito font-bold text-black leading-none">{currentTitle}</h2>
-        <p className="text-base font-nunito font-semibold text-grey-700">Next: {nextTitle}</p>
+        <h2 className="text-2xl font-nunito font-bold text-card-foreground leading-none">{currentTitle}</h2>
+        <p className="text-base font-nunito font-semibold text-muted-foreground">Next: {nextTitle}</p>
       </div>
       <div className="hidden md:block">
         <CircleProgress currentStep={step} totalSteps={totalSteps} size={96} />

@@ -94,8 +94,8 @@ const WIZARD_TITLES: Record<number, { currentTitle: string; nextTitle: string }>
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-grey-700 font-medium">{label}</span>
-      <span className="text-sm font-semibold text-black">{value || "—"}</span>
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+      <span className="text-sm font-semibold text-card-foreground">{value || "—"}</span>
     </div>
   );
 }
@@ -253,7 +253,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       )}
 
       {step === 1 && (
-        <div className="border bg-white rounded-3xl overflow-hidden shadow-sm ring-1 ring-black/5 isolate">
+        <div className="border border-border bg-card text-card-foreground rounded-3xl overflow-hidden shadow-sm ring-1 ring-border isolate">
           <div className="relative h-80 md:h-[560px] rounded-3xl overflow-hidden isolate">
             <NextImage
               src={apartment.cover}
@@ -276,69 +276,69 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
           <div className="p-5 md:p-6 flex flex-col gap-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-2 text-sm">
-                <House size={18} className="text-grey-700" /> <span className="font-medium">{apartment.type ?? "—"}</span>
+                <House size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.type ?? "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <BedDouble size={18} className="text-grey-700" /> <span className="font-medium">{apartment.noBedrooms ?? "—"} Bedrooms</span>
+                <BedDouble size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBedrooms ?? "—"} Bedrooms</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Bath size={18} className="text-grey-700" /> <span className="font-medium">{apartment.noBathrooms ?? "—"} Bathrooms</span>
+                <Bath size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBathrooms ?? "—"} Bathrooms</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Expand size={18} className="text-grey-700" /> <span className="font-medium">{apartment.areaSqm ?? "—"} sqm</span>
+                <Expand size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.areaSqm ?? "—"} sqm</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Building2 size={18} className="text-grey-700" /> <span className="font-medium">{apartment.floorLevel ?? "—"}</span>
+                <Building2 size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.floorLevel ?? "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Users size={18} className="text-grey-700" /> <span className="font-medium">{apartment.maxOccupants ?? "—"} Occupants</span>
+                <Users size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.maxOccupants ?? "—"} Occupants</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <CalendarIcon size={18} className="text-grey-700" /> <span className="font-medium">{apartment.leaseDuration ?? "—"}</span>
+                <CalendarIcon size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.leaseDuration ?? "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Armchair size={18} className="text-grey-700" /> <span className="font-medium">{apartment.furnishedType ?? "—"}</span>
+                <Armchair size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.furnishedType ?? "—"}</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 text-sm">
                 <Star size={16} className="text-amber-500 fill-amber-500" />
-                <span className="font-semibold">{apartment.averageRating?.toFixed(1) ?? "—"}</span>
-                <span className="text-grey-700">rating</span>
+                <span className="font-semibold text-card-foreground">{apartment.averageRating?.toFixed(1) ?? "—"}</span>
+                <span className="text-muted-foreground">rating</span>
               </div>
               {apartment.landlordName && (
                 <div className="flex items-center gap-2 ml-auto text-sm">
                   {apartment.landlordAvatarUrl ? (
                     <img src={apartment.landlordAvatarUrl} alt="Owner" width={24} height={24} className="rounded-full object-cover w-6 h-6" />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-grey-200" />
+                    <div className="w-6 h-6 rounded-full bg-muted" />
                   )}
-                  <span className="font-medium">{apartment.landlordName}</span>
-                  <span className="text-grey-700 text-xs">Rental Owner</span>
+                  <span className="font-medium text-card-foreground">{apartment.landlordName}</span>
+                  <span className="text-muted-foreground text-xs">Rental Owner</span>
                 </div>
               )}
             </div>
             <Separator />
-            <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-xl">
+            <div className="flex flex-col gap-3 bg-muted p-4 rounded-xl border border-border">
               <div className="flex justify-between text-sm">
-                <span className="text-grey-700">Monthly Rent</span>
-                <span className="font-semibold">{formatPesoDisplay(apartment.monthlyRent)}</span>
+                <span className="text-muted-foreground">Monthly Rent</span>
+                <span className="font-semibold text-card-foreground">{formatPesoDisplay(apartment.monthlyRent)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-grey-700">Security Deposit</span>
-                <span className="font-medium">{formatPesoDisplay(apartment.securityDeposit)}</span>
+                <span className="text-muted-foreground">Security Deposit</span>
+                <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.securityDeposit)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-grey-700">Advance Rent</span>
-                <span className="font-medium">{formatPesoDisplay(apartment.advanceRent)}</span>
+                <span className="text-muted-foreground">Advance Rent</span>
+                <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.advanceRent)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-sm">
-                <span className="font-semibold">Total Move-in Cost</span>
+                <span className="font-semibold text-card-foreground">Total Move-in Cost</span>
                 <span className="font-bold text-primary">{formatPesoDisplay(totalMoveIn)}</span>
               </div>
               {apartment.maxOccupants !== null && (
-                <p className="text-xs text-grey-700">This unit allows a maximum of {apartment.maxOccupants} occupant(s).</p>
+                <p className="text-xs text-muted-foreground">This unit allows a maximum of {apartment.maxOccupants} occupant(s).</p>
               )}
             </div>
             <div className="flex gap-3 pt-2">
@@ -354,41 +354,41 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
        )}
 
       {step === 2 && (
-        <Card className="border shadow-none bg-white p-5 md:p-8">
-          <h2 className="text-lg font-semibold text-black">Personal Information</h2>
-          <p className="text-xs text-grey-700 mb-5">All fields are editable. Please ensure accuracy.</p>
+        <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-8">
+          <h2 className="text-lg font-semibold text-card-foreground">Personal Information</h2>
+          <p className="text-xs text-muted-foreground mb-5">All fields are editable. Please ensure accuracy.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <TextField isRequired isInvalid={!!errors.fullName} value={fullName} onChange={(v: string) => { setFullName(v); if (v.trim()) clearError("fullName"); }}>
               <Label>Full Name</Label>
-              <Input placeholder="Enter your full name" />
+              <Input placeholder="Enter your full name"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.fullName}</FieldError>
             </TextField>
             <TextField isRequired isInvalid={!!errors.email} value={email} onChange={(v: string) => { setEmail(v); if (v.trim()) clearError("email"); }}>
               <Label>Email</Label>
-              <Input placeholder="Enter your email" inputMode="email" />
+              <Input placeholder="Enter your email" inputMode="email"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.email}</FieldError>
             </TextField>
             <TextField isRequired isInvalid={!!errors.dateOfBirth} value={dateOfBirth} onChange={(v: string) => { setDateOfBirth(v); if (v) clearError("dateOfBirth"); }}>
               <Label>Date of Birth</Label>
-              <Input type="date" />
+              <Input type="date"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.dateOfBirth}</FieldError>
             </TextField>
             <TextField isRequired isInvalid={!!errors.contactNumber} value={contactNumber} onChange={(v: string) => { setContactNumber(v); clearError("contactNumber"); }}>
               <Label>Contact Number</Label>
-              <Input placeholder="09XXXXXXXXX" inputMode="numeric" />
+              <Input placeholder="09XXXXXXXXX" inputMode="numeric"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.contactNumber}</FieldError>
             </TextField>
             <div className="md:col-span-2">
               <TextField isRequired isInvalid={!!errors.currentAddress} value={currentAddress} onChange={(v: string) => { setCurrentAddress(v); if (v.trim()) clearError("currentAddress"); }}>
                 <Label>Current Address</Label>
-                <Input placeholder="Street, Barangay, City, Province" />
+                <Input placeholder="Street, Barangay, City, Province"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
                 <FieldError>{errors.currentAddress}</FieldError>
               </TextField>
             </div>
           </div>
 
           <Separator className="my-6" />
-          <h3 className="text-base font-semibold text-black mb-4">Employment & Income Details</h3>
+          <h3 className="text-base font-semibold text-card-foreground mb-4">Employment & Income Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Select
               isRequired
@@ -408,7 +408,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               isInvalid={!!errors.employmentType}
             >
               <Label>Employment Type</Label>
-              <Select.Trigger>
+              <Select.Trigger className="bg-card border-border text-card-foreground">
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
@@ -424,13 +424,13 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
 
             <TextField isRequired={requiresOccupation} isInvalid={!!errors.occupation} value={occupation} onChange={(v: string) => { setOccupation(v); if (v.trim()) clearError("occupation"); }}>
               <Label>Occupation / Job Title</Label>
-              <Input placeholder="Enter your occupation" />
+              <Input placeholder="Enter your occupation"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.occupation}</FieldError>
             </TextField>
 
             <TextField isRequired={requiresCompany} isInvalid={!!errors.companyName} isDisabled={isNoIncomeType} value={isNoIncomeType ? "" : companyName} onChange={(v: string) => { setCompanyName(v); if (v.trim()) clearError("companyName"); }}>
               <Label>Company Name</Label>
-              <Input placeholder={isNoIncomeType ? "Not applicable" : "Enter your company name"} />
+              <Input placeholder={isNoIncomeType ? "Not applicable" : "Enter your company name"}  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.companyName}</FieldError>
             </TextField>
 
@@ -445,23 +445,23 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               }
             }}>
               <Label>Monthly Income</Label>
-              <Input placeholder={isNoIncomeType ? "Enter 0 if no income" : "Enter your monthly income"} inputMode="decimal" />
+              <Input placeholder={isNoIncomeType ? "Enter 0 if no income" : "Enter your monthly income"} inputMode="decimal"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.monthlyIncome}</FieldError>
             </TextField>
           </div>
 
           <Separator className="my-6" />
-          <h3 className="text-base font-semibold text-black">References</h3>
-          <p className="text-xs text-grey-700 mb-4">Preferred for fast-track review</p>
+          <h3 className="text-base font-semibold text-card-foreground">References</h3>
+          <p className="text-xs text-muted-foreground mb-4">Preferred for fast-track review</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <TextField isInvalid={!!errors.prevLandlordName} value={prevLandlordName} onChange={(v: string) => { setPrevLandlordName(v); if (v.trim()) clearError("prevLandlordName"); }}>
               <Label>Previous Landlord Name</Label>
-              <Input placeholder="Enter previous landlord name" />
+              <Input placeholder="Enter previous landlord name"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.prevLandlordName}</FieldError>
             </TextField>
             <TextField isInvalid={!!errors.prevLandlordContact} value={prevLandlordContact} onChange={(v: string) => { setPrevLandlordContact(v); clearError("prevLandlordContact"); }}>
               <Label>Previous Landlord Contact</Label>
-              <Input placeholder="09XXXXXXXXX" />
+              <Input placeholder="09XXXXXXXXX"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.prevLandlordContact}</FieldError>
             </TextField>
           </div>
@@ -474,12 +474,12 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       )}
 
       {step === 3 && (
-        <Card className="border shadow-none bg-white p-5 md:p-8">
-          <h2 className="text-lg font-semibold text-black mb-5">Rental Preferences</h2>
+        <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-8">
+          <h2 className="text-lg font-semibold text-card-foreground mb-5">Rental Preferences</h2>
           <div className="flex flex-col gap-5">
             <TextField isRequired isInvalid={!!errors.moveInDate} value={moveInDate} onChange={(v: string) => { setMoveInDate(v); if (v) clearError("moveInDate"); }}>
               <Label>Preferred Move-In Date</Label>
-              <Input type="date" />
+              <Input type="date"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.moveInDate}</FieldError>
               {apartment.maxOccupants !== null && !errors.moveInDate && (
                 <Description>This unit allows a maximum of {apartment.maxOccupants} occupant(s).</Description>
@@ -493,7 +493,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               if (!Number.isNaN(num) && num > 0 && (apartment.maxOccupants === null || num <= apartment.maxOccupants)) clearError("noOccupants");
             }}>
               <Label>Number of Occupants</Label>
-              <Input type="number" placeholder="Enter number of occupants" inputMode="numeric" />
+              <Input type="number" placeholder="Enter number of occupants" inputMode="numeric"  className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <FieldError>{errors.noOccupants}</FieldError>
             </TextField>
 
@@ -509,7 +509,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               const setVal = field === "hasPets" ? setHasPets : field === "isSmoker" ? setIsSmoker : setNeedParking;
               return (
                 <div key={field}>
-                  <Label className="text-sm font-medium text-black mb-2 block">
+                  <Label className="text-sm font-medium text-card-foreground mb-2 block">
                     {labels[field].title} <span className="text-red-600">*</span>
                   </Label>
                   <ToggleButtonGroup
@@ -543,7 +543,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
 
             <TextField value={additionalNotes} onChange={(v: string) => setAdditionalNotes(v)}>
               <Label>Additional Notes</Label>
-              <TextArea placeholder="Enter any additional information or preferences" rows={5} maxLength={1000} />
+              <TextArea placeholder="Enter any additional information or preferences" rows={5} maxLength={1000} className="bg-card border-border text-card-foreground placeholder:text-muted-foreground" />
               <Description>{additionalNotes.length}/1000 characters</Description>
             </TextField>
           </div>
@@ -555,12 +555,12 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       )}
 
       {step === 4 && (
-        <Card className="border shadow-none bg-white p-5 md:p-8">
-          <h2 className="text-lg font-semibold text-black mb-1">Upload Required Documents</h2>
-          <p className="text-xs text-grey-700 mb-6">Accepted: images for ID/billing; PDF/DOC/DOCX for income/NBI. UI-only preview.</p>
+        <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-8">
+          <h2 className="text-lg font-semibold text-card-foreground mb-1">Upload Required Documents</h2>
+          <p className="text-xs text-muted-foreground mb-6">Accepted: images for ID/billing; PDF/DOC/DOCX for income/NBI. UI-only preview.</p>
           <div className="flex flex-col gap-6">
             <div>
-              <Label className="text-sm font-medium text-black mb-2 block">Valid Government-issued ID <span className="text-red-600">*</span></Label>
+              <Label className="text-sm font-medium text-card-foreground mb-2 block">Valid Government-issued ID <span className="text-red-600">*</span></Label>
               <input ref={govIdRef} type="file" accept="image/*" className="hidden" onChange={onFilePick(setGovIdFile, setGovIdPreview, true)} />
               {govIdFile ? (
                 <div className="flex items-center gap-3 border border-grey-300 rounded-xl p-3">
@@ -582,9 +582,9 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
             </div>
             <Separator />
             <div>
-              <Label className="text-sm font-medium text-black mb-2 block">
+              <Label className="text-sm font-medium text-card-foreground mb-2 block">
                 Proof of Income {requiresProofOfIncome(employmentType || "") && <span className="text-red-600">*</span>}
-                <span className="text-grey-700 font-normal ml-2 text-xs">(COE, payslip, or ITR — PDF/DOC/DOCX)</span>
+                <span className="text-muted-foreground font-normal ml-2 text-xs">(COE, payslip, or ITR — PDF/DOC/DOCX)</span>
               </Label>
               <input ref={incomeRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={onFilePick(setProofOfIncomeFile)} />
               {proofOfIncomeFile ? (
@@ -604,7 +604,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
             </div>
             <Separator />
             <div>
-              <Label className="text-sm font-medium text-black mb-2 block">Proof of Billing <span className="text-red-600">*</span></Label>
+              <Label className="text-sm font-medium text-card-foreground mb-2 block">Proof of Billing <span className="text-red-600">*</span></Label>
               <input ref={billingRef} type="file" accept="image/*" className="hidden" onChange={onFilePick(setProofOfBillingFile, setProofOfBillingPreview, true)} />
               {proofOfBillingFile ? (
                 <div className="flex items-center gap-3 border border-grey-300 rounded-xl p-3">
@@ -626,7 +626,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
             </div>
             <Separator />
             <div>
-              <Label className="text-sm font-medium text-black mb-2 block">NBI Clearance <span className="text-grey-700 font-normal text-xs">(optional)</span></Label>
+              <Label className="text-sm font-medium text-card-foreground mb-2 block">NBI Clearance <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
               <input ref={nbiRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={onFilePick(setNbiClearanceFile)} />
               {nbiClearanceFile ? (
                 <div className="flex items-center gap-3 border border-grey-300 rounded-xl p-3 bg-darker-white">
@@ -652,10 +652,10 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
 
       {step === 5 && (
         <div className="flex flex-col gap-6">
-          <Card className="border shadow-none bg-white p-5 md:p-6">
-            <p className="text-xs tracking-widest uppercase text-grey-700 mb-1">You are applying for</p>
-            <h2 className="text-xl font-bold text-black">{apartment.name}</h2>
-            <p className="text-sm text-grey-700 flex items-center gap-1"><MapPin size={14} /> {apartment.address}</p>
+          <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-6">
+            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-1">You are applying for</p>
+            <h2 className="text-xl font-bold text-card-foreground">{apartment.name}</h2>
+            <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin size={14} /> {apartment.address}</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
               <DetailRow label="Unit Type" value={apartment.type ?? "—"} />
               <DetailRow label="Furnishing" value={apartment.furnishedType ?? "—"} />
@@ -670,12 +670,12 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
             </div>
           </Card>
 
-          <Card className="border shadow-none bg-white p-5 md:p-6">
-            <h3 className="text-base font-semibold text-black">Summary of Application</h3>
-            <p className="text-xs text-grey-700 mb-4">Please review your details. Make sure everything is accurate before submitting.</p>
+          <Card className="border border-border shadow-none bg-card text-card-foreground p-5 md:p-6">
+            <h3 className="text-base font-semibold text-card-foreground">Summary of Application</h3>
+            <p className="text-xs text-muted-foreground mb-4">Please review your details. Make sure everything is accurate before submitting.</p>
             <div className="flex flex-col gap-4">
-              <div className="rounded-xl border bg-darker-white p-4">
-                <h4 className="text-sm font-semibold text-black mb-3">Tenant Information</h4>
+              <div className="rounded-xl border border-border bg-muted p-4">
+                <h4 className="text-sm font-semibold text-card-foreground mb-3">Tenant Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <DetailRow label="Full Name" value={fullName} />
                   <DetailRow label="Email" value={email} />
@@ -690,8 +690,8 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
                   <DetailRow label="Previous Landlord Contact" value={prevLandlordContact || "—"} />
                 </div>
               </div>
-              <div className="rounded-xl border bg-darker-white p-4">
-                <h4 className="text-sm font-semibold text-black mb-3">Rental Preferences</h4>
+              <div className="rounded-xl border border-border bg-muted p-4">
+                <h4 className="text-sm font-semibold text-card-foreground mb-3">Rental Preferences</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <DetailRow label="Move-in Date" value={moveInDate ? new Date(moveInDate).toLocaleDateString() : "—"} />
                   <DetailRow label="Number of Occupants" value={noOccupants ? `${noOccupants} Person(s)` : "—"} />
@@ -701,24 +701,24 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
                   <div className="md:col-span-2"><DetailRow label="Additional Notes" value={additionalNotes || "—"} /></div>
                 </div>
               </div>
-              <div className="rounded-xl border bg-darker-white p-4">
-                <h4 className="text-sm font-semibold text-black mb-3">Uploaded Documents</h4>
+              <div className="rounded-xl border border-border bg-muted p-4">
+                <h4 className="text-sm font-semibold text-card-foreground mb-3">Uploaded Documents</h4>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 border rounded-xl p-3 bg-white">
-                    {govIdPreview ? <img src={govIdPreview} alt="Gov ID" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border" /> : <ImageIcon size={20} className="text-grey-700" />}
-                    <div><p className="text-sm font-medium">Valid Government-issued ID</p><p className="text-xs text-grey-700">{govIdFile?.name ?? "Not uploaded"}</p></div>
+                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                    {govIdPreview ? <img src={govIdPreview} alt="Gov ID" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+                    <div><p className="text-sm font-medium text-card-foreground">Valid Government-issued ID</p><p className="text-xs text-muted-foreground">{govIdFile?.name ?? "Not uploaded"}</p></div>
                   </div>
-                  <div className="flex items-center gap-3 border rounded-xl p-3 bg-white">
-                    <FileText size={20} className="text-grey-700" />
-                    <div><p className="text-sm font-medium">Proof of Income</p><p className="text-xs text-grey-700">{proofOfIncomeFile?.name ?? "Not uploaded"}</p></div>
+                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                    <FileText size={20} className="text-muted-foreground" />
+                    <div><p className="text-sm font-medium text-card-foreground">Proof of Income</p><p className="text-xs text-muted-foreground">{proofOfIncomeFile?.name ?? "Not uploaded"}</p></div>
                   </div>
-                  <div className="flex items-center gap-3 border rounded-xl p-3 bg-white">
-                    {proofOfBillingPreview ? <img src={proofOfBillingPreview} alt="Billing" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border" /> : <ImageIcon size={20} className="text-grey-700" />}
-                    <div><p className="text-sm font-medium">Proof of Billing</p><p className="text-xs text-grey-700">{proofOfBillingFile?.name ?? "Not uploaded"}</p></div>
+                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                    {proofOfBillingPreview ? <img src={proofOfBillingPreview} alt="Billing" width={56} height={56} className="w-14 h-14 rounded-lg object-cover border border-border" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+                    <div><p className="text-sm font-medium text-card-foreground">Proof of Billing</p><p className="text-xs text-muted-foreground">{proofOfBillingFile?.name ?? "Not uploaded"}</p></div>
                   </div>
-                  <div className="flex items-center gap-3 border rounded-xl p-3 bg-white">
-                    <FileText size={20} className="text-grey-700" />
-                    <div><p className="text-sm font-medium">NBI Clearance</p><p className="text-xs text-grey-700">{nbiClearanceFile?.name ?? "Not uploaded"}</p></div>
+                  <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card">
+                    <FileText size={20} className="text-muted-foreground" />
+                    <div><p className="text-sm font-medium text-card-foreground">NBI Clearance</p><p className="text-xs text-muted-foreground">{nbiClearanceFile?.name ?? "Not uploaded"}</p></div>
                   </div>
                 </div>
               </div>
@@ -727,21 +727,21 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               <Button variant="outline" className="flex-1" onPress={() => setStep(4)}>Back</Button>
               <Button className="flex-1" onPress={() => setStep(6)}>Submit Application</Button>
             </div>
-            <p className="text-[11px] text-grey-700 mt-3 text-center">UI-only demo — no data is sent to the server.</p>
+            <p className="text-[11px] text-muted-foreground mt-3 text-center">UI-only demo — no data is sent to the server.</p>
           </Card>
         </div>
       )}
 
       {step === 6 && (
-        <Card className="border shadow-none bg-white p-8 md:p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+        <Card className="border border-border shadow-none bg-card text-card-foreground p-8 md:p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
             <CircleCheckBig size={32} className="text-green-500" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-primary">Application Sent!</h2>
-          <p className="text-sm text-black mt-3 max-w-xl mx-auto">
+          <p className="text-sm text-card-foreground mt-3 max-w-xl mx-auto">
             Your application for <span className="font-semibold">{apartment.name}</span> has been submitted. The rental owner will review it and get back to you.
           </p>
-          <p className="text-xs text-grey-700 mt-2">This is a UI-only preview — no data was stored.</p>
+          <p className="text-xs text-muted-foreground mt-2">This is a UI-only preview — no data was stored.</p>
         </Card>
       )}
 
