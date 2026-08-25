@@ -12,10 +12,6 @@ export function usePaymentStatusStyles(): Record<PaymentStatus, StatusStyle> {
       backgroundColor: colors.successLight,
       textColor: colors.success,
     },
-    Partial: {
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
-    },
     Pending: {
       backgroundColor: colors.gray100,
       textColor: colors.gray500,

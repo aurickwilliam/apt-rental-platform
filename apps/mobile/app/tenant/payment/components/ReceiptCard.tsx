@@ -23,13 +23,6 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
     titleClass: 'text-success',
     footer: 'Thank you for your payment!',
   },
-  Partial: {
-    icon: IconAlertCircleFilled,
-    color: 'warning',
-    title: 'Partial Payment',
-    titleClass: 'text-warning',
-    footer: 'A balance is still due.',
-  },
   Pending: {
     icon: IconAlertCircleFilled,
     color: 'warning',

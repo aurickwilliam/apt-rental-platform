@@ -72,7 +72,6 @@ describe('paymentStatusLabel', () => {
   it('maps database statuses to display statuses', () => {
     expect(paymentStatusLabel('paid')).toBe('Paid')
     expect(paymentStatusLabel('pending')).toBe('Pending')
-    expect(paymentStatusLabel('partial')).toBe('Partial')
     expect(paymentStatusLabel('unpaid')).toBe('Unpaid')
   })
 

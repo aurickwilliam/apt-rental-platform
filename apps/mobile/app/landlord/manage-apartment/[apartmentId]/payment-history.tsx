@@ -22,7 +22,7 @@ type FlatPayment = {
   year: string
   month: string
   amount: number
-  status: 'paid' | 'partial' | 'pending' | 'unpaid'
+  status: 'paid' | 'pending' | 'unpaid'
   method: string | null
   reference: string | null
   paidDate: string

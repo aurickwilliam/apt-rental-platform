@@ -3,11 +3,14 @@ import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { Button } from 'heroui-native'
+import { IconCircleCheckFilled } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import DetailField from '@/components/display/DetailField'
 import ErrorDialog from '@/components/display/ErrorDialog'
+import EmptyState from '@/components/display/EmptyState'
+import { useColors } from '@/hooks/useTheme'
 import PaymentSummaryCard from './components/PaymentSummaryCard'
 import PaymentMethodSelector, { type PaymentMethod } from './components/PaymentMethodSelector'
 import PaymentFooter from './components/PaymentFooter'
@@ -81,18 +84,19 @@ const formatLeaseDate = (iso: string | null): string => {
 
 export default function PaymentCheckout() {
   const router = useRouter()
+  const { colors } = useColors()
 
   const [activePaymentMethod, setActivePaymentMethod] = useState<PaymentMethod | null>(null)
   const [cardInformation, setCardInformation] = useState<CardInformation>(INITIAL_CARD)
   const [cardErrors, setCardErrors] = useState<CardFormErrors>({})
   const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null)
-  const [cashAmountPaid, setCashAmountPaid] = useState('')
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({})
   const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
   const { data: currentUser } = useCurrentUser()
   const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
+  // Kept only for the already-paid guard — rent is always billed in full.
   const paymentsQuery = usePayments(tenancy?.id ?? null)
 
   const apartment = tenancy?.apartment ?? null
@@ -109,8 +113,11 @@ export default function PaymentCheckout() {
   )
   const monthLabel = periodMonthLabel(period.periodStart, new Date().toISOString())
   const yearLabel = period.periodStart.slice(0, 4)
-  const paidAmount = paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart)
-  const totalPayment = Math.max(monthlyRent - paidAmount, 0)
+  // Full-amount policy: rent is always billed whole. A fully paid period
+  // cannot be paid again (prevents double-payment/overpay).
+  const isPeriodFullyPaid =
+    monthlyRent > 0 &&
+    paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent
 
   const clearCardError = () => setCardErrors({})
   const clearCashErrors = () => setCashErrors({})
@@ -122,6 +129,10 @@ export default function PaymentCheckout() {
 
   const handleGoToSuccess = (referenceId: string) => {
     router.push(`/tenant/payment/success?referenceId=${referenceId}`)
+  }
+
+  const handleGoHome = () => {
+    router.replace('/(tabs)/(tenant)/rentals')
   }
 
   const handlePay = async () => {
@@ -160,7 +171,7 @@ export default function PaymentCheckout() {
         }
         const session = await createCheckoutSession({
           referenceId,
-          amount: totalPayment,
+          amount: monthlyRent,
           description: paymentDescription,
           // Deep link carries only the session id — the backend decides the outcome.
           // e-wallet-redirect handles immediate Linking.openURL(checkoutUrl) on mount.
@@ -193,7 +204,7 @@ export default function PaymentCheckout() {
       try {
         const result = await createCardPayment({
           referenceId,
-          amount: totalPayment,
+          amount: monthlyRent,
           description: paymentDescription,
           card: {
             number: cardInformation.cardNumber.replace(/\s/g, ''),
@@ -222,10 +233,7 @@ export default function PaymentCheckout() {
         setIsProcessing(false)
       }
     } else if (activePaymentMethod === 'Cash') {
-      const errors = validateCashPayment({
-        paymentDate: cashPaymentDate,
-        amountPaid: cashAmountPaid,
-      })
+      const errors = validateCashPayment({ paymentDate: cashPaymentDate })
       if (Object.keys(errors).length > 0) {
         setCashErrors(errors)
         return
@@ -235,7 +243,7 @@ export default function PaymentCheckout() {
       try {
         await createCashPayment({
           referenceId,
-          amount: Number(cashAmountPaid),
+          amount: monthlyRent,
           date: toIsoDate(cashPaymentDate ?? new Date()),
           tenantId: currentUser?.id ?? tenancy.id,
           apartmentId: apartment.id,
@@ -280,13 +288,30 @@ export default function PaymentCheckout() {
     )
   }
 
+  if (isPeriodFullyPaid) {
+    return (
+      <ScreenWrapper header={<StandardHeader title='Rent Payment' />} className='p-5'>
+        <View className='flex-1 justify-center'>
+          <EmptyState
+            icon={<IconCircleCheckFilled size={32} color={colors.success} />}
+            title='Rent Already Paid'
+            description={`Your rent for ${monthLabel} ${yearLabel} has been paid in full. No further payment is needed.`}
+          />
+          <Button className='mt-4' onPress={handleGoHome}>
+            <Button.Label>Go to Home</Button.Label>
+          </Button>
+        </View>
+      </ScreenWrapper>
+    )
+  }
+
   return (
     <ScreenWrapper
       scrollable
       header={<StandardHeader title='Rent Payment' />}
       footer={
         <PaymentFooter
-          totalPayment={totalPayment}
+          totalPayment={monthlyRent}
           onPayPress={handlePay}
           isProcessing={isProcessing}
         />
@@ -311,8 +336,6 @@ export default function PaymentCheckout() {
         year={yearLabel}
         dueDate={period.dueDate}
         monthlyRent={monthlyRent}
-        paidAmount={paidAmount}
-        totalPayment={totalPayment}
       />
 
       <PaymentMethodSelector
@@ -322,8 +345,6 @@ export default function PaymentCheckout() {
         cardErrors={cardErrors}
         cashPaymentDate={cashPaymentDate}
         onCashPaymentDateChange={(date) => { setCashPaymentDate(date); clearCashErrors() }}
-        cashAmountPaid={cashAmountPaid}
-        onCashAmountPaidChange={(value) => { setCashAmountPaid(value); clearCashErrors() }}
         cashErrors={cashErrors}
       />
 

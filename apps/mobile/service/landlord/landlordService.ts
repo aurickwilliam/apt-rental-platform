@@ -187,7 +187,7 @@ export type PaymentRecord = {
   year: string;
   amount: number;
   paidDate: string;
-  status: "paid" | "partial" | "pending";
+  status: "paid" | "pending";
   method: string | null;
   reference: string | null;
 };
@@ -232,7 +232,7 @@ export async function fetchLandlordTenancy(
       .from("payment")
       .select("id, amount, date, status, method, reference_id")
       .eq("apartment_id", apartmentId)
-      .in("status", ["paid", "partial", "pending"])
+      .in("status", ["paid", "pending"])
       .order("date", { ascending: false })
       .limit(4),
   ]);
@@ -295,7 +295,7 @@ export async function fetchLandlordTenancy(
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,
-      status: p.status as "paid" | "partial" | "pending",
+      status: p.status as "paid" | "pending",
       method: p.method ?? null,
       reference: p.reference_id ?? null,
     };

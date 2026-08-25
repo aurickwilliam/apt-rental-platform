@@ -7,7 +7,6 @@ import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
 import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
 import { type CardFormErrors } from '@repo/utils'
-
 export type PaymentMethod = 'GCash' | 'Maya' | 'QRPh' | 'Debit/Credit-Card' | 'Cash'
 
 type SelectedPaymentMethod =
@@ -62,8 +61,6 @@ interface PaymentMethodSelectorProps {
   cardErrors?: CardFormErrors
   cashPaymentDate: Date | null
   onCashPaymentDateChange: (date: Date) => void
-  cashAmountPaid: string
-  onCashAmountPaidChange: (value: string) => void
   cashErrors?: CashPaymentErrors
 }
 
@@ -82,8 +79,6 @@ export default function PaymentMethodSelector({
   cardErrors,
   cashPaymentDate,
   onCashPaymentDateChange,
-  cashAmountPaid,
-  onCashAmountPaidChange,
   cashErrors,
 }: PaymentMethodSelectorProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SelectedPaymentMethod>(null)
@@ -178,8 +173,6 @@ export default function PaymentMethodSelector({
             <CashPaymentForm
               paymentDate={cashPaymentDate}
               onPaymentDateChange={onCashPaymentDateChange}
-              amountPaid={cashAmountPaid}
-              onAmountPaidChange={onCashAmountPaidChange}
               errors={cashErrors}
             />
           )}

@@ -130,13 +130,11 @@ export default function Rentals() {
 
   // Active tenancy
   if (tenancy) {
-     const { apartment, landlord, currentPayment } = tenancy;
+    const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
     const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();
     const paymentStatus = currentPayment ? mapPaymentStatus(currentPayment.status) : 'Pending';
-    const balancePaid = currentPayment?.amount ?? 0;
-    const balanceLeft = Math.max(0, monthlyRent - balancePaid);
 
     const landlordFullName = formatFullName(landlord!);
     const address = formatAddress(apartment);
@@ -165,8 +163,6 @@ export default function Rentals() {
             periodYear={formatDate(paymentPeriodDate, "year")}
             status={paymentStatus}
             totalRent={monthlyRent}
-            balanceLeft={balanceLeft}
-            balancePaid={balancePaid}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
           />

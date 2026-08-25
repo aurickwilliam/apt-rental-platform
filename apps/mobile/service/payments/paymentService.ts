@@ -209,7 +209,6 @@ export function methodLabel(method: string | null): string {
 const STATUS_LABELS: Record<string, PaymentStatus> = {
   paid: 'Paid',
   pending: 'Pending',
-  partial: 'Partial',
   unpaid: 'Unpaid',
 }
 
