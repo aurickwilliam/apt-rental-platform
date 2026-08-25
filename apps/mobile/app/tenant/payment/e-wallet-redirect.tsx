@@ -138,35 +138,36 @@ export default function EWalletRedirect() {
       }
       className='p-5'
     >
-      <View className='flex-1 items-center justify-center'>
-        {/* Image of E-wallet */}
-        <View className='size-48 overflow-hidden rounded-3xl'>
-          <Image
-            source={imageSource}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          />
-        </View>
+      <View className='flex-1'>
+        <View className='flex-1 items-center justify-center gap-6'>
+          {/* Image of E-wallet */}
+          <View className='size-48 overflow-hidden rounded-3xl bg-surface'>
+            <Image
+              source={imageSource}
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+              resizeMode='contain'
+            />
+          </View>
 
-        <View className='mt-10'>
           <Text className='text-foreground text-center text-lg font-nunitoSemiBold'>
             You’ll be redirected to <Text className={`font-nunitoSemiBold ${method === 'gcash' ? 'text-primary' : method === 'qrph' ? 'text-foreground' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
           </Text>
-        </View>
 
-        {hasLaunched && (
-          <Text className='text-muted text-center text-sm font-inter mt-4'>
-            {isVerifying
-              ? 'Checking your payment status…'
-              : 'Waiting for you to finish authorizing the payment in the e-wallet.'}
-          </Text>
-        )}
+          {hasLaunched && (
+            <Text className='text-muted text-center text-sm font-inter'>
+              {isVerifying
+                ? 'Checking your payment status…'
+                : 'Waiting for you to finish authorizing the payment in the e-wallet.'}
+            </Text>
+          )}
+        </View>
 
         <Button
           isDisabled={isVerifying}
-          className='mt-5 w-full'
+          className='w-full'
           onPress={handlePrimaryPress}
         >
           <Button.Label>

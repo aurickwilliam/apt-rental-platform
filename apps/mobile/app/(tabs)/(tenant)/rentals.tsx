@@ -25,6 +25,7 @@ import {
 } from "@tabler/icons-react-native";
 
 import { useTenancy } from '@/hooks/tenancy';
+import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
 
@@ -77,10 +78,10 @@ export default function Rentals() {
   const { colors } = useColors();
 
   const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { profile } = useProfile();
   const {
     latestRequest,
     isFinal,
-    refetch: refetchMaintenanceRequest
   } = useMaintenanceRequests({
     apartmentId: tenancy?.apartment.id,
   });
@@ -138,6 +139,31 @@ export default function Rentals() {
 
     const landlordFullName = formatFullName(landlord!);
     const address = formatAddress(apartment);
+
+    const handleMessageLandlord = () => {
+      if (!landlord || !profile || !apartment?.id) return;
+
+      // Same conversation id format as the applications screen, so this opens
+      // the one continuous tenant↔landlord thread for the tenancy.
+      const [userA, userB] = [profile.id, landlord.id].sort();
+      router.push({
+        pathname: '/chat/[conversationId]',
+        params: {
+          conversationId: `${userA}-${userB}-${apartment.id}`,
+          otherUserId: landlord.id,
+          otherUserName: landlordFullName,
+          otherUserAvatar: landlord.avatar_url ?? '',
+          otherUserPhoneNumber: landlord.mobile_number ?? '',
+          apartmentId: apartment.id,
+          apartmentTitle: apartment.name,
+        },
+      });
+    };
+
+    const handleViewLandlordProfile = () => {
+      if (!landlord?.id) return;
+      router.push(`/profile/landlord/${landlord.id}`);
+    };
 
     return (
       <ScreenWrapper
@@ -201,6 +227,8 @@ export default function Rentals() {
             email={landlord?.email ?? "No email provided"}
             phoneNumber={landlord?.mobile_number ?? "No number provided"}
             profilePictureUrl={landlord?.avatar_url}
+            onPress={handleViewLandlordProfile}
+            onMessagePress={handleMessageLandlord}
           />
         </View>
 

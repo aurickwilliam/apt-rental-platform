@@ -22,26 +22,27 @@ export default function EWalletRedirect() {
         <StandardHeader title='Link E-Wallet Account' />
       }
     >
-      <View className='flex-1 items-center justify-center'>
-        {/* Image of E-wallet */}
-        <View className='size-48 overflow-hidden rounded-xl'>
-          <Image
-            source={imageSource}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          />
-        </View>
+      <View className='flex-1'>
+        <View className='flex-1 items-center justify-center gap-6'>
+          {/* Image of E-wallet */}
+          <View className='size-48 overflow-hidden rounded-3xl bg-surface'>
+            <Image
+              source={imageSource}
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+              resizeMode='contain'
+            />
+          </View>
 
-        <View className='mt-10'>
           <Text className='text-foreground text-center text-lg font-nunitoSemiBold'>
             You’ll be redirected to <Text className={`font-nunitoSemiBold ${method === 'GCash' ? 'text-primary' : 'text-success'}`}>{methodText}</Text> to authorize this payment method.
           </Text>
         </View>
 
         <Button
-          className='mt-5 w-full'
+          className='w-full'
           onPress={() => console.log('Redirecting to e-wallet...')}
         >
           <Button.Label>
