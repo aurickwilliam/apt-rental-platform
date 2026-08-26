@@ -7,19 +7,28 @@ export type StoredApplication = {
   apartmentId: string;
   apartmentName: string | null;
   apartmentCover: string | null;
+  apartmentAddress: string | null;
+  monthlyRent: number | null;
   status: ApplicationStatus;
   createdAt: string;
   data: {
     fullName: string;
     email: string;
     contactNumber: string;
+    currentAddress: string;
+    dateOfBirth: string;
     employmentType: string;
+    occupation: string;
+    companyName: string;
     monthlyIncomeText: string;
+    prevLandlordName: string;
+    prevLandlordContact: string;
     moveInDate: string;
     noOccupants: string;
     hasPets: string | null;
     isSmoker: string | null;
     needParking: string | null;
+    additionalNotes: string;
     govIdName: string | null;
     proofOfBillingName: string | null;
     proofOfIncomeName: string | null;

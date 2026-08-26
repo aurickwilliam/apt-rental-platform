@@ -1,0 +1,150 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Card, Button, TextField, Label, Input, FieldError, TextArea, Separator, Select, ListBox } from "@heroui/react";
+import { toast } from "@heroui/react";
+import { getApplications } from "@/app/tenant/applications/lib/application-store";
+import { saveVisitRequest, getVisitRequest } from "@/app/tenant/applications/lib/visit-store";
+import { ArrowLeft } from "lucide-react";
+
+export default function RequestVisitPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const applicationId = searchParams.get("applicationId") ?? "";
+  const apartmentIdParam = searchParams.get("apartmentId") ?? "";
+
+  const [visitDate, setVisitDate] = useState("");
+  const [visitHour, setVisitHour] = useState<string>("");
+  const [period, setPeriod] = useState<"AM" | "PM">("AM");
+  const [noVisitors, setNoVisitors] = useState("");
+  const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [apartmentName, setApartmentName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const app = getApplications().find((a) => a.id === applicationId);
+    if (app) setApartmentName(app.apartmentName);
+  }, [applicationId]);
+
+  const clearError = (k: string) => setErrors((p) => ({ ...p, [k]: "" }));
+
+  const validate = () => {
+    const next: Record<string, string> = {};
+    if (!visitDate) next.visitDate = "Please select a visit date.";
+    else {
+      const d = new Date(visitDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const picked = new Date(d);
+      picked.setHours(0, 0, 0, 0);
+      if (picked <= today) next.visitDate = "Visit date must be at least a day from today.";
+    }
+    if (!visitHour) next.visitHour = "Please select a visit time.";
+    const n = parseInt(noVisitors, 10);
+    if (!noVisitors || Number.isNaN(n) || n <= 0) next.noVisitors = "Please enter number of visitors.";
+    // prevent duplicate pending
+    if (getVisitRequest(applicationId)) next.visitDate = "You already have a pending visit request.";
+    setErrors(next);
+    return Object.values(next).every((v) => !v);
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) {
+      toast.danger("Please fix the highlighted fields.");
+      return;
+    }
+    saveVisitRequest({
+      applicationId,
+      apartmentId: apartmentIdParam,
+      visitDate,
+      visitTime: visitHour,
+      period,
+      noVisitors,
+      notes,
+    });
+    toast.success("Visit request submitted");
+    router.back();
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <Button variant="outline" size="sm" onPress={() => router.back()}>
+        <ArrowLeft size={16} /> Back
+      </Button>
+
+      <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
+        <h1 className="text-xl font-bold text-card-foreground">Request a Visit</h1>
+        {apartmentName && <p className="text-sm text-muted-foreground">For {apartmentName}</p>}
+        <p className="text-xs text-muted-foreground mt-2">Choose your preferred date and time. The landlord will confirm your visit. (UI-only, stored locally)</p>
+
+        <div className="flex flex-col gap-5 mt-6">
+          <TextField isRequired isInvalid={!!errors.visitDate} value={visitDate} onChange={(v: string) => { setVisitDate(v); if (v) clearError("visitDate"); }}>
+            <Label>Preferred Visit Date</Label>
+            <Input type="date" className="bg-card border-border text-card-foreground" />
+            <FieldError>{errors.visitDate}</FieldError>
+          </TextField>
+
+          <Separator />
+
+          <div className="grid grid-cols-2 gap-4">
+            <TextField isRequired isInvalid={!!errors.visitHour}>
+              <Label>Preferred Visit Time</Label>
+              <div className="flex gap-2">
+                <Select placeholder="Hour" value={visitHour || null} onChange={(k) => { const v = k ? String(k) : ""; setVisitHour(v); if (v) clearError("visitHour"); }} className="flex-1">
+                  <Select.Trigger className="bg-card border-border text-card-foreground">
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => (
+                        <ListBox.Item key={h} id={h} textValue={h}>
+                          {h}:00
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+                <Select value={period} onChange={(k) => setPeriod((k ? String(k) : "AM") as "AM" | "PM")} className="w-24">
+                  <Select.Trigger className="bg-card border-border text-card-foreground">
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="AM" textValue="AM">
+                        AM
+                      </ListBox.Item>
+                      <ListBox.Item id="PM" textValue="PM">
+                        PM
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+              </div>
+              <FieldError>{errors.visitHour}</FieldError>
+            </TextField>
+
+            <TextField isRequired isInvalid={!!errors.noVisitors} value={noVisitors} onChange={(v: string) => { const val = v.replace(/\D/g, ""); setNoVisitors(val); if (val) clearError("noVisitors"); }}>
+              <Label>Number of Visitors</Label>
+              <Input placeholder="e.g. 2" inputMode="numeric" className="bg-card border-border text-card-foreground" />
+              <FieldError>{errors.noVisitors}</FieldError>
+            </TextField>
+          </div>
+
+          <Separator />
+
+          <TextField value={notes} onChange={(v: string) => setNotes(v)}>
+            <Label>Additional Notes (Optional)</Label>
+            <TextArea placeholder="Any specific questions or requests for the visit..." rows={4} className="bg-card border-border text-card-foreground" />
+          </TextField>
+
+          <Button onPress={handleSubmit}>Submit Visit Request</Button>
+          <p className="text-[11px] text-muted-foreground text-center">UI-only — no email is sent, no Supabase write.</p>
+        </div>
+      </Card>
+    </div>
+  );
+}
