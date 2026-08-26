@@ -25,7 +25,7 @@ import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
 import PaymentModal from "./components/PaymentModal";
 import MiniCalendar from "./components/MiniCalendar";
-import TenancyEmptyState from "./components/TenancyEmptyState";
+import ApplicationsList from "./components/ApplicationsList";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -123,9 +123,11 @@ export default function MyRental() {
 
   if (!tenancy) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <TenancyEmptyState description={error ?? undefined} />
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
+        <div className="flex-1 flex flex-col justify-start" style={{ minHeight: "calc(100dvh - 4rem)" }}>
+          <div className="max-w-7xl mx-auto w-full px-4 py-8">
+            <ApplicationsList />
+          </div>
         </div>
         <Footer />
       </div>

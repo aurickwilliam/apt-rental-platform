@@ -752,9 +752,42 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
             </Accordion>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onPress={() => setStep(4)}>Back</Button>
-              <Button className="flex-1" onPress={() => setStep(6)}>Submit Application</Button>
+              <Button
+                className="flex-1"
+                onPress={() => {
+                  // UI-only localStorage save (no Supabase)
+                  try {
+                    const { saveApplication } = require("@/app/tenant/applications/lib/application-store");
+                    saveApplication({
+                      apartmentId: apartment.id,
+                      apartmentName: apartment.name,
+                      apartmentCover: apartment.cover,
+                      data: {
+                        fullName,
+                        email,
+                        contactNumber,
+                        employmentType,
+                        monthlyIncomeText,
+                        moveInDate,
+                        noOccupants,
+                        hasPets,
+                        isSmoker,
+                        needParking,
+                        govIdName: govIdFile?.name ?? null,
+                        proofOfBillingName: proofOfBillingFile?.name ?? null,
+                        proofOfIncomeName: proofOfIncomeFile?.name ?? null,
+                        nbiName: nbiClearanceFile?.name ?? null,
+                      },
+                    });
+                  } catch {}
+                  setStep(6);
+                  setTimeout(() => router.push("/tenant/my-rental"), 900);
+                }}
+              >
+                Submit Application
+              </Button>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-3 text-center">UI-only demo — no data is sent to the server.</p>
+            <p className="text-[11px] text-muted-foreground mt-3 text-center">UI-only demo — stored locally, will appear on My Rental.</p>
           </Card>
         </div>
       )}
