@@ -61,3 +61,9 @@ export function cancelVisitRequest(id: string): void {
   const next = prev.map((v) => (v.id === id ? { ...v, status: "cancelled" as VisitStatus } : v));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
 }
+
+export function deleteVisitRequest(id: string): void {
+  const prev = readStore();
+  const next = prev.filter((v) => v.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+}

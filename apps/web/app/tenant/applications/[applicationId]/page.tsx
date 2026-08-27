@@ -19,9 +19,10 @@ import { toast } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
 import { getApplications, deleteApplication, type StoredApplication } from "@/app/tenant/applications/lib/application-store";
 import { getApplicationStatusStyle } from "@/app/tenant/applications/lib/statusStyles";
-import { getVisitRequest } from "@/app/tenant/applications/lib/visit-store";
+import { getVisitRequest, deleteVisitRequest, type StoredVisit } from "@/app/tenant/applications/lib/visit-store";
 import DetailField from "@/app/tenant/applications/components/DetailField";
 import DocumentRow from "@/app/tenant/applications/components/DocumentRow";
+import VisitRequestDetailsCard from "@/app/tenant/applications/components/VisitRequestDetailsCard";
 
 function formatLongDate(d: string) {
   try {
@@ -39,14 +40,17 @@ export default function ApplicationDetailPage() {
   const apartmentId = searchParams.get("apartmentId") ?? "";
 
   const [app, setApp] = useState<StoredApplication | null>(null);
-  const [hasVisit, setHasVisit] = useState(false);
+  const [visit, setVisit] = useState<StoredVisit | null>(null);
+
+  const refreshVisit = () => setVisit(getVisitRequest(applicationId));
 
   useEffect(() => {
     const found = getApplications().find((a) => a.id === applicationId) ?? null;
     setApp(found);
-    const v = getVisitRequest(applicationId);
-    setHasVisit(!!v);
+    refreshVisit();
   }, [applicationId]);
+
+  const hasVisit = !!visit;
 
   if (!app) {
     return (
@@ -125,6 +129,16 @@ export default function ApplicationDetailPage() {
           )}
         </div>
       </Card>
+
+      {visit && (
+        <VisitRequestDetailsCard
+          visit={visit}
+          onCancel={() => {
+            deleteVisitRequest(visit.id);
+            refreshVisit();
+          }}
+        />
+      )}
 
       {/* Application Details Accordion */}
       <Card className="border border-border bg-card text-card-foreground p-5 rounded-2xl">
