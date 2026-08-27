@@ -218,9 +218,6 @@ export default function ApplicationDetailPage() {
         <Separator className="my-6" />
 
         <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" onPress={() => router.push(`/browse/${effectiveApartmentId}`)}>
-            View Listing
-          </Button>
           <Button variant="danger" className="flex-1" onPress={handleDelete}>
             <Trash2 size={16} /> Delete Application
           </Button>

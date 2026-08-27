@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, Button, TextField, Label, Input, FieldError, TextArea, Separator, Select, ListBox } from "@heroui/react";
+import { Card, Button, TextField, Label, Input, FieldError, TextArea, Separator, Select, ListBox, NumberField } from "@heroui/react";
 import { toast } from "@heroui/react";
 import { getApplications } from "@/app/tenant/applications/lib/application-store";
 import { saveVisitRequest, getVisitRequest } from "@/app/tenant/applications/lib/visit-store";
@@ -127,11 +127,26 @@ export default function RequestVisitPage() {
               <FieldError>{errors.visitHour}</FieldError>
             </TextField>
 
-            <TextField isRequired isInvalid={!!errors.noVisitors} value={noVisitors} onChange={(v: string) => { const val = v.replace(/\D/g, ""); setNoVisitors(val); if (val) clearError("noVisitors"); }}>
+            <NumberField
+              minValue={1}
+              maxValue={10}
+              value={noVisitors ? parseInt(noVisitors, 10) : undefined}
+              onChange={(value) => {
+                const v = value == null || Number.isNaN(value as number) ? "" : String(value);
+                setNoVisitors(v);
+                if (v) clearError("noVisitors");
+              }}
+              isRequired
+              isInvalid={!!errors.noVisitors}
+            >
               <Label>Number of Visitors</Label>
-              <Input placeholder="e.g. 2" inputMode="numeric" className="bg-card border-border text-card-foreground" />
+              <NumberField.Group className="flex items-center w-full bg-card border border-border rounded-xl overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-colors">
+                <NumberField.DecrementButton className="px-4 py-2.5 text-muted-foreground hover:bg-muted active:bg-muted border-r border-border flex items-center justify-center min-w-11" />
+                <NumberField.Input placeholder="e.g. 2" className="w-full text-center bg-transparent py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground outline-none" />
+                <NumberField.IncrementButton className="px-4 py-2.5 text-muted-foreground hover:bg-muted active:bg-muted border-l border-border flex items-center justify-center min-w-11" />
+              </NumberField.Group>
               <FieldError>{errors.noVisitors}</FieldError>
-            </TextField>
+            </NumberField>
           </div>
 
           <Separator />
