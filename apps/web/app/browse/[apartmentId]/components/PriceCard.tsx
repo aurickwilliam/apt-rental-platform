@@ -7,6 +7,7 @@ import {
 } from "@heroui/react";
 
 import { Flag } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -14,13 +15,16 @@ interface PriceCardProps {
   price: number;
   securityDeposit: number | undefined;
   advancePayment: number | undefined;
+  apartmentId?: string;
 }
 
 export default function PriceCard({
   price,
   securityDeposit = 0,
   advancePayment = 0,
+  apartmentId,
 }: PriceCardProps) {
+  const router = useRouter();
 
   const formattedPrice = formatPesoDisplay(price);
 
@@ -59,7 +63,7 @@ export default function PriceCard({
       </Card.Content>
 
       <Card.Footer className="flex flex-col gap-2">
-        <Button fullWidth>
+        <Button fullWidth onPress={() => apartmentId && router.push(`/browse/${apartmentId}/apply`)}>
           Apply Now
         </Button>
 

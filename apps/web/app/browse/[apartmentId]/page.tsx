@@ -188,6 +188,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
             price={apartment.monthly_rent} 
             securityDeposit={apartment.security_deposit ?? undefined}
             advancePayment={apartment.advance_rent ?? undefined}
+            apartmentId={apartment.id}
           />
 
           <LeaseAgreementCard
