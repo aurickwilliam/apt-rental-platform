@@ -44,4 +44,6 @@ export const PAYMENT_METHOD_LOGOS = {
   mayaBig: require("../assets/images/payment-logos/maya-big-logo.jpg"),
   visa: require("../assets/images/payment-logos/visa-logo.png"),
   mastercard: require("../assets/images/payment-logos/mastercard-logo.png"),
+  qrph: require("../assets/images/payment-logos/qrph-logo.png"),
+  qrphBig: require("../assets/images/payment-logos/qrph-logo.png"),
 }

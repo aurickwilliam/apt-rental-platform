@@ -12,6 +12,7 @@ const mockUseCurrentUser = jest.fn();
 const mockFetchConversations = jest.fn();
 const mockChannelFn = jest.fn();
 const mockRemoveChannel = jest.fn();
+const mockGetChannels = jest.fn();
 let chatInsertCallback:
   | ((payload: { new?: unknown }) => void)
   | undefined;
@@ -29,6 +30,7 @@ jest.mock("@repo/supabase", () => ({
   supabase: {
     channel: (...args: unknown[]) => mockChannelFn(...args),
     removeChannel: (...args: unknown[]) => mockRemoveChannel(...args),
+    getChannels: () => mockGetChannels(),
   },
 }));
 
@@ -91,8 +93,10 @@ beforeEach(() => {
     error: null,
   });
   mockFetchConversations.mockResolvedValue(seedConversations);
-  mockChannelFn.mockImplementation(() => {
+  mockGetChannels.mockReturnValue([]);
+  mockChannelFn.mockImplementation((name: string) => {
     const channel = {
+      topic: `realtime:${name}`,
       on: jest.fn(),
       subscribe: jest.fn(),
     };
@@ -277,5 +281,57 @@ describe("useConversations", () => {
 
     unmount();
     expect(mockRemoveChannel).toHaveBeenCalled();
+  });
+
+  /** Validates: realtime — re-renders never tear down / re-create the channel
+   *  (supabase-js returns the joined channel for a repeated name and throws
+   *  "cannot add postgres_changes callbacks after subscribe()") */
+  it("subscribes only once across re-renders", async () => {
+    const { QueryWrapper } = createWrapper();
+
+    const { rerender, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+
+    await waitFor(() => expect(chatInsertCallback).toBeDefined());
+
+    rerender();
+    rerender();
+    rerender();
+
+    expect(mockChannelFn).toHaveBeenCalledTimes(1);
+    expect(mockRemoveChannel).not.toHaveBeenCalled();
+
+    unmount();
+    expect(mockRemoveChannel).toHaveBeenCalledWith(
+      expect.objectContaining({ topic: `realtime:chat-list:${MY_ID}` }),
+    );
+  });
+
+  /** Validates: realtime — a still-unregistering channel with the same identity
+   *  is reused, not re-registered (registering on a joined channel throws) */
+  it("reuses a live channel with the same identity instead of re-subscribing", async () => {
+    const existingChannel = {
+      topic: `realtime:chat-list:${MY_ID}`,
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn().mockReturnThis(),
+    };
+    mockGetChannels.mockReturnValue([existingChannel]);
+
+    const { QueryWrapper } = createWrapper();
+
+    const { unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+
+    await act(async () => {});
+
+    expect(mockChannelFn).not.toHaveBeenCalled();
+    expect(existingChannel.on).not.toHaveBeenCalled();
+
+    unmount();
+    expect(mockRemoveChannel).toHaveBeenCalledWith(existingChannel);
   });
 });

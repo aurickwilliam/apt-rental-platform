@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { useCurrentUser } from 'hooks/auth';
@@ -18,9 +19,19 @@ export function useTenantApplications() {
     enabled: tenantId !== undefined,
   });
 
+  const refetch = useCallback(async () => {
+    await applicationsQuery.refetch();
+  }, [applicationsQuery]);
+
+  const refreshing =
+    (currentUserQuery.isFetching || applicationsQuery.isFetching) &&
+    !(currentUserQuery.isLoading || applicationsQuery.isLoading);
+
   return {
     applications: applicationsQuery.data ?? [],
     loading: currentUserQuery.isLoading || applicationsQuery.isLoading,
+    refreshing,
     error: applicationsQuery.error?.message ?? null,
+    refetch,
   };
 }

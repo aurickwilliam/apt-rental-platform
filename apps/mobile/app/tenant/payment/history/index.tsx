@@ -34,7 +34,7 @@ const toHistoryItem = (payment: PaymentRecord): FlatPayment => {
   return {
     id: payment.id,
     date: payment.date,
-    month: periodMonthLabel(payment.period_start, payment.date),
+    month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
     status: paymentStatusLabel(payment.status),
     apartmentName: payment.apartment_name ?? '—',
@@ -167,22 +167,19 @@ export default function History() {
           paddingBottom: 30,
           flexGrow: 1,
         }}
-        ListHeaderComponent={
-          <Text className='text-gray-500 text-sm font-inter pb-3'>
-            Total: {filteredPayments.length}
-          </Text>
-        }
         renderSectionHeader={({ section }) => (
-          <View className='bg-background pt-5 pb-3'>
-            <Text
-              className={
-                section.title === currentYear
-                  ? 'text-accent font-nunitoSemiBold text-base'
-                  : 'text-muted font-nunitoSemiBold text-base'
-              }
-            >
-              {section.title}
-            </Text>
+          <View className='bg-background pt-6 pb-3 mb-1'>
+            {section.title === currentYear ? (
+              <View style={{ backgroundColor: colors.primaryLight }} className='px-4 py-2 rounded-xl'>
+                <Text style={{ color: colors.primary }} className='font-nunitoSemiBold text-base'>
+                  This Year
+                </Text>
+              </View>
+            ) : (
+              <Text style={{ color: colors.primary, opacity: 0.6 }} className='font-nunitoSemiBold text-base'>
+                {section.title}
+              </Text>
+            )}
           </View>
         )}
         renderItem={({ item }) => (
@@ -208,6 +205,7 @@ export default function History() {
         filters={filters}
         onChange={setFilters}
         availableYears={availableYears}
+        currentYear={currentYear}
       />
     </ScreenWrapper>
   )

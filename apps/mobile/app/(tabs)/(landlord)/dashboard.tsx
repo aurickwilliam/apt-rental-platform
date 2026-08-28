@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
 
-import { IconBell, IconChartBar } from "@tabler/icons-react-native";
+import { IconChartBar } from "@tabler/icons-react-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -15,11 +15,10 @@ import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard
 import DashboardSkeleton from "./../components/dashboard/DashboardSkeleton";
 import EmptyProperties from "./../components/units/EmptyProperties";
 import EmptyState from "@/components/display/EmptyState";
+import NotificationBellButton from "@/app/(tabs)/components/NotificationBellButton";
 
 import { useDashboardData } from "@/hooks/dashboard";
 import { useColors } from "@/hooks/useTheme";
-
-import { Button } from "heroui-native";
 
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -61,13 +60,7 @@ export default function Dashboard() {
           </Text>
         </View>
 
-        <Button
-          onPress={() => router.push("/landlord-notif")}
-          variant="ghost"
-          isIconOnly
-        >
-          <IconBell size={26} color={colors.gray500} />
-        </Button>
+        <NotificationBellButton route="/landlord-notif" />
       </View>
 
       {isLoading ? (

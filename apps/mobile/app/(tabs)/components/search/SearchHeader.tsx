@@ -1,10 +1,10 @@
 import { View } from 'react-native';
 
 import {
-  IconMapPin,
   IconLayoutGrid,
   IconLayoutRows,
   IconHeart,
+  IconMapPinFilled,
 } from '@tabler/icons-react-native';
 
 import DropdownButton from 'components/buttons/DropdownButton';
@@ -35,7 +35,7 @@ export default function SearchHeader({
   return (
     <View className='flex-row items-center justify-between mb-3 px-5'>
       <View className='flex-row gap-2'>
-        <IconMapPin size={30} color={colors.primary} />
+        <IconMapPinFilled size={30} color={colors.primary} />
 
         <DropdownButton
           label='Select Location'

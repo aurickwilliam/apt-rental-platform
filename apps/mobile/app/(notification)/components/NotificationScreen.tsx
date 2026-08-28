@@ -1,6 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react';
 
+import { SkeletonGroup } from 'heroui-native'
+
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import DropdownButton from 'components/buttons/DropdownButton';
@@ -19,7 +21,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
 
-  const { unreadCount, refetch } = useNotifications();
+  const { unreadCount, refetch, loading } = useNotifications();
   const { markAllAsRead } = useNotificationActions(currentUserId);
 
   return (
@@ -32,31 +34,39 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
       refreshing={false}
       onRefresh={refetch}
     >
-      <View className="flex-row items-center justify-between gap-3">
-        <View className="flex-1">
-          <DropdownButton
-            value={filterType}
-            label={'Filter Notifications'}
-            options={[
-              'All',
-              'Payment',
-              'Message',
-              'Maintenance',
-              'Apartment',
-              'System'
-            ]}
-            onSelect={(value) => setFilterType(value as NotificationFilter)}
-          />
+      {loading ? (
+        <View className="flex-row items-center justify-between gap-3">
+          <SkeletonGroup isLoading isSkeletonOnly className="flex-1">
+            <SkeletonGroup.Item className="h-8 w-32 rounded-xl" />
+          </SkeletonGroup>
         </View>
+      ) : (
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-1">
+            <DropdownButton
+              value={filterType}
+              label={'Filter Notifications'}
+              options={[
+                'All',
+                'Payment',
+                'Message',
+                'Maintenance',
+                'Apartment',
+                'System'
+              ]}
+              onSelect={(value) => setFilterType(value as NotificationFilter)}
+            />
+          </View>
 
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
-            <Text className="text-primary font-nunitoSemiBold text-sm">
-              Mark all read
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          {unreadCount > 0 && (
+            <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
+              <Text className="text-primary font-nunitoSemiBold text-sm">
+                Mark all read
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <NotificationList filter={filterType} />
     </ScreenWrapper>

@@ -103,6 +103,12 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.
 - Trigger payloads include the `apartmentId` needed to resolve deep links (payment, maintenance); never rely on payloads without it.
 
+## PayMongo Test-Mode Hybrid (No Disbursement)
+
+- **Hosted checkout in Test Mode** (`sk_test_...`): tenant selects GCash/Maya/QRPh/Card → `paymongo` edge function `POST /v2/checkout_sessions` (inserts `payment` `pending` + `paymongo_session_id`) → returns `checkout_url` → `e-wallet-redirect` opens PayMongo page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. No real money — test funds only. When `PAYMONGO_SECRET_KEY` is unset, the edge function returns mock `simulation://` responses (reference `-fail`/`-expired`, card `0002` etc) so local dev still works.
+- **Cash** stays `pending` awaiting landlord `landlord_update_payment_status`; e-wallet/card are webhook-owned. No payout disbursement — landlord profit is `payment` aggregates + Realtime `tenancy-live`.
+- MCP: `.opencode/opencode.json:19-25` `paymongo` via `npx -y @theyahia/paymongo-mcp` with `PAYMONGO_SECRET_KEY` (`sk_test_...`). Validate with `python3 -m json.tool .opencode/opencode.json`.
+
 ## Engineering Philosophy
 
 - Prefer reuse over duplication.

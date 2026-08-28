@@ -1,7 +1,13 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
-import { getNotificationTypeIcon, useNotificationTypeColor } from '@/hooks/notifications';
+import {
+  getNotificationTypeIcon,
+  isRentDueNotification,
+  RENT_DUE_ICON,
+  useNotificationTypeColor,
+} from '@/hooks/notifications';
+import { useColors } from '@/hooks/useTheme';
 import type { NotificationType } from '@/service/notifications/notificationService';
 
 export type NotificationCardType = NotificationType;
@@ -23,10 +29,12 @@ export default function NotificationCard({
   unread = false,
   onPress,
 }: NotificationCardProps) {
+  const { colors } = useColors();
   const { getColor } = useNotificationTypeColor();
+  const isRentDue = type === 'payment' && isRentDueNotification(title);
 
-  const Icon = getNotificationTypeIcon(type);
-  const iconColor = getColor(type);
+  const Icon = isRentDue ? RENT_DUE_ICON : getNotificationTypeIcon(type);
+  const iconColor = isRentDue ? colors.danger : getColor(type);
 
   return (
     <TouchableOpacity
@@ -55,7 +63,7 @@ export default function NotificationCard({
         </Card.Header>
 
         <Card.Body className="pt-2">
-          <Card.Description className="text-foreground font-inter">
+          <Card.Description className="text-foreground text-sm font-inter">
             {message}
           </Card.Description>
         </Card.Body>

@@ -71,7 +71,11 @@ export default function Search() {
         onChangeSearch={setSearchQuery}
         onFilterPress={openFilterSheet}
         activeFilterCount={activeFilterCount}
-        resultCount={resultCount}
+        resultCount={
+          searchQuery.trim() !== "" || activeFilterCount > 0 || selectedCity !== "CAMANAVA"
+            ? resultCount
+            : undefined
+        }
         loading={loading}
         onClearFilters={handleClearFilters}
       />

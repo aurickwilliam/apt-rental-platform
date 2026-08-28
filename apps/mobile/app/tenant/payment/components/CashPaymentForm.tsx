@@ -1,16 +1,13 @@
 import { View, Text } from 'react-native'
-import { Separator, TextField, Input, Label, FieldError } from 'heroui-native'
+import { Separator } from 'heroui-native'
 import DateTimeField from '@/components/inputs/DateField'
-import { handlePesoChange } from '@repo/utils'
 
 export type CashPaymentErrors = {
   paymentDate?: string
-  amountPaid?: string
 }
 
 export function validateCashPayment(data: {
   paymentDate: Date | null
-  amountPaid: string
 }): CashPaymentErrors {
   const errors: CashPaymentErrors = {}
 
@@ -26,31 +23,20 @@ export function validateCashPayment(data: {
     }
   }
 
-  const raw = data.amountPaid.replace(/\D/g, '')
-  if (!raw || parseFloat(raw) <= 0) {
-    errors.amountPaid = 'Amount paid must be a positive value'
-  }
-
   return errors
 }
 
 interface CashPaymentFormProps {
   paymentDate: Date | null
   onPaymentDateChange: (date: Date) => void
-  amountPaid: string
-  onAmountPaidChange: (value: string) => void
   errors?: CashPaymentErrors
 }
 
 export default function CashPaymentForm({
   paymentDate,
   onPaymentDateChange,
-  amountPaid,
-  onAmountPaidChange,
   errors,
 }: CashPaymentFormProps) {
-  const displayAmount = amountPaid ? handlePesoChange(amountPaid).formatted : ''
-
   return (
     <View className='mt-5'>
       <Separator className='mb-5' />
@@ -75,26 +61,6 @@ export default function CashPaymentForm({
           error={errors?.paymentDate}
           required
         />
-
-        <TextField
-          isRequired
-          isInvalid={!!errors?.amountPaid}
-        >
-          <Label>Amount Paid:</Label>
-          <Input
-            placeholder='₱ 0.00'
-            value={displayAmount}
-            keyboardType='decimal-pad'
-            variant='primary'
-            onChangeText={(value) => {
-              const { raw } = handlePesoChange(value)
-              onAmountPaidChange(raw)
-            }}
-          />
-          {errors?.amountPaid && (
-            <FieldError>{errors.amountPaid}</FieldError>
-          )}
-        </TextField>
       </View>
     </View>
   )

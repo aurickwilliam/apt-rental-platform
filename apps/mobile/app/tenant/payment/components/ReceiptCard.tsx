@@ -23,13 +23,6 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
     titleClass: 'text-success',
     footer: 'Thank you for your payment!',
   },
-  Partial: {
-    icon: IconAlertCircleFilled,
-    color: 'warning',
-    title: 'Partial Payment',
-    titleClass: 'text-warning',
-    footer: 'A balance is still due.',
-  },
   Pending: {
     icon: IconAlertCircleFilled,
     color: 'warning',
@@ -48,7 +41,8 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
 
 interface ReceiptCardProps {
   apartmentName: string
-  landlordName: string
+  landlordName?: string
+  tenantName?: string
   date: string
   time: string
   method: string
@@ -65,6 +59,7 @@ interface ReceiptCardProps {
 export default function ReceiptCard({
   apartmentName,
   landlordName,
+  tenantName,
   date,
   time,
   method,
@@ -82,7 +77,7 @@ export default function ReceiptCard({
   return (
     <View className='relative w-full'>
       <Card className='bg-white rounded-t-2xl rounded-b-none w-full overflow-hidden shadow-none'>
-        <Card.Header>
+        <Card.Header className='flex items-center justify-center'>
           <View className='items-center mb-6'>
             <StatusIcon size={48} color={colors[meta.color]} />
             <Text className={`text-xl font-nunitoBold ${meta.titleClass} mt-3`}>
@@ -99,7 +94,8 @@ export default function ReceiptCard({
               <ReceiptRow label='Payment Period' value={periodLabel} />
             )}
             <ReceiptRow label='Apartment' value={apartmentName} />
-            <ReceiptRow label='Landlord' value={landlordName} />
+            {tenantName ? <ReceiptRow label='Tenant' value={tenantName} /> : null}
+            {landlordName ? <ReceiptRow label='Landlord' value={landlordName} /> : null}
             <ReceiptRow label='Date' value={date} />
             <ReceiptRow label='Time' value={time} />
             <ReceiptRow label='Payment Method' value={method} />

@@ -14,6 +14,7 @@ const MOCK_CONVERSATION_KEY =
 const MOCK_APARTMENT_ID = '33333333-3333-4333-8333-333333333333';
 const MOCK_PAYMENT_ID = '44444444-4444-4444-8444-444444444444';
 const MOCK_MAINTENANCE_ID = '55555555-5555-4555-8555-555555555555';
+const MOCK_DUE_DATE = '2026-08-29';
 
 const MOCK_AVATAR_URL = 'https://i.pravatar.cc/150?img=12';
 
@@ -58,6 +59,60 @@ const MOCK_TOASTS: MockToast[] = [
       title: 'Payment Received',
       message: 'A tenant paid ₱12,500.00.',
       data: { screen: 'payments', paymentId: MOCK_PAYMENT_ID },
+    },
+  },
+  {
+    label: 'Payment — rent due soon (tenant)',
+    row: {
+      type: 'payment',
+      title: 'Rent Due Soon',
+      message: 'Your ₱45,000.00 rent for August is due on August 29.',
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
+    },
+  },
+  {
+    label: 'Payment — rent due today (tenant)',
+    row: {
+      type: 'payment',
+      title: 'Rent Due Today',
+      message: 'Your ₱45,000.00 rent for August is due today.',
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
+    },
+  },
+  {
+    label: 'Payment — rent past due (tenant)',
+    row: {
+      type: 'payment',
+      title: 'Rent Past Due',
+      message: 'Your ₱45,000.00 rent was due on August 29. Please settle your balance.',
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
+    },
+  },
+  {
+    label: 'Payment — tenant rent due soon (landlord)',
+    row: {
+      type: 'payment',
+      title: 'Tenant Rent Due Soon',
+      message: "MAHARTT's rent for Harvey's Villa is due on August 29.",
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
+    },
+  },
+  {
+    label: 'Payment — tenant rent due today (landlord)',
+    row: {
+      type: 'payment',
+      title: 'Tenant Rent Due Today',
+      message: "MAHARTT's rent for Harvey's Villa is due today.",
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
+    },
+  },
+  {
+    label: 'Payment — tenant rent overdue (landlord)',
+    row: {
+      type: 'payment',
+      title: 'Tenant Rent Overdue',
+      message: "MAHARTT's rent for Harvey's Villa was due on August 29.",
+      data: { screen: 'payments', apartmentId: MOCK_APARTMENT_ID, dueDate: MOCK_DUE_DATE },
     },
   },
   {

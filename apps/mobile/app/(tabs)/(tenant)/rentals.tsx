@@ -4,11 +4,13 @@ import type React from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
+import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 import ApplicationsList from '../components/rentals/ApplicationList';
+import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
 
 import {
@@ -16,8 +18,7 @@ import {
   IconUser,
   IconFileText,
   IconHammer,
-  IconMapPin,
-  IconBell,
+  IconMapPinFilled,
   IconReceipt,
   IconSettings,
   IconHelpCircle,
@@ -25,10 +26,12 @@ import {
 } from "@tabler/icons-react-native";
 
 import { useTenancy } from '@/hooks/tenancy';
+import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
+import { useTenantApplications } from '@/hooks/applications';
 
-import { Button, Separator, Spinner } from 'heroui-native';
+import { Button, Separator } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
@@ -76,16 +79,23 @@ export default function Rentals() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { tenancy, loading: tenancyLoading, refreshing: tenancyRefreshing, refetch: refetchTenancy } = useTenancy();
+  const { profile } = useProfile();
   const {
     latestRequest,
     isFinal,
-    refetch: refetchMaintenanceRequest
+    refetch: refetchMaintenance,
+    // maintenance hook doesn't expose refreshing yet, but tenancy covers isFetching scope
   } = useMaintenanceRequests({
     apartmentId: tenancy?.apartment.id,
   });
+  const { refreshing: applicationsRefreshing, refetch: refetchApplications } = useTenantApplications();
 
   const loading = tenancyLoading;
+  const refreshing = tenancyRefreshing || applicationsRefreshing;
+  const onRefresh = async () => {
+    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications()]);
+  };
 
   const handleRequestMaintenance = () => {
     router.push({
@@ -120,44 +130,69 @@ export default function Rentals() {
   // Loading
   if (loading) {
     return (
-      <ScreenWrapper className='p-5'>
-        <View className='flex-1 items-center justify-center'>
-          <Spinner size='lg' color={colors.primary} />
-        </View>
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      >
+        <RentalsSkeleton />
       </ScreenWrapper>
     );
   }
 
   // Active tenancy
   if (tenancy) {
-     const { apartment, landlord, currentPayment } = tenancy;
+    const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
     const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();
     const paymentStatus = currentPayment ? mapPaymentStatus(currentPayment.status) : 'Pending';
-    const balancePaid = currentPayment?.amount ?? 0;
-    const balanceLeft = Math.max(0, monthlyRent - balancePaid);
 
     const landlordFullName = formatFullName(landlord!);
     const address = formatAddress(apartment);
 
+    const handleMessageLandlord = () => {
+      if (!landlord || !profile || !apartment?.id) return;
+
+      // Same conversation id format as the applications screen, so this opens
+      // the one continuous tenant↔landlord thread for the tenancy.
+      const [userA, userB] = [profile.id, landlord.id].sort();
+      router.push({
+        pathname: '/chat/[conversationId]',
+        params: {
+          conversationId: `${userA}-${userB}-${apartment.id}`,
+          otherUserId: landlord.id,
+          otherUserName: landlordFullName,
+          otherUserAvatar: landlord.avatar_url ?? '',
+          otherUserPhoneNumber: landlord.mobile_number ?? '',
+          apartmentId: apartment.id,
+          apartmentTitle: apartment.name,
+        },
+      });
+    };
+
+    const handleViewLandlordProfile = () => {
+      if (!landlord?.id) return;
+      router.push(`/profile/landlord/${landlord.id}`);
+    };
+
     return (
-      <ScreenWrapper scrollable className="p-5" bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      >
         {/* Apartment Header */}
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
-            <IconMapPin size={30} color={colors.primary} />
+            <IconMapPinFilled size={30} color={colors.primary} />
             <Text className="text-secondary text-2xl font-nunitoBold">
               {apartment.name}
             </Text>
           </View>
-          <Button
-            isIconOnly
-            variant="ghost"
-            onPress={() => router.push("/tenant-notif")}
-          >
-            <IconBell size={26} color={colors.gray500} />
-          </Button>
+          <NotificationBellButton route="/tenant-notif" />
         </View>
 
         {/* Payment Summary Card */}
@@ -167,8 +202,6 @@ export default function Rentals() {
             periodYear={formatDate(paymentPeriodDate, "year")}
             status={paymentStatus}
             totalRent={monthlyRent}
-            balanceLeft={balanceLeft}
-            balancePaid={balancePaid}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
           />
@@ -207,6 +240,8 @@ export default function Rentals() {
             email={landlord?.email ?? "No email provided"}
             phoneNumber={landlord?.mobile_number ?? "No number provided"}
             profilePictureUrl={landlord?.avatar_url}
+            onPress={handleViewLandlordProfile}
+            onMessagePress={handleMessageLandlord}
           />
         </View>
 
@@ -301,7 +336,20 @@ export default function Rentals() {
   // No tenancy, has applications
   if (!tenancy) {
     return (
-      <ScreenWrapper className="p-5">
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      >
+        <View className="flex-row items-center justify-between mb-5">
+          <Text className="text-secondary text-2xl font-nunitoBold">
+            Rentals
+          </Text>
+          <NotificationBellButton route="/tenant-notif" />
+        </View>
+
         <ApplicationsList />
       </ScreenWrapper>
     );
@@ -309,7 +357,20 @@ export default function Rentals() {
 
   // Brand new user, nothing at all
   return (
-    <ScreenWrapper className='p-5'>
+    <ScreenWrapper
+      scrollable
+      className="p-5"
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+    >
+      <View className="flex-row items-center justify-between mb-5">
+        <Text className="text-secondary text-2xl font-nunitoBold">
+          Rentals
+        </Text>
+        <NotificationBellButton route="/tenant-notif" />
+      </View>
+
       <TenancyEmptyState />
     </ScreenWrapper>
   );

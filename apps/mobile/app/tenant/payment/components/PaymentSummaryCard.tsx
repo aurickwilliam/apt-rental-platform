@@ -7,8 +7,6 @@ interface PaymentSummaryCardProps {
   year: string
   dueDate: string
   monthlyRent: number
-  paidAmount: number
-  totalPayment: number
 }
 
 export default function PaymentSummaryCard({
@@ -16,8 +14,6 @@ export default function PaymentSummaryCard({
   year,
   dueDate,
   monthlyRent,
-  paidAmount,
-  totalPayment,
 }: PaymentSummaryCardProps) {
   return (
     <Card className='shadow-none rounded-3xl my-5'>
@@ -30,9 +26,9 @@ export default function PaymentSummaryCard({
       <Card.Body className='mb-5'>
         <View className='flex gap-2 mt-3'>
           <View className='flex-row justify-between items-center'>
-            <Text className='text-sm text-foreground font-inter'>Month & Year</Text>
+            <Text className='text-sm text-foreground font-inter'>Billing Period</Text>
             <Text className='text-sm text-foreground font-inter'>
-              {month} {year}
+              {month}, {year}
             </Text>
           </View>
 
@@ -50,21 +46,7 @@ export default function PaymentSummaryCard({
             </Text>
           </View>
 
-          <View className='flex-row justify-between items-center'>
-            <Text className='text-sm text-foreground font-inter'>Paid</Text>
-            <Text className='text-sm text-foreground font-inter'>
-              {formatPesoDisplay(paidAmount)}
-            </Text>
-          </View>
-
           <Separator className='my-3' />
-
-          <View className='flex-row justify-between items-center'>
-            <Text className='text-sm text-foreground font-inter'>Balance Left</Text>
-            <Text className='text-sm text-foreground font-inter'>
-              {formatPesoDisplay(totalPayment)}
-            </Text>
-          </View>
         </View>
       </Card.Body>
 
@@ -72,7 +54,7 @@ export default function PaymentSummaryCard({
         <View className='flex-row justify-between items-center mt-2'>
           <Text className='text-sm text-accent font-nunitoSemiBold'>Total Payment</Text>
           <Text className='text-sm text-accent font-nunitoSemiBold'>
-            {formatPesoDisplay(totalPayment)}
+            {formatPesoDisplay(monthlyRent)}
           </Text>
         </View>
       </Card.Footer>

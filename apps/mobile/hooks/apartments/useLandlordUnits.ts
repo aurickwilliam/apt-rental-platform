@@ -22,6 +22,5 @@ export function useLandlordUnits() {
     apartments: unitsQuery.data?.apartments ?? [],
     monthlyProfit: unitsQuery.data?.monthlyProfit ?? null,
     loading: currentUserQuery.isLoading || unitsQuery.isLoading,
-    fetchApartments: unitsQuery.refetch,
   };
 }

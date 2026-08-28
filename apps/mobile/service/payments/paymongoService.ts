@@ -86,6 +86,11 @@ export async function createCheckoutSession(params: {
   amount: number
   description: string
   redirectBaseUrl: string
+  method?: 'gcash' | 'maya' | 'qrph'
+  tenancyId?: string
+  periodStart?: string | null
+  periodEnd?: string | null
+  dueDate?: string | null
 }): Promise<PaymongoCheckoutSession> {
   const response = await invoke<PaymongoEnvelope<{
     id: string
@@ -125,6 +130,10 @@ export async function createCardPayment(params: {
   amount: number
   description: string
   card: PaymongoCard
+  tenancyId?: string
+  periodStart?: string | null
+  periodEnd?: string | null
+  dueDate?: string | null
 }): Promise<PaymongoCardPaymentResult> {
   const response = await invoke<PaymongoEnvelope<{
     attributes: { status: string; failure_reason: string | null }

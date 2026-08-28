@@ -7,6 +7,7 @@ import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
 import { buildNotificationDeepLink } from '@/utils/notificationDeepLink'
 import NotificationCard from '@/app/(notification)/components/NotificationCard';
+import NotificationCardSkeleton from '@/app/(notification)/components/NotificationCardSkeleton';
 
 import type { NotificationCardType } from '@/app/(notification)/components/NotificationCard';
 
@@ -32,10 +33,10 @@ export default function NotificationList({ filter }: NotificationListProps) {
 
   if (loading) {
     return (
-      <View className="mt-10">
-        <Text className="text-center text-muted font-inter">
-          Loading notifications…
-        </Text>
+      <View className="flex gap-3 mt-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <NotificationCardSkeleton key={i} />
+        ))}
       </View>
     );
   }

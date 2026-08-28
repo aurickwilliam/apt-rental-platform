@@ -26,6 +26,7 @@ export interface ApartmentFormData {
   leaseDuration: string
 
   monthlyRent: string
+  rentDueDay: string
   securityDeposit: string
   advanceRent: string
   leaseAgreement: string
@@ -67,6 +68,7 @@ const initialState: ApartmentFormData = {
   longitude: null,
   leaseDuration: '',
   monthlyRent: '',
+  rentDueDay: '5',
   securityDeposit: '',
   advanceRent: '',
   leaseAgreement: '',

@@ -83,6 +83,14 @@ beforeEach(() => {
   });
 });
 
+// useTenancyRealtime defers channel teardown by one macrotask (same-tick
+// remount race guard); flush it so each test starts with a clean registry.
+afterEach(async () => {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+});
+
 describe("useTenancy", () => {
   /** Validates: Requirements 2.8, 2.17 */
   it("refetches a null tenancy query when a matching active tenancy is created", async () => {

@@ -5,6 +5,7 @@ import type { UserProfile } from "@/service/auth/currentUserService";
 export interface NotificationData {
   screen?: string;
   apartmentId?: string;
+  dueDate?: string;
   conversationKey?: string;
   paymentId?: string;
   senderId?: string;
