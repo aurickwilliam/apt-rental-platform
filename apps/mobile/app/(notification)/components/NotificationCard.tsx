@@ -63,7 +63,7 @@ export default function NotificationCard({
         </Card.Header>
 
         <Card.Body className="pt-2">
-          <Card.Description className="text-foreground font-inter">
+          <Card.Description className="text-foreground text-sm font-inter">
             {message}
           </Card.Description>
         </Card.Body>

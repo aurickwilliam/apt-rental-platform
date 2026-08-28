@@ -51,7 +51,11 @@ const toIsoDate = (date: Date): string => {
 
 // The period being paid for: the tenancy's current payment period when it
 // covers this month, otherwise the current calendar month (due on the 5th).
-function resolvePaymentPeriod(currentPeriodStart: string | null, currentPeriodEnd: string | null, currentDueDate: string | null): {
+function resolvePaymentPeriod(
+  currentPeriodStart: string | null,
+  currentPeriodEnd: string | null,
+  currentDueDate: string | null
+): {
   periodStart: string
   periodEnd: string
   dueDate: string
@@ -79,7 +83,11 @@ const formatLeaseDate = (iso: string | null): string => {
   if (!iso) return '—'
   const date = new Date(`${iso.slice(0, 10)}T00:00:00`)
   if (Number.isNaN(date.getTime())) return iso
-  return new Intl.DateTimeFormat('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).format(date)
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  }).format(date)
 }
 
 export default function PaymentCheckout() {
