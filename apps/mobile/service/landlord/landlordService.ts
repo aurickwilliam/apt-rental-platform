@@ -4,6 +4,7 @@ import { formatAddress } from "@repo/utils";
 import { ApartmentStatus, VALID_APARTMENT_STATUSES } from "@repo/constants";
 
 import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
+import { periodMonthLabel } from "@/service/payments/paymentService";
 
 import type { MaintenanceRequestStatus } from "@/service/maintenance-requests/maintenanceService";
 
@@ -230,7 +231,7 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status, method, reference_id")
+      .select("id, amount, date, status, method, reference_id, due_date")
       .eq("apartment_id", apartmentId)
       .in("status", ["paid", "pending"])
       .order("date", { ascending: false })
@@ -291,7 +292,7 @@ export async function fetchLandlordTenancy(
     const d = new Date(p.date);
     return {
       id: p.id,
-      month: d.toLocaleString("default", { month: "long" }),
+      month: periodMonthLabel(p.due_date ?? p.date),
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,

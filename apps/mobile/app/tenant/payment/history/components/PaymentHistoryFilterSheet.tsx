@@ -21,6 +21,8 @@ type Props = {
   onChange: (filters: PaymentHistoryFilters) => void;
   /** Years that exist in the payment history (drives the Year chips) */
   availableYears: string[];
+  /** The current year string — displayed as "This Year" in chips */
+  currentYear: string;
 };
 
 export default function PaymentHistoryFilterSheet({
@@ -29,6 +31,7 @@ export default function PaymentHistoryFilterSheet({
   filters,
   onChange,
   availableYears,
+  currentYear,
 }: Props) {
   const toggle = useCallback(
     (key: 'years' | 'statuses', value: string) => {
@@ -77,6 +80,7 @@ export default function PaymentHistoryFilterSheet({
             <View className="flex-row flex-wrap gap-2">
               {availableYears.map((year) => {
                 const selected = filters.years.includes(year);
+                const label = year === currentYear ? 'This Year' : year;
                 return (
                   <Chip
                     key={year}
@@ -84,7 +88,7 @@ export default function PaymentHistoryFilterSheet({
                     color={selected ? 'accent' : 'default'}
                     onPress={() => toggle('years', year)}
                   >
-                    <Chip.Label>{year}</Chip.Label>
+                    <Chip.Label>{label}</Chip.Label>
                   </Chip>
                 );
               })}

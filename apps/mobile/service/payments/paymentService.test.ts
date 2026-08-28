@@ -49,6 +49,7 @@ const ROW = {
     name: 'Sunny Apartments',
     landlord: { first_name: 'John', last_name: 'Doe' },
   },
+  tenant: { first_name: 'Jane', last_name: 'Smith' },
 }
 
 describe('formatReferenceId', () => {
@@ -93,11 +94,11 @@ describe('methodLabel', () => {
 
 describe('paidAmountForPeriod', () => {
   const payments: PaymentRecord[] = [
-    { ...ROW, id: 'a', amount: 1000, status: 'paid', period_start: '2026-08-01' },
-    { ...ROW, id: 'b', amount: 2000, status: 'paid', period_start: '2026-08-01' },
-    { ...ROW, id: 'c', amount: 5000, status: 'pending', period_start: '2026-08-01' },
-    { ...ROW, id: 'd', amount: 9000, status: 'paid', period_start: '2026-07-01' },
-    { ...ROW, id: 'e', amount: null, status: 'paid', period_start: '2026-08-01' },
+    { ...(ROW as unknown as PaymentRecord), id: 'a', amount: 1000, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
+    { ...(ROW as unknown as PaymentRecord), id: 'b', amount: 2000, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
+    { ...(ROW as unknown as PaymentRecord), id: 'c', amount: 5000, status: 'pending', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
+    { ...(ROW as unknown as PaymentRecord), id: 'd', amount: 9000, status: 'paid', period_start: '2026-07-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
+    { ...(ROW as unknown as PaymentRecord), id: 'e', amount: null, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
   ]
 
   it('sums only paid rows of the given period', () => {

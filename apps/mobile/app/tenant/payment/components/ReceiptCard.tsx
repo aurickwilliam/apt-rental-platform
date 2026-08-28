@@ -41,7 +41,8 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
 
 interface ReceiptCardProps {
   apartmentName: string
-  landlordName: string
+  landlordName?: string
+  tenantName?: string
   date: string
   time: string
   method: string
@@ -58,6 +59,7 @@ interface ReceiptCardProps {
 export default function ReceiptCard({
   apartmentName,
   landlordName,
+  tenantName,
   date,
   time,
   method,
@@ -92,7 +94,8 @@ export default function ReceiptCard({
               <ReceiptRow label='Payment Period' value={periodLabel} />
             )}
             <ReceiptRow label='Apartment' value={apartmentName} />
-            <ReceiptRow label='Landlord' value={landlordName} />
+            {tenantName ? <ReceiptRow label='Tenant' value={tenantName} /> : null}
+            {landlordName ? <ReceiptRow label='Landlord' value={landlordName} /> : null}
             <ReceiptRow label='Date' value={date} />
             <ReceiptRow label='Time' value={time} />
             <ReceiptRow label='Payment Method' value={method} />

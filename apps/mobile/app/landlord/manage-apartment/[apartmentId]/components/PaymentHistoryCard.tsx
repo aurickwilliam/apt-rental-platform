@@ -1,8 +1,6 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 
-import { IconCalendar } from "@tabler/icons-react-native";
-
-import { Card, Chip } from "heroui-native";
+import { Card, Chip, PressableFeedback } from "heroui-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -16,26 +14,22 @@ import {
 
 interface PaymentHistoryCardProps {
   month: string;
-  year: string;
   amount: number;
   paidDate: string;
   status: string;
   method?: string | null;
-  reference?: string | null;
-  onFlipPress?: () => void;
-  flipDisabled?: boolean;
+  referenceId?: string | null;
+  onPress: () => void;
 }
 
 export default function PaymentHistoryCard({
   month,
-  year,
   amount = 0,
   paidDate = "0/0/0000",
   status = "paid",
   method,
-  reference,
-  onFlipPress,
-  flipDisabled = false,
+  referenceId,
+  onPress,
 }: PaymentHistoryCardProps) {
   const { colors } = useColors();
   const statusStyles = usePaymentStatusStyles();
@@ -44,88 +38,78 @@ export default function PaymentHistoryCard({
   const style = statusStyles[label];
 
   return (
-    <Card className="border border-border shadow-none rounded-3xl">
-      <Card.Header>
-        <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-row items-center gap-2 flex-1">
-            <IconCalendar size={20} color={colors.gray500} />
+    <PressableFeedback
+      onPress={onPress}
+      className="rounded-3xl overflow-hidden"
+    >
+      <PressableFeedback.Highlight />
+
+      <Card className="border border-border shadow-none px-4 py-3 gap-1">
+        <Card.Header>
+          <View className="flex-row items-center justify-between gap-2">
             <Text
-              className="text-foreground font-nunitoSemiBold text-base"
+              className="text-foreground font-nunitoSemiBold text-base flex-1"
               numberOfLines={1}
             >
-              {month}, {year}
+              {month}
             </Text>
-          </View>
 
-          <View className="flex-row items-center gap-2">
-            {method ? (
+            <View className="flex-row items-center gap-1.5 shrink-0">
+              {method ? (
+                <Chip
+                  variant="soft"
+                  size="sm"
+                  animation="disable-all"
+                  style={{ backgroundColor: colors.gray100 }}
+                >
+                  <Chip.Label
+                    style={{ color: colors.gray500 }}
+                    className="text-[11px] font-nunitoSemiBold"
+                  >
+                    {methodLabel(method)}
+                  </Chip.Label>
+                </Chip>
+              ) : null}
+
               <Chip
                 variant="soft"
-                size="md"
+                size="sm"
                 animation="disable-all"
-                style={{ backgroundColor: colors.gray100 }}
+                style={{ backgroundColor: style.backgroundColor }}
               >
                 <Chip.Label
-                  style={{ color: colors.gray500 }}
-                  className="text-xs font-nunitoSemiBold"
+                  style={{ color: style.textColor }}
+                  className="text-[11px] font-nunitoSemiBold"
                 >
-                  {methodLabel(method ?? null)}
+                  {label}
                 </Chip.Label>
               </Chip>
-            ) : null}
-
-            <Chip
-              variant="soft"
-              size="md"
-              animation="disable-all"
-              style={{ backgroundColor: style.backgroundColor }}
-            >
-              <Chip.Label
-                style={{ color: style.textColor }}
-                className="text-xs font-nunitoSemiBold"
-              >
-                {label}
-              </Chip.Label>
-            </Chip>
+            </View>
           </View>
-        </View>
-      </Card.Header>
+        </Card.Header>
 
-      <Card.Body className="pt-3 gap-1">
-        <Text className="text-foreground text-xl font-nunitoBold">
-          {formatPesoDisplay(amount)}
-        </Text>
-      </Card.Body>
-
-      <Card.Footer>
-        <View className="flex-row items-center justify-between gap-3 mt-3">
-          <Text className="text-gray-500 text-xs font-inter">
-            Ref. No: {formatReferenceId(reference ?? null)}
+        <Card.Body className="gap-0">
+          <Text className="text-accent text-lg font-nunitoBold">
+            {formatPesoDisplay(amount)}
           </Text>
+        </Card.Body>
 
-          <Text className="text-gray-500 text-xs font-inter">
+        <Card.Footer className="flex-row items-center justify-between gap-2">
+          <Text
+            className="text-gray-500 text-[11px] font-inter flex-1"
+            numberOfLines={1}
+          >
             {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
           </Text>
-        </View>
-      </Card.Footer>
-
-      {onFlipPress && (
-        <View className="px-4 pb-4">
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onFlipPress}
-            disabled={flipDisabled}
-            className={`px-4 py-2 rounded-full items-center ${
-              flipDisabled ? "opacity-50" : ""
-            }`}
-            style={{ backgroundColor: colors.successLight }}
+          <Text
+            className="text-gray-500 text-[11px] font-inter shrink-0"
+            numberOfLines={1}
+            ellipsizeMode="middle"
           >
-            <Text className="text-success font-nunitoSemiBold">
-              Mark as Paid
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </Card>
+            {formatReferenceId(referenceId ?? null)}
+          </Text>
+        </Card.Footer>
+      </Card>
+    </PressableFeedback>
   );
 }

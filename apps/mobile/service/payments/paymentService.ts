@@ -19,6 +19,7 @@ export interface PaymentRecord {
   due_date: string | null
   apartment_name: string | null
   landlord_name: string | null
+  tenant_name: string | null
 }
 
 type PaymentRow = {
@@ -33,6 +34,7 @@ type PaymentRow = {
   period_end: string | null
   due_date: string | null
   apartment: { name: string | null; landlord: { first_name: string | null; last_name: string | null } | null } | null
+  tenant: { first_name: string | null; last_name: string | null } | null
 }
 
 const PAYMENT_SELECT = `
@@ -49,11 +51,13 @@ const PAYMENT_SELECT = `
   apartment:apartments (
     name,
     landlord:users (first_name, last_name)
-  )
+  ),
+  tenant:users!payment_tenant_id_fkey (first_name, last_name)
 `
 
 const toPaymentRecord = (row: PaymentRow): PaymentRecord => {
   const landlord = row.apartment?.landlord
+  const tenant = row.tenant
   return {
     id: row.id,
     created_at: row.created_at,
@@ -68,6 +72,8 @@ const toPaymentRecord = (row: PaymentRow): PaymentRecord => {
     apartment_name: row.apartment?.name ?? null,
     landlord_name:
       landlord?.first_name || landlord?.last_name ? `${landlord.first_name ?? ''} ${landlord.last_name ?? ''}`.trim() : null,
+    tenant_name:
+      tenant?.first_name || tenant?.last_name ? `${tenant.first_name ?? ''} ${tenant.last_name ?? ''}`.trim() : null,
   }
 }
 

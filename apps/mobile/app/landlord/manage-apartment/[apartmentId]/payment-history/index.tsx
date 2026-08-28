@@ -1,24 +1,18 @@
 import { useMemo, useState } from 'react'
 import { View, Text, SectionList, ActivityIndicator } from 'react-native'
 import { Button } from 'heroui-native'
-import { IconFilter2, IconReceipt } from '@tabler/icons-react-native'
+import { IconFilter2, IconWallet } from '@tabler/icons-react-native'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import { useColors } from '@/hooks/useTheme'
-import { usePayments } from '@/hooks/payments'
-import { useTenancy } from '@/hooks/tenancy/useTenancy'
-import {
-  methodLabel,
-  paymentStatusLabel,
-  periodMonthLabel,
-  type PaymentRecord,
-} from '@/service/payments/paymentService'
+import ScreenWrapper from 'components/layout/ScreenWrapper'
+import StandardHeader from 'components/layout/StandardHeader'
+import { useColors } from 'hooks/useTheme'
+import { useLandlordPayments } from 'hooks/landlord'
+import { periodMonthLabel, paymentStatusLabel } from '@/service/payments/paymentService'
+import type { PaymentHistoryFilters } from '@/app/tenant/payment/history/components/PaymentHistoryFilterSheet'
+import PaymentHistoryFilterSheet from '@/app/tenant/payment/history/components/PaymentHistoryFilterSheet'
 
-import PaymentHistoryCard, { type PaymentHistoryItem } from './components/PaymentHistoryCard'
-import PaymentHistoryFilterSheet, {
-  type PaymentHistoryFilters,
-} from './components/PaymentHistoryFilterSheet'
+import PaymentHistoryCard from '../components/PaymentHistoryCard'
 
 const EMPTY_FILTERS: PaymentHistoryFilters = {
   years: [],
@@ -26,35 +20,58 @@ const EMPTY_FILTERS: PaymentHistoryFilters = {
   sort: 'Newest',
 }
 
-type FlatPayment = PaymentHistoryItem & { year: string };
+type FlatPayment = {
+  id: string
+  year: string
+  month: string
+  amount: number
+  status: 'paid' | 'pending' | 'unpaid'
+  paidDate: string
+  method: string | null
+  reference: string | null
+  date: string
+}
 
-const toHistoryItem = (payment: PaymentRecord): FlatPayment => {
+const toFlatPayment = (payment: {
+  id: string
+  date: string
+  amount: number | null
+  status: string
+  method: string | null
+  reference_id: string | null
+  period_start: string | null
+  due_date: string | null
+}): FlatPayment => {
   const sourceDate = payment.period_start ?? payment.date
-  const year = sourceDate.slice(0, 4)
+  const date = new Date(`${payment.date.slice(0, 10)}T00:00:00`)
+  const paidDate = Number.isNaN(date.getTime())
+    ? payment.date
+    : `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
   return {
     id: payment.id,
-    date: payment.date,
+    year: sourceDate.slice(0, 4),
     month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
-    status: paymentStatusLabel(payment.status),
-    apartmentName: payment.apartment_name ?? '—',
-    landlordName: payment.landlord_name ?? '—',
-    method: methodLabel(payment.method),
-    year,
+    status: payment.status as FlatPayment['status'],
+    paidDate,
+    method: payment.method,
+    reference: payment.reference_id ?? null,
+    date: payment.date,
   }
 }
 
-export default function History() {
+export default function PaymentHistoryScreen() {
   const { colors } = useColors()
+  const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
+  const router = useRouter()
 
   const [filters, setFilters] = useState<PaymentHistoryFilters>(EMPTY_FILTERS)
   const [filterOpen, setFilterOpen] = useState(false)
 
-  const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
-  const paymentsQuery = usePayments(tenancy?.id ?? null)
+  const paymentsQuery = useLandlordPayments(apartmentId)
 
-  const allPayments = useMemo<FlatPayment[]>(
-    () => (paymentsQuery.data ?? []).map(toHistoryItem),
+  const allPayments = useMemo(
+    () => (paymentsQuery.data ?? []).map(toFlatPayment),
     [paymentsQuery.data]
   )
 
@@ -67,42 +84,37 @@ export default function History() {
   const currentYear = String(new Date().getFullYear())
 
   const filteredPayments = useMemo(() => {
-    let result = allPayments;
+    let result = allPayments
 
     if (filters.years.length > 0) {
-      result = result.filter((payment) => filters.years.includes(payment.year));
+      result = result.filter((payment) => filters.years.includes(payment.year))
     }
 
     if (filters.statuses.length > 0) {
-      result = result.filter((payment) => filters.statuses.includes(payment.status));
+      result = result.filter((payment) =>
+        filters.statuses.includes(paymentStatusLabel(payment.status))
+      )
     }
 
-    const direction = filters.sort === 'Newest' ? -1 : 1;
+    const direction = filters.sort === 'Newest' ? -1 : 1
     return [...result].sort(
       (a, b) => direction * (new Date(a.date).getTime() - new Date(b.date).getTime())
-    );
-  }, [allPayments, filters]);
+    )
+  }, [allPayments, filters])
 
-  const grouped = useMemo(() => {
-    const yearMap = new Map<string, PaymentHistoryItem[]>();
-
+  const sections = useMemo(() => {
+    const yearMap = new Map<string, FlatPayment[]>()
     for (const payment of filteredPayments) {
-      if (!yearMap.has(payment.year)) yearMap.set(payment.year, []);
-      yearMap.get(payment.year)!.push(payment);
+      if (!yearMap.has(payment.year)) yearMap.set(payment.year, [])
+      yearMap.get(payment.year)!.push(payment)
     }
+    const sortDirection = filters.sort === 'Newest' ? -1 : 1
+    return [...yearMap.entries()]
+      .sort(([a], [b]) => sortDirection * (Number(a) - Number(b)))
+      .map(([year, data]) => ({ title: year, data }))
+  }, [filteredPayments, filters.sort])
 
-    const sortDirection = filters.sort === 'Newest' ? -1 : 1;
-    return [...yearMap.entries()].sort(
-      ([a], [b]) => sortDirection * (Number(a) - Number(b))
-    );
-  }, [filteredPayments, filters.sort]);
-
-  const sections = useMemo(
-    () => grouped.map(([year, payments]) => ({ title: year, data: payments })),
-    [grouped]
-  );
-
-  if (tenancyLoading || paymentsQuery.isLoading) {
+  if (paymentsQuery.isLoading) {
     return (
       <ScreenWrapper header={<StandardHeader title='Payment History' />}>
         <View className='flex-1 items-center justify-center'>
@@ -112,14 +124,14 @@ export default function History() {
     )
   }
 
-  if (tenancyError || paymentsQuery.error) {
+  if (paymentsQuery.error) {
     return (
       <ScreenWrapper header={<StandardHeader title='Payment History' />} className='p-5'>
         <View className='flex-1 items-center justify-center gap-4'>
           <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
-            We could not load your payment history.
+            We could not load the payment history.
           </Text>
-          <Button onPress={() => { void refetch(); void paymentsQuery.refetch() }}>
+          <Button onPress={() => { void paymentsQuery.refetch() }}>
             <Button.Label>Try Again</Button.Label>
           </Button>
         </View>
@@ -183,17 +195,30 @@ export default function History() {
           </View>
         )}
         renderItem={({ item }) => (
-          <PaymentHistoryCard payment={item} />
+          <PaymentHistoryCard
+            month={item.month}
+            amount={item.amount}
+            paidDate={item.paidDate}
+            status={item.status}
+            method={item.method}
+            referenceId={item.reference}
+            onPress={() =>
+              router.push({
+                pathname: '/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]',
+                params: { apartmentId: apartmentId!, paymentId: item.id },
+              })
+            }
+          />
         )}
-        ItemSeparatorComponent={() => <View className='h-3' />}
+        ItemSeparatorComponent={() => <View className='h-2' />}
         ListEmptyComponent={
           <View className='items-center gap-4 py-20'>
-            <IconReceipt size={64} color={colors.primary} />
+            <IconWallet size={64} color={colors.primary} />
             <Text className='text-xl font-nunitoBold text-foreground'>
               No payments found
             </Text>
             <Text className='text-gray-400 text-base font-inter text-center px-8'>
-              Try adjusting your filters to see more results.
+              Payments for this unit will appear here.
             </Text>
           </View>
         }
