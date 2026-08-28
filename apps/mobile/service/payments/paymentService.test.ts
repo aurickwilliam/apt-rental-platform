@@ -2,13 +2,11 @@ import {
   createCashPayment,
   fetchPaymentByReferenceId,
   fetchPayments,
-  fetchRefundsForPayment,
   formatReferenceId,
   methodLabel,
   paidAmountForPeriod,
   paymentStatusLabel,
   periodMonthLabel,
-  refundStatusLabel,
   type PaymentRecord,
 } from './paymentService'
 
@@ -47,7 +45,6 @@ const ROW = {
   period_start: '2026-08-01',
   period_end: '2026-08-31',
   due_date: '2026-08-05',
-  is_refundable: false,
   apartment: {
     name: 'Sunny Apartments',
     landlord: { first_name: 'John', last_name: 'Doe' },
@@ -113,16 +110,16 @@ describe('paidAmountForPeriod', () => {
 })
 
 describe('periodMonthLabel', () => {
-  it('labels from the period start', () => {
-    expect(periodMonthLabel('2026-09-01', '2026-01-15')).toBe('September')
+  it('labels the month and due day', () => {
+    expect(periodMonthLabel('2026-09-01')).toBe('September 1')
   })
 
-  it('falls back to the payment date', () => {
-    expect(periodMonthLabel(null, '2026-03-10')).toBe('March')
+  it('returns an em dash for missing dates', () => {
+    expect(periodMonthLabel(null)).toBe('—')
   })
 
   it('returns an em dash for unparseable dates', () => {
-    expect(periodMonthLabel('garbage', 'garbage')).toBe('—')
+    expect(periodMonthLabel('garbage')).toBe('—')
   })
 })
 
@@ -140,14 +137,6 @@ describe('fetchPayments', () => {
     })
   })
 
-  it('surfaces the server-derived is_refundable flag', async () => {
-    mockFrom.mockReturnValue(chainWith({ data: [{ ...ROW, is_refundable: true }] }))
-
-    const result = await fetchPayments('tenancy-1')
-
-    expect(result[0].is_refundable).toBe(true)
-  })
-
   it('throws when the query fails', async () => {
     mockFrom.mockReturnValue(chainWith({ error: new Error('boom') }))
 
@@ -163,68 +152,12 @@ describe('fetchPaymentByReferenceId', () => {
 
     expect(result?.landlord_name).toBe('John Doe')
     expect(result?.reference_id).toBe('pay_abc123')
-    expect(result?.is_refundable).toBe(false)
   })
 
   it('returns null when no row matches', async () => {
     mockFrom.mockReturnValue(chainWith({ data: null }))
 
     expect(await fetchPaymentByReferenceId('pay_nope')).toBeNull()
-  })
-})
-
-describe('fetchRefundsForPayment', () => {
-  const refundRow = {
-    id: 'refund-1',
-    payment_id: 'payment-1',
-    amount: 25000,
-    status: 'processing',
-    reason: 'requested_by_customer',
-    failure_reason: null,
-    created_at: '2026-08-20T02:00:00+00:00',
-    completed_at: null,
-  }
-
-  // fetchRefundsForPayment terminates on .order() (no .limit). chainWith's
-  // inner methods return the inner chain, so build a chain whose select/eq
-  // return the outer object and whose order resolves the result.
-  const refundsChainWith = (result: QueryResult) => {
-    const chain = {
-      ...chainWith(result),
-      select: jest.fn(() => chain),
-      eq: jest.fn(() => chain),
-      order: jest.fn(async () => ({ data: result.data ?? null, error: result.error ?? null })),
-    }
-    return chain
-  }
-
-  it('returns refund rows for the payment', async () => {
-    mockFrom.mockReturnValue(refundsChainWith({ data: [refundRow] }))
-
-    const result = await fetchRefundsForPayment('payment-1')
-
-    expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
-      id: 'refund-1',
-      payment_id: 'payment-1',
-      amount: 25000,
-      status: 'processing',
-    })
-  })
-
-  it('returns an empty list when nothing was refunded', async () => {
-    mockFrom.mockReturnValue(refundsChainWith({ data: [] }))
-
-    expect(await fetchRefundsForPayment('payment-1')).toEqual([])
-  })
-})
-
-describe('refundStatusLabel', () => {
-  it('maps refund statuses to display labels', () => {
-    expect(refundStatusLabel('pending')).toBe('Refund in progress')
-    expect(refundStatusLabel('processing')).toBe('Refund in progress')
-    expect(refundStatusLabel('succeeded')).toBe('Refunded')
-    expect(refundStatusLabel('failed')).toBe('Refund failed')
   })
 })
 

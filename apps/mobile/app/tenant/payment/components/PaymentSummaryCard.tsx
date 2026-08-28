@@ -26,9 +26,9 @@ export default function PaymentSummaryCard({
       <Card.Body className='mb-5'>
         <View className='flex gap-2 mt-3'>
           <View className='flex-row justify-between items-center'>
-            <Text className='text-sm text-foreground font-inter'>Month & Year</Text>
+            <Text className='text-sm text-foreground font-inter'>Billing Period</Text>
             <Text className='text-sm text-foreground font-inter'>
-              {month} {year}
+              {month}, {year}
             </Text>
           </View>
 

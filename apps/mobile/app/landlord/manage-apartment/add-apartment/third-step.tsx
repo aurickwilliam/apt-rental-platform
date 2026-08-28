@@ -21,6 +21,7 @@ import { formatPesoDisplay, handlePesoChange } from "@repo/utils";
 
 type FieldErrors = {
   monthlyRent?: string;
+  rentDueDay?: string;
   securityDeposit?: string;
   advanceRent?: string;
   leaseAgreement?: string;
@@ -28,6 +29,7 @@ type FieldErrors = {
 
 function validate(values: {
   monthlyRent: string;
+  rentDueDay: string;
   securityDeposit: string;
   advanceRent: string;
   leaseAgreement: string;
@@ -36,6 +38,10 @@ function validate(values: {
 
   if (!values.monthlyRent.trim() || Number(values.monthlyRent) <= 0)
     errors.monthlyRent = "Monthly rent must be greater than 0.";
+
+  const dueDay = Number(values.rentDueDay);
+  if (!values.rentDueDay.trim() || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31)
+    errors.rentDueDay = "Enter a day between 1 and 31.";
 
   if (values.securityDeposit.trim() && Number(values.securityDeposit) <= 0)
     errors.securityDeposit = "Security deposit must be greater than 0.";
@@ -56,6 +62,7 @@ export default function ThirdStep() {
 
   const {
     monthlyRent,
+    rentDueDay,
     securityDeposit,
     advanceRent,
     leaseAgreement,
@@ -69,6 +76,7 @@ export default function ThirdStep() {
   function handleNext() {
     const validationErrors = validate({
       monthlyRent,
+      rentDueDay,
       securityDeposit,
       advanceRent,
       leaseAgreement,
@@ -109,6 +117,20 @@ export default function ThirdStep() {
               }}
             />
             {errors.monthlyRent && <FieldError>{errors.monthlyRent}</FieldError>}
+          </TextField>
+
+          <TextField isRequired isInvalid={!!errors.rentDueDay}>
+            <Label>Rent Due Day:</Label>
+            <Input
+              placeholder="Day of the month rent is due"
+              value={rentDueDay}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                setField("rentDueDay", text.replace(/[^0-9]/g, ""));
+                clearError("rentDueDay");
+              }}
+            />
+            {errors.rentDueDay && <FieldError>{errors.rentDueDay}</FieldError>}
           </TextField>
 
           <TextField isInvalid={!!errors.securityDeposit}>

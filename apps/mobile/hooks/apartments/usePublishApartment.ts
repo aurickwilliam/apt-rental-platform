@@ -77,6 +77,7 @@ export function usePublishApartment() {
           name: store.name,
           description: store.description,
           monthly_rent: Number(store.monthlyRent),
+          rent_due_day: Number(store.rentDueDay) || 5,
           security_deposit: store.securityDeposit ? Number(store.securityDeposit) : null,
           advance_rent: store.advanceRent ? Number(store.advanceRent) : null,
           type: store.apartmentType,

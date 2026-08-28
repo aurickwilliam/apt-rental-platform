@@ -1,5 +1,6 @@
 import type { Icon } from "@tabler/icons-react-native";
 import {
+  IconCalendarExclamation,
   IconCashBanknote,
   IconHammer,
   IconHome,
@@ -25,6 +26,21 @@ const FALLBACK_ICON: Icon = IconInfoCircle;
 export function getNotificationTypeIcon(type: NotificationType): Icon {
   return iconMap[type] ?? FALLBACK_ICON;
 }
+
+export const RENT_DUE_TITLES = new Set([
+  "Rent Due Soon",
+  "Rent Due Today",
+  "Rent Past Due",
+  "Tenant Rent Due Soon",
+  "Tenant Rent Due Today",
+  "Tenant Rent Overdue",
+]);
+
+export function isRentDueNotification(title?: string | null): boolean {
+  return !!title && RENT_DUE_TITLES.has(title);
+}
+
+export const RENT_DUE_ICON = IconCalendarExclamation;
 
 export function useNotificationTypeColor() {
   const { colors } = useColors();

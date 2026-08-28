@@ -10,4 +10,4 @@ export type { NotificationPreferenceType } from "@/service/notifications/notific
 export { useInAppNotificationBanner } from "./useInAppNotificationBanner";
 export { shouldSuppressChatToast } from "./notificationSuppression";
 export { useNotificationRealtime } from "./useNotificationRealtime";
-export { getNotificationTypeIcon, useNotificationTypeColor } from "./notificationVisuals";
+export { getNotificationTypeIcon, useNotificationTypeColor, isRentDueNotification, RENT_DUE_TITLES, RENT_DUE_ICON } from "./notificationVisuals";

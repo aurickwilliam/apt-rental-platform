@@ -336,77 +336,47 @@ flowchart LR
 
 ## 7. Payment Architecture
 
-> **Important.** APT does **not** process payments today. What exists is (a) a complete but mock payment UI on mobile, (b) read-only display of `payment` table rows, and (c) a database table designed for a future payment flow. PayMongo appears exactly once in the codebase, as a marketing string. There is no PayMongo SDK, no payment API key, no webhook, no server-side payment code, and no code path that writes a payment.
-
-### 7.1 Current architecture (verified, implemented)
+> **PayMongo Test-Mode Hybrid (no disbursement).** Tenant selects method (GCash/Maya/QRPh/Card/Cash) → `paymongo` edge function `POST /v2/checkout_sessions` inserts `payment` `pending` + `paymongo_session_id` → returns `checkout_url` → `e-wallet-redirect` opens PayMongo hosted page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. When `PAYMONGO_SECRET_KEY` is unset, edge function returns `simulation://` mocks (reference `-fail`/`-expired`, card `0002` etc) so local dev still works. Cash stays `pending` awaiting landlord `landlord_update_payment_status`; no payout disbursement.
 
 ```mermaid
 sequenceDiagram
     actor T as Tenant
     participant C as payment/index.tsx
-    participant R as e-wallet-redirect.tsx
-    participant S as success.tsx
+    participant PF as paymongo edge (hosted checkout)
+    participant WH as paymongo-webhook
     participant DB as payment table
+    participant RT as Realtime (tenancy-live)
+    participant L as Landlord
 
-    Note over T,DB: All values hardcoded (apartment, rent, due date, landlord)
-    T->>C: choose method (GCash / Maya / Card / Cash)
-    alt GCash or Maya
-        C->>R: router.push(e-wallet-redirect?method=…)
-        R->>S: router.push(success)  ← no provider call
-    else Card
-        C->>C: validateCardInfo() (Luhn, expiry, CVV)
-        C->>S: router.push(success)  ← no tokenization
-    else Cash
-        C->>C: validateCashPayment()
-        C->>S: router.push(success)
+    T->>C: choose method + credentials (validateCardInfo)
+    alt Cash
+        C->>DB: createCashPayment() INSERT pending
+    else Card failure suffix (0002/0018/0017/0007)
+        C->>PF: createCardPayment() -> failed reason
+    else GCash/Maya/QRPh/Card success
+        C->>PF: createCheckoutSession/reference -> INSERT pending
+        PF-->>C: checkout_url (paymongo.com or simulation://)
+        C->>PF: Linking.openURL(checkoutUrl) -> Pay button
+        PF->>WH: checkout_session.payment.paid
+        WH->>DB: UPDATE status paid + capture paymongo_payment_id
     end
-    S->>S: build receipt from hardcoded data; ref = 'APT-' + base36 timestamp
-    Note over S,DB: Receipt not persisted; no DB write
+    DB-->>RT: postgres_changes
+    RT-->>L: useLandlordPayments refetch + create_notification → push-notify
 ```
 
-**What exists:**
+**Current implementation (hybrid, no disbursement):**
 
 | Piece | Status | Evidence |
 |---|---|---|
-| Mobile payment screens (method selection, card/cash forms, e-wallet redirect, success/failed, history, saved-methods) | Implemented, **mock data** | `apps/mobile/app/tenant/payment/*` |
-| Receipt generation | Client-only, hardcoded (apartment "Sunny Apartments", method forced `'GCash'`), not persisted | `apps/mobile/app/tenant/payment/success.tsx`, `components/ReceiptCard.tsx` |
-| Card validation | Real (Luhn, expiry, CVV) | `packages/utils/src/validateCardNumber.ts` |
-| E-wallet redirect | Mock — `router.push` only; no `WebBrowser`, no URL, no deep link | `apps/mobile/app/tenant/payment/e-wallet-redirect.tsx` |
-| Saved payment methods | UI stubs; `hasSavedPaymentMethod` hardcoded false; add/delete no-ops | `apps/mobile/app/tenant/payment/saved-methods/*` |
-| Payment history (mobile) | Hardcoded dummy records (`// Dummy data for payment history`) | `apps/mobile/app/tenant/payment/history.tsx` |
-| `payment` table reads | Real — 5 read queries (tenant current payment, landlord history, monthly profit, web tenant history) | `hooks/tenancy/useTenancy.ts`, `hooks/tenancy/useLandlordTenancy.ts`, `hooks/apartments/useLandlordUnits.ts`, `apps/web/hooks/use-tenancy.ts` |
-| Realtime on payments | `tenancy-live` subscription on `payment`/`tenancies` → full refetch (only write-anticipating wiring) | `apps/mobile/hooks/tenancy/useTenancy.ts` |
-| Web landlord payments | Placeholder page ("Add your payments management UI here") | `apps/web/app/landlord/payments/page.tsx` |
-| Web tenant pay | Confirmation modal only; `onConfirm` ends in `// TODO: trigger Supabase payment flow` | `apps/web/app/tenant/my-rental/components/PaymentModal.tsx` + `page.tsx` |
-| PayMongo | One UI string only ("securely processed by PayMongo") | `apps/mobile/app/tenant/payment/saved-methods/card-form.tsx` |
-| Webhooks / API routes / Edge Functions / payment keys | **Not currently implemented** | no `app/api`, no `supabase/functions`, no `PAYMONGO_*` env vars |
-
-### 7.2 Planned architecture (evidence-based; **NOT IMPLEMENTED**)
-
-The following intended design is inferred from the `payment` table schema, `PAYMENT_STATUS` constants, card-validation utils, and in-code TODOs. **None of it runs today.**
-
-```mermaid
-sequenceDiagram
-    participant T as Tenant client
-    participant S as Server-side component (planned)
-    participant PM as PayMongo (planned)
-    participant DB as payment table
-    participant RT as Realtime
-
-    T->>S: create payment intent (planned)
-    S->>PM: POST /v1/checkout_sessions or /payment_intents (planned)
-    PM-->>T: e-wallet redirect / hosted checkout (planned)
-    PM->>S: webhook callback (planned)
-    S->>DB: INSERT payment (status, reference_no, method, period) (planned)
-    DB-->>RT: postgres_changes
-    RT-->>T: useTenancy refetch → UI updates (already wired)
-    Note over T,RT: Only this last hop exists today
-```
-
-- `payment` schema (amount, method, status, date, due_date, period_start/end, `reference_no`, `proof_url`, FKs to apartment/tenancy/tenant) already matches this flow.
-- The `tenancy-live` realtime subscription in `useTenancy` already reacts to payment writes — the missing piece is the writer.
-- Receipt would need to be generated from a persisted payment row (today it is hardcoded).
-- Secret-key handling, webhook contract, and status reconciliation are **not documented** — no code exists to describe them.
+| Mobile payment screens (method selection, card/cash forms, e-wallet redirect, success, history) | Hybrid — PayMongo hosted checkout in test mode, simulation fallback | `apps/mobile/app/tenant/payment/*` |
+| Receipt generation | From persisted `payment` row by `reference_id` | `apps/mobile/app/tenant/payment/success.tsx` (`usePaymentByReference`), `components/ReceiptCard.tsx` |
+| Card validation | Real (Luhn, expiry, CVV) + suffix-triggered declines | `packages/utils/src/validateCardNumber.ts`, `service/payments/paymongoService.ts` |
+| E-wallet redirect | `Linking.openURL(checkoutUrl)` + `getCheckoutSessionStatus` verify + deep-link handler | `apps/mobile/app/tenant/payment/e-wallet-redirect.tsx` |
+| Payment history (mobile) | Real rows via `fetchPayments(tenancyId)` / `fetchPaymentById` | `service/payments/paymentService.ts`, `hooks/payments/usePayments.ts` |
+| Cash flow | Inserts `pending`; landlord flips via `landlord_update_payment_status` | `service/payments/paymentService.ts:createCashPayment`, `service/landlord/landlordService.ts:updateLandlordPaymentStatus` |
+| Realtime on payments | `tenancy-live` on `payment` + `tenancies` -> landlord dashboard + notifications | `apps/mobile/hooks/tenancy/useTenancy.ts` |
+| Payouts / Refunds | **No disbursement** — payout tables removed; landlord profit from `payment` aggregates | — |
+| PayMongo Edge Functions | `paymongo` (verify_jwt true) + `paymongo-webhook` (no-verify-jwt, HMAC) | `supabase/functions/paymongo*` |
 
 ---
 
@@ -548,7 +518,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Rental application** | 5-step wizard (`apply/*`) with `useApplicationFormStore`, document uploads with rollback, `useSubmitApplication` | Not implemented (landlord `applications/` is a placeholder) | `rental_application`, `application-documents` |
 | **Visit requests** | Tenant `request-visit` + `useSubmitVisitRequest`; landlord `visit-requests/` list/detail with actions, reschedule sheet | Not implemented | `visit_request` |
 | **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (React Query tenancy + payment reads keyed by internal id, filtered realtime scoped to the loaded tenancy, explicit refresh) | `tenant/my-rental/` client page + `use-tenancy` | `tenancies`, `payment` |
-| **Payments** | Mock UI flow (§7.1) | Placeholder + view-only history (§7.1) | `payment` (read-only) |
+| **Payments** | Simulation (GCash/Maya/QRPh/Card = paid, Cash = pending) — §7 | Placeholder + view-only history | `payment` (tenant inserts paid/pending, landlord confirms cash) |
 | **Maintenance** | Tenant request/history + `useSubmitMaintenanceRequest` (uploads photos); landlord `maintenance-requests/` workflow (pending → resolved) | Stub ("Coming Soon") | `maintenance_request`, `maintenance-images` |
 | **Chat** | §8 (full: bounded 30-page history, attachments, direct-URL GIFs, typing, presence, optimistic; identity-keyed stable channels; `get_conversations_v2` RPC) | §8.3 (text-only) | `chat`, `chat-images`, `get_conversations_v2` RPC |
 | **Reviews & ratings** | Detail ratings, `rate-apartment`, `useSubmitReview` (photo uploads with rollback) | Read-only display (`RatingsSection`, `RenderReviews`) | `reviews`, `review-images` |
@@ -644,7 +614,7 @@ flowchart LR
 - **RLS is the security boundary.** Both apps use only the public anon key; every data access is filtered by RLS in the live project. Policies are not visible in the repo (live project only).
 - **Internal ID indirection** — FKs and policies resolve `auth.uid()` → `public.users.id`; new policies/joins must follow it (see AGENTS.md).
 - **Private buckets + signed URLs** for lease agreements, application documents, chat attachments, maintenance images; paths (not URLs) are stored in DB; signed URLs are short-lived (55–60 min).
-- **Secrets**: only `NEXT_PUBLIC_*` / `EXPO_PUBLIC_*` vars reach clients (Supabase URL/anon key, Giphy key). Env files are gitignored (`.env`, `.env*.local`); no secrets are tracked (`git ls-files` shows none). No server-side secrets exist yet (no payment keys — see §7).
+- **Secrets**: only `NEXT_PUBLIC_*` / `EXPO_PUBLIC_*` vars reach clients (Supabase URL/anon key, Giphy key). Env files are gitignored (`.env`, `.env*.local`); no secrets are tracked (`git ls-files` shows none). No payment provider secrets — simulation has no external keys (§7).
 - **Input validation** client-side on all user input; server-side trust is limited to Supabase + RLS (no custom server).
 - **Middleware token validation** uses `getUser()` (server-validated), never `getSession()` from cookies.
 
@@ -751,7 +721,7 @@ All items below are verified against the repository. The authoritative, itemized
 | D15 | **`public.users` role queries in middleware** | Middleware hits `users` per protected request (needs index; RLS applies) | `packages/supabase/src/middleware.ts:117` |
 | D16 | **Duplicate profile resolution** | **Partially mitigated 2026-08-13** — remaining inline "auth user → users.id" resolution consolidated into shared `useCurrentUser` (React Query); web unaffected | AUDIT C4 |
 | D17 | **No migrations in repo** | **Partially mitigated 2026-08-13** — `supabase/migrations/` tracks the notification schema (2026-08-14 onward, incl. 2026-08-16 policies); the 2026-08-13 chat/image DDL (attachment `url`, RPC v2, `url_thumb`) was applied to the live DB and its files removed from the repo; most schema remains cloud-only | *(this doc)* |
-| D18 | **Payments are mock** | Full §7.1 — no provider integration, no writes, hardcoded data | *(this doc)* |
+| D18 | **Payments are simulation** | §7 — local `payment` inserts, cash pending + simulated card declines — no provider, no webhook, no payouts/refunds | *(this doc)* |
 
 ---
 
@@ -759,7 +729,7 @@ All items below are verified against the repository. The authoritative, itemized
 
 Mostly **Not documented** — the repository contains no architecture plans beyond the following verified signals:
 
-- **Payments (§7.2)**: the `payment` schema, `tenancy-live` realtime wiring, and `// TODO: trigger Supabase payment flow` imply a provider-backed flow (PayMongo mentioned in UI copy) with a server-side writer and webhook — **not implemented**.
+- **Payments (§7)**: simulation — `payment` rows written directly by the tenant client (`paid` for e-wallet/card, `pending` for cash), landlord confirms cash, realtime drives dashboards; no provider, no webhook.
 - **Admin role**: middleware maps `admin → /admin` with no routes or UI — a forward-looking stub, nothing more.
 - **Audit recommendations**: `docs/AUDIT_REPORT.md` recommended adopting React Query, paginating chat, and consolidating signed-URL caching. The **audit-fix batch (merged 2026-08-13, PR #90)** implemented all three on mobile — see §11 (React Query), §8.2 (chat pagination), §6.3 (identity-bound media cache) — with specs under `.kiro/specs/audit-fix/`. Remaining audit items are tracked in §21 (D4, D5, D9, D16).
 - Everything else: **Not documented.**
@@ -777,7 +747,7 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 | **Rental application** | Tenant's application to a unit (`rental_application`), with documents stored in `application-documents`. |
 | **Visit request** | Request to view a property (`visit_request`), optionally tied to an application. |
 | **Lease agreement** | PDF stored in the private `lease-agreements` bucket; DB stores its storage path (`lease_agreement_url`). |
-| **Receipt** | Payment confirmation UI (GCash-style); currently generated client-side from mock data — not a persisted record (§7.1). |
+| **Receipt** | Payment confirmation UI (GCash-style); generated from the persisted `payment` row by `reference_id` (§7). |
 | **Maintenance request** | Tenant-reported issue (`maintenance_request`) with photos in `maintenance-images`; landlord resolves it. |
 | **Storage path** | Object key inside a bucket (e.g. `{tenantId}/{applicationId}/{docKey}-…`); stored in DB instead of URLs for private assets. |
 | **Signed URL** | Short-lived (55–60 min) authorized URL for a private-bucket object; generated on read via `createSignedUrl(s)`. |

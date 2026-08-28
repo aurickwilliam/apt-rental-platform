@@ -5,7 +5,12 @@ import { IconChevronRight } from '@tabler/icons-react-native';
 
 import { getInitials } from '@repo/utils';
 
-import { getNotificationTypeIcon, useNotificationTypeColor } from '@/hooks/notifications/notificationVisuals';
+import {
+  isRentDueNotification,
+  RENT_DUE_ICON,
+  getNotificationTypeIcon,
+  useNotificationTypeColor,
+} from '@/hooks/notifications/notificationVisuals';
 import { useColors } from '@/hooks/useTheme';
 
 import type { NotificationRow, NotificationType } from '@/service/notifications/notificationService';
@@ -67,13 +72,16 @@ function NotificationToastContent({
 
   const type = row.type as NotificationType;
   const isMessage = type === 'message';
-  const Icon = isMessage ? null : getNotificationTypeIcon(type);
-  const iconColor = getColor(type);
+  const isRentDue = type === 'payment' && isRentDueNotification(row.title);
+  const Icon = isMessage ? null : isRentDue ? RENT_DUE_ICON : getNotificationTypeIcon(type);
+  const iconColor = isRentDue ? colors.danger : getColor(type);
+  const toastVariant: ToastVariant = isRentDue ? 'danger' : TOAST_VARIANT_BY_TYPE[type];
 
-  // Muted chevron, except payment/maintenance which tint it with their
-  // semantic color (green/yellow).
-  const chevronColor =
-    type === 'payment'
+  // Muted chevron, except payment (green), rent-due (red), and maintenance
+  // (yellow) which tint it with their semantic color.
+  const chevronColor = isRentDue
+    ? colors.danger
+    : type === 'payment'
       ? colors.success
       : type === 'maintenance'
         ? colors.warning
@@ -82,7 +90,7 @@ function NotificationToastContent({
   return (
     <Toast
       id={toastProps.id}
-      variant={TOAST_VARIANT_BY_TYPE[type]}
+      variant={toastVariant}
       className="flex-row gap-3"
       hide={toastProps.hide}
       show={toastProps.show}

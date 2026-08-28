@@ -1266,7 +1266,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_forgot_password_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "forgot-password/index.tsx"
     },
@@ -1827,7 +1827,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_failed",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "failed.tsx"
     },
@@ -1970,7 +1970,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_select_id",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "select-id.tsx"
     },
@@ -2355,7 +2355,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_landlord_layout",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "(landlord)/_layout.tsx"
     },
@@ -2366,7 +2366,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_landlord_layout_landlord_tabs",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "landlord_tabs"
     },
@@ -2377,7 +2377,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_landlord_layout_landlordtablayout",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "landlordtablayout()"
     },
@@ -2487,7 +2487,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_landlord_units_units",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "units()"
     },
@@ -2498,7 +2498,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_layout",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "(tenant)/_layout.tsx"
     },
@@ -2509,7 +2509,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_layout_tenant_tabs",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "tenant_tabs"
     },
@@ -2520,7 +2520,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_layout_tenanttablayout",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "tenanttablayout()"
     },
@@ -2575,7 +2575,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_rentals",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "rentals.tsx"
     },
@@ -2586,7 +2586,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_rentals_mappaymentstatus",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "mappaymentstatus()"
     },
@@ -2597,7 +2597,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_rentals_actionstypes",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "actionstypes"
     },
@@ -2608,7 +2608,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_rentals_actions",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "actions"
     },
@@ -2619,8 +2619,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_rentals_rentals",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "rentals()"
     },
     {
@@ -2674,7 +2674,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "customtabbar.tsx"
     },
@@ -2685,7 +2685,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_tablericoncomponent",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "tablericoncomponent"
     },
@@ -2696,7 +2696,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_customtabconfig",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "customtabconfig"
     },
@@ -2707,7 +2707,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_props",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "props"
     },
@@ -2718,7 +2718,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_customtabbar",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "customtabbar()"
     },
@@ -2729,7 +2729,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_tabitemsprops",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "tabitemsprops"
     },
@@ -2740,7 +2740,7 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_customtabbar_tabitems",
-      "community": 290,
+      "community": 270,
       "community_name": "CustomTabBar.tsx",
       "norm_label": "tabitems()"
     },
@@ -2784,7 +2784,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_quickactionbutton",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "quickactionbutton.tsx"
     },
@@ -2795,7 +2795,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_quickactionbutton_quickactionbuttonprops",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "quickactionbuttonprops"
     },
@@ -2806,7 +2806,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_quickactionbutton_quickactionbutton",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "quickactionbutton()"
     },
@@ -3191,7 +3191,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_apartmentdescriptioncard",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "apartmentdescriptioncard.tsx"
     },
@@ -3202,7 +3202,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_apartmentdescriptioncard_apartmentdescriptioncardprops",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "apartmentdescriptioncardprops"
     },
@@ -3213,7 +3213,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_apartmentdescriptioncard_apartmentdescriptioncard",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "apartmentdescriptioncard()"
     },
@@ -3224,8 +3224,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationlist",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationlist.tsx"
     },
     {
@@ -3235,8 +3235,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationlist_applicationslist",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationslist()"
     },
     {
@@ -3246,8 +3246,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscard",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationstatuscard.tsx"
     },
     {
@@ -3257,8 +3257,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscard_props",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "props"
     },
     {
@@ -3268,8 +3268,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscard_applicationstatuscard",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationstatuscard()"
     },
     {
@@ -3279,8 +3279,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscardskeleton",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationstatuscardskeleton.tsx"
     },
     {
@@ -3290,8 +3290,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationstatuscardskeleton_applicationstatuscardskeleton",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationstatuscardskeleton()"
     },
     {
@@ -3301,8 +3301,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationsemptystate",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationsemptystate.tsx"
     },
     {
@@ -3312,8 +3312,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_applicationsemptystate_applicationsemptystate",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationsemptystate()"
     },
     {
@@ -3356,7 +3356,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_paymentsummarycard",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "rentals/paymentsummarycard.tsx"
     },
@@ -3367,7 +3367,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_paymentsummarycard_paymentsummarycardprops",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "paymentsummarycardprops"
     },
@@ -3378,7 +3378,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_paymentsummarycard_paymentsummarycard",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "paymentsummarycard()"
     },
@@ -3389,7 +3389,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_tenancyemptystate",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "rentals/tenancyemptystate.tsx"
     },
@@ -3400,7 +3400,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_components_rentals_tenancyemptystate_tenancyemptystate",
-      "community": 276,
+      "community": 181,
       "community_name": "rentals.tsx",
       "norm_label": "tenancyemptystate()"
     },
@@ -3862,7 +3862,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_layout",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "app/_layout.tsx"
     },
@@ -3884,7 +3884,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_mobile_app_layout_themeinitializer",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "themeinitializer()"
     },
@@ -3895,7 +3895,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "apps_mobile_app_layout_rootlayout",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "rootlayout()"
     },
@@ -3972,7 +3972,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewaccordionitem",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewaccordionitem.tsx"
     },
@@ -3983,7 +3983,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewaccordionitem_reviewaccordionitemprops",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewaccordionitemprops"
     },
@@ -3994,7 +3994,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewaccordionitem_reviewaccordionitem",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewaccordionitem()"
     },
@@ -4005,7 +4005,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentfile",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentfile.tsx"
     },
@@ -4016,7 +4016,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentfile_reviewdocumentfileprops",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentfileprops"
     },
@@ -4027,7 +4027,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentfile_reviewdocumentfile",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentfile()"
     },
@@ -4038,7 +4038,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentimage",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentimage.tsx"
     },
@@ -4049,7 +4049,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentimage_reviewdocumentimageprops",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentimageprops"
     },
@@ -4060,7 +4060,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_components_reviewdocumentimage_reviewdocumentimage",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "reviewdocumentimage()"
     },
@@ -4137,7 +4137,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_review_information",
-      "community": 300,
+      "community": 276,
       "community_name": "review-information.tsx",
       "norm_label": "review-information.tsx"
     },
@@ -4214,8 +4214,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_third_process",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "third-process.tsx"
     },
     {
@@ -4225,8 +4225,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_third_process_formerrors",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "formerrors"
     },
     {
@@ -4269,7 +4269,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_iconbutton",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "iconbutton.tsx"
     },
@@ -4280,7 +4280,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_iconbutton_iconcomponent",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "iconcomponent"
     },
@@ -4291,7 +4291,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_iconbutton_iconbuttonprops",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "iconbuttonprops"
     },
@@ -4302,7 +4302,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_iconbutton_iconbutton",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "iconbutton()"
     },
@@ -4313,7 +4313,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_rateapartmentskeleton",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rateapartmentskeleton.tsx"
     },
@@ -4324,7 +4324,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_rateapartmentskeleton_rateapartmentskeleton",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rateapartmentskeleton()"
     },
@@ -4654,8 +4654,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_sections_perkssection",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "perkssection.tsx"
     },
     {
@@ -4665,8 +4665,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_sections_perkssection_perkssectionprops",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "perkssectionprops"
     },
     {
@@ -4720,7 +4720,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_included_perks",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "included-perks.tsx"
     },
@@ -4764,7 +4764,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_map_view",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "map-view.tsx"
     },
@@ -4775,7 +4775,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_map_view_map_style",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "map_style"
     },
@@ -4786,7 +4786,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_map_view_default_coords",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "default_coords"
     },
@@ -4797,7 +4797,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_map_view_directionmode",
-      "community": 274,
+      "community": 293,
       "community_name": "map-view.tsx",
       "norm_label": "directionmode"
     },
@@ -4819,7 +4819,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_rate_apartment",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rate-apartment.tsx"
     },
@@ -4830,7 +4830,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_rate_apartment_formerrors",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "formerrors"
     },
@@ -4841,7 +4841,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_rate_apartment_tenancyleaseperiod",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "tenancyleaseperiod"
     },
@@ -4852,7 +4852,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_rate_apartment_errordialogstate",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "errordialogstate"
     },
@@ -5446,7 +5446,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_select_document",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "select-document.tsx"
     },
@@ -5457,7 +5457,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_mobile_app_document_id_select_document_document_type_icons",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "document_type_icons"
     },
@@ -5666,7 +5666,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_analytics",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "analytics.tsx"
     },
@@ -5677,7 +5677,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_analytics_stats",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "stats"
     },
@@ -5688,7 +5688,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_analytics_monthlydata",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "monthlydata"
     },
@@ -5699,7 +5699,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_analytics_max_amount",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "max_amount"
     },
@@ -5710,7 +5710,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_analytics_analyticsscreen",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "analyticsscreen()"
     },
@@ -5721,7 +5721,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_requestid",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "maintenance-requests/[requestid].tsx"
     },
@@ -5743,7 +5743,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_components_emptymaintenancerequestdetail",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "emptymaintenancerequestdetail.tsx"
     },
@@ -5754,7 +5754,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_components_emptymaintenancerequestdetail_emptymaintenancerequestdetail",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "emptymaintenancerequestdetail()"
     },
@@ -5919,7 +5919,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_components_resolverequestdialog",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "resolverequestdialog.tsx"
     },
@@ -5930,7 +5930,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_components_resolverequestdialog_resolverequestdialogprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "resolverequestdialogprops"
     },
@@ -5941,7 +5941,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_components_resolverequestdialog_resolverequestdialog",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "resolverequestdialog()"
     },
@@ -5974,8 +5974,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_maintenance_requests_index_maintenancerequests",
-      "community": 136,
-      "community_name": "visit-requests/index.tsx",
+      "community": 49,
+      "community_name": "tenant-applications/index.tsx",
       "norm_label": "maintenancerequests()"
     },
     {
@@ -6040,7 +6040,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "[apartmentid]/components/paymenthistorycard.tsx"
     },
@@ -6051,7 +6051,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycardprops",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "paymenthistorycardprops"
     },
@@ -6062,7 +6062,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycard",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "paymenthistorycard()"
     },
@@ -6249,8 +6249,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_main",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "edit-main.tsx"
     },
     {
@@ -6260,8 +6260,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_main_apartmentinformation",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "apartmentinformation"
     },
     {
@@ -6271,8 +6271,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_main_displayimage",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "displayimage"
     },
     {
@@ -6282,8 +6282,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_main_existingtoasset",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "existingtoasset()"
     },
     {
@@ -6315,7 +6315,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_perks",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "edit-perks.tsx"
     },
@@ -6337,7 +6337,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_edit_specs",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "edit-specs.tsx"
     },
@@ -6359,7 +6359,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "description/index.tsx"
     },
@@ -6381,7 +6381,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_description_lease_viewer",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "lease-viewer.tsx"
     },
@@ -6535,7 +6535,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "payment-history.tsx"
     },
@@ -6546,7 +6546,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_flatpayment",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "flatpayment"
     },
@@ -6557,7 +6557,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_toflatpayment",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "toflatpayment()"
     },
@@ -6565,10 +6565,10 @@
       "label": "PaymentHistoryScreen()",
       "file_type": "code",
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "paymenthistoryscreen()"
     },
@@ -6689,7 +6689,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep",
-      "community": 302,
+      "community": 309,
       "community_name": "FifthStep",
       "norm_label": "fifthstep()"
     },
@@ -6939,7 +6939,7 @@
       "label": "validate()",
       "file_type": "code",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L29",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_validate",
       "community": 197,
@@ -6950,7 +6950,7 @@
       "label": "ThirdStep()",
       "file_type": "code",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L52",
+      "source_location": "L58",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
       "community": 197,
@@ -7008,7 +7008,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_applicationid",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "tenant-applications/[applicationid].tsx"
     },
@@ -7129,7 +7129,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_components_emptyapplicationdata",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "emptyapplicationdata.tsx"
     },
@@ -7140,7 +7140,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_components_emptyapplicationdata_emptyapplicationdata",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "emptyapplicationdata()"
     },
@@ -7283,7 +7283,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_components_tenantapplicationdetailsskeleton",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "tenantapplicationdetailsskeleton.tsx"
     },
@@ -7294,7 +7294,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_components_tenantapplicationdetailsskeleton_skeletonrow",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "skeletonrow()"
     },
@@ -7305,7 +7305,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_components_tenantapplicationdetailsskeleton_tenantapplicationdetailsskeleton",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "tenantapplicationdetailsskeleton()"
     },
@@ -7338,8 +7338,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_tenant_applications_index_tenantapplications",
-      "community": 136,
-      "community_name": "visit-requests/index.tsx",
+      "community": 49,
+      "community_name": "tenant-applications/index.tsx",
       "norm_label": "tenantapplications()"
     },
     {
@@ -7349,8 +7349,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_requestid",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "visit-requests/[requestid].tsx"
     },
     {
@@ -7360,8 +7360,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_requestid_visitrequestdetails",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "visitrequestdetails()"
     },
     {
@@ -7371,7 +7371,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptyapproved",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "emptyapproved.tsx"
     },
@@ -7382,7 +7382,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptyapproved_emptyapproved",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "emptyapproved()"
     },
@@ -7393,7 +7393,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptypending",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "emptypending.tsx"
     },
@@ -7404,7 +7404,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptypending_emptypending",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "emptypending()"
     },
@@ -7415,7 +7415,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptyrequestdata",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "emptyrequestdata.tsx"
     },
@@ -7426,8 +7426,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_emptyrequestdata_emptyrequestdata",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "emptyrequestdata()"
     },
     {
@@ -7437,8 +7437,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "reschedulesheet.tsx"
     },
     {
@@ -7448,8 +7448,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet_period",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "period"
     },
     {
@@ -7459,8 +7459,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet_props",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "props"
     },
     {
@@ -7470,8 +7470,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet_tomorrow",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "tomorrow"
     },
     {
@@ -7481,8 +7481,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet_tosupabasetime",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "tosupabasetime()"
     },
     {
@@ -7492,8 +7492,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_reschedulesheet_reschedulesheet",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "reschedulesheet()"
     },
     {
@@ -7503,7 +7503,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcalendar",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequestcalendar.tsx"
     },
@@ -7514,7 +7514,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcalendar_visitrequestcalendarprops",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequestcalendarprops"
     },
@@ -7525,7 +7525,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcalendar_visitrequestcalendar",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequestcalendar()"
     },
@@ -7537,7 +7537,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcard",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visit-requests/components/visitrequestcard.tsx"
     },
     {
@@ -7548,7 +7548,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcard_visitrequestcardprops",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequestcardprops"
     },
     {
@@ -7559,7 +7559,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcard_visitrequestcard",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequestcard()"
     },
     {
@@ -7570,7 +7570,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcardskeleton",
       "community": 29,
-      "community_name": "pending.tsx",
+      "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequestcardskeleton.tsx"
     },
     {
@@ -7581,7 +7581,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestcardskeleton_visitrequestcardskeleton",
       "community": 29,
-      "community_name": "pending.tsx",
+      "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequestcardskeleton()"
     },
     {
@@ -7591,7 +7591,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "visitrequestfiltersheet.tsx"
     },
@@ -7602,7 +7602,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_daterange",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "daterange"
     },
@@ -7613,7 +7613,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_visitrequestfilters",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "visitrequestfilters"
     },
@@ -7624,7 +7624,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_status_options",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "status_options"
     },
@@ -7635,7 +7635,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_date_range_options",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "date_range_options"
     },
@@ -7646,7 +7646,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_props",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "props"
     },
@@ -7657,7 +7657,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_components_visitrequestfiltersheet_visitrequestfiltersheet",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "visitrequestfiltersheet()"
     },
@@ -7668,7 +7668,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "visit-requests/index.tsx"
     },
@@ -7679,7 +7679,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_group",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "group"
     },
@@ -7690,7 +7690,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_groupeditem",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "groupeditem"
     },
@@ -7701,7 +7701,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_getgroup",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "getgroup()"
     },
@@ -7712,7 +7712,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_group_order",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "group_order"
     },
@@ -7723,7 +7723,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_sectionheader",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "sectionheader()"
     },
@@ -7734,7 +7734,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_pasttoggle",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "pasttoggle()"
     },
@@ -7745,7 +7745,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_index_visitrequests",
-      "community": 136,
+      "community": 29,
       "community_name": "visit-requests/index.tsx",
       "norm_label": "visitrequests()"
     },
@@ -7756,7 +7756,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_pending",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "pending.tsx"
     },
@@ -7767,7 +7767,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_pending_empty_filters",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "empty_filters"
     },
@@ -7778,7 +7778,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_pending_getdaterange",
-      "community": 29,
+      "community": 286,
       "community_name": "pending.tsx",
       "norm_label": "getdaterange()"
     },
@@ -7790,7 +7790,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_visit_requests_pending_pendingvisitrequests",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "pendingvisitrequests()"
     },
     {
@@ -7855,7 +7855,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_payout_account_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "payout-account/index.tsx"
     },
@@ -7954,7 +7954,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_payouts_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "payouts/index.tsx"
     },
@@ -8339,7 +8339,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_about",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "about.tsx"
     },
@@ -8350,7 +8350,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_about_developers",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "developers"
     },
@@ -8361,7 +8361,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_about_socials",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "socials"
     },
@@ -8383,7 +8383,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_faq",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "faq.tsx"
     },
@@ -8394,7 +8394,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_faq_faqs",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "faqs"
     },
@@ -8405,7 +8405,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_faq_faqscreen",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "faqscreen()"
     },
@@ -8416,7 +8416,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "settings/index.tsx"
     },
@@ -8427,7 +8427,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_index_settingitem",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "settingitem"
     },
@@ -8438,7 +8438,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_index_settingsection",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "settingsection"
     },
@@ -8449,7 +8449,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_index_index",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "index()"
     },
@@ -8460,7 +8460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_language_region",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "language-region.tsx"
     },
@@ -8471,7 +8471,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_language_region_languageandregion",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "languageandregion()"
     },
@@ -8526,7 +8526,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_privacy_policy",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "privacy-policy.tsx"
     },
@@ -8537,7 +8537,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_privacy_policy_sections",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "sections"
     },
@@ -8548,7 +8548,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_privacy_policy_privacypolicyscreen",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "privacypolicyscreen()"
     },
@@ -8559,7 +8559,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_terms",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "terms.tsx"
     },
@@ -8570,7 +8570,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_terms_sections",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "sections"
     },
@@ -8581,7 +8581,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "apps_mobile_app_settings_terms_termsscreen",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "termsscreen()"
     },
@@ -8614,8 +8614,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_applicationid",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applications/[applicationid].tsx"
     },
     {
@@ -8625,8 +8625,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_applicationid_applicationapartment",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "applicationapartment()"
     },
     {
@@ -8637,7 +8637,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "applications/components/visitrequestcard.tsx"
     },
     {
@@ -8648,7 +8648,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_visitrequest",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequest"
     },
     {
@@ -8659,7 +8659,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_props",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "props"
     },
     {
@@ -8670,7 +8670,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_inforow",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "inforow()"
     },
     {
@@ -8681,7 +8681,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_sectionlabel",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "sectionlabel()"
     },
     {
@@ -8692,7 +8692,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_actionbutton",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "actionbutton()"
     },
     {
@@ -8703,7 +8703,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequestcard_visitrequestcard",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequestcard()"
     },
     {
@@ -8714,7 +8714,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequesthistoryitem",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequesthistoryitem.tsx"
     },
     {
@@ -8725,7 +8725,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequesthistoryitem_props",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "props"
     },
     {
@@ -8736,7 +8736,7 @@
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_components_visitrequesthistoryitem_visitrequesthistoryitem",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequesthistoryitem()"
     },
     {
@@ -8746,7 +8746,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_index",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "applications/index.tsx"
     },
@@ -8757,7 +8757,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_index_applicationspage",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "applicationspage()"
     },
@@ -8768,7 +8768,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_request_visit",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "request-visit.tsx"
     },
@@ -8779,7 +8779,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_request_visit_requestvisit",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "requestvisit()"
     },
@@ -8790,7 +8790,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_current_apartment",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "current-apartment.tsx"
     },
@@ -8801,7 +8801,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_current_apartment_months",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "months"
     },
@@ -8812,7 +8812,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_current_apartment_formatdatetomonthyear",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "formatdatetomonthyear()"
     },
@@ -8823,7 +8823,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_current_apartment_currentapartmentdetails",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "currentapartmentdetails()"
     },
@@ -8834,7 +8834,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_favorites",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "favorites.tsx"
     },
@@ -8856,7 +8856,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_maintenance_details",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "maintenance-details.tsx"
     },
@@ -8878,7 +8878,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_maintenance_history",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "maintenance-history.tsx"
     },
@@ -8922,7 +8922,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_cardpaymentform",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardpaymentform.tsx"
     },
@@ -8933,7 +8933,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_cardpaymentform_cardinformation",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardinformation"
     },
@@ -8944,7 +8944,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_cardpaymentform_cardpaymentformprops",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardpaymentformprops"
     },
@@ -8955,7 +8955,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_cardpaymentform_cardpaymentform",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardpaymentform()"
     },
@@ -9164,7 +9164,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_paymentmethodselector_paymentmethodselectorprops",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "paymentmethodselectorprops"
     },
@@ -9241,7 +9241,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_receiptcard",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "receiptcard.tsx"
     },
@@ -9252,7 +9252,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_receiptcard_status_meta",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "status_meta"
     },
@@ -9263,7 +9263,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_receiptcard_receiptcardprops",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "receiptcardprops"
     },
@@ -9274,7 +9274,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_receiptcard_receiptcard",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "receiptcard()"
     },
@@ -9285,7 +9285,7 @@
       "source_location": "L134",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_receiptcard_receiptrow",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "receiptrow()"
     },
@@ -9296,7 +9296,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_zigzagedge",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "zigzagedge.tsx"
     },
@@ -9307,7 +9307,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_zigzagedge_zigzagedgeprops",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "zigzagedgeprops"
     },
@@ -9318,7 +9318,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_components_zigzagedge_zigzagedge",
-      "community": 312,
+      "community": 294,
       "community_name": "ReceiptCard.tsx",
       "norm_label": "zigzagedge()"
     },
@@ -9516,7 +9516,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_history_index_tohistoryitem",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "tohistoryitem()"
     },
@@ -9670,7 +9670,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_saved_methods_card_form",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "card-form.tsx"
     },
@@ -9681,7 +9681,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_saved_methods_card_form_initial_card",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "initial_card"
     },
@@ -9692,7 +9692,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_saved_methods_card_form_cardform",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardform()"
     },
@@ -9769,7 +9769,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_saved_methods_e_wallet_redirect",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "saved-methods/e-wallet-redirect.tsx"
     },
@@ -9780,7 +9780,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_saved_methods_e_wallet_redirect_ewalletredirect",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "ewalletredirect()"
     },
@@ -9824,7 +9824,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_success",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "payment/success.tsx"
     },
@@ -9835,7 +9835,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_payment_success_success",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "success()"
     },
@@ -9846,7 +9846,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_request_maintenance",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "request-maintenance.tsx"
     },
@@ -9857,7 +9857,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_request_maintenance_maintenancedetails",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "maintenancedetails"
     },
@@ -9868,7 +9868,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_request_maintenance_maintenanceerrors",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "maintenanceerrors"
     },
@@ -10176,7 +10176,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_dev_devbadge",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "devbadge.tsx"
     },
@@ -10187,7 +10187,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_components_dev_devbadge_devbadge",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "devbadge()"
     },
@@ -10264,7 +10264,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_detailfield",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "detailfield.tsx"
     },
@@ -10275,7 +10275,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_components_display_detailfield_detailfieldprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "detailfieldprops"
     },
@@ -10286,7 +10286,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_display_detailfield_detailfield",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "detailfield()"
     },
@@ -10297,7 +10297,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_divider",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "divider.tsx"
     },
@@ -10308,7 +10308,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_components_display_divider_dividerprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "dividerprops"
     },
@@ -10319,7 +10319,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_display_divider_divider",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "divider()"
     },
@@ -10330,8 +10330,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "documentrow.tsx"
     },
     {
@@ -10341,8 +10341,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_documentrowprops",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "documentrowprops"
     },
     {
@@ -10352,8 +10352,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_image_extensions",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "image_extensions"
     },
     {
@@ -10363,8 +10363,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_getextension",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "getextension()"
     },
     {
@@ -10374,8 +10374,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_documentrow",
-      "community": 218,
-      "community_name": "useColors",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "documentrow()"
     },
     {
@@ -10649,8 +10649,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_perkitem",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "perkitem.tsx"
     },
     {
@@ -10660,8 +10660,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_components_display_perkitem_baseperkitemprops",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "baseperkitemprops"
     },
     {
@@ -10671,8 +10671,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_display_perkitem_perkitemprops",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "perkitemprops"
     },
     {
@@ -10682,8 +10682,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_components_display_perkitem_perkitem",
-      "community": 75,
-      "community_name": "useTheme.ts",
+      "community": 197,
+      "community_name": "second-step.tsx",
       "norm_label": "perkitem()"
     },
     {
@@ -10693,7 +10693,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_rejectdialog",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rejectdialog.tsx"
     },
@@ -10704,7 +10704,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_components_display_rejectdialog_rejectdialogprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rejectdialogprops"
     },
@@ -10715,7 +10715,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_display_rejectdialog_rejectdialog",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "rejectdialog()"
     },
@@ -11034,7 +11034,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_quantityfield",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "quantityfield.tsx"
     },
@@ -11045,7 +11045,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_quantityfield_props",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "props"
     },
@@ -11056,7 +11056,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_quantityfield_quantityfield",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "quantityfield()"
     },
@@ -11243,8 +11243,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadfilefield",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadfilefield.tsx"
     },
     {
@@ -11254,8 +11254,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadfilefield_uploadfilefieldprops",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadfilefieldprops"
     },
     {
@@ -11265,8 +11265,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadfilefield_uploadfilefield",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadfilefield()"
     },
     {
@@ -11276,8 +11276,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadimagefield.tsx"
     },
     {
@@ -11287,8 +11287,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield_uploadimagefieldprops",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadimagefieldprops"
     },
     {
@@ -11298,8 +11298,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_mobile_components_inputs_uploadimagefield_uploadimagefield",
-      "community": 197,
-      "community_name": "second-step.tsx",
+      "community": 75,
+      "community_name": "edit-main.tsx",
       "norm_label": "uploadimagefield()"
     },
     {
@@ -11408,7 +11408,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_screenwrapper",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "screenwrapper.tsx"
     },
@@ -11419,7 +11419,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_screenwrapper_screenwrapperprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "screenwrapperprops"
     },
@@ -11430,7 +11430,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_screenwrapper_wrapwithdismiss",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "wrapwithdismiss()"
     },
@@ -11441,7 +11441,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_screenwrapper_screenwrapper",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "screenwrapper"
     },
@@ -11452,7 +11452,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_standardheader",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "standardheader.tsx"
     },
@@ -11463,7 +11463,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_standardheader_standardheaderprops",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "standardheaderprops"
     },
@@ -11474,7 +11474,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_components_layout_standardheader_standardheader",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "standardheader()"
     },
@@ -11540,7 +11540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_providers_queryprovider",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "queryprovider.tsx"
     },
@@ -11551,7 +11551,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_providers_queryprovider_queryproviderprops",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "queryproviderprops"
     },
@@ -11562,7 +11562,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_components_providers_queryprovider_appstatefocusbridge",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "appstatefocusbridge()"
     },
@@ -11573,7 +11573,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_components_providers_queryprovider_queryprovider",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "queryprovider()"
     },
@@ -12035,8 +12035,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_uselandlordactionbadges_uselandlordactionbadges",
-      "community": 136,
-      "community_name": "visit-requests/index.tsx",
+      "community": 49,
+      "community_name": "tenant-applications/index.tsx",
       "norm_label": "uselandlordactionbadges()"
     },
     {
@@ -12046,7 +12046,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_uselandlordunits",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits.ts"
     },
@@ -12057,7 +12057,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_uselandlordunits_getlandlordunitsquerykey",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "getlandlordunitsquerykey()"
     },
@@ -12068,7 +12068,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_uselandlordunits_uselandlordunits",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits()"
     },
@@ -12288,8 +12288,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_useapplicationstatusstyles_useapplicationstatusstyles",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "useapplicationstatusstyles()"
     },
     {
@@ -12310,8 +12310,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usecancelapplication_usecancelapplication",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "usecancelapplication()"
     },
     {
@@ -12585,8 +12585,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_usetenantapplications",
-      "community": 270,
-      "community_name": "ApplicationList.tsx",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "usetenantapplications()"
     },
     {
@@ -13465,7 +13465,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_landlord_uselandlordstats",
-      "community": 302,
+      "community": 309,
       "community_name": "FifthStep",
       "norm_label": "uselandlordstats.ts"
     },
@@ -13476,7 +13476,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_mobile_hooks_landlord_uselandlordstats_uselandlordstats",
-      "community": 302,
+      "community": 309,
       "community_name": "FifthStep",
       "norm_label": "uselandlordstats()"
     },
@@ -14334,7 +14334,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_mobile_hooks_payments_usepayments_usepaymentbyreference",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "usepaymentbyreference()"
     },
@@ -15005,7 +15005,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "usetenancy.ts"
     },
@@ -15016,7 +15016,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_gettenancyquerykey",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "gettenancyquerykey()"
     },
@@ -15027,7 +15027,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_geterrormessage",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "geterrormessage()"
     },
@@ -15038,7 +15038,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_getrecordstring",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "getrecordstring()"
     },
@@ -15049,7 +15049,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_usetenancy",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "usetenancy()"
     },
@@ -15060,7 +15060,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "usetenancyrealtime.test.ts"
     },
@@ -15071,7 +15071,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockpostgresfilter",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockpostgresfilter"
     },
@@ -15082,7 +15082,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockpayload",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockpayload"
     },
@@ -15093,7 +15093,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockchannelhandler",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockchannelhandler"
     },
@@ -15104,7 +15104,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockchannel",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockchannel"
     },
@@ -15115,7 +15115,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockchannelsbyname",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockchannelsbyname"
     },
@@ -15126,7 +15126,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockremovechannel",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockremovechannel"
     },
@@ -15137,7 +15137,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_mockchannelfactory",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "mockchannelfactory"
     },
@@ -15148,7 +15148,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_flushtimers",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "flushtimers()"
     },
@@ -15159,7 +15159,7 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancyrealtime_test_emit",
-      "community": 181,
+      "community": 290,
       "community_name": "useTenancyRealtime.test.ts",
       "norm_label": "emit()"
     },
@@ -15324,7 +15324,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_usetheme",
-      "community": 75,
+      "community": 18,
       "community_name": "useTheme.ts",
       "norm_label": "usetheme.ts"
     },
@@ -15335,7 +15335,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_hooks_usetheme_usetheme",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "usetheme()"
     },
@@ -15512,7 +15512,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_index",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequests/index.ts"
     },
     {
@@ -15523,7 +15523,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_uselandlordvisitrequests",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "uselandlordvisitrequests.ts"
     },
     {
@@ -15534,7 +15534,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_uselandlordvisitrequests_getlandlordvisitrequestsquerykey",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "getlandlordvisitrequestsquerykey()"
     },
     {
@@ -15545,7 +15545,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_uselandlordvisitrequests_uselandlordvisitrequests",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "uselandlordvisitrequests()"
     },
     {
@@ -15555,8 +15555,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_userespondtoreschedule",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "userespondtoreschedule.ts"
     },
     {
@@ -15566,8 +15566,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_userespondtoreschedule_userespondtoreschedule",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "userespondtoreschedule()"
     },
     {
@@ -15599,7 +15599,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_usesubmitvisitrequest",
-      "community": 294,
+      "community": 302,
       "community_name": "request-visit.tsx",
       "norm_label": "usesubmitvisitrequest()"
     },
@@ -15610,8 +15610,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "usevisitrequest.ts"
     },
     {
@@ -15621,8 +15621,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest_getvisitrequestquerykey",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "getvisitrequestquerykey()"
     },
     {
@@ -15632,8 +15632,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest_usevisitrequest",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "usevisitrequest()"
     },
     {
@@ -15644,7 +15644,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequestactions",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "usevisitrequestactions.ts"
     },
     {
@@ -15655,7 +15655,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequestactions_actionstatus",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "actionstatus"
     },
     {
@@ -15665,8 +15665,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequestactions_usevisitrequestactions",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "usevisitrequestactions()"
     },
     {
@@ -15677,7 +15677,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequeststatusstyles",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "usevisitrequeststatusstyles.ts"
     },
     {
@@ -15688,7 +15688,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequeststatusstyles_visitrequeststatus",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "visitrequeststatus"
     },
     {
@@ -15699,7 +15699,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequeststatusstyles_statusstyle",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "statusstyle"
     },
     {
@@ -15710,7 +15710,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequeststatusstyles_fallback_style",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "fallback_style()"
     },
     {
@@ -15721,7 +15721,7 @@
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequeststatusstyles_usevisitrequeststatusstyles",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "usevisitrequeststatusstyles()"
     },
     {
@@ -19284,7 +19284,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_landlordunitapartment",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "landlordunitapartment"
     },
@@ -19306,7 +19306,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_fetchmonthlyprofit",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchmonthlyprofit()"
     },
@@ -19317,7 +19317,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_fetchlandlordunits",
-      "community": 293,
+      "community": 300,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchlandlordunits()"
     },
@@ -19560,7 +19560,7 @@
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_landlordvisitrequest",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "landlordvisitrequest"
     },
     {
@@ -19669,7 +19669,7 @@
       "source_location": "L797",
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_landlordstats",
-      "community": 302,
+      "community": 309,
       "community_name": "FifthStep",
       "norm_label": "landlordstats"
     },
@@ -19680,7 +19680,7 @@
       "source_location": "L802",
       "_origin": "ast",
       "id": "apps_mobile_service_landlord_landlordservice_fetchlandlordstats",
-      "community": 302,
+      "community": 309,
       "community_name": "FifthStep",
       "norm_label": "fetchlandlordstats()"
     },
@@ -20516,7 +20516,7 @@
       "source_location": "L193",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymentservice_formatreferenceid",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "formatreferenceid()"
     },
@@ -20538,7 +20538,7 @@
       "source_location": "L205",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymentservice_methodlabel",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "methodlabel()"
     },
@@ -20560,7 +20560,7 @@
       "source_location": "L215",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymentservice_paymentstatuslabel",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "paymentstatuslabel()"
     },
@@ -20579,10 +20579,10 @@
       "label": "periodMonthLabel()",
       "file_type": "code",
       "source_file": "apps/mobile/service/payments/paymentService.ts",
-      "source_location": "L227",
+      "source_location": "L230",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymentservice_periodmonthlabel",
-      "community": 101,
+      "community": 150,
       "community_name": "payment-history.tsx",
       "norm_label": "periodmonthlabel()"
     },
@@ -20593,7 +20593,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongoservice.ts"
     },
@@ -20604,7 +20604,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongocard",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongocard"
     },
@@ -20615,7 +20615,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongocheckoutsession",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongocheckoutsession"
     },
@@ -20626,7 +20626,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongosessionstatus",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongosessionstatus"
     },
@@ -20637,7 +20637,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongocardpaymentresult",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongocardpaymentresult"
     },
@@ -20648,7 +20648,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongoerror",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongoerror"
     },
@@ -20659,7 +20659,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongoerror_constructor",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": ".constructor()"
     },
@@ -20670,7 +20670,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_paymongoenvelope",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "paymongoenvelope"
     },
@@ -20681,7 +20681,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_extracterror",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "extracterror()"
     },
@@ -20692,7 +20692,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_invoke",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "invoke()"
     },
@@ -20736,7 +20736,7 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "apps_mobile_service_payments_paymongoservice_refundrequestresult",
-      "community": 18,
+      "community": 274,
       "community_name": "paymongoService.ts",
       "norm_label": "refundrequestresult"
     },
@@ -21220,7 +21220,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "tenancyservice.ts"
     },
@@ -21231,7 +21231,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_tenancyapartment",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "tenancyapartment"
     },
@@ -21242,7 +21242,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_tenancylandlord",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "tenancylandlord"
     },
@@ -21253,7 +21253,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_tenancypayment",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "tenancypayment"
     },
@@ -21264,7 +21264,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_currenttenancy",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "currenttenancy"
     },
@@ -21275,7 +21275,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_tenancywithoutpayment",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "tenancywithoutpayment"
     },
@@ -21286,7 +21286,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_mobile_service_tenancy_tenancyservice_fetchtenancy",
-      "community": 76,
+      "community": 195,
       "community_name": "useTenancy",
       "norm_label": "fetchtenancy()"
     },
@@ -21297,8 +21297,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "visitrequestsservice.ts"
     },
     {
@@ -21308,8 +21308,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_visitrequest",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "visitrequest"
     },
     {
@@ -21319,8 +21319,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_visitrequestresult",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "visitrequestresult"
     },
     {
@@ -21330,8 +21330,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_fetchvisitrequest",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 136,
+      "community_name": "applications/[applicationId].tsx",
       "norm_label": "fetchvisitrequest()"
     },
     {
@@ -21360,7 +21360,7 @@
       "label": "ApartmentFormActions",
       "file_type": "code",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L38",
+      "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_apartmentformactions",
       "community": 197,
@@ -21371,7 +21371,7 @@
       "label": "initialState",
       "file_type": "code",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L49",
+      "source_location": "L50",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_initialstate",
       "community": 197,
@@ -21382,7 +21382,7 @@
       "label": "useApartmentFormStore",
       "file_type": "code",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L77",
+      "source_location": "L79",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
       "community": 197,
@@ -21693,7 +21693,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_stores_usethemestore",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "usethemestore.ts"
     },
@@ -21704,7 +21704,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_stores_usethemestore_thememode",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "thememode"
     },
@@ -21715,7 +21715,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_stores_usethemestore_themestore",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "themestore"
     },
@@ -21726,7 +21726,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_stores_usethemestore_usethemestore",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "usethemestore"
     },
@@ -22749,7 +22749,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_mobile_utils_queryclient_queryclient",
-      "community": 150,
+      "community": 56,
       "community_name": "app/_layout.tsx",
       "norm_label": "queryclient"
     },
@@ -33023,7 +33023,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_colors",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "colors.ts"
     },
@@ -33034,7 +33034,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_colors_colors",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "colors"
     },
@@ -33045,7 +33045,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_index",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "constants/src/index.ts"
     },
@@ -33056,7 +33056,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_months",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "months.ts"
     },
@@ -33067,7 +33067,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_months_months",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "months"
     },
@@ -33133,7 +33133,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_typography",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "typography.ts"
     },
@@ -33144,7 +33144,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_typography_font_families",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "font_families"
     },
@@ -33155,7 +33155,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "packages_constants_src_typography_theme_fonts",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "theme_fonts"
     },
@@ -33166,7 +33166,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "packages_constants_src_typography_theme_fonts_web",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "theme_fonts_web"
     },
@@ -33199,7 +33199,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_user_index",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "user/index.ts"
     },
@@ -33210,7 +33210,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_user_languages",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "languages.ts"
     },
@@ -33221,7 +33221,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_user_languages_languages",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "languages"
     },
@@ -33232,7 +33232,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_user_ph_mobile_prefixes",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "ph-mobile-prefixes.ts"
     },
@@ -33243,7 +33243,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_constants_src_user_ph_mobile_prefixes_ph_mobile_prefixes",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "ph_mobile_prefixes"
     },
@@ -33309,7 +33309,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_years",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "years.ts"
     },
@@ -33320,7 +33320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_constants_src_years_years",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "years"
     },
@@ -33738,7 +33738,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "usephmobilevalidation.ts"
     },
@@ -33749,7 +33749,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation_phoneformat",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "phoneformat"
     },
@@ -33760,7 +33760,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation_validationresult",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "validationresult"
     },
@@ -33771,7 +33771,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation_usephilippinemobilevalidationreturn",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "usephilippinemobilevalidationreturn"
     },
@@ -33782,7 +33782,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation_normalize",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "normalize()"
     },
@@ -33793,7 +33793,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "packages_hooks_src_usephmobilevalidation_runvalidation",
-      "community": 195,
+      "community": 101,
       "community_name": "constants/src/index.ts",
       "norm_label": "runvalidation()"
     },
@@ -35102,8 +35102,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "packages_utils_src_formataddress_formataddress",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "formataddress()"
     },
     {
@@ -35179,8 +35179,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "packages_utils_src_formatdate_formatdate",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "formatdate()"
     },
     {
@@ -35212,8 +35212,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "packages_utils_src_formatfullname_formatfullname",
-      "community": 286,
-      "community_name": "formatDate",
+      "community": 78,
+      "community_name": "utils/src/index.ts",
       "norm_label": "formatfullname()"
     },
     {
@@ -35223,8 +35223,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_utils_src_formattime",
-      "community": 78,
-      "community_name": "utils/src/index.ts",
+      "community": 286,
+      "community_name": "pending.tsx",
       "norm_label": "formattime.ts"
     },
     {
@@ -35235,7 +35235,7 @@
       "_origin": "ast",
       "id": "packages_utils_src_formattime_formattime",
       "community": 286,
-      "community_name": "formatDate",
+      "community_name": "pending.tsx",
       "norm_label": "formattime()"
     },
     {
@@ -35300,7 +35300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "validatecardnumber.ts"
     },
@@ -35311,7 +35311,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_formatcardnumber",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "formatcardnumber()"
     },
@@ -35322,7 +35322,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_luhncheck",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "luhncheck()"
     },
@@ -35333,7 +35333,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_validatecardnumber",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "validatecardnumber()"
     },
@@ -35344,7 +35344,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_formatexpirydate",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "formatexpirydate()"
     },
@@ -35355,7 +35355,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_isvalidexpirydate",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "isvalidexpirydate()"
     },
@@ -35366,7 +35366,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_cardformerrors",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "cardformerrors"
     },
@@ -35377,7 +35377,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "packages_utils_src_validatecardnumber_validatecardinfo",
-      "community": 56,
+      "community": 76,
       "community_name": "card-form.tsx",
       "norm_label": "validatecardinfo()"
     },
@@ -65765,7 +65765,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history",
@@ -65980,7 +65980,7 @@
       "context": "argument",
       "confidence": "INFERRED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L68",
+      "source_location": "L69",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -65992,7 +65992,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_toflatpayment",
@@ -66005,7 +66005,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L64",
+      "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -66017,7 +66017,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -66029,7 +66029,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L60",
+      "source_location": "L61",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -66041,7 +66041,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L183",
+      "source_location": "L184",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -66053,7 +66053,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/[apartmentId]/payment-history.tsx",
-      "source_location": "L183",
+      "source_location": "L184",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_apartmentid_payment_history_paymenthistoryscreen",
@@ -67684,7 +67684,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L52",
+      "source_location": "L58",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
@@ -67695,7 +67695,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
@@ -67840,7 +67840,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L63",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
@@ -67852,7 +67852,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L103",
+      "source_location": "L111",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
@@ -67864,7 +67864,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
-      "source_location": "L106",
+      "source_location": "L114",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
@@ -84179,7 +84179,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/hooks/apartments/usePublishApartment.ts",
-      "source_location": "L120",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_hooks_apartments_usepublishapartment_usepublishapartment",
@@ -102390,7 +102390,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/service/payments/paymentService.ts",
-      "source_location": "L227",
+      "source_location": "L230",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_service_payments_paymentservice",
@@ -103548,7 +103548,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_stores_useapartmentformstore",
@@ -103570,7 +103570,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_stores_useapartmentformstore",
@@ -103581,7 +103581,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/stores/useApartmentFormStore.ts",
-      "source_location": "L77",
+      "source_location": "L79",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_stores_useapartmentformstore",
@@ -132221,5 +132221,5 @@
       "source_file": "apps/web/public/third-party/apple-logo.svg"
     }
   ],
-  "built_at_commit": "32efaeb227f85335c12cb9223caf7fd0270d3a8a"
+  "built_at_commit": "db8fb69b98d35f1c232127d0f40913e15678c2bb"
 }

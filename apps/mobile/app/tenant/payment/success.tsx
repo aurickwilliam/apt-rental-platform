@@ -105,7 +105,7 @@ export default function Success() {
     ? '—'
     : new Intl.DateTimeFormat('en-PH', { timeStyle: 'short' }).format(created)
   const periodLabel = payment.period_start
-    ? `${periodMonthLabel(payment.period_start, payment.date ?? fallbackIso)} ${payment.period_start.slice(0, 4)}`
+    ? `${periodMonthLabel(payment.due_date ?? payment.period_start)}, ${payment.period_start.slice(0, 4)}`
     : undefined
 
   return (

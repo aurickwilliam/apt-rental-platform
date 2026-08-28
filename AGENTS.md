@@ -103,11 +103,11 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.
 - Trigger payloads include the `apartmentId` needed to resolve deep links (payment, maintenance); never rely on payloads without it.
 
-## PayMongo MCP (OpenCode)
+## PayMongo Test-Mode Hybrid (No Disbursement)
 
-- Server: `.opencode/opencode.json:19-25` `paymongo` via `npx -y @theyahia/paymongo-mcp` (project scope, preserves `supabase` + `github`). Package `@theyahia/paymongo-mcp` from https://github.com/theYahia/paymongo-mcp.
-- Env: `PAYMONGO_SECRET_KEY="{env:PAYMONGO_SECRET_KEY}"` required (`sk_test_...` test, `sk_live_...` live). **Readonly from 2026-08-24:** `PAYMONGO_ALLOW_LIVE` removed — live money-moves (`create_payment_intent`, `create_source`, `create_payment`, `create_checkout`, `create_link`, `create_payment_method`, `create_refund`) are always blocked when `sk_live_...` is used; read-only tools (`get_*`, `list_*`, `verify_webhook_signature`) always allowed. To handle real rent, use QR Ph links via the hosted checkout edge (`supabase/functions/paymongo` with `qrph`) or the PayMongo Dashboard — do not re-enable `PAYMONGO_ALLOW_LIVE` without explicit owner approval. See upstream Safety section.
-- Amounts are centavos integers (`10000` = ₱100.00, min `2000`). Validate with `python3 -m json.tool .opencode/opencode.json`.
+- **Hosted checkout in Test Mode** (`sk_test_...`): tenant selects GCash/Maya/QRPh/Card → `paymongo` edge function `POST /v2/checkout_sessions` (inserts `payment` `pending` + `paymongo_session_id`) → returns `checkout_url` → `e-wallet-redirect` opens PayMongo page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. No real money — test funds only. When `PAYMONGO_SECRET_KEY` is unset, the edge function returns mock `simulation://` responses (reference `-fail`/`-expired`, card `0002` etc) so local dev still works.
+- **Cash** stays `pending` awaiting landlord `landlord_update_payment_status`; e-wallet/card are webhook-owned. No payout disbursement — landlord profit is `payment` aggregates + Realtime `tenancy-live`.
+- MCP: `.opencode/opencode.json:19-25` `paymongo` via `npx -y @theyahia/paymongo-mcp` with `PAYMONGO_SECRET_KEY` (`sk_test_...`). Validate with `python3 -m json.tool .opencode/opencode.json`.
 
 ## Engineering Philosophy
 

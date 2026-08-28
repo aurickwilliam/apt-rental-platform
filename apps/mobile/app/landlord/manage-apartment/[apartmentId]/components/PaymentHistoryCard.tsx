@@ -53,7 +53,7 @@ export default function PaymentHistoryCard({
               className="text-foreground font-nunitoSemiBold text-base"
               numberOfLines={1}
             >
-              {month} {year}
+              {month}, {year}
             </Text>
           </View>
 

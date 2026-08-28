@@ -37,6 +37,7 @@ const toFlatPayment = (payment: {
   method: string | null
   reference_id: string | null
   period_start: string | null
+  due_date: string | null
 }): FlatPayment => {
   const sourceDate = payment.period_start ?? payment.date
   const date = new Date(`${payment.date.slice(0, 10)}T00:00:00`)
@@ -46,7 +47,7 @@ const toFlatPayment = (payment: {
   return {
     id: payment.id,
     year: sourceDate.slice(0, 4),
-    month: periodMonthLabel(payment.period_start, payment.date),
+    month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
     status: payment.status as FlatPayment['status'],
     method: payment.method,
