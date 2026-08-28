@@ -49,7 +49,7 @@ function TimeSelect<T extends string>({
       }}
     >
       <Select.Trigger
-        className={`shadow-none bg-surface border ${isInvalid ? "border-danger" : "border-field-border"}`}
+        className={`shadow-none bg-surface ${isInvalid ? "border-2 border-danger" : "border border-field-border focus:border-2 focus:border-focus data-[focus=true]:border-2 data-[focus=true]:border-focus data-[open=true]:border-2 data-[open=true]:border-focus"}`}
       >
         <Select.Value placeholder={placeholder} />
         <Select.TriggerIndicator />

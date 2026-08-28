@@ -89,14 +89,22 @@ export default function ApartmentsList({
       contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET, gap: 16 }}
       ListEmptyComponent={renderEmptyState}
       ListFooterComponent={renderFooter}
+      ListHeaderComponent={
+        refreshing ? (
+          <View className="items-center py-3">
+            <Spinner size="lg" color={colors.primary} />
+          </View>
+        ) : null
+      }
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={[colors.primary]}
-          tintColor={colors.primary}
+          colors={["transparent"]}
+          tintColor="transparent"
+          progressBackgroundColor="transparent"
         />
       }
     />

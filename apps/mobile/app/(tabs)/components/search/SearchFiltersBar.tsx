@@ -31,7 +31,10 @@ export default function SearchFiltersBar({
     <View className='px-5'>
       <View className='flex-row items-center gap-2'>
         <View className='flex-1'>
-          <SearchField value={searchValue} onChange={onChangeSearch}>
+          <SearchField
+            value={searchValue}
+            onChange={onChangeSearch}
+          >
             <SearchField.Group>
               <SearchField.SearchIcon />
               <SearchField.Input placeholder='Search apartments...' />
