@@ -10,6 +10,7 @@ import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentD
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 import ApplicationsList from '../components/rentals/ApplicationList';
+import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
 
 import {
@@ -28,8 +29,9 @@ import { useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
+import { useTenantApplications } from '@/hooks/applications';
 
-import { Button, Separator, Spinner } from 'heroui-native';
+import { Button, Separator } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
@@ -77,16 +79,23 @@ export default function Rentals() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { tenancy, loading: tenancyLoading, refreshing: tenancyRefreshing, refetch: refetchTenancy } = useTenancy();
   const { profile } = useProfile();
   const {
     latestRequest,
     isFinal,
+    refetch: refetchMaintenance,
+    // maintenance hook doesn't expose refreshing yet, but tenancy covers isFetching scope
   } = useMaintenanceRequests({
     apartmentId: tenancy?.apartment.id,
   });
+  const { refreshing: applicationsRefreshing, refetch: refetchApplications } = useTenantApplications();
 
   const loading = tenancyLoading;
+  const refreshing = tenancyRefreshing || applicationsRefreshing;
+  const onRefresh = async () => {
+    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications()]);
+  };
 
   const handleRequestMaintenance = () => {
     router.push({
@@ -121,10 +130,12 @@ export default function Rentals() {
   // Loading
   if (loading) {
     return (
-      <ScreenWrapper className='p-5'>
-        <View className='flex-1 items-center justify-center'>
-          <Spinner size='lg' color={colors.primary} />
-        </View>
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      >
+        <RentalsSkeleton />
       </ScreenWrapper>
     );
   }
@@ -170,6 +181,8 @@ export default function Rentals() {
         scrollable
         className="p-5"
         bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       >
         {/* Apartment Header */}
         <View className="flex-row items-center justify-between gap-2">
@@ -323,7 +336,13 @@ export default function Rentals() {
   // No tenancy, has applications
   if (!tenancy) {
     return (
-      <ScreenWrapper className="p-5">
+      <ScreenWrapper
+        scrollable
+        className="p-5"
+        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      >
         <View className="flex-row items-center justify-between mb-5">
           <Text className="text-secondary text-2xl font-nunitoBold">
             Rentals
@@ -338,7 +357,13 @@ export default function Rentals() {
 
   // Brand new user, nothing at all
   return (
-    <ScreenWrapper className='p-5'>
+    <ScreenWrapper
+      scrollable
+      className="p-5"
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+    >
       <View className="flex-row items-center justify-between mb-5">
         <Text className="text-secondary text-2xl font-nunitoBold">
           Rentals

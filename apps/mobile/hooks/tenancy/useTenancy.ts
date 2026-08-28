@@ -95,9 +95,14 @@ export function useTenancy() {
     await tenancyQuery.refetch();
   }, [tenancyQuery, tenantId]);
 
+  const refreshing =
+    (currentUserQuery.isFetching || tenancyQuery.isFetching) &&
+    !(currentUserQuery.isLoading || tenancyQuery.isLoading);
+
   return {
     tenancy,
     loading: currentUserQuery.isLoading || tenancyQuery.isLoading,
+    refreshing,
     error: getErrorMessage(currentUserQuery.error ?? tenancyQuery.error),
     refetch,
   };

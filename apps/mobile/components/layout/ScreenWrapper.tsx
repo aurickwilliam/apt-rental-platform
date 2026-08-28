@@ -9,6 +9,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
+import { Spinner } from "heroui-native";
+
 import { useColors } from "hooks/useTheme";
 
 interface ScreenWrapperProps {
@@ -22,7 +24,7 @@ interface ScreenWrapperProps {
   noTopPadding?: boolean;
   noBottomPadding?: boolean;
   refreshing?: boolean;
-  onRefresh?: () => void;
+  onRefresh?: () => void | Promise<void>;
   dismissKeyboardOnTouch?: boolean;
 }
 
@@ -79,6 +81,7 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
                   onRefresh={onRefresh}
                   tintColor={colors.primary}
                   colors={[colors.primary]}
+                  progressBackgroundColor={colors.surface}
                 />
               ) : undefined
             }
@@ -91,6 +94,11 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
                   : bottomPadding + insets.bottom,
             }}
           >
+            {refreshing && (
+              <View className="items-center py-3">
+                <Spinner size="lg" color={colors.primary} />
+              </View>
+            )}
             {dismissKeyboardOnTouch ? (
               <WrapWithDismiss>
                 <View className={`flex-1 relative ${className}`}>
