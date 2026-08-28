@@ -111,7 +111,7 @@ export default function PaymentCheckout() {
     tenancy?.currentPayment?.period_end ?? null,
     tenancy?.currentPayment?.due_date ?? null
   )
-  const monthLabel = periodMonthLabel(period.periodStart, new Date().toISOString())
+  const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart)
   const yearLabel = period.periodStart.slice(0, 4)
   // Full-amount policy: rent is always billed whole. A fully paid period
   // cannot be paid again (prevents double-payment/overpay).
@@ -173,15 +173,21 @@ export default function PaymentCheckout() {
           referenceId,
           amount: monthlyRent,
           description: paymentDescription,
-          // Deep link carries only the session id — the backend decides the outcome.
-          // e-wallet-redirect handles immediate Linking.openURL(checkoutUrl) on mount.
-          redirectBaseUrl: Linking.createURL('/tenant/payment/e-wallet-redirect'),
+          redirectBaseUrl: Linking.createURL('/tenant/payment/verify'),
           method: methodMap[activePaymentMethod],
           ...periodFields,
         })
-        router.push(
-          `/tenant/payment/e-wallet-redirect?sessionId=${session.id}&checkoutUrl=${encodeURIComponent(session.checkoutUrl)}&method=${methodMap[activePaymentMethod]}&referenceId=${referenceId}`
-        )
+        // Directly open PayMongo hosted page — no intermediate e-wallet-redirect screen.
+        // PayMongo will redirect back to /tenant/payment/verify?sessionId=...
+        // where verify.tsx (blue + Spinner) handles verification.
+        try {
+          await Linking.openURL(session.checkoutUrl)
+        } catch {
+          setPaymentError({
+            message: 'Unable to open checkout. Please try again.',
+            title: 'Checkout Failed',
+          })
+        }
       } catch (error) {
         setPaymentError({
           message: error instanceof PaymongoError
