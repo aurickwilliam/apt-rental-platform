@@ -38,10 +38,11 @@ export default function MaintenanceRequestCard({
       <PressableFeedback.Highlight />
       <Card className='border border-border'>
         <Card.Header>
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between w-full gap-3">
             <Text
-              className="text-foreground font-nunitoSemiBold text-base"
+              className="text-foreground font-nunitoSemiBold text-base flex-1 min-w-0"
               numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {request.title}
             </Text>
@@ -49,6 +50,7 @@ export default function MaintenanceRequestCard({
               variant="soft"
               size="sm"
               animation="disable-all"
+              className="shrink-0 self-start"
               style={{ backgroundColor: status.backgroundColor }}
             >
               <Chip.Label
