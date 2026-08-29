@@ -92,15 +92,15 @@ export default function ApartmentSkeleton() {
 
           <SkeletonBlock className='h-56 w-full rounded-2xl mt-2' />
 
-          <SkeletonBlock className='h-6 w-1/3 mt-2' />
-          <SkeletonBlock className='h-24 w-full rounded-2xl' />
-          <SkeletonBlock className='h-24 w-full rounded-2xl' />
-
           <SkeletonBlock className='h-6 w-1/2 mt-2' />
           <SkeletonBlock className='h-28 w-full rounded-2xl' />
 
           <SkeletonBlock className='h-6 w-1/2 mt-2' />
           <SkeletonBlock className='h-10 w-52' />
+
+          <SkeletonBlock className='h-6 w-1/3 mt-2' />
+          <SkeletonBlock className='h-24 w-full rounded-2xl' />
+          <SkeletonBlock className='h-24 w-full rounded-2xl' />
         </View>
 
         <View className='h-20' />

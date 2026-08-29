@@ -81,12 +81,14 @@ export default function ApartmentsList({
   return (
     <FlatList
       key={isGridView ? 'grid' : 'list'}
+      style={{ flex: 1 }}
       data={apartments}
       renderItem={renderApartmentCard}
       keyExtractor={(item) => item.id.toString()}
       numColumns={isGridView ? 2 : 1}
       columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}
-      contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET, gap: 16 }}
+      contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + 24, gap: 16 }}
+      keyboardShouldPersistTaps="handled"
       ListEmptyComponent={renderEmptyState}
       ListFooterComponent={renderFooter}
       ListHeaderComponent={

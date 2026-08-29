@@ -217,6 +217,7 @@ function SearchSection({ section, onPressApartment, isFavorite, onToggleFavorite
 * **Always lazy:** Initial mount renders 2 sections (first viewport), `onViewableChanged` enables remaining 4 on scroll — `FlatList` `removeClippedSubviews` unmounts offscreen horizontals.
 * **No count:** Section queries skip `count:"estimated"` (preview only), saving planner cost.
 * **Indexes:** Ensure `apartments(city, is_verified)`, `(monthly_rent)`, `(type)`, `(average_rating)`, `(area_sqm)` btree; `apartment_images(apartment_id)` via `supabase_get_advisors`.
+* **Storage:** `apartment-images` bucket is **public** (`public=true`, 10 MB, `image/jpeg/png/webp`) — `apartment_images.url` / `url_thumb` are CDN public URLs (`getPublicUrl`), rendered via `expo-image cachePolicy="disk"` with no signing. Verified `storage.buckets.public=true`. See `AGENTS.md` exception.
 
 ---
 

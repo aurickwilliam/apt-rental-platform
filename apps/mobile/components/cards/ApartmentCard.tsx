@@ -30,6 +30,7 @@ export interface ApartmentCardProps {
   noBathroom?: number;
   areaSqm?: number;
   isGrid?: boolean;
+  fixedWidth?: number;
   onPress?: () => void;
   onPressFavorite?: () => void;
   isVerified?: boolean;
@@ -46,6 +47,7 @@ export default function ApartmentCard({
   noBathroom = 0,
   areaSqm = 0,
   isGrid = true,
+  fixedWidth,
   onPress,
   onPressFavorite,
   isVerified = false,
@@ -55,9 +57,9 @@ export default function ApartmentCard({
 
   const HORIZONTAL_PADDING = 16;
   const GRID_GAP = 8;
-  const cardWidth = isGrid
+  const cardWidth = fixedWidth ?? (isGrid
     ? (width - HORIZONTAL_PADDING * 2 - GRID_GAP) / 2
-    : width - HORIZONTAL_PADDING * 2;
+    : width - HORIZONTAL_PADDING * 2);
 
   return (
     <View style={{ width: cardWidth, alignSelf: isGrid ? "auto" : "center" }}>

@@ -68,9 +68,10 @@ export default function SearchSectionsList({
           onPressApartment={onPressApartment}
         />
       )}
+      style={{ flex: 1 }}
       contentContainerStyle={{
-        paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET,
-        gap: 24,
+        paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + 24,
+        gap: 16,
         paddingTop: 8,
       }}
       onViewableItemsChanged={onViewableItemsChanged as any}
@@ -80,6 +81,7 @@ export default function SearchSectionsList({
       maxToRenderPerBatch={2}
       removeClippedSubviews={false}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl
           refreshing={isFetching && !isLoading}

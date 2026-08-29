@@ -42,8 +42,7 @@ function transformApartments(data: any[]): ApartmentCardProps[] {
       noBathroom: apt.no_bathrooms ?? 0,
       areaSqm: apt.area_sqm ?? 0,
       isVerified: apt.is_verified,
-      // horizontal cards should be compact; caller overrides via isHorizontal
-      isGrid: false,
+      isGrid: true,
     };
   });
 }

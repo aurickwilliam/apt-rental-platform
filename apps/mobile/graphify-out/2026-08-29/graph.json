@@ -3131,7 +3131,7 @@
       "label": "Props",
       "file_type": "code",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L6",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_props",
       "community": 7,
@@ -3142,7 +3142,7 @@
       "label": "SearchSection()",
       "file_type": "code",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L13",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_searchsection",
       "community": 7,
@@ -3153,7 +3153,7 @@
       "label": "SearchSectionSkeleton()",
       "file_type": "code",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L72",
+      "source_location": "L73",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_searchsectionskeleton",
       "community": 7,
@@ -3574,8 +3574,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_layout_notificationmanager",
-      "community": 62,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 19,
+      "community_name": "notificationService.ts",
       "norm_label": "notificationmanager()"
     },
     {
@@ -4928,7 +4928,7 @@
       "_origin": "ast",
       "id": "app_dev_notification_toast",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "notification-toast.tsx"
     },
     {
@@ -4939,7 +4939,7 @@
       "_origin": "ast",
       "id": "app_dev_notification_toast_mockrow",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "mockrow"
     },
     {
@@ -4950,7 +4950,7 @@
       "_origin": "ast",
       "id": "app_dev_notification_toast_mocktoast",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "mocktoast"
     },
     {
@@ -4961,7 +4961,7 @@
       "_origin": "ast",
       "id": "app_dev_notification_toast_mock_toasts",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "mock_toasts"
     },
     {
@@ -4972,7 +4972,7 @@
       "_origin": "ast",
       "id": "app_dev_notification_toast_notificationtoastdevscreen",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "notificationtoastdevscreen()"
     },
     {
@@ -6225,8 +6225,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_index_index",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "index()"
     },
     {
@@ -9511,7 +9511,7 @@
       "label": "ApartmentCardProps",
       "file_type": "code",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcardprops",
       "community": 7,
@@ -9522,7 +9522,7 @@
       "label": "ApartmentCard()",
       "file_type": "code",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L37",
+      "source_location": "L39",
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcard",
       "community": 7,
@@ -10186,7 +10186,7 @@
       "_origin": "ast",
       "id": "components_display_notificationtoast_shownotificationtoast",
       "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community_name": "notification-toast.tsx",
       "norm_label": "shownotificationtoast()"
     },
     {
@@ -11615,7 +11615,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits.ts"
     },
@@ -11626,7 +11626,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_getlandlordunitsquerykey",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "getlandlordunitsquerykey()"
     },
@@ -11637,7 +11637,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_uselandlordunits",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits()"
     },
@@ -13034,8 +13034,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_landlord_uselandlordstats",
-      "community": 169,
-      "community_name": "useLandlordStats",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "uselandlordstats.ts"
     },
     {
@@ -13045,8 +13045,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "hooks_landlord_uselandlordstats_uselandlordstats",
-      "community": 169,
-      "community_name": "useLandlordStats",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "uselandlordstats()"
     },
     {
@@ -13463,8 +13463,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationactions",
-      "community": 23,
-      "community_name": "useNotifications.ts",
+      "community": 41,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "usenotificationactions.ts"
     },
     {
@@ -13474,8 +13474,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationactions_usenotificationactions",
-      "community": 23,
-      "community_name": "useNotifications.ts",
+      "community": 41,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "usenotificationactions()"
     },
     {
@@ -13573,8 +13573,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "usenotificationrealtime.ts"
     },
     {
@@ -13584,8 +13584,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_notificationrealtimecallbacks",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "notificationrealtimecallbacks"
     },
     {
@@ -13595,8 +13595,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_channelentry",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "channelentry"
     },
     {
@@ -13606,8 +13606,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_registry",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "registry"
     },
     {
@@ -13617,8 +13617,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_handleevent",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "handleevent()"
     },
     {
@@ -13628,8 +13628,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_attach",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "attach()"
     },
     {
@@ -13639,8 +13639,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_detach",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "detach()"
     },
     {
@@ -13694,8 +13694,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "hooks_notifications_usenotifications_getnotificationsquerykey",
-      "community": 23,
-      "community_name": "useNotifications.ts",
+      "community": 41,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "getnotificationsquerykey()"
     },
     {
@@ -14244,8 +14244,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "uselandlordtenancy.ts"
     },
     {
@@ -14266,8 +14266,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy_uselandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "uselandlordtenancy()"
     },
     {
@@ -15784,8 +15784,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "package_dependencies_emoji_regex_xs",
-      "community": 58,
-      "community_name": "emoji-regex-xs",
+      "community": 38,
+      "community_name": "dependencies",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -15795,8 +15795,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "emoji_regex_xs",
-      "community": 58,
-      "community_name": "emoji-regex-xs",
+      "community": 38,
+      "community_name": "dependencies",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -15806,8 +15806,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 38,
-      "community_name": "dependencies",
+      "community": 58,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -15817,8 +15817,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "expo",
-      "community": 38,
-      "community_name": "dependencies",
+      "community": 58,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -18622,7 +18622,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordunitapartment",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "landlordunitapartment"
     },
@@ -18644,7 +18644,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchmonthlyprofit",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchmonthlyprofit()"
     },
@@ -18655,7 +18655,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordunits",
-      "community": 56,
+      "community": 68,
       "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchlandlordunits()"
     },
@@ -18732,8 +18732,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenant",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "landlordtenant"
     },
     {
@@ -18743,8 +18743,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenancymaintenancerequest",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "landlordtenancymaintenancerequest"
     },
     {
@@ -18754,8 +18754,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_paymentrecord",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "paymentrecord"
     },
     {
@@ -18776,8 +18776,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "fetchlandlordtenancy()"
     },
     {
@@ -19007,8 +19007,8 @@
       "source_location": "L798",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordstats",
-      "community": 169,
-      "community_name": "useLandlordStats",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "landlordstats"
     },
     {
@@ -19018,8 +19018,8 @@
       "source_location": "L803",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordstats",
-      "community": 169,
-      "community_name": "useLandlordStats",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "fetchlandlordstats()"
     },
     {
@@ -19491,8 +19491,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_notificationrow",
-      "community": 81,
-      "community_name": "useNotificationRealtime.ts",
+      "community": 23,
+      "community_name": "useNotifications.ts",
       "norm_label": "notificationrow"
     },
     {
@@ -19513,8 +19513,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_notificationitem",
-      "community": 23,
-      "community_name": "useNotifications.ts",
+      "community": 19,
+      "community_name": "notificationService.ts",
       "norm_label": "notificationitem"
     },
     {
@@ -19612,8 +19612,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_marknotificationread",
-      "community": 62,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 41,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "marknotificationread()"
     },
     {
@@ -19623,8 +19623,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_markallnotificationsread",
-      "community": 23,
-      "community_name": "useNotifications.ts",
+      "community": 41,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "markallnotificationsread()"
     },
     {
@@ -33776,7 +33776,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L6",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_search_searchsection",
@@ -33787,7 +33787,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L13",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_search_searchsection",
@@ -33798,7 +33798,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/search/SearchSection.tsx",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_search_searchsection",
@@ -54862,7 +54862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L37",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard",
@@ -54873,7 +54873,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard",
@@ -54934,7 +54934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L53",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard_apartmentcard",
@@ -77147,5 +77147,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "db3db82229c6ee9576b174064c6cfd4c8eed0d5e"
+  "built_at_commit": "10817aac10c9a3a3c28032ea35890b214624f19f"
 }

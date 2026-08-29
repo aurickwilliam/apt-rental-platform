@@ -161,14 +161,6 @@ export default function ApartmentScreen() {
           onOpenMap={handleMapViewNavigation}
         />
 
-        <RatingsSection
-          reviews={reviews}
-          onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
-          canReview={canReview}
-          checkingEligibility={checkingEligibility}
-          onWriteReview={handleWriteReview}
-        />
-
         <LandlordSection
           landlord={apartment?.landlord ?? null}
           totalRentals={apartment?.no_ratings}
@@ -178,6 +170,14 @@ export default function ApartmentScreen() {
 
         <LeaseAgreementSection
           leaseAgreementUrl={apartment?.lease_agreement_url}
+        />
+
+        <RatingsSection
+          reviews={reviews}
+          onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
+          canReview={canReview}
+          checkingEligibility={checkingEligibility}
+          onWriteReview={handleWriteReview}
         />
 
         <View className="h-20" />

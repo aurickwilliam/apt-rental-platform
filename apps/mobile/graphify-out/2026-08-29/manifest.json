@@ -1220,13 +1220,13 @@
     "semantic_hash": ""
   },
   "components/cards/ApartmentCard.tsx": {
-    "mtime": 1787912037.1502168,
-    "ast_hash": "d29c946266c086b612b8d1f96cff18bb",
+    "mtime": 1787979882.2749734,
+    "ast_hash": "a19bac51d666dec0042329fd6969a133",
     "semantic_hash": ""
   },
   "components/cards/LandlordCard.tsx": {
-    "mtime": 1787912037.1502988,
-    "ast_hash": "37745ee97d864ed5e794d80f69e06f7c",
+    "mtime": 1787978864.5759075,
+    "ast_hash": "17270d478c3afde2bdd7a20fd7c58c1c",
     "semantic_hash": ""
   },
   "components/cards/PastApartmentCard.tsx": {
@@ -1280,8 +1280,8 @@
     "semantic_hash": ""
   },
   "components/display/DocumentRow.tsx": {
-    "mtime": 1787912037.151024,
-    "ast_hash": "9dc1906ade8c55928ad0abdfccd5e76d",
+    "mtime": 1787978875.7666156,
+    "ast_hash": "8cea9d9c60a0ae16da4b3d6aba22bb0f",
     "semantic_hash": ""
   },
   "components/display/EmptyState.tsx": {
@@ -1320,8 +1320,8 @@
     "semantic_hash": ""
   },
   "components/display/PerkItem.tsx": {
-    "mtime": 1787060341.9059908,
-    "ast_hash": "b0d77a89499ed194dc5853dad8241a11",
+    "mtime": 1787978892.4045446,
+    "ast_hash": "96cce06d1ce47a4510a9ce564bdcfa69",
     "semantic_hash": ""
   },
   "components/display/RejectDialog.tsx": {
@@ -1540,8 +1540,8 @@
     "semantic_hash": ""
   },
   "hooks/applications/useApplicationStatusStyles.ts": {
-    "mtime": 1787060341.9122896,
-    "ast_hash": "2f54042aab843198b6382cd1f5fda51a",
+    "mtime": 1787978910.7457445,
+    "ast_hash": "1878e1dff66ba86c9945e90fd2932b29",
     "semantic_hash": ""
   },
   "hooks/applications/useCancelApplication.ts": {
@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/SearchSection.tsx": {
-    "mtime": 1787919099.1066225,
-    "ast_hash": "994cb52afa2c24b39519fd5d67ab1fe0",
+    "mtime": 1787979923.1129196,
+    "ast_hash": "3c96d7343bc23a4e8f23cf307475060b",
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/SearchSectionsList.tsx": {

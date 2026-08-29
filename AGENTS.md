@@ -97,7 +97,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
   ```
 - When a table has multiple FKs to `public.users` (e.g. `reviews`, `chat`), disambiguate joins explicitly: `users!reviews_tenant_id_fkey`.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
-- Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read.
+- Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read. **Exception:** `apartment-images` is **public** (`public=true`, 10 MB limit) — `apartment_images.url` / `url_thumb` store permanent CDN public URLs (`getPublicUrl`) and render via `expo-image cachePolicy="disk"` with no signing (verified `storage.buckets.public=true` on `apartment-images`).
 - Notifications are generated **server-side only**: DB triggers insert into `notifications` via `create_notification()` (which also fires the `push-notify` edge function through pg_net). Clients only SELECT their own rows and UPDATE `is_read` — never INSERT. Expo push tokens live in `push_tokens` (upsert on sign-in, delete on sign-out).
 - `create_notification()` EXECUTE is revoked from `authenticated` — only SECURITY DEFINER triggers (and service_role) call it. Trigger functions identify the acting user via `auth.uid()` (PostgREST JWT GUC), e.g. to skip self-notifications (tenant self-cancel of a visit request).
 - `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.

@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
-    "mtime": 1787912037.126835,
-    "ast_hash": "c58092b6de2b36524dfc1a79c8f28b39",
+    "mtime": 1787919106.8411353,
+    "ast_hash": "724beaaf1bacbdb51516a60a0112144a",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/_layout.tsx": {
@@ -925,9 +925,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/_layout.tsx": {
-    "mtime": 1787060341.8871598,
-    "ast_hash": "4024ae45f4964a2b7bfe918975ef4d73",
-    "semantic_hash": "4024ae45f4964a2b7bfe918975ef4d73"
+    "mtime": 1787919050.6185424,
+    "ast_hash": "d5da9cbd4968f5aac81ab77c20580488",
+    "semantic_hash": ""
   },
   "apps/mobile/app/search/ai-search.tsx": {
     "mtime": 1787060341.88723,
@@ -1115,13 +1115,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/ApartmentCard.tsx": {
-    "mtime": 1787912037.1502168,
-    "ast_hash": "d29c946266c086b612b8d1f96cff18bb",
+    "mtime": 1787978844.9568202,
+    "ast_hash": "e38a0f955050f8ff5439bfd4850ea3e8",
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/LandlordCard.tsx": {
-    "mtime": 1787912037.1502988,
-    "ast_hash": "37745ee97d864ed5e794d80f69e06f7c",
+    "mtime": 1787978864.5759075,
+    "ast_hash": "17270d478c3afde2bdd7a20fd7c58c1c",
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/RatingCard.tsx": {
@@ -1160,8 +1160,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/DocumentRow.tsx": {
-    "mtime": 1787912037.151024,
-    "ast_hash": "9dc1906ade8c55928ad0abdfccd5e76d",
+    "mtime": 1787978875.7666156,
+    "ast_hash": "8cea9d9c60a0ae16da4b3d6aba22bb0f",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/ErrorDialog.tsx": {
@@ -1175,9 +1175,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/PerkItem.tsx": {
-    "mtime": 1787060341.9059908,
-    "ast_hash": "b0d77a89499ed194dc5853dad8241a11",
-    "semantic_hash": "b0d77a89499ed194dc5853dad8241a11"
+    "mtime": 1787978892.4045446,
+    "ast_hash": "96cce06d1ce47a4510a9ce564bdcfa69",
+    "semantic_hash": ""
   },
   "apps/mobile/components/display/RejectDialog.tsx": {
     "mtime": 1787060341.9060676,
@@ -1360,9 +1360,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useApplicationStatusStyles.ts": {
-    "mtime": 1787060341.9122896,
-    "ast_hash": "2f54042aab843198b6382cd1f5fda51a",
-    "semantic_hash": "2f54042aab843198b6382cd1f5fda51a"
+    "mtime": 1787978910.7457445,
+    "ast_hash": "1878e1dff66ba86c9945e90fd2932b29",
+    "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useCancelApplication.ts": {
     "mtime": 1787060341.9123778,
@@ -4059,11 +4059,6 @@
     "ast_hash": "7463f36dee7f34ca5de04ba0b1abf859",
     "semantic_hash": ""
   },
-  "docs/dti-bnrs-baratangay-checklist.md": {
-    "mtime": 1787912037.178567,
-    "ast_hash": "4a30d9ad57c2907c3f96e76377250993",
-    "semantic_hash": ""
-  },
   "apps/mobile/assets/images/payment-logos/qrph-logo.png": {
     "mtime": 1787912037.1499088,
     "ast_hash": "adc3e9666f1a966c8f092d612ab34f2a",
@@ -4212,6 +4207,31 @@
   "apps/web/hooks/use-pending-applications.ts": {
     "mtime": 1787912037.1780856,
     "ast_hash": "e23c05eb566fb2b102793ae2ff60ffdf",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/SearchSection.tsx": {
+    "mtime": 1787919099.1066225,
+    "ast_hash": "994cb52afa2c24b39519fd5d67ab1fe0",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/SearchSectionsList.tsx": {
+    "mtime": 1787919125.8033817,
+    "ast_hash": "df0d2f40d158a2cbc67b4102ed412949",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/useSearchSections.ts": {
+    "mtime": 1787919116.5549057,
+    "ast_hash": "8fdbfa7559b7193ac3ea70f2961712cf",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/search/section/[sectionId].tsx": {
+    "mtime": 1787919046.3071144,
+    "ast_hash": "d7c382f3530d20b56d5215373ac6a102",
+    "semantic_hash": ""
+  },
+  "docs/plans/2026-08-28-search-netflix-a2.md": {
+    "mtime": 1787918889.3274665,
+    "ast_hash": "01946aa941b1583cd88c151b53b9d7f8",
     "semantic_hash": ""
   }
 }
