@@ -56,7 +56,7 @@ export default function MessageInput({ onSend, onTypingChange }: MessageInputPro
   }, []);
 
   return (
-    <div className="p-4 border-t border-gray-200 bg-white flex gap-2 items-center">
+    <div className="p-4 border-t border-border bg-card flex gap-2 items-center">
       <Input
         value={value}
         onChange={handleChange}
