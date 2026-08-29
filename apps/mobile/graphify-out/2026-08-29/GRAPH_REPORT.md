@@ -1,7 +1,7 @@
-# Graph Report - mobile  (2026-08-29)
+# Graph Report - mobile  (2026-08-28)
 
 ## Corpus Check
-- 447 files · ~637,731 words
+- 447 files · ~637,725 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -71,9 +71,9 @@
 - visit-requests/index.tsx
 - useChat.ts
 - dashboard.tsx
-- useLandlordTenancy.ts
+- useLandlordUnits.ts
 - rentals.tsx
-- expo
+- emoji-regex-xs
 - RescheduleSheet.tsx
 - useApplicationFormStore.ts
 - chatService.pagination.test.ts
@@ -317,7 +317,7 @@ Nodes (16): PaymentHistoryCard(), PaymentHistoryCardProps, EMPTY_FILTERS, FlatPa
 
 ### Community 29 - "landlordService.ts"
 Cohesion: 0.11
-Nodes (21): Index(), getLandlordUnitsQueryKey(), useLandlordUnits(), DB_TO_DISPLAY_STATUS, DbStatus, DISPLAY_TO_DB_STATUS, fetchLandlordUnits(), fetchManageApartmentDescription() (+13 more)
+Nodes (22): Index(), Index(), useLandlordTenancy(), DB_TO_DISPLAY_STATUS, DbStatus, DISPLAY_TO_DB_STATUS, fetchLandlordTenancy(), fetchManageApartmentDescription() (+14 more)
 
 ### Community 30 - "description/index.tsx"
 Cohesion: 0.13
@@ -353,7 +353,7 @@ Nodes (13): GuidedFrameRect, CameraPermissionState, useCameraPermission(), UseCa
 
 ### Community 38 - "dependencies"
 Cohesion: 0.11
-Nodes (19): emoji-regex-xs, expo-constants, expo-router, dependencies, emoji-regex-xs, expo-constants, expo-router, react-native-gesture-handler (+11 more)
+Nodes (19): expo, expo-constants, expo-router, dependencies, expo, expo-constants, expo-router, react-native-gesture-handler (+11 more)
 
 ### Community 39 - "ProfitByPropertyCard.tsx"
 Cohesion: 0.31
@@ -423,9 +423,9 @@ Nodes (23): Options, useChat(), BroadcastEvent, BroadcastPayload, PresenceJoinEv
 Cohesion: 0.23
 Nodes (7): DashboardSkeleton(), RentDueCard(), RentDueCardProps, NotificationBellButton(), NotificationBellButtonProps, EmptyProperties(), Props
 
-### Community 56 - "useLandlordTenancy.ts"
-Cohesion: 0.33
-Nodes (6): Index(), useLandlordTenancy(), fetchLandlordTenancy(), LandlordTenancyMaintenanceRequest, LandlordTenant, PaymentRecord
+### Community 56 - "useLandlordUnits.ts"
+Cohesion: 0.47
+Nodes (5): getLandlordUnitsQueryKey(), useLandlordUnits(), fetchLandlordUnits(), fetchMonthlyProfit(), LandlordUnitApartment
 
 ### Community 57 - "rentals.tsx"
 Cohesion: 0.05
@@ -551,7 +551,7 @@ Nodes (3): useLandlordStats(), fetchLandlordStats(), LandlordStats
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useColors()` connect `useColors` to `apartment/[apartmentId]/index.tsx`, `ScreenWrapper.tsx`, `RatingsSection.tsx`, `reviews/index.tsx`, `dashboardService.ts`, `saved-methods/index.tsx`, `useConversations.test.tsx`, `search.tsx`, `fifth-step.tsx`, `edit-profile.tsx`, `rate-apartment.tsx`, `images.ts`, `ai-search.tsx`, `usePersonalizationStore.ts`, `notificationService.ts`, `useVerificationStore`, `[conversationId].tsx`, `notifications/index.ts`, `PaymentMethodSelector.tsx`, `payment-history/index.tsx`, `landlordService.ts`, `description/index.tsx`, `tenant-applications/index.tsx`, `upload-id.tsx`, `live-capture.tsx`, `ProfitTrendCard.tsx`, `units.tsx`, `queryClient.ts`, `ProfitByPropertyCard.tsx`, `MapPreviewSection.tsx`, `history/index.tsx`, `payment/index.tsx`, `edit-main.tsx`, `useApplicationActions.test.tsx`, `useLandlordActionBadges`, `DocumentRow.tsx`, `ApplicationList.tsx`, `DocumentCard.tsx`, `pending.tsx`, `visit-requests/index.tsx`, `dashboard.tsx`, `useLandlordTenancy.ts`, `rentals.tsx`, `RescheduleSheet.tsx`, `applications/[applicationId].tsx`, `ChatBubble.tsx`, `apartments/index.ts`, `map-view.tsx`, `auth/index.ts`, `TabBar.tsx`, `CustomTabBar.tsx`, `applications/index.ts`, `LandlordSection.tsx`, `ReceiptCard.tsx`, `reset-password.tsx`?**
+- **Why does `useColors()` connect `useColors` to `apartment/[apartmentId]/index.tsx`, `ScreenWrapper.tsx`, `RatingsSection.tsx`, `reviews/index.tsx`, `dashboardService.ts`, `saved-methods/index.tsx`, `useConversations.test.tsx`, `search.tsx`, `fifth-step.tsx`, `edit-profile.tsx`, `rate-apartment.tsx`, `images.ts`, `ai-search.tsx`, `usePersonalizationStore.ts`, `notificationService.ts`, `useVerificationStore`, `[conversationId].tsx`, `notifications/index.ts`, `PaymentMethodSelector.tsx`, `payment-history/index.tsx`, `landlordService.ts`, `description/index.tsx`, `tenant-applications/index.tsx`, `upload-id.tsx`, `live-capture.tsx`, `ProfitTrendCard.tsx`, `units.tsx`, `queryClient.ts`, `ProfitByPropertyCard.tsx`, `MapPreviewSection.tsx`, `history/index.tsx`, `payment/index.tsx`, `edit-main.tsx`, `useApplicationActions.test.tsx`, `useLandlordActionBadges`, `DocumentRow.tsx`, `ApplicationList.tsx`, `DocumentCard.tsx`, `pending.tsx`, `visit-requests/index.tsx`, `dashboard.tsx`, `rentals.tsx`, `RescheduleSheet.tsx`, `applications/[applicationId].tsx`, `ChatBubble.tsx`, `apartments/index.ts`, `map-view.tsx`, `auth/index.ts`, `TabBar.tsx`, `CustomTabBar.tsx`, `applications/index.ts`, `LandlordSection.tsx`, `ReceiptCard.tsx`, `reset-password.tsx`?**
   _High betweenness centrality (0.209) - this node is a cross-community bridge._
 - **Why does `expo-router` connect `expo-router` to `apartment/[apartmentId]/index.tsx`, `ScreenWrapper.tsx`, `reviews/index.tsx`, `saved-methods/index.tsx`, `search.tsx`, `fifth-step.tsx`, `edit-profile.tsx`, `rate-apartment.tsx`, `images.ts`, `usePersonalizationStore.ts`, `useVerificationStore`, `[conversationId].tsx`, `paymongoService.ts`, `payment-history/index.tsx`, `description/index.tsx`, `tenant-applications/index.tsx`, `useColors`, `upload-id.tsx`, `live-capture.tsx`, `units.tsx`, `queryClient.ts`, `useFrameQualityCheck.ts`, `NotificationScreen.tsx`, `history/index.tsx`, `payment/index.tsx`, `edit-main.tsx`, `ApplicationList.tsx`, `pending.tsx`, `visit-requests/index.tsx`, `dashboard.tsx`, `rentals.tsx`, `useInAppNotificationBanner.tsx`, `onboarding.tsx`, `applications/[applicationId].tsx`, `apartments/index.ts`, `map-view.tsx`, `auth/index.ts`, `CustomTabBar.tsx`, `applications/index.ts`, `playground.tsx`, `reset-password.tsx`?**
   _High betweenness centrality (0.119) - this node is a cross-community bridge._

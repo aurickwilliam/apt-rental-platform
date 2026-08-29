@@ -8,7 +8,9 @@ import FilterBottomSheet, {
 import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
+import SearchSectionsList from "../components/search/SearchSectionsList";
 import useSearchLogic from "../components/search/useSearchLogic";
+import { useSearchSections } from "../components/search/useSearchSections";
 
 export default function Search() {
   const router = useRouter();
@@ -34,13 +36,27 @@ export default function Search() {
     refreshing,
     resultCount,
     searchQuery,
+    debouncedSearch,
     selectedCity,
     setIsGridView,
     setSearchQuery,
     setSelectedCity,
   } = useSearchLogic();
 
-  const handleApartmentPress = (id: string) => router.push(`/apartment/${id}`);
+  const {
+    sections,
+    isLoading: sectionsLoading,
+    isFetching: sectionsFetching,
+    error: sectionsError,
+    refetch: refetchSections,
+    onViewableItemsChanged,
+  } = useSearchSections({
+    selectedCity,
+    debouncedSearch,
+    enabled: true,
+  });
+
+  const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
 
   const handleFavoritePress = async (apartmentId: string) => {
     try {
@@ -54,6 +70,19 @@ export default function Search() {
       toast.show({ variant: "danger", label: "Something went wrong" });
     }
   };
+
+  const isDefaultBrowse = searchQuery.trim() === "" && activeFilterCount === 0 && selectedCity === "CAMANAVA";
+  const showNetflix = isDefaultBrowse;
+
+  const handleRefresh = () => {
+    if (showNetflix) {
+      void refetchSections();
+    } else {
+      void fetchApartments(true);
+    }
+  };
+
+  const isInitialLoading = showNetflix ? sectionsLoading : loading;
 
   return (
     <ScreenWrapper noBottomPadding>
@@ -80,19 +109,33 @@ export default function Search() {
         onClearFilters={handleClearFilters}
       />
 
-      <ApartmentsList
-        apartments={apartments}
-        isGridView={isGridView}
-        isFavorite={isFavorite}
-        onPressApartment={handleApartmentPress}
-        onToggleFavorite={handleFavoritePress}
-        loading={loading}
-        refreshing={refreshing}
-        loadingMore={loadingMore}
-        error={error}
-        onRefresh={() => fetchApartments(true)}
-        onLoadMore={loadMore}
-      />
+      {showNetflix ? (
+        <SearchSectionsList
+          sections={sections}
+          isLoading={isInitialLoading}
+          isFetching={sectionsFetching}
+          error={sectionsError}
+          onRefresh={handleRefresh}
+          onViewableItemsChanged={onViewableItemsChanged}
+          isFavorite={isFavorite}
+          onToggleFavorite={handleFavoritePress}
+          onPressApartment={handleApartmentPress}
+        />
+      ) : (
+        <ApartmentsList
+          apartments={apartments}
+          isGridView={isGridView}
+          isFavorite={isFavorite}
+          onPressApartment={handleApartmentPress}
+          onToggleFavorite={handleFavoritePress}
+          loading={loading}
+          refreshing={refreshing}
+          loadingMore={loadingMore}
+          error={error}
+          onRefresh={() => fetchApartments(true)}
+          onLoadMore={loadMore}
+        />
+      )}
 
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}

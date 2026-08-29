@@ -4,7 +4,7 @@ import { PERKS } from "constants/perks";
 
 import { useColors } from "hooks/useTheme";
 
-import { LucideIcon, CircleQuestionMark } from "lucide-react-native";
+import { IconHelpCircle, type Icon } from "@tabler/icons-react-native";
 
 type BasePerkItemProps = {
   iconColor?: string;
@@ -21,7 +21,7 @@ type PerkItemProps = BasePerkItemProps &
       }
     | {
         perkId?: never;
-        customIcon: LucideIcon;
+        customIcon: Icon;
         customText: string;
       }
   );
@@ -42,7 +42,7 @@ export default function PerkItem({
   const Icon =
     ("customIcon" in props ? props.customIcon : undefined) ||
     perk?.icon ||
-    CircleQuestionMark;
+    IconHelpCircle;
   const text =
     ("customText" in props ? props.customText : undefined) ||
     perk?.name ||

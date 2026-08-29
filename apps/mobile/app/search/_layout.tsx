@@ -8,6 +8,7 @@ export default function SearchLayout() {
       }}
     >
       <Stack.Screen name="ai-search" />
+      <Stack.Screen name="section/[sectionId]" />
     </Stack>
   );
 }

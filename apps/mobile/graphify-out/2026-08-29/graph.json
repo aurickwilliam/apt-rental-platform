@@ -6225,8 +6225,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_index_index",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "index()"
     },
     {
@@ -9511,7 +9511,7 @@
       "label": "ApartmentCardProps",
       "file_type": "code",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcardprops",
       "community": 7,
@@ -9522,7 +9522,7 @@
       "label": "ApartmentCard()",
       "file_type": "code",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L38",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcard",
       "community": 7,
@@ -11615,8 +11615,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits.ts"
     },
     {
@@ -11626,8 +11626,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_getlandlordunitsquerykey",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "getlandlordunitsquerykey()"
     },
     {
@@ -11637,8 +11637,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_uselandlordunits",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits()"
     },
     {
@@ -14244,8 +14244,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "uselandlordtenancy.ts"
     },
     {
@@ -14266,8 +14266,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy_uselandlordtenancy",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "uselandlordtenancy()"
     },
     {
@@ -15784,8 +15784,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "package_dependencies_emoji_regex_xs",
-      "community": 38,
-      "community_name": "dependencies",
+      "community": 58,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -15795,8 +15795,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "emoji_regex_xs",
-      "community": 38,
-      "community_name": "dependencies",
+      "community": 58,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -15806,8 +15806,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 58,
-      "community_name": "expo",
+      "community": 38,
+      "community_name": "dependencies",
       "norm_label": "expo"
     },
     {
@@ -15817,8 +15817,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "expo",
-      "community": 58,
-      "community_name": "expo",
+      "community": 38,
+      "community_name": "dependencies",
       "norm_label": "expo"
     },
     {
@@ -18622,8 +18622,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordunitapartment",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "landlordunitapartment"
     },
     {
@@ -18644,8 +18644,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchmonthlyprofit",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchmonthlyprofit()"
     },
     {
@@ -18655,8 +18655,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordunits",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 56,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchlandlordunits()"
     },
     {
@@ -18732,8 +18732,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenant",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "landlordtenant"
     },
     {
@@ -18743,8 +18743,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenancymaintenancerequest",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "landlordtenancymaintenancerequest"
     },
     {
@@ -18754,8 +18754,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_paymentrecord",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "paymentrecord"
     },
     {
@@ -18776,8 +18776,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordtenancy",
-      "community": 56,
-      "community_name": "useLandlordTenancy.ts",
+      "community": 29,
+      "community_name": "landlordService.ts",
       "norm_label": "fetchlandlordtenancy()"
     },
     {
@@ -54862,7 +54862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L38",
+      "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard",
@@ -54873,7 +54873,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard",
@@ -54934,7 +54934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "components/cards/ApartmentCard.tsx",
-      "source_location": "L54",
+      "source_location": "L53",
       "weight": 1.0,
       "_origin": "ast",
       "source": "components_cards_apartmentcard_apartmentcard",

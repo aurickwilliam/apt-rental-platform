@@ -5,10 +5,10 @@ import { Button, Card, PressableFeedback } from "heroui-native";
 import { useColors } from "hooks/useTheme";
 
 import {
-  MessageCircleMore,
-  Star,
-  Home,
-} from "lucide-react-native";
+  IconMessageCircle,
+  IconStarFilled,
+  IconHome,
+} from "@tabler/icons-react-native";
 
 interface LandlordCardProps {
   fullName: string;
@@ -80,14 +80,14 @@ export default function LandlordCard({
             {withRentalInfo && (
               <View className="flex-row items-center gap-4 mt-1">
                 <View className="flex-row items-center gap-1">
-                  <Star size={12} color={colors.secondary} />
+                  <IconStarFilled size={12} color={colors.secondary} />
                   <Text className="text-foreground text-xs font-inter">
                     {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center gap-1">
-                  <Home size={12} color={colors.primary} />
+                  <IconHome size={12} color={colors.primary} />
                   <Text className="text-foreground text-xs font-inter">
                     {totalRentals} {totalRentals === 1 ? "Property" : "Properties"}
                   </Text>
@@ -103,7 +103,7 @@ export default function LandlordCard({
             onPress={onMessagePress}
             isDisabled={!onMessagePress}
           >
-            <MessageCircleMore size={22} color={colors.primary} />
+            <IconMessageCircle size={22} color={colors.primary} />
           </Button>
         </Card.Body>
       </Card>

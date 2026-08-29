@@ -6,14 +6,15 @@ import { Card, PressableFeedback } from 'heroui-native';
 import { useColors } from 'hooks/useTheme';
 
 import {
-  Image as IconImage,
-  BedDouble,
-  Bath,
-  Maximize,
-  Heart,
-  Star,
-  ShieldCheck
-} from 'lucide-react-native';
+  IconPhoto,
+  IconBed,
+  IconBath,
+  IconMaximize,
+  IconHeart,
+  IconHeartFilled,
+  IconStarFilled,
+  IconShieldCheckFilled
+} from '@tabler/icons-react-native';
 
 import { formatPesoDisplay } from '@repo/utils';
 
@@ -84,7 +85,7 @@ export default function ApartmentCard({
                 }}
                 className="items-center justify-center bg-gray-200"
               >
-                <IconImage size={32} color={colors.gray400} />
+                <IconPhoto size={32} color={colors.gray400} />
               </View>
             )}
           </View>
@@ -113,19 +114,19 @@ export default function ApartmentCard({
             {!isGrid && (
               <View className="flex-row flex-wrap">
                 <View className="flex-row w-2/6 gap-1 items-center justify-start">
-                  <BedDouble size={18} color={colors.gray500} />
+                  <IconBed size={18} color={colors.gray500} />
                   <Text className="text-muted text-[12px]">
                     {noBedroom} Bedroom
                   </Text>
                 </View>
                 <View className="flex-row w-2/6 gap-1 items-center justify-start">
-                  <Bath size={18} color={colors.gray500} />
+                  <IconBath size={18} color={colors.gray500} />
                   <Text className="text-muted text-[12px]">
                     {noBathroom} Bathroom
                   </Text>
                 </View>
                 <View className="flex-row w-2/6 gap-1 items-center justify-start">
-                  <Maximize size={18} color={colors.gray500} />
+                  <IconMaximize size={18} color={colors.gray500} />
                   <Text className="text-muted text-[12px]">{areaSqm} Sqm</Text>
                 </View>
               </View>
@@ -139,7 +140,7 @@ export default function ApartmentCard({
                 {formatPesoDisplay(monthlyRent)}
               </Text>
               <View className="flex-row items-center justify-center gap-1">
-                <Star size={isGrid ? 16 : 18} color={colors.secondary} />
+                <IconStarFilled size={isGrid ? 16 : 18} color={colors.secondary} />
                 <Text
                   className={`mr-1 text-foreground font-inter ${isGrid ? "text-[12px]" : "text-base"}`}
                 >
@@ -157,7 +158,7 @@ export default function ApartmentCard({
                 elevation: 3,
               }}
             >
-              <ShieldCheck size={isGrid ? 14 : 16} color={colors.success} />
+              <IconShieldCheckFilled size={isGrid ? 14 : 16} color={colors.success} />
               <Text
                 className={`text-success font-nunitoSemiBold ${isGrid ? "text-xs" : "text-sm"}`}
               >
@@ -175,11 +176,17 @@ export default function ApartmentCard({
               elevation: 3,
             }}
           >
-            <Heart
-              size={isGrid ? 18 : 24}
-              color={isFavorite ? colors.danger : colors.gray400}
-              fill={isFavorite ? colors.danger : "transparent"}
-            />
+            {isFavorite ? (
+              <IconHeartFilled
+                size={isGrid ? 18 : 24}
+                color={colors.danger}
+              />
+            ) : (
+              <IconHeart
+                size={isGrid ? 18 : 24}
+                color={colors.gray400}
+              />
+            )}
           </PressableFeedback>
         </Card>
       </PressableFeedback>
