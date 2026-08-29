@@ -8,7 +8,7 @@ import { useColors } from "@/hooks/useTheme";
 
 import TimeField from "@/components/inputs/TimeField";
 
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react-native';
 
 import { formatDate } from "@repo/utils";
 
@@ -109,9 +109,9 @@ export default function RescheduleSheet({
               }}
               renderArrow={(direction) =>
                 direction === "left" ? (
-                  <ChevronLeft size={20} color={colors.gray500} />
+                  <IconChevronLeft size={20} color={colors.gray500} />
                 ) : (
-                  <ChevronRight size={20} color={colors.gray500} />
+                  <IconChevronRight size={20} color={colors.gray500} />
                 )
               }
               markedDates={

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { X } from 'lucide-react-native';
+import { IconX } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
@@ -92,7 +92,7 @@ export default function MoveInCostFooterSection({
               className='absolute top-4 right-4 z-10 bg-surface-tertiary p-1.5 rounded-full'
               onPress={() => setIsMoveInCostModalVisible(false)}
             >
-              <X size={20} color={colors.textPrimary} />
+              <IconX size={20} color={colors.textPrimary} />
             </TouchableOpacity>
 
             <Text className='text-foreground font-nunitoBold text-xl pr-8'>

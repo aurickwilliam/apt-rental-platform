@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-import { Calendar } from "lucide-react-native";
+import { IconCalendar } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -10,7 +10,7 @@ export default function EmptyPending() {
   return (
     <View className="flex-1 items-center justify-center py-20">
       <View className="bg-surface rounded-full p-5 mb-4">
-        <Calendar size={30} color={colors.gray400} />
+        <IconCalendar size={30} color={colors.gray400} />
       </View>
       <Text className="text-foreground text-lg font-nunitoSemiBold">
         No pending requests

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 
-import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react-native';
 
 import { Card, SearchField } from "heroui-native";
 
@@ -86,9 +86,9 @@ function PastToggle({
         </View>
       </View>
       {isExpanded ? (
-        <ChevronUp size={20} color={colors.gray500} />
+        <IconChevronUp size={20} color={colors.gray500} />
       ) : (
-        <ChevronDown size={20} color={colors.gray500} />
+        <IconChevronDown size={20} color={colors.gray500} />
       )}
     </Pressable>
   );

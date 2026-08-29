@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 
-import { Building } from 'lucide-react-native';
+import { IconBuilding } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
@@ -23,7 +23,7 @@ export default function ApartmentDescriptionSection({
   return (
     <>
       <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <Building size={26} color={colors.textPrimary} />
+        <IconBuilding size={26} color={colors.textPrimary} />
         <Text className='font-nunitoSemiBold text-lg text-foreground'>
           Everything About Your Apartment
         </Text>

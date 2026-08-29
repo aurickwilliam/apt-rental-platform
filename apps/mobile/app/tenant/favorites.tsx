@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { Spinner, useToast } from "heroui-native";
 
-import { LayoutGrid, Rows3 } from "lucide-react-native";
+import { IconLayoutGrid, IconLayoutList } from '@tabler/icons-react-native';
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
@@ -104,9 +104,9 @@ export default function TenantFavorites() {
       onPress={toggleViewMode}
     >
       {viewMode === "grid" ? (
-        <Rows3 size={24} color={colors.secondaryForeground} />
+        <IconLayoutList size={24} color={colors.secondaryForeground} />
       ) : (
-        <LayoutGrid size={24} color={colors.secondaryForeground} />
+        <IconLayoutGrid size={24} color={colors.secondaryForeground} />
       )}
     </TouchableOpacity>
   );

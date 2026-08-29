@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { SearchX } from 'lucide-react-native';
+import { IconSearchOff } from '@tabler/icons-react-native';
 import { useColors } from '@/hooks/useTheme';
 
 export default function EmptySearchResults({ query }: { query: string }) {
@@ -7,7 +7,7 @@ export default function EmptySearchResults({ query }: { query: string }) {
 
   return (
     <View className="flex-1 items-center justify-center gap-3 py-16">
-      <SearchX size={40} color={colors.textSecondary} />
+      <IconSearchOff size={40} color={colors.textSecondary} />
       <View className="items-center gap-1">
         <Text className="text-base font-nunitoSemiBold text-foreground">
           No results found

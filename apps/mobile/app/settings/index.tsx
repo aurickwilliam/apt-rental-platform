@@ -7,27 +7,14 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { ListGroup, Separator, Switch } from 'heroui-native'
 
-import {
-  LucideIcon,
-  KeyRound,
-  Mail,
-  Globe,
-  Bell,
-  MoonStar,
-  CircleAlert,
-  CircleQuestionMark,
-  FileText,
-  ShieldCheck,
-  UsersRound,
-} from 'lucide-react-native';
+import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
-import { IconChevronRight } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 
 type SettingItem = {
-  icon: LucideIcon | Icon
+  icon: Icon
   title: string
   onPress?: () => void
   disabled?: boolean
@@ -59,12 +46,12 @@ export default function Index() {
       title: 'Security',
       items: [
         {
-          icon: KeyRound,
+          icon: IconKey,
           title: 'Change Password',
           onPress: () => {},
         },
         {
-          icon: Mail,
+          icon: IconMail,
           title: 'Change Email',
           onPress: () => {},
         },
@@ -74,12 +61,12 @@ export default function Index() {
       title: 'Preferences',
       items: [
         {
-          icon: Globe,
+          icon: IconGlobe,
           title: 'Language & Region',
           onPress: () => router.push('/settings/language-region'),
         },
         {
-          icon: Bell,
+          icon: IconBell,
           title: 'Notifications',
           onPress: () => router.push('/settings/notifications'),
           suffix: (
@@ -92,7 +79,7 @@ export default function Index() {
           ),
         },
         {
-          icon: MoonStar,
+          icon: IconMoonStars,
           title: 'Dark Mode',
           disabled: true,
           suffix: (
@@ -108,27 +95,27 @@ export default function Index() {
       title: 'Help & Support',
       items: [
         {
-          icon: CircleAlert,
+          icon: IconAlertCircle,
           title: 'Report a Problem',
           onPress: () => {},
         },
         {
-          icon: CircleQuestionMark,
+          icon: IconHelpCircle,
           title: 'FAQs',
           onPress: () => router.push('/settings/faq'),
         },
         {
-          icon: FileText,
+          icon: IconFileText,
           title: 'Terms and Conditions',
           onPress: () => router.push('/settings/terms'),
         },
         {
-          icon: ShieldCheck,
+          icon: IconShieldCheck,
           title: 'Privacy Policy',
           onPress: () => router.push('/settings/privacy-policy'),
         },
         {
-          icon: UsersRound,
+          icon: IconUsersGroup,
           title: 'About Us',
           onPress: () => router.push('/settings/about'),
         }

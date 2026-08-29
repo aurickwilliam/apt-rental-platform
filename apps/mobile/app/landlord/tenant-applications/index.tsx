@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
-import { ListFilter } from 'lucide-react-native';
+import { IconFilter } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -115,7 +115,7 @@ export default function TenantApplications() {
                   variant="tertiary"
                   isIconOnly
                 >
-                  <ListFilter
+                  <IconFilter
                     size={18}
                     color={colors.textPrimary}
                   />

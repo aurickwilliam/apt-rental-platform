@@ -48,7 +48,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 ### `apps/mobile` — React Native (Expo 55), Expo Router
 - Styling: **Uniwind** utility classes — NOT NativeWind (migrated away; don't reintroduce)
 - UI: **HeroUI Native v3** (`heroui-native`)
-- Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away; existing dep not yet cleaned up but don't use it)
+- Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away 2026-08-29; dependency removed from `apps/mobile/package.json`)
 - State: server state via **React Query** (`@tanstack/react-query`) — single `QueryProvider` at the root layout, shared client in `utils/queryClient.ts`; Zustand for client state only (`stores/`)
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`

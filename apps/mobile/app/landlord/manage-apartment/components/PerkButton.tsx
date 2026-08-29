@@ -2,11 +2,8 @@ import { Text, TouchableOpacity } from "react-native";
 
 import { PERKS } from "constants/perks";
 
-import {
-  LucideIcon,
-  CircleX,
-  CircleQuestionMark,
-} from 'lucide-react-native';
+import { IconCircleX, IconHelpCircle } from '@tabler/icons-react-native';
+import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors } from "hooks/useTheme";
 
@@ -28,7 +25,7 @@ type PerkButtonProps = BasePerkButtonProps &
       }
     | {
         perkId?: never;
-        customIcon: LucideIcon;
+        customIcon: Icon;
         customText: string;
         isSelected?: never;
         onPress?: () => void;
@@ -52,7 +49,7 @@ export default function PerkButton({
   const Icon =
     ("customIcon" in props ? props.customIcon : undefined) ||
     perk?.icon ||
-    CircleQuestionMark;
+    IconHelpCircle;
   const text =
     ("customText" in props ? props.customText : undefined) ||
     perk?.name ||
@@ -74,7 +71,7 @@ export default function PerkButton({
 
       {props.isSelected && (
         <TouchableOpacity onPress={props.onRemovePress ?? props.onPress}>
-          <CircleX size={22} color={colors.gray500} />
+          <IconCircleX size={22} color={colors.gray500} />
         </TouchableOpacity>
       )}
     </TouchableOpacity>

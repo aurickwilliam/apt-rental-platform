@@ -18,12 +18,7 @@ import { Dialog, Button } from "heroui-native"
 import { useColors } from '@/hooks/useTheme';
 import { useApartmentDetails } from '@/hooks/apartments';
 
-import {
-  Route,
-  Map,
-  Compass,
-  Navigation,
-} from 'lucide-react-native';
+import { IconRoute, IconMap, IconCompass, IconNavigation } from '@tabler/icons-react-native';
 
 // Suppress the missing API key warning since we're using free OSM tiles
 setAccessToken(null);
@@ -170,7 +165,7 @@ export default function ApartmentMapViewScreen() {
     await Linking.openURL(googleMapsSearchUrl);
   }
 
-  // Handle Navigation Button Press/Go Back to Pin Location
+  // Handle IconNavigation Button Press/Go Back to Pin Location
   const handleNavigationPress = () => {
     cameraRef.current?.setCamera?.({
       centerCoordinate: [longitude, latitude],
@@ -179,7 +174,7 @@ export default function ApartmentMapViewScreen() {
     });
   }
 
-  // Handle Compass Button Press/Refocus to North
+  // Handle IconCompass Button Press/Refocus to North
   const handleCompassPress = () => {
     cameraRef.current?.setCamera?.({
       heading: 0,
@@ -217,7 +212,7 @@ export default function ApartmentMapViewScreen() {
             className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleOpenInMaps}
           >
-            <Map size={24} color={colors.textPrimary} />
+            <IconMap size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -225,7 +220,7 @@ export default function ApartmentMapViewScreen() {
             className='bg-surface-secondary p-2 rounded-xl'
             onPress={handleGetDirections}
           >
-            <Route size={24} color={colors.textPrimary} />
+            <IconRoute size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -276,12 +271,12 @@ export default function ApartmentMapViewScreen() {
         {/* Floating Action Buttons */}
         <View className='flex items-center gap-5 absolute bottom-5 right-5'>
           <IconButton
-            iconName={Navigation}
+            iconName={IconNavigation}
             onPress={handleNavigationPress}
           />
 
           <IconButton
-            iconName={Compass}
+            iconName={IconCompass}
             onPress={handleCompassPress}
           />
         </View>

@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { SquareCheckBig } from 'lucide-react-native';
+import { IconSquareCheck } from '@tabler/icons-react-native';
 
 import PerkItem from 'components/display/PerkItem';
 
@@ -26,7 +26,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
       <View className='mt-10 px-5 flex gap-2'>
         <View className='flex-row items-center justify-between'>
           <View className='flex-row items-center gap-2'>
-            <SquareCheckBig size={26} color={colors.textPrimary} />
+            <IconSquareCheck size={26} color={colors.textPrimary} />
             <Text className='font-nunitoSemiBold text-lg text-foreground'>
               Included Perks
             </Text>

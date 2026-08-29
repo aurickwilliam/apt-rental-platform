@@ -243,9 +243,6 @@ importers:
       heroui-native:
         specifier: ^1.0.3
         version: 1.0.8(32bda4aea8ce8cc5b1d34689438ea4e4)
-      lucide-react-native:
-        specifier: ^0.562.0
-        version: 0.562.0(react-native-svg@15.15.3(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -6393,13 +6390,6 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
-
-  lucide-react-native@0.562.0:
-    resolution: {integrity: sha512-ZF2ok8SzyUaiCIrLGqYh/6SPs+huVzbZOCv0i411L4+oP3tJgQvvKePiVgWCioa7HsT2xaJZSrdd92cuB2/+ew==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-native: '*'
-      react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
 
   lucide-react@0.577.0:
     resolution: {integrity: sha512-4LjoFv2eEPwYDPg/CUdBJQSDfPyzXCRrVW1X7jrx/trgxnxkHFjnVZINbzvzxjN70dxychOfg+FTYwBiS3pQ5A==}
@@ -15438,12 +15428,6 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
-
-  lucide-react-native@0.562.0(react-native-svg@15.15.3(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      react-native: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0)
-      react-native-svg: 15.15.3(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)
 
   lucide-react@0.577.0(react@19.2.1):
     dependencies:

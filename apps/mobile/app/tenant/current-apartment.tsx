@@ -9,18 +9,7 @@ import { formatPesoDisplay } from '@repo/utils'
 
 import { Button, Separator, Spinner } from 'heroui-native'
 
-import {
-  House,
-  Bath,
-  BedDouble,
-  Maximize,
-  Calendar,
-  Armchair,
-  Building,
-  Users,
-  FileText,
-  AlertCircle,
-} from 'lucide-react-native';
+import { IconHome, IconBath, IconBed, IconMaximize, IconCalendar, IconArmchair, IconBuilding, IconUsers, IconFileText, IconAlertCircle } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
 import { useTenancy } from 'hooks/tenancy'
@@ -98,7 +87,7 @@ export default function CurrentApartmentDetails() {
     return (
       <ScreenWrapper header={<StandardHeader title="Apartment Details" />}>
         <View className="flex-1 items-center justify-center px-6">
-          <AlertCircle size={40} color={colors.gray300} />
+          <IconAlertCircle size={40} color={colors.gray300} />
           <Text className="text-foreground text-base font-nunitoSemiBold mt-3 text-center">
             No Active Tenancy
           </Text>
@@ -187,7 +176,7 @@ export default function CurrentApartmentDetails() {
       <View className="flex-row flex-wrap justify-between mt-5">
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={House}
+            customIcon={IconHome}
             customText={apartment.type}
             iconColor={colors.gray300}
           />
@@ -196,7 +185,7 @@ export default function CurrentApartmentDetails() {
         {apartment.lease_duration && (
           <View className="w-1/2 mb-5">
             <PerkItem
-              customIcon={Calendar}
+              customIcon={IconCalendar}
               customText={apartment.lease_duration}
               iconColor={colors.gray300}
             />
@@ -205,7 +194,7 @@ export default function CurrentApartmentDetails() {
 
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={BedDouble}
+            customIcon={IconBed}
             customText={`${apartment.no_bedrooms} Bedrooms`}
             iconColor={colors.gray300}
           />
@@ -213,7 +202,7 @@ export default function CurrentApartmentDetails() {
 
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Bath}
+            customIcon={IconBath}
             customText={`${apartment.no_bathrooms} Bathrooms`}
             iconColor={colors.gray300}
           />
@@ -222,7 +211,7 @@ export default function CurrentApartmentDetails() {
         {apartment.furnished_type && (
           <View className="w-1/2 mb-5">
             <PerkItem
-              customIcon={Armchair}
+              customIcon={IconArmchair}
               customText={apartment.furnished_type}
               iconColor={colors.gray300}
             />
@@ -232,7 +221,7 @@ export default function CurrentApartmentDetails() {
         {apartment.floor_level && (
           <View className="w-1/2 mb-5">
             <PerkItem
-              customIcon={Building}
+              customIcon={IconBuilding}
               customText={apartment.floor_level}
               iconColor={colors.gray300}
             />
@@ -242,7 +231,7 @@ export default function CurrentApartmentDetails() {
         {apartment.max_occupants && (
           <View className="w-1/2 mb-5">
             <PerkItem
-              customIcon={Users}
+              customIcon={IconUsers}
               customText={`Max ${apartment.max_occupants} Occupants`}
               iconColor={colors.gray300}
             />
@@ -251,7 +240,7 @@ export default function CurrentApartmentDetails() {
 
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Maximize}
+            customIcon={IconMaximize}
             customText={`${apartment.area_sqm} sqm`}
             iconColor={colors.gray300}
           />
@@ -285,7 +274,7 @@ export default function CurrentApartmentDetails() {
           onPress={handleViewLeaseAgreement}
           isDisabled={!tenancy?.apartment?.lease_agreement_url || leaseLoading}
         >
-          <FileText size={20} color={colors.textPrimary} />
+          <IconFileText size={20} color={colors.textPrimary} />
           <Button.Label>View Lease Agreement</Button.Label>
         </Button>
       </View>

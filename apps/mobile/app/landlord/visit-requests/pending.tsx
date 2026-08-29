@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ListFilter } from "lucide-react-native";
+import { IconFilter } from '@tabler/icons-react-native';
 import { Button, SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
@@ -151,7 +151,7 @@ export default function PendingVisitRequests() {
                   variant="tertiary"
                   isIconOnly
                 >
-                  <ListFilter size={18} color={colors.textPrimary} />
+                  <IconFilter size={18} color={colors.textPrimary} />
                 </Button>
 
                 {activeCount > 0 && (

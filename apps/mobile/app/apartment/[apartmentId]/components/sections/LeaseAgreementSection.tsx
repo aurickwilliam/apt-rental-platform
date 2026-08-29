@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { View, Text, Alert, Linking } from 'react-native';
 
-import { FileText } from 'lucide-react-native';
+import { IconFileText } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
@@ -55,7 +55,7 @@ export default function LeaseAgreementSection({
   return (
     <View className='mt-10 px-5 flex gap-2'>
       <View className='flex-row items-center gap-2'>
-        <FileText size={26} color={colors.textPrimary} />
+        <IconFileText size={26} color={colors.textPrimary} />
         <Text className='font-nunitoSemiBold text-lg text-foreground'>
           Lease Agreement & Rules
         </Text>

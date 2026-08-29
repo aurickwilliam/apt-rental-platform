@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 
-import { Bell, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { IconBell, IconChevronLeft, IconChevronRight } from '@tabler/icons-react-native';
 
 import { Separator } from 'heroui-native';
 
@@ -52,9 +52,9 @@ export default function VisitRequestCalendar({
         }}
         renderArrow={(direction) =>
           direction === "left" ? (
-            <ChevronLeft size={20} color={colors.gray500} />
+            <IconChevronLeft size={20} color={colors.gray500} />
           ) : (
-            <ChevronRight size={20} color={colors.gray500} />
+            <IconChevronRight size={20} color={colors.gray500} />
           )
         }
         dayComponent={({ date, state }) => {
@@ -120,7 +120,7 @@ export default function VisitRequestCalendar({
       >
         <View className="flex-row items-center gap-3">
           <View className="bg-primary-light rounded-full p-1">
-            <Bell size={18} color={colors.primary} />
+            <IconBell size={18} color={colors.primary} />
           </View>
           <Text className="text-foreground text-sm font-nunitoSemiBold">
             Pending Visit Requests
@@ -135,7 +135,7 @@ export default function VisitRequestCalendar({
               </Text>
             </View>
           )}
-          <ChevronRight size={18} color={colors.gray500} />
+          <IconChevronRight size={18} color={colors.gray500} />
         </View>
       </Pressable>
     </View>

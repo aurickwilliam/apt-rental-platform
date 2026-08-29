@@ -9,7 +9,7 @@ import {
   setAccessToken,
 } from '@maplibre/maplibre-react-native';
 
-import { Map } from 'lucide-react-native';
+import { IconMap } from '@tabler/icons-react-native';
 
 import { Dialog, Button } from "heroui-native"
 
@@ -131,7 +131,7 @@ export default function MapPreviewSection({
   return (
     <>
       <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <Map size={26} color={colors.textPrimary} />
+        <IconMap size={26} color={colors.textPrimary} />
         <Text className='font-nunitoSemiBold text-lg text-foreground'>
           View on Map
         </Text>

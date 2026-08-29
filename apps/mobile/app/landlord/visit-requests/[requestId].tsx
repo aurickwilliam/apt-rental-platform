@@ -13,7 +13,7 @@ import RejectDialog from "@/components/display/RejectDialog";
 import RescheduleSheet from "./components/RescheduleSheet";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
 
-import { Image as ImageIcon } from "lucide-react-native";
+import { IconPhoto as ImageIcon } from '@tabler/icons-react-native';
 
 import {
   formatAddress,
