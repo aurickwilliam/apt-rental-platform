@@ -1,14 +1,10 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { IconX } from '@tabler/icons-react-native';
-
-import { Button } from "heroui-native"
+import { Button, Dialog, Separator } from "heroui-native"
 
 import { formatPesoDisplay } from '@repo/utils';
-
-import { useColors } from 'hooks/useTheme';
 
 type MoveInCostFooterProps = {
   monthlyRent: number;
@@ -23,8 +19,6 @@ export default function MoveInCostFooterSection({
   advanceRent,
   onApplyNow,
 }: MoveInCostFooterProps) {
-  const { colors } = useColors();
-
   const [isMoveInCostModalVisible, setIsMoveInCostModalVisible] =
     useState(false);
 
@@ -71,83 +65,67 @@ export default function MoveInCostFooterSection({
         </SafeAreaView>
       </View>
 
-      <Modal
-        visible={isMoveInCostModalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setIsMoveInCostModalVisible(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          className='flex-1 bg-backdrop justify-center px-6'
-          onPress={() => setIsMoveInCostModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            className='bg-surface-secondary rounded-2xl p-5 relative'
-            onPress={(event) => event.stopPropagation()}
-          >
-            <TouchableOpacity
-              activeOpacity={0.7}
-              className='absolute top-4 right-4 z-10 bg-surface-tertiary p-1.5 rounded-full'
-              onPress={() => setIsMoveInCostModalVisible(false)}
-            >
-              <IconX size={20} color={colors.textPrimary} />
-            </TouchableOpacity>
+      <Dialog isOpen={isMoveInCostModalVisible} onOpenChange={setIsMoveInCostModalVisible}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
+          <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
+            <Dialog.Close variant="ghost" className="absolute top-4 right-4 z-50" />
 
-            <Text className='text-foreground font-nunitoBold text-xl pr-8'>
-              Move-in Cost Breakdown
-            </Text>
-            <Text className='text-muted font-inter mt-1 mb-5'>
-              Estimated initial payment required to move in.
-            </Text>
+            <View className="mb-5 gap-1">
+              <Dialog.Title className="text-foreground font-nunitoBold text-lg">
+                Move-in Cost Breakdown
+              </Dialog.Title>
+              <Dialog.Description className="text-muted">
+                Estimated initial payment required to move in.
+              </Dialog.Description>
+            </View>
 
-            <View className='gap-3 bg-surface-secondary rounded-xl'>
-              <View className='flex-row justify-between items-center'>
-                <Text className='text-muted font-inter text-base'>
+            <View className="gap-3">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted font-inter text-base">
                   Monthly Rent
                 </Text>
-                <Text className='text-foreground font-nunitoSemiBold text-base'>
+                <Text className="text-foreground font-nunitoSemiBold text-base">
                   {formatPesoDisplay(monthlyRent)}
                 </Text>
               </View>
 
-              <View className='flex-row justify-between items-center'>
-                <Text className='text-muted font-inter text-base'>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted font-inter text-base">
                   Security Deposit
                 </Text>
-                <Text className='text-foreground font-nunitoSemiBold text-base'>
+                <Text className="text-foreground font-nunitoSemiBold text-base">
                   {securityDeposit != null
                     ? `${formatPesoDisplay(securityDeposit)}`
                     : 'None'}
                 </Text>
               </View>
 
-              <View className='flex-row justify-between items-center'>
-                <Text className='text-muted font-inter text-base'>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted font-inter text-base">
                   Advance Rent
                 </Text>
-                <Text className='text-foreground font-nunitoSemiBold text-base'>
+                <Text className="text-foreground font-nunitoSemiBold text-base">
                   {advanceRent != null
                     ? `${formatPesoDisplay(advanceRent)}`
                     : 'None'}
                 </Text>
               </View>
 
-              <View className='h-px bg-muted my-1' />
+              <Separator className="my-1" />
 
-              <View className='flex-row justify-between items-center'>
-                <Text className='text-foreground font-nunitoSemiBold text-lg'>
-                  Total Move-in
+              <View className="flex-row justify-between items-center">
+                <Text className="text-foreground font-nunitoSemiBold text-lg">
+                  Total Move-in Cost
                 </Text>
-                <Text className='text-accent font-nunitoSemiBold text-lg'>
+                <Text className="text-accent font-nunitoSemiBold text-lg">
                   {formatPesoDisplay(totalMoveIn)}
                 </Text>
               </View>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </>
   );
 }

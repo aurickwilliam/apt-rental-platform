@@ -520,8 +520,8 @@
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/components/sections/ApartmentHeroSection.tsx": {
-    "mtime": 1787986650.9840093,
-    "ast_hash": "7e6356c301074ce0e17b0ff719bc7ea6",
+    "mtime": 1787987144.9545262,
+    "ast_hash": "8241b2f81bfaa7e650e9388f79b550dc",
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/components/sections/LandlordSection.tsx": {
@@ -540,8 +540,8 @@
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/components/sections/MoveInCostFooterSection.tsx": {
-    "mtime": 1787986582.094011,
-    "ast_hash": "392fff8f17b471c763ffbb107c806418",
+    "mtime": 1787988535.8851027,
+    "ast_hash": "8976c3c6f3b59ee2f7161e07ea24e079",
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/components/sections/PerksSection.tsx": {
