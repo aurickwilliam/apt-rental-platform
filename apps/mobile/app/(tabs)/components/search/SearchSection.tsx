@@ -93,7 +93,33 @@ export function SearchSectionSkeleton() {
       </View>
       <View className="flex-row gap-3 px-5">
         {[0, 1, 2].map((i) => (
-          <View key={i} style={{ width: CARD_WIDTH }} className="h-60 bg-surface-tertiary rounded-2xl" />
+          <View key={i} style={{ width: CARD_WIDTH }} className="h-60 bg-surface-tertiary rounded-2xl opacity-60" />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function SearchGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <View className="flex-1 gap-4 px-4 pt-2">
+      <View className="flex-row flex-wrap gap-2">
+        {Array.from({ length: count }).map((_, i) => (
+          <View
+            key={i}
+            className="bg-surface rounded-2xl overflow-hidden border border-border"
+            style={{ width: "48.5%" as any }}
+          >
+            <View className="aspect-square bg-surface-tertiary opacity-60" />
+            <View className="p-2 gap-2">
+              <View className="h-4 w-3/4 bg-surface-tertiary rounded-lg opacity-60" />
+              <View className="h-3 w-1/2 bg-surface-tertiary rounded-lg opacity-60" />
+              <View className="flex-row justify-between items-center mt-1">
+                <View className="h-4 w-16 bg-surface-tertiary rounded-lg opacity-60" />
+                <View className="h-3 w-10 bg-surface-tertiary rounded-lg opacity-60" />
+              </View>
+            </View>
+          </View>
         ))}
       </View>
     </View>

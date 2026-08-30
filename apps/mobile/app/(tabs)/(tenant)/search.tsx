@@ -18,9 +18,9 @@ import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 export default function Search() {
   const router = useRouter();
   const { toast } = useToast();
-  const { preferences, hasPrefs, personalizedCity } = useUserPreferences();
+  const { preferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
 
-  const initialCity = hasPrefs ? personalizedCity : "CAMANAVA";
+  const initialCity = "CAMANAVA";
 
   const {
     apartments,
@@ -57,6 +57,7 @@ export default function Search() {
   const showNetflix = isDefaultBrowse;
 
   const preferencesForSections = isDefaultBrowse && hasPrefs ? preferences : null;
+  const isGateLoading = prefsLoading && !preferences && isDefaultBrowse;
 
   const {
     sections,
@@ -110,7 +111,7 @@ export default function Search() {
     }
   };
 
-  const isInitialLoading = showNetflix ? sectionsLoading : loading;
+  const isInitialLoading = isGateLoading || (showNetflix ? sectionsLoading : loading);
 
   return (
     <ScreenWrapper noBottomPadding>
@@ -137,8 +138,10 @@ export default function Search() {
             ? resultCount
             : undefined
         }
-        loading={loading}
+        loading={loading || isGateLoading}
         onClearFilters={handleClearFilters}
+        selectedCity={selectedCity}
+        committedSearch={committedSearch}
       />
 
       {showNetflix ? (
@@ -152,6 +155,7 @@ export default function Search() {
           isFavorite={isFavorite}
           onToggleFavorite={handleFavoritePress}
           onPressApartment={handleApartmentPress}
+          cityLabel={selectedCity}
         />
       ) : (
         <ApartmentsList

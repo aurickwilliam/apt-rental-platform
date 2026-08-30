@@ -1,4 +1,4 @@
-import { View, FlatList, RefreshControl } from "react-native";
+import { View, Text, FlatList, RefreshControl } from "react-native";
 import { Button, Spinner } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
 import EmptyState from "components/display/EmptyState";
@@ -17,6 +17,7 @@ type Props = {
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void | Promise<void>;
   onPressApartment: (id: string) => void;
+  cityLabel?: string;
 };
 
 export default function SearchSectionsList({
@@ -29,15 +30,23 @@ export default function SearchSectionsList({
   isFavorite,
   onToggleFavorite,
   onPressApartment,
+  cityLabel = "CAMANAVA",
 }: Props) {
   const { colors } = useColors();
 
   if (isLoading) {
     return (
-      <View className="flex-1 gap-6 py-4">
-        {[0, 1, 2].map((i) => (
-          <SearchSectionSkeleton key={i} />
-        ))}
+      <View className="flex-1">
+        <View className="items-center gap-3 py-6 px-5">
+          <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading" />
+          <Text className="text-foreground text-xl font-nunitoBold text-center">Finding homes...</Text>
+          <Text className="text-gray-400 text-base font-inter text-center px-8">Finding homes in {cityLabel}...</Text>
+        </View>
+        <View className="gap-6 py-4">
+          {[0, 1, 2].map((i) => (
+            <SearchSectionSkeleton key={i} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -106,17 +115,19 @@ export default function SearchSectionsList({
       keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl
-          refreshing={isFetching && !isLoading}
+          // Native indicator is fully suppressed — the HeroUI Spinner in
+          // ListHeaderComponent below is the only visible loading indicator.
+          refreshing={false}
           onRefresh={onRefresh}
-          colors={["transparent"]}
+          colors={['transparent']}
           tintColor="transparent"
           progressBackgroundColor="transparent"
         />
       }
       ListHeaderComponent={
         isFetching && !isLoading ? (
-          <View className="items-center py-3">
-            <Spinner size="lg" color={colors.primary} />
+          <View className="items-center py-4 justify-center">
+            <Spinner size="lg" color={colors.primary} accessibilityLabel="Refreshing" />
           </View>
         ) : null
       }

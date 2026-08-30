@@ -1,8 +1,9 @@
-import { View, FlatList, RefreshControl } from "react-native";
+import { View, Text, FlatList, RefreshControl } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Spinner } from "heroui-native";
 import { IconSearchOff } from "@tabler/icons-react-native";
+import { SearchGridSkeleton } from "@/app/(tabs)/components/search/SearchSection";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard from "components/cards/ApartmentCard";
@@ -10,31 +11,11 @@ import EmptyState from "components/display/EmptyState";
 import { supabase } from "@repo/supabase";
 import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
+import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
+import { transformApartments, scorePreferences } from "@/app/(tabs)/components/search/useSearchSections";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 
-function transformApartments(data: any[]) {
-  return data.map((apt: any) => {
-    const images = apt.apartment_images ?? [];
-    const cover = images.find((img: any) => img.is_cover);
-    const earliest = [...images].sort(
-      (a: any, b: any) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
-    )[0];
-    const thumbnailUrl = (cover?.url_thumb || cover?.url) ?? (earliest?.url_thumb || earliest?.url) ?? undefined;
-    return {
-      id: apt.id,
-      thumbnail: thumbnailUrl ? { uri: thumbnailUrl } : undefined,
-      name: apt.name,
-      location: `${apt.barangay}, ${apt.city}`,
-      ratings: apt.average_rating?.toFixed(1) ?? "0.0",
-      monthlyRent: apt.monthly_rent ?? 0,
-      noBedroom: apt.no_bedrooms ?? 0,
-      noBathroom: apt.no_bathrooms ?? 0,
-      areaSqm: apt.area_sqm ?? 0,
-      isVerified: apt.is_verified,
-      isGrid: true,
-    };
-  });
-}
+
 
 export default function SectionDetail() {
   const { sectionId, title, city, search } = useLocalSearchParams<{
@@ -49,11 +30,13 @@ export default function SectionDetail() {
 
   const selectedCity = (city as string) ?? "CAMANAVA";
   const searchQuery = (search as string) ?? "";
+  const { preferences } = useUserPreferences();
 
   const query = useQuery({
-    queryKey: ["searchSectionDetail", sectionId, selectedCity, searchQuery],
+    queryKey: ["searchSectionDetail", sectionId, selectedCity, searchQuery, preferences ? JSON.stringify(preferences) : null],
     queryFn: async ({ signal }) => {
-      // Reuse batch RPC and pick section
+      // For personalized sections (for_you, in_city), compute scored pool from same RPC; they don't exist server-side
+      const isPersonalizedSection = sectionId === "for_you" || sectionId === "in_city";
       const { data, error } = await supabase
         .rpc("get_search_sections", {
           p_city: selectedCity,
@@ -64,6 +47,34 @@ export default function SectionDetail() {
         .abortSignal(signal as any);
       if (error) throw error;
       const sections = (data as any)?.sections ?? [];
+      if (isPersonalizedSection) {
+        // Pool all raw apartments from all sections, score by preferences if available
+        const seen = new Set<string>();
+        const pool: any[] = [];
+        for (const s of sections) {
+          for (const raw of s.apartments ?? []) {
+            if (!seen.has(raw.id)) {
+              seen.add(raw.id);
+              pool.push(raw);
+            }
+          }
+        }
+        if (preferences) {
+          const scored = pool
+            .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
+            .filter((s: any) => s.score > 0)
+            .sort((a: any, b: any) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
+          let rawList = scored.map((s: any) => s.raw);
+          if (sectionId === "in_city") {
+            rawList = rawList.filter((r: any) => r.city === selectedCity);
+          }
+          return transformApartments(rawList);
+        }
+        // No preferences: For you fallback to top rated pool
+        let rawList = pool;
+        if (sectionId === "in_city") rawList = rawList.filter((r: any) => r.city === selectedCity);
+        return transformApartments(rawList);
+      }
       const section = sections.find((s: any) => s.id === sectionId);
       return transformApartments(section?.apartments ?? []);
     },
@@ -75,8 +86,13 @@ export default function SectionDetail() {
   if (query.isLoading) {
     return (
       <ScreenWrapper header={<StandardHeader title={(title as string) ?? "See All"} />} className="p-5">
-        <View className="flex-1 items-center justify-center">
-          <Spinner size="lg" color={colors.primary} />
+        <View className="flex-1">
+          <View className="items-center gap-3 py-6 px-5">
+            <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading" />
+            <Text className="text-foreground text-xl font-nunitoBold text-center">Loading listings...</Text>
+            <Text className="text-gray-400 text-base font-inter text-center px-8">Finding homes in {selectedCity}...</Text>
+          </View>
+          <SearchGridSkeleton count={6} />
         </View>
       </ScreenWrapper>
     );
@@ -126,9 +142,9 @@ export default function SectionDetail() {
           <RefreshControl
             refreshing={query.isFetching && !query.isLoading}
             onRefresh={() => query.refetch()}
-            colors={["transparent"]}
-            tintColor="transparent"
-            progressBackgroundColor="transparent"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressBackgroundColor={colors.surface}
           />
         }
       />

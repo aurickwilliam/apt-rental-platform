@@ -1,9 +1,6 @@
 import { View, Text, Pressable } from 'react-native';
-
 import { SearchField, Chip, Button } from 'heroui-native';
-
 import { IconFilter2, IconSearch, IconX } from '@tabler/icons-react-native';
-
 import { useColors } from 'hooks/useTheme';
 
 type SearchFiltersBarProps = {
@@ -16,6 +13,8 @@ type SearchFiltersBarProps = {
   resultCount?: number;
   loading: boolean;
   onClearFilters: () => void;
+  selectedCity?: string;
+  committedSearch?: string;
 };
 
 export default function SearchFiltersBar({
@@ -28,10 +27,11 @@ export default function SearchFiltersBar({
   resultCount,
   loading,
   onClearFilters,
+  selectedCity = "CAMANAVA",
+  committedSearch = "",
 }: SearchFiltersBarProps) {
   const { colors } = useColors();
   const isTyping = searchValue.trim() !== '';
-
   return (
     <View className='px-5'>
       <View className='flex-row items-center gap-2'>
@@ -51,20 +51,19 @@ export default function SearchFiltersBar({
                 blurOnSubmit
                 className='ps-3 pe-20'
               />
-              <SearchField.ClearButton onPress={onClearSearch} className="!end-10" />
+              <SearchField.ClearButton onPress={onClearSearch} className="inset-e-10!" />
               <Pressable
                 onPress={onSubmitSearch}
                 hitSlop={8}
                 accessibilityRole='button'
                 accessibilityLabel='Search'
-                className='absolute end-3 z-10'
+                className='absolute inset-e-3 z-10'
               >
                 <IconSearch size={20} color={colors.gray500} />
               </Pressable>
             </SearchField.Group>
           </SearchField>
         </View>
-
         {!isTyping && (
           <View className='relative'>
             <Button onPress={onFilterPress} variant='tertiary' isIconOnly>
@@ -83,7 +82,6 @@ export default function SearchFiltersBar({
           </View>
         )}
       </View>
-
       <View className='flex-row items-center justify-between mt-2 mb-3'>
         {activeFilterCount > 0 ? (
           <Chip onPress={onClearFilters} variant='soft' color='accent' size='sm'>
@@ -93,13 +91,11 @@ export default function SearchFiltersBar({
         ) : (
           <View />
         )}
-        {resultCount !== undefined && (
+        {!loading && resultCount !== undefined ? (
           <Text className='text-xs text-gray-500 font-inter'>
-            {loading
-              ? 'Searching...'
-              : `${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
+            {`${resultCount} ${resultCount === 1 ? 'apartment' : 'apartments'} found`}
           </Text>
-        )}
+        ) : null}
       </View>
     </View>
   );

@@ -25,7 +25,7 @@ export type SectionId = (typeof SECTION_DEFS)[number]["id"];
 
 const SECTION_LIMIT = 8;
 
-function transformApartments(data: any[]): ApartmentCardProps[] {
+export function transformApartments(data: any[]): ApartmentCardProps[] {
   return data.map((apt) => {
     const images = apt.apartment_images ?? [];
     const cover = images.find((img: any) => img.is_cover);
@@ -76,7 +76,7 @@ function matchesPreferences(raw: any, prefs: TenantPreferences): boolean {
   return true;
 }
 
-function scorePreferences(raw: any, prefs: TenantPreferences): number {
+export function scorePreferences(raw: any, prefs: TenantPreferences): number {
   let score = 0;
   if (prefs.selectedCities.length > 0) {
     if (prefs.selectedCities.includes(raw.city)) score += 3;

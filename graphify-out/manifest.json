@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
-    "mtime": 1788075431.0802557,
-    "ast_hash": "1e6048e6a9f017e10c4170f0f502467d",
+    "mtime": 1788080155.4782345,
+    "ast_hash": "8e40c4d7097c7ae234aab4677ac940c7",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/_layout.tsx": {
@@ -355,8 +355,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchLogic.tsx": {
-    "mtime": 1787991938.0349772,
-    "ast_hash": "372e03e7f3ba8a1806c67cca0312de84",
+    "mtime": 1788080202.3502984,
+    "ast_hash": "80eb2e14ad4c53085823d5789edd0e81",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/units/EmptyProperties.tsx": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
-    "mtime": 1787060341.8881402,
-    "ast_hash": "173d6ca826173cad5da1c7c67b85a401",
+    "mtime": 1788078391.537522,
+    "ast_hash": "07a1dfccdece00c57f49e0ccfc83318e",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/about.tsx": {
@@ -950,8 +950,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/index.tsx": {
-    "mtime": 1787986763.5168242,
-    "ast_hash": "d0c9fe57c67a49cac9bbdf1ffc13bf6b",
+    "mtime": 1788078409.6257076,
+    "ast_hash": "a2d38714293a0dcd4dc6efc9d70472b5",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/language-region.tsx": {
@@ -3785,8 +3785,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/currentUserService.ts": {
-    "mtime": 1787060342.307621,
-    "ast_hash": "8058f2f915ffec5ddd9b05350e1ffdd6",
+    "mtime": 1788078185.0573618,
+    "ast_hash": "85d4face7b018553b707b76f309a74cb",
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/chatPagination.ts": {
@@ -4220,8 +4220,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSections.ts": {
-    "mtime": 1787991583.803978,
-    "ast_hash": "78a25381344b810942f486e6a669a113",
+    "mtime": 1788083048.997589,
+    "ast_hash": "76b12000159f9a2f5d631cb6524724ab",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
@@ -4232,6 +4232,16 @@
   "docs/plans/2026-08-28-search-netflix-a2.md": {
     "mtime": 1787984376.4773264,
     "ast_hash": "15fe2227adf543749119d21952877d1b",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/preferences.tsx": {
+    "mtime": 1788078472.2009892,
+    "ast_hash": "77c000324bf7b7856bdacb7c861f9bfb",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/preferences/useUserPreferences.ts": {
+    "mtime": 1788080029.1253762,
+    "ast_hash": "6cde5603817cf9ea99094e83485c0066",
     "semantic_hash": ""
   }
 }

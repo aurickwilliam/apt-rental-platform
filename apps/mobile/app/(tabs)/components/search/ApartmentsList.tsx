@@ -1,10 +1,12 @@
 import {
   View,
+  Text,
   FlatList,
   RefreshControl,
 } from 'react-native';
 
 import { Button, Spinner } from 'heroui-native';
+import { SearchGridSkeleton } from './SearchSection';
 
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 import EmptyState from 'components/display/EmptyState';
@@ -12,7 +14,10 @@ import EmptyState from 'components/display/EmptyState';
 import { IconSearchOff, IconAlertCircle } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  FLOATING_TAB_BAR_BOTTOM_OFFSET
+} from '@/app/(tabs)/components/CustomTabBar';
 
 type ApartmentsListProps = {
   apartments: ApartmentCardProps[];
@@ -126,16 +131,26 @@ export default function ApartmentsList({
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
-      <View className='py-4 items-center'>
+      <View className='py-4 items-center flex-row justify-center gap-2'>
         <Spinner size='sm' color={colors.primary} />
+        <Text className='text-sm font-inter text-muted'>Loading more...</Text>
       </View>
     );
   };
 
   if (loading && !refreshing) {
+    const cityLabel = selectedCity === "CAMANAVA" ? "CAMANAVA" : selectedCity;
+    const queryLabel = committedSearch.trim() ? ` for “${committedSearch.trim().slice(0, 24)}”` : "";
     return (
-      <View className='flex-1 items-center justify-center'>
-        <Spinner size='lg' color={colors.primary} />
+      <View className='flex-1'>
+        <View className='items-center gap-3 py-6 px-5'>
+          <Spinner size='lg' color={colors.primary} accessibilityLabel="Searching" />
+          <Text className='text-foreground text-xl font-nunitoBold text-center'>Searching for homes...</Text>
+          <Text className='text-gray-400 text-base font-inter text-center px-8'>
+            {queryLabel ? `Searching${queryLabel} in ${cityLabel}` : `Finding homes in ${cityLabel}...`}
+          </Text>
+        </View>
+        <SearchGridSkeleton count={6} />
       </View>
     );
   }
@@ -159,8 +174,8 @@ export default function ApartmentsList({
       ListFooterComponent={renderFooter}
       ListHeaderComponent={
         refreshing ? (
-          <View className="items-center py-3">
-            <Spinner size="lg" color={colors.primary} />
+          <View className="items-center py-4 justify-center">
+            <Spinner size='lg' color={colors.primary} />
           </View>
         ) : null
       }
@@ -168,9 +183,11 @@ export default function ApartmentsList({
       onEndReachedThreshold={0.4}
       refreshControl={
         <RefreshControl
-          refreshing={refreshing}
+          // Keep the native indicator permanently hidden so only the
+          // HeroUI Spinner (rendered in ListHeaderComponent) is shown.
+          refreshing={false}
           onRefresh={onRefresh}
-          colors={["transparent"]}
+          colors={['transparent']}
           tintColor="transparent"
           progressBackgroundColor="transparent"
         />
