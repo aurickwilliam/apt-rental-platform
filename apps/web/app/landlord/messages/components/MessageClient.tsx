@@ -110,7 +110,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
   const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
   return (
-    <div className="flex h-svh min-h-0 overflow-hidden bg-white">
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
       <ContactSidebar
         contacts={contacts}
         activeTab={activeTab}

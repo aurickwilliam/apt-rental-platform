@@ -90,7 +90,6 @@ export async function completeProfile(
       first_name: firstName,
       last_name: lastName,
       middle_name: middleName || null,
-      age,
       gender,
       mobile_number: mobileNumber,
       birth_date: birthDate,

@@ -16,10 +16,13 @@ import {
 import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
-import Footer from "@/app/components/layout/Footer";
 
 import { DEFAULT_PAYMENT_BREAKDOWN, MAINTENANCE_ITEMS } from "./constants";
-import type { MaintenanceStatus, PaymentStatus, PaymentHistoryItem } from "./types";
+import type {
+  MaintenanceStatus,
+  PaymentStatus,
+  PaymentHistoryItem,
+} from "./types";
 
 import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
@@ -43,8 +46,10 @@ function statusBadge(status: PaymentStatus) {
 }
 
 function maintenanceBadge(status: MaintenanceStatus) {
-  if (status === "in_progress") return <StatusChip variant="warning">In progress</StatusChip>;
-  if (status === "resolved") return <StatusChip variant="success">Done</StatusChip>;
+  if (status === "in_progress")
+    return <StatusChip variant="warning">In progress</StatusChip>;
+  if (status === "resolved")
+    return <StatusChip variant="success">Done</StatusChip>;
   return <StatusChip variant="neutral">Pending</StatusChip>;
 }
 
@@ -116,7 +121,6 @@ export default function MyRental() {
         <div className="max-w-6xl mx-auto px-4 py-20 flex justify-center">
           <Spinner color="accent" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -124,12 +128,14 @@ export default function MyRental() {
   if (!tenancy) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
-        <div className="flex-1 flex flex-col justify-start" style={{ minHeight: "calc(100dvh - 4rem)" }}>
+        <div
+          className="flex-1 flex flex-col justify-start"
+          style={{ minHeight: "calc(100dvh - 4rem)" }}
+        >
           <div className="max-w-7xl mx-auto w-full px-4 py-8">
             <ApplicationsList />
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -139,15 +145,18 @@ export default function MyRental() {
   const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
   const paymentStatus = normalizePaymentStatus(currentPayment?.status);
 
-  const dueDate = currentPayment?.due_date ? new Date(currentPayment.due_date) : null;
+  const dueDate = currentPayment?.due_date
+    ? new Date(currentPayment.due_date)
+    : null;
   const dueDays = dueDate
     ? Math.ceil((dueDate.getTime() - today.getTime()) / MS_PER_DAY)
     : null;
-  const dueLabel = dueDays === null
-    ? "Due soon"
-    : dueDays < 0
-      ? `Overdue by ${Math.abs(dueDays)} days`
-      : `Due in ${dueDays} days`;
+  const dueLabel =
+    dueDays === null
+      ? "Due soon"
+      : dueDays < 0
+        ? `Overdue by ${Math.abs(dueDays)} days`
+        : `Due in ${dueDays} days`;
 
   const paymentPeriodLabel = currentPayment?.period_start
     ? formatMonthYear(currentPayment.period_start)
@@ -157,11 +166,18 @@ export default function MyRental() {
     ? [{ key: "base_rent", label: "Monthly rent", amount: monthlyRent }]
     : DEFAULT_PAYMENT_BREAKDOWN;
 
-  const breakdownTotal = breakdown.reduce((total, item) => total + item.amount, 0);
+  const breakdownTotal = breakdown.reduce(
+    (total, item) => total + item.amount,
+    0,
+  );
   const amountDue = currentPayment?.amount ?? breakdownTotal;
 
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
-    const paymentDate = payment.date ?? payment.period_start ?? payment.period_end ?? today.toISOString();
+    const paymentDate =
+      payment.date ??
+      payment.period_start ??
+      payment.period_end ??
+      today.toISOString();
     const description = payment.period_start
       ? `${formatMonthYear(payment.period_start)} - Monthly rent`
       : "Monthly rent";
@@ -196,18 +212,21 @@ export default function MyRental() {
   ];
 
   const landlordName = landlord
-    ? `${landlord.first_name ?? ""} ${landlord.last_name ?? ""}`.trim() || "Landlord"
+    ? `${landlord.first_name ?? ""} ${landlord.last_name ?? ""}`.trim() ||
+      "Landlord"
     : "Landlord";
 
   const openMaintenanceCount = MAINTENANCE_ITEMS.filter(
-    (item) => item.status !== "resolved"
+    (item) => item.status !== "resolved",
   ).length;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
         <div className="flex flex-col gap-3">
-          <p className="text-xs text-zinc-400 uppercase tracking-wider">{headerDate}</p>
+          <p className="text-xs text-zinc-400 uppercase tracking-wider">
+            {headerDate}
+          </p>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
@@ -224,7 +243,9 @@ export default function MyRental() {
         <div className="grid gap-3 lg:grid-cols-3">
           <DashboardCard className="lg:col-span-2">
             <div className="flex h-full flex-col">
-              <p className="text-xs text-zinc-400 uppercase tracking-wider">Payment due</p>
+              <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                Payment due
+              </p>
               <div className="flex items-end gap-2 mt-2">
                 <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
                   {formatPesoDisplay(amountDue)}
@@ -235,7 +256,9 @@ export default function MyRental() {
                 {paymentStatus === "paid" ? (
                   <StatusChip variant="success">Paid</StatusChip>
                 ) : (
-                  <StatusChip variant={paymentStatus === "late" ? "danger" : "warning"}>
+                  <StatusChip
+                    variant={paymentStatus === "late" ? "danger" : "warning"}
+                  >
                     {dueLabel}
                   </StatusChip>
                 )}
@@ -252,7 +275,9 @@ export default function MyRental() {
                 <div>
                   <p className="text-xs text-zinc-400">Lease end</p>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {tenancy.lease_end ? formatShortDate(tenancy.lease_end) : "Ongoing"}
+                    {tenancy.lease_end
+                      ? formatShortDate(tenancy.lease_end)
+                      : "Ongoing"}
                   </p>
                 </div>
                 <div>
@@ -282,20 +307,28 @@ export default function MyRental() {
 
         <div className="grid gap-3 lg:grid-cols-[2fr_1fr] items-stretch">
           <DashboardCard>
-            <p className="text-xs text-zinc-400 uppercase tracking-wider">Quick actions</p>
+            <p className="text-xs text-zinc-400 uppercase tracking-wider">
+              Quick actions
+            </p>
             <div className="mt-4 grid gap-2.5 grid-cols-2 sm:grid-cols-4">
               {actions.map((action) => {
                 const Icon = action.icon;
 
                 if (action.href) {
                   return (
-                    <Link key={action.label} href={action.href} className="w-full no-underline">
+                    <Link
+                      key={action.label}
+                      href={action.href}
+                      className="w-full no-underline"
+                    >
                       <Button
                         variant="tertiary"
                         className="h-20 w-full flex-col gap-2 bg-zinc-100/80 dark:bg-zinc-900/70 border border-zinc-200/70 dark:border-zinc-800/80"
                       >
                         <Icon size={18} />
-                        <span className="text-xs font-medium">{action.label}</span>
+                        <span className="text-xs font-medium">
+                          {action.label}
+                        </span>
                       </Button>
                     </Link>
                   );
@@ -317,7 +350,9 @@ export default function MyRental() {
           </DashboardCard>
 
           <DashboardCard className="h-full">
-            <p className="text-xs text-zinc-400 uppercase tracking-wider">Landlord</p>
+            <p className="text-xs text-zinc-400 uppercase tracking-wider">
+              Landlord
+            </p>
             <div className="mt-4 flex items-center gap-3">
               <Avatar size="lg">
                 {landlord?.avatar_url && (
@@ -350,7 +385,9 @@ export default function MyRental() {
             <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               Maintenance
             </h2>
-            <StatusChip variant="warning">{openMaintenanceCount} open</StatusChip>
+            <StatusChip variant="warning">
+              {openMaintenanceCount} open
+            </StatusChip>
           </div>
           <div className="space-y-0">
             {MAINTENANCE_ITEMS.map((item) => (
@@ -358,13 +395,15 @@ export default function MyRental() {
                 key={item.id}
                 className="flex items-start gap-2.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0"
               >
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                  item.status === "in_progress"
-                    ? "bg-amber-100/70 dark:bg-amber-900/40"
-                    : item.status === "resolved"
-                      ? "bg-green-100/70 dark:bg-green-900/40"
-                      : "bg-zinc-100 dark:bg-zinc-800"
-                }`}>
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    item.status === "in_progress"
+                      ? "bg-amber-100/70 dark:bg-amber-900/40"
+                      : item.status === "resolved"
+                        ? "bg-green-100/70 dark:bg-green-900/40"
+                        : "bg-zinc-100 dark:bg-zinc-800"
+                  }`}
+                >
                   {item.status === "resolved" ? (
                     <CheckCircle2 size={12} className="text-green-600" />
                   ) : item.status === "in_progress" ? (
@@ -377,7 +416,9 @@ export default function MyRental() {
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 leading-tight">
                     {item.title}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{item.subtitle}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {item.subtitle}
+                  </p>
                 </div>
                 {maintenanceBadge(item.status)}
               </div>
@@ -390,27 +431,47 @@ export default function MyRental() {
             <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               Payment history
             </h2>
-            <p className="text-xs text-zinc-400">Last updated {formatShortMonthDate(today)}</p>
+            <p className="text-xs text-zinc-400">
+              Last updated {formatShortMonthDate(today)}
+            </p>
           </div>
           <Table className="bg-darker-white">
             <Table.ScrollContainer>
-              <Table.Content aria-label="Payment history" className="bg-darker-white">
+              <Table.Content
+                aria-label="Payment history"
+                className="bg-darker-white"
+              >
                 <Table.Header className="bg-darker-white text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
-                  <Table.Column className="text-black font-medium">Date</Table.Column>
-                  <Table.Column className="text-black font-medium">Description</Table.Column>
-                  <Table.Column className="text-right text-black font-medium">Amount</Table.Column>
-                  <Table.Column className="text-right text-black font-medium">Status</Table.Column>
+                  <Table.Column isRowHeader className="text-black font-medium">
+                    Date
+                  </Table.Column>
+                  <Table.Column className="text-black font-medium">
+                    Description
+                  </Table.Column>
+                  <Table.Column className="text-right text-black font-medium">
+                    Amount
+                  </Table.Column>
+                  <Table.Column className="text-right text-black font-medium">
+                    Status
+                  </Table.Column>
                 </Table.Header>
                 <Table.Body>
                   {paymentHistory.length === 0 ? (
                     <Table.Row key="empty">
-                      <Table.Cell colSpan={4} className="text-center text-sm text-zinc-400 py-6">
+                      <Table.Cell
+                        colSpan={4}
+                        className="text-center text-sm text-zinc-400 py-6"
+                      >
                         No payments recorded yet.
                       </Table.Cell>
                     </Table.Row>
                   ) : (
                     paymentHistory.slice(0, 5).map((row) => (
-                      <Table.Row key={row.id} id={row.id} className="border-b border-zinc-100 dark:border-zinc-800">
+                      <Table.Row
+                        key={row.id}
+                        id={row.id}
+                        className="border-b border-zinc-100 dark:border-zinc-800"
+                      >
                         <Table.Cell className="text-xs text-zinc-500">
                           {row.date}
                         </Table.Cell>
@@ -442,11 +503,11 @@ export default function MyRental() {
           total={amountDue}
           breakdown={breakdown}
           periodLabel={paymentPeriodLabel}
-          dueDateLabel={dueDate ? formatShortDate(dueDate.toISOString()) : "TBD"}
+          dueDateLabel={
+            dueDate ? formatShortDate(dueDate.toISOString()) : "TBD"
+          }
         />
       </div>
-
-      <Footer />
     </div>
   );
 }

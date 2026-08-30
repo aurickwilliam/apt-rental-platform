@@ -29,7 +29,13 @@ export default function AppNavbar() {
   const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
-  const { user, loading } = useUser();
+  const { user, profile, loading } = useUser();
+
+  const getDashboardHref = () => {
+    if (profile?.role === "landlord") return "/landlord/dashboard";
+    if (profile?.role === "admin") return "/admin/dashboard";
+    return "/tenant/my-rental";
+  };
 
    useEffect(() => {                                 
     setMounted(true);
@@ -106,7 +112,7 @@ export default function AppNavbar() {
                   <Dropdown.Menu
                     onAction={(key) => {
                       if (key === "profile")   window.location.href = "/profile";
-                      if (key === "dashboard") window.location.href = "/my-rental";
+                      if (key === "dashboard") window.location.href = getDashboardHref();
                       if (key === "settings")  window.location.href = "/settings";
                       if (key === "logout")    signOut();
                     }}
@@ -170,7 +176,7 @@ export default function AppNavbar() {
           {!loading && user ? (
             <>
               <Link href="/profile"   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
-              <Link href="/my-rental" className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+              <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
               <Link href="/settings"  className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Settings</Link>
               <button
                 onClick={() => { signOut(); setIsMenuOpen(false); }}

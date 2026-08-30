@@ -116,7 +116,7 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     null;
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl min-h-0 overflow-hidden bg-white">
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
       <ContactSidebar
         myLandlord={myLandlordContacts}
         pastInquiries={pastInquiryContacts}

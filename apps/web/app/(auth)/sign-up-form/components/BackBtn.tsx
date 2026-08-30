@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Link } from "@heroui/react";
+import Link from "next/link";
+import { Button } from "@heroui/react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../../components/AuthContext";
 
@@ -8,15 +9,11 @@ export default function BackBtn() {
   const { role } = useAuth();
 
   return (
-    <Button
-      variant="light"
-      startContent={<ArrowLeft />}
-      radius="full"
-      className="font-medium"
-      as={Link}
-      href={`/sign-up?role=${role}`}
-    >
-      Back
-    </Button>
+    <Link href={`/sign-up?role=${role}`}>
+      <Button variant="ghost" className="font-medium rounded-full">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+    </Link>
   );
 }

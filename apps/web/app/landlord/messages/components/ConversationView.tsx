@@ -18,11 +18,11 @@ interface ConversationViewProps {
 
 function TypingIndicator() {
   return (
-    <div className="self-start flex items-center gap-1 bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 w-fit">
+    <div className="self-start flex items-center gap-1 bg-card px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-border w-fit">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+          className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
           style={{ animationDelay: `${i * 0.15}s` }}
         />
       ))}
@@ -222,19 +222,19 @@ export default function ConversationView({
   // Empty State
   if (!activeContact) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16">
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16 bg-card">
         {/* Icon cluster */}
         <div className="relative mb-8">
-          <div className="w-18 h-18 rounded-full bg-primary/20 border border-gray-200 flex items-center justify-center">
+          <div className="w-18 h-18 rounded-full bg-primary/10 border border-border flex items-center justify-center">
             <MessageSquare className="w-7 h-7 text-primary" />
           </div>
         </div>
 
         {/* Copy */}
-        <p className="text-sm font-medium text-gray-900 mb-1.5">
+        <p className="text-sm font-medium text-foreground mb-1.5">
           No conversation selected
         </p>
-        <p className="text-xs text-gray-400 max-w-60 leading-relaxed mb-8">
+        <p className="text-xs text-muted-foreground max-w-60 leading-relaxed mb-8">
           Pick a thread from the sidebar to continue where you left off.
         </p>
       </div>
@@ -242,9 +242,9 @@ export default function ConversationView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-white shadow-sm z-10">
+      <div className="p-4 border-b border-border flex items-center gap-4 bg-card shadow-sm z-10">
         <Avatar size="lg">
           {activeContact.avatar ? (
             <Avatar.Image
@@ -263,10 +263,10 @@ export default function ConversationView({
         </Avatar>
 
         <div>
-          <h2 className="text-lg font-bold text-gray-800 leading-tight">
+          <h2 className="text-lg font-bold text-foreground leading-tight">
             {activeContact.name}
           </h2>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-muted-foreground font-medium">
             {activeContact.apartment}
           </p>
         </div>
@@ -274,7 +274,7 @@ export default function ConversationView({
 
       {/* Chat History */}
       <ScrollShadow 
-        className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4"
+        className="min-h-0 flex-1 overflow-y-auto bg-muted/20 dark:bg-background p-4"
         visibility="none"
       >
         {isLoading ? (
@@ -303,13 +303,13 @@ export default function ConversationView({
                     <div
                       className={`p-3 rounded-2xl shadow-sm ${
                         isMine
-                          ? "bg-blue-600 text-white rounded-tr-none"
-                          : "bg-white text-gray-700 border border-gray-100 rounded-tl-none"
+                          ? "bg-primary text-primary-foreground rounded-tr-none"
+                          : "bg-card text-foreground border border-border rounded-tl-none"
                       }`}
                     >
                       <p className="text-sm">{msg.message}</p>
                     </div>
-                    <span className="text-[10px] mt-1 text-gray-400">
+                    <span className="text-[10px] mt-1 text-muted-foreground">
                       {formatTime(msg.created_at)}
                     </span>
                   </div>

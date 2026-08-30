@@ -57,7 +57,6 @@ export async function signUp(
       first_name: mapped.firstName,
       last_name: mapped.lastName,
       middle_name: mapped.middleName || null,
-      age: calculatedAge,
       gender: mapped.gender,
       mobile_number: mapped.mobileNumber,
       birth_date: mapped.birthDate,
