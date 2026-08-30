@@ -1,10 +1,12 @@
-import { View, Text, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Spinner } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
+import { IconSearchOff } from "@tabler/icons-react-native";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard from "components/cards/ApartmentCard";
+import EmptyState from "components/display/EmptyState";
 import { supabase } from "@repo/supabase";
 import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
@@ -94,6 +96,7 @@ export default function SectionDetail() {
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET,
           gap: 16,
           paddingTop: 16,
+          flexGrow: apartments.length === 0 ? 1 : 0,
         }}
         renderItem={({ item }) => (
           <ApartmentCard
@@ -107,9 +110,17 @@ export default function SectionDetail() {
           />
         )}
         ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-10">
-            <Text className="text-lg text-gray-500 font-nunitoSemiBold">No apartments found</Text>
-          </View>
+          <EmptyState
+            variant="tenant"
+            icon={<IconSearchOff size={64} color={colors.primary} />}
+            title="Nothing here yet"
+            description="This section has no listings."
+            action={
+              <Button onPress={() => router.back()} size="sm" variant="secondary">
+                <Button.Label>Go Back</Button.Label>
+              </Button>
+            }
+          />
         }
         refreshControl={
           <RefreshControl

@@ -78,6 +78,15 @@ export default function Search() {
   const isDefaultBrowse = committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === "CAMANAVA";
   const showNetflix = isDefaultBrowse;
 
+  const handleMapPress = () => {
+    toast.show({ variant: "default", label: "Map search coming soon" });
+  };
+
+  const handleClearAll = () => {
+    clearSearch();
+    handleClearFilters();
+  };
+
   const handleSubmitSearch = () => {
     Keyboard.dismiss();
     commitSearch(searchDraft);
@@ -102,6 +111,8 @@ export default function Search() {
         isGridView={isGridView}
         onToggleView={() => setIsGridView((previous) => !previous)}
         onFavoritesPress={() => router.push("/tenant/favorites")}
+        isNetflixMode={showNetflix}
+        onMapPress={handleMapPress}
       />
 
       <SearchFiltersBar
@@ -145,6 +156,10 @@ export default function Search() {
           error={error}
           onRefresh={() => fetchApartments(true)}
           onLoadMore={loadMore}
+          committedSearch={committedSearch}
+          selectedCity={selectedCity}
+          activeFilterCount={activeFilterCount}
+          onClearAll={handleClearAll}
         />
       )}
 

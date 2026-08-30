@@ -1,5 +1,7 @@
-import { View, FlatList, RefreshControl, Text } from "react-native";
-import { Spinner } from "heroui-native";
+import { View, FlatList, RefreshControl } from "react-native";
+import { Button, Spinner } from "heroui-native";
+import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
+import EmptyState from "components/display/EmptyState";
 import { useColors } from "hooks/useTheme";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 import SearchSection, { SearchSectionSkeleton } from "./SearchSection";
@@ -42,16 +44,36 @@ export default function SearchSectionsList({
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center py-10 px-5">
-        <Text className="text-lg text-gray-500 font-nunitoSemiBold text-center">{error}</Text>
+      <View className="flex-1 px-5">
+        <EmptyState
+          variant="tenant"
+          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          title="Something went wrong"
+          description={error}
+          action={
+            <Button onPress={onRefresh} size="sm">
+              <Button.Label>Try Again</Button.Label>
+            </Button>
+          }
+        />
       </View>
     );
   }
 
   if (!sections.length || sections.every((s) => s.apartments.length === 0)) {
     return (
-      <View className="flex-1 items-center justify-center py-10">
-        <Text className="text-lg text-gray-500 font-nunitoSemiBold">No apartments found</Text>
+      <View className="flex-1 px-5">
+        <EmptyState
+          variant="tenant"
+          icon={<IconSearchOff size={64} color={colors.primary} />}
+          title="No apartments available"
+          description="We couldn't find any listings. Pull to refresh or try another city."
+          action={
+            <Button onPress={onRefresh} size="sm">
+              <Button.Label>Try Again</Button.Label>
+            </Button>
+          }
+        />
       </View>
     );
   }
