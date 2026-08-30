@@ -13,10 +13,15 @@ import SearchHeader from "../components/search/SearchHeader";
 import SearchSectionsList from "../components/search/SearchSectionsList";
 import useSearchLogic from "../components/search/useSearchLogic";
 import { useSearchSections } from "../components/search/useSearchSections";
+import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 
 export default function Search() {
   const router = useRouter();
   const { toast } = useToast();
+  const { preferences, hasPrefs, personalizedCity } = useUserPreferences();
+
+  const initialCity = hasPrefs ? personalizedCity : "CAMANAVA";
+
   const {
     apartments,
     activeFilterCount,
@@ -45,7 +50,13 @@ export default function Search() {
     setIsGridView,
     setSearchDraft,
     setSelectedCity,
-  } = useSearchLogic();
+  } = useSearchLogic({ initialCity });
+
+  const isDefaultBrowse =
+    committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === initialCity;
+  const showNetflix = isDefaultBrowse;
+
+  const preferencesForSections = isDefaultBrowse && hasPrefs ? preferences : null;
 
   const {
     sections,
@@ -58,6 +69,7 @@ export default function Search() {
     selectedCity,
     committedSearch,
     enabled: true,
+    preferences: preferencesForSections,
   });
 
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
@@ -75,9 +87,6 @@ export default function Search() {
     }
   };
 
-  const isDefaultBrowse = committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === "CAMANAVA";
-  const showNetflix = isDefaultBrowse;
-
   const handleMapPress = () => {
     toast.show({ variant: "default", label: "Map search coming soon" });
   };
@@ -85,6 +94,7 @@ export default function Search() {
   const handleClearAll = () => {
     clearSearch();
     handleClearFilters();
+    if (selectedCity !== initialCity) setSelectedCity(initialCity);
   };
 
   const handleSubmitSearch = () => {
@@ -123,7 +133,7 @@ export default function Search() {
         onFilterPress={openFilterSheet}
         activeFilterCount={activeFilterCount}
         resultCount={
-          committedSearch.trim() !== "" || activeFilterCount > 0 || selectedCity !== "CAMANAVA"
+          committedSearch.trim() !== "" || activeFilterCount > 0 || selectedCity !== initialCity
             ? resultCount
             : undefined
         }

@@ -22,10 +22,20 @@ const MAX_BUDGET = 50000;
 const MIN_SIZE = 10;
 const MAX_SIZE = 300;
 
-export default function useSearchLogic() {
+type UseSearchLogicParams = {
+  initialCity?: string;
+};
+
+export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
-  const [selectedCity, setSelectedCity] = useState<string>(CITIES[0]);
+  const [selectedCity, setSelectedCity] = useState<string>(initialCity ?? CITIES[0]);
   const [searchDraft, setSearchDraft] = useState<string>("");
+
+  useEffect(() => {
+    if (initialCity && initialCity !== CITIES[0] && selectedCity === CITIES[0]) {
+      setSelectedCity(initialCity);
+    }
+  }, [initialCity, selectedCity]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);

@@ -7,7 +7,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { ListGroup, Separator, Switch } from 'heroui-native'
 
-import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
@@ -60,6 +60,12 @@ export default function Index() {
     {
       title: 'Preferences',
       items: [
+        {
+          icon: IconAdjustments,
+          title: 'Rental Preferences',
+          onPress: () => router.push('/settings/preferences'),
+          suffix: <IconChevronRight size={16} color={colors.gray500} />,
+        },
         {
           icon: IconGlobe,
           title: 'Language & Region',
