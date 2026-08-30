@@ -49,11 +49,11 @@ function transformApartments(data: any[]): ApartmentCardProps[] {
 
 type UseSearchSectionsParams = {
   selectedCity: string;
-  debouncedSearch: string;
+  committedSearch: string;
   enabled?: boolean;
 };
 
-export function useSearchSections({ selectedCity, debouncedSearch, enabled = true }: UseSearchSectionsParams) {
+export function useSearchSections({ selectedCity, committedSearch, enabled = true }: UseSearchSectionsParams) {
   const [visibleIds, setVisibleIds] = useState<Set<string>>(() => new Set([SECTION_DEFS[0].id, SECTION_DEFS[1].id]));
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: { item: SearchSection }[] }) => {
@@ -67,11 +67,11 @@ export function useSearchSections({ selectedCity, debouncedSearch, enabled = tru
   }, []);
 
   const query = useQuery({
-    queryKey: ["searchSections", selectedCity, debouncedSearch] as const,
+    queryKey: ["searchSections", selectedCity, committedSearch] as const,
     queryFn: async ({ signal }) => {
       const { data, error } = await supabase.rpc("get_search_sections", {
         p_city: selectedCity,
-        p_search: debouncedSearch || null,
+        p_search: committedSearch || null,
         p_filters: {} as any,
         p_limit: SECTION_LIMIT,
       }).abortSignal(signal as any);

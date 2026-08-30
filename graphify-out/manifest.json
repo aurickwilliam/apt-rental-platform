@@ -505,8 +505,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/MoveInCostFooterSection.tsx": {
-    "mtime": 1787986582.094011,
-    "ast_hash": "392fff8f17b471c763ffbb107c806418",
+    "mtime": 1787989159.1027808,
+    "ast_hash": "183dfcd2523921d6fd0f1e523a22a3f4",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/PerksSection.tsx": {

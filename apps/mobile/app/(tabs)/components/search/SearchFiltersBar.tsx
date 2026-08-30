@@ -1,14 +1,16 @@
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 
 import { SearchField, Chip, Button } from 'heroui-native';
 
-import { IconFilter2, IconX } from '@tabler/icons-react-native';
+import { IconFilter2, IconSearch, IconX } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
 type SearchFiltersBarProps = {
   searchValue: string;
   onChangeSearch: (value: string) => void;
+  onSubmitSearch: () => void;
+  onClearSearch: () => void;
   onFilterPress: () => void;
   activeFilterCount: number;
   resultCount?: number;
@@ -19,6 +21,8 @@ type SearchFiltersBarProps = {
 export default function SearchFiltersBar({
   searchValue,
   onChangeSearch,
+  onSubmitSearch,
+  onClearSearch,
   onFilterPress,
   activeFilterCount,
   resultCount,
@@ -26,6 +30,7 @@ export default function SearchFiltersBar({
   onClearFilters,
 }: SearchFiltersBarProps) {
   const { colors } = useColors();
+  const isTyping = searchValue.trim() !== '';
 
   return (
     <View className='px-5'>
@@ -36,28 +41,47 @@ export default function SearchFiltersBar({
             onChange={onChangeSearch}
           >
             <SearchField.Group>
-              <SearchField.SearchIcon />
-              <SearchField.Input placeholder='Search apartments...' />
-              <SearchField.ClearButton />
+              <SearchField.Input
+                placeholder='Search apartments...'
+                returnKeyType='search'
+                enterKeyHint='search'
+                autoCorrect={false}
+                autoCapitalize='none'
+                onSubmitEditing={onSubmitSearch}
+                blurOnSubmit
+                className='ps-3 pe-20'
+              />
+              <SearchField.ClearButton onPress={onClearSearch} className="!end-10" />
+              <Pressable
+                onPress={onSubmitSearch}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='Search'
+                className='absolute end-3 z-10'
+              >
+                <IconSearch size={20} color={colors.gray500} />
+              </Pressable>
             </SearchField.Group>
           </SearchField>
         </View>
 
-        <View className='relative'>
-          <Button onPress={onFilterPress} variant='tertiary' isIconOnly>
-            <IconFilter2 size={24} color={colors.gray500} />
-          </Button>
-          {activeFilterCount > 0 && (
-            <View
-              pointerEvents='none'
-              className='absolute -top-1 -right-1 min-w-4.5 h-4.5 rounded-full bg-accent items-center justify-center px-1'
-            >
-              <Text className='text-[10px] font-nunitoSemiBold text-white'>
-                {activeFilterCount > 9 ? '9+' : activeFilterCount}
-              </Text>
-            </View>
-          )}
-        </View>
+        {!isTyping && (
+          <View className='relative'>
+            <Button onPress={onFilterPress} variant='tertiary' isIconOnly>
+              <IconFilter2 size={24} color={colors.gray500} />
+            </Button>
+            {activeFilterCount > 0 && (
+              <View
+                pointerEvents='none'
+                className='absolute -top-1 -right-1 min-w-4.5 h-4.5 rounded-full bg-accent items-center justify-center px-1'
+              >
+                <Text className='text-[10px] font-nunitoSemiBold text-white'>
+                  {activeFilterCount > 9 ? '9+' : activeFilterCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
 
       <View className='flex-row items-center justify-between mt-2 mb-3'>

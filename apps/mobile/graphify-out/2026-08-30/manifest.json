@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/(tenant)/search.tsx": {
-    "mtime": 1787992311.0668368,
-    "ast_hash": "df7ae201adc5b11327c6f307d5fac152",
+    "mtime": 1787919106.8411353,
+    "ast_hash": "724beaaf1bacbdb51516a60a0112144a",
     "semantic_hash": ""
   },
   "app/(tabs)/_layout.tsx": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/SearchFiltersBar.tsx": {
-    "mtime": 1788073628.7398586,
-    "ast_hash": "cc7eae2a6428e4f19a2c3357376fdf10",
+    "mtime": 1787916641.387264,
+    "ast_hash": "eec32e0dfd49f52a9aaa1129e2aca96c",
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/SearchHeader.tsx": {
@@ -385,13 +385,13 @@
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/useSearchLogic.test.tsx": {
-    "mtime": 1787991952.5812335,
-    "ast_hash": "d743b67662e71f7a7c2cdb4f9b1bf6f9",
+    "mtime": 1787989875.726606,
+    "ast_hash": "4cdb6b62047390adb958e45e8716f446",
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/useSearchLogic.tsx": {
-    "mtime": 1787991938.0349772,
-    "ast_hash": "372e03e7f3ba8a1806c67cca0312de84",
+    "mtime": 1787989795.8352528,
+    "ast_hash": "4e0ffbd191b2aa92dfda9e7a591be24d",
     "semantic_hash": ""
   },
   "app/(tabs)/components/units/EmptyProperties.tsx": {
@@ -2450,8 +2450,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/components/search/useSearchSections.ts": {
-    "mtime": 1787991583.803978,
-    "ast_hash": "78a25381344b810942f486e6a669a113",
+    "mtime": 1787980664.168196,
+    "ast_hash": "d815ac34ffa29be6a1d408e3f6f0afcd",
     "semantic_hash": ""
   },
   "app/search/section/[sectionId].tsx": {

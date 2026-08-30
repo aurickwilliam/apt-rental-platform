@@ -1,3 +1,5 @@
+import { Keyboard } from "react-native";
+
 import { useRouter } from "expo-router";
 import { useToast } from "heroui-native";
 
@@ -35,11 +37,13 @@ export default function Search() {
     openFilterSheet,
     refreshing,
     resultCount,
-    searchQuery,
-    debouncedSearch,
+    searchDraft,
+    committedSearch,
+    commitSearch,
+    clearSearch,
     selectedCity,
     setIsGridView,
-    setSearchQuery,
+    setSearchDraft,
     setSelectedCity,
   } = useSearchLogic();
 
@@ -52,7 +56,7 @@ export default function Search() {
     onViewableItemsChanged,
   } = useSearchSections({
     selectedCity,
-    debouncedSearch,
+    committedSearch,
     enabled: true,
   });
 
@@ -71,8 +75,13 @@ export default function Search() {
     }
   };
 
-  const isDefaultBrowse = searchQuery.trim() === "" && activeFilterCount === 0 && selectedCity === "CAMANAVA";
+  const isDefaultBrowse = committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === "CAMANAVA";
   const showNetflix = isDefaultBrowse;
+
+  const handleSubmitSearch = () => {
+    Keyboard.dismiss();
+    commitSearch(searchDraft);
+  };
 
   const handleRefresh = () => {
     if (showNetflix) {
@@ -96,12 +105,14 @@ export default function Search() {
       />
 
       <SearchFiltersBar
-        searchValue={searchQuery}
-        onChangeSearch={setSearchQuery}
+        searchValue={searchDraft}
+        onChangeSearch={setSearchDraft}
+        onSubmitSearch={handleSubmitSearch}
+        onClearSearch={clearSearch}
         onFilterPress={openFilterSheet}
         activeFilterCount={activeFilterCount}
         resultCount={
-          searchQuery.trim() !== "" || activeFilterCount > 0 || selectedCity !== "CAMANAVA"
+          committedSearch.trim() !== "" || activeFilterCount > 0 || selectedCity !== "CAMANAVA"
             ? resultCount
             : undefined
         }

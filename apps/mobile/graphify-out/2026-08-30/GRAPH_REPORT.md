@@ -1,7 +1,7 @@
-# Graph Report - mobile  (2026-08-30)
+# Graph Report - mobile  (2026-08-29)
 
 ## Corpus Check
-- 447 files · ~637,890 words
+- 447 files · ~637,567 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8ffa505c`
+- Built from commit: `a8125767`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -197,8 +197,8 @@
   app/landlord/manage-apartment/[apartmentId]/description/edit-perks.tsx → hooks/useTheme.ts
 
 ## Import Cycles
-- 2-file cycle: `hooks/applications/index.ts -> hooks/applications/useApplicationActions.ts -> hooks/applications/index.ts`
 - 2-file cycle: `hooks/applications/index.ts -> service/applications/tenantApplicationsService.ts -> hooks/applications/index.ts`
+- 2-file cycle: `hooks/applications/index.ts -> hooks/applications/useApplicationActions.ts -> hooks/applications/index.ts`
 - 3-file cycle: `hooks/applications/index.ts -> hooks/applications/useTenantApplications.ts -> service/applications/tenantApplicationsService.ts -> hooks/applications/index.ts`
 - 3-file cycle: `hooks/payments/index.ts -> hooks/payments/usePayments.ts -> service/payments/paymentService.ts -> hooks/payments/index.ts`
 
