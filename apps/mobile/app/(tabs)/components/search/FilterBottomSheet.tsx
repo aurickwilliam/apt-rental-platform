@@ -422,13 +422,15 @@ export default function FilterBottomSheet({
             <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
               Amenities
             </Text>
-            <SearchField value={amenitySearch} onChange={setAmenitySearch}>
-              <SearchField.Group>
-                <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search amenities..." />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
+            <View className="px-0.5">
+              <SearchField value={amenitySearch} onChange={setAmenitySearch}>
+                <SearchField.Group>
+                  <SearchField.SearchIcon />
+                  <SearchField.Input placeholder="Search amenities..." />
+                  <SearchField.ClearButton />
+                </SearchField.Group>
+              </SearchField>
+            </View>
 
             <Separator className="my-4" />
 
