@@ -51,7 +51,12 @@ export default function SearchFiltersBar({
                 blurOnSubmit
                 className='ps-3 pe-20'
               />
-              <SearchField.ClearButton onPress={onClearSearch} className="inset-e-10!" />
+
+              <SearchField.ClearButton
+                onPress={onClearSearch}
+                className="inset-e-10!"
+              />
+
               <Pressable
                 onPress={onSubmitSearch}
                 hitSlop={8}
