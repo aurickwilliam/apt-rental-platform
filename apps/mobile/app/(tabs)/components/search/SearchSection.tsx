@@ -1,6 +1,7 @@
 import { View, Text, FlatList, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { IconChevronRight } from "@tabler/icons-react-native";
+import { SkeletonGroup } from "heroui-native";
 import ApartmentCard from "components/cards/ApartmentCard";
 import { useColors } from "hooks/useTheme";
 import type { SearchSection as SearchSectionType } from "./useSearchSections";
@@ -86,42 +87,69 @@ export default function SearchSection({ section, isFavorite, onToggleFavorite, o
 
 export function SearchSectionSkeleton() {
   return (
-    <View className="gap-3">
+    <SkeletonGroup isLoading isSkeletonOnly variant="shimmer" className="gap-3">
       <View className="flex-row items-center justify-between px-5">
-        <View className="h-5 w-32 bg-surface-tertiary rounded-lg" />
-        <View className="h-5 w-5 bg-surface-tertiary rounded-full" />
+        <SkeletonGroup.Item className="h-5 w-32 rounded-lg" />
+        <SkeletonGroup.Item className="h-5 w-5 rounded-full" />
       </View>
       <View className="flex-row gap-3 px-5">
         {[0, 1, 2].map((i) => (
-          <View key={i} style={{ width: CARD_WIDTH }} className="h-60 bg-surface-tertiary rounded-2xl opacity-60" />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-export function SearchGridSkeleton({ count = 6 }: { count?: number }) {
-  return (
-    <View className="flex-1 gap-4 px-4 pt-2">
-      <View className="flex-row flex-wrap gap-2">
-        {Array.from({ length: count }).map((_, i) => (
           <View
             key={i}
+            style={{ width: CARD_WIDTH }}
             className="bg-surface rounded-2xl overflow-hidden border border-border"
-            style={{ width: "48.5%" as any }}
           >
-            <View className="aspect-square bg-surface-tertiary opacity-60" />
+            <SkeletonGroup.Item className="aspect-square" />
             <View className="p-2 gap-2">
-              <View className="h-4 w-3/4 bg-surface-tertiary rounded-lg opacity-60" />
-              <View className="h-3 w-1/2 bg-surface-tertiary rounded-lg opacity-60" />
+              <SkeletonGroup.Item className="h-4 w-3/4 rounded-lg" />
+              <SkeletonGroup.Item className="h-3 w-1/2 rounded-lg" />
               <View className="flex-row justify-between items-center mt-1">
-                <View className="h-4 w-16 bg-surface-tertiary rounded-lg opacity-60" />
-                <View className="h-3 w-10 bg-surface-tertiary rounded-lg opacity-60" />
+                <SkeletonGroup.Item className="h-4 w-16 rounded-lg" />
+                <SkeletonGroup.Item className="h-3 w-10 rounded-lg" />
               </View>
             </View>
           </View>
         ))}
       </View>
-    </View>
+    </SkeletonGroup>
+  );
+}
+
+export function SearchGridSkeleton({ count = 6, isGrid = true }: { count?: number; isGrid?: boolean }) {
+  return (
+    <SkeletonGroup isLoading isSkeletonOnly variant="shimmer" className="flex-1 gap-4 pt-2">
+      <View className="flex-row flex-wrap gap-2">
+        {Array.from({ length: count }).map((_, i) => (
+          <View
+            key={i}
+            className="bg-surface rounded-2xl overflow-hidden border border-border"
+            style={{ width: (isGrid ? "48%" : "100%") as any, alignSelf: isGrid ? "auto" : "center" }}
+          >
+            <SkeletonGroup.Item className="aspect-square" />
+            <View className={isGrid ? "p-2 gap-2" : "p-3 gap-3"}>
+              <SkeletonGroup.Item className={isGrid ? "h-4 w-3/4 rounded-lg" : "h-5 w-3/4 rounded-lg"} />
+              <SkeletonGroup.Item className={isGrid ? "h-3 w-1/2 rounded-lg" : "h-4 w-1/2 rounded-lg"} />
+              {!isGrid && (
+                <View className="flex-row flex-wrap">
+                  <View className="flex-row w-2/6 gap-1 items-center">
+                    <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
+                  </View>
+                  <View className="flex-row w-2/6 gap-1 items-center">
+                    <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
+                  </View>
+                  <View className="flex-row w-2/6 gap-1 items-center">
+                    <SkeletonGroup.Item className="h-3 w-12 rounded-md" />
+                  </View>
+                </View>
+              )}
+              <View className="flex-row justify-between items-center mt-1">
+                <SkeletonGroup.Item className={isGrid ? "h-4 w-16 rounded-lg" : "h-5 w-20 rounded-lg"} />
+                <SkeletonGroup.Item className={isGrid ? "h-3 w-10 rounded-lg" : "h-4 w-12 rounded-lg"} />
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    </SkeletonGroup>
   );
 }

@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/ApartmentsList.tsx": {
-    "mtime": 1788091329.9544868,
-    "ast_hash": "0b98afb4ff2c590995d16cedf93e0590",
+    "mtime": 1788184517.6595542,
+    "ast_hash": "6e1d5f116fda709d8ffeba7cf767357a",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/FilterBottomSheet.tsx": {
@@ -4210,13 +4210,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSection.tsx": {
-    "mtime": 1788088881.538806,
-    "ast_hash": "f5d743f444aa287e4dd407eaf50d607f",
+    "mtime": 1788185115.594194,
+    "ast_hash": "1f9746fa11afccdd24ad7e8491abb205",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSectionsList.tsx": {
-    "mtime": 1788091317.621772,
-    "ast_hash": "30ed70bd994ec0258ac24fc76dcf92bf",
+    "mtime": 1788184534.6512876,
+    "ast_hash": "42278017e0e9c44e20562718692fc4ae",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSections.ts": {
@@ -4225,8 +4225,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
-    "mtime": 1788088984.1133895,
-    "ast_hash": "6987b10603c33dd8d9416171d6d6d51c",
+    "mtime": 1788185032.2255328,
+    "ast_hash": "cb9c4cde1900f42d9053b9585bf00862",
     "semantic_hash": ""
   },
   "docs/plans/2026-08-28-search-netflix-a2.md": {
@@ -4235,8 +4235,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
-    "mtime": 1788183878.9144778,
-    "ast_hash": "83ca3bbc0a1a58b5bb7f6706044d8201",
+    "mtime": 1788184196.6819322,
+    "ast_hash": "73dfe29620b0b6efda27e569539d0098",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/preferences/useUserPreferences.ts": {

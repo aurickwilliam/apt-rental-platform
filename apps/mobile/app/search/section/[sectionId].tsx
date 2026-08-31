@@ -1,8 +1,9 @@
-import { View, Text, FlatList, RefreshControl } from "react-native";
+import { FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Spinner } from "heroui-native";
-import { IconSearchOff } from "@tabler/icons-react-native";
+import { useState } from "react";
+import { Button } from "heroui-native";
+import { IconSearchOff, IconLayoutGrid, IconLayoutRows } from "@tabler/icons-react-native";
 import { SearchGridSkeleton } from "@/app/(tabs)/components/search/SearchSection";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
@@ -82,42 +83,81 @@ export default function SectionDetail() {
   });
 
   const apartments = query.data ?? [];
+  const [isGridView, setIsGridView] = useState(true);
 
   if (query.isLoading) {
     return (
-      <ScreenWrapper header={<StandardHeader title={(title as string) ?? "See All"} />} className="p-5">
-        <View className="flex-1">
-          <View className="items-center gap-3 py-6 px-5">
-            <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading" />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">Loading listings...</Text>
-            <Text className="text-gray-400 text-base font-inter text-center px-8">Finding homes in {selectedCity}...</Text>
-          </View>
-          <SearchGridSkeleton count={6} />
-        </View>
+      <ScreenWrapper
+        header={
+          <StandardHeader
+            title={(title as string) ?? "See All"}
+            rightComponent={
+              <Button
+                variant="ghost"
+                isIconOnly
+                size="sm"
+                onPress={() => setIsGridView((v) => !v)}
+                accessibilityLabel={isGridView ? "Switch to big card view" : "Switch to grid view"}
+                accessibilityRole="button"
+              >
+                {isGridView ? (
+                  <IconLayoutGrid size={22} color="white" />
+                ) : (
+                  <IconLayoutRows size={22} color="white" />
+                )}
+              </Button>
+            }
+          />
+        }
+        className="p-5"
+      >
+        <SearchGridSkeleton count={isGridView ? 6 : 4} isGrid={isGridView} />
       </ScreenWrapper>
     );
   }
 
   return (
     <ScreenWrapper
-      header={<StandardHeader title={(title as string) ?? sectionId ?? "See All"} />}
+      header={
+        <StandardHeader
+          title={(title as string) ?? sectionId ?? "See All"}
+          rightComponent={
+            <Button
+              variant="ghost"
+              isIconOnly
+              size="sm"
+              onPress={() => setIsGridView((v) => !v)}
+              accessibilityLabel={isGridView ? "Switch to big card view" : "Switch to grid view"}
+              accessibilityRole="button"
+            >
+              {isGridView ? (
+                <IconLayoutGrid size={22} color="white" />
+              ) : (
+                <IconLayoutRows size={22} color="white" />
+              )}
+            </Button>
+          }
+        />
+      }
       noBottomPadding
     >
       <FlatList
+        key={isGridView ? "grid" : "list"}
         data={apartments}
         keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={{ paddingHorizontal: 16, gap: 8 }}
+        numColumns={isGridView ? 2 : 1}
+        columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}
         contentContainerStyle={{
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET,
           gap: 16,
           paddingTop: 16,
+          paddingHorizontal: isGridView ? 0 : 16,
           flexGrow: apartments.length === 0 ? 1 : 0,
         }}
         renderItem={({ item }) => (
           <ApartmentCard
             {...item}
-            isGrid={true}
+            isGrid={isGridView}
             isFavorite={isFavorite(item.id)}
             onPress={() => router.push(`/apartment/${item.id}` as any)}
             onPressFavorite={() => {
@@ -136,15 +176,6 @@ export default function SectionDetail() {
                 <Button.Label>Go Back</Button.Label>
               </Button>
             }
-          />
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={query.isFetching && !query.isLoading}
-            onRefresh={() => query.refetch()}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-            progressBackgroundColor={colors.surface}
           />
         }
       />

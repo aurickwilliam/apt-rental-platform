@@ -1,4 +1,4 @@
-import { View, Text, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { Button, Spinner } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
 import EmptyState from "components/display/EmptyState";
@@ -36,17 +36,10 @@ export default function SearchSectionsList({
 
   if (isLoading) {
     return (
-      <View className="flex-1">
-        <View className="items-center gap-3 py-6 px-5">
-          <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading" />
-          <Text className="text-foreground text-xl font-nunitoBold text-center">Finding homes...</Text>
-          <Text className="text-gray-400 text-base font-inter text-center px-8">Finding homes in {cityLabel}...</Text>
-        </View>
-        <View className="gap-6 py-4">
-          {[0, 1, 2].map((i) => (
-            <SearchSectionSkeleton key={i} />
-          ))}
-        </View>
+      <View className="flex-1 py-4 gap-6">
+        {[0, 1, 2].map((i) => (
+          <SearchSectionSkeleton key={i} />
+        ))}
       </View>
     );
   }

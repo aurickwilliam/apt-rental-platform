@@ -139,17 +139,8 @@ export default function ApartmentsList({
   };
 
   if (loading && !refreshing) {
-    const cityLabel = selectedCity === "CAMANAVA" ? "CAMANAVA" : selectedCity;
-    const queryLabel = committedSearch.trim() ? ` for “${committedSearch.trim().slice(0, 24)}”` : "";
     return (
-      <View className='flex-1'>
-        <View className='items-center gap-3 py-6 px-5'>
-          <Spinner size='lg' color={colors.primary} accessibilityLabel="Searching" />
-          <Text className='text-foreground text-xl font-nunitoBold text-center'>Searching for homes...</Text>
-          <Text className='text-gray-400 text-base font-inter text-center px-8'>
-            {queryLabel ? `Searching${queryLabel} in ${cityLabel}` : `Finding homes in ${cityLabel}...`}
-          </Text>
-        </View>
+      <View className="flex-1">
         <SearchGridSkeleton count={6} />
       </View>
     );
