@@ -1,0 +1,347 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Avatar, Button, Card, Chip, Separator, Modal, Spinner } from "@heroui/react";
+import { Banknote, CalendarDays, House, MapPin, User, Receipt, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { formatPesoDisplay } from "@repo/utils";
+import { validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { MOCK_PAYMENTS, MOCK_TENANCY } from "./constants";
+import type { CardInformation, PaymentMethod } from "./types";
+import { formatLeaseDate, paymentStatusLabel, periodMonthLabel } from "./utils";
+import PaymentSummaryCard from "./components/PaymentSummaryCard";
+import PaymentMethodSelector from "./components/PaymentMethodSelector";
+import type { CashPaymentErrors } from "./types";
+import { validateCashPayment } from "./components/CashPaymentForm";
+import PaymentHistoryTable from "./components/PaymentHistoryTable";
+
+const INITIAL_CARD: CardInformation = {
+  cardNumber: "",
+  expiryDate: "",
+  cardholderName: "",
+  cvv: "",
+  isPaymentSaved: false,
+  isCardNumberValid: false,
+};
+
+export default function TenantPaymentPage() {
+  const [activeMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
+  const [cardInfo, setCardInfo] = useState<CardInformation>(INITIAL_CARD);
+  const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
+  const [cashDate, setCashDate] = useState<Date | null>(null);
+  const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const tenancy = MOCK_TENANCY;
+  const apartment = tenancy.apartment;
+  const landlord = tenancy.landlord;
+  const period = tenancy.currentPeriod;
+  const monthLabel = periodMonthLabel(period.due_date);
+  const yearLabel = period.period_start.slice(0, 4);
+  const monthlyRent = tenancy.monthly_rent;
+
+  // mock "already paid" guard — same as mobile paidAmountForPeriod check
+  const isPeriodPaid = useMemo(() => {
+    const paid = MOCK_PAYMENTS.filter((p) => p.period_start === period.period_start && p.status === "Paid").length > 0;
+    return paid;
+  }, [period.period_start]);
+
+  const landlordName = `${landlord.first_name} ${landlord.last_name}`.trim();
+  const address = [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ");
+
+  const handlePayClick = () => {
+    if (!activeMethod) {
+      setErrorMsg("Please select a payment method before proceeding.");
+      return;
+    }
+    if (activeMethod === "Debit/Credit-Card") {
+      const errs = validateCardInfo(cardInfo);
+      if (Object.keys(errs).length > 0) {
+        setCardErrors(errs);
+        return;
+      }
+    }
+    if (activeMethod === "Cash") {
+      const errs = validateCashPayment({ paymentDate: cashDate });
+      if (Object.keys(errs).length > 0) {
+        setCashErrors(errs);
+        return;
+      }
+    }
+    setShowConfirm(true);
+  };
+
+  const handleConfirmPay = () => {
+    setIsProcessing(true);
+    setShowConfirm(false);
+    // UI-only simulation
+    setTimeout(() => {
+      setIsProcessing(false);
+      setShowSuccess(true);
+    }, 900);
+  };
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+        {/* Header */}
+        <div className="flex flex-col gap-1">
+          <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Banknote size={14} className="text-primary" /> Rent Payment
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
+              <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay — no backend required in this preview.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/tenant/payment/history" className="no-underline">
+                <Button variant="secondary" size="sm" className="rounded-full">
+                  <Receipt size={14} />
+                  View history
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Already-paid banner */}
+        {isPeriodPaid && (
+          <Card className="rounded-2xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30">
+            <Card.Content className="p-4 flex flex-row items-center gap-3">
+              <span className="rounded-full bg-green-600 p-2 text-white">
+                <CheckCircle2 size={18} />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
+                <p className="text-xs text-green-700/80 dark:text-green-300/80">
+                  Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
+                </p>
+              </div>
+              <Link href="/tenant/payment/history" className="no-underline">
+                <Button size="sm" variant="ghost" className="text-green-700">
+                  View receipt <ArrowRight size={14} />
+                </Button>
+              </Link>
+            </Card.Content>
+          </Card>
+        )}
+
+        {/* Main grid */}
+        <div className="grid gap-4 lg:grid-cols-3 items-start">
+          {/* Left: lease + method */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Apartment / lease card */}
+            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+              <Card.Header className="px-4 pt-4 pb-2">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                  <House size={16} className="text-primary" /> {apartment.name}
+                </h3>
+                <p className="text-xs text-zinc-500 flex items-center gap-1 mt-1">
+                  <MapPin size={12} /> {address}
+                </p>
+              </Card.Header>
+              <Card.Content className="px-4 pb-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-center gap-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                    <span className="rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-2">
+                      <User size={16} className="text-zinc-500" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-zinc-500">Landlord</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
+                      <p className="text-xs text-zinc-500 truncate">{landlord.email}</p>
+                    </div>
+                    <Avatar size="sm" className="ml-auto hidden sm:flex">
+                      <Avatar.Fallback className="bg-primary text-white text-xs">
+                        {landlord.first_name[0]}
+                        {landlord.last_name[0]}
+                      </Avatar.Fallback>
+                    </Avatar>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-zinc-400">Lease Start</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
+                        <CalendarDays size={14} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_start)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-zinc-400">Lease End</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
+                        <CalendarDays size={14} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_end)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Chip size="sm" variant="soft" color="success">
+                    Active lease
+                  </Chip>
+                  <Chip size="sm" variant="soft" color="default">
+                    {apartment.city}
+                  </Chip>
+                  <Chip size="sm" variant="soft" color="default">
+                    {formatPesoDisplay(monthlyRent)} / month
+                  </Chip>
+                </div>
+              </Card.Content>
+            </Card>
+
+            {/* Payment method selector */}
+            <PaymentMethodSelector
+              onPaymentMethodChange={setActiveMethod}
+              cardInformation={cardInfo}
+              onCardInformationChange={(patch) => {
+                setCardInfo((p) => ({ ...p, ...patch }));
+                setCardErrors({});
+              }}
+              cardErrors={cardErrors}
+              cashPaymentDate={cashDate}
+              onCashPaymentDateChange={(d) => {
+                setCashDate(d);
+                setCashErrors({});
+              }}
+              cashErrors={cashErrors}
+            />
+
+            {/* Error inline */}
+            {errorMsg && (
+              <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50 p-3 text-sm text-amber-800 dark:text-amber-200">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                <span>{errorMsg}</span>
+                <Button size="sm" variant="ghost" className="ml-auto text-amber-700" onPress={() => setErrorMsg(null)}>
+                  Dismiss
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Right: summary + history preview (sticky on desktop) */}
+          <div className="space-y-4 lg:sticky lg:top-20">
+            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.due_date} monthlyRent={monthlyRent} />
+
+            {/* Total + Pay bar — card variant for web (mobile uses sticky footer) */}
+            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+              <Card.Content className="p-4 flex flex-row items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Total Rent Due</p>
+                  <p className="text-2xl font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
+                  {activeMethod && <p className="text-xs text-zinc-500 mt-1">Method: {activeMethod}</p>}
+                </div>
+                <Button onPress={handlePayClick} isDisabled={isProcessing || isPeriodPaid} className="rounded-full px-6">
+                  {isProcessing ? (
+                    <>
+                      <Spinner size="sm" color="current" /> Processing…
+                    </>
+                  ) : (
+                    "Pay now"
+                  )}
+                </Button>
+              </Card.Content>
+            </Card>
+
+            {/* Preview history */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Recent payments</h3>
+                <Link href="/tenant/payment/history" className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
+                  View all <ArrowRight size={12} />
+                </Link>
+              </div>
+              <PaymentHistoryTable payments={MOCK_PAYMENTS} limit={5} showHeader={false} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirm modal */}
+      <Modal isOpen={showConfirm} onOpenChange={setShowConfirm}>
+        <Modal.Backdrop />
+        <Modal.Container placement="center">
+          <Modal.Dialog className="rounded-2xl">
+            <Modal.Header className="text-base font-semibold">Confirm payment</Modal.Header>
+            <Modal.Body className="space-y-3">
+              <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-500">Billing period</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {monthLabel} {yearLabel}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-500">Due date</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-500">Method</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
+                </div>
+                <Separator className="my-1" />
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Total</span>
+                  <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-500">
+                This is a UI preview — no real charge will be made. Payment for {monthLabel} {yearLabel}.
+              </p>
+            </Modal.Body>
+            <Modal.Footer className="gap-2">
+              <Button variant="secondary" onPress={() => setShowConfirm(false)}>
+                Cancel
+              </Button>
+              <Button onPress={handleConfirmPay}>Confirm & pay {formatPesoDisplay(monthlyRent)}</Button>
+            </Modal.Footer>
+            <Modal.CloseTrigger />
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal>
+
+      {/* Success modal (UI-only) */}
+      <Modal isOpen={showSuccess} onOpenChange={setShowSuccess}>
+        <Modal.Backdrop />
+        <Modal.Container placement="center">
+          <Modal.Dialog className="rounded-2xl">
+            <Modal.Header className="flex flex-col items-center gap-2 text-center">
+              <span className="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
+                <CheckCircle2 size={28} className="text-green-600" />
+              </span>
+              <span className="text-base font-semibold text-green-700 dark:text-green-300">Payment Simulated</span>
+            </Modal.Header>
+            <Modal.Body className="text-center space-y-2">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Your {activeMethod ?? "payment"} for {monthLabel} {yearLabel} would be processed here. Check{" "}
+                <Link href="/tenant/payment/history" className="text-primary underline">
+                  Payment History
+                </Link>{" "}
+                for the receipt (per-row) in this UI preview.
+              </p>
+              <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 text-left">
+                <p className="text-xs text-zinc-500">Amount</p>
+                <p className="text-lg font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
+              </div>
+            </Modal.Body>
+            <Modal.Footer className="gap-2 justify-center">
+              <Button variant="secondary" onPress={() => setShowSuccess(false)}>
+                Stay here
+              </Button>
+              <Link href="/tenant/payment/history" className="no-underline">
+                <Button onPress={() => setShowSuccess(false)}>View history</Button>
+              </Link>
+            </Modal.Footer>
+            <Modal.CloseTrigger />
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal>
+    </div>
+  );
+}
+
+
+

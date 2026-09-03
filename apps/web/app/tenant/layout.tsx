@@ -7,6 +7,7 @@ const TENANT_NAV = [
   { href: "/tenant/my-rental", label: "My Rental", icon: "House" },
   { href: "/tenant/applications", label: "Applications", icon: "FileText" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
+  { href: "/tenant/payment", label: "Payments", icon: "Banknote" },
   { href: "/tenant/maintenance", label: "Maintenance", icon: "Wrench" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
 ] as const;
@@ -16,6 +17,7 @@ const TENANT_TITLES: Record<string, string> = {
   "/tenant/my-rental": "My Rental",
   "/tenant/applications": "Applications",
   "/tenant/favorites": "Favorites",
+  "/tenant/payment": "Payments",
   "/tenant/maintenance": "Maintenance",
   "/tenant/messages": "Messages",
 };
