@@ -1,17 +1,11 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  MapView,
-  Camera,
-  ShapeSource,
-  CircleLayer,
-  setAccessToken,
-} from "@maplibre/maplibre-react-native";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
 import DropdownField from "components/inputs/DropdownField";
+import MapViewSwitcher from "@/components/maps/MapViewSwitcher";
 
 import {
   TextField,
@@ -41,9 +35,6 @@ import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
 import { useColors } from "hooks/useTheme";
 
-// Suppress the missing API key warning since we're using free OSM tiles
-setAccessToken(null);
-
 // Field-level error shape
 interface FormErrors {
   apartmentType?: string;
@@ -61,32 +52,6 @@ interface FormErrors {
   floorLevel?: string;
   leaseDuration?: string;
 }
-
-const MAP_STYLE = {
-  version: 8,
-  sources: {
-    osm: {
-      type: "raster",
-      tiles: [
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      ],
-      tileSize: 256,
-      attribution: "© OpenStreetMap contributors",
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: "osm-tiles",
-      type: "raster",
-      source: "osm",
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
 
 const DEFAULT_COORDS = {
   latitude: 14.67,
@@ -683,54 +648,12 @@ export default function SecondStep() {
             activeOpacity={0.85}
           >
             <View style={{ flex: 1 }} pointerEvents="none">
-              <MapView
+              <MapViewSwitcher
+                latitude={latitude}
+                longitude={longitude}
+                interactive={false}
                 style={{ flex: 1 }}
-                mapStyle={MAP_STYLE}
-                scrollEnabled={false}
-                zoomEnabled={false}
-                rotateEnabled={false}
-                pitchEnabled={false}
-              >
-                <Camera
-                  centerCoordinate={[
-                    longitude ?? DEFAULT_COORDS.longitude,
-                    latitude ?? DEFAULT_COORDS.latitude,
-                  ]}
-                  zoomLevel={15}
-                  animationDuration={0}
-                  maxZoomLevel={19}
-                />
-
-                {/* Only show pin if location has been confirmed */}
-                {latitude && longitude && (
-                  <ShapeSource
-                    id="pin-source"
-                    shape={{
-                      type: "Feature",
-                      geometry: {
-                        type: "Point",
-                        coordinates: [longitude, latitude],
-                      },
-                      properties: {},
-                    }}
-                  >
-                    <CircleLayer
-                      id="pin-ring"
-                      style={{
-                        circleRadius: 10,
-                        circleColor: colors.white,
-                      }}
-                    />
-                    <CircleLayer
-                      id="pin-dot"
-                      style={{
-                        circleRadius: 7,
-                        circleColor: colors.primary,
-                      }}
-                    />
-                  </ShapeSource>
-                )}
-              </MapView>
+              />
 
               {/* Overlay hint when no location is set yet */}
               {!latitude && !longitude && (

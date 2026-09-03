@@ -99,7 +99,7 @@ export default function PaymentHistoryFilterSheet({
             {/* Status */}
             <Text className="text-sm font-inter text-muted mb-3">Status</Text>
             <View className="flex-row flex-wrap gap-2">
-              {PAYMENT_STATUS.map((status) => {
+              {PAYMENT_STATUS.filter((status) => status !== 'Pending').map((status) => {
                 const selected = filters.statuses.includes(status);
                 return (
                   <Chip

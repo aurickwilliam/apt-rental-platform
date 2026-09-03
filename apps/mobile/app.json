@@ -15,10 +15,15 @@
         "light": "./assets/icons/ios/ios-light.png",
         "tinted": "./assets/icons/ios/ios-tinted.png"
       },
+      "config": {
+        "googleMapsApiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "APT uses your camera to capture a clear photo of your ID for identity verification.",
-        "NSPhotoLibraryUsageDescription": "APT accesses your photo library so you can upload a digital copy of your ID."
+        "NSPhotoLibraryUsageDescription": "APT accesses your photo library so you can upload a digital copy of your ID.",
+        "NSLocationWhenInUseUsageDescription": "APT uses your location to show nearby apartments on the map and to pin your property's exact location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "APT uses your location to show nearby apartments on the map."
       }
     },
     "android": {
@@ -30,7 +35,16 @@
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.aurickwilliam.apt",
       "googleServicesFile": "./google-services.json",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -62,6 +76,13 @@
         }
       ],
       "@maplibre/maplibre-react-native",
+      [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}",
+          "androidGoogleMapsApiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
+        }
+      ],
       "@react-native-community/datetimepicker",
       "expo-web-browser",
       "expo-video",

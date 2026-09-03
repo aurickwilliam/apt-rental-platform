@@ -1,13 +1,7 @@
 import { useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import {
-  MapView as LibreMapView,
-  Camera,
-  ShapeSource,
-  CircleLayer,
-  setAccessToken
-} from '@maplibre/maplibre-react-native'
+import MapView from 'react-native-maps';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -17,42 +11,13 @@ import { Dialog, Button } from "heroui-native"
 
 import { useColors } from '@/hooks/useTheme';
 import { useApartmentDetails } from '@/hooks/apartments';
+import { isGoogleMapsEnabled, MAP_DEFAULT_COORDS } from '@/utils/mapConfig';
+import GoogleMapView from '@/components/maps/GoogleMapView';
+import MapLibreFallbackView from '@/components/maps/MapLibreFallbackView';
 
 import { IconRoute, IconMap, IconCompass, IconNavigation } from '@tabler/icons-react-native';
 
-// Suppress the missing API key warning since we're using free OSM tiles
-setAccessToken(null);
-
-const MAP_STYLE = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-tiles',
-      type: 'raster',
-      source: 'osm',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-}
-
-const DEFAULT_COORDS = {
-  latitude: 14.6700,
-  longitude: 120.9600,
-}
+const DEFAULT_COORDS = MAP_DEFAULT_COORDS;
 
 type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
@@ -63,10 +28,12 @@ export default function ApartmentMapViewScreen() {
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
   const cameraRef = useRef<any>(null);
+  const googleMapRef = useRef<MapView>(null);
 
   const latitude = apartment?.latitude ?? DEFAULT_COORDS.latitude;
   const longitude = apartment?.longitude ?? DEFAULT_COORDS.longitude;
   const hasApartmentCoords = apartment?.latitude != null && apartment?.longitude != null;
+  const useGoogle = isGoogleMapsEnabled();
 
   const apartmentName = apartment?.name || 'Apartment';
   const apartmentAddress = apartment
@@ -167,6 +134,18 @@ export default function ApartmentMapViewScreen() {
 
   // Handle IconNavigation Button Press/Go Back to Pin Location
   const handleNavigationPress = () => {
+    if (useGoogle) {
+      googleMapRef.current?.animateToRegion(
+        {
+          latitude,
+          longitude,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.015,
+        },
+        500,
+      );
+      return;
+    }
     cameraRef.current?.setCamera?.({
       centerCoordinate: [longitude, latitude],
       zoomLevel: 15,
@@ -176,6 +155,10 @@ export default function ApartmentMapViewScreen() {
 
   // Handle IconCompass Button Press/Refocus to North
   const handleCompassPress = () => {
+    if (useGoogle) {
+      googleMapRef.current?.animateCamera({ heading: 0 }, { duration: 350 });
+      return;
+    }
     cameraRef.current?.setCamera?.({
       heading: 0,
       animationDuration: 350,
@@ -226,47 +209,29 @@ export default function ApartmentMapViewScreen() {
       </View>
 
       <View className='flex-1 relative'>
-        <LibreMapView
-          style={{ flex: 1 }}
-          mapStyle={MAP_STYLE}
-        >
-          <Camera
-            ref={cameraRef}
-            centerCoordinate={[longitude, latitude]}
-            zoomLevel={15}
-            animationDuration={0}
-            maxZoomLevel={19}
+        {useGoogle ? (
+          <GoogleMapView
+            latitude={latitude}
+            longitude={longitude}
+            interactive
+            style={{ flex: 1 }}
+            mapRef={googleMapRef as React.RefObject<MapView | null>}
+            pins={hasApartmentCoords ? [{ latitude, longitude }] : []}
           />
-
-          {hasApartmentCoords && (
-            <ShapeSource
-              id='apartment-pin-source'
-              shape={{
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [longitude, latitude],
-                },
-                properties: {},
-              }}
-            >
-              <CircleLayer
-                id='apartment-pin-ring'
-                style={{
-                  circleRadius: 10,
-                  circleColor: '#ffffff',
-                }}
-              />
-              <CircleLayer
-                id='apartment-pin-dot'
-                style={{
-                  circleRadius: 7,
-                  circleColor: colors.primary,
-                }}
-              />
-            </ShapeSource>
-          )}
-        </LibreMapView>
+        ) : (
+          <MapLibreFallbackView
+            latitude={latitude}
+            longitude={longitude}
+            interactive
+            style={{ flex: 1 }}
+          />
+        )}
+        {/* Hidden MapLibre camera ref for fallback compass/nav when useGoogle=false */}
+        {!useGoogle && (
+          <View style={{ height: 0, width: 0, overflow: 'hidden' }}>
+            {/* keep ref alive via dummy — fallback view handles its own camera */}
+          </View>
+        )}
 
         {/* Floating Action Buttons */}
         <View className='flex items-center gap-5 absolute bottom-5 right-5'>

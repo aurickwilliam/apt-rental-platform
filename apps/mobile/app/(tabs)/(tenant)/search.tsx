@@ -89,7 +89,7 @@ export default function Search() {
   };
 
   const handleMapPress = () => {
-    toast.show({ variant: "default", label: "Map search coming soon" });
+    router.push("/tenant/map-search" as any);
   };
 
   const handleClearAll = () => {

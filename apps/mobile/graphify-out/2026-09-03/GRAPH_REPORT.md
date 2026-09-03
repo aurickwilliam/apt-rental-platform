@@ -1,7 +1,7 @@
 # Graph Report - mobile  (2026-09-03)
 
 ## Corpus Check
-- 460 files · ~644,979 words
+- 460 files · ~644,975 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -116,7 +116,7 @@
 - expo-document-picker
 - expo-file-system
 - expo-font
-- expo-haptics
+- emoji-regex-xs
 - expo-image
 - expo-image-manipulator
 - expo-image-picker
@@ -453,7 +453,7 @@ Nodes (48): EmptyMaintenanceRequestDetail(), EmptyMaintenanceRequestsList(), Mai
 
 ### Community 58 - "dependencies"
 Cohesion: 0.12
-Nodes (17): emoji-regex-xs, expo, expo-dev-client, heroui-native, dependencies, emoji-regex-xs, expo, expo-dev-client (+9 more)
+Nodes (17): expo, expo-dev-client, expo-haptics, heroui-native, dependencies, expo, expo-dev-client, expo-haptics (+9 more)
 
 ### Community 59 - "RescheduleSheet.tsx"
 Cohesion: 0.18

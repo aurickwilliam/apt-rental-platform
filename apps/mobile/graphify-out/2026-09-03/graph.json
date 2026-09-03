@@ -2988,7 +2988,7 @@
       "label": "PaymentSummaryCardProps",
       "file_type": "code",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L8",
+      "source_location": "L7",
       "_origin": "ast",
       "id": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycardprops",
       "community": 75,
@@ -2999,7 +2999,7 @@
       "label": "PaymentSummaryCard()",
       "file_type": "code",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L17",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycard",
       "community": 75,
@@ -16290,8 +16290,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "package_dependencies_emoji_regex_xs",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 105,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -16301,8 +16301,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "emoji_regex_xs",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 105,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -16510,8 +16510,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "package_dependencies_expo_haptics",
-      "community": 105,
-      "community_name": "expo-haptics",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "expo-haptics"
     },
     {
@@ -16521,8 +16521,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "expo_haptics",
-      "community": 105,
-      "community_name": "expo-haptics",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "expo-haptics"
     },
     {
@@ -34200,7 +34200,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L17",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard",
@@ -34211,7 +34211,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard",
@@ -34248,7 +34248,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L25",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycard",

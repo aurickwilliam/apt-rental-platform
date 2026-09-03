@@ -4210,8 +4210,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSection.tsx": {
-    "mtime": 1788185115.594194,
-    "ast_hash": "1f9746fa11afccdd24ad7e8491abb205",
+    "mtime": 1788185358.298144,
+    "ast_hash": "283dbc51ab72db6ac3265475c8800f9e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSectionsList.tsx": {

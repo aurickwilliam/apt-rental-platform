@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 
 import { useColors } from "hooks/useTheme";
+import { formatPesoDisplay } from "@repo/utils";
 
 import { Button, Chip } from "heroui-native";
 
@@ -70,7 +71,7 @@ export default function PaymentSummaryCard({
           <Text className="text-gray-100 text-sm font-inter">Total Rent</Text>
 
           <Text className="text-white text-base font-nunitoSemiBold">
-            ₱ {totalRent}
+            {formatPesoDisplay(totalRent)}
           </Text>
         </View>
       </View>
@@ -81,7 +82,7 @@ export default function PaymentSummaryCard({
           <Text className="text-gray-100 text-sm font-inter">Monthly Rent</Text>
 
           <Text className="text-white text-base font-nunitoSemiBold">
-            ₱ {totalRent}
+            {formatPesoDisplay(totalRent)}
           </Text>
         </View>
       </View>

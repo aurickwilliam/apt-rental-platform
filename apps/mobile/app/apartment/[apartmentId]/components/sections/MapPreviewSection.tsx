@@ -1,52 +1,12 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
 
-import {
-  MapView,
-  Camera,
-  ShapeSource,
-  CircleLayer,
-  setAccessToken,
-} from '@maplibre/maplibre-react-native';
-
 import { IconMap } from '@tabler/icons-react-native';
 
 import { Dialog, Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
-
-setAccessToken(null);
-
-const MAP_STYLE = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-tiles',
-      type: 'raster',
-      source: 'osm',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
-
-const DEFAULT_COORDS = {
-  latitude: 14.67,
-  longitude: 120.96,
-};
+import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 
 type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
@@ -67,8 +27,6 @@ export default function MapPreviewSection({
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] =
     useState(false);
-
-  const hasApartmentCoords = latitude != null && longitude != null;
 
   const openDirections = async (mode: DirectionMode) => {
     if (latitude == null || longitude == null) {
@@ -143,53 +101,12 @@ export default function MapPreviewSection({
         onPress={onOpenMap}
       >
         <View style={{ flex: 1 }} pointerEvents='none'>
-          <MapView
+          <MapViewSwitcher
+            latitude={latitude}
+            longitude={longitude}
+            interactive={false}
             style={{ flex: 1 }}
-            mapStyle={MAP_STYLE}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            rotateEnabled={false}
-            pitchEnabled={false}
-          >
-            <Camera
-              centerCoordinate={[
-                longitude ?? DEFAULT_COORDS.longitude,
-                latitude ?? DEFAULT_COORDS.latitude,
-              ]}
-              zoomLevel={15}
-              animationDuration={0}
-              maxZoomLevel={19}
-            />
-
-            {hasApartmentCoords && (
-              <ShapeSource
-                id='pin-source'
-                shape={{
-                  type: 'Feature',
-                  geometry: {
-                    type: 'Point',
-                    coordinates: [longitude as number, latitude as number],
-                  },
-                  properties: {},
-                }}
-              >
-                <CircleLayer
-                  id='pin-ring'
-                  style={{
-                    circleRadius: 10,
-                    circleColor: '#ffffff',
-                  }}
-                />
-                <CircleLayer
-                  id='pin-dot'
-                  style={{
-                    circleRadius: 7,
-                    circleColor: colors.primary,
-                  }}
-                />
-              </ShapeSource>
-            )}
-          </MapView>
+          />
         </View>
 
         <Button

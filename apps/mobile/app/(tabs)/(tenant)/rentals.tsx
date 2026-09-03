@@ -30,6 +30,8 @@ import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
+import { usePayments } from '@/hooks/payments';
+import { paidAmountForPeriod, resolvePaymentPeriod } from '@/service/payments/paymentService';
 
 import { Button, Separator } from 'heroui-native';
 
@@ -90,11 +92,12 @@ export default function Rentals() {
     apartmentId: tenancy?.apartment.id,
   });
   const { refreshing: applicationsRefreshing, refetch: refetchApplications } = useTenantApplications();
+  const paymentsQuery = usePayments(tenancy?.id ?? null);
 
   const loading = tenancyLoading;
   const refreshing = tenancyRefreshing || applicationsRefreshing;
   const onRefresh = async () => {
-    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications()]);
+    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications(), paymentsQuery.refetch()]);
   };
 
   const handleRequestMaintenance = () => {
@@ -145,8 +148,20 @@ export default function Rentals() {
     const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
-    const paymentPeriodDate = currentPayment?.period_start ?? new Date().toISOString();
-    const paymentStatus = currentPayment ? mapPaymentStatus(currentPayment.status) : 'Pending';
+    const period = resolvePaymentPeriod(
+      currentPayment?.period_start ?? null,
+      currentPayment?.period_end ?? null,
+      currentPayment?.due_date ?? null,
+    );
+    const paymentPeriodDate = period.periodStart;
+    const isPeriodFullyPaid =
+      monthlyRent > 0 &&
+      paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent;
+    const paymentStatus: 'Pending' | 'Paid' = isPeriodFullyPaid
+      ? 'Paid'
+      : currentPayment?.period_start === period.periodStart && currentPayment?.status === 'paid'
+        ? 'Paid'
+        : 'Pending';
 
     const landlordFullName = formatFullName(landlord!);
     const address = formatAddress(apartment);
