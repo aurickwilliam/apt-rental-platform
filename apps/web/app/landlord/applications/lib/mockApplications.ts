@@ -1,0 +1,415 @@
+export type DisplayStatus = "Applied" | "Approved" | "Rejected" | "Cancelled";
+
+export type MockLandlordApplication = {
+  id: string;
+  status: DisplayStatus;
+  created_at: string;
+  rejected_reason: string | null;
+  apartment_id: string;
+  tenant_id: string;
+  occupation: string;
+  employer_name: string;
+  monthly_income: number;
+  employment_type: string;
+  prev_landlord_name: string | null;
+  prev_landlord_contact: string | null;
+  move_in_date: string;
+  no_occupants: number;
+  has_pets: boolean;
+  has_smoker: boolean;
+  need_parking: boolean;
+  message: string | null;
+  gov_id_url: string | null;
+  proof_of_income_url: string | null;
+  proof_of_billing_url: string | null;
+  nbi_clearance_url: string | null;
+  tenant_name: string;
+  tenant_avatar_url: string | null;
+  tenant_email: string;
+  tenant_city: string;
+  tenant_address: string;
+  tenant_mobile_number: string;
+  apartment_name: string;
+  apartment_city: string;
+  apartment_address: string;
+  monthly_rent: number;
+};
+
+export const CAMANAVA_CITIES = ["Caloocan", "Malabon", "Navotas", "Valenzuela"] as const;
+
+export const formatPeso = (v: number) => `₱${v.toLocaleString()}`;
+export const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+export function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+export function statusChipColor(s: DisplayStatus): "warning" | "success" | "danger" | "default" {
+  switch (s) {
+    case "Applied":
+      return "warning";
+    case "Approved":
+      return "success";
+    case "Rejected":
+      return "danger";
+    case "Cancelled":
+      return "default";
+  }
+}
+
+export const MOCK_APPLICATIONS: MockLandlordApplication[] = [
+  {
+    id: "app-01",
+    status: "Applied",
+    created_at: "2026-05-18T09:30:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-001",
+    tenant_id: "tnt-001",
+    occupation: "Software Engineer",
+    employer_name: "TechFlow Inc.",
+    monthly_income: 55000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Carlos Reyes",
+    prev_landlord_contact: "09171234567",
+    move_in_date: "2026-06-15",
+    no_occupants: 2,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: "Looking for a quiet place near Monumento. Non-smoker, no pets.",
+    gov_id_url: "https://picsum.photos/seed/govid01/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi01/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill01/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi01/600/400",
+    tenant_name: "Juan Dela Cruz",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=11",
+    tenant_email: "juan.delacruz@example.com",
+    tenant_city: "Caloocan",
+    tenant_address: "123 Maria Clara St., Caloocan, 1400",
+    tenant_mobile_number: "09171234567",
+    apartment_name: "Sunrise Residences 2BR",
+    apartment_city: "Caloocan",
+    apartment_address: "45 Samson Rd., Caloocan City, 1400",
+    monthly_rent: 18000,
+  },
+  {
+    id: "app-02",
+    status: "Applied",
+    created_at: "2026-05-19T14:00:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-002",
+    tenant_id: "tnt-002",
+    occupation: "Registered Nurse",
+    employer_name: "Caloocan Medical Center",
+    monthly_income: 42000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Luzviminda Santos",
+    prev_landlord_contact: "09181234567",
+    move_in_date: "2026-06-01",
+    no_occupants: 1,
+    has_pets: true,
+    has_smoker: false,
+    need_parking: false,
+    message: "I have a small cat, well-trained and vaccinated.",
+    gov_id_url: "https://picsum.photos/seed/govid02/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi02/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill02/600/400",
+    nbi_clearance_url: null,
+    tenant_name: "Maria Santos",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=5",
+    tenant_email: "maria.santos@example.com",
+    tenant_city: "Malabon",
+    tenant_address: "78 Gov. Pascual Ave., Malabon, 1470",
+    tenant_mobile_number: "09181234567",
+    apartment_name: "Bayview Studio Loft",
+    apartment_city: "Malabon",
+    apartment_address: "88 C. Arellano St., Malabon City, 1470",
+    monthly_rent: 12000,
+  },
+  {
+    id: "app-03",
+    status: "Applied",
+    created_at: "2026-05-20T10:15:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-003",
+    tenant_id: "tnt-003",
+    occupation: "Public School Teacher",
+    employer_name: "DepEd Caloocan",
+    monthly_income: 32000,
+    employment_type: "Full-Time",
+    prev_landlord_name: null,
+    prev_landlord_contact: null,
+    move_in_date: "2026-07-01",
+    no_occupants: 3,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: null,
+    gov_id_url: "https://picsum.photos/seed/govid03/600/400",
+    proof_of_income_url: null,
+    proof_of_billing_url: "https://picsum.photos/seed/bill03/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi03/600/400",
+    tenant_name: "Andres Villanueva",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=12",
+    tenant_email: "andres.v@example.com",
+    tenant_city: "Navotas",
+    tenant_address: "22 M. Naval St., Navotas, 1485",
+    tenant_mobile_number: "09191234567",
+    apartment_name: "Harbor Heights 1BR",
+    apartment_city: "Navotas",
+    apartment_address: "12 M. Naval St., Navotas City, 1485",
+    monthly_rent: 15000,
+  },
+  {
+    id: "app-04",
+    status: "Applied",
+    created_at: "2026-05-21T08:45:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-004",
+    tenant_id: "tnt-004",
+    occupation: "Graphic Designer",
+    employer_name: "Freelance",
+    monthly_income: 38000,
+    employment_type: "Self-Employed",
+    prev_landlord_name: "Ramon Garcia",
+    prev_landlord_contact: "09201234567",
+    move_in_date: "2026-06-20",
+    no_occupants: 2,
+    has_pets: false,
+    has_smoker: true,
+    need_parking: false,
+    message: "Work from home, need stable internet area.",
+    gov_id_url: "https://picsum.photos/seed/govid04/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi04/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill04/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi04/600/400",
+    tenant_name: "Elena Ramirez",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=9",
+    tenant_email: "elena.ramirez@example.com",
+    tenant_city: "Valenzuela",
+    tenant_address: "56 MacArthur Hwy, Valenzuela, 1440",
+    tenant_mobile_number: "09201234567",
+    apartment_name: "Casa Valenzuela 2BR",
+    apartment_city: "Valenzuela",
+    apartment_address: "56 MacArthur Hwy, Valenzuela City, 1440",
+    monthly_rent: 22000,
+  },
+  {
+    id: "app-05",
+    status: "Approved",
+    created_at: "2026-05-10T11:00:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-001",
+    tenant_id: "tnt-005",
+    occupation: "Call Center Agent",
+    employer_name: "Concentrix",
+    monthly_income: 30000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Teresa Lim",
+    prev_landlord_contact: "09151234567",
+    move_in_date: "2026-06-10",
+    no_occupants: 1,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: "Ready to move ASAP.",
+    gov_id_url: "https://picsum.photos/seed/govid05/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi05/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill05/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi05/600/400",
+    tenant_name: "Carlo Mendoza",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=15",
+    tenant_email: "carlo.mendoza@example.com",
+    tenant_city: "Caloocan",
+    tenant_address: "9 Rizal Ave., Caloocan, 1400",
+    tenant_mobile_number: "09151234567",
+    apartment_name: "Sunrise Residences 2BR",
+    apartment_city: "Caloocan",
+    apartment_address: "45 Samson Rd., Caloocan City, 1400",
+    monthly_rent: 18000,
+  },
+  {
+    id: "app-06",
+    status: "Approved",
+    created_at: "2026-05-12T09:00:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-005",
+    tenant_id: "tnt-006",
+    occupation: "Store Manager",
+    employer_name: "SM Valenzuela",
+    monthly_income: 40000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Nora Villanueva",
+    prev_landlord_contact: "09161234567",
+    move_in_date: "2026-06-25",
+    no_occupants: 4,
+    has_pets: true,
+    has_smoker: false,
+    need_parking: true,
+    message: "Family of 4, quiet and responsible.",
+    gov_id_url: "https://picsum.photos/seed/govid06/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi06/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill06/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi06/600/400",
+    tenant_name: "Sofia Reyes",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=32",
+    tenant_email: "sofia.reyes@example.com",
+    tenant_city: "Valenzuela",
+    tenant_address: "12 Karuhatan Rd., Valenzuela, 1440",
+    tenant_mobile_number: "09161234567",
+    apartment_name: "Metro North 3BR Family",
+    apartment_city: "Valenzuela",
+    apartment_address: "12 Karuhatan Rd., Valenzuela City, 1440",
+    monthly_rent: 25000,
+  },
+  {
+    id: "app-07",
+    status: "Rejected",
+    created_at: "2026-05-08T16:20:00.000Z",
+    rejected_reason: "Incomplete proof of income document.",
+    apartment_id: "apt-002",
+    tenant_id: "tnt-007",
+    occupation: "Student",
+    employer_name: "—",
+    monthly_income: 0,
+    employment_type: "Student",
+    prev_landlord_name: null,
+    prev_landlord_contact: null,
+    move_in_date: "2026-06-05",
+    no_occupants: 1,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: false,
+    message: "Student tenant, guardian will co-sign.",
+    gov_id_url: "https://picsum.photos/seed/govid07/600/400",
+    proof_of_income_url: null,
+    proof_of_billing_url: "https://picsum.photos/seed/bill07/600/400",
+    nbi_clearance_url: null,
+    tenant_name: "Luis Cruz",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=33",
+    tenant_email: "luis.cruz@example.com",
+    tenant_city: "Malabon",
+    tenant_address: "5 Rivera St., Malabon, 1470",
+    tenant_mobile_number: "09171230001",
+    apartment_name: "Bayview Studio Loft",
+    apartment_city: "Malabon",
+    apartment_address: "88 C. Arellano St., Malabon City, 1470",
+    monthly_rent: 12000,
+  },
+  {
+    id: "app-08",
+    status: "Cancelled",
+    created_at: "2026-05-14T13:30:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-003",
+    tenant_id: "tnt-008",
+    occupation: "Delivery Rider",
+    employer_name: "GrabExpress",
+    monthly_income: 28000,
+    employment_type: "Self-Employed",
+    prev_landlord_name: "Jose Fernandez",
+    prev_landlord_contact: "09221234567",
+    move_in_date: "2026-06-18",
+    no_occupants: 2,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: "Cancelled — found another unit.",
+    gov_id_url: "https://picsum.photos/seed/govid08/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi08/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill08/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi08/600/400",
+    tenant_name: "Grace Lim",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=26",
+    tenant_email: "grace.lim@example.com",
+    tenant_city: "Navotas",
+    tenant_address: "31 Daanghari St., Navotas, 1485",
+    tenant_mobile_number: "09221234567",
+    apartment_name: "Harbor Heights 1BR",
+    apartment_city: "Navotas",
+    apartment_address: "12 M. Naval St., Navotas City, 1485",
+    monthly_rent: 15000,
+  },
+  {
+    id: "app-09",
+    status: "Approved",
+    created_at: "2026-05-16T10:00:00.000Z",
+    rejected_reason: null,
+    apartment_id: "apt-006",
+    tenant_id: "tnt-009",
+    occupation: "HR Specialist",
+    employer_name: "Valenzuela City Hall",
+    monthly_income: 45000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Minda Castro",
+    prev_landlord_contact: "09192234567",
+    move_in_date: "2026-07-05",
+    no_occupants: 2,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: "Couple, both employed full-time.",
+    gov_id_url: "https://picsum.photos/seed/govid09/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi09/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill09/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi09/600/400",
+    tenant_name: "Paolo Rivera",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=18",
+    tenant_email: "paolo.rivera@example.com",
+    tenant_city: "Valenzuela",
+    tenant_address: "8 Paso de Blas, Valenzuela, 1440",
+    tenant_mobile_number: "09192234567",
+    apartment_name: "Garden Courtyard 1BR",
+    apartment_city: "Valenzuela",
+    apartment_address: "8 Paso de Blas, Valenzuela City, 1440",
+    monthly_rent: 16000,
+  },
+  {
+    id: "app-10",
+    status: "Rejected",
+    created_at: "2026-05-09T15:40:00.000Z",
+    rejected_reason: "Move-in date too early, unit not yet available.",
+    apartment_id: "apt-004",
+    tenant_id: "tnt-010",
+    occupation: "BPO Team Lead",
+    employer_name: "Teleperformance",
+    monthly_income: 60000,
+    employment_type: "Full-Time",
+    prev_landlord_name: "Alfredo Gomez",
+    prev_landlord_contact: "09301234567",
+    move_in_date: "2026-05-25",
+    no_occupants: 1,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: true,
+    message: "Can move within 1 week if approved.",
+    gov_id_url: "https://picsum.photos/seed/govid10/600/400",
+    proof_of_income_url: "https://picsum.photos/seed/poi10/600/400",
+    proof_of_billing_url: "https://picsum.photos/seed/bill10/600/400",
+    nbi_clearance_url: "https://picsum.photos/seed/nbi10/600/400",
+    tenant_name: "Danica Torres",
+    tenant_avatar_url: "https://i.pravatar.cc/150?img=16",
+    tenant_email: "danica.torres@example.com",
+    tenant_city: "Caloocan",
+    tenant_address: "19 10th Ave., Caloocan, 1406",
+    tenant_mobile_number: "09301234567",
+    apartment_name: "Casa Valenzuela 2BR",
+    apartment_city: "Valenzuela",
+    apartment_address: "56 MacArthur Hwy, Valenzuela City, 1440",
+    monthly_rent: 22000,
+  },
+];
+
+export function getApplicationById(id: string) {
+  return MOCK_APPLICATIONS.find((a) => a.id === id) ?? null;
+}

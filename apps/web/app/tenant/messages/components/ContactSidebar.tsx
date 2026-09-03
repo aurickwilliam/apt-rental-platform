@@ -13,10 +13,10 @@ interface ContactSidebarProps {
 function SectionSeparator({ title }: { title: string }) {
   return (
     <div className="px-4 py-3 flex flex-col gap-1">
-      <span className={`text-base font-medium ${title === "My Landlord" ? "text-primary" : "text-gray-500"}`}>
+      <span className={`text-base font-medium ${title === "My Landlord" ? "text-primary" : "text-muted-foreground"}`}>
         {title}
       </span>
-      <div className="h-1 rounded-full bg-gray-200" />
+      <div className="h-1 rounded-full bg-border" />
     </div>
   );
 }
@@ -35,9 +35,9 @@ export default function ContactSidebar({
       <div
         key={contact.conversationKey}
         onClick={() => onSelectContact(contact)}
-        className={`p-4 cursor-pointer border-b border-gray-100 hover:bg-gray-100 transition-colors flex items-center gap-3 border-l-4 ${
+        className={`p-4 cursor-pointer border-b border-border/50 hover:bg-accent transition-colors flex items-center gap-3 border-l-4 ${
           isActive
-            ? "bg-blue-50/50 hover:bg-blue-50/50 border-l-blue-600"
+            ? "bg-primary/10 hover:bg-primary/10 border-l-primary"
             : "border-l-transparent"
         }`}
       >
@@ -56,7 +56,7 @@ export default function ContactSidebar({
           </Avatar>
           
           {showUnreadBadge && (
-            <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-white bg-red-500 text-white text-[10px] font-semibold leading-none flex items-center justify-center">
+            <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-card bg-destructive text-destructive-foreground text-[10px] font-semibold leading-none flex items-center justify-center">
               {unreadCountLabel}
             </span>
           )}
@@ -64,17 +64,17 @@ export default function ContactSidebar({
 
         {/* Contact Info */}
         <div className="flex-1 overflow-hidden">
-          <h3 className="font-semibold text-sm text-gray-800 truncate">{contact.name}</h3>
-          <p className="text-xs text-gray-500 truncate">{contact.apartment}</p>
+          <h3 className="font-semibold text-sm text-foreground truncate">{contact.name}</h3>
+          <p className="text-xs text-muted-foreground truncate">{contact.apartment}</p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="flex w-1/3 min-h-0 min-w-[300px] max-w-[400px] flex-col border-r border-gray-200 bg-white">
-      <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-semibold text-secondary">Messages</h1>
+    <div className="flex w-1/3 min-h-0 min-w-[300px] max-w-[400px] flex-col border-r border-border bg-card">
+      <div className="p-4 border-b border-border">
+        <p className="text-xs text-muted-foreground">Conversations</p>
       </div>
 
       <ScrollShadow
@@ -90,7 +90,7 @@ export default function ContactSidebar({
 
         <SectionSeparator title="Past Inquiries" />
         {pastInquiries.length === 0 ? (
-          <div className="px-8 pb-8 text-center text-gray-500 text-sm">
+          <div className="px-8 pb-8 text-center text-muted-foreground text-sm">
             No past inquiries yet.
           </div>
         ) : (

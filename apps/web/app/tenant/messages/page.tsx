@@ -132,13 +132,13 @@ export default async function MessagesPage() {
   }, []);
 
   return (
-    <section className="h-[calc(100svh-var(--navbar-height,4rem))] overflow-hidden">
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
       <MessagesClient
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}
         currentUserId={tenantId}
       />
-    </section>
+    </div>
   );
 }
   

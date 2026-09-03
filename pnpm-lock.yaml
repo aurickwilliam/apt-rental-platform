@@ -362,10 +362,10 @@ importers:
   apps/web:
     dependencies:
       '@heroui/react':
-        specifier: ^3.2.2
+        specifier: ^3.2.4
         version: 3.2.4(@react-aria/i18n@3.13.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(@react-aria/ssr@3.10.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(@react-aria/utils@3.34.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(@react-spectrum/provider@3.11.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-aria-components@1.20.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react-aria@3.51.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(tailwindcss@4.3.3)
       '@heroui/styles':
-        specifier: ^3.2.2
+        specifier: ^3.2.4
         version: 3.2.4(tailwind-merge@3.6.0)(tailwindcss@4.3.3)
       '@internationalized/date':
         specifier: ^3.12.0
@@ -382,6 +382,12 @@ importers:
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@supabase/ssr':
+        specifier: ^0.9.0
+        version: 0.9.0(@supabase/supabase-js@2.112.3)
+      '@supabase/supabase-js':
+        specifier: ^2.97.0
+        version: 2.112.3
       '@tabler/icons-react':
         specifier: ^3.38.0
         version: 3.46.0(react@19.2.1)
@@ -4760,6 +4766,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'

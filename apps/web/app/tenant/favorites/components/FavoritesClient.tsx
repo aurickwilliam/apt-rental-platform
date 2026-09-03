@@ -102,16 +102,16 @@ export default function FavoritesClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs text-default-400 uppercase tracking-widest">Favorites</p>
-          <h1 className="text-2xl font-semibold text-foreground">Saved apartments</h1>
-        </div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? "Loading…" : `${apartments.length} saved ${apartments.length === 1 ? "apartment" : "apartments"}`}
+        </p>
         <div className="flex items-center gap-2">
           <Button
             isIconOnly
             variant={viewMode === "grid" ? "primary" : "ghost"}
             onPress={() => setViewMode("grid")}
+            aria-label="Grid view"
           >
             <LayoutGrid size={16} />
           </Button>
@@ -119,6 +119,7 @@ export default function FavoritesClient() {
             isIconOnly
             variant={viewMode === "list" ? "primary" : "ghost"}
             onPress={() => setViewMode("list")}
+            aria-label="List view"
           >
             <LayoutList size={16} />
           </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button, TextField, Label, Input, FieldError, TextArea, Separator, Select, ListBox, NumberField } from "@heroui/react";
 import { toast } from "@heroui/react";
@@ -8,7 +8,7 @@ import { getApplications } from "@/app/tenant/applications/lib/application-store
 import { saveVisitRequest, getVisitRequest } from "@/app/tenant/applications/lib/visit-store";
 import { ArrowLeft } from "lucide-react";
 
-export default function RequestVisitPage() {
+function RequestVisitPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const applicationId = searchParams.get("applicationId") ?? "";
@@ -161,5 +161,13 @@ export default function RequestVisitPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function RequestVisitPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-4 py-6">Loading...</div>}>
+      <RequestVisitPageInner />
+    </Suspense>
   );
 }

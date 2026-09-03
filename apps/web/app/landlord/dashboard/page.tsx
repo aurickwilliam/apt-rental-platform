@@ -46,17 +46,17 @@ const RENT_COLLECTION = [
 
 // --- Chart Configs ---
 const revenueConfig = {
-  revenue: { label: "Revenue", color: COLORS.primary },
+  revenue: { label: "Revenue", color: COLORS.light.primary },
 } satisfies ChartConfig;
 
 const occupancyConfig = {
-  rate: { label: "Occupancy %", color: COLORS.primary },
+  rate: { label: "Occupancy %", color: COLORS.light.primary },
 } satisfies ChartConfig;
 
 const rentConfig = {
-  paid:    { label: "Paid",    color: COLORS.primary },
-  pending: { label: "Pending", color: COLORS.secondary },
-  overdue: { label: "Overdue", color: COLORS.redHead },
+  paid:    { label: "Paid",    color: COLORS.light.primary },
+  pending: { label: "Pending", color: COLORS.light.secondary },
+  overdue: { label: "Overdue", color: COLORS.light.danger },
 } satisfies ChartConfig;
 
 // --- Stat Cards ---
