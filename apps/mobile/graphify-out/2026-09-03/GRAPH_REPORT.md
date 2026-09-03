@@ -1,16 +1,16 @@
 # Graph Report - mobile  (2026-09-03)
 
 ## Corpus Check
-- 460 files · ~644,975 words
+- 460 files · ~645,062 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2056 nodes · 4937 edges · 178 communities (109 shown, 69 thin omitted)
+- 2056 nodes · 4937 edges · 180 communities (111 shown, 69 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 10 edges (avg confidence: 0.59)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `31faa133`
+- Built from commit: `b2e86f00`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -98,7 +98,7 @@
 - third-process.tsx
 - useVisitRequestStatusStyles
 - tenant-applications/[applicationId].tsx
-- NotificationToast.tsx
+- useNotifications.ts
 - payments/index.ts
 - web
 - metro.config.js
@@ -116,7 +116,7 @@
 - expo-document-picker
 - expo-file-system
 - expo-font
-- emoji-regex-xs
+- notification-toast.tsx
 - expo-image
 - expo-image-manipulator
 - expo-image-picker
@@ -186,6 +186,8 @@
 - useTenancy.test.tsx
 - config
 - extra
+- useSearchLogic.test.tsx
+- emoji-regex-xs
 
 ## God Nodes (most connected - your core abstractions)
 1. `useColors()` - 340 edges
@@ -212,12 +214,12 @@
   app/apartment/[apartmentId]/apply/third-process.tsx → stores/useApplicationFormStore.ts
 
 ## Import Cycles
-- 2-file cycle: `hooks/applications/index.ts -> service/applications/tenantApplicationsService.ts -> hooks/applications/index.ts`
 - 2-file cycle: `hooks/applications/index.ts -> hooks/applications/useApplicationActions.ts -> hooks/applications/index.ts`
+- 2-file cycle: `hooks/applications/index.ts -> service/applications/tenantApplicationsService.ts -> hooks/applications/index.ts`
 - 3-file cycle: `hooks/applications/index.ts -> hooks/applications/useTenantApplications.ts -> service/applications/tenantApplicationsService.ts -> hooks/applications/index.ts`
 - 3-file cycle: `hooks/payments/index.ts -> hooks/payments/usePayments.ts -> service/payments/paymentService.ts -> hooks/payments/index.ts`
 
-## Communities (178 total, 69 thin omitted)
+## Communities (180 total, 69 thin omitted)
 
 ### Community 0 - "apartments/index.ts"
 Cohesion: 0.07
@@ -248,8 +250,8 @@ Cohesion: 0.11
 Nodes (26): Chat(), getConversationsQueryKey(), NewChatRow, createWrapper(), mockChannelFn, mockFetchConversations, mockGetChannels, mockRemoveChannel (+18 more)
 
 ### Community 7 - "search.tsx"
-Cohesion: 0.12
-Nodes (17): ApartmentsList(), DEFAULT_FILTERS, FilterBottomSheet(), FilterState, Props, ROOM_OPTS, SearchFiltersBar(), SearchFiltersBarProps (+9 more)
+Cohesion: 0.18
+Nodes (11): DEFAULT_FILTERS, FilterBottomSheet(), FilterState, Props, ROOM_OPTS, SearchFiltersBar(), SearchFiltersBarProps, SearchHeader() (+3 more)
 
 ### Community 8 - "fifth-step.tsx"
 Cohesion: 0.18
@@ -312,8 +314,8 @@ Cohesion: 0.12
 Nodes (18): ATTACHMENT_OPTIONS, ChatBox(), ChatBoxProps, StagedAsset, ChatEmptyState(), ChatEmptyStateProps, ChatHeader(), ChatHeaderProps (+10 more)
 
 ### Community 23 - "NotificationScreen.tsx"
-Cohesion: 0.17
-Nodes (16): NotificationCardSkeleton(), NotificationFilter, NotificationList(), NotificationListProps, NotificationScreen(), NotificationScreenProps, useNotificationActions(), useNotificationRealtime() (+8 more)
+Cohesion: 0.18
+Nodes (10): NotificationCardSkeleton(), NotificationFilter, NotificationList(), NotificationListProps, NotificationScreen(), NotificationScreenProps, useNotificationActions(), getNotificationsQueryKey() (+2 more)
 
 ### Community 24 - "paymongoService.ts"
 Cohesion: 0.17
@@ -324,8 +326,8 @@ Cohesion: 0.09
 Nodes (22): ./assets/*, ./components/*, ./constants/*, expo-env.d.ts, expo/tsconfig.base, .expo/types/**/*.ts, ./hooks/*, ../../packages/ui/* (+14 more)
 
 ### Community 26 - "notifications/index.ts"
-Cohesion: 0.30
-Nodes (12): NotificationCard(), NotificationCardProps, NotificationCardType, NotificationSettingsScreen(), NotificationToastContent(), getNotificationTypeIcon(), iconMap, isRentDueNotification() (+4 more)
+Cohesion: 0.23
+Nodes (16): NotificationCard(), NotificationCardProps, NotificationCardType, NotificationSettingsScreen(), NotificationToastContent(), NotificationToastContentProps, NotificationToastOptions, TOAST_VARIANT_BY_TYPE (+8 more)
 
 ### Community 27 - "PaymentMethodSelector.tsx"
 Cohesion: 0.13
@@ -384,8 +386,8 @@ Cohesion: 0.25
 Nodes (6): plugins, expo-font, expo-video, expo-web-browser, @maplibre/maplibre-react-native, @react-native-community/datetimepicker
 
 ### Community 41 - "favorites.tsx"
-Cohesion: 0.21
-Nodes (12): ApartmentsListProps, Props, SearchGridSkeleton(), SearchSection(), SearchSectionSkeleton(), Props, SearchSectionsList(), SearchSection (+4 more)
+Cohesion: 0.16
+Nodes (15): ApartmentsList(), ApartmentsListProps, Props, SearchGridSkeleton(), SearchSection(), SearchSectionSkeleton(), Props, SearchSectionsList() (+7 more)
 
 ### Community 42 - "history/index.tsx"
 Cohesion: 0.17
@@ -469,7 +471,7 @@ Nodes (11): FieldErrors, FirstProcess(), RateApartment(), FifthStep(), Index(), 
 
 ### Community 62 - "useInAppNotificationBanner.tsx"
 Cohesion: 0.26
-Nodes (8): getOpenChatConversationKey(), shouldSuppressChatToast(), useNotificationTapHandler(), markNotificationRead(), buildNotificationDeepLink(), NotificationData, parseConversationKey(), Role
+Nodes (7): getOpenChatConversationKey(), shouldSuppressChatToast(), useNotificationTapHandler(), buildNotificationDeepLink(), NotificationData, parseConversationKey(), Role
 
 ### Community 63 - "onboarding.tsx"
 Cohesion: 0.21
@@ -547,9 +549,9 @@ Nodes (8): VisitRequestCard(), VisitRequestCardProps, Props, VisitRequestHistory
 Cohesion: 0.20
 Nodes (11): getStatusStyle(), TenantApplicationDetails(), EmptyApplicationData(), DocumentRow(), DocumentRowProps, getExtension(), IMAGE_EXTENSIONS, RejectDialog() (+3 more)
 
-### Community 83 - "NotificationToast.tsx"
-Cohesion: 0.16
-Nodes (15): MOCK_TOASTS, MockRow, MockToast, NotificationToastDevScreen(), NotificationToastContentProps, NotificationToastOptions, showNotificationToast(), TOAST_VARIANT_BY_TYPE (+7 more)
+### Community 83 - "useNotifications.ts"
+Cohesion: 0.26
+Nodes (13): attach(), ChannelEntry, detach(), handleEvent(), NotificationRealtimeCallbacks, registry, useNotificationRealtime(), getErrorMessage() (+5 more)
 
 ### Community 84 - "payments/index.ts"
 Cohesion: 0.16
@@ -582,6 +584,10 @@ Nodes (5): Props, VisitRequest, VisitRequestCard(), ConfirmDialog(), Props
 ### Community 100 - "[sectionId].tsx"
 Cohesion: 0.33
 Nodes (7): SectionDetail(), scorePreferences(), SECTION_DEFS, SectionId, transformApartments(), useSearchSections(), UseSearchSectionsParams
+
+### Community 105 - "notification-toast.tsx"
+Cohesion: 0.40
+Nodes (5): MOCK_TOASTS, MockRow, MockToast, NotificationToastDevScreen(), showNotificationToast()
 
 ### Community 110 - "second-step.tsx"
 Cohesion: 0.36
@@ -627,6 +633,10 @@ Nodes (3): config, googleMaps, apiKey
 Cohesion: 0.67
 Nodes (3): projectId, extra, eas
 
+### Community 178 - "useSearchLogic.test.tsx"
+Cohesion: 0.50
+Nodes (3): mockFrom, mockIsFavorite, mockToggleFavorite
+
 ## Knowledge Gaps
 - **646 isolated node(s):** `name`, `slug`, `version`, `orientation`, `icon` (+641 more)
   These have ≤1 connection - possible missing edges or undocumented components.
@@ -635,7 +645,7 @@ Nodes (3): projectId, extra, eas
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useColors()` connect `useColors` to `apartments/index.ts`, `ScreenWrapper.tsx`, `map-search.tsx`, `[landlordId].tsx`, `ProfitTrendCard.tsx`, `useTheme.ts`, `useConversations.test.tsx`, `search.tsx`, `fifth-step.tsx`, `ErrorDialog.tsx`, `expo-router`, `useFavorites`, `images.ts`, `ai-search.tsx`, `usePersonalizationStore.ts`, `notificationService.ts`, `useVerificationStore.ts`, `[conversationId].tsx`, `notifications/index.ts`, `PaymentMethodSelector.tsx`, `payment-history/[paymentId].tsx`, `landlordService.ts`, `tenant-applications/index.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `upload-id.tsx`, `live-capture.tsx`, `useTenancy`, `units.tsx`, `edit-profile.tsx`, `favorites.tsx`, `history/index.tsx`, `payment/index.tsx`, `third-step.tsx`, `ProfitByPropertyCard.tsx`, `app/_layout.tsx`, `document-id/index.tsx`, `review-information.tsx`, `dashboard.tsx`, `maintenance-requests/index.ts`, `RescheduleSheet.tsx`, `useProfile`, `visit-requests/index.tsx`, `ChatBubble.tsx`, `useUserPreferences.ts`, `pending.tsx`, `CustomTabBar.tsx`, `TabBar.tsx`, `rentals.tsx`, `visitRequests/index.ts`, `applications/index.ts`, `sign-in.tsx`, `UploadDocumentField.tsx`, `third-process.tsx`, `useVisitRequestStatusStyles`, `tenant-applications/[applicationId].tsx`, `NotificationToast.tsx`, `payments/index.ts`, `applications/[applicationId].tsx`, `[sectionId].tsx`, `second-step.tsx`, `ApplicationList.tsx`?**
+- **Why does `useColors()` connect `useColors` to `apartments/index.ts`, `ScreenWrapper.tsx`, `map-search.tsx`, `[landlordId].tsx`, `ProfitTrendCard.tsx`, `useTheme.ts`, `useConversations.test.tsx`, `search.tsx`, `fifth-step.tsx`, `ErrorDialog.tsx`, `expo-router`, `useFavorites`, `images.ts`, `ai-search.tsx`, `usePersonalizationStore.ts`, `notificationService.ts`, `useVerificationStore.ts`, `[conversationId].tsx`, `notifications/index.ts`, `PaymentMethodSelector.tsx`, `payment-history/[paymentId].tsx`, `landlordService.ts`, `tenant-applications/index.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `upload-id.tsx`, `live-capture.tsx`, `useTenancy`, `units.tsx`, `edit-profile.tsx`, `favorites.tsx`, `history/index.tsx`, `payment/index.tsx`, `third-step.tsx`, `ProfitByPropertyCard.tsx`, `app/_layout.tsx`, `document-id/index.tsx`, `review-information.tsx`, `dashboard.tsx`, `maintenance-requests/index.ts`, `RescheduleSheet.tsx`, `useProfile`, `visit-requests/index.tsx`, `ChatBubble.tsx`, `useUserPreferences.ts`, `pending.tsx`, `CustomTabBar.tsx`, `TabBar.tsx`, `rentals.tsx`, `visitRequests/index.ts`, `applications/index.ts`, `sign-in.tsx`, `UploadDocumentField.tsx`, `third-process.tsx`, `useVisitRequestStatusStyles`, `tenant-applications/[applicationId].tsx`, `payments/index.ts`, `applications/[applicationId].tsx`, `[sectionId].tsx`, `second-step.tsx`, `ApplicationList.tsx`?**
   _High betweenness centrality (0.229) - this node is a cross-community bridge._
 - **Why does `expo-router` connect `expo-router` to `apartments/index.ts`, `ScreenWrapper.tsx`, `map-search.tsx`, `[landlordId].tsx`, `useTheme.ts`, `search.tsx`, `fifth-step.tsx`, `ErrorDialog.tsx`, `images.ts`, `usePersonalizationStore.ts`, `[conversationId].tsx`, `NotificationScreen.tsx`, `paymongoService.ts`, `payment-history/[paymentId].tsx`, `useColors`, `tenant-applications/index.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `upload-id.tsx`, `live-capture.tsx`, `units.tsx`, `useFrameQualityCheck.ts`, `edit-profile.tsx`, `request-visit.tsx`, `plugins`, `favorites.tsx`, `history/index.tsx`, `payment/index.tsx`, `third-step.tsx`, `edit-main.tsx`, `app/_layout.tsx`, `document-id/index.tsx`, `review-information.tsx`, `dashboard.tsx`, `maintenance-requests/index.ts`, `useProfile`, `useInAppNotificationBanner.tsx`, `onboarding.tsx`, `visit-requests/index.tsx`, `pending.tsx`, `CustomTabBar.tsx`, `rentals.tsx`, `applications/index.ts`, `sign-in.tsx`, `third-process.tsx`, `tenant-applications/[applicationId].tsx`, `payments/index.ts`, `playground.tsx`, `applications/[applicationId].tsx`, `[sectionId].tsx`, `second-step.tsx`, `ApplicationList.tsx`?**
   _High betweenness centrality (0.136) - this node is a cross-community bridge._

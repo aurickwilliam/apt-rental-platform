@@ -217,6 +217,7 @@ export default function Rentals() {
             periodYear={formatDate(paymentPeriodDate, "year")}
             status={paymentStatus}
             totalRent={monthlyRent}
+            dueDate={formatDate(period.dueDate, "short")}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
           />
