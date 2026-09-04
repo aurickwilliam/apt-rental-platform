@@ -20,14 +20,14 @@ function SectionHeader({ year, currentYear }: { year: string; currentYear: strin
     return (
       <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
         <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
-          <span className="text-sm font-semibold text-primary">This Year</span>
+          <span className="text-sm font-nunito font-semibold text-primary">This Year</span>
         </div>
       </div>
     );
   }
   return (
     <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
-      <span className="text-sm font-semibold text-primary/60">{year}</span>
+      <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
     </div>
   );
 }
@@ -43,7 +43,7 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
         <Card.Content className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+              <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                 {periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}{" "}
                 <span className="text-zinc-400 font-normal">• {formatDateShort(payment.date)}</span>
               </p>
@@ -51,7 +51,7 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
               <p className="text-xs text-zinc-400 mt-1">via {methodLabel(payment.method)}</p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
-              <span className="text-sm font-bold text-primary">{formatPesoDisplay(payment.amount)}</span>
+              <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(payment.amount)}</span>
               <Chip size="sm" variant="soft" color={color} className="text-[11px]">
                 {status}
               </Chip>
@@ -90,7 +90,7 @@ export default function TenantPaymentHistoryPage() {
     }
     const dir = filters.sort === "Newest" ? -1 : 1;
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
-  }, [filtered]);
+  }, [filtered, filters.sort]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -102,7 +102,7 @@ export default function TenantPaymentHistoryPage() {
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 <Banknote size={22} className="text-primary" /> Payment History
               </h1>
               <p className="text-sm text-zinc-500 mt-1">All rent payments — tap any row for the per-row receipt.</p>
@@ -142,7 +142,7 @@ export default function TenantPaymentHistoryPage() {
               <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
                 <Receipt size={32} className="text-primary" />
               </span>
-              <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
+              <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
               <p className="text-sm text-zinc-500 max-w-sm">Try adjusting your filters to see more results.</p>
               <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: [], sort: "Newest" })}>
                 Clear filters

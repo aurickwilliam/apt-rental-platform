@@ -23,9 +23,9 @@ export const MOCK_TENANCY: TenancyMock = {
   lease_end: "2026-06-14",
   monthly_rent: 12500,
   currentPeriod: {
-    period_start: "2026-03-01",
-    period_end: "2026-03-31",
-    due_date: "2026-03-05",
+    period_start: "2026-04-01",
+    period_end: "2026-04-30",
+    due_date: "2026-04-05",
   },
 };
 
@@ -172,7 +172,7 @@ export const PAYMENT_METHODS = [
   { key: "GCash", label: "GCash", tileSrc: "/payment-logos/gcash-big-logo.png", chipSrc: "/payment-logos/gcash-logo.png" },
   { key: "Maya", label: "Maya", tileSrc: "/payment-logos/maya-big-logo.jpg", chipSrc: "/payment-logos/maya-logo.png" },
   { key: "QRPh", label: "QRPh", tileSrc: "/payment-logos/qrph-logo.png", chipSrc: "/payment-logos/qrph-logo.png" },
-  { key: "Debit/Credit-Card", label: "Debit/Credit Card", tileSrc: "/payment-logos/visa-logo.png", chipSrc: "/payment-logos/visa-logo.png" },
+  { key: "Debit/Credit-Card", label: "Debit/Credit Card", tileSrcs: ["/payment-logos/visa-logo.png", "/payment-logos/mastercard-logo.png"], chipSrc: "/payment-logos/visa-logo.png" },
   { key: "Cash", label: "Cash", icon: "cash" as const },
 ] as const;
 

@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Avatar, Button, Card, Chip, Separator, Modal, Spinner } from "@heroui/react";
-import { Banknote, CalendarDays, House, MapPin, User, Receipt, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Avatar, Button, Card, Chip, Separator, Modal } from "@heroui/react";
+import { Banknote, CalendarDays, House, MapPin, User, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import { MOCK_PAYMENTS, MOCK_TENANCY } from "./constants";
@@ -13,7 +13,6 @@ import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
-import PaymentHistoryTable from "./components/PaymentHistoryTable";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
@@ -89,22 +88,15 @@ export default function TenantPaymentPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
         {/* Header */}
         <div className="flex flex-col gap-1">
+          <Link href="/tenant/my-rental" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 w-fit">
+            <ArrowRight size={12} className="rotate-180" /> Back to My Rental
+          </Link>
           <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
             <Banknote size={14} className="text-primary" /> Rent Payment
           </p>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
-              <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay — no backend required in this preview.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/tenant/payment/history" className="no-underline">
-                <Button variant="secondary" size="sm" className="rounded-full">
-                  <Receipt size={14} />
-                  View history
-                </Button>
-              </Link>
-            </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
+            <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay — no backend required in this preview.</p>
           </div>
         </div>
 
@@ -116,7 +108,7 @@ export default function TenantPaymentPage() {
                 <CheckCircle2 size={18} />
               </span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
+                <p className="text-sm font-nunito font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
                 <p className="text-xs text-green-700/80 dark:text-green-300/80">
                   Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
                 </p>
@@ -130,21 +122,21 @@ export default function TenantPaymentPage() {
           </Card>
         )}
 
-        {/* Main grid */}
-        <div className="grid gap-4 lg:grid-cols-3 items-start">
-          {/* Left: lease + method */}
-          <div className="lg:col-span-2 space-y-4">
+        {/* Main grid — row 1 top cards share equal height via items-stretch */}
+        <div className="grid gap-4 lg:grid-cols-3 items-stretch">
+          {/* Row 1, left: lease details */}
+          <div className="lg:col-span-2 h-full">
             {/* Apartment / lease card */}
-            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col">
               <Card.Header className="px-4 pt-4 pb-2">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  <House size={16} className="text-primary" /> {apartment.name}
+                <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                  <House size={18} className="text-primary" /> {apartment.name}
                 </h3>
-                <p className="text-xs text-zinc-500 flex items-center gap-1 mt-1">
-                  <MapPin size={12} /> {address}
+                <p className="text-sm text-zinc-500 flex items-center gap-1 mt-1">
+                  <MapPin size={14} /> {address}
                 </p>
               </Card.Header>
-              <Card.Content className="px-4 pb-4">
+              <Card.Content className="px-4 pb-4 flex-1 flex flex-col">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="flex items-center gap-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 p-3">
                     <span className="rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-2">
@@ -152,8 +144,8 @@ export default function TenantPaymentPage() {
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs text-zinc-500">Landlord</p>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
-                      <p className="text-xs text-zinc-500 truncate">{landlord.email}</p>
+                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
+                      <p className="text-sm text-zinc-500 truncate">{landlord.email}</p>
                     </div>
                     <Avatar size="sm" className="ml-auto hidden sm:flex">
                       <Avatar.Fallback className="bg-primary text-white text-xs">
@@ -165,21 +157,21 @@ export default function TenantPaymentPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-[11px] uppercase tracking-wider text-zinc-400">Lease Start</p>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={14} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_start)}
+                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease Start</p>
+                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
+                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_start)}
                       </p>
                     </div>
                     <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-[11px] uppercase tracking-wider text-zinc-400">Lease End</p>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={14} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_end)}
+                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease End</p>
+                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
+                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_end)}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2 mt-auto pt-3">
                   <Chip size="sm" variant="soft" color="success">
                     Active lease
                   </Chip>
@@ -192,7 +184,25 @@ export default function TenantPaymentPage() {
                 </div>
               </Card.Content>
             </Card>
+          </div>
 
+          {/* Row 1, right: payment summary (matches Details height, Pay inside) */}
+          <div className="h-full">
+            <PaymentSummaryCard
+              month={monthLabel}
+              year={yearLabel}
+              dueDate={period.due_date}
+              monthlyRent={monthlyRent}
+              className="h-full"
+              onPayPress={handlePayClick}
+              isProcessing={isProcessing}
+              isDisabled={isProcessing || isPeriodPaid}
+              activeMethod={activeMethod}
+            />
+          </div>
+
+          {/* Row 2: payment method (full width) */}
+          <div className="lg:col-span-3 space-y-4">
             {/* Payment method selector */}
             <PaymentMethodSelector
               onPaymentMethodChange={setActiveMethod}
@@ -221,42 +231,6 @@ export default function TenantPaymentPage() {
               </div>
             )}
           </div>
-
-          {/* Right: summary + history preview (sticky on desktop) */}
-          <div className="space-y-4 lg:sticky lg:top-20">
-            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.due_date} monthlyRent={monthlyRent} />
-
-            {/* Total + Pay bar — card variant for web (mobile uses sticky footer) */}
-            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
-              <Card.Content className="p-4 flex flex-row items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Total Rent Due</p>
-                  <p className="text-2xl font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
-                  {activeMethod && <p className="text-xs text-zinc-500 mt-1">Method: {activeMethod}</p>}
-                </div>
-                <Button onPress={handlePayClick} isDisabled={isProcessing || isPeriodPaid} className="rounded-full px-6">
-                  {isProcessing ? (
-                    <>
-                      <Spinner size="sm" color="current" /> Processing…
-                    </>
-                  ) : (
-                    "Pay now"
-                  )}
-                </Button>
-              </Card.Content>
-            </Card>
-
-            {/* Preview history */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Recent payments</h3>
-                <Link href="/tenant/payment/history" className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
-                  View all <ArrowRight size={12} />
-                </Link>
-              </div>
-              <PaymentHistoryTable payments={MOCK_PAYMENTS} limit={5} showHeader={false} />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -265,25 +239,25 @@ export default function TenantPaymentPage() {
         <Modal.Backdrop />
         <Modal.Container placement="center">
           <Modal.Dialog className="rounded-2xl">
-            <Modal.Header className="text-base font-semibold">Confirm payment</Modal.Header>
+            <Modal.Header className="text-base font-nunito font-semibold">Confirm payment</Modal.Header>
             <Modal.Body className="space-y-3">
               <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-500">Billing period</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">
                     {monthLabel} {yearLabel}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-500">Due date</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
+                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-500">Method</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
+                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
                 </div>
                 <Separator className="my-1" />
-                <div className="flex justify-between text-sm font-semibold">
+                <div className="flex justify-between text-sm font-nunito font-semibold">
                   <span>Total</span>
                   <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
                 </div>
@@ -312,7 +286,7 @@ export default function TenantPaymentPage() {
               <span className="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
                 <CheckCircle2 size={28} className="text-green-600" />
               </span>
-              <span className="text-base font-semibold text-green-700 dark:text-green-300">Payment Simulated</span>
+              <span className="text-base font-nunito font-semibold text-green-700 dark:text-green-300">Payment Simulated</span>
             </Modal.Header>
             <Modal.Body className="text-center space-y-2">
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -324,7 +298,7 @@ export default function TenantPaymentPage() {
               </p>
               <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 text-left">
                 <p className="text-xs text-zinc-500">Amount</p>
-                <p className="text-lg font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
+                <p className="text-lg font-nunito font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
               </div>
             </Modal.Body>
             <Modal.Footer className="gap-2 justify-center">

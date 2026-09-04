@@ -53,7 +53,7 @@ export default function PaymentMethodSelector({
   return (
     <div>
       <div className="mb-3">
-        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Choose Payment Method</h3>
+        <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100">Choose Payment Method</h3>
         <p className="text-sm text-zinc-500">Select how you&apos;d like to pay this month&apos;s rent.</p>
       </div>
 
@@ -61,7 +61,7 @@ export default function PaymentMethodSelector({
         <Card.Content className="p-4">
           {showSaved && (
             <>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Saved</p>
+              <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Saved</p>
               <div className="flex flex-wrap gap-2">
                 {SAVED_PAYMENT_METHODS.map((m) => (
                   <PaymentMethodButton
@@ -78,18 +78,18 @@ export default function PaymentMethodSelector({
             </>
           )}
 
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+          <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
             {showSaved ? "Or use a new method" : "Use a new method"}
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8 }}>
             {PAYMENT_METHODS.map((m) => {
               if (m.key === "Cash") {
                 return (
                   <PaymentMethodButton
                     key={m.key}
                     variant="tile"
-                    icon={<Banknote size={22} className="text-green-600" />}
+                    icon={<Banknote size={28} className="text-green-600" />}
                     label="Cash"
                     selected={isNewSelected("Cash")}
                     onPress={() => selectNew("Cash")}
@@ -100,8 +100,9 @@ export default function PaymentMethodSelector({
                 <PaymentMethodButton
                   key={m.key}
                   variant="tile"
-                  imageSrc={(m as { tileSrc: string }).tileSrc}
-                  label={m.key === "Debit/Credit-Card" ? "Debit/Credit Card" : m.label}
+                  imageSrc={"tileSrc" in m ? (m as { tileSrc: string }).tileSrc : undefined}
+                  imageSrcs={"tileSrcs" in m ? [...((m as { tileSrcs: readonly string[] }).tileSrcs)] : undefined}
+                  label={m.label}
                   selected={isNewSelected(m.key as PaymentMethod)}
                   onPress={() => selectNew(m.key as PaymentMethod)}
                 />

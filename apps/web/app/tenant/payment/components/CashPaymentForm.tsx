@@ -47,7 +47,7 @@ export default function CashPaymentForm({ paymentDate, onPaymentDateChange, erro
   return (
     <div className="mt-5">
       <Separator className="mb-5" />
-      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Cash Payment</h4>
+      <h4 className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">Cash Payment</h4>
       <p className="text-sm text-zinc-500 mt-1">Please prepare the exact amount in cash and bring it to the property.</p>
       <p className="text-xs text-zinc-500 mt-3">
         After you have made the cash payment, kindly fill out the Cash Payment Confirmation below to confirm.

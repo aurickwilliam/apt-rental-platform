@@ -23,14 +23,14 @@ export default function PaymentReceiptPage() {
             <ArrowLeft size={20} className="text-white" />
           </Button>
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center py-16">
-            <p className="text-white text-lg font-semibold">We could not find this payment.</p>
+            <p className="text-white text-lg font-nunito font-semibold">We could not find this payment.</p>
             <p className="text-white/70 text-sm">The receipt ID may be incorrect or the mock record was removed.</p>
             <div className="flex gap-2">
               <Link href="/tenant/payment/history" className="no-underline">
-                <Button className="bg-white text-primary rounded-full">Back to history</Button>
+                <Button className="bg-white text-primary rounded-full font-nunito">Back to history</Button>
               </Link>
               <Link href="/tenant/payment" className="no-underline">
-                <Button variant="ghost" className="bg-white/20 text-white rounded-full">
+                <Button variant="ghost" className="bg-white/20 text-white rounded-full font-nunito">
                   Go to payment
                 </Button>
               </Link>
@@ -64,7 +64,7 @@ export default function PaymentReceiptPage() {
             <ArrowLeft size={20} className="text-white" />
           </Button>
           <Link href="/tenant/payment/history" className="no-underline">
-            <Button variant="ghost" className="bg-white/20 text-white hover:bg-white/30 rounded-full text-xs">
+            <Button variant="ghost" className="bg-white/20 text-white hover:bg-white/30 rounded-full text-xs font-nunito">
               History
             </Button>
           </Link>
@@ -94,10 +94,10 @@ export default function PaymentReceiptPage() {
             <Card.Content className="p-4 flex flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-white/90">
                 <Banknote size={16} />
-                <span className="text-sm font-medium">Need help with this payment?</span>
+                <span className="text-sm font-nunito font-medium">Need help with this payment?</span>
               </div>
               <Link href="/tenant/messages" className="no-underline">
-                <Button size="sm" className="bg-white text-primary rounded-full">
+                <Button size="sm" className="bg-white text-primary rounded-full font-nunito">
                   Contact landlord
                 </Button>
               </Link>
@@ -107,7 +107,7 @@ export default function PaymentReceiptPage() {
 
         <div className="pb-2 flex justify-center">
           <Link href="/tenant/payment" className="no-underline">
-            <Button className="bg-white text-primary rounded-full">Back to payment</Button>
+            <Button className="bg-white text-primary rounded-full font-nunito">Back to payment</Button>
           </Link>
         </div>
       </div>

@@ -33,7 +33,7 @@ function Row({ label, value, highlight = false }: { label: string; value: string
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-zinc-500">{label}</span>
-      <span className={`text-sm font-semibold ${highlight ? "text-primary" : "text-zinc-900 dark:text-zinc-100"}`}>{value}</span>
+      <span className={`text-sm font-nunito font-semibold ${highlight ? "text-primary" : "text-zinc-900 dark:text-zinc-100"}`}>{value}</span>
     </div>
   );
 }
@@ -61,7 +61,7 @@ export default function ReceiptCard({
       <Card className="rounded-t-2xl rounded-b-none border border-zinc-200/80 dark:border-zinc-800 bg-white shadow-sm overflow-hidden">
         <Card.Header className="flex flex-col items-center justify-center px-6 pt-8 pb-2">
           <Icon size={48} className={meta.color} />
-          <h3 className={`mt-3 text-xl font-bold ${meta.color}`}>{meta.title}</h3>
+          <h3 className={`mt-3 text-xl font-nunito font-bold ${meta.color}`}>{meta.title}</h3>
         </Card.Header>
 
         <Card.Content className="px-6 pb-0">
@@ -85,11 +85,11 @@ export default function ReceiptCard({
         </Card.Content>
 
         <Card.Footer className="mt-6 mb-2 flex items-center justify-center gap-2 px-6 pb-4">
-          <Button variant="ghost" size="sm" onPress={onSave} className="gap-1.5 text-zinc-500 hover:text-zinc-700">
+          <Button variant="ghost" size="sm" onPress={onSave} className="gap-1.5 font-nunito text-zinc-500 hover:text-zinc-700">
             <Download size={14} />
             Save to Photos
           </Button>
-          <Button variant="ghost" size="sm" onPress={onShare} className="gap-1.5 text-zinc-500 hover:text-zinc-700">
+          <Button variant="ghost" size="sm" onPress={onShare} className="gap-1.5 font-nunito text-zinc-500 hover:text-zinc-700">
             <Share2 size={14} />
             Share Receipt
           </Button>

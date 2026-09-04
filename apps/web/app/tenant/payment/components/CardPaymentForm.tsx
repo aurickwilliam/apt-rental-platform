@@ -26,7 +26,7 @@ export default function CardPaymentForm({ value, onChange, errors }: CardPayment
   return (
     <div className="mt-5">
       <Separator className="mb-5" />
-      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Card Details</h4>
+      <h4 className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Card Details</h4>
 
       <div className="grid gap-3">
         <TextField isRequired isInvalid={cardNumberInvalid} className="w-full">

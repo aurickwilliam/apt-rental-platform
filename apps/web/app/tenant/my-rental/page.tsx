@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
 import {
   CreditCard,
@@ -17,7 +17,7 @@ import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 
-import { DEFAULT_PAYMENT_BREAKDOWN, MAINTENANCE_ITEMS } from "./constants";
+import { MAINTENANCE_ITEMS } from "./constants";
 import type {
   MaintenanceStatus,
   PaymentStatus,
@@ -26,7 +26,6 @@ import type {
 
 import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
-import PaymentModal from "./components/PaymentModal";
 import MiniCalendar from "./components/MiniCalendar";
 import ApplicationsList from "./components/ApplicationsList";
 
@@ -109,7 +108,6 @@ function getInitials(name: string) {
 }
 
 export default function MyRental() {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { tenancy, payments, currentPayment, loading, error } = useTenancy();
 
   const today = useMemo(() => new Date(), []);
@@ -162,15 +160,7 @@ export default function MyRental() {
     ? formatMonthYear(currentPayment.period_start)
     : formatMonthYear(today.toISOString());
 
-  const breakdown = monthlyRent
-    ? [{ key: "base_rent", label: "Monthly rent", amount: monthlyRent }]
-    : DEFAULT_PAYMENT_BREAKDOWN;
-
-  const breakdownTotal = breakdown.reduce(
-    (total, item) => total + item.amount,
-    0,
-  );
-  const amountDue = currentPayment?.amount ?? breakdownTotal;
+  const amountDue = currentPayment?.amount ?? monthlyRent;
 
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
     const paymentDate =
@@ -203,6 +193,7 @@ export default function MyRental() {
     {
       label: "View receipts",
       icon: Receipt,
+      href: "/tenant/payment/history",
     },
     {
       label: "Maintenance",
@@ -287,14 +278,12 @@ export default function MyRental() {
                   </p>
                 </div>
               </div>
-              <Button
-                className="mt-10 w-fit md:mt-auto"
-                onPress={() => setShowPaymentModal(true)}
-                isDisabled={paymentStatus === "paid"}
-              >
-                <CreditCard size={14} />
-                Pay now
-              </Button>
+              <Link href="/tenant/payment" className="mt-10 w-fit md:mt-auto no-underline">
+                <Button>
+                  <CreditCard size={14} />
+                  Pay now
+                </Button>
+              </Link>
             </div>
           </DashboardCard>
 
@@ -431,9 +420,14 @@ export default function MyRental() {
             <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               Payment history
             </h2>
-            <p className="text-xs text-zinc-400">
-              Last updated {formatShortMonthDate(today)}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-zinc-400">
+                Last updated {formatShortMonthDate(today)}
+              </p>
+              <Link href="/tenant/payment/history" className="text-xs font-medium text-primary hover:underline no-underline">
+                View all
+              </Link>
+            </div>
           </div>
           <Table className="bg-darker-white">
             <Table.ScrollContainer>
@@ -493,20 +487,6 @@ export default function MyRental() {
           </Table>
         </DashboardCard>
 
-        <PaymentModal
-          isOpen={showPaymentModal}
-          onOpenChange={setShowPaymentModal}
-          onConfirm={() => {
-            setShowPaymentModal(false);
-            // TODO: trigger Supabase payment flow
-          }}
-          total={amountDue}
-          breakdown={breakdown}
-          periodLabel={paymentPeriodLabel}
-          dueDateLabel={
-            dueDate ? formatShortDate(dueDate.toISOString()) : "TBD"
-          }
-        />
       </div>
     </div>
   );

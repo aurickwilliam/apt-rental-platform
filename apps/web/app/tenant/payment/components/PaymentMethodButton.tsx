@@ -8,6 +8,7 @@ type Variant = "tile" | "chip";
 
 interface PaymentMethodButtonProps {
   imageSrc?: string;
+  imageSrcs?: string[];
   icon?: ReactNode;
   label?: string;
   selected?: boolean;
@@ -17,6 +18,7 @@ interface PaymentMethodButtonProps {
 
 export default function PaymentMethodButton({
   imageSrc,
+  imageSrcs,
   icon,
   label,
   selected = false,
@@ -40,7 +42,8 @@ export default function PaymentMethodButton({
         type="button"
         onClick={onPress}
         aria-pressed={selected}
-        className={`${baseTile} ${selectedClass} w-[48.5%] sm:w-[31%] lg:w-[18%] min-h-[86px] p-3`}
+        className={`${baseTile} ${selectedClass} h-full p-2`}
+        style={{ width: "100%", minWidth: 0, minHeight: 76 }}
       >
         {selected && (
           <span className="absolute right-1.5 top-1.5 rounded-full bg-white dark:bg-zinc-900">
@@ -48,17 +51,26 @@ export default function PaymentMethodButton({
           </span>
         )}
 
-        <span className={`${label ? "h-7 w-12" : "h-10 w-16"} flex items-center justify-center`}>
-          {icon ? (
-            icon
-          ) : imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageSrc} alt={label ?? "payment method"} className="h-full w-full object-contain" />
-          ) : null}
-        </span>
+        {imageSrcs && imageSrcs.length > 0 ? (
+          <span className="h-7 w-20 flex items-center justify-center gap-1.5" style={{ maxWidth: "100%" }}>
+            {imageSrcs.map((src) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={src} src={src} alt="" className="h-full w-1/2 object-contain" />
+            ))}
+          </span>
+        ) : (
+          <span className={`${label ? "h-9 w-16" : "h-10 w-16"} flex items-center justify-center`}>
+            {icon ? (
+              icon
+            ) : imageSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageSrc} alt={label ?? "payment method"} className="h-full w-full object-contain" />
+            ) : null}
+          </span>
+        )}
 
         {label ? (
-          <span className="mt-2 line-clamp-1 text-center text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+          <span className="mt-2 line-clamp-2 h-8 text-center text-xs leading-tight font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-start justify-center">
             {label}
           </span>
         ) : null}
