@@ -1,4 +1,4 @@
-import type { PaymentRecord, TenancyMock } from "./types";
+import type { PaymentMethod, PaymentRecord, TenancyMock } from "./types";
 
 // Mock tenancy — mirrors mobile tenancy structure (my-rental + payment/index.tsx)
 export const MOCK_TENANCY: TenancyMock = {
@@ -182,5 +182,70 @@ export const SAVED_PAYMENT_METHODS = [
   { id: "saved-visa", method: "Debit/Credit-Card" as const, label: "Visa •• 4242", src: "/payment-logos/visa-logo.png" },
   { id: "saved-mc", method: "Debit/Credit-Card" as const, label: "Mastercard •• 1234", src: "/payment-logos/mastercard-logo.png" },
 ];
+
+// ---------------------------------------------------------------------------
+// UI-only checkout simulation (mobile parity, no backend).
+// Mirrors the mobile paymongo edge-function mock contract:
+//   sessionId containing "-fail" → failed, "-expired" → expired, else paid.
+// TODO(backend): delete these and call the real paymongo edge function.
+// ---------------------------------------------------------------------------
+
+export type MockSessionStatus = "paid" | "failed" | "expired" | "pending";
+
+export function mockSessionIdForReference(referenceId: string): string {
+  return `cs_mock_${referenceId}`;
+}
+
+export function mockReferenceFromSession(sessionId: string): string {
+  return sessionId
+    .replace(/^cs_mock_/, "")
+    .replace(/^cs_sim_/, "")
+    .replace(/^cs_/, "");
+}
+
+export function mockSessionStatus(sessionId: string | null | undefined): MockSessionStatus {
+  if (!sessionId) return "pending";
+  if (sessionId.includes("-expired")) return "expired";
+  if (sessionId.includes("-fail")) return "failed";
+  return "paid";
+}
+
+/** Synthesize the just-paid record for a fresh `pay_xxx` reference (no DB row in UI-only mode). */
+export function mockPaymentForSuccess(
+  referenceId: string,
+  method: PaymentMethod | string | null | undefined,
+): PaymentRecord {
+  const cash = String(method ?? "").toLowerCase() === "cash";
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return {
+    id: `mock_${referenceId}`,
+    date: today,
+    created_at: now.toISOString(),
+    due_date: MOCK_TENANCY.currentPeriod.due_date,
+    period_start: MOCK_TENANCY.currentPeriod.period_start,
+    period_end: MOCK_TENANCY.currentPeriod.period_end,
+    amount: MOCK_TENANCY.monthly_rent,
+    status: cash ? "Pending" : "Paid",
+    method: (method as PaymentMethod) ?? "GCash",
+    apartment_name: MOCK_TENANCY.apartment.name,
+    landlord_name: `${MOCK_TENANCY.landlord.first_name} ${MOCK_TENANCY.landlord.last_name}`.trim(),
+    reference_id: referenceId,
+    tenancy_id: MOCK_TENANCY.id,
+  };
+}
+
+/** Resolve a success-page receipt: real mock row first, then a synthesized fresh payment. */
+export function mockPaymentByReference(
+  referenceId: string | null | undefined,
+  method?: PaymentMethod | string | null,
+): PaymentRecord | null {
+  if (!referenceId) return null;
+  const found = MOCK_PAYMENTS.find((p) => p.reference_id === referenceId) ?? null;
+  if (found) return found;
+  if (referenceId.startsWith("pay_")) return mockPaymentForSuccess(referenceId, method ?? "GCash");
+  return null;
+}
 
 

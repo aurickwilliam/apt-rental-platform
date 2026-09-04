@@ -5,8 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button, Card } from "@heroui/react";
 import { ArrowLeft, Banknote } from "lucide-react";
 import { MOCK_PAYMENTS } from "../../constants";
-import { formatReferenceId, formatTimeShort, formatDateFull, methodLabel, paymentStatusLabel, periodMonthLabel } from "../../utils";
-import ReceiptCard from "../../components/ReceiptCard";
+import ReceiptView from "../../components/ReceiptView";
 
 export default function PaymentReceiptPage() {
   const params = useParams<{ paymentId: string }>();
@@ -41,15 +40,6 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  const paymentDate = payment.date;
-  const createdAt = payment.created_at;
-  const dateLabel = formatDateFull(paymentDate);
-  const timeLabel = formatTimeShort(createdAt);
-  const periodLabel = payment.period_start
-    ? `${periodMonthLabel(payment.due_date ?? payment.period_start)}, ${payment.period_start.slice(0, 4)}`
-    : undefined;
-  const status = paymentStatusLabel(payment.status);
-
   return (
     <div className="min-h-screen bg-primary">
       <div className="max-w-3xl mx-auto w-full px-4 py-4 sm:py-6 flex flex-col min-h-screen">
@@ -71,24 +61,7 @@ export default function PaymentReceiptPage() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center py-6 sm:py-10 gap-6">
-          <ReceiptCard
-            apartmentName={payment.apartment_name ?? "—"}
-            landlordName={payment.landlord_name ?? "—"}
-            date={dateLabel}
-            time={timeLabel}
-            method={methodLabel(payment.method)}
-            amount={payment.amount ?? 0}
-            referenceNumber={formatReferenceId(payment.reference_id)}
-            status={status}
-            periodLabel={periodLabel}
-            backgroundColor="#376BF5"
-          />
-
-          {payment.status?.toLowerCase() === "pending" && String(payment.method).toLowerCase() === "cash" && (
-            <p className="text-white/70 text-sm text-center max-w-md">
-              Cash payment is pending — the landlord will confirm once received.
-            </p>
-          )}
+          <ReceiptView payment={payment} />
 
           <Card className="w-full max-w-[560px] rounded-2xl border border-white/20 bg-white/10 backdrop-blur">
             <Card.Content className="p-4 flex flex-row items-center justify-between gap-3">
