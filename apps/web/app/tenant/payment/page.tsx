@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Avatar, Button, Card, Chip, Separator, Modal } from "@heroui/react";
+import { Avatar, Button, Card, Chip, Separator, Modal, useOverlayState } from "@heroui/react";
 import { Banknote, CalendarDays, House, MapPin, User, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
@@ -30,8 +30,11 @@ export default function TenantPaymentPage() {
   const [cashDate, setCashDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  // Single dialog root for the whole pay flow (confirm ↔ success views) —
+  // one overlay state object, so veil + dialog + scroll-lock can't desync.
+  const [dialogPhase, setDialogPhase] = useState<"confirm" | "success">("confirm");
+  const [showDialog, setShowDialog] = useState(false);
+  const dialogState = useOverlayState({ isOpen: showDialog, onOpenChange: setShowDialog });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const tenancy = MOCK_TENANCY;
@@ -70,16 +73,18 @@ export default function TenantPaymentPage() {
         return;
       }
     }
-    setShowConfirm(true);
+    setDialogPhase("confirm");
+    setShowDialog(true);
   };
 
   const handleConfirmPay = () => {
     setIsProcessing(true);
-    setShowConfirm(false);
-    // UI-only simulation
+    setShowDialog(false);
+    // UI-only simulation — flip to the success view, then reopen the same root
     setTimeout(() => {
       setIsProcessing(false);
-      setShowSuccess(true);
+      setDialogPhase("success");
+      setShowDialog(true);
     }, 900);
   };
 
@@ -205,7 +210,7 @@ export default function TenantPaymentPage() {
           <div className="lg:col-span-3 space-y-4">
             {/* Payment method selector */}
             <PaymentMethodSelector
-              onPaymentMethodChange={setActiveMethod}
+              onPaymentMethodChange={(method) => { setActiveMethod(method); setErrorMsg(null); }}
               cardInformation={cardInfo}
               onCardInformationChange={(patch) => {
                 setCardInfo((p) => ({ ...p, ...patch }));
@@ -234,85 +239,83 @@ export default function TenantPaymentPage() {
         </div>
       </div>
 
-      {/* Confirm modal */}
-      <Modal isOpen={showConfirm} onOpenChange={setShowConfirm}>
-        <Modal.Backdrop />
-        <Modal.Container placement="center">
-          <Modal.Dialog className="rounded-2xl">
-            <Modal.Header className="text-base font-nunito font-semibold">Confirm payment</Modal.Header>
-            <Modal.Body className="space-y-3">
-              <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Billing period</span>
-                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">
-                    {monthLabel} {yearLabel}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Due date</span>
-                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Method</span>
-                  <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
-                </div>
-                <Separator className="my-1" />
-                <div className="flex justify-between text-sm font-nunito font-semibold">
-                  <span>Total</span>
-                  <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500">
-                This is a UI preview — no real charge will be made. Payment for {monthLabel} {yearLabel}.
-              </p>
-            </Modal.Body>
-            <Modal.Footer className="gap-2">
-              <Button variant="secondary" onPress={() => setShowConfirm(false)}>
-                Cancel
-              </Button>
-              <Button onPress={handleConfirmPay}>Confirm & pay {formatPesoDisplay(monthlyRent)}</Button>
-            </Modal.Footer>
-            <Modal.CloseTrigger />
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal>
-
-      {/* Success modal (UI-only) */}
-      <Modal isOpen={showSuccess} onOpenChange={setShowSuccess}>
-        <Modal.Backdrop />
-        <Modal.Container placement="center">
-          <Modal.Dialog className="rounded-2xl">
-            <Modal.Header className="flex flex-col items-center gap-2 text-center">
-              <span className="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
-                <CheckCircle2 size={28} className="text-green-600" />
-              </span>
-              <span className="text-base font-nunito font-semibold text-green-700 dark:text-green-300">Payment Simulated</span>
-            </Modal.Header>
-            <Modal.Body className="text-center space-y-2">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Your {activeMethod ?? "payment"} for {monthLabel} {yearLabel} would be processed here. Check{" "}
-                <Link href="/tenant/payment/history" className="text-primary underline">
-                  Payment History
-                </Link>{" "}
-                for the receipt (per-row) in this UI preview.
-              </p>
-              <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 text-left">
-                <p className="text-xs text-zinc-500">Amount</p>
-                <p className="text-lg font-nunito font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
-              </div>
-            </Modal.Body>
-            <Modal.Footer className="gap-2 justify-center">
-              <Button variant="secondary" onPress={() => setShowSuccess(false)}>
-                Stay here
-              </Button>
-              <Link href="/tenant/payment/history" className="no-underline">
-                <Button onPress={() => setShowSuccess(false)}>View history</Button>
-              </Link>
-            </Modal.Footer>
-            <Modal.CloseTrigger />
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal>
+      {/* Pay-flow dialog — single root, content switches confirm ↔ success */}
+      <Modal.Root state={dialogState}>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="sm">
+            <Modal.Dialog className="rounded-2xl">
+              {dialogPhase === "success" ? (
+                <>
+                  <Modal.Header className="flex flex-col items-center gap-2 text-center">
+                    <span className="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
+                      <CheckCircle2 size={28} className="text-green-600" />
+                    </span>
+                    <span className="text-base font-nunito font-semibold text-green-700 dark:text-green-300">Payment Simulated</span>
+                  </Modal.Header>
+                  <Modal.Body className="text-center space-y-2">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Your {activeMethod ?? "payment"} for {monthLabel} {yearLabel} would be processed here. Check{" "}
+                      <Link href="/tenant/payment/history" className="text-primary underline">
+                        Payment History
+                      </Link>{" "}
+                      for the receipt (per-row) in this UI preview.
+                    </p>
+                    <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 text-left">
+                      <p className="text-xs text-zinc-500">Amount</p>
+                      <p className="text-lg font-nunito font-bold text-primary">{formatPesoDisplay(monthlyRent)}</p>
+                    </div>
+                  </Modal.Body>
+                  <Modal.Footer className="gap-2 justify-center">
+                    <Button variant="secondary" onPress={() => setShowDialog(false)}>
+                      Stay here
+                    </Button>
+                    <Link href="/tenant/payment/history" className="no-underline">
+                      <Button onPress={() => setShowDialog(false)}>View history</Button>
+                    </Link>
+                  </Modal.Footer>
+                </>
+              ) : (
+                <>
+                  <Modal.Header className="text-base font-nunito font-semibold">Confirm payment</Modal.Header>
+                  <Modal.Body className="space-y-3">
+                    <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-500">Billing period</span>
+                        <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">
+                          {monthLabel} {yearLabel}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-500">Due date</span>
+                        <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-500">Method</span>
+                        <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
+                      </div>
+                      <Separator className="my-1" />
+                      <div className="flex justify-between text-sm font-nunito font-semibold">
+                        <span>Total</span>
+                        <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      This is a UI preview — no real charge will be made. Payment for {monthLabel} {yearLabel}.
+                    </p>
+                  </Modal.Body>
+                  <Modal.Footer className="gap-2">
+                    <Button variant="secondary" onPress={() => setShowDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onPress={handleConfirmPay}>Confirm & pay {formatPesoDisplay(monthlyRent)}</Button>
+                  </Modal.Footer>
+                </>
+              )}
+              <Modal.CloseTrigger />
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal.Root>
     </div>
   );
 }
