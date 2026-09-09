@@ -30,7 +30,7 @@ export default function PaymentSummaryCard({
   onPayNowPress,
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
-  const { colors, isDark } = useColors();
+  const { colors } = useColors();
 
   const isPending = status === "Pending";
 
@@ -86,7 +86,7 @@ export default function PaymentSummaryCard({
             <IconCoin size={16} color="#FFFFFF" strokeWidth={2} />
           </View>
           <View className="flex-1">
-            <Text className="text-white/70 text-xs font-nunitoSemiBold">
+            <Text className="text-white/70 text-xs font-interSemiBold">
               Rent Amount
             </Text>
             <Text

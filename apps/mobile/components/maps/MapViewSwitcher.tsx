@@ -3,7 +3,6 @@ import { View, Text } from 'react-native';
 import { isGoogleMapsEnabled } from '@/utils/mapConfig';
 
 import GoogleMapView, { type GoogleMapPin } from './GoogleMapView';
-import MapLibreFallbackView from './MapLibreFallbackView';
 
 interface MapViewSwitcherProps {
   latitude?: number | null;
@@ -17,31 +16,27 @@ interface MapViewSwitcherProps {
   style?: object;
   showsUserLocation?: boolean;
   onRegionChangeComplete?: (region: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }) => void;
-  // When true, show fallback banner if Google disabled due to missing key (dev helper)
+  onMarkerPress?: (id: string | null, index: number) => void;
+  onMapPress?: () => void;
+  syncCameraOnCoordsChange?: boolean;
+  // Kept for API compat; Google-only mode shows a missing-key hint instead of the OSM fallback.
   showFallbackBanner?: boolean;
   mapRef?: React.RefObject<any>;
 }
 
+/**
+ * Google-only map host. The MapLibre/OSM fallback was removed with the
+ * map-search revamp — a missing `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` now renders
+ * the Google view plus a hint banner instead of a second map SDK.
+ */
 export default function MapViewSwitcher(props: MapViewSwitcherProps) {
-  const useGoogle = isGoogleMapsEnabled();
-
-  if (useGoogle) {
-    return <GoogleMapView {...props} mapRef={props.mapRef as any} />;
-  }
+  const googleReady = isGoogleMapsEnabled();
+  const { showFallbackBanner: _showFallbackBanner, ...mapProps } = props;
 
   return (
     <View style={[{ flex: 1 }, props.style]}>
-      <MapLibreFallbackView
-        latitude={props.latitude}
-        longitude={props.longitude}
-        interactive={props.interactive}
-        onPress={props.onPress}
-        draggableMarker={props.draggableMarker}
-        markerCoords={props.markerCoords}
-        onMarkerDragEnd={props.onMarkerDragEnd}
-        style={{ flex: 1 }}
-      />
-      {props.showFallbackBanner && (
+      <GoogleMapView {...mapProps} mapRef={props.mapRef as any} style={{ flex: 1 }} />
+      {!googleReady && props.showFallbackBanner && (
         <View
           style={{
             position: 'absolute',
@@ -55,7 +50,7 @@ export default function MapViewSwitcher(props: MapViewSwitcherProps) {
           pointerEvents="none"
         >
           <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter' }}>
-            OSM fallback — set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY to use Google
+            Google Maps key missing — set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY and rebuild
           </Text>
         </View>
       )}

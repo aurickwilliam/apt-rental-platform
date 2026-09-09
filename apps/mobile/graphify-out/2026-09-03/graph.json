@@ -2988,7 +2988,7 @@
       "label": "PaymentSummaryCardProps",
       "file_type": "code",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycardprops",
       "community": 75,
@@ -2999,7 +2999,7 @@
       "label": "PaymentSummaryCard()",
       "file_type": "code",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycard",
       "community": 75,
@@ -3079,8 +3079,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "app_tabs_components_search_apartmentslist_apartmentslist",
-      "community": 41,
-      "community_name": "favorites.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "apartmentslist()"
     },
     {
@@ -3310,8 +3310,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_test",
-      "community": 178,
-      "community_name": "useSearchLogic.test.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "usesearchlogic.test.tsx"
     },
     {
@@ -3321,8 +3321,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_test_mockfrom",
-      "community": 178,
-      "community_name": "useSearchLogic.test.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "mockfrom"
     },
     {
@@ -3332,8 +3332,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_test_mockisfavorite",
-      "community": 178,
-      "community_name": "useSearchLogic.test.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "mockisfavorite"
     },
     {
@@ -3343,8 +3343,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_test_mocktogglefavorite",
-      "community": 178,
-      "community_name": "useSearchLogic.test.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "mocktogglefavorite"
     },
     {
@@ -3354,8 +3354,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic",
-      "community": 41,
-      "community_name": "favorites.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "usesearchlogic.tsx"
     },
     {
@@ -3365,8 +3365,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_cities",
-      "community": 41,
-      "community_name": "favorites.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "cities"
     },
     {
@@ -3376,8 +3376,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchlogic_usesearchlogicparams",
-      "community": 41,
-      "community_name": "favorites.tsx",
+      "community": 7,
+      "community_name": "search.tsx",
       "norm_label": "usesearchlogicparams"
     },
     {
@@ -5026,8 +5026,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_dev_notification_toast",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notification-toast.tsx"
     },
     {
@@ -5037,8 +5037,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mockrow",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "mockrow"
     },
     {
@@ -5048,8 +5048,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mocktoast",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "mocktoast"
     },
     {
@@ -5059,8 +5059,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mock_toasts",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "mock_toasts"
     },
     {
@@ -5070,8 +5070,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "app_dev_notification_toast_notificationtoastdevscreen",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationtoastdevscreen()"
     },
     {
@@ -10306,8 +10306,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_display_notificationtoast",
-      "community": 26,
-      "community_name": "notifications/index.ts",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationtoast.tsx"
     },
     {
@@ -10317,8 +10317,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "components_display_notificationtoast_toast_variant_by_type",
-      "community": 26,
-      "community_name": "notifications/index.ts",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "toast_variant_by_type"
     },
     {
@@ -10328,8 +10328,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "components_display_notificationtoast_notificationtoastoptions",
-      "community": 26,
-      "community_name": "notifications/index.ts",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationtoastoptions"
     },
     {
@@ -10339,8 +10339,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "components_display_notificationtoast_shownotificationtoast",
-      "community": 105,
-      "community_name": "notification-toast.tsx",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "shownotificationtoast()"
     },
     {
@@ -10350,8 +10350,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "components_display_notificationtoast_notificationtoastcontentprops",
-      "community": 26,
-      "community_name": "notifications/index.ts",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationtoastcontentprops"
     },
     {
@@ -13915,7 +13915,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "usenotificationrealtime.ts"
     },
     {
@@ -13926,7 +13926,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_notificationrealtimecallbacks",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationrealtimecallbacks"
     },
     {
@@ -13937,7 +13937,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_channelentry",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "channelentry"
     },
     {
@@ -13948,7 +13948,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_registry",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "registry"
     },
     {
@@ -13959,7 +13959,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_handleevent",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "handleevent()"
     },
     {
@@ -13970,7 +13970,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_attach",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "attach()"
     },
     {
@@ -13981,7 +13981,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_detach",
       "community": 83,
-      "community_name": "useNotifications.ts",
+      "community_name": "NotificationToast.tsx",
       "norm_label": "detach()"
     },
     {
@@ -13991,8 +13991,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_usenotificationrealtime",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "usenotificationrealtime()"
     },
     {
@@ -14024,8 +14024,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_usenotifications",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "usenotifications.ts"
     },
     {
@@ -14046,8 +14046,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "hooks_notifications_usenotifications_getunreadnotificationsquerykey",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "getunreadnotificationsquerykey()"
     },
     {
@@ -14057,8 +14057,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "hooks_notifications_usenotifications_geterrormessage",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "geterrormessage()"
     },
     {
@@ -14068,8 +14068,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "hooks_notifications_usenotifications_usenotifications",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "usenotifications()"
     },
     {
@@ -14112,8 +14112,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_useunreadnotificationcount",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "useunreadnotificationcount.ts"
     },
     {
@@ -14123,8 +14123,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "hooks_notifications_useunreadnotificationcount_useunreadnotificationcount",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "useunreadnotificationcount()"
     },
     {
@@ -16290,8 +16290,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "package_dependencies_emoji_regex_xs",
-      "community": 179,
-      "community_name": "emoji-regex-xs",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -16301,8 +16301,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "emoji_regex_xs",
-      "community": 179,
-      "community_name": "emoji-regex-xs",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -16510,8 +16510,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "package_dependencies_expo_haptics",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 105,
+      "community_name": "expo-haptics",
       "norm_label": "expo-haptics"
     },
     {
@@ -16521,8 +16521,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "expo_haptics",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 105,
+      "community_name": "expo-haptics",
       "norm_label": "expo-haptics"
     },
     {
@@ -20008,8 +20008,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_notificationrow",
-      "community": 26,
-      "community_name": "notifications/index.ts",
+      "community": 83,
+      "community_name": "NotificationToast.tsx",
       "norm_label": "notificationrow"
     },
     {
@@ -20107,8 +20107,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_fetchnotifications",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "fetchnotifications()"
     },
     {
@@ -20118,8 +20118,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_fetchunreadnotificationcount",
-      "community": 83,
-      "community_name": "useNotifications.ts",
+      "community": 23,
+      "community_name": "NotificationScreen.tsx",
       "norm_label": "fetchunreadnotificationcount()"
     },
     {
@@ -20129,8 +20129,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_marknotificationread",
-      "community": 23,
-      "community_name": "NotificationScreen.tsx",
+      "community": 62,
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "marknotificationread()"
     },
     {
@@ -34200,7 +34200,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard",
@@ -34211,7 +34211,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard",
@@ -34248,7 +34248,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/components/rentals/PaymentSummaryCard.tsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_components_rentals_paymentsummarycard_paymentsummarycard",

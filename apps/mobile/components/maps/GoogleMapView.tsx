@@ -4,10 +4,15 @@ import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps
 
 import { MAP_DEFAULT_COORDS, MAP_DEFAULTS } from '@/utils/mapConfig';
 import { useColors } from '@/hooks/useTheme';
+import { formatPricePill } from '@/service/apartments/mapSearchService';
 
 export interface GoogleMapPin {
+  id?: string;
   latitude: number;
   longitude: number;
+  /** Monthly rent — when present the marker renders as a price pill. */
+  price?: number;
+  selected?: boolean;
 }
 
 interface GoogleMapViewProps {
@@ -23,7 +28,42 @@ interface GoogleMapViewProps {
   mapRef?: React.RefObject<MapView | null>;
   showsUserLocation?: boolean;
   onRegionChangeComplete?: (region: Region) => void;
+  /** Fired when a pin is tapped. Falls back to index when pin has no id. */
+  onMarkerPress?: (id: string | null, index: number) => void;
+  /** Fired when the map (not a pin) is tapped — e.g. to dismiss a popup card. */
+  onMapPress?: () => void;
+  syncCameraOnCoordsChange?: boolean;
   // For preview non-interactive mode we disable gestures via props
+}
+
+function PricePill({ label, colors }: { label: string; colors: { primary: string } }) {
+  return (
+    <View
+      style={{
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 999,
+        backgroundColor: colors.primary,
+        borderWidth: 1.5,
+        borderColor: colors.primary,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 4,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 12,
+          fontWeight: '700',
+          color: '#FFFFFF',
+        }}
+      >
+        {label}
+      </Text>
+    </View>
+  );
 }
 
 export default function GoogleMapView({
@@ -39,6 +79,9 @@ export default function GoogleMapView({
   mapRef: externalRef,
   showsUserLocation = false,
   onRegionChangeComplete,
+  onMarkerPress,
+  onMapPress,
+  syncCameraOnCoordsChange = true,
 }: GoogleMapViewProps) {
   const { colors } = useColors();
   const internalRef = useRef<MapView>(null);
@@ -50,8 +93,10 @@ export default function GoogleMapView({
     longitude: hasCoords ? (longitude as number) : MAP_DEFAULT_COORDS.longitude,
   };
 
-  // Sync camera when coords change (e.g., after Place selection)
+  // Sync camera when coords change (e.g., after Place selection).
+  // Disabled on map-search — that screen's live region prop would fight pinch-zoom.
   useEffect(() => {
+    if (!syncCameraOnCoordsChange) return;
     if (!hasCoords) return;
     // Small delay so map is mounted
     const t = setTimeout(() => {
@@ -67,7 +112,7 @@ export default function GoogleMapView({
     }, 150);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latitude, longitude]);
+  }, [latitude, longitude, syncCameraOnCoordsChange]);
 
   const initialRegion: Region = {
     latitude: center.latitude,
@@ -89,9 +134,12 @@ export default function GoogleMapView({
         style={{ flex: 1 }}
         initialRegion={initialRegion}
         onPress={(e) => {
-          if (!interactive || !onPress) return;
-          const { latitude: lat, longitude: lng } = e.nativeEvent.coordinate;
-          onPress({ latitude: lat, longitude: lng });
+          if (!interactive) return;
+          if (onPress) {
+            const { latitude: lat, longitude: lng } = e.nativeEvent.coordinate;
+            onPress({ latitude: lat, longitude: lng });
+          }
+          onMapPress?.();
         }}
         onRegionChangeComplete={onRegionChangeComplete}
         scrollEnabled={interactive}
@@ -118,9 +166,42 @@ export default function GoogleMapView({
         )}
 
         {/* Static pin(s) for preview / search */}
-        {!draggableMarker && multiPins.length > 0 && multiPins.map((p, i) => (
-          <Marker key={`${p.latitude}-${p.longitude}-${i}`} coordinate={p} pinColor={colors.primary} />
-        ))}
+        {!draggableMarker && multiPins.length > 0 && multiPins.map((p, i) => {
+          const selected = p.selected ?? false;
+          const key = p.id ?? `${p.latitude}-${p.longitude}-${i}`;
+          if (p.price == null) {
+            return (
+              <Marker
+                key={key}
+                coordinate={p}
+                pinColor={colors.primary}
+                onPress={() => onMarkerPress?.(p.id ?? null, i)}
+              />
+            );
+          }
+          if (selected) {
+            return (
+              <Marker
+                key={`${key}-selected`}
+                coordinate={p}
+                pinColor={colors.danger}
+                onPress={() => onMarkerPress?.(p.id ?? null, i)}
+                tracksViewChanges={false}
+                zIndex={999}
+              />
+            );
+          }
+          return (
+            <Marker
+              key={key}
+              coordinate={p}
+              onPress={() => onMarkerPress?.(p.id ?? null, i)}
+              tracksViewChanges={false}
+            >
+              <PricePill label={formatPricePill(p.price)} colors={colors} />
+            </Marker>
+          );
+        })}
         {!draggableMarker && multiPins.length === 0 && hasCoords && (
           <Marker coordinate={center} pinColor={colors.primary} />
         )}
