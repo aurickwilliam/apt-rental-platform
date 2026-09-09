@@ -18,7 +18,9 @@ interface MapViewSwitcherProps {
   onRegionChangeComplete?: (region: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }) => void;
   onMarkerPress?: (id: string | null, index: number) => void;
   onMapPress?: () => void;
+  onPanDrag?: () => void;
   syncCameraOnCoordsChange?: boolean;
+  hideEmptyPin?: boolean;
   // Kept for API compat; Google-only mode shows a missing-key hint instead of the OSM fallback.
   showFallbackBanner?: boolean;
   mapRef?: React.RefObject<any>;

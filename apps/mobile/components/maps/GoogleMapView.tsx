@@ -32,7 +32,9 @@ interface GoogleMapViewProps {
   onMarkerPress?: (id: string | null, index: number) => void;
   /** Fired when the map (not a pin) is tapped — e.g. to dismiss a popup card. */
   onMapPress?: () => void;
+  onPanDrag?: () => void;
   syncCameraOnCoordsChange?: boolean;
+  hideEmptyPin?: boolean;
   // For preview non-interactive mode we disable gestures via props
 }
 
@@ -81,7 +83,9 @@ export default function GoogleMapView({
   onRegionChangeComplete,
   onMarkerPress,
   onMapPress,
+  onPanDrag,
   syncCameraOnCoordsChange = true,
+  hideEmptyPin = false,
 }: GoogleMapViewProps) {
   const { colors } = useColors();
   const internalRef = useRef<MapView>(null);
@@ -141,6 +145,7 @@ export default function GoogleMapView({
           }
           onMapPress?.();
         }}
+        onPanDrag={onPanDrag}
         onRegionChangeComplete={onRegionChangeComplete}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
@@ -202,7 +207,7 @@ export default function GoogleMapView({
             </Marker>
           );
         })}
-        {!draggableMarker && multiPins.length === 0 && hasCoords && (
+        {!draggableMarker && !hideEmptyPin && multiPins.length === 0 && hasCoords && (
           <Marker coordinate={center} pinColor={colors.primary} />
         )}
 

@@ -10,6 +10,7 @@ import {
   bboxFromRegionWithMargin,
   filterPinsToVisible,
   formatPricePill,
+  offsetRegionForSheet,
 } from './mapSearchService';
 
 describe('bboxFromRegion', () => {
@@ -124,5 +125,23 @@ describe('filterPinsToVisible', () => {
         },
       ),
     );
+  });
+});
+
+describe('offsetRegionForSheet', () => {
+  const region = { latitude: 14.67, longitude: 120.96, latitudeDelta: 0.08, longitudeDelta: 0.08 };
+  const pin = { latitude: 14.67, longitude: 120.96 };
+
+  it('shifts center south, preserves zoom', () => {
+    const out = offsetRegionForSheet(region, pin, 0.1);
+    expect(out.latitude).toBeCloseTo(14.67 - 0.08 * 0.1);
+    expect(out.longitude).toBe(120.96);
+    expect(out.latitudeDelta).toBe(0.08);
+    expect(out.longitudeDelta).toBe(0.08);
+  });
+
+  it('clamps fraction to [0, 0.35]', () => {
+    expect(offsetRegionForSheet(region, pin, -1).latitude).toBeCloseTo(pin.latitude);
+    expect(offsetRegionForSheet(region, pin, 99).latitude).toBeCloseTo(pin.latitude - 0.08 * 0.35);
   });
 });

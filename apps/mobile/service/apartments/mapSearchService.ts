@@ -174,3 +174,22 @@ export function filterPinsToVisible<
         p.longitude <= visible.maxLng),
   );
 }
+
+/**
+ * Shift a region's center south so a pin at the old center lands visibly above a bottom sheet.
+ * Zoom is preserved (deltas unchanged). `fraction` is the viewport-height share occupied by the sheet's top edge.
+ * 0.10 ≈ pin ~40% from top, safely inside a 25% sheet without triggering the buffered-bbox refetch.
+ */
+export function offsetRegionForSheet(
+  region: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number },
+  pin: { latitude: number; longitude: number },
+  fraction = 0.1,
+): { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number } {
+  const clamped = Math.max(0, Math.min(0.35, fraction));
+  return {
+    latitude: pin.latitude - region.latitudeDelta * clamped,
+    longitude: pin.longitude,
+    latitudeDelta: region.latitudeDelta,
+    longitudeDelta: region.longitudeDelta,
+  };
+}
