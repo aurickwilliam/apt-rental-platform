@@ -6,7 +6,7 @@ import {
 } from "react-native";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
-import { Button, Spinner, useToast } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
 
 import { IconLayoutGrid, IconLayoutList, IconHeartOff, IconAlertCircle } from '@tabler/icons-react-native';
 
@@ -15,20 +15,19 @@ import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard, { type ApartmentCardProps } from "components/cards/ApartmentCard";
 import EmptyState from "components/display/EmptyState";
 
-import { useFavoriteApartments, useFavorites } from "@/hooks/favorites";
+import { useFavoriteApartments, useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 
 export default function TenantFavorites() {
   const router = useRouter();
   const { colors } = useColors();
-  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const {
     favoriteApartmentIds,
     loading: loadingFavorites,
     error: favoritesError,
-    toggleFavorite,
   } = useFavorites();
+  const { toggleFavoriteWithToast } = useFavoriteToggle();
   const {
     favoriteApartments,
     loading: loadingApartments,
@@ -77,21 +76,9 @@ export default function TenantFavorites() {
 
   const handleFavoriteToggle = useCallback(
     async (apartmentId: string) => {
-      try {
-        const { wasFavorite } = await toggleFavorite(apartmentId);
-        toast.show({
-          variant: wasFavorite ? "default" : "success",
-          label: wasFavorite ? "Removed from favorites" : "Added to favorites",
-        });
-      } catch (error) {
-        console.error("Error toggling favorite:", error);
-        toast.show({
-          variant: "danger",
-          label: "Something went wrong",
-        });
-      }
+      await toggleFavoriteWithToast(apartmentId);
     },
-    [toast, toggleFavorite],
+    [toggleFavoriteWithToast],
   );
 
   const isLoading = loadingFavorites || loadingApartments;

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Dialog, Separator } from "heroui-native"
+import { Button } from "heroui-native"
 
 import { formatPesoDisplay } from '@repo/utils';
+import AppDialog from '@/components/display/AppDialog';
+import MoveInCostBreakdown from '@/components/display/MoveInCostBreakdown';
 
 type MoveInCostFooterProps = {
   monthlyRent: number;
@@ -22,8 +24,7 @@ export default function MoveInCostFooterSection({
   const [isMoveInCostModalVisible, setIsMoveInCostModalVisible] =
     useState(false);
 
-  const totalMoveIn =
-    monthlyRent + (securityDeposit ?? 0) + (advanceRent ?? 0);
+
 
   return (
     <>
@@ -65,67 +66,18 @@ export default function MoveInCostFooterSection({
         </SafeAreaView>
       </View>
 
-      <Dialog isOpen={isMoveInCostModalVisible} onOpenChange={setIsMoveInCostModalVisible}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
-          <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
-            <Dialog.Close variant="ghost" className="absolute top-4 right-4 z-50" />
-
-            <View className="mb-5 gap-1">
-              <Dialog.Title className="text-foreground font-nunitoBold text-lg">
-                Move-in Cost Breakdown
-              </Dialog.Title>
-              <Dialog.Description className="text-muted">
-                Estimated initial payment required to move in.
-              </Dialog.Description>
-            </View>
-
-            <View className="gap-3">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-muted font-inter text-base">
-                  Monthly Rent
-                </Text>
-                <Text className="text-foreground font-nunitoSemiBold text-base">
-                  {formatPesoDisplay(monthlyRent)}
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between items-center">
-                <Text className="text-muted font-inter text-base">
-                  Security Deposit
-                </Text>
-                <Text className="text-foreground font-nunitoSemiBold text-base">
-                  {securityDeposit != null
-                    ? `${formatPesoDisplay(securityDeposit)}`
-                    : 'None'}
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between items-center">
-                <Text className="text-muted font-inter text-base">
-                  Advance Rent
-                </Text>
-                <Text className="text-foreground font-nunitoSemiBold text-base">
-                  {advanceRent != null
-                    ? `${formatPesoDisplay(advanceRent)}`
-                    : 'None'}
-                </Text>
-              </View>
-
-              <Separator className="my-1" />
-
-              <View className="flex-row justify-between items-center">
-                <Text className="text-foreground font-nunitoSemiBold text-lg">
-                  Total Move-in Cost
-                </Text>
-                <Text className="text-accent font-nunitoSemiBold text-lg">
-                  {formatPesoDisplay(totalMoveIn)}
-                </Text>
-              </View>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+      <AppDialog
+        isOpen={isMoveInCostModalVisible}
+        onOpenChange={setIsMoveInCostModalVisible}
+        title="Move-in Cost Breakdown"
+        description="Estimated initial payment required to move in."
+      >
+        <MoveInCostBreakdown
+          monthlyRent={monthlyRent}
+          securityDeposit={securityDeposit}
+          advanceRent={advanceRent}
+        />
+      </AppDialog>
     </>
   );
 }

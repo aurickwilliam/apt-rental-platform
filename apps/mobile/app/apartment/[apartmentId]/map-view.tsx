@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView from 'react-native-maps';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import IconButton from '@/app/apartment/[apartmentId]/components/IconButton';
 
 import { Dialog, Button } from "heroui-native"
 
@@ -25,6 +25,7 @@ export default function ApartmentMapViewScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { apartment } = useApartmentDetails(apartmentId, { includeReviews: false });
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
   const cameraRef = useRef<any>(null);
@@ -233,17 +234,26 @@ export default function ApartmentMapViewScreen() {
           </View>
         )}
 
-        {/* Floating Action Buttons */}
-        <View className='flex items-center gap-5 absolute bottom-5 right-5'>
-          <IconButton
-            iconName={IconNavigation}
-            onPress={handleNavigationPress}
-          />
-
-          <IconButton
-            iconName={IconCompass}
+        {/* Floating Action Buttons — consistent with app/tenant/map-search.tsx */}
+        <View className="absolute right-5 items-center gap-3" style={{ bottom: insets.bottom + 24 }}>
+          <Button
             onPress={handleCompassPress}
-          />
+            variant="tertiary"
+            isIconOnly
+            accessibilityLabel="Reset to north"
+            className="shadow-lg border border-border"
+          >
+            <IconCompass size={22} color={colors.primary} />
+          </Button>
+          <Button
+            onPress={handleNavigationPress}
+            variant="tertiary"
+            isIconOnly
+            accessibilityLabel="Recenter map"
+            className="shadow-lg border border-border"
+          >
+            <IconNavigation size={22} color={colors.primary} />
+          </Button>
         </View>
       </View>
 

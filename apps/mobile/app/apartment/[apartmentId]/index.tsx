@@ -24,22 +24,22 @@ import {
 } from "./components";
 
 import { useApartmentDetails } from "@/hooks/apartments";
-import { useFavorites } from "@/hooks/favorites";
+import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 import { useReviewEligibility } from "@/hooks/ratings";
 
-import { Button, useToast } from "heroui-native";
+import { Button } from "heroui-native";
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
-  const { toast } = useToast();
 
   const { apartment, reviews, loading, error } =
     useApartmentDetails(apartmentId);
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isFavorite } = useFavorites();
+  const { toggleFavoriteWithToast } = useFavoriteToggle();
   const {
     canReview,
     checkingEligibility,
@@ -54,17 +54,7 @@ export default function ApartmentScreen() {
 
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;
-
-    try {
-      const { wasFavorite } = await toggleFavorite(apartmentId);
-      toast.show({
-        variant: wasFavorite ? "default" : "success",
-        label: wasFavorite ? "Removed from favorites" : "Added to favorites",
-      });
-    } catch (toggleError) {
-      console.error("Error toggling favorite:", toggleError);
-      toast.show({ variant: "danger", label: "Something went wrong" });
-    }
+    await toggleFavoriteWithToast(apartmentId);
   };
 
   const handleApplyNow = () => {

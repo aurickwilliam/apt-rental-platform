@@ -560,8 +560,8 @@
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/map-view.tsx": {
-    "mtime": 1788950070.8452015,
-    "ast_hash": "247ad7239f7457a5aa425da8c12c0147",
+    "mtime": 1788947704.8681345,
+    "ast_hash": "af0c1a25f6b149c4d2504a6ef9690159",
     "semantic_hash": ""
   },
   "app/apartment/[apartmentId]/rate-apartment.tsx": {

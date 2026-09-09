@@ -21,6 +21,7 @@ import { IconFileText, IconPencil, IconUpload, IconHome, IconBed, IconBath, Icon
 import { supabase } from "@repo/supabase";
 
 import { useColors } from "hooks/useTheme";
+import { useLeaseAgreement } from "@/hooks/apartments";
 
 import { formatPesoDisplay, formatDate } from "@repo/utils";
 
@@ -45,6 +46,14 @@ export default function Index() {
 
   const apartment = data?.apartment ?? null;
   const tenancy = data?.tenancy ?? null;
+  const { openLeaseAgreement } = useLeaseAgreement({
+    onUrl: (url) =>
+      router.push({
+        pathname:
+          "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
+        params: { apartmentId: apartmentId as string, fileUrl: url },
+      }),
+  });
 
   const [uploading, setUploading] = useState(false);
 
@@ -119,25 +128,8 @@ export default function Index() {
     }
   };
 
-  const handleViewLease = async () => {
-    if (!apartment?.lease_agreement_url) return;
-
-    try {
-      const { data, error } = await supabase.storage
-        .from("lease-agreements")
-        .createSignedUrl(apartment.lease_agreement_url, 3600);
-
-      if (error || !data?.signedUrl) throw error;
-
-      router.push({
-        pathname: "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
-        params: { apartmentId, fileUrl: data.signedUrl },
-      });
-    } catch (err) {
-      Alert.alert("Error", "Could not open lease agreement.");
-      console.error(err);
-    }
-  };
+  const handleViewLease = () =>
+    openLeaseAgreement(apartment?.lease_agreement_url);
 
   if (isLoading) {
     return (

@@ -77,7 +77,7 @@
       "_origin": "ast",
       "id": "app_auth_auth_complete_profile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "auth-complete-profile.tsx"
     },
     {
@@ -88,7 +88,7 @@
       "_origin": "ast",
       "id": "app_auth_auth_complete_profile_profileform",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "profileform"
     },
     {
@@ -99,7 +99,7 @@
       "_origin": "ast",
       "id": "app_auth_auth_complete_profile_requiredfields",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "requiredfields"
     },
     {
@@ -110,7 +110,7 @@
       "_origin": "ast",
       "id": "app_auth_auth_complete_profile_authcompleteprofile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "authcompleteprofile()"
     },
     {
@@ -121,7 +121,7 @@
       "_origin": "ast",
       "id": "app_auth_complete_profile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "complete-profile.tsx"
     },
     {
@@ -132,7 +132,7 @@
       "_origin": "ast",
       "id": "app_auth_complete_profile_profileform",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "profileform"
     },
     {
@@ -143,7 +143,7 @@
       "_origin": "ast",
       "id": "app_auth_complete_profile_requiredfields",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "requiredfields"
     },
     {
@@ -154,7 +154,7 @@
       "_origin": "ast",
       "id": "app_auth_complete_profile_completeprofile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "completeprofile()"
     },
     {
@@ -285,7 +285,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_forgot_password_index",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "forgot-password/index.tsx"
     },
@@ -296,7 +296,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_auth_forgot_password_index_index",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "index()"
     },
@@ -307,7 +307,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_forgot_password_otp_verification",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "forgot-password/otp-verification.tsx"
     },
@@ -318,7 +318,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_auth_forgot_password_otp_verification_otpverification",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "otpverification()"
     },
@@ -351,7 +351,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_forgot_password_updated",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "updated.tsx"
     },
@@ -362,7 +362,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_auth_forgot_password_updated_updated",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "updated()"
     },
@@ -407,7 +407,7 @@
       "_origin": "ast",
       "id": "app_auth_otp_verification",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "(auth)/otp-verification.tsx"
     },
     {
@@ -417,7 +417,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "app_auth_otp_verification_otpverification",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "otpverification()"
     },
@@ -549,8 +549,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_personalization_step_five",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "step-five.tsx"
     },
     {
@@ -560,8 +560,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "app_auth_personalization_step_five_stepfive",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "stepfive()"
     },
     {
@@ -670,8 +670,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_auth_sign_in_signin",
-      "community": 12,
-      "community_name": "sign-in.tsx",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "signin()"
     },
     {
@@ -846,7 +846,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_verify_account_failed",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "failed.tsx"
     },
@@ -857,7 +857,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_auth_verify_account_failed_failed",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "failed()"
     },
@@ -868,7 +868,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_auth_verify_account_index",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "verify-account/index.tsx"
     },
@@ -879,7 +879,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_auth_verify_account_index_index",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "index()"
     },
@@ -1166,7 +1166,7 @@
       "_origin": "ast",
       "id": "app_auth_verify_mobile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "verify-mobile.tsx"
     },
     {
@@ -1177,7 +1177,7 @@
       "_origin": "ast",
       "id": "app_auth_verify_mobile_verifymobile",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "verifymobile()"
     },
     {
@@ -1220,8 +1220,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_notification_components_notificationcard_notificationcardtype",
-      "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community": 26,
+      "community_name": "notifications/index.ts",
       "norm_label": "notificationcardtype"
     },
     {
@@ -1253,7 +1253,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_notification_components_notificationcardskeleton",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationcardskeleton.tsx"
     },
@@ -1264,7 +1264,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_notification_components_notificationcardskeleton_notificationcardskeleton",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationcardskeleton()"
     },
@@ -1275,7 +1275,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_notification_components_notificationlist",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationlist.tsx"
     },
@@ -1286,7 +1286,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_notification_components_notificationlist_notificationfilter",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationfilter"
     },
@@ -1297,7 +1297,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_notification_components_notificationlist_notificationlistprops",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationlistprops"
     },
@@ -1308,7 +1308,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_notification_components_notificationlist_notificationlist",
-      "community": 62,
+      "community": 23,
       "community_name": "NotificationList.tsx",
       "norm_label": "notificationlist()"
     },
@@ -1319,8 +1319,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_notification_components_notificationscreen",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "notificationscreen.tsx"
     },
     {
@@ -1330,8 +1330,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_notification_components_notificationscreen_notificationscreenprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "notificationscreenprops"
     },
     {
@@ -1429,8 +1429,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_landlord_chat",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "(landlord)/chat.tsx"
     },
     {
@@ -1440,8 +1440,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_tabs_landlord_chat_chat",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 6,
+      "community_name": "useConversations.test.tsx",
       "norm_label": "chat()"
     },
     {
@@ -1474,7 +1474,7 @@
       "_origin": "ast",
       "id": "app_tabs_landlord_profile",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "(landlord)/profile.tsx"
     },
     {
@@ -1485,7 +1485,7 @@
       "_origin": "ast",
       "id": "app_tabs_landlord_profile_profile",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profile()"
     },
     {
@@ -1572,8 +1572,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_tenant_chat",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "(tenant)/chat.tsx"
     },
     {
@@ -1583,8 +1583,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "app_tabs_tenant_chat_chat",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 50,
+      "community_name": "useTenancy",
       "norm_label": "chat()"
     },
     {
@@ -1595,7 +1595,7 @@
       "_origin": "ast",
       "id": "app_tabs_tenant_profile",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "(tenant)/profile.tsx"
     },
     {
@@ -1606,7 +1606,7 @@
       "_origin": "ast",
       "id": "app_tabs_tenant_profile_profile",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profile()"
     },
     {
@@ -1660,8 +1660,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "app_tabs_tenant_rentals_rentals",
-      "community": 75,
-      "community_name": "rentals.tsx",
+      "community": 43,
+      "community_name": "payment/index.tsx",
       "norm_label": "rentals()"
     },
     {
@@ -1693,8 +1693,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_layout",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "(tabs)/_layout.tsx"
     },
     {
@@ -1704,8 +1704,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_tabs_layout_tabslayout",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "tabslayout()"
     },
     {
@@ -1792,8 +1792,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_notificationbellbutton",
-      "community": 56,
-      "community_name": "useNotifications.ts",
+      "community": 42,
+      "community_name": "dashboard.tsx",
       "norm_label": "notificationbellbutton.tsx"
     },
     {
@@ -1803,8 +1803,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_tabs_components_notificationbellbutton_notificationbellbuttonprops",
-      "community": 56,
-      "community_name": "useNotifications.ts",
+      "community": 42,
+      "community_name": "dashboard.tsx",
       "norm_label": "notificationbellbuttonprops"
     },
     {
@@ -1814,8 +1814,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_tabs_components_notificationbellbutton_notificationbellbutton",
-      "community": 56,
-      "community_name": "useNotifications.ts",
+      "community": 42,
+      "community_name": "dashboard.tsx",
       "norm_label": "notificationbellbutton()"
     },
     {
@@ -1825,8 +1825,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_quickactionbutton",
-      "community": 36,
-      "community_name": "units.tsx",
+      "community": 75,
+      "community_name": "rentals.tsx",
       "norm_label": "quickactionbutton.tsx"
     },
     {
@@ -1836,8 +1836,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_tabs_components_quickactionbutton_quickactionbuttonprops",
-      "community": 36,
-      "community_name": "units.tsx",
+      "community": 75,
+      "community_name": "rentals.tsx",
       "norm_label": "quickactionbuttonprops"
     },
     {
@@ -1847,8 +1847,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_tabs_components_quickactionbutton_quickactionbutton",
-      "community": 36,
-      "community_name": "units.tsx",
+      "community": 75,
+      "community_name": "rentals.tsx",
       "norm_label": "quickactionbutton()"
     },
     {
@@ -1858,8 +1858,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_chat_messagecard",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "messagecard.tsx"
     },
     {
@@ -1869,8 +1869,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_tabs_components_chat_messagecard_getlastmessagedisplay",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "getlastmessagedisplay()"
     },
     {
@@ -1880,8 +1880,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_tabs_components_chat_messagecard_messagecardprops",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "messagecardprops"
     },
     {
@@ -1891,8 +1891,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "app_tabs_components_chat_messagecard_messagecard",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "messagecard()"
     },
     {
@@ -2112,7 +2112,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_completeprofilecard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "completeprofilecard.tsx"
     },
     {
@@ -2123,7 +2123,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_completeprofilecard_completeprofilecardprops",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "completeprofilecardprops"
     },
     {
@@ -2134,7 +2134,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_completeprofilecard_completeprofilecard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "completeprofilecard()"
     },
     {
@@ -2145,7 +2145,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_profileheader",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profileheader.tsx"
     },
     {
@@ -2156,7 +2156,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_profileheader_profileheaderprops",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profileheaderprops"
     },
     {
@@ -2167,7 +2167,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_profileheader_profileheader",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profileheader()"
     },
     {
@@ -2178,7 +2178,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_verificationstatus",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "verificationstatus.tsx"
     },
     {
@@ -2189,7 +2189,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_verificationstatus_accountstatus",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "accountstatus"
     },
     {
@@ -2200,7 +2200,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_verificationstatus_statusconfig",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "statusconfig"
     },
     {
@@ -2211,7 +2211,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_verificationstatus_verificationstatusprops",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "verificationstatusprops"
     },
     {
@@ -2222,7 +2222,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_profile_verificationstatus_verificationstatus",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "verificationstatus()"
     },
     {
@@ -2475,7 +2475,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_apartmentslist",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentslist.tsx"
     },
     {
@@ -2486,7 +2486,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_apartmentslist_apartmentslistprops",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentslistprops"
     },
     {
@@ -2497,7 +2497,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_apartmentslist_apartmentslist",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentslist()"
     },
     {
@@ -2606,8 +2606,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchheader",
-      "community": 7,
-      "community_name": "search.tsx",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "searchheader.tsx"
     },
     {
@@ -2617,8 +2617,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchheader_searchheaderprops",
-      "community": 7,
-      "community_name": "search.tsx",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "searchheaderprops"
     },
     {
@@ -2628,8 +2628,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_tabs_components_search_searchheader_searchheader",
-      "community": 7,
-      "community_name": "search.tsx",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "searchheader()"
     },
     {
@@ -2640,7 +2640,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsection.tsx"
     },
     {
@@ -2651,7 +2651,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_props",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "props"
     },
     {
@@ -2662,7 +2662,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_searchsection",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsection()"
     },
     {
@@ -2673,7 +2673,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_searchsectionskeleton",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsectionskeleton()"
     },
     {
@@ -2684,7 +2684,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsection_searchgridskeleton",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchgridskeleton()"
     },
     {
@@ -2695,7 +2695,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsectionslist",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsectionslist.tsx"
     },
     {
@@ -2706,7 +2706,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsectionslist_props",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "props"
     },
     {
@@ -2717,7 +2717,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_searchsectionslist_searchsectionslist",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsectionslist()"
     },
     {
@@ -2827,7 +2827,7 @@
       "_origin": "ast",
       "id": "app_tabs_components_search_usesearchsections_searchsection",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "searchsection"
     },
     {
@@ -3234,7 +3234,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewaccordionitem",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewaccordionitem.tsx"
     },
     {
@@ -3245,7 +3245,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewaccordionitem_reviewaccordionitemprops",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewaccordionitemprops"
     },
     {
@@ -3256,7 +3256,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewaccordionitem_reviewaccordionitem",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewaccordionitem()"
     },
     {
@@ -3267,7 +3267,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentfile",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentfile.tsx"
     },
     {
@@ -3278,7 +3278,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentfile_reviewdocumentfileprops",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentfileprops"
     },
     {
@@ -3289,7 +3289,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentfile_reviewdocumentfile",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentfile()"
     },
     {
@@ -3300,7 +3300,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentimage",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentimage.tsx"
     },
     {
@@ -3311,7 +3311,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentimage_reviewdocumentimageprops",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentimageprops"
     },
     {
@@ -3322,7 +3322,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_components_reviewdocumentimage_reviewdocumentimage",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewdocumentimage()"
     },
     {
@@ -3366,7 +3366,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_first_process",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "first-process.tsx"
     },
     {
@@ -3377,7 +3377,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_first_process_fielderrors",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "fielderrors"
     },
     {
@@ -3388,7 +3388,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_first_process_firstprocess",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "firstprocess()"
     },
     {
@@ -3399,7 +3399,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_review_information",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "review-information.tsx"
     },
     {
@@ -3410,7 +3410,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_review_information_reviewinformation",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "reviewinformation()"
     },
     {
@@ -3421,7 +3421,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_second_process",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "second-process.tsx"
     },
     {
@@ -3432,7 +3432,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_second_process_formerrors",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "formerrors"
     },
     {
@@ -3443,7 +3443,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_second_process_secondprocess",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "secondprocess()"
     },
     {
@@ -3453,7 +3453,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_submitted",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "submitted.tsx"
     },
@@ -3464,7 +3464,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_submitted_submitted",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "submitted()"
     },
@@ -3475,8 +3475,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_third_process",
-      "community": 55,
-      "community_name": "review-information.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "third-process.tsx"
     },
     {
@@ -3486,8 +3486,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_third_process_formerrors",
-      "community": 55,
-      "community_name": "review-information.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "formerrors"
     },
     {
@@ -3498,7 +3498,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_apply_third_process_thirdprocess",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "thirdprocess()"
     },
     {
@@ -3508,8 +3508,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_apartmentskeleton",
-      "community": 11,
-      "community_name": "RatingsSection.tsx",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentskeleton.tsx"
     },
     {
@@ -3519,8 +3519,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_apartmentskeleton_apartmentskeleton",
-      "community": 11,
-      "community_name": "RatingsSection.tsx",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentskeleton()"
     },
     {
@@ -3530,8 +3530,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_iconbutton",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "iconbutton.tsx"
     },
     {
@@ -3541,8 +3541,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_iconbutton_iconcomponent",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "iconcomponent"
     },
     {
@@ -3552,8 +3552,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_iconbutton_iconbuttonprops",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "iconbuttonprops"
     },
     {
@@ -3563,8 +3563,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_iconbutton_iconbutton",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "iconbutton()"
     },
     {
@@ -3585,8 +3585,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_rateapartmentskeleton_rateapartmentskeleton",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "rateapartmentskeleton()"
     },
     {
@@ -3596,8 +3596,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_ratingbarcount",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "ratingbarcount.tsx"
     },
     {
@@ -3607,8 +3607,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_ratingbarcount_ratingbarcountprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "ratingbarcountprops"
     },
     {
@@ -3618,8 +3618,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_ratingbarcount_ratingbarcount",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "ratingbarcount()"
     },
     {
@@ -3629,8 +3629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_index",
-      "community": 11,
-      "community_name": "RatingsSection.tsx",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "components/index.ts"
     },
     {
@@ -3673,8 +3673,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentdetailssection",
-      "community": 0,
-      "community_name": "apartments/index.ts",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentdetailssection.tsx"
     },
     {
@@ -3684,8 +3684,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentdetailssection_apartmentdetailssectionprops",
-      "community": 0,
-      "community_name": "apartments/index.ts",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentdetailssectionprops"
     },
     {
@@ -3695,8 +3695,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentdetailssection_apartmentdetailssection",
-      "community": 0,
-      "community_name": "apartments/index.ts",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentdetailssection()"
     },
     {
@@ -3707,7 +3707,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentherosection",
       "community": 49,
-      "community_name": "ApartmentHeroSection.tsx",
+      "community_name": "components/index.ts",
       "norm_label": "apartmentherosection.tsx"
     },
     {
@@ -3718,7 +3718,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentherosection_apartmentimage",
       "community": 49,
-      "community_name": "ApartmentHeroSection.tsx",
+      "community_name": "components/index.ts",
       "norm_label": "apartmentimage"
     },
     {
@@ -3729,7 +3729,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentherosection_apartmentherosectionprops",
       "community": 49,
-      "community_name": "ApartmentHeroSection.tsx",
+      "community_name": "components/index.ts",
       "norm_label": "apartmentherosectionprops"
     },
     {
@@ -3740,7 +3740,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_apartmentherosection_apartmentherosection",
       "community": 49,
-      "community_name": "ApartmentHeroSection.tsx",
+      "community_name": "components/index.ts",
       "norm_label": "apartmentherosection()"
     },
     {
@@ -3751,7 +3751,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_landlordsection",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordsection.tsx"
     },
     {
@@ -3762,7 +3762,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_landlordsection_landlordsectionprops",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordsectionprops"
     },
     {
@@ -3773,7 +3773,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_components_sections_landlordsection_landlordsection",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordsection()"
     },
     {
@@ -4003,8 +4003,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_map_view",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "map-view.tsx"
     },
     {
@@ -4014,8 +4014,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_map_view_directionmode",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 2,
+      "community_name": "map-search.tsx",
       "norm_label": "directionmode"
     },
     {
@@ -4036,8 +4036,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_rate_apartment",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "rate-apartment.tsx"
     },
     {
@@ -4047,8 +4047,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_rate_apartment_formerrors",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "formerrors"
     },
     {
@@ -4058,8 +4058,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_rate_apartment_tenancyleaseperiod",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "tenancyleaseperiod"
     },
     {
@@ -4069,8 +4069,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_rate_apartment_errordialogstate",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "errordialogstate"
     },
     {
@@ -4080,8 +4080,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_rate_apartment_rateapartment",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "rateapartment()"
     },
     {
@@ -4091,8 +4091,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_apartment_apartmentid_ratings",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "ratings.tsx"
     },
     {
@@ -4103,7 +4103,7 @@
       "_origin": "ast",
       "id": "app_apartment_apartmentid_ratings_ratingspage",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingspage()"
     },
     {
@@ -4366,8 +4366,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_chat_components_chatheader",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 22,
+      "community_name": "[conversationId].tsx",
       "norm_label": "chatheader.tsx"
     },
     {
@@ -4377,8 +4377,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_chat_components_chatheader_chatheaderprops",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 22,
+      "community_name": "[conversationId].tsx",
       "norm_label": "chatheaderprops"
     },
     {
@@ -4388,8 +4388,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_chat_components_chatheader_chatheader",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 22,
+      "community_name": "[conversationId].tsx",
       "norm_label": "chatheader()"
     },
     {
@@ -4443,8 +4443,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_dev_notification_toast",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "notification-toast.tsx"
     },
     {
@@ -4454,8 +4454,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mockrow",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "mockrow"
     },
     {
@@ -4465,8 +4465,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mocktoast",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "mocktoast"
     },
     {
@@ -4476,8 +4476,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_dev_notification_toast_mock_toasts",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "mock_toasts"
     },
     {
@@ -4487,8 +4487,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "app_dev_notification_toast_notificationtoastdevscreen",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "notificationtoastdevscreen()"
     },
     {
@@ -4685,7 +4685,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_document_id_select_document_selectdocument",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "selectdocument()"
     },
@@ -4707,7 +4707,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_document_id_upload_upload",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "upload()"
     },
@@ -4784,8 +4784,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_edit_profile",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "edit-profile.tsx"
     },
     {
@@ -4795,8 +4795,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "app_edit_profile_editprofileform",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "editprofileform"
     },
     {
@@ -4806,8 +4806,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_edit_profile_formerrors",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "formerrors"
     },
     {
@@ -4817,8 +4817,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "app_edit_profile_empty_form",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "empty_form"
     },
     {
@@ -4828,8 +4828,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "app_edit_profile_editprofile",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "editprofile()"
     },
     {
@@ -4960,8 +4960,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_emptymaintenancerequestdetail",
-      "community": 38,
-      "community_name": "maintenance-requests/index.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "emptymaintenancerequestdetail.tsx"
     },
     {
@@ -4971,8 +4971,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_emptymaintenancerequestdetail_emptymaintenancerequestdetail",
-      "community": 38,
-      "community_name": "maintenance-requests/index.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "emptymaintenancerequestdetail()"
     },
     {
@@ -4982,7 +4982,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_emptymaintenancerequestslist",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "emptymaintenancerequestslist.tsx"
     },
@@ -4993,7 +4993,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_emptymaintenancerequestslist_emptymaintenancerequestslist",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "emptymaintenancerequestslist()"
     },
@@ -5037,7 +5037,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestcardskeleton",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "maintenancerequestcardskeleton.tsx"
     },
@@ -5048,7 +5048,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestcardskeleton_maintenancerequestcardskeleton",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "maintenancerequestcardskeleton()"
     },
@@ -5060,7 +5060,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "maintenancerequestfiltersheet.tsx"
     },
     {
@@ -5071,7 +5071,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_maintenancerequestfilters",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "maintenancerequestfilters"
     },
     {
@@ -5082,7 +5082,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_status_options",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "status_options"
     },
     {
@@ -5093,7 +5093,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_urgency_options",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "urgency_options"
     },
     {
@@ -5104,7 +5104,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_location_options",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "location_options"
     },
     {
@@ -5115,7 +5115,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_props",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "props"
     },
     {
@@ -5126,7 +5126,7 @@
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_components_maintenancerequestfiltersheet_maintenancerequestfiltersheet",
       "community": 47,
-      "community_name": "maintenance-requests/index.tsx",
+      "community_name": "MaintenanceRequestFilterSheet.tsx",
       "norm_label": "maintenancerequestfiltersheet()"
     },
     {
@@ -5169,7 +5169,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_index",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "maintenance-requests/index.tsx"
     },
@@ -5180,7 +5180,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_index_empty_filters",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "empty_filters"
     },
@@ -5191,7 +5191,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_landlord_maintenance_requests_index_maintenancerequests",
-      "community": 47,
+      "community": 70,
       "community_name": "maintenance-requests/index.tsx",
       "norm_label": "maintenancerequests()"
     },
@@ -5257,8 +5257,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_components_paymenthistorycard",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "[apartmentid]/components/paymenthistorycard.tsx"
     },
     {
@@ -5268,8 +5268,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycardprops",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "paymenthistorycardprops"
     },
     {
@@ -5279,8 +5279,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_components_paymenthistorycard_paymenthistorycard",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "paymenthistorycard()"
     },
     {
@@ -5466,8 +5466,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "edit-main.tsx"
     },
     {
@@ -5477,8 +5477,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main_apartmentinformation",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "apartmentinformation"
     },
     {
@@ -5488,8 +5488,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main_displayimage",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "displayimage"
     },
     {
@@ -5499,8 +5499,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main_existingtoasset",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "existingtoasset()"
     },
     {
@@ -5511,7 +5511,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main_validateform",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "validateform()"
     },
     {
@@ -5522,7 +5522,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_main_editmain",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "editmain()"
     },
     {
@@ -5533,7 +5533,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_perks",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "edit-perks.tsx"
     },
     {
@@ -5544,7 +5544,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_perks_editperks",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "editperks()"
     },
     {
@@ -5565,7 +5565,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_edit_specs_editspecs",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "editspecs()"
     },
@@ -5576,8 +5576,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_index",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "description/index.tsx"
     },
     {
@@ -5609,7 +5609,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_lease_viewer_leaseviewer",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "leaseviewer()"
     },
@@ -5621,7 +5621,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "updateapartmentmain.ts"
     },
     {
@@ -5632,7 +5632,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_apartmentmainfields",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "apartmentmainfields"
     },
     {
@@ -5643,7 +5643,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_existingimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "existingimage"
     },
     {
@@ -5654,7 +5654,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_pendingimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "pendingimage"
     },
     {
@@ -5665,7 +5665,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_updateapartmentmainparams",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "updateapartmentmainparams"
     },
     {
@@ -5676,7 +5676,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_thumbpathfor",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "thumbpathfor()"
     },
     {
@@ -5687,7 +5687,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_uploadbytes",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploadbytes()"
     },
     {
@@ -5698,7 +5698,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_uploadimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploadimage()"
     },
     {
@@ -5709,7 +5709,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_deletestorageimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "deletestorageimage()"
     },
     {
@@ -5720,7 +5720,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_description_updateapartmentmain_updateapartmentmain",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "updateapartmentmain()"
     },
     {
@@ -5741,8 +5741,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_index_index",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "index()"
     },
     {
@@ -5753,7 +5753,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_paymentid",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "payment-history/[paymentid].tsx"
     },
     {
@@ -5764,7 +5764,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_paymentid_landlordpaymentreceipt",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "landlordpaymentreceipt()"
     },
     {
@@ -5774,8 +5774,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_index",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "payment-history/index.tsx"
     },
     {
@@ -5785,8 +5785,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_index_empty_filters",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "empty_filters"
     },
     {
@@ -5796,8 +5796,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_index_flatpayment",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "flatpayment"
     },
     {
@@ -5807,8 +5807,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_index_toflatpayment",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "toflatpayment()"
     },
     {
@@ -5818,8 +5818,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_payment_history_index_paymenthistoryscreen",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "paymenthistoryscreen()"
     },
     {
@@ -5829,8 +5829,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_reviews_index",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "reviews/index.tsx"
     },
     {
@@ -5840,8 +5840,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_reviews_index_sort_options",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "sort_options"
     },
     {
@@ -5852,7 +5852,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_apartmentid_reviews_index_reviewspage",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "reviewspage()"
     },
     {
@@ -5884,8 +5884,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_amenities",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "amenities.tsx"
     },
     {
@@ -5896,7 +5896,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_amenities_amenities",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "amenities()"
     },
     {
@@ -5906,7 +5906,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_fifth_step",
-      "community": 5,
+      "community": 60,
       "community_name": "fifth-step.tsx",
       "norm_label": "fifth-step.tsx"
     },
@@ -5917,7 +5917,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_fifth_step_map_style",
-      "community": 5,
+      "community": 60,
       "community_name": "fifth-step.tsx",
       "norm_label": "map_style"
     },
@@ -5928,7 +5928,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_fifth_step_default_coords",
-      "community": 5,
+      "community": 60,
       "community_name": "fifth-step.tsx",
       "norm_label": "default_coords"
     },
@@ -5951,7 +5951,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_fourth_step",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "fourth-step.tsx"
     },
     {
@@ -5962,7 +5962,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "fourthstep()"
     },
     {
@@ -5973,7 +5973,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_index",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "add-apartment/index.tsx"
     },
     {
@@ -5984,7 +5984,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_index_formerrors",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "formerrors"
     },
     {
@@ -5995,7 +5995,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_index_index",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "index()"
     },
     {
@@ -6027,8 +6027,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "second-step.tsx"
     },
     {
@@ -6038,8 +6038,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_formerrors",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "formerrors"
     },
     {
@@ -6049,8 +6049,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_default_coords",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "default_coords"
     },
     {
@@ -6060,8 +6060,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_default_room_limits",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "default_room_limits"
     },
     {
@@ -6071,8 +6071,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_iszerorange",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "iszerorange()"
     },
     {
@@ -6082,8 +6082,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_formatrange",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "formatrange()"
     },
     {
@@ -6093,8 +6093,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_formatlimitmessage",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "formatlimitmessage()"
     },
     {
@@ -6104,8 +6104,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_second_step_secondstep",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "secondstep()"
     },
     {
@@ -6115,7 +6115,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_success",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "add-apartment/success.tsx"
     },
@@ -6126,7 +6126,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_success_success",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "success()"
     },
@@ -6138,7 +6138,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_third_step",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "third-step.tsx"
     },
     {
@@ -6149,7 +6149,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_third_step_fielderrors",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "fielderrors"
     },
     {
@@ -6160,7 +6160,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_third_step_validate",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "validate()"
     },
     {
@@ -6171,7 +6171,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "thirdstep()"
     },
     {
@@ -6182,7 +6182,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_components_perkbutton",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkbutton.tsx"
     },
     {
@@ -6193,7 +6193,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_components_perkbutton_baseperkbuttonprops",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "baseperkbuttonprops"
     },
     {
@@ -6204,7 +6204,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_components_perkbutton_perkbuttonprops",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkbuttonprops"
     },
     {
@@ -6215,7 +6215,7 @@
       "_origin": "ast",
       "id": "app_landlord_manage_apartment_components_perkbutton_perkbutton",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkbutton()"
     },
     {
@@ -6346,8 +6346,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_landlord_tenant_applications_components_emptyapplicationdata",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "emptyapplicationdata.tsx"
     },
     {
@@ -6357,8 +6357,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_landlord_tenant_applications_components_emptyapplicationdata_emptyapplicationdata",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "emptyapplicationdata()"
     },
     {
@@ -6555,8 +6555,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_landlord_tenant_applications_index_tenantapplications",
-      "community": 31,
-      "community_name": "tenant-applications/index.tsx",
+      "community": 61,
+      "community_name": "useLandlordActionBadges",
       "norm_label": "tenantapplications()"
     },
     {
@@ -7017,8 +7017,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_profile_landlord_landlordid",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "[landlordid].tsx"
     },
     {
@@ -7028,8 +7028,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_profile_landlord_landlordid_publiclandlordprofile",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "publiclandlordprofile()"
     },
     {
@@ -7039,8 +7039,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "app_profile_landlord_landlordid_rationale_86",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "todo: implement function to handle report landlord"
     },
     {
@@ -7051,7 +7051,7 @@
       "_origin": "ast",
       "id": "app_profile_tenant_tenantid",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "[tenantid].tsx"
     },
     {
@@ -7062,7 +7062,7 @@
       "_origin": "ast",
       "id": "app_profile_tenant_tenantid_publictenantprofile",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "publictenantprofile()"
     },
     {
@@ -7073,7 +7073,7 @@
       "_origin": "ast",
       "id": "app_profile_tenant_tenantid_rationale_87",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "todo: implement function to handle report tenant"
     },
     {
@@ -7138,7 +7138,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_search_components_aiheader",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "aiheader.tsx"
     },
@@ -7149,7 +7149,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_search_components_aiheader_aiheaderprops",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "aiheaderprops"
     },
@@ -7160,7 +7160,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_search_components_aiheader_aiheader",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "aiheader()"
     },
@@ -7171,8 +7171,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_search_components_emptychatstate",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 17,
+      "community_name": "ai-search.tsx",
       "norm_label": "emptychatstate.tsx"
     },
     {
@@ -7182,8 +7182,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_search_components_emptychatstate_emptychatstate",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 17,
+      "community_name": "ai-search.tsx",
       "norm_label": "emptychatstate()"
     },
     {
@@ -7600,8 +7600,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_settings_preferences",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "preferences.tsx"
     },
     {
@@ -7611,8 +7611,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_settings_preferences_bedroom_options",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "bedroom_options"
     },
     {
@@ -7622,8 +7622,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_settings_preferences_family_options",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "family_options"
     },
     {
@@ -7633,8 +7633,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "app_settings_preferences_no_parking_options",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 1,
+      "community_name": "ScreenWrapper.tsx",
       "norm_label": "no_parking_options"
     },
     {
@@ -7952,8 +7952,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tenant_current_apartment",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "current-apartment.tsx"
     },
     {
@@ -7974,8 +7974,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_tenant_current_apartment_formatdatetomonthyear",
-      "community": 50,
-      "community_name": "useTenancy",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "formatdatetomonthyear()"
     },
     {
@@ -7985,8 +7985,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_tenant_current_apartment_currentapartmentdetails",
-      "community": 50,
-      "community_name": "useTenancy",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "currentapartmentdetails()"
     },
     {
@@ -7996,8 +7996,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tenant_favorites",
-      "community": 13,
-      "community_name": "apartment/[apartmentId]/index.tsx",
+      "community": 41,
+      "community_name": "favorites.tsx",
       "norm_label": "favorites.tsx"
     },
     {
@@ -8161,8 +8161,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tenant_payment_components_cashpaymentform",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "cashpaymentform.tsx"
     },
     {
@@ -8194,8 +8194,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_tenant_payment_components_cashpaymentform_cashpaymentformprops",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "cashpaymentformprops"
     },
     {
@@ -8436,8 +8436,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tenant_payment_components_receiptcard",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "receiptcard.tsx"
     },
     {
@@ -8447,8 +8447,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_tenant_payment_components_receiptcard_status_meta",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "status_meta"
     },
     {
@@ -8458,8 +8458,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_tenant_payment_components_receiptcard_receiptcardprops",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "receiptcardprops"
     },
     {
@@ -8469,8 +8469,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "app_tenant_payment_components_receiptcard_receiptcard",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "receiptcard()"
     },
     {
@@ -8480,8 +8480,8 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "app_tenant_payment_components_receiptcard_receiptrow",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "receiptrow()"
     },
     {
@@ -8491,8 +8491,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tenant_payment_components_zigzagedge",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "zigzagedge.tsx"
     },
     {
@@ -8502,8 +8502,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_tenant_payment_components_zigzagedge_zigzagedgeprops",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "zigzagedgeprops"
     },
     {
@@ -8513,8 +8513,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_tenant_payment_components_zigzagedge_zigzagedge",
-      "community": 172,
-      "community_name": "ReceiptCard.tsx",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "zigzagedge()"
     },
     {
@@ -8525,7 +8525,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_history_paymentid",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "history/[paymentid].tsx"
     },
     {
@@ -8536,7 +8536,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_history_paymentid_paymentreceipt",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "paymentreceipt()"
     },
     {
@@ -8789,7 +8789,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_add",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "add.tsx"
     },
     {
@@ -8800,7 +8800,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_add_paymentmethodtype",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "paymentmethodtype"
     },
     {
@@ -8811,7 +8811,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_add_payment_method_types",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "payment_method_types"
     },
     {
@@ -8822,7 +8822,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_add_add",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "add()"
     },
     {
@@ -8866,7 +8866,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "paymentmethodcard.tsx"
     },
     {
@@ -8877,7 +8877,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard_paymentmethod",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "paymentmethod"
     },
     {
@@ -8888,7 +8888,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard_paymentmethodcardprops",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "paymentmethodcardprops"
     },
     {
@@ -8899,7 +8899,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard_getlogosource",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "getlogosource()"
     },
     {
@@ -8910,7 +8910,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard_maskmobilenumber",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "maskmobilenumber()"
     },
     {
@@ -8921,7 +8921,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_components_paymentmethodcard_paymentmethodcard",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "paymentmethodcard()"
     },
     {
@@ -8932,7 +8932,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_index",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "saved-methods/index.tsx"
     },
     {
@@ -8943,7 +8943,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_index_initial_payment_methods",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "initial_payment_methods"
     },
     {
@@ -8954,7 +8954,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_saved_methods_index_index",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "index()"
     },
     {
@@ -8965,7 +8965,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_success",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "payment/success.tsx"
     },
     {
@@ -8976,7 +8976,7 @@
       "_origin": "ast",
       "id": "app_tenant_payment_success_success",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "success()"
     },
     {
@@ -9063,8 +9063,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_buttons_dropdownbutton",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "dropdownbutton.tsx"
     },
     {
@@ -9074,8 +9074,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "components_buttons_dropdownbutton_dropdownbuttonprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "dropdownbuttonprops"
     },
     {
@@ -9085,8 +9085,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "components_buttons_dropdownbutton_formatmultidisplay",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "formatmultidisplay()"
     },
     {
@@ -9096,8 +9096,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "components_buttons_dropdownbutton_dropdownbutton",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 35,
+      "community_name": "ProfitByPropertyCard.tsx",
       "norm_label": "dropdownbutton()"
     },
     {
@@ -9108,7 +9108,7 @@
       "_origin": "ast",
       "id": "components_cards_apartmentcard",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentcard.tsx"
     },
     {
@@ -9119,7 +9119,7 @@
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcardprops",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentcardprops"
     },
     {
@@ -9130,7 +9130,7 @@
       "_origin": "ast",
       "id": "components_cards_apartmentcard_apartmentcard",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "apartmentcard()"
     },
     {
@@ -9141,7 +9141,7 @@
       "_origin": "ast",
       "id": "components_cards_landlordcard",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordcard.tsx"
     },
     {
@@ -9152,7 +9152,7 @@
       "_origin": "ast",
       "id": "components_cards_landlordcard_landlordcardprops",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordcardprops"
     },
     {
@@ -9163,7 +9163,7 @@
       "_origin": "ast",
       "id": "components_cards_landlordcard_initialsavatar",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "initialsavatar()"
     },
     {
@@ -9174,7 +9174,7 @@
       "_origin": "ast",
       "id": "components_cards_landlordcard_landlordcard",
       "community": 60,
-      "community_name": "LandlordSection.tsx",
+      "community_name": "fifth-step.tsx",
       "norm_label": "landlordcard()"
     },
     {
@@ -9185,7 +9185,7 @@
       "_origin": "ast",
       "id": "components_cards_pastapartmentcard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "pastapartmentcard.tsx"
     },
     {
@@ -9196,7 +9196,7 @@
       "_origin": "ast",
       "id": "components_cards_pastapartmentcard_pastapartmentcardprops",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "pastapartmentcardprops"
     },
     {
@@ -9207,7 +9207,7 @@
       "_origin": "ast",
       "id": "components_cards_pastapartmentcard_pastapartmentcard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "pastapartmentcard()"
     },
     {
@@ -9218,7 +9218,7 @@
       "_origin": "ast",
       "id": "components_cards_profilestatscard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profilestatscard.tsx"
     },
     {
@@ -9229,7 +9229,7 @@
       "_origin": "ast",
       "id": "components_cards_profilestatscard_profilestat",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profilestat"
     },
     {
@@ -9240,7 +9240,7 @@
       "_origin": "ast",
       "id": "components_cards_profilestatscard_profilestatscardprops",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profilestatscardprops"
     },
     {
@@ -9251,7 +9251,7 @@
       "_origin": "ast",
       "id": "components_cards_profilestatscard_profilestatscard",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "profilestatscard()"
     },
     {
@@ -9261,8 +9261,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_cards_ratingcard",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingcard.tsx"
     },
     {
@@ -9272,8 +9272,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_cards_ratingcard_ratingcardprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingcardprops"
     },
     {
@@ -9283,8 +9283,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_cards_ratingcard_ratingcard",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingcard()"
     },
     {
@@ -9294,8 +9294,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_cards_ratingcardskeleton",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingcardskeleton.tsx"
     },
     {
@@ -9305,8 +9305,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "components_cards_ratingcardskeleton_ratingcardskeleton",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingcardskeleton()"
     },
     {
@@ -9316,8 +9316,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_cards_smallratingcard",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "smallratingcard.tsx"
     },
     {
@@ -9327,8 +9327,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_cards_smallratingcard_smallratingcardprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "smallratingcardprops"
     },
     {
@@ -9371,7 +9371,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_display_accordionitem",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "accordionitem.tsx"
     },
@@ -9382,7 +9382,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_display_accordionitem_accordionitemprops",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "accordionitemprops"
     },
@@ -9393,7 +9393,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "components_display_accordionitem_accordionitem",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "accordionitem()"
     },
@@ -9515,7 +9515,7 @@
       "_origin": "ast",
       "id": "components_display_divider",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "divider.tsx"
     },
     {
@@ -9526,7 +9526,7 @@
       "_origin": "ast",
       "id": "components_display_divider_dividerprops",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "dividerprops"
     },
     {
@@ -9537,7 +9537,7 @@
       "_origin": "ast",
       "id": "components_display_divider_divider",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "divider()"
     },
     {
@@ -9603,7 +9603,7 @@
       "_origin": "ast",
       "id": "components_display_emptystate",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "emptystate.tsx"
     },
     {
@@ -9614,7 +9614,7 @@
       "_origin": "ast",
       "id": "components_display_emptystate_emptystateprops",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "emptystateprops"
     },
     {
@@ -9625,7 +9625,7 @@
       "_origin": "ast",
       "id": "components_display_emptystate_emptystate",
       "community": 41,
-      "community_name": "ApartmentsList.tsx",
+      "community_name": "favorites.tsx",
       "norm_label": "emptystate()"
     },
     {
@@ -9636,7 +9636,7 @@
       "_origin": "ast",
       "id": "components_display_errordialog",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "errordialog.tsx"
     },
     {
@@ -9647,7 +9647,7 @@
       "_origin": "ast",
       "id": "components_display_errordialog_errordialogprops",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "errordialogprops"
     },
     {
@@ -9658,7 +9658,7 @@
       "_origin": "ast",
       "id": "components_display_errordialog_errordialog",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "errordialog()"
     },
     {
@@ -9877,8 +9877,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "components_display_notificationtoast_shownotificationtoast",
-      "community": 48,
-      "community_name": "app/_layout.tsx",
+      "community": 83,
+      "community_name": "notification-toast.tsx",
       "norm_label": "shownotificationtoast()"
     },
     {
@@ -9911,7 +9911,7 @@
       "_origin": "ast",
       "id": "components_display_perkitem",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkitem.tsx"
     },
     {
@@ -9922,7 +9922,7 @@
       "_origin": "ast",
       "id": "components_display_perkitem_baseperkitemprops",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "baseperkitemprops"
     },
     {
@@ -9933,7 +9933,7 @@
       "_origin": "ast",
       "id": "components_display_perkitem_perkitemprops",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkitemprops"
     },
     {
@@ -9943,8 +9943,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "components_display_perkitem_perkitem",
-      "community": 1,
-      "community_name": "ScreenWrapper.tsx",
+      "community": 5,
+      "community_name": "useApartmentFormStore",
       "norm_label": "perkitem()"
     },
     {
@@ -10031,8 +10031,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_display_starrating",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "starrating.tsx"
     },
     {
@@ -10042,8 +10042,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "components_display_starrating_starratingprops",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "starratingprops"
     },
     {
@@ -10053,8 +10053,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "components_display_starrating_starrating",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 3,
+      "community_name": "reviews/index.tsx",
       "norm_label": "starrating()"
     },
     {
@@ -10130,8 +10130,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_display_successdialog",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 38,
+      "community_name": "maintenance-requests/index.ts",
       "norm_label": "successdialog.tsx"
     },
     {
@@ -10141,8 +10141,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "components_display_successdialog_successdialogprops",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 38,
+      "community_name": "maintenance-requests/index.ts",
       "norm_label": "successdialogprops"
     },
     {
@@ -10152,8 +10152,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_display_successdialog_successdialog",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 38,
+      "community_name": "maintenance-requests/index.ts",
       "norm_label": "successdialog()"
     },
     {
@@ -10229,8 +10229,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_inputs_datefield",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "datefield.tsx"
     },
     {
@@ -10240,8 +10240,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_inputs_datefield_datefieldprops",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "datefieldprops"
     },
     {
@@ -10251,8 +10251,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "components_inputs_datefield_datefield",
-      "community": 9,
-      "community_name": "useColors",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "datefield()"
     },
     {
@@ -10263,7 +10263,7 @@
       "_origin": "ast",
       "id": "components_inputs_dropdownfield",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "dropdownfield.tsx"
     },
     {
@@ -10274,7 +10274,7 @@
       "_origin": "ast",
       "id": "components_inputs_dropdownfield_searchinputprops",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "searchinputprops"
     },
     {
@@ -10285,7 +10285,7 @@
       "_origin": "ast",
       "id": "components_inputs_dropdownfield_searchinput",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "searchinput()"
     },
     {
@@ -10296,7 +10296,7 @@
       "_origin": "ast",
       "id": "components_inputs_dropdownfield_dropdownfieldprops",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "dropdownfieldprops"
     },
     {
@@ -10307,7 +10307,7 @@
       "_origin": "ast",
       "id": "components_inputs_dropdownfield_dropdownfield",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "dropdownfield()"
     },
     {
@@ -10472,7 +10472,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_test",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploaddocumentfield.test.tsx"
     },
     {
@@ -10483,7 +10483,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_test_openadddocumentsheet",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "openadddocumentsheet()"
     },
     {
@@ -10494,7 +10494,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploaddocumentfield.tsx"
     },
     {
@@ -10505,7 +10505,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_uploadeddocument",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploadeddocument"
     },
     {
@@ -10516,7 +10516,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_uploaddocumentfieldprops",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploaddocumentfieldprops"
     },
     {
@@ -10527,7 +10527,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_accepted_file_types",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "accepted_file_types"
     },
     {
@@ -10538,7 +10538,7 @@
       "_origin": "ast",
       "id": "components_inputs_uploaddocumentfield_uploaddocumentfield",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploaddocumentfield()"
     },
     {
@@ -10548,8 +10548,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_inputs_uploadfilefield",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadfilefield.tsx"
     },
     {
@@ -10559,8 +10559,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "components_inputs_uploadfilefield_uploadfilefieldprops",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadfilefieldprops"
     },
     {
@@ -10570,8 +10570,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "components_inputs_uploadfilefield_uploadfilefield",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadfilefield()"
     },
     {
@@ -10581,8 +10581,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_inputs_uploadimagefield",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadimagefield.tsx"
     },
     {
@@ -10592,8 +10592,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "components_inputs_uploadimagefield_uploadimagefieldprops",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadimagefieldprops"
     },
     {
@@ -10603,8 +10603,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "components_inputs_uploadimagefield_uploadimagefield",
-      "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community": 172,
+      "community_name": "rate-apartment.tsx",
       "norm_label": "uploadimagefield()"
     },
     {
@@ -10615,7 +10615,7 @@
       "_origin": "ast",
       "id": "components_layout_applicationheader",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "applicationheader.tsx"
     },
     {
@@ -10626,7 +10626,7 @@
       "_origin": "ast",
       "id": "components_layout_applicationheader_applicationheaderprops",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "applicationheaderprops"
     },
     {
@@ -10637,7 +10637,7 @@
       "_origin": "ast",
       "id": "components_layout_applicationheader_applicationheader",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "applicationheader()"
     },
     {
@@ -10648,7 +10648,7 @@
       "_origin": "ast",
       "id": "components_layout_circleprogress",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "circleprogress.tsx"
     },
     {
@@ -10659,7 +10659,7 @@
       "_origin": "ast",
       "id": "components_layout_circleprogress_circleprogressprops",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "circleprogressprops"
     },
     {
@@ -10670,7 +10670,7 @@
       "_origin": "ast",
       "id": "components_layout_circleprogress_circleprogress",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "circleprogress()"
     },
     {
@@ -11010,7 +11010,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_providers_queryprovider",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "queryprovider.tsx"
     },
@@ -11021,7 +11021,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "components_providers_queryprovider_queryproviderprops",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "queryproviderprops"
     },
@@ -11032,7 +11032,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "components_providers_queryprovider_appstatefocusbridge",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "appstatefocusbridge()"
     },
@@ -11043,7 +11043,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "components_providers_queryprovider_queryprovider",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "queryprovider()"
     },
@@ -11054,7 +11054,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "constants_images",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "images.ts"
     },
@@ -11065,7 +11065,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "constants_images_images",
-      "community": 67,
+      "community": 16,
       "community_name": "images.ts",
       "norm_label": "images"
     },
@@ -11076,8 +11076,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "constants_images_empty_state_images",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 16,
+      "community_name": "images.ts",
       "norm_label": "empty_state_images"
     },
     {
@@ -11098,8 +11098,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "constants_images_default_images",
-      "community": 67,
-      "community_name": "images.ts",
+      "community": 22,
+      "community_name": "[conversationId].tsx",
       "norm_label": "default_images"
     },
     {
@@ -11110,7 +11110,7 @@
       "_origin": "ast",
       "id": "constants_images_payment_method_logos",
       "community": 16,
-      "community_name": "saved-methods/index.tsx",
+      "community_name": "images.ts",
       "norm_label": "payment_method_logos"
     },
     {
@@ -11209,7 +11209,7 @@
       "_origin": "ast",
       "id": "constants_perks",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perks.ts"
     },
     {
@@ -11220,7 +11220,7 @@
       "_origin": "ast",
       "id": "constants_perks_perk",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perk"
     },
     {
@@ -11231,7 +11231,7 @@
       "_origin": "ast",
       "id": "constants_perks_perks",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "perks"
     },
     {
@@ -11362,7 +11362,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "hooks_apartments_useapartmentdetails_test_createwrapper",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
@@ -11461,8 +11461,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_apartments_useimageupload",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "useimageupload.ts"
     },
     {
@@ -11472,8 +11472,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_apartments_useimageupload_uploadtarget",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "uploadtarget"
     },
     {
@@ -11483,8 +11483,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "hooks_apartments_useimageupload_bucket_map",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "bucket_map"
     },
     {
@@ -11494,8 +11494,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "hooks_apartments_useimageupload_useimageupload",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "useimageupload()"
     },
     {
@@ -11549,8 +11549,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits.ts"
     },
     {
@@ -11560,8 +11560,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_getlandlordunitsquerykey",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "getlandlordunitsquerykey()"
     },
     {
@@ -11571,8 +11571,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "hooks_apartments_uselandlordunits_uselandlordunits",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "uselandlordunits()"
     },
     {
@@ -11616,7 +11616,7 @@
       "_origin": "ast",
       "id": "hooks_apartments_usepublishapartment",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "usepublishapartment.ts"
     },
     {
@@ -11627,7 +11627,7 @@
       "_origin": "ast",
       "id": "hooks_apartments_usepublishapartment_uploadbytes",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploadbytes()"
     },
     {
@@ -11638,7 +11638,7 @@
       "_origin": "ast",
       "id": "hooks_apartments_usepublishapartment_uploadimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "uploadimage()"
     },
     {
@@ -11649,7 +11649,7 @@
       "_origin": "ast",
       "id": "hooks_apartments_usepublishapartment_getmimetype",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "getmimetype()"
     },
     {
@@ -11660,7 +11660,7 @@
       "_origin": "ast",
       "id": "hooks_apartments_usepublishapartment_usepublishapartment",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "usepublishapartment()"
     },
     {
@@ -11967,8 +11967,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "usesubmitapplication.ts"
     },
     {
@@ -11978,8 +11978,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_dockey",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "dockey"
     },
     {
@@ -11989,8 +11989,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_submitargs",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "submitargs"
     },
     {
@@ -12000,8 +12000,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_submitresult",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "submitresult"
     },
     {
@@ -12011,8 +12011,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_mime_map",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "mime_map"
     },
     {
@@ -12022,8 +12022,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_getcontenttype",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "getcontenttype()"
     },
     {
@@ -12033,8 +12033,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_uploaddoc",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "uploaddoc()"
     },
     {
@@ -12045,7 +12045,7 @@
       "_origin": "ast",
       "id": "hooks_applications_usesubmitapplication_usesubmitapplication",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "usesubmitapplication()"
     },
     {
@@ -12055,7 +12055,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_applications_usetenantapplications_test",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "usetenantapplications.test.tsx"
     },
@@ -12066,7 +12066,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "hooks_applications_usetenantapplications_test_mockusecurrentuser",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockusecurrentuser"
     },
@@ -12077,7 +12077,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "hooks_applications_usetenantapplications_test_mockfetchtenantapplications",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockfetchtenantapplications"
     },
@@ -12088,7 +12088,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "hooks_applications_usetenantapplications_test_createwrapper",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
@@ -12165,7 +12165,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_auth_usecountdown_usecountdown",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "usecountdown()"
     },
@@ -12176,8 +12176,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test",
-      "community": 64,
-      "community_name": "queryClient.ts",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "usecurrentuser.test.tsx"
     },
     {
@@ -12187,8 +12187,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test_profilerecord",
-      "community": 64,
-      "community_name": "queryClient.ts",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "profilerecord"
     },
     {
@@ -12198,8 +12198,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test_mockgetuser",
-      "community": 64,
-      "community_name": "queryClient.ts",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "mockgetuser"
     },
     {
@@ -12209,8 +12209,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test_mockfrom",
-      "community": 64,
-      "community_name": "queryClient.ts",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "mockfrom"
     },
     {
@@ -12220,8 +12220,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test_createuserquery",
-      "community": 64,
-      "community_name": "queryClient.ts",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "createuserquery()"
     },
     {
@@ -12231,7 +12231,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "hooks_auth_usecurrentuser_test_createwrapper",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
@@ -12275,8 +12275,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_auth_usegoogleauth",
-      "community": 39,
-      "community_name": "auth/index.ts",
+      "community": 12,
+      "community_name": "sign-in.tsx",
       "norm_label": "usegoogleauth.ts"
     },
     {
@@ -12308,8 +12308,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "hooks_auth_useprofile_useprofile",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "useprofile()"
     },
     {
@@ -12715,8 +12715,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "hooks_chat_useconversations_useconversations",
-      "community": 83,
-      "community_name": "(tenant)/chat.tsx",
+      "community": 6,
+      "community_name": "useConversations.test.tsx",
       "norm_label": "useconversations()"
     },
     {
@@ -13101,7 +13101,7 @@
       "_origin": "ast",
       "id": "hooks_maintenance_requests_uselandlordmaintenancerequests",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "uselandlordmaintenancerequests.ts"
     },
     {
@@ -13112,7 +13112,7 @@
       "_origin": "ast",
       "id": "hooks_maintenance_requests_uselandlordmaintenancerequests_status_flow",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "status_flow"
     },
     {
@@ -13123,7 +13123,7 @@
       "_origin": "ast",
       "id": "hooks_maintenance_requests_uselandlordmaintenancerequests_getnextstatus",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "getnextstatus()"
     },
     {
@@ -13134,7 +13134,7 @@
       "_origin": "ast",
       "id": "hooks_maintenance_requests_uselandlordmaintenancerequests_getlandlordmaintenancerequestsquerykey",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "getlandlordmaintenancerequestsquerykey()"
     },
     {
@@ -13145,7 +13145,7 @@
       "_origin": "ast",
       "id": "hooks_maintenance_requests_uselandlordmaintenancerequests_uselandlordmaintenancerequests",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "uselandlordmaintenancerequests()"
     },
     {
@@ -13353,7 +13353,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_notificationsuppression_test",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "notificationsuppression.test.ts"
     },
@@ -13364,7 +13364,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "hooks_notifications_notificationsuppression_test_messagerow",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "messagerow()"
     },
@@ -13375,7 +13375,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_notificationsuppression",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "notificationsuppression.ts"
     },
@@ -13386,7 +13386,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "hooks_notifications_notificationsuppression_getopenchatconversationkey",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "getopenchatconversationkey()"
     },
@@ -13397,7 +13397,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "hooks_notifications_notificationsuppression_shouldsuppresschattoast",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "shouldsuppresschattoast()"
     },
@@ -13474,7 +13474,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_useinappnotificationbanner",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "useinappnotificationbanner.tsx"
     },
@@ -13606,8 +13606,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "usenotificationrealtime.ts"
     },
     {
@@ -13617,8 +13617,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_notificationrealtimecallbacks",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "notificationrealtimecallbacks"
     },
     {
@@ -13628,8 +13628,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_channelentry",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "channelentry"
     },
     {
@@ -13639,8 +13639,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_registry",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "registry"
     },
     {
@@ -13650,8 +13650,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_handleevent",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "handleevent()"
     },
     {
@@ -13661,8 +13661,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_attach",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "attach()"
     },
     {
@@ -13672,8 +13672,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_detach",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "detach()"
     },
     {
@@ -13683,8 +13683,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationrealtime_usenotificationrealtime",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 56,
+      "community_name": "useNotifications.ts",
       "norm_label": "usenotificationrealtime()"
     },
     {
@@ -13695,7 +13695,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationtaphandler",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "usenotificationtaphandler.ts"
     },
     {
@@ -13706,7 +13706,7 @@
       "_origin": "ast",
       "id": "hooks_notifications_usenotificationtaphandler_usenotificationtaphandler",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "usenotificationtaphandler()"
     },
     {
@@ -13793,8 +13793,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "hooks_notifications_usepushregistration_usepushregistration",
-      "community": 19,
-      "community_name": "notificationService.ts",
+      "community": 48,
+      "community_name": "app/_layout.tsx",
       "norm_label": "usepushregistration()"
     },
     {
@@ -13826,8 +13826,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_payments_index",
-      "community": 15,
-      "community_name": "paymentService.ts",
+      "community": 28,
+      "community_name": "payments/index.ts",
       "norm_label": "payments/index.ts"
     },
     {
@@ -13904,7 +13904,7 @@
       "_origin": "ast",
       "id": "hooks_payments_usepayments_getpaymentquerykey",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "getpaymentquerykey()"
     },
     {
@@ -13925,8 +13925,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "hooks_payments_usepayments_usepayments",
-      "community": 15,
-      "community_name": "paymentService.ts",
+      "community": 43,
+      "community_name": "payment/index.tsx",
       "norm_label": "usepayments()"
     },
     {
@@ -13937,7 +13937,7 @@
       "_origin": "ast",
       "id": "hooks_payments_usepayments_usepayment",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "usepayment()"
     },
     {
@@ -13948,7 +13948,7 @@
       "_origin": "ast",
       "id": "hooks_payments_usepayments_usepaymentbyreference",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "usepaymentbyreference()"
     },
     {
@@ -14201,7 +14201,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_index",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratings/index.ts"
     },
     {
@@ -14212,7 +14212,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "useapartmentreviews.ts"
     },
     {
@@ -14223,7 +14223,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_reviewsortoption",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "reviewsortoption"
     },
     {
@@ -14234,7 +14234,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_apartmentreview",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "apartmentreview"
     },
     {
@@ -14245,7 +14245,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_ratingbarcountdata",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "ratingbarcountdata"
     },
     {
@@ -14256,7 +14256,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_useapartmentreviewsresult",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "useapartmentreviewsresult"
     },
     {
@@ -14267,7 +14267,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_getapartmentreviewsquerykey",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "getapartmentreviewsquerykey()"
     },
     {
@@ -14278,7 +14278,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_formatleaseduration",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "formatleaseduration()"
     },
     {
@@ -14289,7 +14289,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_geterrormessage",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "geterrormessage()"
     },
     {
@@ -14300,7 +14300,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_useapartmentreviews_useapartmentreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "useapartmentreviews()"
     },
     {
@@ -14311,7 +14311,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_uselandlordreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "uselandlordreviews.ts"
     },
     {
@@ -14322,7 +14322,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_uselandlordreviews_getlandlordreviewsquerykey",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "getlandlordreviewsquerykey()"
     },
     {
@@ -14333,7 +14333,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_uselandlordreviews_uselandlordreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "uselandlordreviews()"
     },
     {
@@ -14344,7 +14344,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_userevieweligibility",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "userevieweligibility.ts"
     },
     {
@@ -14355,7 +14355,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_userevieweligibility_getrevieweligibilityquerykey",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "getrevieweligibilityquerykey()"
     },
     {
@@ -14366,7 +14366,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_userevieweligibility_userevieweligibilityresult",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "userevieweligibilityresult"
     },
     {
@@ -14377,7 +14377,7 @@
       "_origin": "ast",
       "id": "hooks_ratings_userevieweligibility_userevieweligibility",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "userevieweligibility()"
     },
     {
@@ -14387,8 +14387,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_ratings_usesubmitreview",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "usesubmitreview.ts"
     },
     {
@@ -14398,8 +14398,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "hooks_ratings_usesubmitreview_submitreviewparams",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "submitreviewparams"
     },
     {
@@ -14409,8 +14409,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "hooks_ratings_usesubmitreview_submitreviewresult",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "submitreviewresult"
     },
     {
@@ -14420,8 +14420,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "hooks_ratings_usesubmitreview_usesubmitreview",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "usesubmitreview()"
     },
     {
@@ -14442,8 +14442,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "uselandlordtenancy.ts"
     },
     {
@@ -14453,8 +14453,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy_getlandlordtenancyquerykey",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "getlandlordtenancyquerykey()"
     },
     {
@@ -14464,8 +14464,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_tenancy_uselandlordtenancy_uselandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "uselandlordtenancy()"
     },
     {
@@ -14475,7 +14475,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "usetenancy.test.tsx"
     },
@@ -14486,7 +14486,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test_mockusecurrentuser",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockusecurrentuser"
     },
@@ -14497,7 +14497,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test_mockfetchtenancy",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockfetchtenancy"
     },
@@ -14508,7 +14508,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test_mockremovechannel",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockremovechannel"
     },
@@ -14519,7 +14519,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test_mockchannel",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "mockchannel"
     },
@@ -14530,7 +14530,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "hooks_tenancy_usetenancy_test_createwrapper",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
@@ -14860,8 +14860,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_usetheme",
-      "community": 23,
-      "community_name": "useTheme.ts",
+      "community": 30,
+      "community_name": "useColors",
       "norm_label": "usetheme.ts"
     },
     {
@@ -14882,7 +14882,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "hooks_usetheme_usecolors",
-      "community": 9,
+      "community": 30,
       "community_name": "useColors",
       "norm_label": "usecolors()"
     },
@@ -15113,8 +15113,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_visitrequests_usesubmitvisitrequest",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "usesubmitvisitrequest.ts"
     },
     {
@@ -15124,8 +15124,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "hooks_visitrequests_usesubmitvisitrequest_visitrequestpayload",
-      "community": 46,
-      "community_name": "useProfile",
+      "community": 39,
+      "community_name": "auth/index.ts",
       "norm_label": "visitrequestpayload"
     },
     {
@@ -15982,8 +15982,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "package_dependencies_emoji_regex_xs",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 180,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -15993,8 +15993,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "emoji_regex_xs",
-      "community": 58,
-      "community_name": "dependencies",
+      "community": 180,
+      "community_name": "emoji-regex-xs",
       "norm_label": "emoji-regex-xs"
     },
     {
@@ -16004,8 +16004,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 180,
-      "community_name": "expo",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "expo"
     },
     {
@@ -16015,8 +16015,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "expo",
-      "community": 180,
-      "community_name": "expo",
+      "community": 58,
+      "community_name": "dependencies",
       "norm_label": "expo"
     },
     {
@@ -17445,8 +17445,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "service_apartments_apartmentdetailsservice_apartmentdetails",
-      "community": 0,
-      "community_name": "apartments/index.ts",
+      "community": 49,
+      "community_name": "components/index.ts",
       "norm_label": "apartmentdetails"
     },
     {
@@ -17984,8 +17984,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "service_chat_chatpagination",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "chatpagination.ts"
     },
     {
@@ -17995,8 +17995,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "service_chat_chatpagination_chatmessageplacement",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "chatmessageplacement"
     },
     {
@@ -18006,8 +18006,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "service_chat_chatpagination_mergechatmessages",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "mergechatmessages()"
     },
     {
@@ -18017,8 +18017,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "chatservice.pagination.test.ts"
     },
     {
@@ -18028,8 +18028,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_mockfrom",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "mockfrom"
     },
     {
@@ -18039,8 +18039,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_mockstoragefrom",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "mockstoragefrom"
     },
     {
@@ -18050,8 +18050,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_chatrow",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "chatrow"
     },
     {
@@ -18061,8 +18061,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_querylog",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "querylog"
     },
     {
@@ -18072,8 +18072,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_pageresponses",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "pageresponses"
     },
     {
@@ -18083,8 +18083,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_querylogs",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "querylogs"
     },
     {
@@ -18094,8 +18094,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_createchatquery",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "createchatquery()"
     },
     {
@@ -18105,8 +18105,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_createrows",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "createrows()"
     },
     {
@@ -18116,8 +18116,8 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "service_chat_chatservice_pagination_test_createmessage",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "createmessage()"
     },
     {
@@ -18149,8 +18149,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "service_chat_chatservice_message",
-      "community": 21,
-      "community_name": "chatService.ts",
+      "community": 67,
+      "community_name": "chatService.pagination.test.ts",
       "norm_label": "message"
     },
     {
@@ -18875,8 +18875,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_test",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "landlordservice.test.ts"
     },
     {
@@ -18886,8 +18886,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_test_mockfrom",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "mockfrom"
     },
     {
@@ -18897,8 +18897,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_test_queryresult",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "queryresult"
     },
     {
@@ -18908,8 +18908,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_test_chainwith",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "chainwith()"
     },
     {
@@ -18919,8 +18919,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_test_row",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "row"
     },
     {
@@ -18941,8 +18941,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordunitapartment",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "landlordunitapartment"
     },
     {
@@ -18963,8 +18963,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchmonthlyprofit",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchmonthlyprofit()"
     },
     {
@@ -18974,8 +18974,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordunits",
-      "community": 61,
-      "community_name": "useLandlordActionBadges",
+      "community": 71,
+      "community_name": "useLandlordUnits.ts",
       "norm_label": "fetchlandlordunits()"
     },
     {
@@ -19051,8 +19051,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenant",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "landlordtenant"
     },
     {
@@ -19062,8 +19062,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordtenancymaintenancerequest",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "landlordtenancymaintenancerequest"
     },
     {
@@ -19073,8 +19073,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_paymentrecord",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "paymentrecord"
     },
     {
@@ -19095,8 +19095,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordtenancy",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 64,
+      "community_name": "useLandlordTenancy.ts",
       "norm_label": "fetchlandlordtenancy()"
     },
     {
@@ -19118,7 +19118,7 @@
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordmaintenancerequest",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "landlordmaintenancerequest"
     },
     {
@@ -19140,7 +19140,7 @@
       "_origin": "ast",
       "id": "service_landlord_landlordservice_fetchlandlordmaintenancerequests",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "fetchlandlordmaintenancerequests()"
     },
     {
@@ -19338,7 +19338,7 @@
       "_origin": "ast",
       "id": "service_landlord_landlordservice_updatelandlordmaintenancestatus",
       "community": 46,
-      "community_name": "useProfile",
+      "community_name": "useLandlordMaintenanceRequests.ts",
       "norm_label": "updatelandlordmaintenancestatus()"
     },
     {
@@ -19348,8 +19348,8 @@
       "source_location": "L818",
       "_origin": "ast",
       "id": "service_landlord_landlordservice_landlordpaymentrecord",
-      "community": 29,
-      "community_name": "landlordService.ts",
+      "community": 76,
+      "community_name": "landlordService.test.ts",
       "norm_label": "landlordpaymentrecord"
     },
     {
@@ -19788,8 +19788,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_notificationrow",
-      "community": 71,
-      "community_name": "useInAppNotificationBanner.tsx",
+      "community": 26,
+      "community_name": "notifications/index.ts",
       "norm_label": "notificationrow"
     },
     {
@@ -19810,8 +19810,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "service_notifications_notificationservice_notificationitem",
-      "community": 56,
-      "community_name": "useNotifications.ts",
+      "community": 19,
+      "community_name": "notificationService.ts",
       "norm_label": "notificationitem"
     },
     {
@@ -19910,7 +19910,7 @@
       "_origin": "ast",
       "id": "service_notifications_notificationservice_marknotificationread",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "marknotificationread()"
     },
     {
@@ -20108,7 +20108,7 @@
       "_origin": "ast",
       "id": "service_payments_paymentservice_formatreferenceid",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "formatreferenceid()"
     },
     {
@@ -20130,7 +20130,7 @@
       "_origin": "ast",
       "id": "service_payments_paymentservice_methodlabel",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "methodlabel()"
     },
     {
@@ -20151,8 +20151,8 @@
       "source_location": "L167",
       "_origin": "ast",
       "id": "service_payments_paymentservice_paymentstatuslabel",
-      "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community": 84,
+      "community_name": "history/index.tsx",
       "norm_label": "paymentstatuslabel()"
     },
     {
@@ -20162,8 +20162,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "service_payments_paymentservice_paidamountforperiod",
-      "community": 75,
-      "community_name": "rentals.tsx",
+      "community": 43,
+      "community_name": "payment/index.tsx",
       "norm_label": "paidamountforperiod()"
     },
     {
@@ -20173,8 +20173,8 @@
       "source_location": "L180",
       "_origin": "ast",
       "id": "service_payments_paymentservice_resolvepaymentperiod",
-      "community": 75,
-      "community_name": "rentals.tsx",
+      "community": 43,
+      "community_name": "payment/index.tsx",
       "norm_label": "resolvepaymentperiod()"
     },
     {
@@ -20185,7 +20185,7 @@
       "_origin": "ast",
       "id": "service_payments_paymentservice_periodmonthlabel",
       "community": 28,
-      "community_name": "payment-history/index.tsx",
+      "community_name": "payments/index.ts",
       "norm_label": "periodmonthlabel()"
     },
     {
@@ -20570,7 +20570,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "reviewsservice.ts"
     },
     {
@@ -20581,7 +20581,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_apartmentreviewrow",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "apartmentreviewrow"
     },
     {
@@ -20592,7 +20592,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_landlordreview",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "landlordreview"
     },
     {
@@ -20603,7 +20603,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_landlordreviewsresult",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "landlordreviewsresult"
     },
     {
@@ -20614,7 +20614,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_fetchapartmentreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "fetchapartmentreviews()"
     },
     {
@@ -20625,7 +20625,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_landlordreviewrow",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "landlordreviewrow"
     },
     {
@@ -20636,7 +20636,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_getreviewimageurls",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "getreviewimageurls()"
     },
     {
@@ -20647,7 +20647,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_fetchlandlordreviews",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "fetchlandlordreviews()"
     },
     {
@@ -20658,7 +20658,7 @@
       "_origin": "ast",
       "id": "service_ratings_reviewsservice_fetchrevieweligibility",
       "community": 3,
-      "community_name": "ratings/index.ts",
+      "community_name": "reviews/index.tsx",
       "norm_label": "fetchrevieweligibility()"
     },
     {
@@ -20790,7 +20790,7 @@
       "_origin": "ast",
       "id": "stores_useapartmentformstore",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "useapartmentformstore.ts"
     },
     {
@@ -20801,7 +20801,7 @@
       "_origin": "ast",
       "id": "stores_useapartmentformstore_apartmentformdata",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "apartmentformdata"
     },
     {
@@ -20812,7 +20812,7 @@
       "_origin": "ast",
       "id": "stores_useapartmentformstore_apartmentformactions",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "apartmentformactions"
     },
     {
@@ -20823,7 +20823,7 @@
       "_origin": "ast",
       "id": "stores_useapartmentformstore_initialstate",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "initialstate"
     },
     {
@@ -20834,7 +20834,7 @@
       "_origin": "ast",
       "id": "stores_useapartmentformstore_useapartmentformstore",
       "community": 5,
-      "community_name": "fifth-step.tsx",
+      "community_name": "useApartmentFormStore",
       "norm_label": "useapartmentformstore"
     },
     {
@@ -20844,8 +20844,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "stores_useapplicationformstore",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "useapplicationformstore.ts"
     },
     {
@@ -20855,8 +20855,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_tenantinformation",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "tenantinformation"
     },
     {
@@ -20866,8 +20866,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_rentalpreferences",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "rentalpreferences"
     },
     {
@@ -20877,8 +20877,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_requireddocuments",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "requireddocuments"
     },
     {
@@ -20888,8 +20888,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_uploadeddocumentpaths",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "uploadeddocumentpaths"
     },
     {
@@ -20899,8 +20899,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_initialtenantinformation",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "initialtenantinformation"
     },
     {
@@ -20910,8 +20910,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_initialrentalpreferences",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "initialrentalpreferences"
     },
     {
@@ -20921,8 +20921,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_initialdocuments",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "initialdocuments"
     },
     {
@@ -20932,8 +20932,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_initialuploadedpaths",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "initialuploadedpaths"
     },
     {
@@ -20943,8 +20943,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_apartmentcontext",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "apartmentcontext"
     },
     {
@@ -20954,8 +20954,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_initialapartmentcontext",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "initialapartmentcontext"
     },
     {
@@ -20965,8 +20965,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "stores_useapplicationformstore_applicationformstate",
-      "community": 70,
-      "community_name": "useApplicationFormStore.ts",
+      "community": 55,
+      "community_name": "second-step.tsx",
       "norm_label": "applicationformstate"
     },
     {
@@ -20977,7 +20977,7 @@
       "_origin": "ast",
       "id": "stores_useapplicationformstore_useapplicationformstore",
       "community": 55,
-      "community_name": "review-information.tsx",
+      "community_name": "second-step.tsx",
       "norm_label": "useapplicationformstore"
     },
     {
@@ -21098,7 +21098,7 @@
       "_origin": "ast",
       "id": "stores_useregistrationstore",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "useregistrationstore.ts"
     },
     {
@@ -21109,7 +21109,7 @@
       "_origin": "ast",
       "id": "stores_useregistrationstore_registrationdata",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "registrationdata"
     },
     {
@@ -21120,7 +21120,7 @@
       "_origin": "ast",
       "id": "stores_useregistrationstore_registrationstore",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "registrationstore"
     },
     {
@@ -21131,7 +21131,7 @@
       "_origin": "ast",
       "id": "stores_useregistrationstore_useregistrationstore",
       "community": 9,
-      "community_name": "useColors",
+      "community_name": "ErrorDialog.tsx",
       "norm_label": "useregistrationstore"
     },
     {
@@ -22000,7 +22000,7 @@
       "_origin": "ast",
       "id": "utils_compressimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "compressimage.ts"
     },
     {
@@ -22011,7 +22011,7 @@
       "_origin": "ast",
       "id": "utils_compressimage_compressimageto",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "compressimageto()"
     },
     {
@@ -22022,7 +22022,7 @@
       "_origin": "ast",
       "id": "utils_compressimage_compressimage",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "compressimage()"
     },
     {
@@ -22033,7 +22033,7 @@
       "_origin": "ast",
       "id": "utils_compressimage_buildimagetiers",
       "community": 44,
-      "community_name": "updateApartmentMain.ts",
+      "community_name": "queryClient.ts",
       "norm_label": "buildimagetiers()"
     },
     {
@@ -22132,7 +22132,7 @@
       "_origin": "ast",
       "id": "utils_notificationdeeplink_test",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "notificationdeeplink.test.ts"
     },
     {
@@ -22143,7 +22143,7 @@
       "_origin": "ast",
       "id": "utils_notificationdeeplink",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "notificationdeeplink.ts"
     },
     {
@@ -22153,7 +22153,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "utils_notificationdeeplink_notificationdata",
-      "community": 71,
+      "community": 62,
       "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "notificationdata"
     },
@@ -22165,7 +22165,7 @@
       "_origin": "ast",
       "id": "utils_notificationdeeplink_role",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "role"
     },
     {
@@ -22176,7 +22176,7 @@
       "_origin": "ast",
       "id": "utils_notificationdeeplink_parseconversationkey",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "parseconversationkey()"
     },
     {
@@ -22187,7 +22187,7 @@
       "_origin": "ast",
       "id": "utils_notificationdeeplink_buildnotificationdeeplink",
       "community": 62,
-      "community_name": "NotificationList.tsx",
+      "community_name": "useInAppNotificationBanner.tsx",
       "norm_label": "buildnotificationdeeplink()"
     },
     {
@@ -22197,7 +22197,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_queryclient",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "queryclient.ts"
     },
@@ -22219,7 +22219,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "utils_queryclient_retryablereaderror",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "retryablereaderror"
     },
@@ -22230,7 +22230,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "utils_queryclient_transient_http_statuses",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "transient_http_statuses"
     },
@@ -22241,7 +22241,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "utils_queryclient_transient_error_codes",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "transient_error_codes"
     },
@@ -22252,7 +22252,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "utils_queryclient_transient_error_names",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "transient_error_names"
     },
@@ -22263,7 +22263,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "utils_queryclient_shouldretrytransientread",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "shouldretrytransientread()"
     },
@@ -22274,7 +22274,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "utils_queryclient_createmobilequeryclient",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "createmobilequeryclient()"
     },
@@ -22285,7 +22285,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "utils_queryclient_queryclient",
-      "community": 64,
+      "community": 44,
       "community_name": "queryClient.ts",
       "norm_label": "queryclient"
     },
@@ -22297,7 +22297,7 @@
       "_origin": "ast",
       "id": "utils_queryclient_clearqueryclient",
       "community": 30,
-      "community_name": "[tenantId].tsx",
+      "community_name": "useColors",
       "norm_label": "clearqueryclient()"
     },
     {
@@ -22307,8 +22307,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "utils_queryclient_invalidatecurrentuser",
-      "community": 76,
-      "community_name": "edit-profile.tsx",
+      "community": 44,
+      "community_name": "queryClient.ts",
       "norm_label": "invalidatecurrentuser()"
     },
     {
@@ -34726,6 +34726,18 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/apartment/[apartmentId]/map-view.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app_apartment_apartmentid_map_view",
+      "target": "app_apartment_apartmentid_components_iconbutton",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -34736,6 +34748,18 @@
       "_origin": "ast",
       "source": "app_apartment_apartmentid_components_iconbutton_iconbutton",
       "target": "hooks_usetheme_usecolors"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/apartment/[apartmentId]/map-view.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app_apartment_apartmentid_map_view",
+      "target": "app_apartment_apartmentid_components_iconbutton_iconbutton",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -36455,7 +36479,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/apartment/[apartmentId]/map-view.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_apartment_apartmentid_map_view",
@@ -36467,7 +36491,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/apartment/[apartmentId]/map-view.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_apartment_apartmentid_map_view",
@@ -36479,7 +36503,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/apartment/[apartmentId]/map-view.tsx",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_apartment_apartmentid_map_view",
@@ -36491,7 +36515,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/apartment/[apartmentId]/map-view.tsx",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_apartment_apartmentid_map_view",
@@ -36660,7 +36684,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/apartment/[apartmentId]/map-view.tsx",
-      "source_location": "L37",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_apartment_apartmentid_map_view_apartmentmapviewscreen",

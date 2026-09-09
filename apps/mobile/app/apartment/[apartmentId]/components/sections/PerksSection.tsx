@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { IconSquareCheck } from '@tabler/icons-react-native';
@@ -6,6 +6,7 @@ import { IconSquareCheck } from '@tabler/icons-react-native';
 import PerkItem from 'components/display/PerkItem';
 
 import { useColors } from 'hooks/useTheme';
+import SectionHeader, { SeeAllButton } from '@/components/display/SectionHeader';
 
 const PERKS_LIMIT = 10;
 
@@ -23,31 +24,18 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
 
   return (
     <>
-      <View className='mt-10 px-5 flex gap-2'>
-        <View className='flex-row items-center justify-between'>
-          <View className='flex-row items-center gap-2'>
-            <IconSquareCheck size={26} color={colors.textPrimary} />
-            <Text className='font-nunitoSemiBold text-lg text-foreground'>
-              Included Perks
-            </Text>
-          </View>
-
-          {(amenities?.length ?? 0) > PERKS_LIMIT && (
-            <TouchableOpacity
-              activeOpacity={0.7}
+      <SectionHeader
+        icon={<IconSquareCheck size={26} color={colors.textPrimary} />}
+        title="Included Perks"
+        subtitle="These are already included in your rent."
+        action={
+          (amenities?.length ?? 0) > PERKS_LIMIT ? (
+            <SeeAllButton
               onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
-            >
-              <Text className='font-nunitoSemiBold text-sm text-accent'>
-                See All
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <Text className='text-muted font-inter text-sm'>
-          These are already included in your rent.
-        </Text>
-      </View>
+            />
+          ) : undefined
+        }
+      />
 
       <View className='flex-row flex-wrap px-5 mt-5'>
         {hasPerks ? (

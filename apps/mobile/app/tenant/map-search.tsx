@@ -18,6 +18,7 @@ import { useApartmentMapSearch } from '@/hooks/apartments/useApartmentMapSearch'
 import { useUserLocation } from '@/hooks/location/useUserLocation';
 import MapPreviewSheet from './components/MapPreviewSheet';
 import { IconNavigation, IconSearch, IconMapPin, IconChevronLeft, IconCompass } from '@tabler/icons-react-native';
+import { Button } from 'heroui-native';
 import { useColors } from '@/hooks/useTheme';
 
 const INITIAL_REGION: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number } = {
@@ -232,16 +233,17 @@ export default function TenantMapSearchScreen() {
         />
 
         {/* Floating back */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => router.back()}
-          accessibilityLabel="Back"
-          accessibilityRole="button"
-          className="absolute left-4 bg-surface p-3 rounded-full shadow-lg border border-border"
-          style={{ top: insets.top + 12, elevation: 4 }}
-        >
-          <IconChevronLeft size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
+        <View className="absolute left-4" style={{ top: insets.top + 12, elevation: 4 }}>
+          <Button
+            onPress={() => router.back()}
+            variant="tertiary"
+            isIconOnly
+            accessibilityLabel="Back"
+            className="shadow-lg border border-border"
+          >
+            <IconChevronLeft size={22} color={colors.textPrimary} />
+          </Button>
+        </View>
 
         {/* Top stats pill */}
         <View
@@ -285,26 +287,24 @@ export default function TenantMapSearchScreen() {
 
         {/* Floating recenter + compass — lifts above the popup card when visible */}
         <View className="absolute right-5 items-center gap-3" style={{ bottom: sheetApartment ? 248 : insets.bottom + 24 }}>
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <Button
             onPress={handleCompassPress}
+            variant="tertiary"
+            isIconOnly
             accessibilityLabel="Reset to north"
-            accessibilityRole="button"
-            className="bg-surface p-3 rounded-full shadow-lg border border-border"
-            style={{ elevation: 4 }}
+            className="shadow-lg border border-border"
           >
             <IconCompass size={22} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.85}
+          </Button>
+          <Button
             onPress={handleRecenter}
+            variant="tertiary"
+            isIconOnly
             accessibilityLabel="Recenter map"
-            accessibilityRole="button"
-            className="bg-surface p-3 rounded-full shadow-lg border border-border"
-            style={{ elevation: 4 }}
+            className="shadow-lg border border-border"
           >
             <IconNavigation size={22} color={colors.primary} />
-          </TouchableOpacity>
+          </Button>
         </View>
 
         <MapPreviewSheet

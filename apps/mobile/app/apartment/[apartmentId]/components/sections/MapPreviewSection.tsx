@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
+import { View, TouchableOpacity, Linking, Platform } from 'react-native';
 
 import { IconMap } from '@tabler/icons-react-native';
 
-import { Dialog, Button } from "heroui-native"
+import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
+import SectionHeader from '@/components/display/SectionHeader';
+import AppDialog from '@/components/display/AppDialog';
 import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 
 type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
@@ -88,12 +90,10 @@ export default function MapPreviewSection({
 
   return (
     <>
-      <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconMap size={26} color={colors.textPrimary} />
-        <Text className='font-nunitoSemiBold text-lg text-foreground'>
-          View on Map
-        </Text>
-      </View>
+      <SectionHeader
+        icon={<IconMap size={26} color={colors.textPrimary} />}
+        title="View on Map"
+      />
 
       <TouchableOpacity
         activeOpacity={0.7}
@@ -124,86 +124,51 @@ export default function MapPreviewSection({
         </Button>
       </TouchableOpacity>
 
-      <Dialog
+      <AppDialog
         isOpen={isDirectionsModalVisible}
         onOpenChange={setIsDirectionsModalVisible}
+        title="Choose Route Type"
+        description="Select how you want to get there."
+        footer={
+          <Button
+            variant="danger-soft"
+            size="sm"
+            onPress={() => setIsDirectionsModalVisible(false)}
+          >
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+        }
       >
-        <Dialog.Portal>
-          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
-          
-          <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
-            <Dialog.Close 
-              variant="ghost" 
-              className="absolute top-4 right-4 z-50"
-            />
+        <View className="gap-3">
+          <Button size="sm" onPress={() => handleSelectDirectionMode("driving")}>
+            <Button.Label>Drive/4-Wheels</Button.Label>
+          </Button>
 
-            {/* Header */}
-            <View>
-              <Text className="font-nunitoSemiBold text-lg text-foreground">
-                Choose Route Type
-              </Text>
-              <Text className="mt-1 font-inter text-muted">
-                Select how you want to get there.
-              </Text>
-            </View>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("motorcycle")}
+          >
+            <Button.Label>Motorcycle</Button.Label>
+          </Button>
 
-            {/* Body */}
-            <View className="mt-4 gap-3">
-              <Button
-                size="sm"
-                onPress={() => handleSelectDirectionMode("driving")}
-              >
-                <Button.Label>
-                  Drive/4-Wheels
-                </Button.Label>
-              </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("transit")}
+          >
+            <Button.Label>Transit</Button.Label>
+          </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("motorcycle")}
-              >
-                <Button.Label>
-                  Motorcycle
-                </Button.Label>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("transit")}
-              >
-                <Button.Label>
-                  Transit
-                </Button.Label>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("walking")}
-              >
-                <Button.Label>
-                  Walk/Bike
-                </Button.Label>
-              </Button>
-            </View>
-
-            {/* Footer */}
-            <View className="mt-5">
-              <Button
-                variant="danger-soft"
-                size="sm"
-                onPress={() => setIsDirectionsModalVisible(false)}
-              >
-                <Button.Label>
-                  Cancel
-                </Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("walking")}
+          >
+            <Button.Label>Walk/Bike</Button.Label>
+          </Button>
+        </View>
+      </AppDialog>
     </>
   );
 }

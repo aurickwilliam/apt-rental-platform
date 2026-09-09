@@ -17,7 +17,7 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { formatPesoDisplay, handlePesoChange } from "@repo/utils";
+import { calcMoveInCost, formatPesoDisplay, handlePesoChange } from "@repo/utils";
 
 type FieldErrors = {
   monthlyRent?: string;
@@ -88,10 +88,7 @@ export default function ThirdStep() {
     router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
-  const totalMoveInCost =
-    (Number(monthlyRent) || 0) +
-    (Number(securityDeposit) || 0) +
-    (Number(advanceRent) || 0);
+  const totalMoveInCost = calcMoveInCost(monthlyRent, securityDeposit, advanceRent);
 
   return (
     <ScreenWrapper scrollable>

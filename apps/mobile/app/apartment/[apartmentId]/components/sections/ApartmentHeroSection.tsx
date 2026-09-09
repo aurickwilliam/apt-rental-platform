@@ -102,7 +102,7 @@ export default function ApartmentHeroSection({
           </Text>
 
           <View className='flex-row items-center mt-2 gap-2'>
-            <IconMapPinFilled size={24} color={colors.secondaryForeground} />
+            <IconMapPinFilled size={24} color={colors.primary} />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
               {location || 'No location provided'}
             </Text>

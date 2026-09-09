@@ -1,9 +1,10 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { IconUser } from '@tabler/icons-react-native';
 
 import LandlordCard from 'components/cards/LandlordCard';
 
 import { useColors } from 'hooks/useTheme';
+import SectionHeader from '@/components/display/SectionHeader';
 import type { ApartmentDetails } from 'hooks/apartments';
 
 type LandlordSectionProps = {
@@ -23,12 +24,10 @@ export default function LandlordSection({
 
   return (
     <>
-      <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <IconUser size={26} color={colors.textPrimary} />
-        <Text className='font-nunitoSemiBold text-lg text-foreground'>
-          Meet Your Rental Owner
-        </Text>
-      </View>
+      <SectionHeader
+        icon={<IconUser size={26} color={colors.textPrimary} />}
+        title="Meet Your Rental Owner"
+      />
 
       <View className='px-5 mt-3'>
         <LandlordCard

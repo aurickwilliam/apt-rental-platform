@@ -1,7 +1,6 @@
 import { Keyboard } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useToast } from "heroui-native";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import FilterBottomSheet, {
@@ -14,11 +13,12 @@ import SearchSectionsList from "../components/search/SearchSectionsList";
 import useSearchLogic from "../components/search/useSearchLogic";
 import { useSearchSections } from "../components/search/useSearchSections";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
+import { useFavoriteToggle } from "@/hooks/favorites";
 
 export default function Search() {
   const router = useRouter();
-  const { toast } = useToast();
   const { preferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
+  const { toggleFavoriteWithToast } = useFavoriteToggle();
 
   const initialCity = "CAMANAVA";
 
@@ -33,7 +33,6 @@ export default function Search() {
     setIsFilterSheetOpen,
     handleApplyFilters,
     handleClearFilters,
-    handleToggleFavorite,
     isFavorite,
     isGridView,
     loading,
@@ -76,16 +75,7 @@ export default function Search() {
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
 
   const handleFavoritePress = async (apartmentId: string) => {
-    try {
-      const { wasFavorite } = await handleToggleFavorite(apartmentId);
-      toast.show({
-        variant: wasFavorite ? "default" : "success",
-        label: wasFavorite ? "Removed from favorites" : "Added to favorites",
-      });
-    } catch (toggleError) {
-      console.error("Error toggling favorite:", toggleError);
-      toast.show({ variant: "danger", label: "Something went wrong" });
-    }
+    await toggleFavoriteWithToast(apartmentId);
   };
 
   const handleMapPress = () => {
