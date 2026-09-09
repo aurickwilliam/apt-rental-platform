@@ -1,4 +1,5 @@
 export { useApartmentDetails, getApartmentDetailsQueryKey, getApartmentReviewsPreviewQueryKey } from './useApartmentDetails';
+export { useLeaseAgreement } from './useLeaseAgreement';
 export type { ApartmentDetails, ReviewWithTenant } from './useApartmentDetails';
 export { usePublishApartment } from './usePublishApartment';
 export { useLandlordUnits } from './useLandlordUnits';

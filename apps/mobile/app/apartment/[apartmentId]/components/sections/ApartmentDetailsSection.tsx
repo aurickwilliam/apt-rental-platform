@@ -1,12 +1,7 @@
 import { View, Text } from 'react-native'
 
-import {
-  Users,
-  Building,
-  House,
-  Calendar,
-  LucideIcon,
-} from 'lucide-react-native';
+import { IconUsers, IconBuilding, IconHome, IconCalendar } from '@tabler/icons-react-native';
+import type { Icon } from '@tabler/icons-react-native';
 
 import type { ApartmentDetails } from 'hooks/apartments';
 import { useColors } from 'hooks/useTheme';
@@ -21,7 +16,7 @@ export default function ApartmentDetailsSection({
   const { colors } = useColors();
 
   type DetailBlockProps = {
-    Icon: LucideIcon;
+    Icon: Icon;
     value: string;
   }
 
@@ -42,21 +37,21 @@ export default function ApartmentDetailsSection({
 
   const detailData = [
     {
-      icon: Users,
+      icon: IconUsers,
       value: apartment?.max_occupants
         ? `Max ${apartment.max_occupants} ${apartment.max_occupants === 1 ? 'Occupant' : 'Occupants'}`
         : 'N/A'
     },
     {
-      icon: Building,
+      icon: IconBuilding,
       value: apartment?.floor_level ? `${apartment.floor_level}` : 'N/A'
     },
     {
-      icon: House,
+      icon: IconHome,
       value: apartment?.type || 'N/A'
     },
     {
-      icon: Calendar,
+      icon: IconCalendar,
       value: apartment?.lease_duration || 'N/A'
     }
   ]

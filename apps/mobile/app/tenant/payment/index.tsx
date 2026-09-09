@@ -26,6 +26,7 @@ import {
   createCashPayment,
   paidAmountForPeriod,
   periodMonthLabel,
+  resolvePaymentPeriod,
 } from '@/service/payments/paymentService'
 import { usePayments } from '@/hooks/payments'
 import { useCurrentUser } from '@/hooks/auth'
@@ -47,36 +48,6 @@ const toIsoDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-// The period being paid for: the tenancy's current payment period when it
-// covers this month, otherwise the current calendar month (due on the 5th).
-function resolvePaymentPeriod(
-  currentPeriodStart: string | null,
-  currentPeriodEnd: string | null,
-  currentDueDate: string | null
-): {
-  periodStart: string
-  periodEnd: string
-  dueDate: string
-} {
-  const now = new Date()
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-
-  if (currentPeriodStart?.startsWith(currentMonth)) {
-    return {
-      periodStart: currentPeriodStart,
-      periodEnd: currentPeriodEnd ?? currentPeriodStart,
-      dueDate: currentDueDate ?? `${currentMonth}-05`,
-    }
-  }
-
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-  return {
-    periodStart: `${currentMonth}-01`,
-    periodEnd: `${currentMonth}-${String(lastDay).padStart(2, '0')}`,
-    dueDate: `${currentMonth}-05`,
-  }
 }
 
 const formatLeaseDate = (iso: string | null): string => {

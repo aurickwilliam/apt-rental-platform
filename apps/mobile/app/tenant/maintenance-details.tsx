@@ -10,7 +10,7 @@ import DetailField from "@/components/display/DetailField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
 
-import { Hammer, Trash2 } from "lucide-react-native";
+import { IconHammer, IconTrash } from '@tabler/icons-react-native';
 
 import { Button, Chip, PressableFeedback, Separator } from "heroui-native";
 
@@ -101,7 +101,7 @@ export default function MaintenanceDetails() {
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-row gap-2 items-center">
-          <Hammer size={24} color={colors.primary} />
+          <IconHammer size={24} color={colors.primary} />
           <Text className="text-accent text-lg font-nunitoSemiBold">
             Maintenance
           </Text>
@@ -270,7 +270,7 @@ export default function MaintenanceDetails() {
           setConfirmCancelDialogOpen(true);
         }}
       >
-        <Trash2 size={20} color={colors.danger} />
+        <IconTrash size={20} color={colors.danger} />
         <Button.Label>
           {isCancelling ? "Cancelling..." : "Cancel Maintenance Request"}
         </Button.Label>

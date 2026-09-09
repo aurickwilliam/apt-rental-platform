@@ -25,7 +25,7 @@ import {
 
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from '@repo/constants';
 
-import { Building2, Check } from 'lucide-react-native'
+import { IconBuildingSkyscraper, IconCheck } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
 import {
@@ -161,7 +161,7 @@ export default function RequestMaintenance() {
       {/* Apartment Details */}
       <View className="flex gap-1">
         <View className='flex-row items-center gap-2'>
-          <Building2 size={24} color={colors.primary} />
+          <IconBuildingSkyscraper size={24} color={colors.primary} />
           <Text
             className='text-accent text-xl font-nunitoBold'
             numberOfLines={1}
@@ -249,7 +249,7 @@ export default function RequestMaintenance() {
                   onPress={() => updateField('urgency', option.value)}
                 >
                   {selected && (
-                    <Check size={14} color={colors.white} />
+                    <IconCheck size={14} color={colors.white} />
                   )}
                   <Chip.Label
                     style={{

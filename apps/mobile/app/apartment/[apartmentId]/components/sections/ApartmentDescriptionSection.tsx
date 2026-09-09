@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 
-import { Building } from 'lucide-react-native';
+import { IconBuilding } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
+import SectionHeader from '@/components/display/SectionHeader';
 
 type ApartmentDescriptionSectionProps = {
   description?: string | null;
@@ -22,12 +23,11 @@ export default function ApartmentDescriptionSection({
 
   return (
     <>
-      <View className='mt-5 px-5 flex-row items-center gap-2'>
-        <Building size={26} color={colors.textPrimary} />
-        <Text className='font-nunitoSemiBold text-lg text-foreground'>
-          Everything About Your Apartment
-        </Text>
-      </View>
+      <SectionHeader
+        icon={<IconBuilding size={26} color={colors.textPrimary} />}
+        title="Everything About Your Apartment"
+        className="mt-5 px-5"
+      />
 
       <View className='mt-3 mx-5 p-4 bg-surface rounded-2xl border border-border'>
         <Text

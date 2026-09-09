@@ -16,23 +16,12 @@ import PerkItem from "components/display/PerkItem";
 
 import { Button, Spinner } from "heroui-native";
 
-import {
-  FileText,
-  SquarePen,
-  Upload,
-  House,
-  BedDouble,
-  Bath,
-  Maximize,
-  Armchair,
-  Calendar,
-  Users,
-  Building,
-} from 'lucide-react-native';
+import { IconFileText, IconPencil, IconUpload, IconHome, IconBed, IconBath, IconMaximize, IconArmchair, IconCalendar, IconUsers, IconBuilding } from '@tabler/icons-react-native';
 
 import { supabase } from "@repo/supabase";
 
 import { useColors } from "hooks/useTheme";
+import { useLeaseAgreement } from "@/hooks/apartments";
 
 import { formatPesoDisplay, formatDate } from "@repo/utils";
 
@@ -57,6 +46,14 @@ export default function Index() {
 
   const apartment = data?.apartment ?? null;
   const tenancy = data?.tenancy ?? null;
+  const { openLeaseAgreement } = useLeaseAgreement({
+    onUrl: (url) =>
+      router.push({
+        pathname:
+          "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
+        params: { apartmentId: apartmentId as string, fileUrl: url },
+      }),
+  });
 
   const [uploading, setUploading] = useState(false);
 
@@ -131,25 +128,8 @@ export default function Index() {
     }
   };
 
-  const handleViewLease = async () => {
-    if (!apartment?.lease_agreement_url) return;
-
-    try {
-      const { data, error } = await supabase.storage
-        .from("lease-agreements")
-        .createSignedUrl(apartment.lease_agreement_url, 3600);
-
-      if (error || !data?.signedUrl) throw error;
-
-      router.push({
-        pathname: "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
-        params: { apartmentId, fileUrl: data.signedUrl },
-      });
-    } catch (err) {
-      Alert.alert("Error", "Could not open lease agreement.");
-      console.error(err);
-    }
-  };
+  const handleViewLease = () =>
+    openLeaseAgreement(apartment?.lease_agreement_url);
 
   if (isLoading) {
     return (
@@ -193,7 +173,7 @@ export default function Index() {
             )
           }
         >
-          <SquarePen size={24} color={colors.primary} />
+          <IconPencil size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -262,7 +242,7 @@ export default function Index() {
             )
           }
         >
-          <SquarePen size={24} color={colors.primary} />
+          <IconPencil size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -283,56 +263,56 @@ export default function Index() {
             )
           }
         >
-          <SquarePen size={24} color={colors.primary} />
+          <IconPencil size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
       <View className="flex-row flex-wrap justify-between mt-5">
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={House}
+            customIcon={IconHome}
             customText={apartment?.type ?? "—"}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Calendar}
+            customIcon={IconCalendar}
             customText={apartment?.lease_duration ?? "—"}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={BedDouble}
+            customIcon={IconBed}
             customText={`${apartment?.no_bedrooms ?? "—"} Bedroom${apartment?.no_bedrooms !== 1 ? "s" : ""}`}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Bath}
+            customIcon={IconBath}
             customText={`${apartment?.no_bathrooms ?? "—"} Bathroom${apartment?.no_bathrooms !== 1 ? "s" : ""}`}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Armchair}
+            customIcon={IconArmchair}
             customText={apartment?.furnished_type ?? "—"}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Building}
+            customIcon={IconBuilding}
             customText={apartment?.floor_level ?? "—"}
             iconColor={colors.gray400}
           />
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Users}
+            customIcon={IconUsers}
             customText={
               apartment?.max_occupants
                 ? `Max ${apartment.max_occupants} Occupants`
@@ -343,7 +323,7 @@ export default function Index() {
         </View>
         <View className="w-1/2 mb-5">
           <PerkItem
-            customIcon={Maximize}
+            customIcon={IconMaximize}
             customText={apartment?.area_sqm ? `${apartment.area_sqm} sqm` : "—"}
             iconColor={colors.gray400}
           />
@@ -363,7 +343,7 @@ export default function Index() {
                 )
               }
             >
-              <SquarePen size={24} color={colors.primary} />
+              <IconPencil size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -385,12 +365,12 @@ export default function Index() {
           isDisabled={!apartment?.lease_agreement_url}
           onPress={handleViewLease}
         >
-          <FileText size={20} color={colors.textPrimary} />
+          <IconFileText size={20} color={colors.textPrimary} />
           <Button.Label>View Lease Agreement</Button.Label>
         </Button>
 
         <Button isDisabled={uploading} onPress={handleUploadLease}>
-          <Upload size={20} color={colors.secondaryForeground} />
+          <IconUpload size={20} color={colors.secondaryForeground} />
           <Button.Label>
             {uploading ? "Uploading..." : "Upload Lease Agreement"}
           </Button.Label>

@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 
-import { FileText } from "lucide-react-native";
+import { IconFileText } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -10,7 +10,7 @@ export default function EmptyApplicationData() {
   return (
     <View className="flex-1 items-center justify-center py-20">
       <View className="bg-surface rounded-full p-5 mb-4">
-        <FileText size={32} color={colors.gray500} />
+        <IconFileText size={32} color={colors.gray500} />
       </View>
       <Text className="text-foreground text-lg font-nunitoSemiBold">
         No applications yet

@@ -100,15 +100,15 @@ export default function DropdownField({
           <Pressable
             disabled={isDisabled || isReadOnly}
             style={{ alignItems: 'center' }}
-            className={`border-2 rounded-2xl pl-3 pr-4 h-12 flex-row items-center
+            className={`rounded-2xl pl-3 pr-4 h-12 flex-row items-center
               justify-between shadow-xs ${
                 isDisabled
-                  ? 'bg-surface-tertiary border-field-border'
+                  ? 'bg-surface-tertiary border border-field-border'
                   : error
-                  ? 'bg-surface border-danger'
+                  ? 'bg-surface border-2 border-danger'
                   : isOpen
-                  ? 'bg-surface border-focus'
-                  : 'bg-surface border-field-border'
+                  ? 'bg-surface border-2 border-focus'
+                  : 'bg-surface border border-field-border'
               }`}
           >
             <Text

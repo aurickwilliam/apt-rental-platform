@@ -33,7 +33,7 @@ import {
   Spinner,
 } from "heroui-native";
 
-import { Ban, ChevronLeft } from "lucide-react-native";
+import { IconBan, IconChevronLeft } from '@tabler/icons-react-native';
 
 export default function ApplicationApartment() {
   const { colors } = useColors();
@@ -172,7 +172,7 @@ export default function ApplicationApartment() {
             onPress={() => router.back()}
             className="-ml-3"
           >
-            <ChevronLeft size={24} color={colors.gray400} />
+            <IconChevronLeft size={24} color={colors.gray400} />
           </Button>
           <View>
             <Text className="text-sm text-muted font-inter">Applied for</Text>
@@ -474,7 +474,7 @@ export default function ApplicationApartment() {
               isDisabled={cancelling || responding}
               onPress={() => setCancelDialogOpen(true)}
             >
-              <Ban size={20} color={colors.secondaryForeground} />
+              <IconBan size={20} color={colors.secondaryForeground} />
               <Button.Label>Cancel Application</Button.Label>
             </Button>
 

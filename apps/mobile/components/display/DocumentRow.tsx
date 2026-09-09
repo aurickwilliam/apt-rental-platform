@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Linking } from "react-native";
 import { Image } from "expo-image";
 
-import { FileText, ExternalLink } from "lucide-react-native";
+import { IconFileText, IconExternalLink } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -71,7 +71,7 @@ export default function DocumentRow({
       onPress={() => Linking.openURL(signedUrl)}
     >
       <View className="w-14 h-14 rounded-xl border border-border items-center justify-center">
-        <FileText size={22} color={colors.gray400} />
+        <IconFileText size={22} color={colors.gray400} />
       </View>
       <View className="flex-1">
         <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
@@ -80,7 +80,7 @@ export default function DocumentRow({
         </Text>
       </View>
 
-      <ExternalLink size={18} color={colors.gray400} />
+      <IconExternalLink size={18} color={colors.gray400} />
     </TouchableOpacity>
   );
 }

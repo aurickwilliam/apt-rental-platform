@@ -6,9 +6,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { Chip, SearchField, Separator } from 'heroui-native'
 
-import {
-  X
-} from 'lucide-react-native'
+import { IconX } from '@tabler/icons-react-native'
 
 import { PERKS } from 'constants/perks'
 
@@ -81,7 +79,7 @@ export default function Amenities() {
               >
                 <perk.icon size={16} color={colors.primary} />
                 <Chip.Label>{perk.name}</Chip.Label>
-                <X size={12} />
+                <IconX size={12} />
               </Chip>
             ))}
           </View>

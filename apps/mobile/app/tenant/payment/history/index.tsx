@@ -54,7 +54,10 @@ export default function History() {
   const paymentsQuery = usePayments(tenancy?.id ?? null)
 
   const allPayments = useMemo<FlatPayment[]>(
-    () => (paymentsQuery.data ?? []).map(toHistoryItem),
+    () =>
+      (paymentsQuery.data ?? [])
+        .filter((payment) => payment.status !== 'pending')
+        .map(toHistoryItem),
     [paymentsQuery.data]
   )
 

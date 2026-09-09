@@ -399,19 +399,19 @@ export default function EditProfile() {
           </View>
 
           {/* Read-only: names pre-filled from Google OAuth */}
-          <TextField isRequired>
+          <TextField isRequired isDisabled>
             <Label>First Name:</Label>
-            <Input readOnly placeholder="First Name" value={form.firstName} />
+            <Input placeholder="First Name" value={form.firstName} />
           </TextField>
 
-          <TextField isRequired>
+          <TextField isRequired isDisabled>
             <Label>Last Name:</Label>
-            <Input readOnly placeholder="Last Name" value={form.lastName} />
+            <Input placeholder="Last Name" value={form.lastName} />
           </TextField>
 
-          <TextField>
+          <TextField isDisabled>
             <Label>Middle Name:</Label>
-            <Input readOnly placeholder="Middle Name" value={form.middleName} />
+            <Input placeholder="Middle Name" value={form.middleName} />
           </TextField>
 
           {/* Editable: Gender */}

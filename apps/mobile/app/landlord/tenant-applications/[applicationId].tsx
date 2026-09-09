@@ -4,7 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
 import { Avatar, Button, Card, Chip, Separator, Spinner } from 'heroui-native';
-import { Mail, MapPin } from 'lucide-react-native';
+import { IconMail, IconMapPin } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -143,7 +143,7 @@ export default function TenantApplicationDetails() {
                 </Text>
 
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <Mail size={13} color={colors.gray500} />
+                  <IconMail size={13} color={colors.gray500} />
                   <Text
                     className="text-gray-500 text-xs font-inter"
                     numberOfLines={1}
@@ -153,7 +153,7 @@ export default function TenantApplicationDetails() {
                 </View>
 
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <MapPin size={13} color={colors.gray500} />
+                  <IconMapPin size={13} color={colors.gray500} />
                   <Text className="text-gray-500 text-xs font-inter">
                     {application.tenant_city}
                   </Text>

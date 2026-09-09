@@ -48,7 +48,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 ### `apps/mobile` — React Native (Expo 55), Expo Router
 - Styling: **Uniwind** utility classes — NOT NativeWind (migrated away; don't reintroduce)
 - UI: **HeroUI Native v3** (`heroui-native`)
-- Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away; existing dep not yet cleaned up but don't use it)
+- Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away 2026-08-29; dependency removed from `apps/mobile/package.json`)
 - State: server state via **React Query** (`@tanstack/react-query`) — single `QueryProvider` at the root layout, shared client in `utils/queryClient.ts`; Zustand for client state only (`stores/`)
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`
@@ -97,7 +97,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
   ```
 - When a table has multiple FKs to `public.users` (e.g. `reviews`, `chat`), disambiguate joins explicitly: `users!reviews_tenant_id_fkey`.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
-- Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read.
+- Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read. **Exception:** `apartment-images` is **public** (`public=true`, 10 MB limit) — `apartment_images.url` / `url_thumb` store permanent CDN public URLs (`getPublicUrl`) and render via `expo-image cachePolicy="disk"` with no signing (verified `storage.buckets.public=true` on `apartment-images`).
 - Notifications are generated **server-side only**: DB triggers insert into `notifications` via `create_notification()` (which also fires the `push-notify` edge function through pg_net). Clients only SELECT their own rows and UPDATE `is_read` — never INSERT. Expo push tokens live in `push_tokens` (upsert on sign-in, delete on sign-out).
 - `create_notification()` EXECUTE is revoked from `authenticated` — only SECURITY DEFINER triggers (and service_role) call it. Trigger functions identify the acting user via `auth.uid()` (PostgREST JWT GUC), e.g. to skip self-notifications (tenant self-cancel of a visit request).
 - `push-notify` includes `notificationId` in the push payload `data`; clients mark the feed row read on tap or banner action (fire-and-forget) so the in-app unread count stays accurate.

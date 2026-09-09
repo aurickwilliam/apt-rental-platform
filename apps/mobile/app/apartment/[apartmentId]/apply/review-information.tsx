@@ -19,7 +19,7 @@ import {
   useToast,
 } from "heroui-native";
 
-import { formatDate, formatPesoDisplay } from '@repo/utils'
+import { calcMoveInCost, formatDate, formatPesoDisplay } from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
@@ -39,10 +39,11 @@ export default function ReviewInformation() {
 
   const { submit, isSubmitting } = useSubmitApplication();
 
-  const totalMoveInCost =
-    apartmentContext.monthlyRent! +
-    apartmentContext.securityDeposit! +
-    apartmentContext.advanceRent!;
+  const totalMoveInCost = calcMoveInCost(
+    apartmentContext.monthlyRent,
+    apartmentContext.securityDeposit,
+    apartmentContext.advanceRent,
+  );
 
   const handleSubmit = async () => {
     const result = await submit({ apartmentId });

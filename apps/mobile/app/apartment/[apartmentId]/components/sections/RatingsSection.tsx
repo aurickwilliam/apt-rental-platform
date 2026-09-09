@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 
 import {
   IconStarFilled,
@@ -9,6 +9,7 @@ import {
 import SmallRatingCard from 'components/cards/SmallRatingCard';
 
 import { useColors } from 'hooks/useTheme';
+import SectionHeader, { SeeAllButton } from '@/components/display/SectionHeader';
 import type { ReviewWithTenant } from 'hooks/apartments';
 
 import { formatDate } from '@repo/utils';
@@ -36,17 +37,13 @@ export default function RatingsSection({
 
   return (
     <>
-      <View className='px-5 mt-10 flex-row items-center justify-between'>
-        <View className='flex-row items-center gap-2'>
-          <IconStarFilled size={26} color={colors.secondary} />
-          <Text className='font-nunitoSemiBold text-lg text-foreground'>Ratings</Text>
-        </View>
-        {hasReviews && onSeeAll && (
-          <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
-            <Text className='font-nunitoSemiBold text-sm text-accent'>See All</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <SectionHeader
+        icon={<IconStarFilled size={26} color={colors.secondary} />}
+        title="Ratings"
+        action={
+          hasReviews && onSeeAll ? <SeeAllButton onPress={onSeeAll} /> : undefined
+        }
+      />
       <View className='mt-5 px-5 flex gap-3'>
         {hasReviews ? (
           reviews.map((review) => (

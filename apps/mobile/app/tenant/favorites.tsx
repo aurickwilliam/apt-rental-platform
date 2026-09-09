@@ -1,34 +1,33 @@
 import {
   FlatList,
   RefreshControl,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
-import { Spinner, useToast } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
 
-import { LayoutGrid, Rows3 } from "lucide-react-native";
+import { IconLayoutGrid, IconLayoutList, IconHeartOff, IconAlertCircle } from '@tabler/icons-react-native';
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard, { type ApartmentCardProps } from "components/cards/ApartmentCard";
+import EmptyState from "components/display/EmptyState";
 
-import { useFavoriteApartments, useFavorites } from "@/hooks/favorites";
+import { useFavoriteApartments, useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 
 export default function TenantFavorites() {
   const router = useRouter();
   const { colors } = useColors();
-  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const {
     favoriteApartmentIds,
     loading: loadingFavorites,
     error: favoritesError,
-    toggleFavorite,
   } = useFavorites();
+  const { toggleFavoriteWithToast } = useFavoriteToggle();
   const {
     favoriteApartments,
     loading: loadingApartments,
@@ -77,21 +76,9 @@ export default function TenantFavorites() {
 
   const handleFavoriteToggle = useCallback(
     async (apartmentId: string) => {
-      try {
-        const { wasFavorite } = await toggleFavorite(apartmentId);
-        toast.show({
-          variant: wasFavorite ? "default" : "success",
-          label: wasFavorite ? "Removed from favorites" : "Added to favorites",
-        });
-      } catch (error) {
-        console.error("Error toggling favorite:", error);
-        toast.show({
-          variant: "danger",
-          label: "Something went wrong",
-        });
-      }
+      await toggleFavoriteWithToast(apartmentId);
     },
-    [toast, toggleFavorite],
+    [toggleFavoriteWithToast],
   );
 
   const isLoading = loadingFavorites || loadingApartments;
@@ -104,9 +91,9 @@ export default function TenantFavorites() {
       onPress={toggleViewMode}
     >
       {viewMode === "grid" ? (
-        <Rows3 size={24} color={colors.secondaryForeground} />
+        <IconLayoutList size={24} color={colors.secondaryForeground} />
       ) : (
-        <LayoutGrid size={24} color={colors.secondaryForeground} />
+        <IconLayoutGrid size={24} color={colors.secondaryForeground} />
       )}
     </TouchableOpacity>
   );
@@ -125,6 +112,20 @@ export default function TenantFavorites() {
       {isLoading ? (
         <View className="flex-1 items-center justify-center py-10">
           <Spinner size="lg" color={colors.primary} />
+        </View>
+      ) : combinedError ? (
+        <View className="flex-1 items-center justify-center px-5">
+          <EmptyState
+            variant="tenant"
+            icon={<IconAlertCircle size={64} color={colors.primary} />}
+            title="Something went wrong"
+            description={combinedError}
+            action={
+              <Button onPress={() => { void refreshFavoriteApartments(); }}>
+                <Button.Label>Try Again</Button.Label>
+              </Button>
+            }
+          />
         </View>
       ) : (
         <FlatList
@@ -146,7 +147,11 @@ export default function TenantFavorites() {
           columnWrapperStyle={
             viewMode === "grid" ? { paddingHorizontal: 16, gap: 8 } : undefined
           }
-          contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
+          contentContainerStyle={{
+            paddingBottom: 16,
+            gap: 16,
+            flexGrow: apartments.length === 0 ? 1 : 0,
+          }}
           refreshControl={
             <RefreshControl
               refreshing={refreshingApartments}
@@ -158,11 +163,17 @@ export default function TenantFavorites() {
             />
           }
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center py-10">
-              <Text className="text-lg text-gray-500 font-nunitoSemiBold">
-                {combinedError ?? "No favorite apartments yet"}
-              </Text>
-            </View>
+            <EmptyState
+              variant="tenant"
+              icon={<IconHeartOff size={64} color={colors.primary} />}
+              title="No favorites yet"
+              description="Tap the heart on any listing to save it here."
+              action={
+                <Button onPress={() => router.replace("/(tabs)/(tenant)/search" as any)}>
+                  <Button.Label>Browse Listings</Button.Label>
+                </Button>
+              }
+            />
           }
         />
       )}

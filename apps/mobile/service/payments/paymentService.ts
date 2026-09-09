@@ -175,6 +175,36 @@ export function paidAmountForPeriod(payments: PaymentRecord[], periodStart: stri
     .reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 }
 
+// The period being paid for: the tenancy's current payment period when it
+// covers this month, otherwise the current calendar month (due on the 5th).
+export function resolvePaymentPeriod(
+  currentPeriodStart: string | null,
+  currentPeriodEnd: string | null,
+  currentDueDate: string | null
+): {
+  periodStart: string
+  periodEnd: string
+  dueDate: string
+} {
+  const now = new Date()
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  if (currentPeriodStart?.startsWith(currentMonth)) {
+    return {
+      periodStart: currentPeriodStart,
+      periodEnd: currentPeriodEnd ?? currentPeriodStart,
+      dueDate: currentDueDate ?? `${currentMonth}-05`,
+    }
+  }
+
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  return {
+    periodStart: `${currentMonth}-01`,
+    periodEnd: `${currentMonth}-${String(lastDay).padStart(2, '0')}`,
+    dueDate: `${currentMonth}-05`,
+  }
+}
+
 // "Month Day" label for a billing period (e.g. "August 5").
 export function periodMonthLabel(sourceDate: string | null): string {
   if (!sourceDate) return '—'

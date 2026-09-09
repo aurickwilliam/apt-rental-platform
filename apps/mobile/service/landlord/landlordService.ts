@@ -591,43 +591,6 @@ type RawApartmentImage = {
   is_cover: boolean | null;
 };
 
-// C5-deferred behavior preserved: apartment-image paths are still resolved
-// through signed URLs here until the bucket contract is approved.
-const signedUrlCache = new Map<string, { signedUrl: string; expiresAt: number }>();
-const SIGNED_URL_TTL_MS = 55 * 60 * 1000;
-
-async function resolveApartmentImageUrls(paths: string[]): Promise<Map<string, string>> {
-  const uncached: string[] = [];
-  const result = new Map<string, string>();
-
-  for (const path of paths) {
-    const cached = signedUrlCache.get(path);
-    if (cached && Date.now() < cached.expiresAt) {
-      result.set(path, cached.signedUrl);
-    } else {
-      uncached.push(path);
-    }
-  }
-
-  if (uncached.length > 0) {
-    const { data } = await supabase.storage
-      .from("apartment-images")
-      .createSignedUrls(uncached, 60 * 60);
-
-    for (const item of data ?? []) {
-      if (item.signedUrl && item.path) {
-        signedUrlCache.set(item.path, {
-          signedUrl: item.signedUrl,
-          expiresAt: Date.now() + SIGNED_URL_TTL_MS,
-        });
-        result.set(item.path, item.signedUrl);
-      }
-    }
-  }
-
-  return result;
-}
-
 export async function fetchLandlordVisitRequests(
   landlordId: string
 ): Promise<LandlordVisitRequest[]> {
@@ -673,19 +636,11 @@ export async function fetchLandlordVisitRequests(
 
   const rows = data ?? [];
 
-  const coverPaths: string[] = [];
-  for (const r of rows) {
-    const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
-    const cover = images.find((img) => img.is_cover === true);
-    if (cover?.url) coverPaths.push(cover.url);
-  }
-
-  const urlMap = await resolveApartmentImageUrls(coverPaths);
-
+  // apartment-images bucket is public — urls are already CDN public URLs (url / url_thumb)
   return rows.map((r) => {
     const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
     const cover = images.find((img) => img.is_cover === true);
-    const resolvedUrl = cover?.url ? (urlMap.get(cover.url) ?? cover.url) : null;
+    const resolvedUrl = cover?.url ?? null;
 
     return {
       ...r,

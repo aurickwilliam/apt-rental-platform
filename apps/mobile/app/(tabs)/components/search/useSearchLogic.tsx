@@ -22,10 +22,20 @@ const MAX_BUDGET = 50000;
 const MIN_SIZE = 10;
 const MAX_SIZE = 300;
 
-export default function useSearchLogic() {
+type UseSearchLogicParams = {
+  initialCity?: string;
+};
+
+export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
-  const [selectedCity, setSelectedCity] = useState<string>(CITIES[0]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>(initialCity ?? CITIES[0]);
+  const [searchDraft, setSearchDraft] = useState<string>("");
+
+  useEffect(() => {
+    if (initialCity && initialCity !== CITIES[0] && selectedCity === CITIES[0]) {
+      setSelectedCity(initialCity);
+    }
+  }, [initialCity, selectedCity]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,7 +43,7 @@ export default function useSearchLogic() {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [committedSearch, setCommittedSearch] = useState("");
   const [isGridView, setIsGridView] = useState<boolean>(true);
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -42,10 +52,14 @@ export default function useSearchLogic() {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const openFilterSheet = useCallback(() => setIsFilterSheetOpen(true), []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const commitSearch = useCallback((draft: string) => {
+    setCommittedSearch(draft.trim());
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearchDraft("");
+    setCommittedSearch("");
+  }, []);
 
   const buildQuery = (
     from: number,
@@ -76,6 +90,7 @@ export default function useSearchLogic() {
         )
       `, { count: "estimated" })
       .is("deleted_at", null)
+      .in("status", ["available", "unverified"])
       .range(from, to);
 
     if (search.trim()) {
@@ -235,7 +250,7 @@ export default function useSearchLogic() {
           PAGE_SIZE - 1,
           selectedCity,
           activeFilters,
-          debouncedSearch,
+          committedSearch,
         );
         if (supabaseError) throw supabaseError;
 
@@ -251,7 +266,7 @@ export default function useSearchLogic() {
         setRefreshing(false);
       }
     },
-    [selectedCity, filters, debouncedSearch],
+    [selectedCity, filters, committedSearch],
   );
 
   const loadMore = useCallback(async () => {
@@ -267,7 +282,7 @@ export default function useSearchLogic() {
         to,
         selectedCity,
         filters,
-        debouncedSearch,
+        committedSearch,
       );
       if (supabaseError) throw supabaseError;
 
@@ -288,11 +303,11 @@ export default function useSearchLogic() {
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, selectedCity, filters, debouncedSearch]);
+  }, [loadingMore, hasMore, selectedCity, filters, committedSearch]);
 
   useEffect(() => {
     fetchApartments();
-  }, [fetchApartments, debouncedSearch]);
+  }, [fetchApartments, committedSearch]);
 
   const handleApplyFilters = useCallback(
     (newFilters: FilterState) => {
@@ -353,7 +368,9 @@ export default function useSearchLogic() {
     apartments,
     activeFilterCount,
     cities: CITIES,
-    debouncedSearch,
+    committedSearch,
+    commitSearch,
+    clearSearch,
     error,
     fetchApartments,
     filters,
@@ -370,10 +387,10 @@ export default function useSearchLogic() {
     loadMore,
     refreshing,
     resultCount,
-    searchQuery,
+    searchDraft,
     selectedCity,
     setIsGridView,
-    setSearchQuery,
+    setSearchDraft,
     setSelectedCity,
   };
 }
