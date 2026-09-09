@@ -8,6 +8,7 @@ type UseLeaseAgreementOptions = {
 
 export function useLeaseAgreement(options?: UseLeaseAgreementOptions) {
   const [isLoading, setIsLoading] = useState(false);
+  const { onUrl } = options ?? {};
 
   const openLeaseAgreement = useCallback(
     async (storagePath: string | null | undefined) => {
@@ -26,8 +27,8 @@ export function useLeaseAgreement(options?: UseLeaseAgreementOptions) {
         );
         const signedUrl = urls[storagePath];
         if (error || !signedUrl) throw error ?? new Error("No signed URL");
-        if (options?.onUrl) {
-          await options.onUrl(signedUrl);
+        if (onUrl) {
+          await onUrl(signedUrl);
         } else {
           await Linking.openURL(signedUrl);
         }
@@ -38,7 +39,7 @@ export function useLeaseAgreement(options?: UseLeaseAgreementOptions) {
         setIsLoading(false);
       }
     },
-    [options],
+    [onUrl],
   );
 
   return { openLeaseAgreement, isLoading };

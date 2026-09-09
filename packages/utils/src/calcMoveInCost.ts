@@ -1,8 +1,12 @@
+import { extractRawNumber } from "./formatCurrencyInput";
+
 export function toMoveInNumber(
   value: string | number | null | undefined,
 ): number {
   if (value == null || value === "") return 0;
-  const num = Number(value);
+  const raw = extractRawNumber(value);
+  if (!raw || raw === ".") return 0;
+  const num = Number(raw);
   return Number.isFinite(num) ? num : 0;
 }
 

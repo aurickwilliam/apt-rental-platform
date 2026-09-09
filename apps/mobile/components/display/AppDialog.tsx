@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import { Button, Dialog } from "heroui-native";
+import { Dialog } from "heroui-native";
 
 type AppDialogProps = {
   isOpen: boolean;
@@ -40,19 +40,5 @@ export default function AppDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog>
-  );
-}
-
-export function AppDialogCancelButton({
-  onPress,
-  label = "Cancel",
-}: {
-  onPress?: () => void;
-  label?: string;
-}) {
-  return (
-    <Button variant="danger-soft" size="sm" onPress={onPress}>
-      <Button.Label>{label}</Button.Label>
-    </Button>
   );
 }

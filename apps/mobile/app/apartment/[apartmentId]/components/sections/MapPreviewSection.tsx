@@ -110,8 +110,8 @@ export default function MapPreviewSection({
         </View>
 
         <Button
-          onPress={(event) => {
-            event.stopPropagation();
+          onPress={(event: unknown) => {
+            (event as { stopPropagation?: () => void })?.stopPropagation?.();
             setIsDirectionsModalVisible(true);
           }}
           size="sm"

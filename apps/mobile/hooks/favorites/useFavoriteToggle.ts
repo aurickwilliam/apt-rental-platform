@@ -18,7 +18,6 @@ export function useFavoriteToggle() {
       } catch (error) {
         console.error("Error toggling favorite:", error);
         toast.show({ variant: "danger", label: "Something went wrong" });
-        throw error;
       }
     },
     [toggleFavorite, toast],
