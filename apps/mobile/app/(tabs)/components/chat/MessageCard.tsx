@@ -1,16 +1,20 @@
 import { View, Text } from 'react-native'
 import { Avatar, Card, PressableFeedback } from 'heroui-native'
 
-function getLastMessageDisplay(lastMessage: string | null, messageType?: string | null): string {
+function getLastMessageDisplay(
+  lastMessage: string | null,
+  messageType?: string | null,
+  isUserLastSender?: boolean
+): string {
   if (lastMessage) return lastMessage;
 
   switch (messageType) {
     case 'image':
-      return 'You sent a photo';
+      return isUserLastSender ? 'You sent a photo' : 'Sent a photo';
     case 'video':
-      return 'You sent a video';
+      return isUserLastSender ? 'You sent a video' : 'Sent a video';
     case 'gif':
-      return 'You sent a GIF';
+      return isUserLastSender ? 'You sent a GIF' : 'Sent a GIF';
     default:
       return '';
   }
@@ -39,7 +43,8 @@ export default function MessageCard({
   unreadCount = 0,
   onPress
 }: MessageCardProps) {
-  const displayMessage = getLastMessageDisplay(lastMessage, messageType);
+  const rawDisplay = getLastMessageDisplay(lastMessage, messageType, isUserLastSender);
+  const displayMessage = lastMessage && isUserLastSender && rawDisplay ? `You: ${rawDisplay}` : rawDisplay;
 
   return (
     <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden border border-border'>
@@ -48,9 +53,11 @@ export default function MessageCard({
 
         {/* Profile Picture */}
         <View className='relative'>
-          <Avatar size='lg' className='border border-border'>
-            <Avatar.Image source={{ uri: profilePictureUrl }} />
-            <Avatar.Fallback delayMs={200}>
+          <Avatar size='lg' className='border border-border rounded-full overflow-hidden'>
+            {profilePictureUrl ? (
+              <Avatar.Image source={{ uri: profilePictureUrl }} />
+            ) : null}
+            <Avatar.Fallback delayMs={200} className="rounded-full">
               {name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </Avatar.Fallback>
           </Avatar>
@@ -80,7 +87,7 @@ export default function MessageCard({
               className='text-foreground text-xs font-inter flex-1'
               numberOfLines={1}
             >
-              {isUserLastSender && displayMessage ? `You: ${displayMessage}` : displayMessage}
+              {displayMessage}
             </Text>
 
             <Text className='text-gray-500 text-xs font-inter'>

@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/useTheme';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
 import {
+  Button,
   SearchField,
   Separator,
   Spinner,
@@ -27,9 +28,21 @@ export default function Chat() {
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { tenancy } = useTenancy();
-  const { conversations, loading, refreshing, refetch, markConversationRead } =
-    useConversations('tenant');
+  const { tenancy, refreshing: tenancyRefreshing, refetch: refetchTenancy } = useTenancy();
+  const {
+    conversations,
+    loading,
+    refreshing: conversationsRefreshing,
+    error,
+    refetch: refetchConversations,
+    markConversationRead,
+  } = useConversations('tenant');
+
+  const refreshing = conversationsRefreshing || tenancyRefreshing;
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchConversations(), refetchTenancy()]);
+  }, [refetchConversations, refetchTenancy]);
 
   const filteredConversations = conversations.filter((c) => {
     const q = searchQuery.toLowerCase();
@@ -76,12 +89,11 @@ export default function Chat() {
     <ScreenWrapper
       scrollable
       className='p-5'
-      backgroundColor={colors.surface}
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
-      onRefresh={refetch}
+      onRefresh={handleRefresh}
     >
-      <Text className='text-accent text-3xl font-nunitoBold'>
+      <Text className='text-primary text-3xl font-nunitoBold mb-3'>
         Messages
       </Text>
 
@@ -104,7 +116,7 @@ export default function Chat() {
         <View className='flex-1 items-center justify-center mt-20'>
           <Spinner size="sm" color={colors.primary} />
         </View>
-      ) : filteredConversations.length === 0 ? (
+      ) : error ? (
         <View className='flex-1 items-center justify-center'>
           <View className='aspect-square size-64'>
             <Image
@@ -112,11 +124,38 @@ export default function Chat() {
               style={{ width: '100%', height: '100%' }}
             />
           </View>
-          <Text className='text-2xl text-accent  font-nunitoBold mb-2 mt-5'>
+          <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
+            Something went wrong
+          </Text>
+          <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
+            {error}
+          </Text>
+          <Button className='mt-4 bg-primary' onPress={() => void handleRefresh()}>
+            <Text className='text-white font-nunitoSemiBold'>Retry</Text>
+          </Button>
+        </View>
+      ) : conversations.length === 0 ? (
+        <View className='flex-1 items-center justify-center'>
+          <View className='aspect-square size-64'>
+            <Image
+              source={EMPTY_STATE_IMAGES.emptyMessage}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </View>
+          <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
             No Messages Yet
           </Text>
           <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
             Start a conversation with a landlord to see your messages here.
+          </Text>
+        </View>
+      ) : filteredConversations.length === 0 ? (
+        <View className='flex-1 items-center justify-center mt-10'>
+          <Text className='text-lg text-accent font-nunitoSemiBold mb-2'>
+            No results found
+          </Text>
+          <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
+            No conversations match &quot;{searchQuery}&quot;. Try a different name, property, or message.
           </Text>
         </View>
       ) : (
@@ -146,6 +185,7 @@ export default function Chat() {
                   new Date(currentLandlordConversation.last_message_time)
                 )}
                 unreadCount={currentLandlordConversation.unread_count}
+                profilePictureUrl={currentLandlordConversation.other_user_avatar ?? undefined}
                 onPress={() =>
                   handleChatPress(currentLandlordConversation)
                 }

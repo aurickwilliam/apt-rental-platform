@@ -11,6 +11,19 @@ import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conv
 export const getConversationsQueryKey = (myId: string | null) =>
   ["conversations", myId] as const;
 
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+  return "An unexpected error occurred.";
+}
+
 type NewChatRow = {
   sender_id: string;
   receiver_id: string;
@@ -136,10 +149,13 @@ export function useConversations(role: ConversationRole) {
     );
   };
 
+  const error = getErrorMessage(currentUserQuery.error ?? conversationsQuery.error);
+
   return {
     conversations: conversationsQuery.data ?? [],
     loading: currentUserQuery.isLoading || conversationsQuery.isLoading,
     refreshing: conversationsQuery.isFetching && !conversationsQuery.isLoading,
+    error,
     refetch: conversationsQuery.refetch,
     markConversationRead,
   };

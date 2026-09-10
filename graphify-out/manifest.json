@@ -195,8 +195,8 @@
     "semantic_hash": "db26520734e2a1315d3bc264c88cfd09"
   },
   "apps/mobile/app/(tabs)/(landlord)/chat.tsx": {
-    "mtime": 1787912037.124925,
-    "ast_hash": "f4d3d9085b16512f33e26c907359bf8d",
+    "mtime": 1789028731.8275304,
+    "ast_hash": "262fa3a02d4abde4888886d8d7711220",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/dashboard.tsx": {
@@ -220,8 +220,8 @@
     "semantic_hash": "79dc349c3beee06ce05c6f1567269c34"
   },
   "apps/mobile/app/(tabs)/(tenant)/chat.tsx": {
-    "mtime": 1787912037.1261163,
-    "ast_hash": "118b52aec7fe8dd22a94d659cc7d1800",
+    "mtime": 1789027808.124222,
+    "ast_hash": "83fce9958fa00189c20c8fb123d741fd",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/profile.tsx": {
@@ -230,12 +230,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/rentals.tsx": {
-    "mtime": 1788414055.551392,
+    "mtime": 1788952892.220502,
     "ast_hash": "da4486d5bb5cead0084d7a0d368c577d",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
-    "mtime": 1788949396.8411245,
+    "mtime": 1788952892.2208185,
     "ast_hash": "6cc1fe0c078f93ad6b96f364c6634a54",
     "semantic_hash": ""
   },
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/MessageCard.tsx": {
-    "mtime": 1787912037.1273913,
-    "ast_hash": "993e5b502e3d1fe7f37bd3feb0f39d5f",
+    "mtime": 1789032239.1712904,
+    "ast_hash": "aae5c7f38dab28aa8cafab3e7d56660b",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/ProfitByPropertyCard.tsx": {
@@ -315,12 +315,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/MaintenanceRequestCard.tsx": {
-    "mtime": 1788414055.5517423,
+    "mtime": 1788952892.2209456,
     "ast_hash": "438727bb96221092d549a203434db3e3",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/PaymentSummaryCard.tsx": {
-    "mtime": 1788849476.0671124,
+    "mtime": 1788952892.2212403,
     "ast_hash": "c4a396a3a3073bd800ebdd1cc6c71b39",
     "semantic_hash": ""
   },
@@ -330,27 +330,27 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/ApartmentsList.tsx": {
-    "mtime": 1788414055.5527985,
+    "mtime": 1788952892.2216928,
     "ast_hash": "6e1d5f116fda709d8ffeba7cf767357a",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/FilterBottomSheet.tsx": {
-    "mtime": 1788414055.5529804,
+    "mtime": 1788952892.2218046,
     "ast_hash": "8654a45f253db15a81e15b18b99d27b3",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchFiltersBar.tsx": {
-    "mtime": 1788414055.5530953,
+    "mtime": 1788952892.221889,
     "ast_hash": "02235adca5200eede32ce896e39ee622",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchHeader.tsx": {
-    "mtime": 1788414055.5532086,
+    "mtime": 1788952892.2219775,
     "ast_hash": "1339ffc1a3ce200c4b135741ce830391",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchLogic.tsx": {
-    "mtime": 1788414055.553984,
+    "mtime": 1788952892.2225432,
     "ast_hash": "80eb2e14ad4c53085823d5789edd0e81",
     "semantic_hash": ""
   },
@@ -425,7 +425,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/apply/review-information.tsx": {
-    "mtime": 1788949265.4854822,
+    "mtime": 1788952892.2230551,
     "ast_hash": "b1c4ed626dbf3d52348a48cec2dc29b0",
     "semantic_hash": ""
   },
@@ -445,7 +445,7 @@
     "semantic_hash": "bae11320e7919476dc41b2cb9afd09c3"
   },
   "apps/mobile/app/apartment/[apartmentId]/components/ApartmentSkeleton.tsx": {
-    "mtime": 1788948995.088849,
+    "mtime": 1788952892.2232833,
     "ast_hash": "b14bfe444a20e1ed7e34572bdf57bb20",
     "semantic_hash": ""
   },
@@ -470,47 +470,47 @@
     "semantic_hash": "5b5dc76b9c3728c5c50e24cd78889280"
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/ApartmentDescriptionSection.tsx": {
-    "mtime": 1788949015.8516548,
+    "mtime": 1788952892.2236252,
     "ast_hash": "8e7409a9a16c7fc08e09a41fce3fc484",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/ApartmentDetailsSection.tsx": {
-    "mtime": 1788414055.5545242,
+    "mtime": 1788952892.2237282,
     "ast_hash": "28858d91de7a7000d396d346c2717413",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/ApartmentHeroSection.tsx": {
-    "mtime": 1788947753.813682,
+    "mtime": 1788952892.2240567,
     "ast_hash": "bc9727862a0a71de97cb65a2416bccf1",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/LandlordSection.tsx": {
-    "mtime": 1788949421.8237705,
+    "mtime": 1788952892.224248,
     "ast_hash": "57849064efd38468bc7b0bf4494977d3",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/LeaseAgreementSection.tsx": {
-    "mtime": 1788949170.4818103,
+    "mtime": 1788952892.2244213,
     "ast_hash": "1ddf24b1f4d6695d5661f36810aa157e",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/MapPreviewSection.tsx": {
-    "mtime": 1788951425.6312413,
+    "mtime": 1788952892.2247365,
     "ast_hash": "8187593ec0cd06560e929d7f2a6eee11",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/MoveInCostFooterSection.tsx": {
-    "mtime": 1788949247.223859,
+    "mtime": 1788952892.2249942,
     "ast_hash": "b750e2e740f538a89e68203979d51ccb",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/PerksSection.tsx": {
-    "mtime": 1788949142.2086756,
+    "mtime": 1788952892.2251918,
     "ast_hash": "d934515a8308b1509b3a4778d1bcc76b",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/RatingsSection.tsx": {
-    "mtime": 1788949230.3713245,
+    "mtime": 1788952892.225374,
     "ast_hash": "f67abfb5f27fe8a61263b8d1b5adfd1f",
     "semantic_hash": ""
   },
@@ -520,12 +520,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/index.tsx": {
-    "mtime": 1788949363.6208591,
+    "mtime": 1788952892.225718,
     "ast_hash": "db41898cb649d22abe4d8c6fb8f3acad",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/map-view.tsx": {
-    "mtime": 1788950070.8452015,
+    "mtime": 1788952892.2260427,
     "ast_hash": "247ad7239f7457a5aa425da8c12c0147",
     "semantic_hash": ""
   },
@@ -560,13 +560,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
-    "mtime": 1787912037.1354444,
-    "ast_hash": "0d0eb82a5a4c83fec945abd0ad43d4c2",
+    "mtime": 1789032235.9354675,
+    "ast_hash": "2719772077e154898aa1ee0c3d081bbb",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatHeader.tsx": {
-    "mtime": 1788414055.5565193,
-    "ast_hash": "1ce68002f3667fa77bc8ff6619b88ec0",
+    "mtime": 1789032232.2475843,
+    "ast_hash": "22a961ed3d3cf2ab89345d22b8e9a78a",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatLoadingSkeleton.tsx": {
@@ -610,7 +610,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
-    "mtime": 1788414055.5566258,
+    "mtime": 1788952892.2263129,
     "ast_hash": "979238685c9003e8d56e0a55ae4bd203",
     "semantic_hash": ""
   },
@@ -725,12 +725,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/[apartmentId]/description/edit-specs.tsx": {
-    "mtime": 1788414055.5572953,
+    "mtime": 1788952892.2267873,
     "ast_hash": "10127d8416218de0d57f92db103c0bb2",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/[apartmentId]/description/index.tsx": {
-    "mtime": 1788949350.925818,
+    "mtime": 1788952892.2271066,
     "ast_hash": "5a57868cd34d18d498d93e4da9f4ce2f",
     "semantic_hash": ""
   },
@@ -760,12 +760,12 @@
     "semantic_hash": "a62aff70302fd604963a43af95915c8d"
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/amenities.tsx": {
-    "mtime": 1788414055.5577435,
+    "mtime": 1788952892.2272623,
     "ast_hash": "1f596f836a5340c6b178c5c61d48c017",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx": {
-    "mtime": 1788414055.5579143,
+    "mtime": 1788952892.2275221,
     "ast_hash": "c5743b51469444705458c2be4ca9088f",
     "semantic_hash": ""
   },
@@ -780,12 +780,12 @@
     "semantic_hash": "20bed3ba1b48f6b09c7f1fd5644203f6"
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/map-pin.tsx": {
-    "mtime": 1788414055.5580685,
+    "mtime": 1788952892.2276995,
     "ast_hash": "8401cd5566330eabe0cf5d52377b9b39",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx": {
-    "mtime": 1788414055.5582318,
+    "mtime": 1788952892.2278476,
     "ast_hash": "aee65569017213caa40a3d3e2141c95d",
     "semantic_hash": ""
   },
@@ -795,17 +795,17 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx": {
-    "mtime": 1788949292.9835424,
+    "mtime": 1788952892.228223,
     "ast_hash": "6c94c874a3f858726187ef4b755773f9",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/components/PerkButton.tsx": {
-    "mtime": 1788414055.5583675,
+    "mtime": 1788952892.2283711,
     "ast_hash": "478359e6a41b6424b90f4554ac19be57",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/[applicationId].tsx": {
-    "mtime": 1788414055.5585837,
+    "mtime": 1788952892.2285347,
     "ast_hash": "24605c21ff50343f3cfc17640a280e73",
     "semantic_hash": ""
   },
@@ -820,17 +820,17 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/components/EmptyApplicationData.tsx": {
-    "mtime": 1788414055.5587337,
+    "mtime": 1788952892.228659,
     "ast_hash": "95131527282bd94ab0ca20154b7737a8",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/components/EmptyApplications.tsx": {
-    "mtime": 1788414055.5588684,
+    "mtime": 1788952892.2288134,
     "ast_hash": "a7d5c7f3d0187e29cf71b878109d2d05",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/components/EmptySearchResults.tsx": {
-    "mtime": 1788414055.5590546,
+    "mtime": 1788952892.2289486,
     "ast_hash": "09a001eb2cc9dbdc3a65cced9f1ea6a7",
     "semantic_hash": ""
   },
@@ -850,42 +850,42 @@
     "semantic_hash": "dda51f1b7f4e8470777b4bbc016a5896"
   },
   "apps/mobile/app/landlord/tenant-applications/index.tsx": {
-    "mtime": 1788414055.5592952,
+    "mtime": 1788952892.229149,
     "ast_hash": "3ab364c90599effbf74d385105509e5d",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/[requestId].tsx": {
-    "mtime": 1788414055.559488,
+    "mtime": 1788952892.2293437,
     "ast_hash": "baf74991bb0e7f78846c411b3834098d",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/EmptyApproved.tsx": {
-    "mtime": 1788414055.5596223,
+    "mtime": 1788952892.2294548,
     "ast_hash": "dcb44024b44c0b249857e60ab28b1c07",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/EmptyPending.tsx": {
-    "mtime": 1788414055.5597408,
+    "mtime": 1788952892.2295458,
     "ast_hash": "abea4297a5fce4eb7f2b93925cfb6a42",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/EmptyRequestData.tsx": {
-    "mtime": 1788414055.5598533,
+    "mtime": 1788952892.2296543,
     "ast_hash": "512d848d407a8f0416e329e25eb30d67",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/RescheduleSheet.tsx": {
-    "mtime": 1788414055.5601175,
+    "mtime": 1788952892.2298455,
     "ast_hash": "a9e6156d9c7497bb1a710eb7e8a7aacf",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/VisitRequestCalendar.tsx": {
-    "mtime": 1788414055.560351,
+    "mtime": 1788952892.2300982,
     "ast_hash": "d2e73bea8852f173ba3482d2533c89ee",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/components/VisitRequestCard.tsx": {
-    "mtime": 1788414055.5605004,
+    "mtime": 1788952892.230225,
     "ast_hash": "cc9ebdffcf73b9d6587b1932caf16973",
     "semantic_hash": ""
   },
@@ -900,12 +900,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/index.tsx": {
-    "mtime": 1788414055.5607033,
+    "mtime": 1788952892.2303886,
     "ast_hash": "9a63eb869a5216fe6a0ecf71ebd9ab96",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/visit-requests/pending.tsx": {
-    "mtime": 1788414055.5609522,
+    "mtime": 1788952892.230812,
     "ast_hash": "cf35d38fd1e907ced3a4436a0264f4c1",
     "semantic_hash": ""
   },
@@ -920,7 +920,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/_layout.tsx": {
-    "mtime": 1788414055.5610962,
+    "mtime": 1788952892.2309492,
     "ast_hash": "d5da9cbd4968f5aac81ab77c20580488",
     "semantic_hash": ""
   },
@@ -930,12 +930,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/_layout.tsx": {
-    "mtime": 1788414055.5616531,
+    "mtime": 1788952892.2314515,
     "ast_hash": "07a1dfccdece00c57f49e0ccfc83318e",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/about.tsx": {
-    "mtime": 1788414055.5618713,
+    "mtime": 1788952892.2319808,
     "ast_hash": "327201af7385b61b9d66e039b94c363c",
     "semantic_hash": ""
   },
@@ -945,7 +945,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/index.tsx": {
-    "mtime": 1788414055.562138,
+    "mtime": 1788952892.232265,
     "ast_hash": "1d193af63b77ab1f150f976e845a12f1",
     "semantic_hash": ""
   },
@@ -965,22 +965,22 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/_layout.tsx": {
-    "mtime": 1788414055.5624268,
+    "mtime": 1788952892.2324882,
     "ast_hash": "8ebfc983e4563b15966c41ff024cb7bb",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/applications/[applicationId].tsx": {
-    "mtime": 1788414055.5625935,
+    "mtime": 1788952892.232603,
     "ast_hash": "0ee7919ddbb7d8685becfeef4f00419d",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/applications/components/VisitRequestCard.tsx": {
-    "mtime": 1788414055.5627706,
+    "mtime": 1788952892.2327409,
     "ast_hash": "86fe26edf7dc2918dd1c295cdf927574",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/applications/components/VisitRequestHistoryItem.tsx": {
-    "mtime": 1788414055.5628872,
+    "mtime": 1788952892.2328463,
     "ast_hash": "12fa8d4f9fffb473c4c3b80472090708",
     "semantic_hash": ""
   },
@@ -995,17 +995,17 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/current-apartment.tsx": {
-    "mtime": 1788949332.1865554,
+    "mtime": 1788952892.233534,
     "ast_hash": "b9cfbc1571ca9c6a44d852365a4dbbfe",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/favorites.tsx": {
-    "mtime": 1788949377.2266047,
+    "mtime": 1788952892.2338243,
     "ast_hash": "6ad1e1795de3e68f8c92470bf1d78115",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/maintenance-details.tsx": {
-    "mtime": 1788414055.5636563,
+    "mtime": 1788952892.2339883,
     "ast_hash": "907ef84a50d7f3c99af44cf36f8d1a68",
     "semantic_hash": ""
   },
@@ -1060,7 +1060,7 @@
     "semantic_hash": "17e521ca64e49183cd777b569b5b98fc"
   },
   "apps/mobile/app/tenant/payment/index.tsx": {
-    "mtime": 1788414055.5647967,
+    "mtime": 1788952892.2348158,
     "ast_hash": "54b7af45e663a7b5dcc5005f4ab5bb1d",
     "semantic_hash": ""
   },
@@ -1095,7 +1095,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/request-maintenance.tsx": {
-    "mtime": 1788414055.5649915,
+    "mtime": 1788952892.234969,
     "ast_hash": "57c514d1fdb2cb5f4fa689c8056fa0c8",
     "semantic_hash": ""
   },
@@ -1105,17 +1105,17 @@
     "semantic_hash": "82e9970976d64acfad5bc66378a3ddb0"
   },
   "apps/mobile/components/buttons/DropdownButton.tsx": {
-    "mtime": 1788414055.5651078,
+    "mtime": 1788952892.2350912,
     "ast_hash": "33722be182bd873aa06c56f4f7e4e6e4",
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/ApartmentCard.tsx": {
-    "mtime": 1788414055.5653472,
+    "mtime": 1788952892.2354276,
     "ast_hash": "a19bac51d666dec0042329fd6969a133",
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/LandlordCard.tsx": {
-    "mtime": 1788414055.5654583,
+    "mtime": 1788952892.2355595,
     "ast_hash": "17270d478c3afde2bdd7a20fd7c58c1c",
     "semantic_hash": ""
   },
@@ -1155,7 +1155,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/DocumentRow.tsx": {
-    "mtime": 1788414055.5656116,
+    "mtime": 1788952892.2358828,
     "ast_hash": "8cea9d9c60a0ae16da4b3d6aba22bb0f",
     "semantic_hash": ""
   },
@@ -1170,7 +1170,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/PerkItem.tsx": {
-    "mtime": 1788414055.5658107,
+    "mtime": 1788952892.2363102,
     "ast_hash": "96cce06d1ce47a4510a9ce564bdcfa69",
     "semantic_hash": ""
   },
@@ -1205,12 +1205,12 @@
     "semantic_hash": "6407d7e60f94b58ac10841584ea526c9"
   },
   "apps/mobile/components/inputs/DateField.tsx": {
-    "mtime": 1788414055.5660317,
+    "mtime": 1788952892.2368054,
     "ast_hash": "5c5fc259f825708cb2101a3207fb8331",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DropdownField.tsx": {
-    "mtime": 1788414055.5662823,
+    "mtime": 1788952892.237107,
     "ast_hash": "550df8b5cc4507e9fd213b1e2a983eb6",
     "semantic_hash": ""
   },
@@ -1230,7 +1230,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/TimeField.tsx": {
-    "mtime": 1788414055.5663965,
+    "mtime": 1788952892.2372262,
     "ast_hash": "855140d3c3f489a16ee277186e65d3d2",
     "semantic_hash": ""
   },
@@ -1315,7 +1315,7 @@
     "semantic_hash": "a7c7eb21bd1bc671cd64560a97e87e1a"
   },
   "apps/mobile/hooks/apartments/index.ts": {
-    "mtime": 1788948984.8216786,
+    "mtime": 1788952892.27783,
     "ast_hash": "8a1d19a0dda97af8e679fc0ad847adc1",
     "semantic_hash": ""
   },
@@ -1355,7 +1355,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useApplicationStatusStyles.ts": {
-    "mtime": 1788414055.5914042,
+    "mtime": 1788952892.2781653,
     "ast_hash": "1878e1dff66ba86c9945e90fd2932b29",
     "semantic_hash": ""
   },
@@ -1420,7 +1420,7 @@
     "semantic_hash": "374ea3a5a531c8aa608ce6b1f052d80c"
   },
   "apps/mobile/hooks/favorites/index.ts": {
-    "mtime": 1788948981.8864157,
+    "mtime": 1788952892.2783515,
     "ast_hash": "ac110315437a48de18323b1b1a197584",
     "semantic_hash": ""
   },
@@ -1550,7 +1550,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/package.json": {
-    "mtime": 1788930061.482116,
+    "mtime": 1788952892.2797127,
     "ast_hash": "2dfa463c0890a36422268766b841dc7c",
     "semantic_hash": ""
   },
@@ -2735,7 +2735,7 @@
     "semantic_hash": "e6fad820ff606a03d9cde377f4248a08"
   },
   "packages/utils/src/index.ts": {
-    "mtime": 1788948930.3241518,
+    "mtime": 1788952892.2922785,
     "ast_hash": "e285a24aa5b3066c97dd41a899431438",
     "semantic_hash": ""
   },
@@ -2760,7 +2760,7 @@
     "semantic_hash": "f3da27a4f388d0b2d900bed9035bf587"
   },
   "AGENTS.md": {
-    "mtime": 1788414055.5506716,
+    "mtime": 1788952892.2196124,
     "ast_hash": "6e6b241246ebf90db808545d61e46e88",
     "semantic_hash": ""
   },
@@ -3090,12 +3090,12 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1788414055.5508904,
+    "mtime": 1788952892.2198954,
     "ast_hash": "778ca4b6126e9a3f53b8b3ece33faaa7",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1788414055.5510392,
+    "mtime": 1788952892.2200255,
     "ast_hash": "f31a5f6f4924759f3879a823e2c4ac76",
     "semantic_hash": ""
   },
@@ -3130,12 +3130,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/history/components/PaymentHistoryFilterSheet.tsx": {
-    "mtime": 1788414055.5641537,
+    "mtime": 1788952892.2344236,
     "ast_hash": "f74626f3fceaa901346f901c6e23eb9a",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/payment/history/index.tsx": {
-    "mtime": 1788414055.5645752,
+    "mtime": 1788952892.2346375,
     "ast_hash": "52e709ad15c749745554ac147a4b8fb0",
     "semantic_hash": ""
   },
@@ -3150,7 +3150,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/components/AIHeader.tsx": {
-    "mtime": 1788414055.5612276,
+    "mtime": 1788952892.2310748,
     "ast_hash": "81eda24b8abd4c3546fc67847815ab47",
     "semantic_hash": ""
   },
@@ -3490,7 +3490,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchLogic.test.tsx": {
-    "mtime": 1788414055.5537739,
+    "mtime": 1788952892.2223835,
     "ast_hash": "d743b67662e71f7a7c2cdb4f9b1bf6f9",
     "semantic_hash": ""
   },
@@ -3550,8 +3550,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversations.ts": {
-    "mtime": 1787912037.1703506,
-    "ast_hash": "4e43e3579167e4510e44407c766b0f10",
+    "mtime": 1789027776.2160258,
+    "ast_hash": "4d604712547cbc8a6f26c81139a68128",
     "semantic_hash": ""
   },
   ".opencode/plans/gaps-3-4-5.md": {
@@ -3770,7 +3770,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/currentUserService.ts": {
-    "mtime": 1788414055.5921428,
+    "mtime": 1788952892.2803447,
     "ast_hash": "85d4face7b018553b707b76f309a74cb",
     "semantic_hash": ""
   },
@@ -3815,7 +3815,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/landlord/landlordService.ts": {
-    "mtime": 1788414055.592361,
+    "mtime": 1788952892.2807064,
     "ast_hash": "65450a1ff6691e52d4444a27136e9d85",
     "semantic_hash": ""
   },
@@ -3835,7 +3835,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/media/privateMediaResolver.ts": {
-    "mtime": 1788948957.3245182,
+    "mtime": 1788952892.2811213,
     "ast_hash": "c03280499e3d959de6eebc7ace4c9dcb",
     "semantic_hash": ""
   },
@@ -3870,7 +3870,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/EmptyState.tsx": {
-    "mtime": 1788414055.5657053,
+    "mtime": 1788952892.235975,
     "ast_hash": "3aa40cab90b6059ca577191aef32005e",
     "semantic_hash": ""
   },
@@ -3940,7 +3940,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/payments/paymentService.ts": {
-    "mtime": 1788414055.5925531,
+    "mtime": 1788952892.2813032,
     "ast_hash": "c213cc37775f288e81a605b8cf0c0331",
     "semantic_hash": ""
   },
@@ -4085,7 +4085,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/RentalsSkeleton.tsx": {
-    "mtime": 1788414055.5523393,
+    "mtime": 1788952892.221417,
     "ast_hash": "2e396d39b52aa6832c55867913ddfcf9",
     "semantic_hash": ""
   },
@@ -4195,97 +4195,97 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSection.tsx": {
-    "mtime": 1788414055.553443,
+    "mtime": 1788952892.222138,
     "ast_hash": "283dbc51ab72db6ac3265475c8800f9e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/SearchSectionsList.tsx": {
-    "mtime": 1788414055.5535407,
+    "mtime": 1788952892.222211,
     "ast_hash": "42278017e0e9c44e20562718692fc4ae",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSections.ts": {
-    "mtime": 1788414055.5541463,
+    "mtime": 1788952892.2227645,
     "ast_hash": "c136362513ed118ae1a5bcd37a5e4c91",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
-    "mtime": 1788414055.5615273,
+    "mtime": 1788952892.2313116,
     "ast_hash": "cb9c4cde1900f42d9053b9585bf00862",
     "semantic_hash": ""
   },
   "docs/plans/2026-08-28-search-netflix-a2.md": {
-    "mtime": 1788414055.5929332,
+    "mtime": 1788952892.2824817,
     "ast_hash": "15fe2227adf543749119d21952877d1b",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
-    "mtime": 1788414055.5623243,
+    "mtime": 1788952892.2323864,
     "ast_hash": "73dfe29620b0b6efda27e569539d0098",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/preferences/useUserPreferences.ts": {
-    "mtime": 1788414055.591904,
+    "mtime": 1788952892.2794874,
     "ast_hash": "6cde5603817cf9ea99094e83485c0066",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/preferences/useRentalPreferencesForm.ts": {
-    "mtime": 1788414055.5917482,
+    "mtime": 1788952892.2793546,
     "ast_hash": "6c6c7ee9724087bb9e46fc3afe4aeeba",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/map-search.tsx": {
-    "mtime": 1788948146.6202047,
+    "mtime": 1788952892.2342117,
     "ast_hash": "51ac5cb67403da82739ec5dac82cdc8d",
     "semantic_hash": ""
   },
   "apps/mobile/components/maps/GoogleMapView.tsx": {
-    "mtime": 1788943738.2331445,
+    "mtime": 1788952892.2375593,
     "ast_hash": "e17ecefe354bd730728b6f2b1be91925",
     "semantic_hash": ""
   },
   "apps/mobile/components/maps/MapLibreFallbackView.tsx": {
-    "mtime": 1788414055.5668766,
+    "mtime": 1788952892.2377622,
     "ast_hash": "91c590a91a5233bad03dfe4de6d769ab",
     "semantic_hash": ""
   },
   "apps/mobile/components/maps/MapViewSwitcher.tsx": {
-    "mtime": 1788943715.7354639,
+    "mtime": 1788952892.2379317,
     "ast_hash": "c2a49180e0395f475e5d93425202d519",
     "semantic_hash": ""
   },
   "apps/mobile/components/maps/PlaceAutocompleteInput.tsx": {
-    "mtime": 1788414055.5670264,
+    "mtime": 1788952892.238005,
     "ast_hash": "f142c9e3dc1acfc60b5583d4e3377899",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/useApartmentMapSearch.ts": {
-    "mtime": 1788414055.5912871,
+    "mtime": 1788952892.2778926,
     "ast_hash": "5c5191389340ef89daee5c7509a214b2",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/places/usePlaceAutocomplete.ts": {
-    "mtime": 1788414055.591551,
+    "mtime": 1788952892.2791893,
     "ast_hash": "56c071f867498d03c41e6a4d0b0ae845",
     "semantic_hash": ""
   },
   "apps/mobile/service/apartments/mapSearchService.ts": {
-    "mtime": 1788939141.8634655,
+    "mtime": 1788952892.280245,
     "ast_hash": "ed1ec0887e1d05bdfa92901b015f45ee",
     "semantic_hash": ""
   },
   "apps/mobile/service/places/placesService.ts": {
-    "mtime": 1788414055.5927377,
+    "mtime": 1788952892.2816985,
     "ast_hash": "ed82390d823367abd960895178cc1cbc",
     "semantic_hash": ""
   },
   "apps/mobile/utils/mapConfig.ts": {
-    "mtime": 1788414055.592795,
+    "mtime": 1788952892.2823217,
     "ast_hash": "9cfe4865852c2361aff26d71d1143ff4",
     "semantic_hash": ""
   },
   "supabase/migrations/20260831000000_apartment_geo_search.sql": {
-    "mtime": 1788414055.6040604,
+    "mtime": 1788952892.2954497,
     "ast_hash": "3308d81c53b279c8756521f65a837bd2",
     "semantic_hash": ""
   },
@@ -4310,52 +4310,52 @@
     "semantic_hash": ""
   },
   "apps/mobile/app.config.js": {
-    "mtime": 1788926583.442457,
+    "mtime": 1788952892.2203293,
     "ast_hash": "4a1b44a17447512fd753b7a3406248a4",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/location/useUserLocation.ts": {
-    "mtime": 1788931099.1558132,
+    "mtime": 1788952892.2790987,
     "ast_hash": "ecb16ad2e9a72b56c62d9407bb11389e",
     "semantic_hash": ""
   },
   "apps/mobile/service/apartments/mapSearchService.test.ts": {
-    "mtime": 1788939348.0011857,
+    "mtime": 1788952892.2799947,
     "ast_hash": "05413fc75b405bafc07b9560a28e051f",
     "semantic_hash": ""
   },
   "apps/mobile/app/tenant/components/MapPreviewSheet.tsx": {
-    "mtime": 1788945618.6569543,
+    "mtime": 1788952892.2332087,
     "ast_hash": "25ce34ed891ec45817516de3ba5952f7",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/AppDialog.tsx": {
-    "mtime": 1788951459.9723902,
+    "mtime": 1788952892.2357779,
     "ast_hash": "4d0929f6b4f4edba0a28c11cb54bf2d2",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/MoveInCostBreakdown.tsx": {
-    "mtime": 1788948950.8403735,
+    "mtime": 1788952892.2361982,
     "ast_hash": "a672c198495aa0a418d5f02305738266",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/SectionHeader.tsx": {
-    "mtime": 1788948934.4879029,
+    "mtime": 1788952892.2364829,
     "ast_hash": "0d2c99d2eddc407d853a21912433adaf",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/useLeaseAgreement.ts": {
-    "mtime": 1788951414.4500961,
+    "mtime": 1788952892.2780795,
     "ast_hash": "754af40ed0f4d466cdc1020d9e470330",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/favorites/useFavoriteToggle.ts": {
-    "mtime": 1788951419.1691985,
+    "mtime": 1788952892.2786012,
     "ast_hash": "7c7031db871559b34424241404f022a9",
     "semantic_hash": ""
   },
   "packages/utils/src/calcMoveInCost.ts": {
-    "mtime": 1788951435.0809042,
+    "mtime": 1788952892.2917671,
     "ast_hash": "2a88532ace1ab735020beb4fddb1f895",
     "semantic_hash": ""
   }

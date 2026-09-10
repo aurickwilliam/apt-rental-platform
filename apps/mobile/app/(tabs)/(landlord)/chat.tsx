@@ -1,11 +1,11 @@
 import { View, Text, Image } from 'react-native'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import MessageCard from '@/app/(tabs)/components/chat/MessageCard'
 
-import { SearchField, Tabs, Separator, Spinner } from 'heroui-native'
+import { Button, SearchField, Tabs, Separator, Spinner } from 'heroui-native'
 
 import { getRelativeTime } from '@repo/utils'
 
@@ -22,8 +22,12 @@ export default function Chat() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<'Tenant' | 'Inquiries'>('Tenant');
 
-  const { conversations, loading, refreshing, refetch, markConversationRead } =
+  const { conversations, loading, refreshing, error, refetch, markConversationRead } =
     useConversations('landlord');
+
+  const handleRefresh = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   const filteredConversations = conversations.filter((c) => {
     const q = searchQuery.toLowerCase();
@@ -68,7 +72,7 @@ export default function Chat() {
       scrollable
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
-      onRefresh={refetch}
+      onRefresh={handleRefresh}
     >
       {/* Title Messages */}
       <Text className='text-primary text-3xl font-nunitoBold mb-3'>
@@ -96,6 +100,27 @@ export default function Chat() {
         loading ? (
           <View className='flex-1 items-center justify-center mt-20'>
             <Spinner size="sm" color={colors.primary} />
+          </View>
+        ) : error ? (
+          <View className='flex-1 items-center justify-center'>
+            <View className='aspect-square size-64'>
+              <Image 
+                source={EMPTY_STATE_IMAGES.emptyMessage}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </View>
+            <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
+              Something went wrong
+            </Text>
+            <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
+              {error}
+            </Text>
+            <Button className='mt-4 bg-primary' onPress={handleRefresh}>
+              <Text className='text-white font-nunitoSemiBold'>Retry</Text>
+            </Button>
           </View>
         ) : conversations.length === 0 ? (
           <View className='flex-1 items-center justify-center'>
