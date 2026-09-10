@@ -49,7 +49,7 @@ export default function ReceiptCard({
   referenceNumber,
   status = "Paid",
   periodLabel,
-  backgroundColor = "#F8F9FA",
+  backgroundColor = "#376BF5",
   onSave,
   onShare,
 }: ReceiptCardProps) {
@@ -58,7 +58,7 @@ export default function ReceiptCard({
 
   return (
     <div className="w-full max-w-[560px] mx-auto">
-      <Card className="rounded-t-2xl rounded-b-none border border-zinc-200/80 dark:border-zinc-800 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-t-2xl rounded-b-none border border-zinc-200/80 bg-white shadow-sm overflow-hidden">
         <Card.Header className="flex flex-col items-center justify-center px-6 pt-8 pb-2">
           <Icon size={48} className={meta.color} />
           <h3 className={`mt-3 text-xl font-nunito font-bold ${meta.color}`}>{meta.title}</h3>

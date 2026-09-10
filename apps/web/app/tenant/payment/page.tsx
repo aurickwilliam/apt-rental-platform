@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Avatar, Button, Card, Chip, Separator, Modal, useOverlayState } from "@heroui/react";
-import { Banknote, CalendarDays, House, MapPin, User, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Avatar, Button, Card, Chip, Separator, Modal, Spinner, useOverlayState } from "@heroui/react";
+import { Banknote, CalendarDays, House, MapPin, User, ArrowRight, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
-import { MOCK_PAYMENTS, MOCK_TENANCY, mockSessionIdForReference } from "./constants";
+import { MOCK_PAYMENTS, MOCK_TENANCY, mockPaymentByReference, mockSessionIdForReference } from "./constants";
 import type { CardInformation, PaymentMethod } from "./types";
 import { formatLeaseDate, periodMonthLabel } from "./utils";
+import ReceiptModal from "./components/ReceiptModal";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import type { CashPaymentErrors } from "./types";
@@ -24,7 +25,7 @@ const INITIAL_CARD: CardInformation = {
   isCardNumberValid: false,
 };
 
-export default function TenantPaymentPage() {
+function PaymentContent() {
   const [activeMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
   const [cardInfo, setCardInfo] = useState<CardInformation>(INITIAL_CARD);
   const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
@@ -37,6 +38,23 @@ export default function TenantPaymentPage() {
   const confirmState = useOverlayState({ isOpen: showConfirm, onOpenChange: setShowConfirm });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
+  const params = useSearchParams();
+
+  // Fresh-payment receipt popup driven by ?receipt=<ref>&method=<m> —
+  // the modal replacement for the old success route. Unresolvable refs
+  // simply never open the modal.
+  const receiptRef = params.get("receipt");
+  const receiptMethod = params.get("method");
+  const receiptPayment = useMemo(
+    () => mockPaymentByReference(receiptRef, receiptMethod),
+    [receiptRef, receiptMethod],
+  );
+  const receiptState = useOverlayState({
+    isOpen: receiptPayment !== null,
+    onOpenChange: (open) => {
+      if (!open) router.replace("/tenant/payment");
+    },
+  });
 
   const tenancy = MOCK_TENANCY;
   const apartment = tenancy.apartment;
@@ -97,7 +115,7 @@ export default function TenantPaymentPage() {
           `/tenant/payment/verify?sessionId=${mockSessionIdForReference(referenceId)}&referenceId=${referenceId}`,
         );
       } else {
-        router.push(`/tenant/payment/success?referenceId=${referenceId}&method=${encodeURIComponent(method)}`);
+        router.push(`/tenant/payment?receipt=${referenceId}&method=${encodeURIComponent(method)}`);
       }
     }, 600);
   };
@@ -277,7 +295,7 @@ export default function TenantPaymentPage() {
                   </div>
                   <Separator className="my-1" />
                   <div className="flex justify-between text-sm font-nunito font-semibold">
-                    <span>Total</span>
+                    <span className="text-zinc-900 dark:text-zinc-100">Total</span>
                     <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
                   </div>
                 </div>
@@ -285,18 +303,42 @@ export default function TenantPaymentPage() {
                   This is a UI preview — no real charge will be made. Payment for {monthLabel} {yearLabel}.
                 </p>
               </Modal.Body>
-              <Modal.Footer className="gap-2">
-                <Button variant="secondary" onPress={() => setShowConfirm(false)}>
-                  Cancel
-                </Button>
+              <Modal.Footer className="flex justify-center">
                 <Button onPress={handleConfirmPay}>Confirm & pay {formatPesoDisplay(monthlyRent)}</Button>
               </Modal.Footer>
-              <Modal.CloseTrigger />
+              <Modal.CloseTrigger>
+                <X size={16} className="text-zinc-700 dark:text-zinc-200" />
+              </Modal.CloseTrigger>
             </Modal.Dialog>
           </Modal.Container>
         </Modal.Backdrop>
       </Modal.Root>
+
+      {/* Fresh-payment receipt popup (mobile aesthetic, blue) */}
+      {receiptPayment && (
+        <ReceiptModal
+          payment={receiptPayment}
+          state={receiptState}
+          ctaLabel="View payment history"
+          onCtaPress={() => router.push("/tenant/payment/history")}
+        />
+      )}
     </div>
+  );
+}
+
+export default function TenantPaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
+          <Spinner size="lg" color="current" className="text-primary" />
+          <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment…</p>
+        </div>
+      }
+    >
+      <PaymentContent />
+    </Suspense>
   );
 }
 

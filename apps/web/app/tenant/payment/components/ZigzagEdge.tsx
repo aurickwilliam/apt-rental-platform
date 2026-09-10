@@ -2,12 +2,13 @@
 
 type ZigzagEdgeProps = {
   cutColor?: string;
+  toothColor?: string;
   depth?: number;
   toothWidth?: number;
   className?: string;
 };
 
-export default function ZigzagEdge({ cutColor = "#F8F9FA", depth = 12, toothWidth = 20, className = "" }: ZigzagEdgeProps) {
+export default function ZigzagEdge({ cutColor = "#fafafa", toothColor = "white", depth = 12, toothWidth = 20, className = "" }: ZigzagEdgeProps) {
   // Decorative scalloped bottom — CSS triangle row + solid cap
   // Pure div/CSS so it works with Tailwind without RN canvas
   const teeth = 32; // enough to fill width responsively via flex
@@ -19,7 +20,7 @@ export default function ZigzagEdge({ cutColor = "#F8F9FA", depth = 12, toothWidt
             key={i}
             className="flex-1"
             style={{
-              background: "white",
+              background: toothColor,
               clipPath: i % 2 === 0 ? "polygon(0 0, 100% 0, 50% 100%)" : "polygon(0 0, 100% 0, 50% 0)",
               marginLeft: i === 0 ? 0 : -1,
             }}

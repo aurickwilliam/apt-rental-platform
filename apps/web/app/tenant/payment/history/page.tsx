@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { Button, Card, Chip } from "@heroui/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button, Card, Chip, Spinner, useOverlayState } from "@heroui/react";
 import { ArrowLeft, Banknote, Receipt, SlidersHorizontal } from "lucide-react";
 import { MOCK_PAYMENTS } from "../constants";
 import type { PaymentHistoryFilter, PaymentRecord } from "../types";
 import { formatDateShort, formatPesoDisplay, methodLabel, paymentStatusLabel, periodMonthLabel } from "../utils";
 import PaymentHistoryFilters from "../components/PaymentHistoryFilters";
+import ReceiptModal from "../components/ReceiptModal";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -38,7 +40,7 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
     status === "Paid" ? "success" : status === "Pending" ? "warning" : status === "Failed" ? "danger" : "danger";
 
   return (
-    <Link href={`/tenant/payment/history/${payment.id}`} className="no-underline">
+    <Link href={`/tenant/payment/history?receipt=${payment.id}`} className="no-underline" scroll={false}>
       <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm hover:border-primary/30 hover:shadow-md transition-all">
         <Card.Content className="p-4">
           <div className="flex items-start justify-between gap-3">
@@ -63,9 +65,26 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
   );
 }
 
-export default function TenantPaymentHistoryPage() {
+function HistoryContent() {
+  const router = useRouter();
+  const params = useSearchParams();
   const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Receipt popup driven by ?receipt=<id> — deep-linkable, back-button
+  // closes it naturally. Unresolvable ids simply never open the modal.
+  const receiptId = params.get("receipt");
+  const receiptPayment = useMemo(
+    () => MOCK_PAYMENTS.find((p) => p.id === receiptId) ?? null,
+    [receiptId],
+  );
+  const receiptState = useOverlayState({
+    isOpen: receiptPayment !== null,
+    onOpenChange: (open) => {
+      if (!open) router.replace("/tenant/payment/history");
+    },
+  });
+  const closeReceipt = () => router.replace("/tenant/payment/history");
 
   const currentYear = String(new Date().getFullYear());
   const availableYears = useMemo(() => [...new Set(MOCK_PAYMENTS.map(toYear))].sort((a, b) => Number(b) - Number(a)), []);
@@ -173,8 +192,32 @@ export default function TenantPaymentHistoryPage() {
           onOpenChange={setDrawerOpen}
           activeCount={activeCount}
         />
+
+        {receiptPayment && (
+          <ReceiptModal
+            payment={receiptPayment}
+            state={receiptState}
+            ctaLabel="Done"
+            onCtaPress={closeReceipt}
+          />
+        )}
       </div>
     </div>
+  );
+}
+
+export default function TenantPaymentHistoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
+          <Spinner size="lg" color="current" className="text-primary" />
+          <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment history…</p>
+        </div>
+      }
+    >
+      <HistoryContent />
+    </Suspense>
   );
 }
 

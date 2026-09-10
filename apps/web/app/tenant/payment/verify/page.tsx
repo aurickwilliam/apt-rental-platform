@@ -34,7 +34,7 @@ function VerifyContent() {
 
         if (status === "paid") {
           const ref = referenceId || mockReferenceFromSession(sessionIdValue);
-          router.replace(`/tenant/payment/success?referenceId=${ref}`);
+          router.replace(`/tenant/payment?receipt=${ref}`);
           return;
         }
 
@@ -78,25 +78,20 @@ function VerifyContent() {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col items-center justify-center px-5 py-10 text-center">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5 py-10 text-center">
       {isVerifying ? (
         <>
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter">Verifying payment…</p>
+          <Spinner size="lg" color="current" className="text-primary" />
+          <p className="text-zinc-500 mt-4 text-base font-inter">Verifying payment…</p>
         </>
       ) : errorMessage ? (
         <div className="flex flex-col items-center gap-4 max-w-sm">
-          <p className="text-white text-base font-inter">{errorMessage}</p>
+          <p className="text-zinc-900 dark:text-zinc-100 text-base font-inter">{errorMessage}</p>
           <div className="flex flex-row gap-3">
-            <Button variant="secondary" size="sm" onPress={handleRetry} className="bg-white">
+            <Button size="sm" onPress={handleRetry} className="rounded-full font-nunito">
               Try Again
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onPress={handleGoBack}
-              className="border border-white text-white"
-            >
+            <Button variant="ghost" size="sm" onPress={handleGoBack} className="rounded-full font-nunito">
               Go Back
             </Button>
           </div>
@@ -110,9 +105,9 @@ export default function TenantPaymentVerifyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-primary flex flex-col items-center justify-center px-5">
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter">Verifying payment…</p>
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
+          <Spinner size="lg" color="current" className="text-primary" />
+          <p className="text-zinc-500 mt-4 text-base font-inter">Verifying payment…</p>
         </div>
       }
     >

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Calendar, Card, Separator, Label, Popover } from "@heroui/react";
-import { parseDate } from "@internationalized/date";
+import { Button, Calendar, Separator, Label, Popover } from "@heroui/react";
+import { parseDate, type CalendarDate } from "@internationalized/date";
 import { CalendarIcon } from "lucide-react";
 import type { CashPaymentErrors } from "../types";
 
@@ -44,6 +44,16 @@ export default function CashPaymentForm({ paymentDate, onPaymentDateChange, erro
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // NOTE: open state is controlled WITHOUT a manual toggle on the trigger
+  // button — Popover (RAC DialogTrigger) already toggles on inner presses,
+  // so a manual onPress flip would cancel it out and the popover could never
+  // open. Control exists only so picking a date can close it.
+  const handleSelect = (date: CalendarDate | null) => {
+    if (!date) return;
+    onPaymentDateChange(new Date(date.year, date.month - 1, date.day));
+    setOpen(false);
+  };
+
   return (
     <div className="mt-5">
       <Separator className="mb-5" />
@@ -59,35 +69,51 @@ export default function CashPaymentForm({ paymentDate, onPaymentDateChange, erro
         </Label>
 
         <Popover isOpen={open} onOpenChange={setOpen}>
-          <Button
-            variant="secondary"
-            className={`w-full justify-between rounded-xl border bg-white dark:bg-zinc-900 font-normal text-sm ${
-              errors?.paymentDate ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"
-            }`}
-            onPress={() => setOpen((v) => !v)}
+          <Popover.Trigger>
+            <Button
+              variant="secondary"
+              className={`w-full justify-between rounded-xl border bg-white dark:bg-zinc-900 font-normal text-sm ${
+                errors?.paymentDate ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"
+              }`}
+            >
+              <span className={paymentDate ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400"}>
+                {paymentDate ? formatDisplay(paymentDate) : "Select date of payment"}
+              </span>
+              <CalendarIcon size={16} className="text-zinc-400" />
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content
+            placement="bottom"
+            className="p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg w-[280px]"
           >
-            <span className={paymentDate ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400"}>
-              {paymentDate ? formatDisplay(paymentDate) : "Select date of payment"}
-            </span>
-            <CalendarIcon size={16} className="text-zinc-400" />
-          </Button>
-          <Popover.Content className="p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg">
-            <Calendar
-              aria-label="Select payment date"
-              // Controlled via value if date exists
-              {...(paymentDate ? { value: toCalendarDate(paymentDate) as unknown as never } : {})}
-              onChange={(val: unknown) => {
-                const iso = (val as { toString?: () => string })?.toString?.() ?? null;
-                if (iso) {
-                  const [y, m, d] = iso.split("-").map(Number);
-                  const picked = new Date(y, m - 1, d);
-                  onPaymentDateChange(picked);
-                  setOpen(false);
-                }
-              }}
-              className="w-full"
-              minValue={toCalendarDate(today) as unknown as never}
-            />
+            <Popover.Dialog>
+              <Calendar
+                aria-label="Select payment date"
+                value={paymentDate ? toCalendarDate(paymentDate) : null}
+                onChange={handleSelect}
+                minValue={toCalendarDate(today)}
+                style={{ width: 264 }}
+              >
+                <Calendar.Header>
+                  <Calendar.Heading />
+                  <Calendar.NavButton slot="previous" />
+                  <Calendar.NavButton slot="next" />
+                </Calendar.Header>
+                <Calendar.Grid>
+                  <Calendar.GridHeader>
+                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                  </Calendar.GridHeader>
+                  <Calendar.GridBody>
+                    {(date) => (
+                      <Calendar.Cell
+                        date={date}
+                        className="data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.GridBody>
+                </Calendar.Grid>
+              </Calendar>
+            </Popover.Dialog>
           </Popover.Content>
         </Popover>
 
@@ -96,5 +122,3 @@ export default function CashPaymentForm({ paymentDate, onPaymentDateChange, erro
     </div>
   );
 }
-
-
