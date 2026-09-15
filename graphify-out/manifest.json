@@ -1550,8 +1550,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/package.json": {
-    "mtime": 1789449988.8179903,
-    "ast_hash": "fd296c801fde4a4f5de448e865be6376",
+    "mtime": 1789477972.472881,
+    "ast_hash": "bce2a5ce42235ca2f1d19d75fec5ac13",
     "semantic_hash": ""
   },
   "apps/mobile/stores/useApartmentFormStore.ts": {
