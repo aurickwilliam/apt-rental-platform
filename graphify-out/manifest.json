@@ -4305,8 +4305,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app.config.js": {
-    "mtime": 1789459603.1287587,
-    "ast_hash": "7455492e6c51ac665959ab4c26d602b2",
+    "mtime": 1789460245.6985674,
+    "ast_hash": "7e229f6ee8f911519b9672025a291969",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/location/useUserLocation.ts": {

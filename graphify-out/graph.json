@@ -218,7 +218,7 @@
       "label": "resolveGoogleServicesFile()",
       "file_type": "code",
       "source_file": "apps/mobile/app.config.js",
-      "source_location": "L53",
+      "source_location": "L54",
       "_origin": "ast",
       "id": "apps_mobile_app_config_resolvegoogleservicesfile",
       "community": 288,
@@ -229,7 +229,7 @@
       "label": "googleServicesFile",
       "file_type": "code",
       "source_file": "apps/mobile/app.config.js",
-      "source_location": "L58",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "apps_mobile_app_config_googleservicesfile",
       "community": 288,
@@ -43141,7 +43141,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app.config.js",
-      "source_location": "L58",
+      "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_config",
@@ -43163,7 +43163,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app.config.js",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_config",
@@ -133959,5 +133959,5 @@
       "source_file": "apps/web/public/third-party/apple-logo.svg"
     }
   ],
-  "built_at_commit": "38b4c5016011fc871802ea0eeb6b6e59e87921e1"
+  "built_at_commit": "5af14734129eed1fb0c7a0a3dd61e010968596c8"
 }
