@@ -47,11 +47,21 @@ const googleMapsKey = resolveGoogleMapsKey();
 /**
  * Returns the google-services.json path. Local dev uses the gitignored
  * `./google-services.json`; EAS Build only uploads git-tracked files, so remote
- * builds use the GOOGLE_SERVICES_JSON file secret (EAS exposes file secrets as
- * the path to the uploaded file).
+ * builds use the GOOGLE_SERVICES_JSON secret. EAS exposes `file`-type secrets
+ * as the path to the uploaded file — but tolerate a `string`-type secret holding
+ * the raw JSON content by materializing it to the OS temp dir.
  */
 function resolveGoogleServicesFile() {
-  if (process.env.GOOGLE_SERVICES_JSON) return process.env.GOOGLE_SERVICES_JSON;
+  const secret = process.env.GOOGLE_SERVICES_JSON;
+  if (secret) {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    if (fs.existsSync(secret)) return secret;
+    const tmp = path.join(os.tmpdir(), 'google-services.json');
+    fs.writeFileSync(tmp, secret);
+    return tmp;
+  }
   return './google-services.json';
 }
 
