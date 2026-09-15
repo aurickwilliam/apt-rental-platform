@@ -16,6 +16,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import ImageViewing from "react-native-image-viewing";
 
@@ -51,6 +52,20 @@ type ActiveMenuState = {
   /** Snapshot at open time; the live row is re-resolved from messages each render. */
   message: Message;
 };
+
+function setScrollButtonVisibility(
+  opacity: SharedValue<number>,
+  scale: SharedValue<number>,
+  visible: boolean,
+) {
+  if (visible) {
+    opacity.value = withTiming(1, { duration: 200 });
+    scale.value = withTiming(1, { duration: 200 });
+  } else {
+    opacity.value = withTiming(0, { duration: 150 });
+    scale.value = withTiming(0.5, { duration: 150 });
+  }
+}
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{
@@ -146,13 +161,14 @@ export default function ChatScreen() {
     handleVisibleMessagesRef.current = handleVisibleMessages;
   }, [handleVisibleMessages]);
 
-  const onViewableItemsChanged = useRef(
+  const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       handleVisibleMessagesRef.current(
         viewableItems.map((item) => (item.item as { id: string }).id)
       );
-    }
-  ).current;
+    },
+    []
+  );
 
   const handleHeaderLayout = useCallback((e: LayoutChangeEvent) => {
     const next = Math.round(e.nativeEvent.layout.height);
@@ -235,11 +251,14 @@ export default function ChatScreen() {
   const activeLiveMessage = activeMenu
     ? (messages.find((m) => m.id === activeMenu.id) ?? null)
     : null;
-  useEffect(() => {
-    if (activeMenu && !activeLiveMessage) {
-      setActiveMenu(null);
-    }
-  }, [activeMenu, activeLiveMessage]);
+  // Render-phase adjustment (same trigger as the effect it replaces): when the
+  // live row disappears, drop back to normal without a cascading render.
+  const liveKey = activeMenu ? `${activeMenu.id}:${activeLiveMessage ? '1' : '0'}` : 'none';
+  const [prevLiveKey, setPrevLiveKey] = useState(liveKey);
+  if (liveKey !== prevLiveKey) {
+    setPrevLiveKey(liveKey);
+    if (activeMenu && !activeLiveMessage) setActiveMenu(null);
+  }
   const previewMessage = activeLiveMessage ?? activeMenu?.message ?? null;
 
   // Any scroll, keyboard pop, or list growth while a menu is open would slide
@@ -272,13 +291,7 @@ export default function ChatScreen() {
   }));
 
   useEffect(() => {
-    if (isNearBottom) {
-      scrollButtonOpacity.value = withTiming(0, { duration: 150 });
-      scrollButtonScale.value = withTiming(0.5, { duration: 150 });
-    } else {
-      scrollButtonOpacity.value = withTiming(1, { duration: 200 });
-      scrollButtonScale.value = withTiming(1, { duration: 200 });
-    }
+    setScrollButtonVisibility(scrollButtonOpacity, scrollButtonScale, !isNearBottom);
   }, [isNearBottom, scrollButtonOpacity, scrollButtonScale]);
 
   /** Builds a local preview thumbnail for a video pick so the staging strip isn't a blank tile. */

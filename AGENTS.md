@@ -43,9 +43,9 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 - UI: **HeroUI v3** (`@heroui/react`) **and** shadcn/ui (`components/ui/`)
 - Supabase: use `@supabase/ssr` (`createBrowserClient` / `createServerClient`) directly — NOT the shared `@repo/supabase` client (mobile-oriented). Server client imported from `@repo/supabase/server`, middleware from `@repo/supabase/middleware`.
 - Icons: `@tabler/icons-react` + `lucide-react` + `react-icons` (mixed codebase)
-- `pnpm overrides` pins `react-native-reanimated` to 4.2.1 for `react-native-awesome-gallery`
+- `pnpm-workspace.yaml` `overrides` carry security patches only (`@babel/core`, `@hono/node-server`, `@isaacs/brace-expansion`, `@xmldom/xmldom`) — no version pins for app deps
 
-### `apps/mobile` — React Native (Expo 55), Expo Router
+### `apps/mobile` — React Native (Expo 57), Expo Router
 - Styling: **Uniwind** utility classes — NOT NativeWind (migrated away; don't reintroduce)
 - UI: **HeroUI Native v3** (`heroui-native`)
 - Icons: `@tabler/icons-react-native` — NOT `lucide-react-native` (migrated away 2026-08-29; dependency removed from `apps/mobile/package.json`)

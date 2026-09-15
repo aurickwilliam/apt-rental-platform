@@ -86,6 +86,15 @@ export function getReviewImageUrls(paths: string[] | null): string[] | undefined
 export async function fetchLandlordReviews(
   landlordId: string
 ): Promise<LandlordReviewsResult> {
+  // reviews has no landlord_id column — resolve via the landlord's apartments.
+  const { data: owned, error: ownedError } = await supabase
+    .from("apartments")
+    .select("id")
+    .eq("landlord_id", landlordId);
+  if (ownedError) throw ownedError;
+  const apartmentIds = (owned ?? []).map((a) => a.id);
+  if (apartmentIds.length === 0) return { reviews: [], totalCount: 0 };
+
   const { data, error } = await supabase
     .from("reviews")
     .select(
@@ -102,7 +111,7 @@ export async function fetchLandlordReviews(
         )
       `
     )
-    .eq("landlord_id", landlordId)
+    .in("apartment_id", apartmentIds)
     .order("created_at", { ascending: false })
     .limit(3);
 
@@ -129,7 +138,7 @@ export async function fetchLandlordReviews(
   const { count } = await supabase
     .from("reviews")
     .select("id", { count: "exact", head: true })
-    .eq("landlord_id", landlordId);
+    .in("apartment_id", apartmentIds);
 
   return { reviews: mapped, totalCount: count ?? 0 };
 }

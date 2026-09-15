@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -38,7 +38,7 @@ export default function ApartmentHeroSection({
 }: ApartmentHeroSectionProps) {
   const { width } = Dimensions.get('window');
 
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [scrollX] = useState(() => new Animated.Value(0));
 
   const { colors } = useColors();
 

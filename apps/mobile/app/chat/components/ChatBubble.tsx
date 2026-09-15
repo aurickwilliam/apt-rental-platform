@@ -292,7 +292,10 @@ export default function ChatBubble({
   // always resolves.
   const wrapRef = useRef<any>(null);
   const onMenuOpenChangeRef = useRef(onMenuOpenChange);
-  onMenuOpenChangeRef.current = onMenuOpenChange;
+  // Latest-ref kept fresh in an effect (runs before any event handler reads it).
+  useEffect(() => {
+    onMenuOpenChangeRef.current = onMenuOpenChange;
+  });
 
   const rowAlignment = isSent ? 'self-end' : 'self-start';
   const contentAlignment = isSent ? 'items-end' : 'items-start';

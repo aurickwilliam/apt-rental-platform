@@ -11,7 +11,7 @@
   "dependencies": {
     "@heroui/react": "^3.2.4",
     "@heroui/styles": "^3.2.4",
-    "@internationalized/date": "^3.12.0",
+    "@internationalized/date": "^3.12.1",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",
     "@repo/supabase": "workspace:*",

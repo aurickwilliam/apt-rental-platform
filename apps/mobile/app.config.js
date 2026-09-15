@@ -44,6 +44,29 @@ function resolveGoogleMapsKey() {
 
 const googleMapsKey = resolveGoogleMapsKey();
 
+/**
+ * Returns the google-services.json path. Local dev uses the gitignored
+ * `./google-services.json`; EAS Build only uploads git-tracked files, so remote
+ * builds use the GOOGLE_SERVICES_JSON secret. EAS exposes `file`-type secrets
+ * as the path to the uploaded file — but tolerate a `string`-type secret holding
+ * the raw JSON content by materializing it to the OS temp dir.
+ */
+function resolveGoogleServicesFile() {
+  const secret = process.env.GOOGLE_SERVICES_JSON;
+  if (secret) {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    if (fs.existsSync(secret)) return secret;
+    const tmp = path.join(os.tmpdir(), 'google-services.json');
+    fs.writeFileSync(tmp, secret);
+    return tmp;
+  }
+  return './google-services.json';
+}
+
+const googleServicesFile = resolveGoogleServicesFile();
+
 module.exports = {
   expo: {
     name: 'APT',
@@ -81,7 +104,7 @@ module.exports = {
       predictiveBackGestureEnabled: false,
       softwareKeyboardLayoutMode: 'pan',
       package: 'com.aurickwilliam.apt',
-      googleServicesFile: './google-services.json',
+      googleServicesFile,
       permissions: ['android.permission.CAMERA', 'android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
       config: {
         googleMaps: {
@@ -110,6 +133,7 @@ module.exports = {
         },
       ],
       'expo-font',
+      'expo-image',
       [
         'expo-notifications',
         {

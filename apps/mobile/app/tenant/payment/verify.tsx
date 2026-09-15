@@ -55,10 +55,15 @@ export default function PaymentVerify() {
 
   useEffect(() => {
     if (typeof sessionId === 'string' && sessionId.length > 0) {
-      void verifyPayment(sessionId)
+      const pendingId = sessionId;
+      queueMicrotask(() => {
+        void verifyPayment(pendingId);
+      });
     } else {
-      setIsVerifying(false)
-      setErrorMessage('Missing payment session. Please start a new payment.')
+      queueMicrotask(() => {
+        setIsVerifying(false)
+        setErrorMessage('Missing payment session. Please start a new payment.')
+      });
     }
   }, [sessionId, verifyPayment])
 

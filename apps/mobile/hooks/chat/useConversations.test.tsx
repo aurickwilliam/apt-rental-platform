@@ -312,9 +312,9 @@ describe("useConversations", () => {
 
     await waitFor(() => expect(chatInsertCallback).toBeDefined());
 
-    rerender();
-    rerender();
-    rerender();
+    rerender({});
+    rerender({});
+    rerender({});
 
     expect(mockChannelFn).toHaveBeenCalledTimes(1);
     expect(mockRemoveChannel).not.toHaveBeenCalled();

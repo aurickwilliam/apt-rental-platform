@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 
 import { CloseButton, Button, Checkbox, ControlField, Label } from 'heroui-native'
@@ -33,12 +33,9 @@ export default function UploadId() {
   const canContinue = computeCanContinue(sequence, captures, isConfirmed);
   const firstIncompleteStepId = progress.steps.find(({ result }) => result === null)?.step.id ?? null;
 
-  const navigateToCapture = useCallback(
-    (stepId: string) => {
-      router.push(`/(auth)/verify-account/live-capture?idType=${encodeURIComponent(selectedId ?? '')}&stepId=${encodeURIComponent(stepId)}`);
-    },
-    [router, selectedId],
-  );
+  const navigateToCapture = (stepId: string) => {
+    router.push(`/(auth)/verify-account/live-capture?idType=${encodeURIComponent(selectedId ?? '')}&stepId=${encodeURIComponent(stepId)}`);
+  };
 
   // Guard against landing here with no Selected_Id_Type — e.g. the camera's
   // close button just called reset() and the user is backing into this screen.
@@ -51,18 +48,16 @@ export default function UploadId() {
   // Advance only while this route is foregrounded. UploadId remains mounted
   // beneath live-capture, so a normal captures-dependent effect could issue a
   // competing navigation while the camera is still presenting its review UI.
-  useFocusEffect(
-    useCallback(() => {
-      if (firstIncompleteStepId === null) return;
+  useFocusEffect(() => {
+    if (firstIncompleteStepId === null) return;
 
-      navigateToCapture(firstIncompleteStepId);
-    }, [firstIncompleteStepId, navigateToCapture]),
-  );
+    navigateToCapture(firstIncompleteStepId);
+  });
 
-  const handleRetakeIdPhotos = useCallback(() => {
+  const handleRetakeIdPhotos = () => {
     clearCaptureResults(sequence.map((step) => step.id));
     setIsConfirmed(false);
-  }, [clearCaptureResults, sequence]);
+  };
 
   return (
     <ScreenWrapper
