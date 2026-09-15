@@ -10,32 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -102,6 +77,7 @@ export type Database = {
           no_favorites: number | null
           no_ratings: number | null
           province: string
+          rent_due_day: number
           security_deposit: number | null
           status: string
           street_address: string
@@ -131,11 +107,12 @@ export type Database = {
           max_occupants?: number | null
           monthly_rent: number
           name: string
-          no_bathrooms?: number
-          no_bedrooms?: number
+          no_bathrooms: number
+          no_bedrooms: number
           no_favorites?: number | null
           no_ratings?: number | null
           province: string
+          rent_due_day?: number
           security_deposit?: number | null
           status?: string
           street_address: string
@@ -170,6 +147,7 @@ export type Database = {
           no_favorites?: number | null
           no_ratings?: number | null
           province?: string
+          rent_due_day?: number
           security_deposit?: number | null
           status?: string
           street_address?: string
@@ -202,6 +180,7 @@ export type Database = {
           message_type: string
           read_at: string | null
           receiver_id: string
+          reply_to: string | null
           sender_id: string
           updated_at: string | null
         }
@@ -219,6 +198,7 @@ export type Database = {
           message_type?: string
           read_at?: string | null
           receiver_id: string
+          reply_to?: string | null
           sender_id: string
           updated_at?: string | null
         }
@@ -236,6 +216,7 @@ export type Database = {
           message_type?: string
           read_at?: string | null
           receiver_id?: string
+          reply_to?: string | null
           sender_id?: string
           updated_at?: string | null
         }
@@ -252,6 +233,13 @@ export type Database = {
             columns: ["receiver_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "chat"
             referencedColumns: ["id"]
           },
           {
@@ -474,16 +462,12 @@ export type Database = {
           date: string
           due_date: string | null
           id: string
-          is_refundable: boolean | null
           landlord_id: string | null
           method: string
           paymongo_intent_id: string | null
           paymongo_payment_id: string | null
           paymongo_payment_method_type: string | null
           paymongo_session_id: string | null
-          payout_attempts: number
-          payout_eligible_at: string | null
-          payout_id: string | null
           period_end: string | null
           period_start: string | null
           proof_url: string | null
@@ -501,16 +485,12 @@ export type Database = {
           date: string
           due_date?: string | null
           id?: string
-          is_refundable?: boolean | null
           landlord_id?: string | null
           method: string
           paymongo_intent_id?: string | null
           paymongo_payment_id?: string | null
           paymongo_payment_method_type?: string | null
           paymongo_session_id?: string | null
-          payout_attempts?: number
-          payout_eligible_at?: string | null
-          payout_id?: string | null
           period_end?: string | null
           period_start?: string | null
           proof_url?: string | null
@@ -528,16 +508,12 @@ export type Database = {
           date?: string
           due_date?: string | null
           id?: string
-          is_refundable?: boolean | null
           landlord_id?: string | null
           method?: string
           paymongo_intent_id?: string | null
           paymongo_payment_id?: string | null
           paymongo_payment_method_type?: string | null
           paymongo_session_id?: string | null
-          payout_attempts?: number
-          payout_eligible_at?: string | null
-          payout_id?: string | null
           period_end?: string | null
           period_start?: string | null
           proof_url?: string | null
@@ -564,13 +540,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_payout_id_fkey"
-            columns: ["payout_id"]
-            isOneToOne: false
-            referencedRelation: "payout"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payment_tenancy_id_fkey"
             columns: ["tenancy_id"]
             isOneToOne: false
@@ -585,176 +554,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      payout: {
-        Row: {
-          amount: number
-          attempt: number
-          completed_at: string | null
-          created_at: string
-          destination_id: string | null
-          failure_reason: string | null
-          fee: number
-          id: string
-          net_amount: number
-          paymongo_batch_id: string | null
-          paymongo_transfer_id: string | null
-          period_end: string | null
-          period_start: string | null
-          reference_number: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount?: number
-          attempt?: number
-          completed_at?: string | null
-          created_at?: string
-          destination_id?: string | null
-          failure_reason?: string | null
-          fee?: number
-          id?: string
-          net_amount?: number
-          paymongo_batch_id?: string | null
-          paymongo_transfer_id?: string | null
-          period_end?: string | null
-          period_start?: string | null
-          reference_number: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          attempt?: number
-          completed_at?: string | null
-          created_at?: string
-          destination_id?: string | null
-          failure_reason?: string | null
-          fee?: number
-          id?: string
-          net_amount?: number
-          paymongo_batch_id?: string | null
-          paymongo_transfer_id?: string | null
-          period_end?: string | null
-          period_start?: string | null
-          reference_number?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payout_destination_id_fkey"
-            columns: ["destination_id"]
-            isOneToOne: false
-            referencedRelation: "payout_destination"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payout_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payout_config: {
-        Row: {
-          id: number
-          min_payout_amount: number
-          transfer_fee: number
-          updated_at: string
-        }
-        Insert: {
-          id?: number
-          min_payout_amount?: number
-          transfer_fee?: number
-          updated_at?: string
-        }
-        Update: {
-          id?: number
-          min_payout_amount?: number
-          transfer_fee?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      payout_destination: {
-        Row: {
-          account_name: string
-          account_number: string
-          bic: string
-          created_at: string
-          id: string
-          is_default: boolean
-          status: string
-          type: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          account_name: string
-          account_number: string
-          bic: string
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          status?: string
-          type: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          account_name?: string
-          account_number?: string
-          bic?: string
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          status?: string
-          type?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payout_destination_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payout_run: {
-        Row: {
-          failures: Json
-          finished_at: string | null
-          id: string
-          landlords_processed: number
-          payouts_created: number
-          started_at: string
-        }
-        Insert: {
-          failures?: Json
-          finished_at?: string | null
-          id?: string
-          landlords_processed?: number
-          payouts_created?: number
-          started_at?: string
-        }
-        Update: {
-          failures?: Json
-          finished_at?: string | null
-          id?: string
-          landlords_processed?: number
-          payouts_created?: number
-          started_at?: string
-        }
-        Relationships: []
       }
       push_tokens: {
         Row: {
@@ -791,69 +590,34 @@ export type Database = {
           },
         ]
       }
-      refund: {
+      rent_reminders: {
         Row: {
-          amount: number
-          completed_at: string | null
           created_at: string
-          created_by: string | null
-          failure_reason: string | null
+          due_date: string
           id: string
-          payment_id: string
-          paymongo_refund_id: string | null
-          reason: string
-          status: string
-          updated_at: string
-          user_id: string
+          kind: string
+          tenancy_id: string
         }
         Insert: {
-          amount: number
-          completed_at?: string | null
           created_at?: string
-          created_by?: string | null
-          failure_reason?: string | null
+          due_date: string
           id?: string
-          payment_id: string
-          paymongo_refund_id?: string | null
-          reason?: string
-          status?: string
-          updated_at?: string
-          user_id: string
+          kind: string
+          tenancy_id: string
         }
         Update: {
-          amount?: number
-          completed_at?: string | null
           created_at?: string
-          created_by?: string | null
-          failure_reason?: string | null
+          due_date?: string
           id?: string
-          payment_id?: string
-          paymongo_refund_id?: string | null
-          reason?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
+          kind?: string
+          tenancy_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "refund_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "rent_reminders_tenancy_id_fkey"
+            columns: ["tenancy_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "refund_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "refund_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "tenancies"
             referencedColumns: ["id"]
           },
         ]
@@ -1020,6 +784,7 @@ export type Database = {
           lease_start: string
           monthly_rent: number | null
           notes: string | null
+          rent_due_day: number
           security_deposit: number | null
           status: string
           tenant_id: string
@@ -1035,6 +800,7 @@ export type Database = {
           lease_start: string
           monthly_rent?: number | null
           notes?: string | null
+          rent_due_day?: number
           security_deposit?: number | null
           status?: string
           tenant_id: string
@@ -1050,6 +816,7 @@ export type Database = {
           lease_start?: string
           monthly_rent?: number | null
           notes?: string | null
+          rent_due_day?: number
           security_deposit?: number | null
           status?: string
           tenant_id?: string
@@ -1258,21 +1025,6 @@ export type Database = {
         }
         Returns: string
       }
-      create_payout_and_claim: {
-        Args: {
-          p_destination_id: string
-          p_landlord_id: string
-          p_max_attempts?: number
-          p_period_end: string
-          p_period_start: string
-        }
-        Returns: {
-          amount: number
-          net_amount: number
-          payout_id: string
-          reference_number: string
-        }[]
-      }
       get_conversations: {
         Args: { p_user_id: string }
         Returns: {
@@ -1308,6 +1060,16 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_search_sections: {
+        Args: {
+          p_city?: string
+          p_filters?: Json
+          p_limit?: number
+          p_search?: string
+        }
+        Returns: Json
+      }
+      notify_rent_due_status: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
@@ -1326,12 +1088,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1355,11 +1117,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1380,11 +1142,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1405,11 +1167,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1422,11 +1184,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1436,9 +1198,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

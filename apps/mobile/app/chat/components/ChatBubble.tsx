@@ -1,17 +1,33 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { Modal, Pressable, Text, View, useWindowDimensions, Alert } from 'react-native';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
-import { IconPlayerPlayFilled, IconX } from '@tabler/icons-react-native';
+import {
+  IconPlayerPlayFilled,
+  IconX,
+  IconCopy,
+  IconTrash,
+  IconArrowBackUp,
+} from '@tabler/icons-react-native';
 
-import type { MessageType } from '@/service/chat/chatService';
+import { Menu } from 'heroui-native';
+
+import type { MessageType, ReplyPreview } from '@/service/chat/chatService';
 
 import { useColors } from '@/hooks/useTheme';
 
 import { isEmojiOnly } from '@/service/chat/chatService';
 
+export interface BubbleLayout {
+  pageX: number;
+  pageY: number;
+  width: number;
+  height: number;
+}
+
 interface ChatBubbleProps {
+  id?: string;
   message: string | null;
   messageType?: MessageType;
   attachmentUrl?: string | null;
@@ -19,10 +35,38 @@ interface ChatBubbleProps {
   attachmentMimeType?: string | null;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: string;
   isSent?: boolean;
+  isPending?: boolean;
+  replyTo?: ReplyPreview | null;
+  replyDeleted?: boolean;
+  otherUserName?: string;
   onImagePress?: (uri: string) => void;
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
+  onReply?: () => void;
+  onUnsend?: () => void;
+  onMenuOpenChange?: (open: boolean, layout?: BubbleLayout) => void;
+  /** Incremented by the parent to request the open menu be closed (e.g. floating preview tap). */
+  dismissToken?: number;
+}
+
+export interface ChatBubbleContentProps {
+  message: string | null;
+  messageType?: MessageType;
+  attachmentUrl?: string | null;
+  attachmentPath?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnailPath?: string | null;
+  isSent?: boolean;
+  replyTo?: ReplyPreview | null;
+  replyDeleted?: boolean;
+  otherUserName?: string;
+  /** false renders a static, non-interactive clone for the floating preview above the blur. */
+  interactive?: boolean;
+  onImagePress?: (uri: string) => void;
+  onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
+  onLongPress?: () => void;
 }
 
 const ATTACHMENT_BORDER_RADIUS = 18;
@@ -49,63 +93,149 @@ function calculateImageSize(
   };
 }
 
-export default function ChatBubble({
+function formatHoldDate(iso?: string): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  } catch {
+    return iso ?? '';
+  }
+}
+
+function getReplySnippet(reply: ReplyPreview): string {
+  if (reply.message) {
+    const t = reply.message.trim();
+    return t.length > 48 ? `${t.slice(0, 48)}…` : t;
+  }
+  switch (reply.messageType) {
+    case 'image':
+      return 'Photo';
+    case 'video':
+      return 'Video';
+    case 'gif':
+      return 'GIF';
+    default:
+      return '';
+  }
+}
+
+export function BlurBackdrop({ isDark }: { isDark: boolean }) {
+  const [BlurViewComp, setBlurViewComp] = useState<React.ComponentType<any> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('expo-blur')
+      .then((m) => {
+        if (!cancelled && m?.BlurView) setBlurViewComp(() => m.BlurView as React.ComponentType<any>);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (BlurViewComp) {
+    return (
+      <BlurViewComp
+        tint={isDark ? 'dark' : 'light'}
+        intensity={25}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      />
+    );
+  }
+  return null;
+}
+
+/** Pure bubble body shared by the list row and the floating preview above the blur. */
+export function ChatBubbleContent({
   message,
   messageType = 'text',
   attachmentUrl,
   attachmentPath,
-  attachmentMimeType,
   thumbnailUrl,
   thumbnailPath,
-  timestamp,
   isSent = false,
+  replyTo = null,
+  replyDeleted = false,
+  otherUserName,
+  interactive = true,
   onImagePress,
   onMediaLoadError,
-}: ChatBubbleProps) {
+  onLongPress,
+}: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
 
-  const alignment = isSent ? 'self-end items-end' : 'self-start items-start';
   const bubbleColor = isSent ? 'bg-accent' : 'bg-surface-tertiary';
   const textColor = isSent ? 'text-white' : 'text-foreground';
 
   const hasAttachment = messageType !== 'text' && !!attachmentUrl;
   const isVideo = hasAttachment && messageType === 'video';
   const isVisualMedia = hasAttachment && (messageType === 'image' || messageType === 'gif');
-  // Defensive: an attachment-type message with no URL (e.g. a signed URL that failed to resolve)
-  // shouldn't silently render an empty bubble.
   const isBrokenAttachment = messageType !== 'text' && !attachmentUrl;
 
-  // Emoji-only messages are rendered
-  // with a larger font size and no bubble background.
-  const isEmojiMessage =
-    messageType === 'text' &&
-    isEmojiOnly(message);
-
+  const isEmojiMessage = messageType === 'text' && isEmojiOnly(message);
   const emojiCount = [...(message ?? '')].length;
 
   let fontSize = 46;
-
   if (emojiCount === 2) fontSize = 40;
   if (emojiCount >= 3) fontSize = 34;
 
+  const replyLabel = replyTo ? (replyTo.isSent ? 'You' : (otherUserName ?? 'Other')) : null;
+  const replySnippet = replyTo ? getReplySnippet(replyTo) : null;
+
+  const quoteBlock = replyDeleted ? (
+    <View
+      className="mb-1 px-2.5 py-1.5 rounded-xl bg-black/5 border-l-2 border-accent"
+      style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
+    >
+      <Text className="text-xs font-inter italic text-gray-500">Original message unavailable</Text>
+    </View>
+  ) : replyTo ? (
+    <View
+      className="mb-1 px-2.5 py-1.5 rounded-xl bg-black/5 border-l-2 border-accent"
+      style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
+    >
+      <Text className="text-xs font-nunitoSemiBold text-accent" numberOfLines={1}>
+        {replyLabel}
+      </Text>
+      <Text className="text-xs font-inter text-foreground" numberOfLines={1}>
+        {replySnippet}
+      </Text>
+    </View>
+  ) : null;
+
   return (
-    <View className={`max-w-[80%] mb-4 ${alignment}`}>
+    <>
+      {quoteBlock}
       {isVideo ? (
         <VideoBubble
           uri={attachmentUrl!}
           thumbnailUrl={thumbnailUrl}
           thumbnailPath={thumbnailPath}
-          onMediaLoadError={onMediaLoadError}
+          onMediaLoadError={interactive ? onMediaLoadError : undefined}
+          onLongPress={interactive ? onLongPress : undefined}
+          interactive={interactive}
         />
       ) : isVisualMedia ? (
         <VisualMediaBubble
           uri={attachmentUrl!}
           attachmentPath={attachmentPath}
-          onImagePress={onImagePress}
-          onMediaLoadError={onMediaLoadError}
+          onImagePress={interactive ? onImagePress : undefined}
+          onMediaLoadError={interactive ? onMediaLoadError : undefined}
+          onLongPress={interactive ? onLongPress : undefined}
           screenWidth={screenWidth}
           colors={colors}
+          interactive={interactive}
         />
       ) : isBrokenAttachment ? (
         <View
@@ -116,101 +246,297 @@ export default function ChatBubble({
           }}
           className="bg-surface-tertiary items-center justify-center"
         >
-          <Text className="text-gray-400 text-xs font-inter">
-            Media unavailable
-          </Text>
+          <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
         </View>
+      ) : isEmojiMessage ? (
+        <Text style={{ fontSize }}>{message}</Text>
       ) : (
-        isEmojiMessage ? (
-          <Text style={{ fontSize }}>
-            {message}
-          </Text>
-        ) : (
-          <View className={`px-3 py-2 rounded-3xl ${bubbleColor}`}>
-            <Text className={`text-sm font-inter leading-6 ${textColor}`}>
-              {message}
-            </Text>
-          </View>
-        )
+        <View className={`px-3 py-2 rounded-3xl ${bubbleColor}`}>
+          <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
+        </View>
       )}
+    </>
+  );
+}
 
-      <Text className="text-gray-300 text-xs font-inter mt-1">
-        {timestamp}
-      </Text>
-    </View>
+export default function ChatBubble({
+  message,
+  messageType = 'text',
+  attachmentUrl,
+  attachmentPath,
+  attachmentMimeType,
+  thumbnailUrl,
+  thumbnailPath,
+  createdAt,
+  isSent = false,
+  isPending = false,
+  replyTo = null,
+  replyDeleted = false,
+  otherUserName,
+  onImagePress,
+  onMediaLoadError,
+  onReply,
+  onUnsend,
+  onMenuOpenChange,
+  dismissToken = 0,
+}: ChatBubbleProps) {
+  const { colors } = useColors();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const allowOpenRef = useRef(false);
+  const triggerRef = useRef<any>(null);
+  // Own wrapper View for measuring the bubble rect. It sits OUTSIDE the Menu
+  // Slot on purpose: the Slot reads children.ref, which throws on React 19
+  // ("Accessing element.ref was removed"), and triggerRef is an augmented
+  // plain object whose detached measure methods lose their native binding.
+  // collapsable={false} keeps the native view around on Android so measuring
+  // always resolves.
+  const wrapRef = useRef<any>(null);
+  const onMenuOpenChangeRef = useRef(onMenuOpenChange);
+  onMenuOpenChangeRef.current = onMenuOpenChange;
+
+  const rowAlignment = isSent ? 'self-end' : 'self-start';
+  const contentAlignment = isSent ? 'items-end' : 'items-start';
+
+  const canCopy = messageType === 'text' && !!message && !isPending;
+  const canUnsend = isSent && !isPending;
+  const formattedDate = useMemo(() => formatHoldDate(createdAt), [createdAt]);
+
+  const gatedSetOpen = useCallback((next: boolean) => {
+    if (next && !allowOpenRef.current) return;
+    allowOpenRef.current = false;
+    setMenuVisible(next);
+    if (!next) {
+      onMenuOpenChangeRef.current?.(false);
+    }
+  }, []);
+
+  const handleLongPress = useCallback(() => {
+    const trigger = triggerRef.current as any;
+    // Open immediately — the menu must never depend on the measure callback
+    // (if it never resolves, the menu would silently fail to open at all).
+    // The parent first shows blur-only, then upgrades to the floating clone
+    // once this rect lands.
+    allowOpenRef.current = true;
+    onMenuOpenChangeRef.current?.(true);
+    trigger?.open?.();
+    try {
+      const target = wrapRef.current as any;
+      target?.measureInWindow?.((x: number, y: number, width: number, height: number) => {
+        if (
+          typeof x === 'number' &&
+          typeof y === 'number' &&
+          typeof width === 'number' &&
+          typeof height === 'number' &&
+          width > 0 &&
+          height > 0
+        ) {
+          onMenuOpenChangeRef.current?.(true, { pageX: x, pageY: y, width, height });
+        }
+      });
+    } catch {
+      // Measure unavailable — parent stays on blur-only (previous behavior).
+    }
+  }, []);
+
+  // Parent-driven dismiss (floating preview tap, scroll, keyboard). Routes
+  // through the trigger so Menu clears its internal triggerPosition too.
+  const dismissTokenRef = useRef(dismissToken);
+  useEffect(() => {
+    if (dismissToken !== dismissTokenRef.current) {
+      dismissTokenRef.current = dismissToken;
+      if (menuVisible) {
+        try {
+          triggerRef.current?.close?.();
+        } catch {
+          // Fall through — the Menu.Overlay outside-tap also closes.
+        }
+      }
+    }
+  }, [dismissToken, menuVisible]);
+
+  const handleCopy = useCallback(async () => {
+    if (!canCopy || !message) return;
+    try {
+      let copied = false;
+      try {
+        const Clipboard = await import('expo-clipboard');
+        if (Clipboard?.setStringAsync) {
+          await Clipboard.setStringAsync(message);
+          copied = true;
+        }
+      } catch {
+        // native module missing — fall through to web fallback
+      }
+      if (!copied && typeof navigator !== 'undefined' && (navigator as unknown as { clipboard?: { writeText?: (t: string) => Promise<void> } }).clipboard?.writeText) {
+        await (navigator as unknown as { clipboard: { writeText: (t: string) => Promise<void> } }).clipboard.writeText(message);
+        copied = true;
+      }
+      if (!copied) {
+        Alert.alert('Copied', message);
+      }
+    } catch {
+      Alert.alert('Copy failed', 'Unable to copy message.');
+    }
+  }, [canCopy, message]);
+
+  const handleReplyPress = useCallback(() => {
+    if (onReply) onReply();
+    else Alert.alert('Reply', 'Reply is coming soon.');
+  }, [onReply]);
+
+  const handleUnsendPress = useCallback(() => {
+    if (!canUnsend) return;
+    if (onUnsend) onUnsend();
+    else Alert.alert('Unsend', 'Unsend will be available soon.');
+  }, [canUnsend, onUnsend]);
+
+  return (
+    <Menu isOpen={menuVisible} onOpenChange={gatedSetOpen}>
+        <View
+          ref={wrapRef}
+          collapsable={false}
+          className={`max-w-[80%] mb-4 ${rowAlignment}`}
+        >
+        <Menu.Trigger ref={triggerRef} asChild>
+          <Pressable
+            onLongPress={handleLongPress}
+            delayLongPress={350}
+            className={`w-full ${contentAlignment}`}
+            android_ripple={undefined}
+          >
+            <ChatBubbleContent
+              message={message}
+              messageType={messageType}
+              attachmentUrl={attachmentUrl}
+              attachmentPath={attachmentPath}
+              thumbnailUrl={thumbnailUrl}
+              thumbnailPath={thumbnailPath}
+              isSent={isSent}
+              replyTo={replyTo}
+              replyDeleted={replyDeleted}
+              otherUserName={otherUserName}
+              interactive
+              onImagePress={onImagePress}
+              onMediaLoadError={onMediaLoadError}
+              onLongPress={handleLongPress}
+            />
+          </Pressable>
+        </Menu.Trigger>
+        </View>
+        <Menu.Portal>
+          <Menu.Overlay className="bg-transparent" />
+        <Menu.Content
+          presentation="popover"
+          placement="top"
+          align={isSent ? 'end' : 'start'}
+          offset={8}
+          width="content-fit"
+          className="rounded-[20px] px-2 py-2 min-w-50"
+        >
+          <Menu.Label className="text-center text-[13px]">{formattedDate || 'Just now'}</Menu.Label>
+          <Menu.Item onPress={handleReplyPress}>
+            <IconArrowBackUp size={22} color={colors.textPrimary} />
+            <Menu.ItemTitle>Reply</Menu.ItemTitle>
+          </Menu.Item>
+          <Menu.Item onPress={handleCopy} isDisabled={!canCopy}>
+            <IconCopy size={22} color={colors.textPrimary} />
+            <Menu.ItemTitle>Copy</Menu.ItemTitle>
+          </Menu.Item>
+          {canUnsend ? (
+            <Menu.Item onPress={handleUnsendPress} variant="danger">
+              <IconTrash size={22} color={colors.danger} />
+              <Menu.ItemTitle>Unsend</Menu.ItemTitle>
+            </Menu.Item>
+          ) : (
+            <Menu.Item isDisabled>
+              <IconTrash size={22} color={colors.gray400} />
+              <Menu.ItemTitle>Unsend</Menu.ItemTitle>
+            </Menu.Item>
+          )}
+        </Menu.Content>
+        </Menu.Portal>
+    </Menu>
   );
 }
 
 // ─── Image / GIF attachment ───────────────────────────────────────────────────
-// Uses onLoad to capture natural dimensions and scales to fit within the
-// bubble while preserving aspect ratio. Animated GIFs play automatically
-// via expo-image's default autoplay.
-
 function VisualMediaBubble({
   uri,
   attachmentPath,
   onImagePress,
   onMediaLoadError,
+  onLongPress,
   screenWidth,
   colors,
+  interactive = true,
 }: {
   uri: string;
   attachmentPath?: string | null;
   onImagePress?: (uri: string) => void;
   onMediaLoadError?: (mediaKind: 'attachment') => void;
+  onLongPress?: () => void;
   screenWidth: number;
   colors: Record<string, string>;
+  interactive?: boolean;
 }) {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const maxBubbleWidth = Math.min(ATTACHMENT_MAX_WIDTH, screenWidth * 0.8);
 
-  const handleLoad = useCallback((event: ImageLoadEventData) => {
-    const { width, height } = event.source;
-    setDimensions(calculateImageSize(width, height, maxBubbleWidth, ATTACHMENT_MAX_HEIGHT));
-  }, [maxBubbleWidth]);
+  const handleLoad = useCallback(
+    (event: ImageLoadEventData) => {
+      const { width, height } = event.source;
+      setDimensions(calculateImageSize(width, height, maxBubbleWidth, ATTACHMENT_MAX_HEIGHT));
+    },
+    [maxBubbleWidth]
+  );
 
   const displaySize = dimensions ?? { width: maxBubbleWidth, height: ATTACHMENT_MAX_HEIGHT };
 
+  const imageNode = (
+    <Image
+      source={{
+        uri,
+        cacheKey: attachmentPath ?? undefined,
+      }}
+      style={[
+        displaySize,
+        { borderRadius: ATTACHMENT_BORDER_RADIUS, borderColor: colors.gray300, borderWidth: 1 },
+      ]}
+      cachePolicy="disk"
+      contentFit="contain"
+      transition={150}
+      onLoad={handleLoad}
+      onError={() => onMediaLoadError?.('attachment')}
+    />
+  );
+
+  if (!interactive) {
+    return <View>{imageNode}</View>;
+  }
+
   return (
-    <Pressable
-      onPress={() => onImagePress?.(uri)}
-    >
-      <Image
-        source={{
-          uri,
-          cacheKey: attachmentPath ?? undefined
-        }}
-        style={[
-          displaySize,
-          { borderRadius: ATTACHMENT_BORDER_RADIUS, borderColor: colors.gray300, borderWidth: 1 },
-        ]}
-        cachePolicy="disk"
-        contentFit="contain"
-        transition={150}
-        onLoad={handleLoad}
-        onError={() => onMediaLoadError?.('attachment')}
-      />
+    <Pressable onPress={() => onImagePress?.(uri)} onLongPress={onLongPress} delayLongPress={350}>
+      {imageNode}
     </Pressable>
   );
 }
 
 // ─── Video attachment ─────────────────────────────────────────────────────────
-// The native video player is only created when the user taps to play — mounting
-// a player per bubble in a long FlatList would be wasteful and would fight the
-// list's recycling. VideoPlayerModal is only mounted while isPlaying is true, so
-// the player resource is released automatically as soon as it unmounts.
-
 function VideoBubble({
   uri,
   thumbnailUrl,
   thumbnailPath,
   onMediaLoadError,
+  onLongPress,
+  interactive = true,
 }: {
   uri: string;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
+  onLongPress?: () => void;
+  interactive?: boolean;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -222,37 +548,56 @@ function VideoBubble({
 
   const displaySize = dimensions ?? { width: ATTACHMENT_MAX_WIDTH, height: ATTACHMENT_MAX_HEIGHT };
 
+  const thumbnailNode = (
+    <>
+      {thumbnailUrl && (
+        <Image
+          source={{
+            uri: thumbnailUrl,
+            cacheKey: thumbnailPath ?? undefined,
+          }}
+          style={displaySize}
+          className="absolute inset-0"
+          cachePolicy="disk"
+          contentFit="cover"
+          onLoad={handleLoad}
+          onError={() => onMediaLoadError?.('thumbnail')}
+        />
+      )}
+      <View className="absolute inset-0 items-center justify-center bg-black/20">
+        <View className="bg-black/50 rounded-full p-3">
+          <IconPlayerPlayFilled size={26} color="white" />
+        </View>
+      </View>
+    </>
+  );
+
+  // Static clone for the floating preview above the blur — never auto-plays,
+  // never opens the fullscreen player, never captures touches.
+  if (!interactive) {
+    return (
+      <View
+        accessibilityLabel="Video message"
+        style={[displaySize, { borderRadius: ATTACHMENT_BORDER_RADIUS }]}
+        className="overflow-hidden bg-black border border-border"
+      >
+        {thumbnailNode}
+      </View>
+    );
+  }
+
   return (
     <>
       <Pressable
         onPress={() => setIsPlaying(true)}
+        onLongPress={onLongPress}
+        delayLongPress={350}
         accessibilityRole="button"
         accessibilityLabel="Play video"
-        style={[
-          displaySize,
-          { borderRadius: ATTACHMENT_BORDER_RADIUS },
-        ]}
+        style={[displaySize, { borderRadius: ATTACHMENT_BORDER_RADIUS }]}
         className="overflow-hidden bg-black border border-border"
       >
-        {thumbnailUrl && (
-          <Image
-            source={{
-              uri: thumbnailUrl,
-              cacheKey: thumbnailPath ?? undefined
-            }}
-            style={displaySize}
-            className="absolute inset-0"
-            cachePolicy="disk"
-            contentFit="cover"
-            onLoad={handleLoad}
-            onError={() => onMediaLoadError?.('thumbnail')}
-          />
-        )}
-        <View className="absolute inset-0 items-center justify-center bg-black/20">
-          <View className="bg-black/50 rounded-full p-3">
-            <IconPlayerPlayFilled size={26} color="white" />
-          </View>
-        </View>
+        {thumbnailNode}
       </Pressable>
 
       {isPlaying && (

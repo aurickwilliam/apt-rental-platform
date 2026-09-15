@@ -115,6 +115,7 @@ function createMessage(id: string): Message {
     attachmentUrl: null,
     attachmentPath: null,
     timestamp: '10:00 AM',
+    createdAt: new Date().toISOString(),
     isSent: false,
   };
 }

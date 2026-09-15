@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 
 import { useCurrentUser } from '@/hooks/auth';
 
@@ -8,6 +9,7 @@ import {
 } from '@/service/media/privateMediaResolver';
 
 import {
+  deleteChatMessage,
   fetchMessagePage,
   fetchOtherUserProfile,
   insertMessage,
@@ -17,6 +19,7 @@ import {
   type ChatMessageCursor,
   type Message,
   type PickedChatAsset,
+  type ReplyPreview,
 } from '../../service/chat/chatService';
 import { mergeChatMessages } from '../../service/chat/chatPagination';
 
@@ -52,6 +55,7 @@ export function useChat({
   const [nextCursor, setNextCursor] = useState<ChatMessageCursor | null>(null);
   const [sending, setSending] = useState(false);
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
+  const [replyTarget, setReplyTarget] = useState<Message | null>(null);
 
   const myIdRef = useRef<string | null>(null);
   const messagesRef = useRef<Message[]>([]);
@@ -77,12 +81,21 @@ export function useChat({
     setOtherUserIsTyping((prev) => (prev === isTyping ? prev : isTyping));
   }, []);
 
-  const { broadcast, trackPresence } = useChatChannel({
+  const handleMessageDeleted = useCallback((id: string) => {
+    setMessages((prev) =>
+      prev
+        .filter((m) => m.id !== id)
+        .map((m) => (m.replyTo?.id === id ? { ...m, replyTo: null, replyDeleted: true } : m))
+    );
+  }, []);
+
+  const { broadcast, broadcastDelete, trackPresence } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
     onNewMessage: handleNewMessage,
     onOtherUserTypingChange: handleOtherUserTypingChange,
+    onMessageDeleted: handleMessageDeleted,
   });
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
@@ -133,6 +146,27 @@ export function useChat({
     stopTyping();
   }, [stopTyping]);
 
+  const handleReply = useCallback((msg: Message) => {
+    if (msg.isPending) return;
+    setReplyTarget(msg);
+  }, []);
+
+  const clearReply = useCallback(() => setReplyTarget(null), []);
+
+  const toReplyPreview = useCallback(
+    (msg: Message | null): ReplyPreview | null => {
+      if (!msg || msg.isPending || msg.id.startsWith('temp-')) return null;
+      return {
+        id: msg.id,
+        message: msg.message,
+        messageType: msg.messageType,
+        senderId: msg.isSent ? (myId ?? '') : otherUserId,
+        isSent: msg.isSent,
+      };
+    },
+    [myId, otherUserId]
+  );
+
   const handleSend = useCallback(async () => {
     stopTyping();
 
@@ -140,6 +174,8 @@ export function useChat({
 
     const text = chatMessage.trim();
     const tempId = `temp-${Date.now()}`;
+    const currentReply = replyTarget;
+    const replyPreview = toReplyPreview(currentReply);
 
     const pendingMsg: Message = {
       id: tempId,
@@ -148,12 +184,15 @@ export function useChat({
       attachmentUrl: null,
       attachmentPath: null,
       timestamp: 'Sending...',
+      createdAt: new Date().toISOString(),
       isSent: true,
       isPending: true,
+      replyTo: replyPreview,
     };
 
     setMessages((prev) => mergeChatMessages(prev, [pendingMsg], 'newest'));
     setChatMessage('');
+    if (currentReply) setReplyTarget(null);
     setSending(true);
 
     try {
@@ -162,6 +201,7 @@ export function useChat({
         receiverId: otherUserId,
         message: text,
         apartmentId,
+        replyToId: currentReply?.id ?? null,
       });
 
       const sentMsg: Message = {
@@ -174,7 +214,9 @@ export function useChat({
           hour: '2-digit',
           minute: '2-digit',
         }),
+        createdAt: inserted.created_at,
         isSent: true,
+        replyTo: replyPreview,
       };
 
       setMessages((prev) => {
@@ -199,15 +241,20 @@ export function useChat({
         created_at: inserted.created_at,
         sender_id: myId,
         apartment_id: apartmentId,
+        reply_to: currentReply?.id ?? null,
+        reply_message: currentReply?.message ?? null,
+        reply_message_type: (currentReply?.messageType as any) ?? null,
+        reply_sender_id: currentReply ? (currentReply.isSent ? myId : otherUserId) : null,
       });
     } catch (err) {
       console.error('Send failed:', err);
       setMessages((prev) => prev.filter((message) => message.id !== tempId));
       setChatMessage(text);
+      if (currentReply) setReplyTarget(currentReply);
     } finally {
       setSending(false);
     }
-  }, [apartmentId, broadcast, chatMessage, myId, otherUserId, sending, stopTyping]);
+  }, [apartmentId, broadcast, chatMessage, myId, otherUserId, sending, stopTyping, replyTarget, toReplyPreview]);
 
   const handleSendImages = useCallback(
     async (assets: PickedChatAsset[]) => {
@@ -218,8 +265,10 @@ export function useChat({
       const tempIdByUri = new Map(
         assets.map((asset) => [asset.localUri, `temp-${Date.now()}-${Math.random()}`])
       );
+      const currentReply = replyTarget;
+      const replyPreview = toReplyPreview(currentReply);
 
-      const pendingMsgs: Message[] = assets.map((asset) => ({
+      const pendingMsgs: Message[] = assets.map((asset, idx) => ({
         id: tempIdByUri.get(asset.localUri)!,
         message: null,
         messageType: resolveMessageType(asset.mimeType),
@@ -229,11 +278,14 @@ export function useChat({
         thumbnailUrl: null,
         groupId,
         timestamp: 'Sending...',
+        createdAt: new Date().toISOString(),
         isSent: true,
         isPending: true,
+        replyTo: idx === 0 ? replyPreview : null,
       }));
 
       setMessages((prev) => mergeChatMessages(prev, pendingMsgs, 'newest'));
+      if (currentReply) setReplyTarget(null);
       setSending(true);
 
       try {
@@ -242,7 +294,13 @@ export function useChat({
           receiverId: otherUserId,
           apartmentId,
           assets,
+          replyToId: currentReply?.id ?? null,
         });
+
+        // Attach quoted snapshot to first sent (optimistic)
+        if (replyPreview && sent.length > 0) {
+          sent[0] = { ...sent[0], replyTo: replyPreview } as typeof sent[0];
+        }
 
         setMessages((prev) => {
           let next = prev;
@@ -270,7 +328,9 @@ export function useChat({
             : next;
         });
 
-        for (const message of sent) {
+        for (let idx = 0; idx < sent.length; idx++) {
+          const message = sent[idx];
+          const isFirst = idx === 0;
           broadcast({
             id: message.id,
             message: null,
@@ -283,6 +343,10 @@ export function useChat({
             created_at: new Date().toISOString(),
             sender_id: myId,
             apartment_id: apartmentId,
+            reply_to: isFirst ? (currentReply?.id ?? null) : null,
+            reply_message: isFirst ? (currentReply?.message ?? null) : null,
+            reply_message_type: isFirst ? ((currentReply?.messageType as any) ?? null) : null,
+            reply_sender_id: isFirst ? (currentReply ? (currentReply.isSent ? myId : otherUserId) : null) : null,
           });
         }
       } catch (err) {
@@ -290,11 +354,50 @@ export function useChat({
         setMessages((prev) =>
           prev.filter((message) => !tempIdByUri.has(message.attachmentUrl ?? ''))
         );
+        if (currentReply) setReplyTarget(currentReply);
       } finally {
         setSending(false);
       }
     },
-    [apartmentId, broadcast, myId, otherUserId, sending, stopTyping]
+    [apartmentId, broadcast, myId, otherUserId, sending, stopTyping, replyTarget, toReplyPreview]
+  );
+
+  const handleUnsend = useCallback(
+    async (messageId: string) => {
+      if (!myId) return;
+      const target = messagesRef.current.find((m) => m.id === messageId);
+      if (!target || !target.isSent || target.isPending) return;
+
+      Alert.alert('Unsend message?', 'This will remove it for everyone.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unsend',
+          style: 'destructive',
+          onPress: async () => {
+            const snapshot = target;
+            setMessages((prev) =>
+              prev
+                .filter((m) => m.id !== messageId)
+                .map((m) => (m.replyTo?.id === messageId ? { ...m, replyTo: null, replyDeleted: true } : m))
+            );
+            try {
+              await deleteChatMessage({
+                messageId,
+                senderId: myId,
+                attachmentPath: snapshot.attachmentPath ?? null,
+                thumbnailPath: snapshot.thumbnailPath ?? null,
+              });
+              broadcastDelete({ id: messageId, apartment_id: apartmentId });
+            } catch (err) {
+              console.error('Unsend failed:', err);
+              Alert.alert('Unsend failed', err instanceof Error ? err.message : 'Please try again.');
+              setMessages((prev) => mergeChatMessages(prev, [snapshot], 'newest'));
+            }
+          },
+        },
+      ]);
+    },
+    [myId, apartmentId, broadcastDelete]
   );
 
   const loadOlderMessages = useCallback(async () => {
@@ -413,6 +516,7 @@ export function useChat({
     setHasMore(false);
     setNextCursor(null);
     setMessages([]);
+    setReplyTarget(null);
 
     async function init() {
       if (!myId) {
@@ -477,10 +581,14 @@ export function useChat({
     hasMore,
     sending,
     otherUserIsTyping,
+    replyTarget,
     handleChatMessageChange,
     handleSend,
     handleInputBlur,
     handleSendImages,
+    handleReply,
+    clearReply,
+    handleUnsend,
     handleVisibleMessages,
     retryChatMediaOnce,
     loadOlderMessages,

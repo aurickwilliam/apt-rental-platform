@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Keyboard, Pressable, ScrollView, TextInput as RNTextInput, View } from 'react-native';
+import { useRef, useState, useEffect } from 'react';
+import { Keyboard, Pressable, ScrollView, TextInput as RNTextInput, View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 
@@ -18,10 +18,27 @@ import {
 import { Button, TextField, InputGroup, Menu } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
-import type { PickedChatAsset, MessageType } from '@/service/chat/chatService';
+import type { PickedChatAsset, MessageType, Message } from '@/service/chat/chatService';
 
 /** A locally-picked attachment sitting in the review strip, not yet sent. */
 export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageType };
+
+function getSnippet(msg: Message): string {
+  if (msg.message) {
+    const t = msg.message.trim();
+    return t.length > 48 ? `${t.slice(0, 48)}…` : t;
+  }
+  switch (msg.messageType) {
+    case 'image':
+      return 'Photo';
+    case 'video':
+      return 'Video';
+    case 'gif':
+      return 'GIF';
+    default:
+      return '';
+  }
+}
 
 interface ChatBoxProps {
   chatValue: string;
@@ -36,6 +53,8 @@ interface ChatBoxProps {
   onOpenCamera?: () => void;
   pendingAssets?: StagedAsset[];
   onRemovePendingAsset?: (id: string) => void;
+  replyTarget?: Message | null;
+  onClearReply?: () => void;
 }
 
 const ATTACHMENT_OPTIONS = [
@@ -74,6 +93,8 @@ export default function ChatBox({
   onOpenCamera,
   pendingAssets = [],
   onRemovePendingAsset,
+  replyTarget = null,
+  onClearReply,
 }: ChatBoxProps) {
   const { colors } = useColors();
 
@@ -81,6 +102,12 @@ export default function ChatBox({
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (replyTarget) {
+      inputRef.current?.focus();
+    }
+  }, [replyTarget]);
 
   const borderColor = isFocused ? 'border-primary' : 'border-gray-300';
   const hasText = chatValue.trim().length > 0;
@@ -109,6 +136,27 @@ export default function ChatBox({
 
   return (
     <>
+      {replyTarget && (
+        <View className="mb-2 flex-row items-center bg-surface-tertiary rounded-xl px-3 py-2 border-l-2 border-accent">
+          <View className="flex-1">
+            <Text className="text-xs font-nunitoSemiBold text-accent" numberOfLines={1}>
+              Replying to {replyTarget.isSent ? 'yourself' : 'them'}
+            </Text>
+            <Text className="text-xs font-inter text-foreground" numberOfLines={1}>
+              {getSnippet(replyTarget)}
+            </Text>
+          </View>
+          <Pressable
+            onPress={onClearReply}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel reply"
+            className="ml-2 p-1"
+          >
+            <IconX size={16} color={colors.textPrimary} />
+          </Pressable>
+        </View>
+      )}
+
       {hasPending && (
         <ScrollView
           horizontal

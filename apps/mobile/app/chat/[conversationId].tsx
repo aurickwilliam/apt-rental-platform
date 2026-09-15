@@ -2,6 +2,9 @@ import {
   View,
   KeyboardAvoidingView,
   FlatList,
+  Pressable,
+  StyleSheet,
+  Keyboard,
   LayoutChangeEvent,
   type ViewToken,
 } from 'react-native';
@@ -20,7 +23,11 @@ import { IconArrowDown } from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from '@/app/chat/components/ChatHeader';
-import ChatBubble from '@/app/chat/components/ChatBubble';
+import ChatBubble, {
+  BlurBackdrop,
+  ChatBubbleContent,
+  type BubbleLayout,
+} from '@/app/chat/components/ChatBubble';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
@@ -32,10 +39,18 @@ import { Button, Spinner } from 'heroui-native';
 import { useColors } from '@/hooks/useTheme';
 import { useChat } from 'hooks/chat';
 
-import { resolveMessageType } from '@/service/chat/chatService';
+import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
+
+type ActiveMenuState = {
+  id: string;
+  /** Window-relative rect measured on long-press; null falls back to blur-only. */
+  layout: BubbleLayout | null;
+  /** Snapshot at open time; the live row is re-resolved from messages each render. */
+  message: Message;
+};
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{
@@ -69,7 +84,7 @@ function generateStagedId() {
 }
 
 export default function ChatScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -78,6 +93,10 @@ export default function ChatScreen() {
   const [pendingAssets, setPendingAssets] = useState<StagedAsset[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(true);
+  const [activeMenu, setActiveMenu] = useState<ActiveMenuState | null>(null);
+  const [dismissToken, setDismissToken] = useState(0);
+  const [containerOrigin, setContainerOrigin] = useState({ pageX: 0, pageY: 0 });
+  const containerRef = useRef<View>(null);
   const isNearBottomRef = useRef(true);
 
   const scrollButtonOpacity = useSharedValue(0);
@@ -103,9 +122,13 @@ export default function ChatScreen() {
     hasMore,
     sending,
     otherUserIsTyping,
+    replyTarget,
     handleChatMessageChange,
     handleSend,
     handleSendImages,
+    handleReply,
+    clearReply,
+    handleUnsend,
     handleInputBlur,
     handleVisibleMessages,
     retryChatMediaOnce,
@@ -155,6 +178,93 @@ export default function ChatScreen() {
       scrollToBottom();
     }
   }, [scrollToBottom]);
+
+  /** Window origin of the overlay container, so window-relative bubble rects map to overlay coords. */
+  const refreshContainerOrigin = useCallback(() => {
+    try {
+      containerRef.current?.measureInWindow((x: number, y: number) => {
+        if (typeof x === 'number' && typeof y === 'number') {
+          setContainerOrigin((prev) => (prev.pageX === x && prev.pageY === y ? prev : { pageX: x, pageY: y }));
+        }
+      });
+    } catch {
+      // Non-fatal — preview falls back to the last known origin.
+    }
+  }, []);
+
+  const handleOuterLayout = useCallback(() => {
+    refreshContainerOrigin();
+  }, [refreshContainerOrigin]);
+
+  /** Closes the hold-menu and returns the convo to normal (blur + preview + popover all gone). */
+  const requestDismissActiveMenu = useCallback(() => {
+    setDismissToken((t) => t + 1);
+    setActiveMenu(null);
+  }, []);
+
+  const handleMenuOpenChangeFor = useCallback(
+    (item: Message) => (open: boolean, layout?: BubbleLayout) => {
+      if (open) {
+        if (layout) {
+          // Measure the overlay container fresh, then commit origin + rect
+          // together so the floating clone is positioned correctly on its
+          // very first frame (no stale-origin flicker, no off-screen clone).
+          try {
+            containerRef.current?.measureInWindow((cx: number, cy: number) => {
+              if (typeof cx === 'number' && typeof cy === 'number') {
+                setContainerOrigin({ pageX: cx, pageY: cy });
+              }
+              setActiveMenu({ id: item.id, layout, message: item });
+            });
+          } catch {
+            setActiveMenu({ id: item.id, layout, message: item });
+          }
+        } else {
+          // Measure failed — fall back to blur-only (previous behavior).
+          setActiveMenu({ id: item.id, layout: null, message: item });
+        }
+      } else {
+        setActiveMenu((prev) => (prev && prev.id === item.id ? null : prev));
+      }
+    },
+    []
+  );
+
+  // Resolve the live row each render so the floating clone never shows a stale
+  // snapshot; if the row is gone (e.g. unsent elsewhere), drop back to normal.
+  const activeLiveMessage = activeMenu
+    ? (messages.find((m) => m.id === activeMenu.id) ?? null)
+    : null;
+  useEffect(() => {
+    if (activeMenu && !activeLiveMessage) {
+      setActiveMenu(null);
+    }
+  }, [activeMenu, activeLiveMessage]);
+  const previewMessage = activeLiveMessage ?? activeMenu?.message ?? null;
+
+  // Any scroll, keyboard pop, or list growth while a menu is open would slide
+  // the original bubble out from under the floating clone — dismiss instead.
+  const handleScrollBeginDrag = useCallback(() => {
+    setDismissToken((t) => t + 1);
+    setActiveMenu(null);
+  }, []);
+
+  useEffect(() => {
+    if (!activeMenu) return;
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      setActiveMenu(null);
+    });
+    return () => sub.remove();
+  }, [activeMenu]);
+
+  const messageCount = messages.length;
+  const messageCountRef = useRef(messageCount);
+  useEffect(() => {
+    if (messageCountRef.current !== messageCount) {
+      messageCountRef.current = messageCount;
+      setActiveMenu(null);
+    }
+  }, [messageCount]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     opacity: scrollButtonOpacity.value,
@@ -288,6 +398,7 @@ export default function ChatScreen() {
   );
 
   return (
+    <View ref={containerRef} onLayout={handleOuterLayout} className="flex-1">
     <ScreenWrapper
       dismissKeyboardOnTouch={false}
       header={
@@ -318,6 +429,7 @@ export default function ChatScreen() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <ChatBubble
+                  id={item.id}
                   message={item.message}
                   messageType={item.messageType}
                   attachmentUrl={item.attachmentUrl}
@@ -326,11 +438,20 @@ export default function ChatScreen() {
                   thumbnailPath={item.thumbnailPath}
                   thumbnailUrl={item.thumbnailUrl}
                   timestamp={item.timestamp}
+                  createdAt={item.createdAt}
                   isSent={item.isSent}
+                  isPending={item.isPending}
+                  replyTo={item.replyTo}
+                  replyDeleted={item.replyDeleted}
+                  otherUserName={otherUserName}
                   onImagePress={setSelectedImage}
                   onMediaLoadError={(mediaKind) => {
                     void retryChatMediaOnce(item.id, mediaKind);
                   }}
+                  onReply={() => handleReply(item)}
+                  onUnsend={() => handleUnsend(item.id)}
+                  onMenuOpenChange={handleMenuOpenChangeFor(item)}
+                  dismissToken={dismissToken}
                 />
               )}
               contentContainerStyle={
@@ -364,6 +485,8 @@ export default function ChatScreen() {
               onEndReached={hasMore ? loadOlderMessages : undefined}
               onEndReachedThreshold={0.2}
               onScroll={handleScroll}
+              onScrollBeginDrag={handleScrollBeginDrag}
+              scrollEnabled={activeMenu === null}
               scrollEventThrottle={16}
             />
           </View>
@@ -381,6 +504,8 @@ export default function ChatScreen() {
             onBlur={handleInputBlur}
             pendingAssets={pendingAssets}
             onRemovePendingAsset={handleRemoveStagedAsset}
+            replyTarget={replyTarget}
+            onClearReply={clearReply}
           />
         </View>
         <Animated.View
@@ -418,5 +543,41 @@ export default function ChatScreen() {
         onSelect={handleGifSelected}
       />
     </ScreenWrapper>
+    {activeMenu !== null && (
+      <View style={[StyleSheet.absoluteFill, { zIndex: 50, elevation: 50 }]} pointerEvents="none">
+        <BlurBackdrop isDark={isDark} />
+      </View>
+    )}
+    {activeMenu?.layout && previewMessage && (
+      <View style={[StyleSheet.absoluteFill, { zIndex: 51, elevation: 51 }]} pointerEvents="box-none">
+        <Pressable
+          onPress={requestDismissActiveMenu}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss message menu"
+          style={{
+            position: 'absolute',
+            top: Math.max(0, activeMenu.layout.pageY - containerOrigin.pageY),
+            left: Math.max(0, activeMenu.layout.pageX - containerOrigin.pageX),
+            width: activeMenu.layout.width,
+            alignItems: previewMessage.isSent ? 'flex-end' : 'flex-start',
+          }}
+        >
+          <ChatBubbleContent
+            message={previewMessage.message}
+            messageType={previewMessage.messageType}
+            attachmentUrl={previewMessage.attachmentUrl}
+            attachmentPath={previewMessage.attachmentPath}
+            thumbnailUrl={previewMessage.thumbnailUrl}
+            thumbnailPath={previewMessage.thumbnailPath}
+            isSent={previewMessage.isSent}
+            replyTo={previewMessage.replyTo}
+            replyDeleted={previewMessage.replyDeleted}
+            otherUserName={otherUserName}
+            interactive={false}
+          />
+        </Pressable>
+      </View>
+    )}
+    </View>
   );
 }

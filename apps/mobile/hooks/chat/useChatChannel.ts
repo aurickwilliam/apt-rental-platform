@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@repo/supabase';
 import { getRelativeTime } from '@repo/utils';
 
-import { buildConversationKey, type Message, type MessageType } from '../../service/chat/chatService';
+import { buildConversationKey, type Message, type MessageType, type ReplyPreview } from '../../service/chat/chatService';
 
 type PresenceState = {
   userId: string;
@@ -23,6 +23,10 @@ type BroadcastPayload = {
   created_at: string;
   sender_id: string;
   apartment_id: string | null;
+  reply_to?: string | null;
+  reply_message?: string | null;
+  reply_message_type?: MessageType | null;
+  reply_sender_id?: string | null;
 };
 
 type UseChatChannelOptions = {
@@ -31,9 +35,12 @@ type UseChatChannelOptions = {
   apartmentId: string | null;
   onNewMessage: (msg: Message) => void;
   onOtherUserTypingChange: (isTyping: boolean) => void;
+  onMessageDeleted?: (id: string) => void;
 };
 
 type BroadcastEvent = { payload: BroadcastPayload };
+type DeletePayload = { id: string; apartment_id: string | null };
+type DeleteEvent = { payload: DeletePayload };
 type PresenceJoinEvent = { key: string; newPresences: PresenceState[] };
 type PresenceLeaveEvent = { key: string };
 
@@ -43,12 +50,14 @@ export function useChatChannel({
   apartmentId,
   onNewMessage,
   onOtherUserTypingChange,
+  onMessageDeleted,
 }: UseChatChannelOptions) {
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSubscribedRef = useRef(false);
   const onNewMessageRef = useRef(onNewMessage);
   const onOtherUserTypingChangeRef = useRef(onOtherUserTypingChange);
+  const onMessageDeletedRef = useRef(onMessageDeleted);
 
   useEffect(() => {
     onNewMessageRef.current = onNewMessage;
@@ -57,6 +66,10 @@ export function useChatChannel({
   useEffect(() => {
     onOtherUserTypingChangeRef.current = onOtherUserTypingChange;
   }, [onOtherUserTypingChange]);
+
+  useEffect(() => {
+    onMessageDeletedRef.current = onMessageDeleted;
+  }, [onMessageDeleted]);
 
   const teardown = useCallback(() => {
     if (msgChannelRef.current) {
@@ -89,6 +102,28 @@ export function useChatChannel({
           : payload.apartment_id == null;
         if (!matchesApartment) return;
 
+        let replyTo: ReplyPreview | null = null;
+        let replyDeleted: boolean | undefined;
+        if (payload.reply_to) {
+          if (payload.reply_message !== undefined) {
+            // Snapshot included in broadcast (text placeholder for media).
+            if (payload.reply_message !== null || payload.reply_message_type) {
+              replyTo = {
+                id: payload.reply_to,
+                message: payload.reply_message ?? null,
+                messageType: (payload.reply_message_type ?? 'text') as MessageType,
+                senderId: payload.reply_sender_id ?? '',
+                isSent: payload.reply_sender_id === currentUserId,
+              };
+            } else {
+              replyDeleted = true;
+            }
+          } else {
+            // Legacy broadcast without snapshot — will be resolved on next fetch.
+            replyDeleted = true;
+          }
+        }
+
         onNewMessageRef.current({
           id: payload.id,
           message: payload.message,
@@ -99,8 +134,22 @@ export function useChatChannel({
           thumbnailUrl: payload.thumbnailUrl ?? null,
           thumbnailPath: payload.thumbnailPath ?? null,
           timestamp: getRelativeTime(new Date(payload.created_at)),
+          createdAt: payload.created_at,
           isSent: false,
+          replyTo,
+          replyDeleted,
         });
+      })
+      .on('broadcast', { event: 'message_deleted' }, ({ payload }: DeleteEvent) => {
+        const matchesApartment = payload.apartment_id
+          ? payload.apartment_id === apartmentId
+          : payload.apartment_id == null;
+        // apartment filter: only process if it belongs to this conversation's apartment
+        if (apartmentId !== null) {
+          if (payload.apartment_id !== apartmentId) return;
+        } else if (payload.apartment_id != null) return;
+        if (!payload.id) return;
+        onMessageDeletedRef.current?.(payload.id);
       })
       .subscribe((status) => {
         if (msgChannelRef.current === msgChannel) {
@@ -176,6 +225,18 @@ export function useChatChannel({
     });
   }, []);
 
+  const broadcastDelete = useCallback(
+    (payload: DeletePayload) => {
+      if (!isSubscribedRef.current || !msgChannelRef.current) return;
+      msgChannelRef.current.send({
+        type: 'broadcast',
+        event: 'message_deleted',
+        payload,
+      });
+    },
+    []
+  );
+
   /** Tracks the current user's presence state (typing / not typing). */
   const trackPresence = useCallback((currentUserId: string, isTyping: boolean) => {
     presenceChannelRef.current?.track({
@@ -185,5 +246,5 @@ export function useChatChannel({
     });
   }, []);
 
-  return { teardown, broadcast, trackPresence };
+  return { teardown, broadcast, broadcastDelete, trackPresence };
 }
