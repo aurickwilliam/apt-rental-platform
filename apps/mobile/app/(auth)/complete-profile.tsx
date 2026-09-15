@@ -118,7 +118,6 @@ export default function CompleteProfile() {
 
   // Scroll-to-error refs
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
-  const contentRef = useRef<View>(null);
 
   type ScrollableField =
     | keyof ProfileForm
@@ -126,15 +125,6 @@ export default function CompleteProfile() {
     | 'postalCode';
 
   const fieldPositions = useRef<Partial<Record<ScrollableField, number>>>({});
-
-  const registerFieldRef = (field: ScrollableField) => (node: View | null) => {
-    if (!node || !contentRef.current) return;
-    node.measureLayout(
-      contentRef.current,
-      (_x: number, y: number) => { fieldPositions.current[field] = y; },
-      () => {},
-    );
-  };
 
   // Password validation hook
   // Tracks password strength requirements separately from the form state
@@ -326,7 +316,7 @@ export default function CompleteProfile() {
 
       {/* Form Inputs */}
 
-      <View className="flex gap-4" ref={contentRef}>
+      <View className="flex gap-4">
         {/* Email Address Field */}
         <TextField isDisabled>
           <Label>Email Address:</Label>
@@ -343,7 +333,7 @@ export default function CompleteProfile() {
         </Text>
 
         {/* First Name Field */}
-        <View ref={registerFieldRef("firstName")}>
+        <View onLayout={(event) => { fieldPositions.current.firstName = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!getError("firstName")}>
             <Label>First Name:</Label>
             <Input
@@ -357,7 +347,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Last Name Field */}
-        <View ref={registerFieldRef("lastName")}>
+        <View onLayout={(event) => { fieldPositions.current.lastName = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!getError("lastName")}>
             <Label>Last Name:</Label>
             <Input
@@ -390,7 +380,7 @@ export default function CompleteProfile() {
         />
 
         {/* Gender Field */}
-        <View ref={registerFieldRef("gender")}>
+        <View onLayout={(event) => { fieldPositions.current.gender = event.nativeEvent.layout.y; }}>
           <DropdownField
             label="Gender:"
             bottomSheetLabel="Select your gender"
@@ -404,7 +394,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Date of Birth Field */}
-        <View ref={registerFieldRef("birthDate")}>
+        <View onLayout={(event) => { fieldPositions.current.birthDate = event.nativeEvent.layout.y; }}>
           <DateField
             label="Date of Birth:"
             placeholder="Select your date of birth"
@@ -419,7 +409,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Mobile Number Field */}
-        <View ref={registerFieldRef("mobileNumber")}>
+        <View onLayout={(event) => { fieldPositions.current.mobileNumber = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
             <Label>Mobile Number:</Label>
             <Input
@@ -447,7 +437,7 @@ export default function CompleteProfile() {
         </Text>
 
         {/* Province Field */}
-        <View ref={registerFieldRef("province")}>
+        <View onLayout={(event) => { fieldPositions.current.province = event.nativeEvent.layout.y; }}>
           <DropdownField
             label="Province:"
             bottomSheetLabel="Select your province"
@@ -463,7 +453,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* City Field */}
-        <View ref={registerFieldRef("city")}>
+        <View onLayout={(event) => { fieldPositions.current.city = event.nativeEvent.layout.y; }}>
           <DropdownField
             label="City:"
             bottomSheetLabel="Select your city"
@@ -480,7 +470,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Barangay Field */}
-        <View ref={registerFieldRef("barangay")}>
+        <View onLayout={(event) => { fieldPositions.current.barangay = event.nativeEvent.layout.y; }}>
           <DropdownField
             label="Barangay:"
             bottomSheetLabel="Select your barangay"
@@ -497,7 +487,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Postal Code Field */}
-        <View ref={registerFieldRef("postalCode")}>
+        <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!postalCodeError}>
             <Label>Postal Code:</Label>
             <Input
@@ -517,7 +507,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Street Address Field */}
-        <View ref={registerFieldRef("streetAddress")}>
+        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!getError("streetAddress")}>
             <Label>Street Address:</Label>
             <Input
@@ -541,7 +531,7 @@ export default function CompleteProfile() {
         </Text>
 
         {/* Password Field */}
-        <View ref={registerFieldRef("password")}>
+        <View onLayout={(event) => { fieldPositions.current.password = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!getError("password")}>
             <Label>Password:</Label>
             <InputGroup>
@@ -575,7 +565,7 @@ export default function CompleteProfile() {
         </View>
 
         {/* Confirm Password Field */}
-        <View ref={registerFieldRef("confirmPassword")}>
+        <View onLayout={(event) => { fieldPositions.current.confirmPassword = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!getError("confirmPassword")}>
             <Label>Confirm Password:</Label>
             <InputGroup>

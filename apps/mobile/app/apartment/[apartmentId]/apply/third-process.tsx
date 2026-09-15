@@ -38,18 +38,8 @@ export default function ThirdProcess() {
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null)
   const contentRef = useRef<View>(null)
+  const groupOffsets = useRef<Partial<Record<string, number>>>({})
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({})
-
-  const registerFieldRef = (field: keyof FormErrors) => (node: View | null) => {
-    if (!node || !contentRef.current) return
-    node.measureLayout(
-      contentRef.current,
-      (_x: number, y: number) => {
-        fieldPositions.current[field] = y
-      },
-      () => {},
-    )
-  }
 
   const clearError = (field: keyof FormErrors) =>
     setErrors((prev) => ({ ...prev, [field]: undefined }))
@@ -107,8 +97,18 @@ export default function ThirdProcess() {
       />
 
       <View className="p-5" ref={contentRef}>
-        <View className="flex gap-3">
-          <View ref={registerFieldRef("govId")}>
+        <View
+          className="flex gap-3"
+          onLayout={(e) => {
+            groupOffsets.current.main = e.nativeEvent.layout.y
+          }}
+        >
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.govId =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+          >
             <UploadImageField
               images={documents.govId}
               onAdd={(asset) => {
@@ -133,7 +133,12 @@ export default function ThirdProcess() {
 
           <Separator className="my-4" />
 
-          <View ref={registerFieldRef("proofOfIncome")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.proofOfIncome =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+          >
             <UploadFileField
               label="Proof of Income:"
               placeholder="Upload COE, payslip, or ITR"
@@ -149,7 +154,12 @@ export default function ThirdProcess() {
 
           <Separator className="my-4" />
 
-          <View ref={registerFieldRef("proofOfBilling")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.proofOfBilling =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+          >
             <UploadImageField
               images={documents.proofOfBilling}
               onAdd={(asset) => {

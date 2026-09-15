@@ -39,10 +39,6 @@ import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
-function mapPaymentStatus(status: string): 'Pending' | 'Paid' {
-  return status === 'paid' ? 'Paid' : 'Pending';
-}
-
 type actionsTypes = {
   id: number;
   label: string;

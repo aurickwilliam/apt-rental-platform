@@ -110,6 +110,7 @@ module.exports = {
         },
       ],
       'expo-font',
+      'expo-image',
       [
         'expo-notifications',
         {

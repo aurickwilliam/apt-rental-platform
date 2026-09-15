@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { View } from 'react-native';
 import { Avatar, Button, Toast } from 'heroui-native';
 import type { ToastComponentProps, ToastManager, ToastVariant } from 'heroui-native';
@@ -108,7 +109,7 @@ function NotificationToastContent({
         </Avatar>
       ) : (
         <View className="self-center justify-center">
-          {Icon ? <Icon size={20} color={iconColor} /> : null}
+          {Icon ? createElement(Icon, { size: 20, color: iconColor }) : null}
         </View>
       )}
 

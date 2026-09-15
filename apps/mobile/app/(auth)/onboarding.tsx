@@ -23,7 +23,7 @@ const { width } = Dimensions.get('window');
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [scrollX] = useState(() => new Animated.Value(0));
   const scrollViewRef = useRef<ScrollView>(null);
 
   // First: Updates the scrollX every move of the scroll

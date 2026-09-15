@@ -4,7 +4,7 @@ import {
   Image,
   ImageSourcePropType,
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
@@ -99,14 +99,14 @@ export default function EditProfile() {
   const contentRef = useRef<View>(null);
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({});
 
-  const registerFieldRef = (field: keyof FormErrors) => (node: View | null) => {
+  const registerFieldRef = useCallback((field: keyof FormErrors) => (node: View | null) => {
     if (!node || !contentRef.current) return;
     node.measureLayout(
       contentRef.current,
       (_x: number, y: number) => { fieldPositions.current[field] = y; },
       () => {},
     );
-  };
+  }, []);
 
   const {
     value: postalCode,
@@ -124,33 +124,36 @@ export default function EditProfile() {
   useEffect(() => {
     if (!profile) return;
 
-    setForm({
-      profileImageUri: profile.avatar_url
-        ? { uri: profile.avatar_url }
-        : null,
+    const snapshot = profile;
+    queueMicrotask(() => {
+      setForm({
+        profileImageUri: snapshot.avatar_url
+          ? { uri: snapshot.avatar_url }
+          : null,
 
-      backgroundImageUri: profile.background_url
-        ? { uri: profile.background_url }
-        : null,
+        backgroundImageUri: snapshot.background_url
+          ? { uri: snapshot.background_url }
+          : null,
 
-      firstName: profile.first_name ?? "",
-      lastName: profile.last_name ?? "",
-      middleName: profile.middle_name ?? "",
-      dateOfBirth: profile.birth_date
-        ? new Date(profile.birth_date)
-        : null,
-      gender: profile.gender ?? "",
+        firstName: snapshot.first_name ?? "",
+        lastName: snapshot.last_name ?? "",
+        middleName: snapshot.middle_name ?? "",
+        dateOfBirth: snapshot.birth_date
+          ? new Date(snapshot.birth_date)
+          : null,
+        gender: snapshot.gender ?? "",
 
-      streetAddress: profile.street_address ?? "",
-      barangay: profile.barangay ?? "",
-      city: profile.city ?? "",
-      province: profile.province ?? "",
+        streetAddress: snapshot.street_address ?? "",
+        barangay: snapshot.barangay ?? "",
+        city: snapshot.city ?? "",
+        province: snapshot.province ?? "",
+      });
+
+      // Postal Code
+      setPostalCode(
+        snapshot.postal_code != null ? String(snapshot.postal_code) : "",
+      );
     });
-
-    // Postal Code
-    setPostalCode(
-      profile.postal_code != null ? String(profile.postal_code) : "",
-    );
   }, [profile, setPostalCode]);
 
   const updateForm = (patch: Partial<EditProfileForm>) => {

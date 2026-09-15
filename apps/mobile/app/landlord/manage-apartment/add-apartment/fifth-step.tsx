@@ -94,7 +94,7 @@ export default function FifthStep() {
 
   // Refs for ScrollView
   const imageScrollViewRef = useRef<ScrollView>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [scrollX] = useState(() => new Animated.Value(0));
 
   // Pull data from Zustand store
   const {

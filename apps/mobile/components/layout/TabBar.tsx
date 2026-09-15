@@ -1,4 +1,4 @@
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BottomTabBarProps } from "expo-router/js-tabs";
 import { View } from 'react-native';
 
 import { TENANTICONS, LANDLORDICONS } from '../../constants/tab-icons';

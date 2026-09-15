@@ -789,7 +789,12 @@ export async function updateLandlordMaintenanceStatus(
   nextStatus: MaintenanceRequestStatus,
   resolutionNotes?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const updatePayload: Record<string, unknown> = {
+  const updatePayload: {
+    status: string;
+    resolved_at?: string | null;
+    resolution_notes?: string | null;
+    cancelled_at?: string | null;
+  } = {
     status: DISPLAY_TO_DB_STATUS[nextStatus],
   };
   if (nextStatus === "Resolved") {

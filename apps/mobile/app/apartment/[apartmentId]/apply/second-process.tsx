@@ -41,18 +41,8 @@ export default function SecondProcess() {
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null)
   const contentRef = useRef<View>(null)
+  const groupOffsets = useRef<Partial<Record<string, number>>>({})
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({})
-
-  const registerFieldRef = (field: keyof FormErrors) => (node: View | null) => {
-    if (!node || !contentRef.current) return
-    node.measureLayout(
-      contentRef.current,
-      (_x: number, y: number) => {
-        fieldPositions.current[field] = y
-      },
-      () => {},
-    )
-  }
 
   const isPastDate = (date: Date): boolean => {
     const today = new Date()
@@ -145,9 +135,19 @@ export default function SecondProcess() {
       />
 
       <View className="p-5" ref={contentRef}>
-        <View className="flex gap-3">
+        <View
+          className="flex gap-3"
+          onLayout={(e) => {
+            groupOffsets.current.main = e.nativeEvent.layout.y
+          }}
+        >
           {/* Move-In Date */}
-          <View ref={registerFieldRef("moveInDate")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.moveInDate =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+          >
             <DateField
               label="Preferred Move-In Date:"
               placeholder="Select your preferred move-in date"
@@ -162,7 +162,12 @@ export default function SecondProcess() {
           </View>
 
           {/* Number of Occupants */}
-          <View ref={registerFieldRef("noOccupants")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.noOccupants =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+          >
             <TextField isRequired isInvalid={!!errors.noOccupants}>
               <Label>Number of Occupants:</Label>
               <Input
@@ -201,7 +206,10 @@ export default function SecondProcess() {
 
           {/* Has Pets */}
           <View
-            ref={registerFieldRef("hasPets")}
+            onLayout={(e) => {
+              fieldPositions.current.hasPets =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
             className="flex flex-col gap-4 mb-3"
           >
             <Label>Do you have pets?</Label>
@@ -241,8 +249,11 @@ export default function SecondProcess() {
           </View>
 
           {/* Is Smoker */}
-          <View 
-            ref={registerFieldRef("isSmoker")} 
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.isSmoker =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
             className="flex flex-col gap-4 mb-3"
           >
             <Label>Are you a smoker?</Label>
@@ -283,7 +294,10 @@ export default function SecondProcess() {
 
           {/* Need Parking */}
           <View
-            ref={registerFieldRef("needParking")}
+            onLayout={(e) => {
+              fieldPositions.current.needParking =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
             className="flex flex-col gap-4 mb-3"
           >
             <Label>Do you need parking?</Label>
