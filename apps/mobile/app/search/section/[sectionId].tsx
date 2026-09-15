@@ -41,7 +41,7 @@ export default function SectionDetail() {
       const { data, error } = await supabase
         .rpc("get_search_sections", {
           p_city: selectedCity,
-          p_search: searchQuery || null,
+          p_search: searchQuery || undefined,
           p_filters: {} as any,
           p_limit: 50,
         })

@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
@@ -37,16 +37,12 @@ export default function SignUp() {
 
   const [email, setEmail] = useState<string>("");
   const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
-  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
+  const [userSide, setUserSide] = useState<"tenant" | "landlord">(
+    userType === "landlord" ? "landlord" : "tenant",
+  );
 
   const [emailError, setEmailError] = useState<string>("");
   const [serverError, setServerError] = useState<string>("");
-
-
-  // Change the User Side when tabs are switched, default to tenant
-  useEffect(() => {
-    setUserSide(userType === "landlord" ? "landlord" : "tenant");
-  }, [userType]);
 
   const {
     signInWithGoogle,

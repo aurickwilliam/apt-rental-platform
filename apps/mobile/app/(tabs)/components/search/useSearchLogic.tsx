@@ -29,13 +29,15 @@ type UseSearchLogicParams = {
 export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>(initialCity ?? CITIES[0]);
-  const [searchDraft, setSearchDraft] = useState<string>("");
-
-  useEffect(() => {
+  const [prevInitialCity, setPrevInitialCity] = useState(initialCity);
+  if (initialCity !== prevInitialCity) {
+    setPrevInitialCity(initialCity);
     if (initialCity && initialCity !== CITIES[0] && selectedCity === CITIES[0]) {
       setSelectedCity(initialCity);
     }
-  }, [initialCity, selectedCity]);
+  }
+  const [searchDraft, setSearchDraft] = useState<string>("");
+
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -306,7 +308,10 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
   }, [loadingMore, hasMore, selectedCity, filters, committedSearch]);
 
   useEffect(() => {
-    fetchApartments();
+    const load = async () => {
+      await fetchApartments();
+    };
+    void load();
   }, [fetchApartments, committedSearch]);
 
   const handleApplyFilters = useCallback(

@@ -3,6 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
+    // jest globals (describe/it/expect) are UMD globals used inside modules (tests).
+    // Explicit `types` because TS does not auto-include pnpm-hoisted @types.
+    "allowUmdGlobalAccess": true,
+    "types": ["jest", "node"],
     "paths": {
       "@/*": ["./*"],
       "components/*": ["./components/*"],

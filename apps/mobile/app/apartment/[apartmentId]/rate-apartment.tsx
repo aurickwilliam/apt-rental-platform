@@ -84,13 +84,21 @@ export default function RateApartment() {
 
   // Lease period, sourced from the tenancy record rather than manual input
   const [tenancy, setTenancy] = useState<TenancyLeasePeriod | null>(null);
-  const [tenancyLoading, setTenancyLoading] = useState(true);
-  const [tenancyError, setTenancyError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [tenancyLoading, setTenancyLoading] = useState(!tenancyId);
+  const [tenancyError, setTenancyError] = useState<string | null>(
+    tenancyId ? null : 'Missing tenancy reference',
+  );
+  const [prevTenancyId, setPrevTenancyId] = useState(tenancyId);
+  if (tenancyId !== prevTenancyId) {
+    setPrevTenancyId(tenancyId);
     if (!tenancyId) {
       setTenancyLoading(false);
       setTenancyError('Missing tenancy reference');
+    }
+  }
+
+  useEffect(() => {
+    if (!tenancyId) {
       return;
     }
 
@@ -124,7 +132,9 @@ export default function RateApartment() {
   }, [tenancyId]);
 
   // Surface a hard apartment-fetch failure — nothing to review if this didn't load
-  useEffect(() => {
+  const [prevApartmentError, setPrevApartmentError] = useState(apartmentError);
+  if (apartmentError !== prevApartmentError) {
+    setPrevApartmentError(apartmentError);
     if (apartmentError) {
       setErrorDialog({
         visible: true,
@@ -133,7 +143,7 @@ export default function RateApartment() {
         navigateOnClose: true,
       });
     }
-  }, [apartmentError]);
+  }
 
   const stayDurationLabel = tenancyLoading
     ? 'Loading...'

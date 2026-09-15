@@ -134,7 +134,7 @@ export function useSearchSections({ selectedCity, committedSearch, enabled = tru
       const rpcFilters = preferences ? toRpcFilters(preferences) : {};
       const { data, error } = await supabase.rpc("get_search_sections", {
         p_city: selectedCity,
-        p_search: committedSearch || null,
+        p_search: committedSearch || undefined,
         p_filters: rpcFilters as any,
         p_limit: SECTION_LIMIT,
       }).abortSignal(signal as any);

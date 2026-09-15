@@ -102,7 +102,9 @@ export default function TenantMapSearchScreen() {
       if (bbox == null) {
         const expanded = bboxFromRegionWithMargin(region, BBOX_MARGIN);
         queriedBboxRef.current = expanded;
-        setBbox(expanded);
+        queueMicrotask(() => {
+          setBbox(expanded);
+        });
       }
       return;
     }
@@ -129,7 +131,9 @@ export default function TenantMapSearchScreen() {
     hasCenteredRef.current = true;
     const expanded = bboxFromRegionWithMargin(INITIAL_REGION, BBOX_MARGIN);
     queriedBboxRef.current = expanded;
-    setBbox(expanded);
+    queueMicrotask(() => {
+      setBbox(expanded);
+    });
   }, [locationStatus, bbox]);
 
   const handleRegionChangeComplete = useCallback((r: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }) => {

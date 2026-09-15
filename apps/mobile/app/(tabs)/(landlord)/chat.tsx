@@ -68,7 +68,9 @@ export default function Chat() {
       scrollable
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
-      onRefresh={refetch}
+      onRefresh={() => {
+        void refetch();
+      }}
     >
       {/* Title Messages */}
       <Text className='text-primary text-3xl font-nunitoBold mb-3'>

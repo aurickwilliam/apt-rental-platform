@@ -79,7 +79,9 @@ export default function Chat() {
       backgroundColor={colors.surface}
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
-      onRefresh={refetch}
+      onRefresh={() => {
+        void refetch();
+      }}
     >
       <Text className='text-accent text-3xl font-nunitoBold'>
         Messages

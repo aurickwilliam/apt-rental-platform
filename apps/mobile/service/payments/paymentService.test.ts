@@ -20,9 +20,19 @@ jest.mock('@repo/supabase', () => ({
 
 type QueryResult = { data?: unknown; error?: unknown }
 
-function chainWith(result: QueryResult) {
+type SupabaseChain = {
+  select: jest.Mock;
+  eq: jest.Mock;
+  order: jest.Mock;
+  limit: jest.Mock;
+  insert: jest.Mock;
+  maybeSingle: jest.Mock;
+  single: jest.Mock;
+};
+
+function chainWith(result: QueryResult): SupabaseChain {
   const resultObject = { data: result.data ?? null, error: result.error ?? null }
-  const chain = {
+  const chain: SupabaseChain = {
     select: jest.fn(() => chain),
     eq: jest.fn(() => chain),
     order: jest.fn(() => chain),

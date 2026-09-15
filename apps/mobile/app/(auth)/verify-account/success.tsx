@@ -1,6 +1,6 @@
 import { View, Text, Image } from 'react-native'
 import { useNavigation, useRouter } from 'expo-router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 import { usePreventRemove } from '@react-navigation/native'
 
@@ -17,7 +17,7 @@ export default function Success() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const canLeave = useRef(false);
+  const [canLeave, setCanLeave] = useState(false);
 
   const reset = useVerificationStore((state) => state.reset);
 
@@ -26,14 +26,14 @@ export default function Success() {
   }, [reset]);
 
   // Terminal screen — block all back navigation (swipe, hardware, programmatic)
-  usePreventRemove(!canLeave.current, ({ data }) => {
-    if (canLeave.current) {
+  usePreventRemove(!canLeave, ({ data }) => {
+    if (canLeave) {
       navigation.dispatch(data.action);
     }
   });
 
   const handleGoToProfile = () => {
-    canLeave.current = true;
+    setCanLeave(true);
     router.replace('/(tabs)/(tenant)/profile');
   };
 

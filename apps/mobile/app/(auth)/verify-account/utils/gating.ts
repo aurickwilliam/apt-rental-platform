@@ -2,7 +2,7 @@ import type { IdCaptureResult } from '@/stores/useVerificationStore';
 import type { CaptureStepConfig } from '../constants/captureSequences';
 
 export interface CaptureProgress {
-  steps: Array<{ step: CaptureStepConfig; result: IdCaptureResult | null }>;
+  steps: { step: CaptureStepConfig; result: IdCaptureResult | null }[];
   isComplete: boolean;
 }
 

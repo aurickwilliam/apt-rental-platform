@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 import {
@@ -77,6 +77,12 @@ export default function FilterBottomSheet({
   onClear,
 }: Props) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [prevInitialFilters, setPrevInitialFilters] =
+    useState<FilterState>(initialFilters);
+  if (initialFilters !== prevInitialFilters) {
+    setPrevInitialFilters(initialFilters);
+    setFilters(initialFilters);
+  }
   const [amenitySearch, setAmenitySearch] = useState("");
 
   const { colors } = useColors();
@@ -127,10 +133,6 @@ export default function FilterBottomSheet({
   const handleMultiSelect =
     (key: keyof FilterState) => (keys: Set<string | number>) =>
       setFilters((p) => ({ ...p, [key]: Array.from(keys) as string[] }));
-
-  useEffect(() => {
-    setFilters(initialFilters);
-  }, [initialFilters]);
 
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>

@@ -53,11 +53,6 @@ interface FormErrors {
   leaseDuration?: string;
 }
 
-const DEFAULT_COORDS = {
-  latitude: 14.67,
-  longitude: 120.96,
-};
-
 const DEFAULT_ROOM_LIMITS = {
   bathrooms: { min: 1, max: 10 },
   bedrooms: { min: 1, max: 10 },
@@ -141,9 +136,11 @@ export default function SecondStep() {
   useEffect(() => {
     if (!isFloorLevelDisabled) return;
     if (floorLevel !== "Ground Floor") setField("floorLevel", "Ground Floor");
-    setErrors((prev) =>
-      prev.floorLevel ? { ...prev, floorLevel: undefined } : prev,
-    );
+    queueMicrotask(() => {
+      setErrors((prev) =>
+        prev.floorLevel ? { ...prev, floorLevel: undefined } : prev,
+      );
+    });
   }, [floorLevel, isFloorLevelDisabled, setField]);
 
   const handleAdd = (type: "bathrooms" | "bedrooms" | "maxOccupants") => {

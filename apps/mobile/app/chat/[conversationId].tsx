@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import ImageViewing from "react-native-image-viewing";
 
@@ -36,6 +37,20 @@ import { resolveMessageType } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
+
+function setScrollButtonVisibility(
+  opacity: SharedValue<number>,
+  scale: SharedValue<number>,
+  visible: boolean,
+) {
+  if (visible) {
+    opacity.value = withTiming(1, { duration: 200 });
+    scale.value = withTiming(1, { duration: 200 });
+  } else {
+    opacity.value = withTiming(0, { duration: 150 });
+    scale.value = withTiming(0.5, { duration: 150 });
+  }
+}
 
 function useRouteParams() {
   const raw = useLocalSearchParams<{
@@ -123,13 +138,14 @@ export default function ChatScreen() {
     handleVisibleMessagesRef.current = handleVisibleMessages;
   }, [handleVisibleMessages]);
 
-  const onViewableItemsChanged = useRef(
+  const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       handleVisibleMessagesRef.current(
         viewableItems.map((item) => (item.item as { id: string }).id)
       );
-    }
-  ).current;
+    },
+    []
+  );
 
   const handleHeaderLayout = useCallback((e: LayoutChangeEvent) => {
     const next = Math.round(e.nativeEvent.layout.height);
@@ -162,13 +178,7 @@ export default function ChatScreen() {
   }));
 
   useEffect(() => {
-    if (isNearBottom) {
-      scrollButtonOpacity.value = withTiming(0, { duration: 150 });
-      scrollButtonScale.value = withTiming(0.5, { duration: 150 });
-    } else {
-      scrollButtonOpacity.value = withTiming(1, { duration: 200 });
-      scrollButtonScale.value = withTiming(1, { duration: 200 });
-    }
+    setScrollButtonVisibility(scrollButtonOpacity, scrollButtonScale, !isNearBottom);
   }, [isNearBottom, scrollButtonOpacity, scrollButtonScale]);
 
   /** Builds a local preview thumbnail for a video pick so the staging strip isn't a blank tile. */

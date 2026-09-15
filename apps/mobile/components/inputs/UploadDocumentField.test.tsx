@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
-import UploadDocumentField, { type UploadedDocument } from './UploadDocumentField';
+import UploadDocumentField from './UploadDocumentField';
 import { compressImage } from '@/utils/compressImage';
 
 jest.mock('expo-image-picker', () => ({
@@ -34,7 +34,7 @@ jest.mock('@/hooks/useTheme', () => ({
 // Stub it with a plain conditional View so its content is always
 // queryable/tappable in tests, matching this test file's interaction style.
 jest.mock('heroui-native', () => {
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
 
   const BottomSheetRoot = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
     isOpen ? <View>{children}</View> : null;

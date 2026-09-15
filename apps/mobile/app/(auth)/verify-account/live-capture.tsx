@@ -75,20 +75,20 @@ export default function LiveCapture() {
     setCameraReady(false);
     isCapturingRef.current = false;
     autoCaptureTriggeredRef.current = false;
-  }, []);
+  }, [setCameraReady]);
 
   const handleMountError = useCallback(
     (event: { message: string }) => {
       setCameraError(event.message);
       resetCameraLifecycleState();
     },
-    [resetCameraLifecycleState],
+    [resetCameraLifecycleState, setCameraError],
   );
 
   const handleRetryCamera = useCallback(() => {
     setCameraError(null);
     resetCameraLifecycleState();
-  }, [resetCameraLifecycleState]);
+  }, [resetCameraLifecycleState, setCameraError]);
 
   /**
    * The single code path allowed to call `takePictureAsync()` for an actual
@@ -112,7 +112,7 @@ export default function LiveCapture() {
     } finally {
       isCapturingRef.current = false;
     }
-  }, [cameraReady]);
+  }, [cameraReady, setCapturedPhoto, setScreenState, setCameraError]);
 
   const handleManualCapture = useCallback(() => {
     void capturePhoto();
@@ -138,9 +138,9 @@ export default function LiveCapture() {
     setScreenState('preview');
     isCapturingRef.current = false;
     autoCaptureTriggeredRef.current = false;
-  }, []);
+  }, [setCapturedPhoto, setScreenState]);
 
-  const handleUsePhoto = useCallback(() => {
+  const handleUsePhoto = () => {
     if (capturedPhoto == null || stepId == null) return;
 
     setCaptureResult(stepId, {
@@ -160,16 +160,16 @@ export default function LiveCapture() {
     }
 
     router.back();
-  }, [capturedPhoto, idType, stepId, router, setCaptureResult]);
+  };
 
   // Closing out of the camera always abandons the in-progress verification
   // session, then dismisses the entire flow back to select-id.tsx (skipping
   // upload-id's null-selectedId guard, which exists only as a deep-link
   // safety net now that close no longer backs into this screen).
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     reset();
     router.dismissTo('/(auth)/verify-account/select-id');
-  }, [reset, router]);
+  };
 
   // Permission gating (Req 4.1, 4.2, 4.4, 4.5, 4.6)
   useEffect(() => {
