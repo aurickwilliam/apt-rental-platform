@@ -26,7 +26,7 @@ export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageTy
 function getSnippet(msg: Message): string {
   if (msg.message) {
     const t = msg.message.trim();
-    return t.length > 48 ? `${t.slice(0, 48)}…` : t;
+    return t.length > 90 ? `${t.slice(0, 90)}…` : t;
   }
   switch (msg.messageType) {
     case 'image':
@@ -55,6 +55,7 @@ interface ChatBoxProps {
   onRemovePendingAsset?: (id: string) => void;
   replyTarget?: Message | null;
   onClearReply?: () => void;
+  otherUserName?: string;
 }
 
 const ATTACHMENT_OPTIONS = [
@@ -95,6 +96,7 @@ export default function ChatBox({
   onRemovePendingAsset,
   replyTarget = null,
   onClearReply,
+  otherUserName,
 }: ChatBoxProps) {
   const { colors } = useColors();
 
@@ -137,12 +139,23 @@ export default function ChatBox({
   return (
     <>
       {replyTarget && (
-        <View className="mb-2 flex-row items-center bg-surface-tertiary rounded-xl px-3 py-2 border-l-2 border-accent">
+        <View className="mb-2 flex-row items-center bg-surface rounded-3xl px-3 py-2">
+          {replyTarget.messageType !== 'text' && (
+            <View className="size-8 rounded-lg bg-surface-tertiary items-center justify-center mr-2">
+              {replyTarget.messageType === 'video' ? (
+                <IconPlayerPlayFilled size={16} color={colors.gray500} />
+              ) : replyTarget.messageType === 'gif' ? (
+                <IconGif size={16} color={colors.gray500} />
+              ) : (
+                <IconPhoto size={16} color={colors.gray500} />
+              )}
+            </View>
+          )}
           <View className="flex-1">
-            <Text className="text-xs font-nunitoSemiBold text-accent" numberOfLines={1}>
-              Replying to {replyTarget.isSent ? 'yourself' : 'them'}
+            <Text className="text-xs font-inter text-gray-500" numberOfLines={1}>
+              Replying to {replyTarget.isSent ? 'yourself' : (otherUserName ?? 'them')}
             </Text>
-            <Text className="text-xs font-inter text-foreground" numberOfLines={1}>
+            <Text className="text-sm font-inter text-muted" numberOfLines={2}>
               {getSnippet(replyTarget)}
             </Text>
           </View>

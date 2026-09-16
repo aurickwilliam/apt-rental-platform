@@ -519,6 +519,7 @@ export default function ChatScreen() {
             onRemovePendingAsset={handleRemoveStagedAsset}
             replyTarget={replyTarget}
             onClearReply={clearReply}
+            otherUserName={otherUserName}
           />
         </View>
         <Animated.View

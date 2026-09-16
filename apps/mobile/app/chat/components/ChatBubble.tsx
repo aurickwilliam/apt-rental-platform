@@ -9,6 +9,8 @@ import {
   IconCopy,
   IconTrash,
   IconArrowBackUp,
+  IconPhoto,
+  IconGif,
 } from '@tabler/icons-react-native';
 
 import { Menu } from 'heroui-native';
@@ -113,7 +115,7 @@ function formatHoldDate(iso?: string): string {
 function getReplySnippet(reply: ReplyPreview): string {
   if (reply.message) {
     const t = reply.message.trim();
-    return t.length > 48 ? `${t.slice(0, 48)}…` : t;
+    return t.length > 90 ? `${t.slice(0, 90)}…` : t;
   }
   switch (reply.messageType) {
     case 'image':
@@ -190,68 +192,112 @@ export function ChatBubbleContent({
   if (emojiCount === 2) fontSize = 40;
   if (emojiCount >= 3) fontSize = 34;
 
-  const replyLabel = replyTo ? (replyTo.isSent ? 'You' : (otherUserName ?? 'Other')) : null;
+  const hasReply = replyDeleted || !!replyTo;
+  // IG-style caption names the replier (this bubble's sender), not the quoted author.
+  const replierLabel = hasReply
+    ? isSent
+      ? 'You replied'
+      : `${otherUserName ?? 'Someone'} replied`
+    : null;
   const replySnippet = replyTo ? getReplySnippet(replyTo) : null;
+  const quotedType = replyTo?.messageType ?? 'text';
+  const isQuotedMedia = !!replyTo && quotedType !== 'text';
+  const labelAlign = isSent ? 'self-end text-right' : 'self-start text-left';
+  // Stacked layout: the quote sits above the reply with a small gap —
+  // no overlap, same width/alignment.
+  const replyOverlap = hasReply ? 'mt-1' : '';
+
+  const quotedMediaIcon =
+    quotedType === 'video' ? (
+      <IconPlayerPlayFilled size={16} color={colors.gray500} />
+    ) : quotedType === 'gif' ? (
+      <IconGif size={16} color={colors.gray500} />
+    ) : (
+      <IconPhoto size={16} color={colors.gray500} />
+    );
 
   const quoteBlock = replyDeleted ? (
     <View
-      className="mb-1 px-2.5 py-1.5 rounded-xl bg-black/5 border-l-2 border-accent"
+      className="px-3 py-2 rounded-3xl bg-surface"
       style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
     >
-      <Text className="text-xs font-inter italic text-gray-500">Original message unavailable</Text>
+      <Text className="text-xs font-inter italic text-gray-500" numberOfLines={2}>
+        Original message unavailable
+      </Text>
     </View>
   ) : replyTo ? (
     <View
-      className="mb-1 px-2.5 py-1.5 rounded-xl bg-black/5 border-l-2 border-accent"
+      className="px-3 py-2 rounded-3xl bg-surface"
       style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
     >
-      <Text className="text-xs font-nunitoSemiBold text-accent" numberOfLines={1}>
-        {replyLabel}
-      </Text>
-      <Text className="text-xs font-inter text-foreground" numberOfLines={1}>
-        {replySnippet}
-      </Text>
+      {isQuotedMedia ? (
+        <View className="flex-row items-center gap-2">
+          <View className="size-8 rounded-lg bg-surface-tertiary items-center justify-center">
+            {quotedMediaIcon}
+          </View>
+          <Text className="flex-1 text-sm font-inter text-muted" numberOfLines={2}>
+            {replySnippet}
+          </Text>
+        </View>
+      ) : (
+        <Text className="text-sm font-inter text-muted" numberOfLines={2}>
+          {replySnippet}
+        </Text>
+      )}
     </View>
   ) : null;
 
   return (
     <>
+      {hasReply && (
+        <Text className={`text-xs font-inter text-gray-500 mb-1 px-2 ${labelAlign}`}>
+          {replierLabel}
+        </Text>
+      )}
       {quoteBlock}
       {isVideo ? (
-        <VideoBubble
-          uri={attachmentUrl!}
-          thumbnailUrl={thumbnailUrl}
-          thumbnailPath={thumbnailPath}
-          onMediaLoadError={interactive ? onMediaLoadError : undefined}
-          onLongPress={interactive ? onLongPress : undefined}
-          interactive={interactive}
-        />
+        <View className={replyOverlap}>
+          <VideoBubble
+            uri={attachmentUrl!}
+            thumbnailUrl={thumbnailUrl}
+            thumbnailPath={thumbnailPath}
+            onMediaLoadError={interactive ? onMediaLoadError : undefined}
+            onLongPress={interactive ? onLongPress : undefined}
+            interactive={interactive}
+          />
+        </View>
       ) : isVisualMedia ? (
-        <VisualMediaBubble
-          uri={attachmentUrl!}
-          attachmentPath={attachmentPath}
-          onImagePress={interactive ? onImagePress : undefined}
-          onMediaLoadError={interactive ? onMediaLoadError : undefined}
-          onLongPress={interactive ? onLongPress : undefined}
-          screenWidth={screenWidth}
-          colors={colors}
-          interactive={interactive}
-        />
+        <View className={replyOverlap}>
+          <VisualMediaBubble
+            uri={attachmentUrl!}
+            attachmentPath={attachmentPath}
+            onImagePress={interactive ? onImagePress : undefined}
+            onMediaLoadError={interactive ? onMediaLoadError : undefined}
+            onLongPress={interactive ? onLongPress : undefined}
+            screenWidth={screenWidth}
+            colors={colors}
+            interactive={interactive}
+          />
+        </View>
       ) : isBrokenAttachment ? (
-        <View
-          style={{
-            width: ATTACHMENT_MAX_WIDTH,
-            height: ATTACHMENT_MAX_HEIGHT,
-            borderRadius: ATTACHMENT_BORDER_RADIUS,
-          }}
-          className="bg-surface-tertiary items-center justify-center"
-        >
-          <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
+        <View className={replyOverlap}>
+          <View
+            style={{
+              width: ATTACHMENT_MAX_WIDTH,
+              height: ATTACHMENT_MAX_HEIGHT,
+              borderRadius: ATTACHMENT_BORDER_RADIUS,
+            }}
+            className="bg-surface-tertiary items-center justify-center"
+          >
+            <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
+          </View>
         </View>
       ) : isEmojiMessage ? (
-        <Text style={{ fontSize }}>{message}</Text>
+        <View className={replyOverlap}>
+          <Text style={{ fontSize }}>{message}</Text>
+        </View>
       ) : (
-        <View className={`px-3 py-2 rounded-3xl ${bubbleColor}`}>
+        <View className={`px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}>
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
         </View>
       )}

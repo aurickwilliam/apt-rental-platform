@@ -83,6 +83,8 @@ jest.mock('@tabler/icons-react-native', () => {
     IconTrash: mockIcon,
     IconArrowBackUp: mockIcon,
     IconClock: mockIcon,
+    IconPhoto: mockIcon,
+    IconGif: mockIcon,
   };
 });
 
@@ -145,6 +147,39 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
 
     expect(screen.getByText('Hello preview')).toBeTruthy();
     expect(screen.getByText('Original question')).toBeTruthy();
+    expect(screen.getByText('You replied')).toBeTruthy();
+  });
+
+  it('labels a received reply with the other user name', () => {
+    render(
+      <ChatBubbleContent
+        message="Got it"
+        messageType="text"
+        isSent={false}
+        replyTo={{ id: 'r2', message: 'See you at 5?', messageType: 'text', senderId: 'u1', isSent: true }}
+        otherUserName="Ana"
+        interactive={false}
+      />
+    );
+
+    expect(screen.getByText('Ana replied')).toBeTruthy();
+    expect(screen.getByText('See you at 5?')).toBeTruthy();
+  });
+
+  it('renders an icon tile for a quoted photo', () => {
+    render(
+      <ChatBubbleContent
+        message="Nice shot"
+        messageType="text"
+        isSent
+        replyTo={{ id: 'r3', message: null, messageType: 'image', senderId: 'u2', isSent: false }}
+        otherUserName="Ana"
+        interactive={false}
+      />
+    );
+
+    expect(screen.getByText('You replied')).toBeTruthy();
+    expect(screen.getByText('Photo')).toBeTruthy();
   });
 
   it('renders static video thumbnail without entering playback', () => {
