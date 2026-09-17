@@ -39,7 +39,12 @@ interface ChatBubbleProps {
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
   onReact?: (emoji: string) => void;
   /** Long-press report with the bubble's window rect for anchoring the hold stack. */
-  onHold?: (anchor: { pageY: number; height: number }) => void;
+  onHold?: (anchor: {
+    pageX: number;
+    pageY: number;
+    width: number;
+    height: number;
+  }) => void;
   /** Hides the row (opacity-0, layout kept) while its elevated clone shows. */
   hidden?: boolean;
   /** @deprecated Use onHold. Kept for compat; fires with (true) on long-press. */
@@ -465,14 +470,14 @@ export default function ChatBubble({
     const measure = target?.measureInWindow;
     if (typeof measure !== 'function') {
       // Fallback (e.g. no native view): open unanchored, parent centers the stack.
-      onHoldRef.current?.({ pageY: -1, height: 0 });
+      onHoldRef.current?.({ pageX: -1, pageY: -1, width: 0, height: 0 });
     } else {
       try {
-        measure.call(target, (_x, pageY, _w, height) => {
-          onHoldRef.current?.({ pageY, height });
+        measure.call(target, (pageX, pageY, width, height) => {
+          onHoldRef.current?.({ pageX, pageY, width, height });
         });
       } catch {
-        onHoldRef.current?.({ pageY: -1, height: 0 });
+        onHoldRef.current?.({ pageX: -1, pageY: -1, width: 0, height: 0 });
       }
     }
     onMenuOpenChangeRef.current?.(true);

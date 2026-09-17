@@ -21,6 +21,13 @@ export type ReplyPreview = {
   isSent: boolean;
 };
 
+/** One user's reaction on a message — at most one row per (message, user). */
+export type MessageReaction = {
+  emoji: string;
+  userId: string;
+  isMine: boolean;
+};
+
 export type Message = {
   id: string;
   message: string | null;
@@ -38,6 +45,7 @@ export type Message = {
   isPending?: boolean;
   replyTo?: ReplyPreview | null;
   replyDeleted?: boolean;
+  reactions: MessageReaction[];
 };
 
 /** A message freshly sent through sendChatAttachments — carries the original
@@ -182,8 +190,19 @@ export async function fetchMessagePage(params: {
     if (!rError) replyRows = rData ?? [];
   }
 
+  // Batch-fetch reactions for the page (one row per reacting user per message).
+  const messageIds = rows.map((r: any) => r.id as string);
+  let reactionRows: any[] = [];
+  if (messageIds.length > 0) {
+    const { data: reactData, error: reactError } = await supabase
+      .from('chat_reactions')
+      .select('message_id, user_id, emoji')
+      .in('message_id', messageIds);
+    if (!reactError) reactionRows = reactData ?? [];
+  }
+
   return {
-    messages: await mapMessages(rows, params.currentUserId, replyRows),
+    messages: await mapMessages(rows, params.currentUserId, replyRows, reactionRows),
     nextCursor:
       rows.length === pageSize && lastRow
         ? { createdAt: lastRow.created_at, id: lastRow.id }
@@ -542,6 +561,7 @@ export async function sendChatAttachments(params: {
         }),
         createdAt: row.created_at,
         isSent: true,
+        reactions: [],
         localUri: upload?.localUri ?? '',
       };
     });
@@ -611,7 +631,8 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
 export async function mapMessages(
   rows: any[],
   currentUserId: string,
-  replyRows: any[] = []
+  replyRows: any[] = [],
+  reactionRows: any[] = []
 ): Promise<Message[]> {
   const attachmentPaths = rows
     .filter((m) => m.attachment_path)
@@ -627,6 +648,17 @@ export async function mapMessages(
   ]);
 
   const replyById = new Map<string, any>(replyRows.map((r) => [r.id, r]));
+
+  const reactionsByMessageId = new Map<string, MessageReaction[]>();
+  for (const r of reactionRows) {
+    const list = reactionsByMessageId.get(r.message_id) ?? [];
+    list.push({
+      emoji: r.emoji,
+      userId: r.user_id,
+      isMine: r.user_id === currentUserId,
+    });
+    reactionsByMessageId.set(r.message_id, list);
+  }
 
   return rows.map((m) => {
     let replyTo: ReplyPreview | null = null;
@@ -662,8 +694,43 @@ export async function mapMessages(
       isSent: m.sender_id === currentUserId,
       replyTo,
       replyDeleted,
+      reactions: reactionsByMessageId.get(m.id) ?? [],
     };
   });
+}
+
+// ─── Reactions ────────────────────────────────────────────────────────────────
+// One reaction per user per message — setting another emoji replaces the
+// previous row (upsert on the composite primary key).
+
+export async function upsertChatReaction(params: {
+  messageId: string;
+  userId: string;
+  emoji: string;
+}) {
+  const { error } = await supabase.from('chat_reactions').upsert(
+    {
+      message_id: params.messageId,
+      user_id: params.userId,
+      emoji: params.emoji,
+    },
+    { onConflict: 'message_id,user_id' }
+  );
+
+  if (error) throw error;
+}
+
+export async function deleteChatReaction(params: {
+  messageId: string;
+  userId: string;
+}) {
+  const { error } = await supabase
+    .from('chat_reactions')
+    .delete()
+    .eq('message_id', params.messageId)
+    .eq('user_id', params.userId);
+
+  if (error) throw error;
 }
 
 export function buildConversationKey(

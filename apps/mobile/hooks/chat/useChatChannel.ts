@@ -29,6 +29,14 @@ type BroadcastPayload = {
   reply_sender_id?: string | null;
 };
 
+export type ReactionBroadcast = {
+  messageId: string;
+  /** Null when the reaction was removed. */
+  emoji: string | null;
+  sender_id: string;
+  apartment_id: string | null;
+};
+
 type UseChatChannelOptions = {
   currentUserId: string | null;
   otherUserId: string;
@@ -36,11 +44,13 @@ type UseChatChannelOptions = {
   onNewMessage: (msg: Message) => void;
   onOtherUserTypingChange: (isTyping: boolean) => void;
   onMessageDeleted?: (id: string) => void;
+  onReactionChange?: (reaction: ReactionBroadcast) => void;
 };
 
 type BroadcastEvent = { payload: BroadcastPayload };
 type DeletePayload = { id: string; apartment_id: string | null };
 type DeleteEvent = { payload: DeletePayload };
+type ReactionEvent = { payload: ReactionBroadcast };
 type PresenceJoinEvent = { key: string; newPresences: PresenceState[] };
 type PresenceLeaveEvent = { key: string };
 
@@ -51,6 +61,7 @@ export function useChatChannel({
   onNewMessage,
   onOtherUserTypingChange,
   onMessageDeleted,
+  onReactionChange,
 }: UseChatChannelOptions) {
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -58,6 +69,7 @@ export function useChatChannel({
   const onNewMessageRef = useRef(onNewMessage);
   const onOtherUserTypingChangeRef = useRef(onOtherUserTypingChange);
   const onMessageDeletedRef = useRef(onMessageDeleted);
+  const onReactionChangeRef = useRef(onReactionChange);
 
   useEffect(() => {
     onNewMessageRef.current = onNewMessage;
@@ -70,6 +82,10 @@ export function useChatChannel({
   useEffect(() => {
     onMessageDeletedRef.current = onMessageDeleted;
   }, [onMessageDeleted]);
+
+  useEffect(() => {
+    onReactionChangeRef.current = onReactionChange;
+  }, [onReactionChange]);
 
   const teardown = useCallback(() => {
     if (msgChannelRef.current) {
@@ -138,6 +154,7 @@ export function useChatChannel({
           isSent: false,
           replyTo,
           replyDeleted,
+          reactions: [],
         });
       })
       .on('broadcast', { event: 'message_deleted' }, ({ payload }: DeleteEvent) => {
@@ -150,6 +167,22 @@ export function useChatChannel({
         } else if (payload.apartment_id != null) return;
         if (!payload.id) return;
         onMessageDeletedRef.current?.(payload.id);
+      })
+      .on('broadcast', { event: 'message_reacted' }, ({ payload }: ReactionEvent) => {
+        if (payload.sender_id === currentUserId) return;
+        if (!payload.messageId) return;
+        if (apartmentId !== null) {
+          if (payload.apartment_id !== apartmentId) return;
+        } else if (payload.apartment_id != null) return;
+        onReactionChangeRef.current?.(payload);
+      })
+      .on('broadcast', { event: 'reaction_removed' }, ({ payload }: ReactionEvent) => {
+        if (payload.sender_id === currentUserId) return;
+        if (!payload.messageId) return;
+        if (apartmentId !== null) {
+          if (payload.apartment_id !== apartmentId) return;
+        } else if (payload.apartment_id != null) return;
+        onReactionChangeRef.current?.({ ...payload, emoji: null });
       })
       .subscribe((status) => {
         if (msgChannelRef.current === msgChannel) {
@@ -237,6 +270,15 @@ export function useChatChannel({
     []
   );
 
+  const broadcastReaction = useCallback((payload: ReactionBroadcast) => {
+    if (!isSubscribedRef.current || !msgChannelRef.current) return;
+    msgChannelRef.current.send({
+      type: 'broadcast',
+      event: payload.emoji === null ? 'reaction_removed' : 'message_reacted',
+      payload,
+    });
+  }, []);
+
   /** Tracks the current user's presence state (typing / not typing). */
   const trackPresence = useCallback((currentUserId: string, isTyping: boolean) => {
     presenceChannelRef.current?.track({
@@ -246,5 +288,5 @@ export function useChatChannel({
     });
   }, []);
 
-  return { teardown, broadcast, broadcastDelete, trackPresence };
+  return { teardown, broadcast, broadcastDelete, broadcastReaction, trackPresence };
 }

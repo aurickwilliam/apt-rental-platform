@@ -42,14 +42,31 @@ import ChatEmptyState from './components/ChatEmptyState';
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 
 import { Button, Spinner } from 'heroui-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
+import { computeHoldLayout } from '@/app/chat/components/holdLayout';
 import { useChat } from 'hooks/chat';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
+
+function glideHoldShift(
+  shift: SharedValue<number>,
+  prevIdRef: { current: string | null },
+  holdId: string | null,
+  target: number
+) {
+  // Fresh open starts at the origin; later passes (e.g. measured card
+  // height) glide from the current position instead of jumping back.
+  if (prevIdRef.current !== holdId) {
+    prevIdRef.current = holdId;
+    shift.value = 0;
+  }
+  shift.value = withTiming(target, { duration: 200 });
+}
 
 function setScrollButtonVisibility(
   opacity: SharedValue<number>,
@@ -110,9 +127,14 @@ export default function ChatScreen() {
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [activeHold, setActiveHold] = useState<{
     id: string;
+    pageX: number;
     pageY: number;
+    width: number;
     height: number;
   } | null>(null);
+  // Measured card height (estimate until onLayout reports the real one).
+  const [menuH, setMenuH] = useState(400);
+  const insets = useSafeAreaInsets();
   const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
   const [pickerTargetId, setPickerTargetId] = useState<string | null>(null);
   const [rootY, setRootY] = useState(0);
@@ -201,7 +223,12 @@ export default function ChatScreen() {
   }, [scrollToBottom]);
 
   const handleHoldFor = useCallback(
-    (item: Message) => (anchor: { pageY: number; height: number }) => {
+    (item: Message) => (anchor: {
+      pageX: number;
+      pageY: number;
+      width: number;
+      height: number;
+    }) => {
       // The hold stack anchors near the held bubble — dismiss the keyboard
       // so the overlay never fights it for space.
       Keyboard.dismiss();
@@ -259,25 +286,42 @@ export default function ChatScreen() {
     ? (messages.find((m) => m.id === activeHold.id) ?? null)
     : null;
 
-  // Anchor the elevated clone near the held bubble; flip the card above the
-  // clone when there is no room below. Everything stays inside the viewport.
-  const EST_CARD_H = 400;
-  const GAP = 8;
-  const cloneTop =
+  // The menu centers itself in the usable viewport; the elevated clone keeps
+  // the bubble's original position and moves ONLY on menu/viewport collision
+  // (see holdLayout.ts). Unmeasured anchors fall back to viewport center.
+  const usableTop = headerHeight + 8;
+  const usableBottom = screenH - insets.bottom - 90;
+  const bubbleOrigTop =
     activeHold && activeMsg
-      ? Math.max(
-          headerHeight + 8,
-          Math.min(
-            activeHold.pageY < 0 ? screenH / 2 - 160 : activeHold.pageY - rootY,
-            screenH - EST_CARD_H - 120
-          )
-        )
+      ? activeHold.pageY < 0
+        ? usableTop + (usableBottom - usableTop - activeHold.height) / 2
+        : activeHold.pageY - rootY
       : 0;
-  const cloneH = activeHold ? activeHold.height : 0;
-  const cardBelow = cloneTop + cloneH + GAP + EST_CARD_H <= screenH - 90;
-  const cardTop = cardBelow
-    ? cloneTop + cloneH + GAP
-    : Math.max(headerHeight + 8, cloneTop - EST_CARD_H - GAP);
+  const layout =
+    activeHold && activeMsg
+      ? computeHoldLayout(
+          {
+            pageX: activeHold.pageX,
+            pageY: bubbleOrigTop,
+            width: activeHold.width,
+            height: activeHold.height,
+          },
+          menuH,
+          { screenH, usableTop, usableBottom }
+        )
+      : null;
+
+  // Glide the clone from its original position to the fallback position only
+  // when a move is required; zero distance means no visible movement.
+  const holdShift = useSharedValue(0);
+  const holdShiftStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: holdShift.value }],
+  }));
+  const shiftTarget = layout ? layout.bubbleTop - bubbleOrigTop : 0;
+  const prevHoldId = useRef<string | null>(null);
+  useEffect(() => {
+    glideHoldShift(holdShift, prevHoldId, activeHold?.id ?? null, shiftTarget);
+  }, [activeHold, shiftTarget, holdShift]);
 
   const holdData: HoldMenuData | null = activeMsg
     ? {
@@ -643,10 +687,10 @@ export default function ChatScreen() {
         </Pressable>
         {activeMsg && holdData && (
           <>
-            <View
+            <Animated.View
               pointerEvents="none"
               className="absolute inset-x-0 px-4"
-              style={{ top: cloneTop, zIndex: 10, elevation: 10 }}
+              style={[{ top: bubbleOrigTop, zIndex: 10, elevation: 10 }, holdShiftStyle]}
             >
               <View className={`max-w-[80%] ${activeMsg.isSent ? 'self-end' : 'self-start'}`}>
                 <ChatBubbleContent
@@ -664,11 +708,15 @@ export default function ChatScreen() {
                   interactive={false}
                 />
               </View>
-            </View>
+            </Animated.View>
             <View
               pointerEvents="box-none"
               className="absolute inset-x-0 px-6"
-              style={{ top: cardTop, zIndex: 20, elevation: 20 }}
+              style={{ top: layout?.menuTop ?? 0, zIndex: 20, elevation: 20 }}
+              onLayout={(e) => {
+                const h = Math.round(e.nativeEvent.layout.height);
+                setMenuH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+              }}
             >
               <View className={activeMsg.isSent ? 'self-end' : 'self-start'}>
                 <HoldMenu

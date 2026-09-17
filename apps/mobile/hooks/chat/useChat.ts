@@ -10,20 +10,23 @@ import {
 
 import {
   deleteChatMessage,
+  deleteChatReaction,
   fetchMessagePage,
   fetchOtherUserProfile,
   insertMessage,
   markMessagesAsRead,
   resolveMessageType,
   sendChatAttachments,
+  upsertChatReaction,
   type ChatMessageCursor,
   type Message,
+  type MessageReaction,
   type PickedChatAsset,
   type ReplyPreview,
 } from '../../service/chat/chatService';
 import { mergeChatMessages } from '../../service/chat/chatPagination';
 
-import { useChatChannel } from './useChatChannel';
+import { useChatChannel, type ReactionBroadcast } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';
 
 type Options = {
@@ -89,13 +92,31 @@ export function useChat({
     );
   }, []);
 
-  const { broadcast, broadcastDelete, trackPresence } = useChatChannel({
+  const handleReactionChange = useCallback((reaction: ReactionBroadcast) => {
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m.id !== reaction.messageId) return m;
+        const others = m.reactions.filter((r) => r.userId !== reaction.sender_id);
+        if (reaction.emoji === null) return { ...m, reactions: others };
+        return {
+          ...m,
+          reactions: [
+            ...others,
+            { emoji: reaction.emoji, userId: reaction.sender_id, isMine: false },
+          ],
+        };
+      })
+    );
+  }, []);
+
+  const { broadcast, broadcastDelete, broadcastReaction, trackPresence } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
     onNewMessage: handleNewMessage,
     onOtherUserTypingChange: handleOtherUserTypingChange,
     onMessageDeleted: handleMessageDeleted,
+    onReactionChange: handleReactionChange,
   });
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
@@ -188,6 +209,7 @@ export function useChat({
       isSent: true,
       isPending: true,
       replyTo: replyPreview,
+      reactions: [],
     };
 
     setMessages((prev) => mergeChatMessages(prev, [pendingMsg], 'newest'));
@@ -217,6 +239,7 @@ export function useChat({
         createdAt: inserted.created_at,
         isSent: true,
         replyTo: replyPreview,
+        reactions: [],
       };
 
       setMessages((prev) => {
@@ -282,6 +305,7 @@ export function useChat({
         isSent: true,
         isPending: true,
         replyTo: idx === 0 ? replyPreview : null,
+        reactions: [],
       }));
 
       setMessages((prev) => mergeChatMessages(prev, pendingMsgs, 'newest'));
@@ -398,6 +422,53 @@ export function useChat({
       ]);
     },
     [myId, apartmentId, broadcastDelete]
+  );
+
+  /**
+   * One reaction per user per message: tapping your active emoji removes it,
+   * picking another replaces it. Optimistic with rollback + realtime broadcast.
+   */
+  const handleToggleReaction = useCallback(
+    async (messageId: string, emoji: string) => {
+      if (!myId) return;
+      const target = messagesRef.current.find((m) => m.id === messageId);
+      if (!target || target.isPending || messageId.startsWith('temp-')) return;
+
+      const myCurrent = target.reactions.find((r) => r.isMine);
+      const removing = myCurrent?.emoji === emoji;
+      const nextReaction: MessageReaction | null = removing
+        ? null
+        : { emoji, userId: myId, isMine: true };
+
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.id !== messageId) return m;
+          const others = m.reactions.filter((r) => !r.isMine);
+          return { ...m, reactions: nextReaction ? [...others, nextReaction] : others };
+        })
+      );
+
+      try {
+        if (removing) {
+          await deleteChatReaction({ messageId, userId: myId });
+        } else {
+          await upsertChatReaction({ messageId, userId: myId, emoji });
+        }
+        broadcastReaction({
+          messageId,
+          emoji: nextReaction?.emoji ?? null,
+          sender_id: myId,
+          apartment_id: apartmentId,
+        });
+      } catch (err) {
+        console.error('Reaction failed:', err);
+        const snapshot = target.reactions;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, reactions: snapshot } : m))
+        );
+      }
+    },
+    [apartmentId, broadcastReaction, myId]
   );
 
   const loadOlderMessages = useCallback(async () => {
@@ -589,6 +660,7 @@ export function useChat({
     handleReply,
     clearReply,
     handleUnsend,
+    handleToggleReaction,
     handleVisibleMessages,
     retryChatMediaOnce,
     loadOlderMessages,

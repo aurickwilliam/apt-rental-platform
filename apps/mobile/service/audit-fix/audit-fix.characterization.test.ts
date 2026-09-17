@@ -128,6 +128,20 @@ function createTenancyQuery() {
   return query;
 }
 
+function createReactionsQuery() {
+  const query = {
+    select: jest.fn(),
+    in: jest.fn(),
+    then: (resolve: (value: { data: never[]; error: null }) => void, reject: (reason?: unknown) => void) =>
+      Promise.resolve({ data: [], error: null }).then(resolve, reject),
+  };
+
+  query.select.mockReturnValue(query);
+  query.in.mockReturnValue(query);
+
+  return query;
+}
+
 function createPaymentQuery() {
   const query = {
     select: jest.fn(),
@@ -157,6 +171,7 @@ mockFrom.mockImplementation((table: string) => {
   if (table === 'chat') return createChatQuery();
   if (table === 'tenancies') return createTenancyQuery();
   if (table === 'payment') return createPaymentQuery();
+  if (table === 'chat_reactions') return createReactionsQuery();
   throw new Error(`Unexpected table ${table}`);
 });
 mockChannel.mockImplementation(() => {

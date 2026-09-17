@@ -307,7 +307,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       fireEvent(pressable, 'longPress');
 
       expect(onHold).toHaveBeenCalledTimes(1);
-      expect(onHold).toHaveBeenCalledWith({ pageY: 250, height: 60 });
+      expect(onHold).toHaveBeenCalledWith({ pageX: 24, pageY: 250, width: 120, height: 60 });
       expect(onMenuOpenChange).toHaveBeenCalledWith(true);
     } finally {
       spy.mockRestore();

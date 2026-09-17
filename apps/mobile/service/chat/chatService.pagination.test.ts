@@ -54,7 +54,26 @@ function createChatQuery() {
   return query;
 }
 
+function createReactionsQuery() {
+  const query: {
+    select: jest.Mock;
+    in: jest.Mock;
+    then: PromiseLike<{ data: never[]; error: null }>['then'];
+  } = {
+    select: jest.fn(),
+    in: jest.fn(),
+    then: (resolve, reject) =>
+      Promise.resolve({ data: [], error: null }).then(resolve, reject),
+  };
+
+  query.select.mockReturnValue(query);
+  query.in.mockReturnValue(query);
+
+  return query;
+}
+
 mockFrom.mockImplementation((table: string) => {
+  if (table === 'chat_reactions') return createReactionsQuery();
   if (table !== 'chat') throw new Error(`Unexpected table ${table}`);
   return createChatQuery();
 });
@@ -117,6 +136,7 @@ function createMessage(id: string): Message {
     timestamp: '10:00 AM',
     createdAt: new Date().toISOString(),
     isSent: false,
+    reactions: [],
   };
 }
 
