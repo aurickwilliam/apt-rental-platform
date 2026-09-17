@@ -1,32 +1,22 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Modal, Pressable, Text, View, useWindowDimensions, Alert } from 'react-native';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Keyboard, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
 import {
   IconPlayerPlayFilled,
   IconX,
-  IconCopy,
-  IconTrash,
-  IconArrowBackUp,
   IconPhoto,
   IconGif,
 } from '@tabler/icons-react-native';
 
-import { Menu } from 'heroui-native';
-
-import type { MessageType, ReplyPreview } from '@/service/chat/chatService';
+import type { MessageReaction, MessageType, ReplyPreview } from '@/service/chat/chatService';
 
 import { useColors } from '@/hooks/useTheme';
 
 import { isEmojiOnly } from '@/service/chat/chatService';
 
-export interface BubbleLayout {
-  pageX: number;
-  pageY: number;
-  width: number;
-  height: number;
-}
+import { HEART_REACTION } from './reactionEmojis';
 
 interface ChatBubbleProps {
   id?: string;
@@ -44,13 +34,16 @@ interface ChatBubbleProps {
   replyTo?: ReplyPreview | null;
   replyDeleted?: boolean;
   otherUserName?: string;
+  reactions?: MessageReaction[];
   onImagePress?: (uri: string) => void;
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
-  onReply?: () => void;
-  onUnsend?: () => void;
-  onMenuOpenChange?: (open: boolean, layout?: BubbleLayout) => void;
-  /** Incremented by the parent to request the open menu be closed (e.g. floating preview tap). */
-  dismissToken?: number;
+  onReact?: (emoji: string) => void;
+  /** Long-press report with the bubble's window rect for anchoring the hold stack. */
+  onHold?: (anchor: { pageY: number; height: number }) => void;
+  /** Hides the row (opacity-0, layout kept) while its elevated clone shows. */
+  hidden?: boolean;
+  /** @deprecated Use onHold. Kept for compat; fires with (true) on long-press. */
+  onMenuOpenChange?: (open: boolean) => void;
 }
 
 export interface ChatBubbleContentProps {
@@ -64,11 +57,106 @@ export interface ChatBubbleContentProps {
   replyTo?: ReplyPreview | null;
   replyDeleted?: boolean;
   otherUserName?: string;
+  reactions?: MessageReaction[];
   /** false renders a static, non-interactive clone for the floating preview above the blur. */
   interactive?: boolean;
+  /** false disables reaction gestures (e.g. pending messages) while still showing the badge. */
+  canReact?: boolean;
   onImagePress?: (uri: string) => void;
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
   onLongPress?: () => void;
+  onReact?: (emoji: string) => void;
+}
+
+const DOUBLE_TAP_WINDOW_MS = 300;
+
+export function playReactionHaptic() {
+  // Lazy + fire-and-forget, mirroring the expo-clipboard/expo-blur handling below.
+  import('expo-haptics')
+    .then((m) => m?.impactAsync?.(m?.ImpactFeedbackStyle?.Light))
+    .catch(() => {});
+}
+
+/**
+ * Single/double-tap disambiguation for Pressables that already own onPress.
+ * Single tap is deferred by the double-tap window so a double-tap never also
+ * fires the single action (e.g. opening the image viewer).
+ */
+function useDoubleTapPress({
+  onSingleTap,
+  onDoubleTap,
+  disabled = false,
+}: {
+  onSingleTap?: () => void;
+  onDoubleTap: () => void;
+  disabled?: boolean;
+}) {
+  const lastTapRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
+
+  return useCallback(() => {
+    // No reaction handler — preserve plain single-tap behavior with no deferral.
+    if (disabled) {
+      lastTapRef.current = 0;
+      onSingleTap?.();
+      return;
+    }
+    const now = Date.now();
+    if (now - lastTapRef.current < DOUBLE_TAP_WINDOW_MS) {
+      lastTapRef.current = 0;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      onDoubleTap();
+    } else {
+      lastTapRef.current = now;
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        onSingleTap?.();
+      }, DOUBLE_TAP_WINDOW_MS);
+    }
+  }, [disabled, onDoubleTap, onSingleTap]);
+}
+
+/** One circle per reaction, overlapped and pinned to the bubble's bottom-right (both sides). */
+export function ReactionBadge({
+  reactions,
+  isSent = false,
+}: {
+  reactions: MessageReaction[];
+  isSent?: boolean;
+}) {
+  if (reactions.length === 0) return null;
+  const shown = reactions.slice(0, 3);
+  const circleBg = isSent ? 'bg-accent' : 'bg-surface-tertiary';
+  return (
+    <View
+      className="absolute -bottom-3 right-1 z-10 flex-row items-center"
+      accessibilityRole="text"
+      accessibilityLabel={`Reactions: ${shown.map((r) => r.emoji).join(', ')}`}
+    >
+      {shown.map((r, index) => (
+        <View
+          key={r.userId}
+          className={`size-6 rounded-full items-center justify-center border border-border ${circleBg} ${
+            index > 0 ? '-ml-2' : ''
+          }`}
+        >
+          <Text className="text-xs text-center" style={{ lineHeight: 14, textAlignVertical: 'center' }}>
+            {r.emoji}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 const ATTACHMENT_BORDER_RADIUS = 18;
@@ -95,7 +183,7 @@ function calculateImageSize(
   };
 }
 
-function formatHoldDate(iso?: string): string {
+export function formatHoldDate(iso?: string): string {
   if (!iso) return '';
   try {
     const d = new Date(iso);
@@ -148,7 +236,7 @@ export function BlurBackdrop({ isDark }: { isDark: boolean }) {
     return (
       <BlurViewComp
         tint={isDark ? 'dark' : 'light'}
-        intensity={25}
+        intensity={60}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         pointerEvents="none"
       />
@@ -157,7 +245,7 @@ export function BlurBackdrop({ isDark }: { isDark: boolean }) {
   return null;
 }
 
-/** Pure bubble body shared by the list row and the floating preview above the blur. */
+/** Pure bubble body shared by the list row and the elevated clone above the backdrop. */
 export function ChatBubbleContent({
   message,
   messageType = 'text',
@@ -169,10 +257,13 @@ export function ChatBubbleContent({
   replyTo = null,
   replyDeleted = false,
   otherUserName,
+  reactions = [],
   interactive = true,
+  canReact = true,
   onImagePress,
   onMediaLoadError,
   onLongPress,
+  onReact,
 }: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -256,7 +347,7 @@ export function ChatBubbleContent({
       )}
       {quoteBlock}
       {isVideo ? (
-        <View className={replyOverlap}>
+        <View className={`relative ${replyOverlap}`}>
           <VideoBubble
             uri={attachmentUrl!}
             thumbnailUrl={thumbnailUrl}
@@ -264,10 +355,13 @@ export function ChatBubbleContent({
             onMediaLoadError={interactive ? onMediaLoadError : undefined}
             onLongPress={interactive ? onLongPress : undefined}
             interactive={interactive}
+            canReact={interactive && canReact}
+            onReact={interactive ? onReact : undefined}
           />
+          <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : isVisualMedia ? (
-        <View className={replyOverlap}>
+        <View className={`relative ${replyOverlap}`}>
           <VisualMediaBubble
             uri={attachmentUrl!}
             attachmentPath={attachmentPath}
@@ -277,10 +371,13 @@ export function ChatBubbleContent({
             screenWidth={screenWidth}
             colors={colors}
             interactive={interactive}
+            canReact={interactive && canReact}
+            onReact={interactive ? onReact : undefined}
           />
+          <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : isBrokenAttachment ? (
-        <View className={replyOverlap}>
+        <View className={`relative ${replyOverlap}`}>
           <View
             style={{
               width: ATTACHMENT_MAX_WIDTH,
@@ -291,14 +388,17 @@ export function ChatBubbleContent({
           >
             <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
           </View>
+          <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : isEmojiMessage ? (
-        <View className={replyOverlap}>
+        <View className={`relative ${replyOverlap}`}>
           <Text style={{ fontSize }}>{message}</Text>
+          <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : (
-        <View className={`px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}>
+        <View className={`relative px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}>
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
+          <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       )}
     </>
@@ -319,192 +419,99 @@ export default function ChatBubble({
   replyTo = null,
   replyDeleted = false,
   otherUserName,
+  reactions = [],
   onImagePress,
   onMediaLoadError,
-  onReply,
-  onUnsend,
+  onReact,
+  onHold,
+  hidden = false,
   onMenuOpenChange,
-  dismissToken = 0,
 }: ChatBubbleProps) {
-  const { colors } = useColors();
-  const [menuVisible, setMenuVisible] = useState(false);
-  const allowOpenRef = useRef(false);
-  const triggerRef = useRef<any>(null);
-  // Own wrapper View for measuring the bubble rect. It sits OUTSIDE the Menu
-  // Slot on purpose: the Slot reads children.ref, which throws on React 19
-  // ("Accessing element.ref was removed"), and triggerRef is an augmented
-  // plain object whose detached measure methods lose their native binding.
-  // collapsable={false} keeps the native view around on Android so measuring
-  // always resolves.
-  const wrapRef = useRef<any>(null);
+  const onHoldRef = useRef(onHold);
   const onMenuOpenChangeRef = useRef(onMenuOpenChange);
-  // Latest-ref kept fresh in an effect (runs before any event handler reads it).
+  // Latest-refs kept fresh in an effect (runs before any event handler reads them).
   useEffect(() => {
+    onHoldRef.current = onHold;
     onMenuOpenChangeRef.current = onMenuOpenChange;
   });
+
+  const rowRef = useRef<View>(null);
 
   const rowAlignment = isSent ? 'self-end' : 'self-start';
   const contentAlignment = isSent ? 'items-end' : 'items-start';
 
-  const canCopy = messageType === 'text' && !!message && !isPending;
-  const canUnsend = isSent && !isPending;
-  const formattedDate = useMemo(() => formatHoldDate(createdAt), [createdAt]);
+  const canReact = !isPending && !!onReact;
 
-  const gatedSetOpen = useCallback((next: boolean) => {
-    if (next && !allowOpenRef.current) return;
-    allowOpenRef.current = false;
-    setMenuVisible(next);
-    if (!next) {
-      onMenuOpenChangeRef.current?.(false);
-    }
-  }, []);
+  const handleDoubleTap = useCallback(() => {
+    playReactionHaptic();
+    onReact?.(HEART_REACTION);
+  }, [onReact]);
 
+  // Text/quote taps land on the row Pressable (media taps are consumed by the
+  // inner media Pressables, which run their own double-tap disambiguation).
+  const handleRowPress = useDoubleTapPress({
+    onDoubleTap: handleDoubleTap,
+    disabled: !canReact,
+  });
+
+  // Long-press measures the row's window rect so the parent can anchor the
+  // hold stack near the held message. Single taps never report a hold.
   const handleLongPress = useCallback(() => {
-    const trigger = triggerRef.current as any;
-    // Open immediately — the menu must never depend on the measure callback
-    // (if it never resolves, the menu would silently fail to open at all).
-    // The parent first shows blur-only, then upgrades to the floating clone
-    // once this rect lands.
-    allowOpenRef.current = true;
-    onMenuOpenChangeRef.current?.(true);
-    trigger?.open?.();
-    try {
-      const target = wrapRef.current as any;
-      target?.measureInWindow?.((x: number, y: number, width: number, height: number) => {
-        if (
-          typeof x === 'number' &&
-          typeof y === 'number' &&
-          typeof width === 'number' &&
-          typeof height === 'number' &&
-          width > 0 &&
-          height > 0
-        ) {
-          onMenuOpenChangeRef.current?.(true, { pageX: x, pageY: y, width, height });
-        }
-      });
-    } catch {
-      // Measure unavailable — parent stays on blur-only (previous behavior).
-    }
-  }, []);
-
-  // Parent-driven dismiss (floating preview tap, scroll, keyboard). Routes
-  // through the trigger so Menu clears its internal triggerPosition too.
-  const dismissTokenRef = useRef(dismissToken);
-  useEffect(() => {
-    if (dismissToken !== dismissTokenRef.current) {
-      dismissTokenRef.current = dismissToken;
-      if (menuVisible) {
-        try {
-          triggerRef.current?.close?.();
-        } catch {
-          // Fall through — the Menu.Overlay outside-tap also closes.
-        }
-      }
-    }
-  }, [dismissToken, menuVisible]);
-
-  const handleCopy = useCallback(async () => {
-    if (!canCopy || !message) return;
-    try {
-      let copied = false;
+    playReactionHaptic();
+    Keyboard.dismiss();
+    const target = rowRef.current as unknown as {
+      measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void;
+    } | null;
+    const measure = target?.measureInWindow;
+    if (typeof measure !== 'function') {
+      // Fallback (e.g. no native view): open unanchored, parent centers the stack.
+      onHoldRef.current?.({ pageY: -1, height: 0 });
+    } else {
       try {
-        const Clipboard = await import('expo-clipboard');
-        if (Clipboard?.setStringAsync) {
-          await Clipboard.setStringAsync(message);
-          copied = true;
-        }
+        measure.call(target, (_x, pageY, _w, height) => {
+          onHoldRef.current?.({ pageY, height });
+        });
       } catch {
-        // native module missing — fall through to web fallback
+        onHoldRef.current?.({ pageY: -1, height: 0 });
       }
-      if (!copied && typeof navigator !== 'undefined' && (navigator as unknown as { clipboard?: { writeText?: (t: string) => Promise<void> } }).clipboard?.writeText) {
-        await (navigator as unknown as { clipboard: { writeText: (t: string) => Promise<void> } }).clipboard.writeText(message);
-        copied = true;
-      }
-      if (!copied) {
-        Alert.alert('Copied', message);
-      }
-    } catch {
-      Alert.alert('Copy failed', 'Unable to copy message.');
     }
-  }, [canCopy, message]);
-
-  const handleReplyPress = useCallback(() => {
-    if (onReply) onReply();
-    else Alert.alert('Reply', 'Reply is coming soon.');
-  }, [onReply]);
-
-  const handleUnsendPress = useCallback(() => {
-    if (!canUnsend) return;
-    if (onUnsend) onUnsend();
-    else Alert.alert('Unsend', 'Unsend will be available soon.');
-  }, [canUnsend, onUnsend]);
+    onMenuOpenChangeRef.current?.(true);
+  }, []);
 
   return (
-    <Menu isOpen={menuVisible} onOpenChange={gatedSetOpen}>
-        <View
-          ref={wrapRef}
-          collapsable={false}
-          className={`max-w-[80%] mb-4 ${rowAlignment}`}
-        >
-        <Menu.Trigger ref={triggerRef} asChild>
-          <Pressable
-            onLongPress={handleLongPress}
-            delayLongPress={350}
-            className={`w-full ${contentAlignment}`}
-            android_ripple={undefined}
-          >
-            <ChatBubbleContent
-              message={message}
-              messageType={messageType}
-              attachmentUrl={attachmentUrl}
-              attachmentPath={attachmentPath}
-              thumbnailUrl={thumbnailUrl}
-              thumbnailPath={thumbnailPath}
-              isSent={isSent}
-              replyTo={replyTo}
-              replyDeleted={replyDeleted}
-              otherUserName={otherUserName}
-              interactive
-              onImagePress={onImagePress}
-              onMediaLoadError={onMediaLoadError}
-              onLongPress={handleLongPress}
-            />
-          </Pressable>
-        </Menu.Trigger>
-        </View>
-        <Menu.Portal>
-          <Menu.Overlay className="bg-transparent" />
-        <Menu.Content
-          presentation="popover"
-          placement="top"
-          align={isSent ? 'end' : 'start'}
-          offset={8}
-          width="content-fit"
-          className="rounded-[20px] px-2 py-2 min-w-50"
-        >
-          <Menu.Label className="text-center text-[13px]">{formattedDate || 'Just now'}</Menu.Label>
-          <Menu.Item onPress={handleReplyPress}>
-            <IconArrowBackUp size={22} color={colors.textPrimary} />
-            <Menu.ItemTitle>Reply</Menu.ItemTitle>
-          </Menu.Item>
-          <Menu.Item onPress={handleCopy} isDisabled={!canCopy}>
-            <IconCopy size={22} color={colors.textPrimary} />
-            <Menu.ItemTitle>Copy</Menu.ItemTitle>
-          </Menu.Item>
-          {canUnsend ? (
-            <Menu.Item onPress={handleUnsendPress} variant="danger">
-              <IconTrash size={22} color={colors.danger} />
-              <Menu.ItemTitle>Unsend</Menu.ItemTitle>
-            </Menu.Item>
-          ) : (
-            <Menu.Item isDisabled>
-              <IconTrash size={22} color={colors.gray400} />
-              <Menu.ItemTitle>Unsend</Menu.ItemTitle>
-            </Menu.Item>
-          )}
-        </Menu.Content>
-        </Menu.Portal>
-    </Menu>
+    <View
+      ref={rowRef}
+      collapsable={false}
+      className={`max-w-[80%] mb-4 ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+    >
+      <Pressable
+        onPress={handleRowPress}
+        onLongPress={handleLongPress}
+        delayLongPress={350}
+        className={`w-full ${contentAlignment}`}
+        android_ripple={undefined}
+      >
+        <ChatBubbleContent
+          message={message}
+          messageType={messageType}
+          attachmentUrl={attachmentUrl}
+          attachmentPath={attachmentPath}
+          thumbnailUrl={thumbnailUrl}
+          thumbnailPath={thumbnailPath}
+          isSent={isSent}
+          replyTo={replyTo}
+          replyDeleted={replyDeleted}
+          otherUserName={otherUserName}
+          reactions={reactions}
+          interactive
+          canReact={canReact}
+          onImagePress={onImagePress}
+          onMediaLoadError={onMediaLoadError}
+          onLongPress={handleLongPress}
+          onReact={onReact}
+        />
+      </Pressable>
+    </View>
   );
 }
 
@@ -518,6 +525,8 @@ function VisualMediaBubble({
   screenWidth,
   colors,
   interactive = true,
+  canReact = true,
+  onReact,
 }: {
   uri: string;
   attachmentPath?: string | null;
@@ -527,6 +536,8 @@ function VisualMediaBubble({
   screenWidth: number;
   colors: Record<string, string>;
   interactive?: boolean;
+  canReact?: boolean;
+  onReact?: (emoji: string) => void;
 }) {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
 
@@ -560,12 +571,23 @@ function VisualMediaBubble({
     />
   );
 
+  const handleDoubleTap = useCallback(() => {
+    playReactionHaptic();
+    onReact?.(HEART_REACTION);
+  }, [onReact]);
+
+  const handlePress = useDoubleTapPress({
+    onSingleTap: () => onImagePress?.(uri),
+    onDoubleTap: handleDoubleTap,
+    disabled: !canReact,
+  });
+
   if (!interactive) {
     return <View>{imageNode}</View>;
   }
 
   return (
-    <Pressable onPress={() => onImagePress?.(uri)} onLongPress={onLongPress} delayLongPress={350}>
+    <Pressable onPress={handlePress} onLongPress={onLongPress} delayLongPress={350}>
       {imageNode}
     </Pressable>
   );
@@ -579,6 +601,8 @@ function VideoBubble({
   onMediaLoadError,
   onLongPress,
   interactive = true,
+  canReact = true,
+  onReact,
 }: {
   uri: string;
   thumbnailUrl?: string | null;
@@ -586,9 +610,22 @@ function VideoBubble({
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
   onLongPress?: () => void;
   interactive?: boolean;
+  canReact?: boolean;
+  onReact?: (emoji: string) => void;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  const handleDoubleTap = useCallback(() => {
+    playReactionHaptic();
+    onReact?.(HEART_REACTION);
+  }, [onReact]);
+
+  const handlePress = useDoubleTapPress({
+    onSingleTap: () => setIsPlaying(true),
+    onDoubleTap: handleDoubleTap,
+    disabled: !canReact,
+  });
 
   const handleLoad = useCallback((event: ImageLoadEventData) => {
     const { width, height } = event.source;
@@ -638,7 +675,7 @@ function VideoBubble({
   return (
     <>
       <Pressable
-        onPress={() => setIsPlaying(true)}
+        onPress={handlePress}
         onLongPress={onLongPress}
         delayLongPress={350}
         accessibilityRole="button"

@@ -1,15 +1,17 @@
 import {
   View,
+  Pressable,
   KeyboardAvoidingView,
   FlatList,
-  Pressable,
-  StyleSheet,
   Keyboard,
+  Alert,
   LayoutChangeEvent,
+  useWindowDimensions,
   type ViewToken,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import Animated, {
@@ -20,15 +22,19 @@ import Animated, {
 } from 'react-native-reanimated';
 import ImageViewing from "react-native-image-viewing";
 
-import { IconArrowDown } from '@tabler/icons-react-native';
+import {
+  IconArrowDown,
+} from '@tabler/icons-react-native';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
 import ChatHeader from '@/app/chat/components/ChatHeader';
 import ChatBubble, {
   BlurBackdrop,
   ChatBubbleContent,
-  type BubbleLayout,
+  formatHoldDate,
+  playReactionHaptic,
 } from '@/app/chat/components/ChatBubble';
+import HoldMenu, { type HoldMenuData } from '@/app/chat/components/HoldMenu';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
@@ -44,14 +50,6 @@ import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
-
-type ActiveMenuState = {
-  id: string;
-  /** Window-relative rect measured on long-press; null falls back to blur-only. */
-  layout: BubbleLayout | null;
-  /** Snapshot at open time; the live row is re-resolved from messages each render. */
-  message: Message;
-};
 
 function setScrollButtonVisibility(
   opacity: SharedValue<number>,
@@ -100,18 +98,24 @@ function generateStagedId() {
 
 export default function ChatScreen() {
   const { colors, isDark } = useColors();
+  const { height: screenH } = useWindowDimensions();
 
   const flatListRef = useRef<FlatList>(null);
+  const rootRef = useRef<View>(null);
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pendingAssets, setPendingAssets] = useState<StagedAsset[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(true);
-  const [activeMenu, setActiveMenu] = useState<ActiveMenuState | null>(null);
-  const [dismissToken, setDismissToken] = useState(0);
-  const [containerOrigin, setContainerOrigin] = useState({ pageX: 0, pageY: 0 });
-  const containerRef = useRef<View>(null);
+  const [activeHold, setActiveHold] = useState<{
+    id: string;
+    pageY: number;
+    height: number;
+  } | null>(null);
+  const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
+  const [pickerTargetId, setPickerTargetId] = useState<string | null>(null);
+  const [rootY, setRootY] = useState(0);
   const isNearBottomRef = useRef(true);
 
   const scrollButtonOpacity = useSharedValue(0);
@@ -144,6 +148,7 @@ export default function ChatScreen() {
     handleReply,
     clearReply,
     handleUnsend,
+    handleToggleReaction,
     handleInputBlur,
     handleVisibleMessages,
     retryChatMediaOnce,
@@ -195,95 +200,149 @@ export default function ChatScreen() {
     }
   }, [scrollToBottom]);
 
-  /** Window origin of the overlay container, so window-relative bubble rects map to overlay coords. */
-  const refreshContainerOrigin = useCallback(() => {
-    try {
-      containerRef.current?.measureInWindow((x: number, y: number) => {
-        if (typeof x === 'number' && typeof y === 'number') {
-          setContainerOrigin((prev) => (prev.pageX === x && prev.pageY === y ? prev : { pageX: x, pageY: y }));
-        }
-      });
-    } catch {
-      // Non-fatal — preview falls back to the last known origin.
-    }
-  }, []);
-
-  const handleOuterLayout = useCallback(() => {
-    refreshContainerOrigin();
-  }, [refreshContainerOrigin]);
-
-  /** Closes the hold-menu and returns the convo to normal (blur + preview + popover all gone). */
-  const requestDismissActiveMenu = useCallback(() => {
-    setDismissToken((t) => t + 1);
-    setActiveMenu(null);
-  }, []);
-
-  const handleMenuOpenChangeFor = useCallback(
-    (item: Message) => (open: boolean, layout?: BubbleLayout) => {
-      if (open) {
-        if (layout) {
-          // Measure the overlay container fresh, then commit origin + rect
-          // together so the floating clone is positioned correctly on its
-          // very first frame (no stale-origin flicker, no off-screen clone).
-          try {
-            containerRef.current?.measureInWindow((cx: number, cy: number) => {
-              if (typeof cx === 'number' && typeof cy === 'number') {
-                setContainerOrigin({ pageX: cx, pageY: cy });
-              }
-              setActiveMenu({ id: item.id, layout, message: item });
-            });
-          } catch {
-            setActiveMenu({ id: item.id, layout, message: item });
-          }
-        } else {
-          // Measure failed — fall back to blur-only (previous behavior).
-          setActiveMenu({ id: item.id, layout: null, message: item });
-        }
-      } else {
-        setActiveMenu((prev) => (prev && prev.id === item.id ? null : prev));
-      }
+  const handleHoldFor = useCallback(
+    (item: Message) => (anchor: { pageY: number; height: number }) => {
+      // The hold stack anchors near the held bubble — dismiss the keyboard
+      // so the overlay never fights it for space.
+      Keyboard.dismiss();
+      setActiveHold({ id: item.id, ...anchor });
     },
     []
   );
 
-  // Resolve the live row each render so the floating clone never shows a stale
-  // snapshot; if the row is gone (e.g. unsent elsewhere), drop back to normal.
-  const activeLiveMessage = activeMenu
-    ? (messages.find((m) => m.id === activeMenu.id) ?? null)
-    : null;
-  // Render-phase adjustment (same trigger as the effect it replaces): when the
-  // live row disappears, drop back to normal without a cascading render.
-  const liveKey = activeMenu ? `${activeMenu.id}:${activeLiveMessage ? '1' : '0'}` : 'none';
-  const [prevLiveKey, setPrevLiveKey] = useState(liveKey);
-  if (liveKey !== prevLiveKey) {
-    setPrevLiveKey(liveKey);
-    if (activeMenu && !activeLiveMessage) setActiveMenu(null);
-  }
-  const previewMessage = activeLiveMessage ?? activeMenu?.message ?? null;
+  const handleStripPickerSelected = useCallback(
+    ({ emoji }: EmojiType) => {
+      const targetId = pickerTargetId ?? activeHold?.id;
+      const target = targetId ? messages.find((m) => m.id === targetId) : null;
+      if (target && !target.isPending && !target.id.startsWith('temp-')) {
+        playReactionHaptic();
+        void handleToggleReaction(target.id, emoji);
+      }
+      setIsReactionPickerOpen(false);
+      setPickerTargetId(null);
+      setActiveHold(null);
+    },
+    [pickerTargetId, activeHold, messages, handleToggleReaction]
+  );
 
-  // Any scroll, keyboard pop, or list growth while a menu is open would slide
-  // the original bubble out from under the floating clone — dismiss instead.
+  // Any scroll, keyboard pop, or list growth while the hold stack is open dismisses it.
   const handleScrollBeginDrag = useCallback(() => {
-    setDismissToken((t) => t + 1);
-    setActiveMenu(null);
+    setActiveHold(null);
   }, []);
 
   useEffect(() => {
-    if (!activeMenu) return;
+    if (!activeHold) return;
     const sub = Keyboard.addListener('keyboardDidShow', () => {
-      setActiveMenu(null);
+      setActiveHold(null);
     });
     return () => sub.remove();
-  }, [activeMenu]);
+  }, [activeHold]);
 
   const messageCount = messages.length;
   const messageCountRef = useRef(messageCount);
   useEffect(() => {
     if (messageCountRef.current !== messageCount) {
       messageCountRef.current = messageCount;
-      setActiveMenu(null);
+      setActiveHold(null);
     }
   }, [messageCount]);
+
+  // Window Y of the screen root, so the measured bubble rect (window coords)
+  // converts to overlay-local coords. Re-measured when the header lays out.
+  useEffect(() => {
+    (rootRef.current as unknown as {
+      measureInWindow?: (cb: (x: number, y: number) => void) => void;
+    } | null)?.measureInWindow?.((_x, y) => setRootY(y));
+  }, [headerHeight]);
+
+  const activeMsg = activeHold
+    ? (messages.find((m) => m.id === activeHold.id) ?? null)
+    : null;
+
+  // Anchor the elevated clone near the held bubble; flip the card above the
+  // clone when there is no room below. Everything stays inside the viewport.
+  const EST_CARD_H = 400;
+  const GAP = 8;
+  const cloneTop =
+    activeHold && activeMsg
+      ? Math.max(
+          headerHeight + 8,
+          Math.min(
+            activeHold.pageY < 0 ? screenH / 2 - 160 : activeHold.pageY - rootY,
+            screenH - EST_CARD_H - 120
+          )
+        )
+      : 0;
+  const cloneH = activeHold ? activeHold.height : 0;
+  const cardBelow = cloneTop + cloneH + GAP + EST_CARD_H <= screenH - 90;
+  const cardTop = cardBelow
+    ? cloneTop + cloneH + GAP
+    : Math.max(headerHeight + 8, cloneTop - EST_CARD_H - GAP);
+
+  const holdData: HoldMenuData | null = activeMsg
+    ? {
+        myReaction: activeMsg.reactions.find((r) => r.isMine)?.emoji,
+        dateLabel: formatHoldDate(activeMsg.createdAt),
+        canReact: !activeMsg.isPending && !activeMsg.id.startsWith('temp-'),
+        canCopy: activeMsg.messageType === 'text' && !!activeMsg.message,
+        canUnsend: activeMsg.isSent && !activeMsg.isPending,
+      }
+    : null;
+
+  const handleHoldReact = useCallback(
+    (emoji: string) => {
+      if (!activeMsg) return;
+      playReactionHaptic();
+      void handleToggleReaction(activeMsg.id, emoji);
+      setActiveHold(null);
+    },
+    [activeMsg, handleToggleReaction]
+  );
+
+  const handleHoldPicker = useCallback(() => {
+    if (!activeMsg) return;
+    setPickerTargetId(activeMsg.id);
+    setIsReactionPickerOpen(true);
+  }, [activeMsg]);
+
+  const handleHoldReply = useCallback(() => {
+    if (!activeMsg) return;
+    handleReply(activeMsg);
+    setActiveHold(null);
+  }, [activeMsg, handleReply]);
+
+  const handleHoldCopy = useCallback(async () => {
+    if (!activeMsg?.message) return;
+    const text = activeMsg.message;
+    setActiveHold(null);
+    try {
+      let copied = false;
+      try {
+        const Clipboard = await import('expo-clipboard');
+        if (Clipboard?.setStringAsync) {
+          await Clipboard.setStringAsync(text);
+          copied = true;
+        }
+      } catch {
+        // native module missing — fall through to web fallback
+      }
+      if (!copied && typeof navigator !== 'undefined' && (navigator as unknown as { clipboard?: { writeText?: (t: string) => Promise<void> } }).clipboard?.writeText) {
+        await (navigator as unknown as { clipboard: { writeText: (t: string) => Promise<void> } }).clipboard.writeText(text);
+        copied = true;
+      }
+      if (!copied) {
+        Alert.alert('Copied', text);
+      }
+    } catch {
+      Alert.alert('Copy failed', 'Unable to copy message.');
+    }
+  }, [activeMsg]);
+
+  const handleHoldUnsend = useCallback(() => {
+    if (!activeMsg) return;
+    setActiveHold(null);
+    void handleUnsend(activeMsg.id);
+  }, [activeMsg, handleUnsend]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     opacity: scrollButtonOpacity.value,
@@ -410,8 +469,45 @@ export default function ChatScreen() {
     [selectedImage]
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: Message }) => (
+      <ChatBubble
+        id={item.id}
+        message={item.message}
+        messageType={item.messageType}
+        attachmentUrl={item.attachmentUrl}
+        attachmentPath={item.attachmentPath}
+        attachmentMimeType={item.attachmentMimeType}
+        thumbnailPath={item.thumbnailPath}
+        thumbnailUrl={item.thumbnailUrl}
+        timestamp={item.timestamp}
+        createdAt={item.createdAt}
+        isSent={item.isSent}
+        isPending={item.isPending}
+        replyTo={item.replyTo}
+        replyDeleted={item.replyDeleted}
+        otherUserName={otherUserName}
+        reactions={item.reactions}
+        onReact={(emoji) => handleToggleReaction(item.id, emoji)}
+        onHold={handleHoldFor(item)}
+        hidden={activeHold?.id === item.id}
+        onImagePress={setSelectedImage}
+        onMediaLoadError={(mediaKind) => {
+          void retryChatMediaOnce(item.id, mediaKind);
+        }}
+      />
+    ),
+    [
+      otherUserName,
+      handleToggleReaction,
+      handleHoldFor,
+      activeHold,
+      retryChatMediaOnce,
+    ]
+  );
+
   return (
-    <View ref={containerRef} onLayout={handleOuterLayout} className="flex-1">
+    <View ref={rootRef} collapsable={false} className="flex-1">
     <ScreenWrapper
       dismissKeyboardOnTouch={false}
       header={
@@ -440,33 +536,7 @@ export default function ChatScreen() {
               className="flex-1"
               data={messages}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <ChatBubble
-                  id={item.id}
-                  message={item.message}
-                  messageType={item.messageType}
-                  attachmentUrl={item.attachmentUrl}
-                  attachmentPath={item.attachmentPath}
-                  attachmentMimeType={item.attachmentMimeType}
-                  thumbnailPath={item.thumbnailPath}
-                  thumbnailUrl={item.thumbnailUrl}
-                  timestamp={item.timestamp}
-                  createdAt={item.createdAt}
-                  isSent={item.isSent}
-                  isPending={item.isPending}
-                  replyTo={item.replyTo}
-                  replyDeleted={item.replyDeleted}
-                  otherUserName={otherUserName}
-                  onImagePress={setSelectedImage}
-                  onMediaLoadError={(mediaKind) => {
-                    void retryChatMediaOnce(item.id, mediaKind);
-                  }}
-                  onReply={() => handleReply(item)}
-                  onUnsend={() => handleUnsend(item.id)}
-                  onMenuOpenChange={handleMenuOpenChangeFor(item)}
-                  dismissToken={dismissToken}
-                />
-              )}
+              renderItem={renderItem}
               contentContainerStyle={
                 messages.length === 0
                   ? { flexGrow: 1, justifyContent: 'center' }
@@ -499,7 +569,6 @@ export default function ChatScreen() {
               onEndReachedThreshold={0.2}
               onScroll={handleScroll}
               onScrollBeginDrag={handleScrollBeginDrag}
-              scrollEnabled={activeMenu === null}
               scrollEventThrottle={16}
             />
           </View>
@@ -557,41 +626,73 @@ export default function ChatScreen() {
         onSelect={handleGifSelected}
       />
     </ScreenWrapper>
-    {activeMenu !== null && (
-      <View style={[StyleSheet.absoluteFill, { zIndex: 50, elevation: 50 }]} pointerEvents="none">
-        <BlurBackdrop isDark={isDark} />
-      </View>
-    )}
-    {activeMenu?.layout && previewMessage && (
-      <View style={[StyleSheet.absoluteFill, { zIndex: 51, elevation: 51 }]} pointerEvents="box-none">
+    {activeHold !== null && (
+      <View
+        className="absolute inset-0"
+        style={{ zIndex: 40, elevation: 40 }}
+        pointerEvents="box-none"
+      >
         <Pressable
-          onPress={requestDismissActiveMenu}
+          onPress={() => setActiveHold(null)}
           accessibilityRole="button"
           accessibilityLabel="Dismiss message menu"
-          style={{
-            position: 'absolute',
-            top: Math.max(0, activeMenu.layout.pageY - containerOrigin.pageY),
-            left: Math.max(0, activeMenu.layout.pageX - containerOrigin.pageX),
-            width: activeMenu.layout.width,
-            alignItems: previewMessage.isSent ? 'flex-end' : 'flex-start',
-          }}
+          className="absolute inset-0"
+          style={{ zIndex: 0, elevation: 0 }}
         >
-          <ChatBubbleContent
-            message={previewMessage.message}
-            messageType={previewMessage.messageType}
-            attachmentUrl={previewMessage.attachmentUrl}
-            attachmentPath={previewMessage.attachmentPath}
-            thumbnailUrl={previewMessage.thumbnailUrl}
-            thumbnailPath={previewMessage.thumbnailPath}
-            isSent={previewMessage.isSent}
-            replyTo={previewMessage.replyTo}
-            replyDeleted={previewMessage.replyDeleted}
-            otherUserName={otherUserName}
-            interactive={false}
-          />
+          <BlurBackdrop isDark={isDark} />
         </Pressable>
+        {activeMsg && holdData && (
+          <>
+            <View
+              pointerEvents="none"
+              className="absolute inset-x-0 px-4"
+              style={{ top: cloneTop, zIndex: 10, elevation: 10 }}
+            >
+              <View className={`max-w-[80%] ${activeMsg.isSent ? 'self-end' : 'self-start'}`}>
+                <ChatBubbleContent
+                  message={activeMsg.message}
+                  messageType={activeMsg.messageType}
+                  attachmentUrl={activeMsg.attachmentUrl}
+                  attachmentPath={activeMsg.attachmentPath}
+                  thumbnailUrl={activeMsg.thumbnailUrl}
+                  thumbnailPath={activeMsg.thumbnailPath}
+                  isSent={activeMsg.isSent}
+                  replyTo={activeMsg.replyTo}
+                  replyDeleted={activeMsg.replyDeleted}
+                  otherUserName={otherUserName}
+                  reactions={activeMsg.reactions}
+                  interactive={false}
+                />
+              </View>
+            </View>
+            <View
+              pointerEvents="box-none"
+              className="absolute inset-x-0 px-6"
+              style={{ top: cardTop, zIndex: 20, elevation: 20 }}
+            >
+              <View className={activeMsg.isSent ? 'self-end' : 'self-start'}>
+                <HoldMenu
+                  data={holdData}
+                  onSelectReaction={handleHoldReact}
+                  onOpenFullPicker={handleHoldPicker}
+                  onReply={handleHoldReply}
+                  onCopy={handleHoldCopy}
+                  onUnsend={handleHoldUnsend}
+                />
+              </View>
+            </View>
+          </>
+        )}
       </View>
     )}
+    <EmojiPicker
+      open={isReactionPickerOpen}
+      onClose={() => {
+        setIsReactionPickerOpen(false);
+        setPickerTargetId(null);
+      }}
+      onEmojiSelected={handleStripPickerSelected}
+    />
     </View>
   );
 }

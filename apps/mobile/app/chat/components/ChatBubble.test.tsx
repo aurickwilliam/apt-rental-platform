@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import ChatBubble, { ChatBubbleContent } from './ChatBubble';
@@ -44,30 +43,6 @@ jest.mock('expo-clipboard', () => ({
   setStringAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('heroui-native', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View, Pressable, Text } = jest.requireActual<typeof import('react-native')>('react-native');
-  const MockMenu = ({ children }: any) => React.createElement(View, null, children);
-  (MockMenu as any).Trigger = React.forwardRef(({ children }: any, ref: any) => {
-    React.useImperativeHandle(ref, () => ({ open: jest.fn(), close: jest.fn() }));
-    return React.createElement(View, null, children);
-  });
-  (MockMenu as any).Portal = ({ children }: any) => React.createElement(View, null, children);
-  (MockMenu as any).Overlay = (props: any) => React.createElement(View, props);
-  (MockMenu as any).Content = ({ children }: any) => React.createElement(View, null, children);
-  (MockMenu as any).Label = (props: any) => React.createElement(Text, props, props.children);
-  (MockMenu as any).Item = ({ children, onPress, isDisabled }: any) =>
-    React.createElement(Pressable, { onPress: isDisabled ? undefined : onPress }, children);
-  (MockMenu as any).ItemTitle = (props: any) => React.createElement(Text, props, props.children);
-  return { Menu: MockMenu };
-});
-
-jest.mock('expo-blur', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
-  return { BlurView: (props: any) => React.createElement(View, props) };
-});
-
 jest.mock('@/service/chat/chatService', () => ({
   isEmojiOnly: () => false,
 }));
@@ -85,8 +60,20 @@ jest.mock('@tabler/icons-react-native', () => {
     IconClock: mockIcon,
     IconPhoto: mockIcon,
     IconGif: mockIcon,
+    IconPlus: mockIcon,
   };
 });
+
+jest.mock('rn-emoji-keyboard', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return { __esModule: true, default: () => React.createElement(View) };
+});
+
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn().mockResolvedValue(undefined),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
 
 describe('ChatBubble video playback', () => {
   beforeEach(() => {
@@ -214,24 +201,158 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('Media unavailable')).toBeTruthy();
   });
 
-  it('notifies the parent on long-press (blur-only fallback without native measure)', () => {
-    const onMenuOpenChange = jest.fn();
+  it('renders the reaction badge at the bottom-right when reactions exist', () => {
     render(
-      <ChatBubble
-        message="Hold me"
+      <ChatBubbleContent
+        message="Hello"
         messageType="text"
         isSent
-        onMenuOpenChange={onMenuOpenChange}
+        reactions={[
+          { emoji: '❤️', userId: 'u1', isMine: true },
+          { emoji: '😂', userId: 'u2', isMine: false },
+        ]}
+        interactive={false}
+      />
+    );
+
+    expect(screen.getByLabelText('Reactions: ❤️, 😂')).toBeTruthy();
+    expect(screen.getByText('❤️')).toBeTruthy();
+    expect(screen.getByText('😂')).toBeTruthy();
+  });
+
+  it('renders no badge when there are no reactions', () => {
+    render(
+      <ChatBubbleContent
+        message="Hello"
+        messageType="text"
+        isSent
+        reactions={[]}
+        interactive={false}
+      />
+    );
+
+    expect(screen.queryByLabelText(/Reactions:/)).toBeNull();
+  });
+
+  it('plays video on a single tap after the double-tap window when reactions are enabled', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(1_000_000_000);
+    try {
+      render(
+        <ChatBubble
+          message={null}
+          messageType="video"
+          attachmentUrl="https://signed.example.test/video.mp4"
+          attachmentPath="tenant/video.mp4"
+          timestamp="10:00 AM"
+          onReact={jest.fn()}
+        />
+      );
+
+      fireEvent.press(screen.getByLabelText('Play video'));
+      act(() => {
+        jest.advanceTimersByTime(350);
+      });
+
+      expect(mockPlayer.play).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('toggles a heart on double-tap', () => {
+    const onReact = jest.fn();
+    render(
+      <ChatBubble
+        message="Double tap me"
+        messageType="text"
+        isSent
+        onReact={onReact}
       />
     );
 
     const pressable = screen.UNSAFE_getByProps({ delayLongPress: 350 });
-    fireEvent(pressable, 'longPress');
+    fireEvent.press(pressable);
+    fireEvent.press(pressable);
 
-    // The menu opens immediately; with no native measure resolving in the
-    // test renderer, no floating rect is reported — the screen stays on
-    // blur-only instead of dropping the menu.
-    expect(onMenuOpenChange).toHaveBeenCalledWith(true);
-    expect(onMenuOpenChange).toHaveBeenCalledTimes(1);
+    expect(onReact).toHaveBeenCalledTimes(1);
+    expect(onReact).toHaveBeenCalledWith('❤️');
+  });
+
+  it('reports the hold with the measured window anchor', () => {
+    // The row measures itself via View.prototype.measureInWindow.
+    const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+    const spy = jest
+      .spyOn(View.prototype as object, 'measureInWindow' as never)
+      .mockImplementation(function (
+        this: unknown,
+        cb: (x: number, y: number, w: number, h: number) => void
+      ) {
+        cb(24, 250, 120, 60);
+      } as never);
+    try {
+      const onHold = jest.fn();
+      const onMenuOpenChange = jest.fn();
+      render(
+        <ChatBubble
+          message="Hold me"
+          messageType="text"
+          isSent
+          onHold={onHold}
+          onMenuOpenChange={onMenuOpenChange}
+        />
+      );
+
+      const pressable = screen.UNSAFE_getByProps({ delayLongPress: 350 });
+      fireEvent(pressable, 'longPress');
+
+      expect(onHold).toHaveBeenCalledTimes(1);
+      expect(onHold).toHaveBeenCalledWith({ pageY: 250, height: 60 });
+      expect(onMenuOpenChange).toHaveBeenCalledWith(true);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('never reports a hold on single tap', () => {
+    jest.useFakeTimers();
+    try {
+      const onHold = jest.fn();
+      render(
+        <ChatBubble
+          message="Tap me"
+          messageType="text"
+          isSent
+          onReact={jest.fn()}
+          onHold={onHold}
+        />
+      );
+
+      fireEvent.press(screen.UNSAFE_getByProps({ delayLongPress: 350 }));
+      act(() => {
+        jest.advanceTimersByTime(350);
+      });
+
+      expect(onHold).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('hides the row (layout kept) while its elevated clone shows', () => {
+    const { rerender } = render(
+      <ChatBubble message="Hold me" messageType="text" isSent />
+    );
+
+    const row = screen.UNSAFE_getByProps({ collapsable: false });
+    expect(row.props.className).not.toMatch('opacity-0');
+
+    rerender(<ChatBubble message="Hold me" messageType="text" isSent hidden />);
+
+    // Same single bubble, now transparent — the overlay clone takes over.
+    expect(screen.UNSAFE_getByProps({ collapsable: false }).props.className).toMatch(
+      'opacity-0'
+    );
+    expect(screen.getByText('Hold me')).toBeTruthy();
   });
 });
