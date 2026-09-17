@@ -85,8 +85,8 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(COLORS.light.primary);
-  }, []);
+    SystemUI.setBackgroundColorAsync(isDark ? COLORS.dark.white : COLORS.light.primary);
+  }, [isDark]);
 
   useEffect(() => {
     const {
