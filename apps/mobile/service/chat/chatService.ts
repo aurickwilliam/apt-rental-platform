@@ -13,6 +13,21 @@ import {
 
 export type MessageType = 'text' | 'image' | 'video' | 'gif';
 
+export type ReplyPreview = {
+  id: string;
+  message: string | null;
+  messageType: MessageType;
+  senderId: string;
+  isSent: boolean;
+};
+
+/** One user's reaction on a message — at most one row per (message, user). */
+export type MessageReaction = {
+  emoji: string;
+  userId: string;
+  isMine: boolean;
+};
+
 export type Message = {
   id: string;
   message: string | null;
@@ -24,8 +39,13 @@ export type Message = {
   thumbnailPath?: string | null;
   groupId?: string | null;
   timestamp: string;
+  /** ISO timestamp, used for hold-menu date header; timestamp is display-only. */
+  createdAt: string;
   isSent: boolean;
   isPending?: boolean;
+  replyTo?: ReplyPreview | null;
+  replyDeleted?: boolean;
+  reactions: MessageReaction[];
 };
 
 /** A message freshly sent through sendChatAttachments — carries the original
@@ -137,7 +157,7 @@ export async function fetchMessagePage(params: {
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id'
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to'
     )
     .or(
       `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
@@ -159,8 +179,30 @@ export async function fetchMessagePage(params: {
   const rows = data ?? [];
   const lastRow = rows.at(-1);
 
+  // Batch-fetch quoted messages for reply previews (text placeholder for media).
+  const replyIds = [...new Set(rows.map((r: any) => r.reply_to).filter((v: string | null) => !!v))] as string[];
+  let replyRows: any[] = [];
+  if (replyIds.length > 0) {
+    const { data: rData, error: rError } = await supabase
+      .from('chat')
+      .select('id, message, message_type, sender_id')
+      .in('id', replyIds);
+    if (!rError) replyRows = rData ?? [];
+  }
+
+  // Batch-fetch reactions for the page (one row per reacting user per message).
+  const messageIds = rows.map((r: any) => r.id as string);
+  let reactionRows: any[] = [];
+  if (messageIds.length > 0) {
+    const { data: reactData, error: reactError } = await supabase
+      .from('chat_reactions')
+      .select('message_id, user_id, emoji')
+      .in('message_id', messageIds);
+    if (!reactError) reactionRows = reactData ?? [];
+  }
+
   return {
-    messages: await mapMessages(rows, params.currentUserId),
+    messages: await mapMessages(rows, params.currentUserId, replyRows, reactionRows),
     nextCursor:
       rows.length === pageSize && lastRow
         ? { createdAt: lastRow.created_at, id: lastRow.id }
@@ -183,6 +225,7 @@ export async function insertMessage(params: {
   receiverId: string;
   apartmentId: string | null;
   message: string;
+  replyToId?: string | null;
 }) {
   if (!params.apartmentId) {
     throw new Error('Chat requires apartmentId');
@@ -196,9 +239,10 @@ export async function insertMessage(params: {
       apartment_id: params.apartmentId,
       message_type: 'text',
       message: params.message,
+      reply_to: params.replyToId ?? null,
       is_read: false,
     })
-    .select('id, message, message_type, created_at, sender_id')
+    .select('id, message, message_type, created_at, sender_id, reply_to')
     .single();
 
   if (error) throw error;
@@ -220,6 +264,37 @@ export async function markMessagesAsRead(
   query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
 
   const { error } = await query;
+  if (error) throw error;
+}
+
+export async function deleteChatMessage(params: {
+  messageId: string;
+  senderId: string;
+  attachmentPath?: string | null;
+  thumbnailPath?: string | null;
+}) {
+  const paths = [params.attachmentPath, params.thumbnailPath].filter(
+    (p): p is string => !!p
+  );
+  if (paths.length > 0) {
+    try {
+      const { error: storageError } = await supabase.storage
+        .from(CHAT_IMAGES_BUCKET)
+        .remove(paths);
+      if (storageError) {
+        console.warn('Chat storage delete failed (non-blocking):', storageError.message);
+      }
+    } catch (e) {
+      console.warn('Chat storage delete threw (non-blocking):', e);
+    }
+  }
+
+  const { error } = await supabase
+    .from('chat')
+    .delete()
+    .eq('id', params.messageId)
+    .eq('sender_id', params.senderId);
+
   if (error) throw error;
 }
 
@@ -383,6 +458,7 @@ export async function insertAttachmentMessagesBatch(params: {
   receiverId: string;
   apartmentId: string | null;
   uploads: UploadedChatAttachment[];
+  replyToId?: string | null;
 }) {
   if (!params.apartmentId) {
     throw new Error('Chat requires apartmentId');
@@ -391,7 +467,7 @@ export async function insertAttachmentMessagesBatch(params: {
 
   const groupId = params.uploads.length > 1 ? generateId() : null;
 
-  const rows = params.uploads.map((u) => ({
+  const rows = params.uploads.map((u, idx) => ({
     sender_id: params.senderId,
     receiver_id: params.receiverId,
     apartment_id: params.apartmentId,
@@ -401,6 +477,8 @@ export async function insertAttachmentMessagesBatch(params: {
     attachment_mime_type: u.mimeType ?? null,
     attachment_thumbnail_path: u.thumbnailPath ?? null,
     group_id: groupId,
+    // Only the first attachment in a batch keeps the quoted context (text placeholder for media).
+    reply_to: idx === 0 ? (params.replyToId ?? null) : null,
     is_read: false,
   }));
 
@@ -408,7 +486,7 @@ export async function insertAttachmentMessagesBatch(params: {
     .from('chat')
     .insert(rows)
     .select(
-      'id, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id'
+      'id, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, reply_to'
     );
 
   if (error) throw error;
@@ -428,6 +506,7 @@ export async function sendChatAttachments(params: {
   receiverId: string;
   apartmentId: string | null;
   assets: PickedChatAsset[];
+  replyToId?: string | null;
 }): Promise<{ sent: SentChatAttachment[]; failed: AttachmentUploadFailure[] }> {
   const { uploaded, failed } = await uploadChatAttachments(params.senderId, params.assets);
 
@@ -441,6 +520,7 @@ export async function sendChatAttachments(params: {
       receiverId: params.receiverId,
       apartmentId: params.apartmentId,
       uploads: uploaded,
+      replyToId: params.replyToId ?? null,
     });
 
     const attachmentPaths = inserted
@@ -479,7 +559,9 @@ export async function sendChatAttachments(params: {
           hour: '2-digit',
           minute: '2-digit',
         }),
+        createdAt: row.created_at,
         isSent: true,
+        reactions: [],
         localUri: upload?.localUri ?? '',
       };
     });
@@ -546,7 +628,12 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-export async function mapMessages(rows: any[], currentUserId: string): Promise<Message[]> {
+export async function mapMessages(
+  rows: any[],
+  currentUserId: string,
+  replyRows: any[] = [],
+  reactionRows: any[] = []
+): Promise<Message[]> {
   const attachmentPaths = rows
     .filter((m) => m.attachment_path)
     .map((m) => m.attachment_path as string);
@@ -560,21 +647,90 @@ export async function mapMessages(rows: any[], currentUserId: string): Promise<M
     getChatAttachmentSignedUrls(thumbnailPaths),
   ]);
 
-  return rows.map((m) => ({
-    id: m.id,
-    message: m.message,
-    messageType: (m.message_type ?? 'text') as MessageType,
-    attachmentUrl: m.attachment_url ?? (m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null),
-    attachmentPath: m.attachment_path ?? null,
-    attachmentMimeType: m.attachment_mime_type ?? null,
-    thumbnailUrl: m.attachment_thumbnail_path
-      ? (thumbnailUrls[m.attachment_thumbnail_path] ?? null)
-      : null,
-    thumbnailPath: m.attachment_thumbnail_path ?? null,
-    groupId: m.group_id ?? null,
-    timestamp: getRelativeTime(new Date(m.created_at)),
-    isSent: m.sender_id === currentUserId,
-  }));
+  const replyById = new Map<string, any>(replyRows.map((r) => [r.id, r]));
+
+  const reactionsByMessageId = new Map<string, MessageReaction[]>();
+  for (const r of reactionRows) {
+    const list = reactionsByMessageId.get(r.message_id) ?? [];
+    list.push({
+      emoji: r.emoji,
+      userId: r.user_id,
+      isMine: r.user_id === currentUserId,
+    });
+    reactionsByMessageId.set(r.message_id, list);
+  }
+
+  return rows.map((m) => {
+    let replyTo: ReplyPreview | null = null;
+    let replyDeleted: boolean | undefined;
+    if (m.reply_to) {
+      const r = replyById.get(m.reply_to);
+      if (r) {
+        replyTo = {
+          id: r.id,
+          message: r.message,
+          messageType: (r.message_type ?? 'text') as MessageType,
+          senderId: r.sender_id,
+          isSent: r.sender_id === currentUserId,
+        };
+      } else {
+        replyDeleted = true;
+      }
+    }
+    return {
+      id: m.id,
+      message: m.message,
+      messageType: (m.message_type ?? 'text') as MessageType,
+      attachmentUrl: m.attachment_url ?? (m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null),
+      attachmentPath: m.attachment_path ?? null,
+      attachmentMimeType: m.attachment_mime_type ?? null,
+      thumbnailUrl: m.attachment_thumbnail_path
+        ? (thumbnailUrls[m.attachment_thumbnail_path] ?? null)
+        : null,
+      thumbnailPath: m.attachment_thumbnail_path ?? null,
+      groupId: m.group_id ?? null,
+      timestamp: getRelativeTime(new Date(m.created_at)),
+      createdAt: m.created_at,
+      isSent: m.sender_id === currentUserId,
+      replyTo,
+      replyDeleted,
+      reactions: reactionsByMessageId.get(m.id) ?? [],
+    };
+  });
+}
+
+// ─── Reactions ────────────────────────────────────────────────────────────────
+// One reaction per user per message — setting another emoji replaces the
+// previous row (upsert on the composite primary key).
+
+export async function upsertChatReaction(params: {
+  messageId: string;
+  userId: string;
+  emoji: string;
+}) {
+  const { error } = await supabase.from('chat_reactions').upsert(
+    {
+      message_id: params.messageId,
+      user_id: params.userId,
+      emoji: params.emoji,
+    },
+    { onConflict: 'message_id,user_id' }
+  );
+
+  if (error) throw error;
+}
+
+export async function deleteChatReaction(params: {
+  messageId: string;
+  userId: string;
+}) {
+  const { error } = await supabase
+    .from('chat_reactions')
+    .delete()
+    .eq('message_id', params.messageId)
+    .eq('user_id', params.userId);
+
+  if (error) throw error;
 }
 
 export function buildConversationKey(

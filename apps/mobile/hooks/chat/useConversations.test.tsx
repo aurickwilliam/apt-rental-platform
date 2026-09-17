@@ -16,6 +16,9 @@ const mockGetChannels = jest.fn();
 let chatInsertCallback:
   | ((payload: { new?: unknown }) => void)
   | undefined;
+let chatDeleteCallback:
+  | ((payload: { old?: unknown }) => void)
+  | undefined;
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -87,6 +90,7 @@ function createWrapper() {
 beforeEach(() => {
   jest.clearAllMocks();
   chatInsertCallback = undefined;
+  chatDeleteCallback = undefined;
   mockUseCurrentUser.mockReturnValue({
     data: { id: MY_ID },
     isLoading: false,
@@ -104,11 +108,17 @@ beforeEach(() => {
     channel.on.mockImplementation(
       (
         _event: string,
-        filter: { table?: string },
-        callback: (payload: { new?: unknown }) => void,
+        filter: { table?: string; event?: string },
+        callback: (payload: { new?: unknown; old?: unknown }) => void,
       ) => {
         if (filter.table === "chat") {
-          chatInsertCallback = callback;
+          if (filter.event === "INSERT") {
+            chatInsertCallback = callback as (payload: { new?: unknown }) => void;
+          } else if (filter.event === "DELETE") {
+            chatDeleteCallback = callback as (payload: { old?: unknown }) => void;
+          } else {
+            chatInsertCallback = callback as (payload: { new?: unknown }) => void;
+          }
         }
         return channel;
       },
@@ -122,6 +132,12 @@ beforeEach(() => {
 async function fireChatInsert(payload: unknown) {
   await act(async () => {
     chatInsertCallback?.({ new: payload });
+  });
+}
+
+async function fireChatDelete(payload: unknown) {
+  await act(async () => {
+    chatDeleteCallback?.({ old: payload });
   });
 }
 

@@ -127,8 +127,8 @@ module.exports = {
           resizeMode: 'contain',
           backgroundColor: '#376BF5',
           dark: {
-            image: './assets/icons/splash/splash-icon-dark.png',
-            backgroundColor: '#ffffff',
+            image: './assets/icons/splash/splash-icon-light.png',
+            backgroundColor: '#121212',
           },
         },
       ],

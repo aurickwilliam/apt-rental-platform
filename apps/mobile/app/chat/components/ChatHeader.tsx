@@ -71,7 +71,7 @@ export default function ChatHeader({
 
       {/* Center (Title) */}
       <View className="flex-1 flex-row items-center justify-start ml-2">
-        <Avatar size="sm" className="mr-3 border border-white">
+        <Avatar size="sm" className="mr-3 border border-white rounded-full overflow-hidden">
           <Avatar.Image
             source={
               profilePicture
@@ -79,7 +79,7 @@ export default function ChatHeader({
                 : DEFAULT_IMAGES.defaultProfilePicture
             }
           />
-          <Avatar.Fallback delayMs={200}>
+          <Avatar.Fallback delayMs={200} className="rounded-full">
             {name
               .split(' ')
               .map((n) => n[0])

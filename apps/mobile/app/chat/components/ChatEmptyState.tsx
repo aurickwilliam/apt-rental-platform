@@ -20,13 +20,13 @@ export default function ChatEmptyState({
       <Avatar
         size="lg"
         color="accent"
-        className="size-28 border-4 border-border mb-3"
+        className="size-28 border-4 border-border mb-3 rounded-full overflow-hidden"
         alt={otherUserName}
       >
         {otherUserAvatar ? (
           <Avatar.Image source={{ uri: otherUserAvatar }} />
         ) : null}
-        <Avatar.Fallback delayMs={200} className="justify-center items-center">
+        <Avatar.Fallback delayMs={200} className="justify-center items-center rounded-full">
           <Text className="text-accent text-4xl font-nunitoSemiBold leading-none">
             {otherUserName ? getInitials(otherUserName) : '?'}
           </Text>
