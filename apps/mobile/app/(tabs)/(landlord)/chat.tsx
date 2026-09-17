@@ -3,16 +3,15 @@ import { useCallback, useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import MessageCard from '@/app/(tabs)/components/chat/MessageCard'
+import ConversationRow from '@/app/(tabs)/components/chat/ConversationRow'
 
-import { Button, SearchField, Tabs, Separator, Spinner } from 'heroui-native'
-
-import { getRelativeTime } from '@repo/utils'
+import { Button, SearchField, Tabs, Spinner } from 'heroui-native'
 
 import { EMPTY_STATE_IMAGES } from 'constants/images'
 
 import { useConversations } from '@/hooks/chat'
 import { useColors } from '@/hooks/useTheme'
+import type { ConversationWithMeta } from '@/service/chat/conversationService'
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar'
 
 export default function Chat() {
@@ -48,7 +47,14 @@ export default function Chat() {
     setSelectedFilter(filter);
   }
 
-  const handleChatPress = (conversation: (typeof conversations)[number]) => {
+  const handleMarkRead = useCallback(
+    (conversationKey: string) => {
+      markConversationRead(conversationKey);
+    },
+    [markConversationRead]
+  );
+
+  const handleChatPress = (conversation: ConversationWithMeta) => {
     // Optimistically clear the badge before navigating
     markConversationRead(conversation.conversation_key);
 
@@ -75,7 +81,7 @@ export default function Chat() {
       onRefresh={handleRefresh}
     >
       {/* Title Messages */}
-      <Text className='text-primary text-3xl font-nunitoBold mb-3'>
+      <Text className='text-primary text-3xl font-nunitoBold'>
         Messages
       </Text>
 
@@ -85,8 +91,8 @@ export default function Chat() {
           <SearchField value={searchQuery} onChange={setSearchQuery}>
             <SearchField.Group>
               <SearchField.SearchIcon />
-              <SearchField.Input 
-                placeholder='Search messages...' 
+              <SearchField.Input
+                placeholder='Search messages...'
                 className='flex-1 shadow-none'
               />
               <SearchField.ClearButton />
@@ -104,7 +110,7 @@ export default function Chat() {
         ) : error ? (
           <View className='flex-1 items-center justify-center'>
             <View className='aspect-square size-64'>
-              <Image 
+              <Image
                 source={EMPTY_STATE_IMAGES.emptyMessage}
                 style={{
                   width: '100%',
@@ -126,7 +132,7 @@ export default function Chat() {
           <View className='flex-1 items-center justify-center'>
             {/* Empty State Illustration */}
             <View className='aspect-square size-64'>
-              <Image 
+              <Image
                 source={EMPTY_STATE_IMAGES.emptyMessage}
                 style={{
                   width: '100%',
@@ -144,20 +150,19 @@ export default function Chat() {
           </View>
         ) : (
           <>
-            <Separator className="my-4" />
-
             {/* Group Button */}
             <Tabs
               value={selectedFilter}
               onValueChange={(value) => handleMessageToggle(value as 'Tenant' | 'Inquiries')}
               variant="primary"
             >
-              <Tabs.List className="w-full">
+              <Tabs.List className="w-full mt-3">
                 <Tabs.Indicator />
                 <Tabs.Trigger value="Tenant" className="w-1/2">
                   {({ isSelected }) => (
                       <Tabs.Label
-                          style={{ color: isSelected ? colors.primary : colors.gray500 }}
+                        style={{ color: isSelected ? colors.primary : colors.gray500 }}
+                        className='font-nunitoBold'
                       >
                         Tenant
                       </Tabs.Label>
@@ -167,7 +172,8 @@ export default function Chat() {
                 <Tabs.Trigger value="Inquiries" className="flex-1">
                   {({ isSelected }) => (
                       <Tabs.Label
-                          style={{ color: isSelected ? colors.primary : colors.gray500 }}
+                        style={{ color: isSelected ? colors.primary : colors.gray500 }}
+                        className='font-nunitoBold'
                       >
                         Inquiries
                       </Tabs.Label>
@@ -199,20 +205,14 @@ export default function Chat() {
                 )}
               </View>
             ) : (
-              <View className='flex-1 gap-3 mt-3'>
+              <View className='flex-1 mt-3'>
                 {/* Render the list of messages */}
                 {filteredConversations.map((message) => (
-                  <MessageCard 
+                  <ConversationRow
                     key={message.conversation_key}
-                    name={message.other_user_name}
-                    apartmentName={message.apartment_name ?? 'Unknown Property'}
-                    lastMessage={message.last_message}
-                    messageType={message.last_message_type}
-                    isUserLastSender={Boolean(message.last_sender_is_me)}
-                    timestamp={getRelativeTime(new Date(message.last_message_time))}
-                    unreadCount={message.unread_count} 
-                    profilePictureUrl={message.other_user_avatar ?? undefined}
-                    onPress={() => handleChatPress(message)}
+                    conversation={message}
+                    onOpen={handleChatPress}
+                    onMarkRead={handleMarkRead}
                   />
                 ))}
               </View>

@@ -3,15 +3,14 @@ import { useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import MessageCard from '@/app/(tabs)/components/chat/MessageCard';
+import ConversationRow from '@/app/(tabs)/components/chat/ConversationRow';
 
 import { EMPTY_STATE_IMAGES } from 'constants/images';
-
-import { getRelativeTime } from '@repo/utils';
 
 import { useConversations } from '@/hooks/chat';
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
+import type { ConversationWithMeta } from '@/service/chat/conversationService';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
 import {
@@ -20,6 +19,14 @@ import {
   Separator,
   Spinner,
 } from 'heroui-native';
+
+/** Unread conversations first; newest-first order preserved within each group. */
+export function sortUnreadFirst(convs: ConversationWithMeta[]): ConversationWithMeta[] {
+  return [
+    ...convs.filter((c) => c.unread_count > 0),
+    ...convs.filter((c) => c.unread_count <= 0),
+  ];
+}
 
 export default function Chat() {
   const router = useRouter();
@@ -62,12 +69,21 @@ export default function Chat() {
         )
       : null;
 
-  const otherConversations = filteredConversations.filter(
-    (c) =>
-      c.conversation_key !== currentLandlordConversation?.conversation_key
+  const otherConversations = sortUnreadFirst(
+    filteredConversations.filter(
+      (c) =>
+        c.conversation_key !== currentLandlordConversation?.conversation_key
+    )
   );
 
-  const handleChatPress = (conversation: (typeof conversations)[number]) => {
+  const handleMarkRead = useCallback(
+    (conversationKey: string) => {
+      markConversationRead(conversationKey);
+    },
+    [markConversationRead]
+  );
+
+  const handleChatPress = (conversation: ConversationWithMeta) => {
     // Optimistically clear the badge before navigating
     markConversationRead(conversation.conversation_key);
 
@@ -93,7 +109,7 @@ export default function Chat() {
       refreshing={refreshing}
       onRefresh={handleRefresh}
     >
-      <Text className='text-primary text-3xl font-nunitoBold mb-3'>
+      <Text className='text-primary text-3xl font-nunitoBold'>
         Messages
       </Text>
 
@@ -148,6 +164,9 @@ export default function Chat() {
           <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
             Start a conversation with a landlord to see your messages here.
           </Text>
+          <Button className='mt-4 bg-primary' onPress={() => router.push('/(tabs)/(tenant)/search')}>
+            <Button.Label>Browse Apartments</Button.Label>
+          </Button>
         </View>
       ) : filteredConversations.length === 0 ? (
         <View className='flex-1 items-center justify-center mt-10'>
@@ -163,61 +182,35 @@ export default function Chat() {
           {/* Current Landlord */}
           {currentLandlordConversation && (
             <View>
-              <Separator className='my-3' />
-
-              <Text className='text-base font-nunitoSemiBold text-accent mb-3'>
+              <Text className='text-base font-nunitoBold text-accent my-2'>
                 Current Landlord
               </Text>
 
-              <MessageCard
-                key={currentLandlordConversation.conversation_key}
-                name={currentLandlordConversation.other_user_name}
-                apartmentName={
-                  currentLandlordConversation.apartment_name ??
-                  'Unknown Property'
-                }
-                lastMessage={currentLandlordConversation.last_message}
-                messageType={currentLandlordConversation.last_message_type}
-                isUserLastSender={Boolean(
-                  currentLandlordConversation.last_sender_is_me
-                )}
-                timestamp={getRelativeTime(
-                  new Date(currentLandlordConversation.last_message_time)
-                )}
-                unreadCount={currentLandlordConversation.unread_count}
-                profilePictureUrl={currentLandlordConversation.other_user_avatar ?? undefined}
-                onPress={() =>
-                  handleChatPress(currentLandlordConversation)
-                }
+              <ConversationRow
+                conversation={currentLandlordConversation}
+                onOpen={handleChatPress}
+                onMarkRead={handleMarkRead}
               />
             </View>
           )}
 
-          <Separator className='my-3' />
+          {currentLandlordConversation && otherConversations.length > 0 && (
+            <Separator className='my-3' />
+          )}
 
           {/* Other conversations */}
           {otherConversations.length > 0 && (
-            <View className='gap-3'>
-              <Text className='text-base font-nunitoSemiBold text-gray-500'>
-                Past Conversations
+            <View>
+              <Text className='text-base font-nunitoBold text-gray-500 mb-1'>
+                Past Conversations ({otherConversations.length})
               </Text>
 
               {otherConversations.map((conv) => (
-                <MessageCard
+                <ConversationRow
                   key={conv.conversation_key}
-                  name={conv.other_user_name}
-                  apartmentName={
-                    conv.apartment_name ?? 'Unknown Property'
-                  }
-                  lastMessage={conv.last_message}
-                  messageType={conv.last_message_type}
-                  isUserLastSender={Boolean(conv.last_sender_is_me)}
-                  timestamp={getRelativeTime(
-                    new Date(conv.last_message_time)
-                  )}
-                  unreadCount={conv.unread_count}
-                  profilePictureUrl={conv.other_user_avatar ?? undefined}
-                  onPress={() => handleChatPress(conv)}
+                  conversation={conv}
+                  onOpen={handleChatPress}
+                  onMarkRead={handleMarkRead}
                 />
               ))}
             </View>

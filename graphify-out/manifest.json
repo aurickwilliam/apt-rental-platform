@@ -190,13 +190,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/_layout.tsx": {
-    "mtime": 1787060341.828333,
-    "ast_hash": "db26520734e2a1315d3bc264c88cfd09",
-    "semantic_hash": "db26520734e2a1315d3bc264c88cfd09"
+    "mtime": 1789652977.5233626,
+    "ast_hash": "691bd65a9715d949a87d6b81c7e98d73",
+    "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/chat.tsx": {
-    "mtime": 1789483095.969429,
-    "ast_hash": "262fa3a02d4abde4888886d8d7711220",
+    "mtime": 1789654969.9421825,
+    "ast_hash": "3712d84b8969deb1d6e54245e66c26c8",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/dashboard.tsx": {
@@ -220,8 +220,8 @@
     "semantic_hash": "79dc349c3beee06ce05c6f1567269c34"
   },
   "apps/mobile/app/(tabs)/(tenant)/chat.tsx": {
-    "mtime": 1789483095.970102,
-    "ast_hash": "83fce9958fa00189c20c8fb123d741fd",
+    "mtime": 1789654956.3985574,
+    "ast_hash": "4c8db9ced8e9aee52bbe5a69cafbd19d",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/profile.tsx": {
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/MessageCard.tsx": {
-    "mtime": 1789482993.0948606,
-    "ast_hash": "aae5c7f38dab28aa8cafab3e7d56660b",
+    "mtime": 1789654673.9716914,
+    "ast_hash": "5aaa52eabc91240d5a31407d3d039c99",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/ProfitByPropertyCard.tsx": {
@@ -1410,8 +1410,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChatChannel.ts": {
-    "mtime": 1789571870.3199372,
-    "ast_hash": "a20ce3da2e138462bb8235776b1cf58d",
+    "mtime": 1789656173.853009,
+    "ast_hash": "0f6567ae5a0dec288cfd112446e6cc4c",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChatTyping.ts": {
@@ -3515,8 +3515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChatChannel.test.tsx": {
-    "mtime": 1787060341.9139419,
-    "ast_hash": "75fd69c33b883ca2152dd777e8b15765",
+    "mtime": 1789656219.3320465,
+    "ast_hash": "7d81be259062d668dc0539985d9bdbb4",
     "semantic_hash": ""
   },
   ".kiro/specs/audit-fix/batch-4-client-chat-evidence.md": {
@@ -4502,6 +4502,26 @@
   "apps/mobile/app/chat/components/holdLayout.ts": {
     "mtime": 1789647312.9710503,
     "ast_hash": "26c84283a9318d5cea790925a5822a5d",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/(tenant)/chat.test.tsx": {
+    "mtime": 1789650907.6217809,
+    "ast_hash": "26e59efdf249f7b260a46a6c8bc6be63",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/chat/MessageCard.test.tsx": {
+    "mtime": 1789652934.2264802,
+    "ast_hash": "33f97d844b3dddebd340f5317c765579",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/chat/ConversationRow.test.tsx": {
+    "mtime": 1789655352.280089,
+    "ast_hash": "885fad23e747ce14926c46b824c10c13",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/chat/ConversationRow.tsx": {
+    "mtime": 1789655867.9953706,
+    "ast_hash": "0bbd52dfac019572321731c9d0c1beda",
     "semantic_hash": ""
   }
 }

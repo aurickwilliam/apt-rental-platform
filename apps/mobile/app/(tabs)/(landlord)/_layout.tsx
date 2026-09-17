@@ -54,7 +54,7 @@ export default function LandlordTabLayout() {
             position: 'absolute',
             backgroundColor: 'transparent',
             borderTopWidth: 0,
-            elevation: 0
+            elevation: 0,
           },
         }}
         tabBar={(props) => <CustomTabBar {...props} tabs={LANDLORD_TABS} />}
