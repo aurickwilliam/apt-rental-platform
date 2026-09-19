@@ -14,7 +14,8 @@ export type PrivateMediaBucket =
   | 'application-documents'
   | 'chat-images'
   | 'maintenance-images'
-  | 'lease-agreements';
+  | 'lease-agreements'
+  | 'user-verification';
 
 export type PrivateMediaUrlMap = Record<string, string | null>;
 

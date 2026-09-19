@@ -12,6 +12,7 @@ import { Button } from 'heroui-native'
 import { IMAGES } from 'constants/images'
 
 import { useVerificationStore } from '@/stores/useVerificationStore'
+import { useProfile } from 'hooks/auth'
 
 export default function Success() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Success() {
   const [canLeave, setCanLeave] = useState(false);
 
   const reset = useVerificationStore((state) => state.reset);
+  const { profile, loading } = useProfile();
 
   useEffect(() => {
     reset();
@@ -34,14 +36,18 @@ export default function Success() {
 
   const handleGoToProfile = () => {
     setCanLeave(true);
-    router.replace('/(tabs)/(tenant)/profile');
+    router.replace(
+      profile?.role === 'landlord'
+        ? '/(tabs)/(landlord)/profile'
+        : '/(tabs)/(tenant)/profile',
+    );
   };
 
   return (
     <ScreenWrapper
       className='p-5'
     >
-      <StepProgress currentStep={4} totalSteps={4} stepName="Verification Submitted" />
+      <StepProgress currentStep={5} totalSteps={5} stepName="Verification Submitted" />
 
       <View className='flex-1 items-center justify-center gap-5'>
         <Image 
@@ -61,7 +67,7 @@ export default function Success() {
         </View>
       </View>
 
-      <Button onPress={handleGoToProfile}>
+      <Button isDisabled={loading} onPress={handleGoToProfile}>
         <Button.Label>Go to Profile</Button.Label>
       </Button>
     </ScreenWrapper>

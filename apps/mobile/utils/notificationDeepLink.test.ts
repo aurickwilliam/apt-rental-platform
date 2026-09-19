@@ -142,4 +142,38 @@ describe("buildNotificationDeepLink", () => {
       expect(buildNotificationDeepLink({ screen: "payments" }, USER_ID, "landlord")).toBeNull();
     });
   });
+
+  describe("verification", () => {
+    it("routes tenants to their profile", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "verification", verificationId: "ver-1" },
+        USER_ID,
+        "tenant",
+      )).toBe("/(tabs)/(tenant)/profile");
+    });
+
+    it("routes landlords to their profile", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "verification", verificationId: "ver-1" },
+        USER_ID,
+        "landlord",
+      )).toBe("/(tabs)/(landlord)/profile");
+    });
+
+    it("returns null for admin recipients without a mobile review screen", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "verification", verificationId: "ver-1" },
+        USER_ID,
+        "admin",
+      )).toBeNull();
+    });
+
+    it("returns null when the role is unknown", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "verification", verificationId: "ver-1" },
+        USER_ID,
+        null,
+      )).toBeNull();
+    });
+  });
 });

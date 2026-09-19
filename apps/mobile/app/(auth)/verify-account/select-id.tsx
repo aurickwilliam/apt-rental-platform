@@ -65,7 +65,7 @@ export default function SelectId() {
       </CloseButton>
 
       <View className='flex gap-3'>
-        <StepProgress currentStep={1} totalSteps={4} stepName="Select a Valid ID" />
+        <StepProgress currentStep={1} totalSteps={5} stepName="Select a Valid ID" />
 
         <Text className='text-foreground text-base font-nunitoSemiBold'>
           List of Valid IDs:

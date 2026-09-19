@@ -115,7 +115,7 @@ describe('verification flow (integration)', () => {
     expect(screen.UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
 
     fireEvent.press(screen.getByText('Continue to Selfie'));
-    expect(mockPush).toHaveBeenCalledWith('/verify-account/selfie-prep');
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/selfie-prep');
 
     screen.unmount();
 
@@ -124,7 +124,7 @@ describe('verification flow (integration)', () => {
 
     expect(screen.getByText('Get ready for your selfie')).toBeTruthy();
     fireEvent.press(screen.getByText("I'm Ready"));
-    expect(mockPush).toHaveBeenCalledWith('/verify-account/upload-selfie');
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
 
     screen.unmount();
 
@@ -132,7 +132,7 @@ describe('verification flow (integration)', () => {
     render(<UploadSelfie />);
 
     expect(mockReplace).not.toHaveBeenCalled();
-    expect(screen.getByText('Submit Verification')).toBeTruthy();
+    expect(screen.getByText('Review & Submit')).toBeTruthy();
     expect(screen.UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
 
     fireEvent.press(screen.getByText('Capture Selfie'));
@@ -144,8 +144,8 @@ describe('verification flow (integration)', () => {
 
     expect(screen.UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
 
-    fireEvent.press(screen.getByText('Submit Verification'));
-    expect(mockPush).toHaveBeenCalledWith('/verify-account/success');
+    fireEvent.press(screen.getByText('Review & Submit'));
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/review');
 
     expect(useVerificationStore.getState()).toEqual(
       expect.objectContaining({

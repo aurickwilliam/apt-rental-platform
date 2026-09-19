@@ -220,7 +220,7 @@ describe('UploadId', () => {
       fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
       fireEvent.press(screen.getByText('Continue to Selfie'));
 
-      expect(mockPush).toHaveBeenCalledWith('/verify-account/selfie-prep');
+      expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/selfie-prep');
     });
 
     it('retakes the complete ID sequence by clearing ID captures, resetting confirmation, and reopening Front', () => {

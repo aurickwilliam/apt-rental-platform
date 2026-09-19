@@ -9,8 +9,10 @@ import { IconUserEdit, IconFileText, IconSettings, IconLogout } from '@tabler/ic
 import { Button, ListGroup, Separator } from 'heroui-native';
 
 import { useProfile } from 'hooks/auth';
+import { useLatestVerification } from 'hooks/verification';
 import { useColors } from '@/hooks/useTheme';
 import { clearQueryClient } from '@/utils/queryClient';
+import { formatDate } from '@repo/utils';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
@@ -26,8 +28,11 @@ export default function Profile() {
   const backgroundPhotoUri = profile?.background_url ?? null;
 
   const accountStatus = (profile?.account_status ?? 'unverified') as 'verified' | 'pending' | 'rejected' | 'unverified';
-  const rejectedReason = 'Your submitted documents were not clear. Please resubmit clear copies of your ID and proof of income for verification.';
-  const dateVerified = 'June 15, 2024';
+  const { data: latestVerification } = useLatestVerification();
+  const rejectedReason = latestVerification?.rejection_reason ?? undefined;
+  const dateVerified = latestVerification?.reviewed_at
+    ? formatDate(latestVerification.reviewed_at, 'long')
+    : undefined;
 
   const handleLogout = async () => {
     clearQueryClient();

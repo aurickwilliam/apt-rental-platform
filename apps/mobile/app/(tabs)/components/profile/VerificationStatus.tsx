@@ -88,9 +88,11 @@ export default function VerificationStatus({
 
         {accountStatus === 'rejected' && (
           <>
-            <Card.Description className='text-danger font-inter text-sm'>
-              Reason: {rejectedReason}
-            </Card.Description>
+            {rejectedReason ? (
+              <Card.Description className='text-danger font-inter text-sm'>
+                Reason: {rejectedReason}
+              </Card.Description>
+            ) : null}
             <Button
               variant='primary'
               size='sm'

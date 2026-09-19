@@ -73,7 +73,7 @@ export default function UploadId() {
 
           <Button
             isDisabled={!canContinue}
-            onPress={() => router.push('/verify-account/selfie-prep')}
+            onPress={() => router.push('/(auth)/verify-account/selfie-prep')}
           >
             <Button.Label>Continue to Selfie</Button.Label>
           </Button>
@@ -88,7 +88,7 @@ export default function UploadId() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={2} totalSteps={4} stepName="Upload Your ID" />
+      <StepProgress currentStep={2} totalSteps={5} stepName="Upload Your ID" />
 
       <View className='flex gap-2'>
         <Text className='text-2xl text-accent font-nunitoMedium'>

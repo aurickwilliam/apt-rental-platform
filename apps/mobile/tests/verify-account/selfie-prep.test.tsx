@@ -70,7 +70,7 @@ describe('SelfiePrep', () => {
 
     fireEvent.press(screen.getByText("I'm Ready"));
 
-    expect(mockPush).toHaveBeenCalledWith('/verify-account/upload-selfie');
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
   it('redirects to ID selection without an active verification session', () => {

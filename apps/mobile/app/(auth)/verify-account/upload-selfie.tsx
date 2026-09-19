@@ -47,10 +47,10 @@ export default function UploadSelfie() {
       footer={
         <Button
           isDisabled={selfie === null}
-          onPress={() => router.push('/verify-account/success')}
+          onPress={() => router.push('/(auth)/verify-account/review')}
           className='mx-5'
         >
-          <Button.Label>Submit Verification</Button.Label>
+          <Button.Label>Review & Submit</Button.Label>
         </Button>
       }
     >
@@ -62,7 +62,7 @@ export default function UploadSelfie() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={3} totalSteps={4} stepName="Take a Selfie" />
+      <StepProgress currentStep={3} totalSteps={5} stepName="Take a Selfie" />
 
       <View className='flex-1 items-center justify-center'>
         {selfie !== null ? (

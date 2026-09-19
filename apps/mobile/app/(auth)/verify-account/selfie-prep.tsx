@@ -34,7 +34,7 @@ export default function SelfiePrep() {
     <ScreenWrapper
       className='p-5'
       footer={
-        <Button onPress={() => router.push('/verify-account/upload-selfie')} className='mx-5'>
+        <Button onPress={() => router.push('/(auth)/verify-account/upload-selfie')} className='mx-5'>
           <Button.Label>I&apos;m Ready</Button.Label>
         </Button>
       }
@@ -47,7 +47,7 @@ export default function SelfiePrep() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={3} totalSteps={4} stepName="Prepare for a Selfie" />
+      <StepProgress currentStep={3} totalSteps={5} stepName="Prepare for a Selfie" />
 
       <View className='flex-1 items-center justify-center gap-6 px-2'>
         <View
@@ -74,6 +74,9 @@ export default function SelfiePrep() {
           </Text>
           <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
             Use bright, even lighting.
+          </Text>
+          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
+            Hold the same ID beside your face.
           </Text>
           <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
             Keep your full face visible in the frame.
