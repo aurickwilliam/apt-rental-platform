@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/profile.tsx": {
-    "mtime": 1789801721.1434762,
-    "ast_hash": "3ac5cb254be10c322bfad32a6a62ef5d",
+    "mtime": 1789973293.2927105,
+    "ast_hash": "0db5afba8c99221223d09e32791a8e24",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/units.tsx": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/profile.tsx": {
-    "mtime": 1789801721.1436145,
-    "ast_hash": "628f52f965ce44b28ccc521ef537ff77",
+    "mtime": 1789973287.0212755,
+    "ast_hash": "73814c3554747324f56ba3ae73ee1b84",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/rentals.tsx": {

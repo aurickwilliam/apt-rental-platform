@@ -1,6 +1,7 @@
 import { View, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router';
 import type React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@repo/supabase';
 
@@ -25,9 +26,11 @@ import { formatDate } from '@repo/utils';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '../components/CustomTabBar';
 
 export default function Profile() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { profile, loading } = useProfile();
   const { colors } = useColors();
 
@@ -94,6 +97,9 @@ export default function Profile() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
+      contentContainerStyle={{
+        paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom + 24,
+      }}
     >
 
       <ProfileHeader
