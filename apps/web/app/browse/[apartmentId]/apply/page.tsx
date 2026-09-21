@@ -16,12 +16,12 @@ export default async function ApplyPage({ params }: { params: Promise<{ apartmen
     .eq("id", apartmentId)
     .single();
 
-  let landlord: { first_name: string | null; last_name: string | null; avatar_url: string | null } | null = null;
+  let landlord: { id: string; first_name: string | null; last_name: string | null; avatar_url: string | null } | null = null;
 
   if (apartment?.landlord_id) {
     const { data } = await supabase
       .from("users")
-      .select("first_name, last_name, avatar_url")
+      .select("id, first_name, last_name, avatar_url")
       .eq("id", apartment.landlord_id)
       .maybeSingle();
     landlord = data ?? null;
@@ -63,6 +63,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ apartmen
     type: apartment.type as string | null,
     cover,
     images,
+    landlordId: (apartment.landlord_id as string | null) ?? landlord?.id ?? null,
     landlordName,
     landlordAvatarUrl: landlord?.avatar_url ?? null,
     monthlyRent: apartment.monthly_rent as number | null,

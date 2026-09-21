@@ -45,6 +45,7 @@ import {
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import ApplicationHeader from "./ApplicationHeader";
+import { useSubmitApplication } from "@/hooks/use-submit-application";
 import { formatPesoDisplay, handlePesoChange, isValidEmail } from "@repo/utils";
 import {
   EMPLOYMENT_TYPES,
@@ -75,6 +76,7 @@ type ApartmentContext = {
   type: string | null;
   cover: string;
   images: string[];
+  landlordId: string | null;
   landlordName: string | null;
   landlordAvatarUrl: string | null;
   monthlyRent: number | null;
@@ -149,6 +151,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (k: string) => setErrors((p) => ({ ...p, [k]: "" }));
+  const { submit, isSubmitting, error: submitError } = useSubmitApplication();
 
   const validateTenant = () => {
     const next: Record<string, string> = {};
@@ -754,49 +757,48 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               <Button variant="outline" className="flex-1" onPress={() => setStep(4)}>Back</Button>
               <Button
                 className="flex-1"
-                onPress={() => {
-                  // UI-only localStorage save (no Supabase)
-                  try {
-                    const { saveApplication } = require("@/app/tenant/applications/lib/application-store");
-                    saveApplication({
-                      apartmentId: apartment.id,
-                      apartmentName: apartment.name,
-                      apartmentCover: apartment.cover,
-                      apartmentAddress: apartment.address,
-                      monthlyRent: apartment.monthlyRent,
-                      data: {
-                        fullName,
-                        email,
-                        contactNumber,
-                        currentAddress,
-                        dateOfBirth,
-                        employmentType,
-                        occupation,
-                        companyName,
-                        monthlyIncomeText,
-                        prevLandlordName,
-                        prevLandlordContact,
-                        moveInDate,
-                        noOccupants,
-                        hasPets,
-                        isSmoker,
-                        needParking,
-                        additionalNotes,
-                        govIdName: govIdFile?.name ?? null,
-                        proofOfBillingName: proofOfBillingFile?.name ?? null,
-                        proofOfIncomeName: proofOfIncomeFile?.name ?? null,
-                        nbiName: nbiClearanceFile?.name ?? null,
-                      },
-                    });
-                  } catch {}
+                isDisabled={isSubmitting}
+                onPress={async () => {
+                  const result = await submit(
+                    apartment.id,
+                    {
+                      occupation,
+                      companyName,
+                      monthlyIncome,
+                      employmentType,
+                      prevLandlordName,
+                      prevLandlordContact,
+                      moveInDate,
+                      noOccupants,
+                      hasPets,
+                      isSmoker,
+                      needParking,
+                      additionalNotes,
+                    },
+                    {
+                      govIdFile,
+                      proofOfBillingFile,
+                      proofOfIncomeFile,
+                      nbiClearanceFile,
+                    },
+                  );
+                  if (!result.success) {
+                    setErrors((p) => ({ ...p, submit: result.error }));
+                    return;
+                  }
+                  setErrors({});
                   setStep(6);
                   setTimeout(() => router.push("/tenant/my-rental"), 900);
                 }}
               >
-                Submit Application
+                {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-3 text-center">UI-only demo — stored locally, will appear on My Rental.</p>
+            {errors.submit || submitError ? (
+              <p className="text-xs text-red-600 mt-3 text-center">{errors.submit ?? submitError}</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground mt-3 text-center">Your documents upload securely and the landlord is notified on review.</p>
+            )}
           </Card>
         </div>
       )}
@@ -810,7 +812,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
           <p className="text-sm text-card-foreground mt-3 max-w-xl mx-auto">
             Your application for <span className="font-semibold">{apartment.name}</span> has been submitted. The rental owner will review it and get back to you.
           </p>
-          <p className="text-xs text-muted-foreground mt-2">This is a UI-only preview — no data was stored.</p>
+          <p className="text-xs text-muted-foreground mt-2">Your application is saved to your account and the landlord is notified on review.</p>
         </Card>
       )}
 
