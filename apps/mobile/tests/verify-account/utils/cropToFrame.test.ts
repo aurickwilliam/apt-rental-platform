@@ -7,13 +7,14 @@ import {
 } from '@/app/(auth)/verify-account/utils/cropToFrame';
 
 const mockCropAction = jest.fn();
+const mockFlipAction = jest.fn();
 const mockRenderAsync = jest.fn();
 const mockSaveAsync = jest.fn();
 
 jest.mock('expo-image-manipulator', () => ({
   SaveFormat: { JPEG: 'jpeg' },
   ImageManipulator: {
-    manipulate: () => ({ crop: mockCropAction, renderAsync: mockRenderAsync }),
+    manipulate: () => ({ crop: mockCropAction, flip: mockFlipAction, renderAsync: mockRenderAsync }),
   },
 }));
 
@@ -124,8 +125,26 @@ describe('cropPhotoToFrame', () => {
       252,
     );
 
+    expect(mockFlipAction).not.toHaveBeenCalled();
     expect(mockCropAction).toHaveBeenCalledWith({ originX: 137, originY: 86, width: 126, height: 79 });
     expect(result).toEqual({ uri: 'file://cropped.jpg', width: 200, height: 126 });
+  });
+
+  it('mirrors horizontally before cropping when requested (selfie)', async () => {
+    await cropPhotoToFrame(
+      'file://captured.jpg',
+      { originX: 137, originY: 86, width: 126, height: 79 },
+      400,
+      252,
+      { mirrorHorizontal: true },
+    );
+
+    expect(mockFlipAction).toHaveBeenCalledTimes(1);
+    expect(mockFlipAction).toHaveBeenCalledWith('horizontal');
+    expect(mockCropAction).toHaveBeenCalledTimes(1);
+    expect(mockFlipAction.mock.invocationCallOrder[0]).toBeLessThan(
+      mockCropAction.mock.invocationCallOrder[0],
+    );
   });
 
   it('rejects an insane region without touching the encoder', async () => {

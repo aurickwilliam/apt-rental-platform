@@ -190,4 +190,41 @@ describe('verification flow (integration)', () => {
 
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
+
+  describe('upload-selfie automatic camera forward', () => {
+    it('opens the selfie camera on focused entry without a stored selfie', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: {
+          front: captureResult('file://front.jpg'),
+          back: captureResult('file://back.jpg'),
+        },
+      });
+      render(<UploadSelfie />);
+
+      expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?stepId=selfie');
+    });
+
+    it('does not reopen the camera once a selfie is stored', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: {
+          front: captureResult('file://front.jpg'),
+          back: captureResult('file://back.jpg'),
+          selfie: captureResult('file://selfie.jpg', 200, 200),
+        },
+      });
+      render(<UploadSelfie />);
+
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('does not open the camera when redirecting an invalid session', () => {
+      useVerificationStore.setState({ selectedId: null, captures: {} });
+      render(<UploadSelfie />);
+
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
+    });
+  });
 });

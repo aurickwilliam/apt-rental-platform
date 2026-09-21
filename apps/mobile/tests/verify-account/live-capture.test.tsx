@@ -60,6 +60,7 @@ jest.mock('expo-image', () => {
 
 const mockManipulate = jest.fn();
 const mockCropAction = jest.fn();
+const mockFlipAction = jest.fn();
 const mockRenderAsync = jest.fn();
 const mockSaveAsync = jest.fn();
 
@@ -120,7 +121,7 @@ describe('LiveCapture', () => {
     latestGuidedFrameProps = null;
     mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
     mockTakePictureAsync = jest.fn().mockResolvedValue({ uri: 'file://captured.jpg', width: 400, height: 252 });
-    mockManipulate.mockReturnValue({ crop: mockCropAction, renderAsync: mockRenderAsync });
+    mockManipulate.mockReturnValue({ crop: mockCropAction, flip: mockFlipAction, renderAsync: mockRenderAsync });
     mockRenderAsync.mockResolvedValue({ saveAsync: mockSaveAsync });
     mockSaveAsync.mockResolvedValue({ uri: 'file://cropped.jpg', width: 200, height: 126 });
     useVerificationStore.setState({ ...initialVerificationState });
@@ -351,6 +352,45 @@ describe('LiveCapture', () => {
       } finally {
         consoleLogSpy.mockRestore();
       }
+    });
+
+    it('mirrors the selfie save so it matches the mirrored front preview', async () => {
+      setPermission('granted');
+      mockSearchParams = { stepId: SELFIE_STEP.id };
+      render(<LiveCapture />);
+
+      act(() => {
+        latestCameraProps.onCameraReady();
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
+      expect(mockFlipAction).toHaveBeenCalledTimes(1);
+      expect(mockFlipAction).toHaveBeenCalledWith('horizontal');
+    });
+
+    it('does not mirror rear-camera ID captures', async () => {
+      setPermission('granted');
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
+      render(<LiveCapture />);
+
+      act(() => {
+        latestCameraProps.onCameraReady();
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
+      expect(mockFlipAction).not.toHaveBeenCalled();
     });
 
     it('falls back to the uncropped photo when the frame crop fails', async () => {

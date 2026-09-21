@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import { Image } from 'expo-image'
 
@@ -40,6 +40,17 @@ export default function UploadSelfie() {
   const handleCaptureSelfie = () => {
     router.push(`/(auth)/verify-account/live-capture?stepId=${SELFIE_STEP.id}`);
   };
+
+  // Auto-open the front camera when foregrounded without a selfie yet,
+  // mirroring upload-id's auto-advance (the capture button below stays as
+  // fallback and retake). Skipped for invalid sessions — the redirect
+  // effect above owns those — and once a selfie is stored.
+  useFocusEffect(() => {
+    if (selectedId === null || !idStepsComplete) return;
+    if (selfie !== null) return;
+
+    handleCaptureSelfie();
+  });
 
   return (
     <ScreenWrapper

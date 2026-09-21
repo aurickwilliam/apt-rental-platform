@@ -79,17 +79,30 @@ export function isCropRegionSane(
  * insane or the encoder returns an invalid image — the caller falls back
  * to the uncropped photo rather than storing a blank image.
  */
+export interface CropPhotoOptions {
+  /**
+   * Mirror horizontally before cropping (front-camera selfie) so the saved
+   * photo matches the mirrored live preview: right hand up stays on the
+   * right side of the photo.
+   */
+  mirrorHorizontal?: boolean;
+}
+
 export async function cropPhotoToFrame(
   uri: string,
   region: ImageCropRegion,
   photoWidth: number,
   photoHeight: number,
+  options?: CropPhotoOptions,
 ): Promise<{ uri: string; width: number; height: number }> {
   if (!isCropRegionSane(region, photoWidth, photoHeight)) {
     throw new Error('Crop region failed sanity check.');
   }
 
   const context = ImageManipulator.manipulate(uri);
+  if (options?.mirrorHorizontal === true) {
+    context.flip('horizontal');
+  }
   context.crop(region);
   const imageRef = await context.renderAsync();
   const saved = await imageRef.saveAsync({ compress: 0.9, format: SaveFormat.JPEG });

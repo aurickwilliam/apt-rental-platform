@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { Button, CloseButton } from 'heroui-native'
 
-import { IconChevronLeft, IconFaceId } from '@tabler/icons-react-native'
+import { IconBulb, IconChevronLeft, IconFaceId, IconIdBadge } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
@@ -13,6 +13,19 @@ import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence } from './constants/captureSequences'
 import { getCaptureProgress } from './utils/gating'
+
+type GuidelineIcon = typeof IconBulb;
+
+interface SelfieGuideline {
+  icon: GuidelineIcon
+  text: string
+}
+
+const SELFIE_GUIDELINES: SelfieGuideline[] = [
+  { icon: IconBulb, text: 'Use bright, even lighting.' },
+  { icon: IconIdBadge, text: 'Hold the same ID beside your face.' },
+  { icon: IconFaceId, text: 'Keep your full face visible in the frame.' },
+];
 
 export default function SelfiePrep() {
   const router = useRouter();
@@ -68,19 +81,17 @@ export default function SelfiePrep() {
           </Text>
         </View>
 
-        <View className='gap-3'>
-          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
-            Remove glasses, hats, and face coverings.
-          </Text>
-          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
-            Use bright, even lighting.
-          </Text>
-          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
-            Hold the same ID beside your face.
-          </Text>
-          <Text className='text-center text-base font-nunitoSemiBold text-foreground'>
-            Keep your full face visible in the frame.
-          </Text>
+        <View className='w-full gap-3'>
+          {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, text }) => (
+            <View key={text} className='flex-row items-center gap-3 rounded-3xl bg-primary p-2'>
+              <View className='rounded-full bg-white/20 p-2'>
+                <GuidelineIcon size={22} color={colors.white} />
+              </View>
+              <Text className='flex-1 text-sm font-nunitoSemiBold text-white'>
+                {text}
+              </Text>
+            </View>
+          ))}
         </View>
       </View>
     </ScreenWrapper>

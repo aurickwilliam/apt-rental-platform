@@ -106,9 +106,14 @@ export default function LiveCapture() {
       const viewHeight = previewSize?.height ?? viewportHeight;
       const frame = computeGuidedFrameRect(viewWidth, viewHeight, captureStep?.aspectRatio);
       const region = mapGuidedRectToImageCrop(frame, viewWidth, viewHeight, photo.width, photo.height);
+      // The front preview is mirrored — flip the selfie save so it matches
+      // what was on screen. ID steps use the rear camera: no flip.
+      const mirrorHorizontal = stepId === SELFIE_STEP.id;
 
       try {
-        const cropped = await cropPhotoToFrame(photo.uri, region, photo.width, photo.height);
+        const cropped = await cropPhotoToFrame(photo.uri, region, photo.width, photo.height, {
+          mirrorHorizontal,
+        });
         console.log('ID capture crop mapping.', {
           viewWidth,
           viewHeight,
@@ -116,6 +121,7 @@ export default function LiveCapture() {
           photoHeight: photo.height,
           frame,
           region,
+          mirrorHorizontal,
           croppedWidth: cropped.width,
           croppedHeight: cropped.height,
         });
@@ -134,7 +140,7 @@ export default function LiveCapture() {
     } finally {
       isCapturingRef.current = false;
     }
-  }, [cameraReady, captureStep, previewSize, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError]);
+  }, [cameraReady, captureStep, previewSize, stepId, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError]);
 
   const handleManualCapture = useCallback(() => {
     void capturePhoto();
