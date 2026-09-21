@@ -10,7 +10,6 @@ export default function _layout() {
       <Stack.Screen name='index' />
       <Stack.Screen name='add' />
       <Stack.Screen name='card-form' />
-      <Stack.Screen name='e-wallet-redirect' />
     </Stack>
   )
 }

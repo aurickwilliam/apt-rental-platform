@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
 import {
-  MapPin,
-  Star,
-  BedDouble,
-  Bath,
-  Maximize,
-} from 'lucide-react-native';
+  IconStarFilled,
+  IconBed,
+  IconBath,
+  IconMaximize,
+  IconMapPinFilled
+} from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 import type { ApartmentDetails } from 'hooks/apartments';
@@ -38,7 +38,7 @@ export default function ApartmentHeroSection({
 }: ApartmentHeroSectionProps) {
   const { width } = Dimensions.get('window');
 
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [scrollX] = useState(() => new Animated.Value(0));
 
   const { colors } = useColors();
 
@@ -102,14 +102,14 @@ export default function ApartmentHeroSection({
           </Text>
 
           <View className='flex-row items-center mt-2 gap-2'>
-            <MapPin size={24} color={colors.secondaryForeground} />
+            <IconMapPinFilled size={24} color={colors.primary} />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
               {location || 'No location provided'}
             </Text>
           </View>
 
           <View className='flex-row items-center mt-5 gap-2'>
-            <Star size={20} color={colors.secondary} fill={colors.secondary} />
+            <IconStarFilled size={20} color={colors.secondary}  />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
               No ratings yet
             </Text>
@@ -117,7 +117,7 @@ export default function ApartmentHeroSection({
 
           <View className='flex-row items-center justify-between my-5 gap-6'>
             <View className='flex-row items-center gap-2'>
-              <BedDouble size={24} color={colors.secondaryForeground} />
+              <IconBed size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.no_bedrooms}{' '}
                 {apartment?.no_bedrooms === 1 ? 'Bed' : 'Beds'}
@@ -125,7 +125,7 @@ export default function ApartmentHeroSection({
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <Bath size={24} color={colors.secondaryForeground} />
+              <IconBath size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.no_bathrooms}{' '}
                 {apartment?.no_bathrooms === 1 ? 'Bath' : 'Baths'}
@@ -133,7 +133,7 @@ export default function ApartmentHeroSection({
             </View>
 
             <View className='flex-row items-center gap-2'>
-              <Maximize size={24} color={colors.secondaryForeground} />
+              <IconMaximize size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-nunitoSemiBold text-sm`}>
                 {apartment?.area_sqm ? `${apartment?.area_sqm} Sqm` : 'N/A'}
               </Text>

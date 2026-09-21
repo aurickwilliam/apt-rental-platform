@@ -5,29 +5,17 @@ import { useRouter } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
-import { ListGroup, Separator, Switch } from 'heroui-native'
+import { ListGroup, Separator, Switch, Chip } from 'heroui-native'
 
-import {
-  LucideIcon,
-  KeyRound,
-  Mail,
-  Globe,
-  Bell,
-  MoonStar,
-  CircleAlert,
-  CircleQuestionMark,
-  FileText,
-  ShieldCheck,
-  UsersRound,
-} from 'lucide-react-native';
+import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
-import { IconChevronRight } from '@tabler/icons-react-native';
 
 import { useTheme } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
+import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 
 type SettingItem = {
-  icon: LucideIcon | Icon
+  icon: Icon
   title: string
   onPress?: () => void
   disabled?: boolean
@@ -40,33 +28,51 @@ type SettingSection = {
   items: SettingItem[]
 }
 
+function ComingSoonChip() {
+  return (
+    <Chip size="sm" variant="soft" color="default" animation="disable-all" className="px-2">
+      <Chip.Label className="text-[11px] font-nunitoSemiBold text-muted">Coming soon</Chip.Label>
+    </Chip>
+  );
+}
+
 export default function Index() {
   const router = useRouter()
   const { colors, isDark, toggleTheme } = useTheme();
 
-  const { preferences } = useNotificationPreferences();
+  const { preferences: notifPrefs } = useNotificationPreferences();
+  const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
-    preferences.notifications_enabled && preferences.push_enabled
+    notifPrefs.notifications_enabled && notifPrefs.push_enabled
       ? 'On'
-      : !preferences.notifications_enabled && !preferences.push_enabled
+      : !notifPrefs.notifications_enabled && !notifPrefs.push_enabled
         ? 'Off'
         : 'Partial';
+
+  const rentalSummary = (() => {
+    if (!rentalPrefs || !hasPrefs) return "Not set";
+    const cities = rentalPrefs.selectedCities;
+    const cityPart = cities.length > 0 ? cities.slice(0, 2).join(", ") + (cities.length > 2 ? ` +${cities.length - 2}` : "") : "CAMANAVA";
+    return `${cityPart} · ₱${rentalPrefs.budgetMin.toLocaleString()}–${rentalPrefs.budgetMax.toLocaleString()}`;
+  })();
 
   const sections: SettingSection[] = [
     {
       title: 'Security',
       items: [
         {
-          icon: KeyRound,
+          icon: IconKey,
           title: 'Change Password',
-          onPress: () => {},
+          disabled: true,
+          suffix: <ComingSoonChip />,
         },
         {
-          icon: Mail,
+          icon: IconMail,
           title: 'Change Email',
-          onPress: () => {},
+          disabled: true,
+          suffix: <ComingSoonChip />,
         },
       ],
     },
@@ -74,12 +80,26 @@ export default function Index() {
       title: 'Preferences',
       items: [
         {
-          icon: Globe,
-          title: 'Language & Region',
-          onPress: () => router.push('/settings/language-region'),
+          icon: IconAdjustments,
+          title: 'Rental Preferences',
+          onPress: () => router.push('/settings/preferences'),
+          suffix: (
+            <View className="flex-row items-center gap-1 max-w-[160px]">
+              <Text className="text-muted text-xs font-inter flex-shrink" numberOfLines={1}>
+                {rentalSummary}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
+          ),
         },
         {
-          icon: Bell,
+          icon: IconGlobe,
+          title: 'Language & Region',
+          disabled: true,
+          suffix: <ComingSoonChip />,
+        },
+        {
+          icon: IconBell,
           title: 'Notifications',
           onPress: () => router.push('/settings/notifications'),
           suffix: (
@@ -92,7 +112,7 @@ export default function Index() {
           ),
         },
         {
-          icon: MoonStar,
+          icon: IconMoonStars,
           title: 'Dark Mode',
           disabled: true,
           suffix: (
@@ -108,27 +128,28 @@ export default function Index() {
       title: 'Help & Support',
       items: [
         {
-          icon: CircleAlert,
+          icon: IconAlertCircle,
           title: 'Report a Problem',
-          onPress: () => {},
+          disabled: true,
+          suffix: <ComingSoonChip />,
         },
         {
-          icon: CircleQuestionMark,
+          icon: IconHelpCircle,
           title: 'FAQs',
           onPress: () => router.push('/settings/faq'),
         },
         {
-          icon: FileText,
+          icon: IconFileText,
           title: 'Terms and Conditions',
           onPress: () => router.push('/settings/terms'),
         },
         {
-          icon: ShieldCheck,
+          icon: IconShieldCheck,
           title: 'Privacy Policy',
           onPress: () => router.push('/settings/privacy-policy'),
         },
         {
-          icon: UsersRound,
+          icon: IconUsersGroup,
           title: 'About Us',
           onPress: () => router.push('/settings/about'),
         }

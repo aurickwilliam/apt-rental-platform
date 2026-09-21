@@ -5,8 +5,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
+import { useTheme } from "hooks/useTheme";
 
 export default function Index() {
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -61,6 +63,8 @@ export default function Index() {
 
   // Splash-colored backdrop while the boot redirect runs — no spinner, so
   // the splash-to-home transition is seamless (also covers JS reloads, where
-  // the native splash does not re-appear)
-  return <View style={{ flex: 1, backgroundColor: COLORS.light.primary }} />;
+  // the native splash does not re-appear). Matches the native splash
+  // background per mode (light: brand blue, dark: near-black).
+  const backgroundColor = isDark ? COLORS.dark.white : COLORS.light.primary;
+  return <View style={{ flex: 1, backgroundColor }} />;
 }

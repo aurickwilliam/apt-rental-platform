@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
 
@@ -50,7 +51,7 @@ export default function NotificationCard({
       >
         <Card.Header>
           <View className="flex-row items-center gap-2">
-            <Icon size={20} color={iconColor} />
+            {createElement(Icon, { size: 20, color: iconColor })}
 
             <Card.Title className={`flex-1 text-base ${unread ? "font-nunitoBold" : "font-nunitoSemiBold"}`}>
               {title}

@@ -8,20 +8,8 @@ import {
   useThemeColor,
 } from "heroui-native";
 
-import {
-  Calendar,
-  Clock,
-  Users,
-  CalendarCheck,
-  CalendarX,
-  AlertCircle,
-  MessageCircle,
-  RotateCcw,
-  CheckCircle2,
-  XCircle,
-  Hourglass,
-  LucideIcon,
-} from "lucide-react-native";
+import { IconCalendar, IconClock, IconUsers, IconCalendarCheck, IconCalendarX, IconAlertCircle, IconMessageCircle, IconRotate, IconCircleCheck, IconCircleX, IconHourglass } from '@tabler/icons-react-native';
+import type { Icon } from '@tabler/icons-react-native';
 
 import { formatDate, formatTime } from "@repo/utils";
 
@@ -66,7 +54,7 @@ function InfoRow({
   label,
   value,
 }: {
-  icon: React.ReactElement<LucideIcon>;
+  icon: React.ReactElement<Icon>;
   label: string;
   value: string;
 }) {
@@ -105,7 +93,7 @@ function ActionButton({
   onPress,
   variant = "secondary",
 }: {
-  icon: React.ReactElement<LucideIcon>;
+  icon: React.ReactElement<Icon>;
   label: string;
   onPress?: () => void;
   variant?: "primary" | "secondary" | "danger";
@@ -206,24 +194,24 @@ export default function VisitRequestCard({
           {status === "pending" && (
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-warning-light px-3 py-2.5">
-                <Hourglass size={iconSize} color={colors.warning} />
+                <IconHourglass size={iconSize} color={colors.warning} />
                 <Text className="flex-1 text-sm text-warning font-nunitoSemiBold">
                   Waiting for the landlord to respond
                 </Text>
               </View>
               <View className="gap-2">
                 <InfoRow
-                  icon={<Calendar size={iconSize} color={iconColor} />}
+                  icon={<IconCalendar size={iconSize} color={iconColor} />}
                   label="Date"
                   value={formatDate(visit_date, "long")}
                 />
                 <InfoRow
-                  icon={<Clock size={iconSize} color={iconColor} />}
+                  icon={<IconClock size={iconSize} color={iconColor} />}
                   label="Time"
                   value={formatTime(time)}
                 />
                 <InfoRow
-                  icon={<Users size={iconSize} color={iconColor} />}
+                  icon={<IconUsers size={iconSize} color={iconColor} />}
                   label="Visitors"
                   value={visitorsLabel}
                 />
@@ -235,24 +223,24 @@ export default function VisitRequestCard({
           {status === "approved" && (
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-success/10 px-3 py-2.5">
-                <CheckCircle2 size={iconSize} color={colors.success} />
+                <IconCircleCheck size={iconSize} color={colors.success} />
                 <Text className="flex-1 text-sm text-success font-nunitoSemiBold">
                   Visit confirmed
                 </Text>
               </View>
               <View className="gap-2">
                 <InfoRow
-                  icon={<Calendar size={iconSize} color={iconColor} />}
+                  icon={<IconCalendar size={iconSize} color={iconColor} />}
                   label="Date"
                   value={formatDate(finalVisitDate, "long")}
                 />
                 <InfoRow
-                  icon={<Clock size={iconSize} color={iconColor} />}
+                  icon={<IconClock size={iconSize} color={iconColor} />}
                   label="Time"
                   value={formatTime(finalVisitTime)}
                 />
                 <InfoRow
-                  icon={<Users size={iconSize} color={iconColor} />}
+                  icon={<IconUsers size={iconSize} color={iconColor} />}
                   label="Visitors"
                   value={visitorsLabel}
                 />
@@ -265,17 +253,17 @@ export default function VisitRequestCard({
             <View className="gap-3">
               <View className="gap-2 opacity-70">
                 <InfoRow
-                  icon={<Calendar size={iconSize} color={iconColor} />}
+                  icon={<IconCalendar size={iconSize} color={iconColor} />}
                   label="Date"
                   value={formatDate(visit_date, "long")}
                 />
                 <InfoRow
-                  icon={<Clock size={iconSize} color={iconColor} />}
+                  icon={<IconClock size={iconSize} color={iconColor} />}
                   label="Time"
                   value={formatTime(time)}
                 />
                 <InfoRow
-                  icon={<Users size={iconSize} color={iconColor} />}
+                  icon={<IconUsers size={iconSize} color={iconColor} />}
                   label="Visitors"
                   value={visitorsLabel}
                 />
@@ -283,7 +271,7 @@ export default function VisitRequestCard({
 
               {rejected_reason && (
                 <View className="flex-row gap-2.5 rounded-2xl bg-danger/10 px-3 py-2.5">
-                  <AlertCircle size={iconSize} color={colors.danger} />
+                  <IconAlertCircle size={iconSize} color={colors.danger} />
                   <View className="flex-1 gap-1">
                     <SectionLabel className="text-danger">
                       Rejection Reason
@@ -298,7 +286,7 @@ export default function VisitRequestCard({
               <View className="flex-row gap-2">
                 <ActionButton
                   icon={
-                    <MessageCircle
+                    <IconMessageCircle
                       size={iconSize}
                       color={themeColorAccentSoftForeground}
                     />
@@ -309,7 +297,7 @@ export default function VisitRequestCard({
                 />
                 <ActionButton
                   icon={
-                    <RotateCcw
+                    <IconRotate
                       size={iconSize}
                       color={themeColorAccentForeground}
                     />
@@ -342,18 +330,18 @@ export default function VisitRequestCard({
                     </SectionLabel>
                     <InfoRow
                       icon={
-                        <CalendarCheck size={iconSize} color={colors.gray500} />
+                        <IconCalendarCheck size={iconSize} color={colors.gray500} />
                       }
                       label="Date"
                       value={formatDate(confirmed_visit_date, "long")}
                     />
                     <InfoRow
-                      icon={<Clock size={iconSize} color={colors.gray500} />}
+                      icon={<IconClock size={iconSize} color={colors.gray500} />}
                       label="Time"
                       value={formatTime(confirmed_time)}
                     />
                     <InfoRow
-                      icon={<Users size={iconSize} color={iconColor} />}
+                      icon={<IconUsers size={iconSize} color={iconColor} />}
                       label="Visitors"
                       value={visitorsLabel}
                     />
@@ -362,7 +350,7 @@ export default function VisitRequestCard({
                   <View className="flex-row gap-2">
                     <ActionButton
                       icon={
-                        <XCircle
+                        <IconCircleX
                           size={iconSize}
                           color={themeColorDangerForeground}
                         />
@@ -373,7 +361,7 @@ export default function VisitRequestCard({
                     />
                     <ActionButton
                       icon={
-                        <CheckCircle2
+                        <IconCircleCheck
                           size={iconSize}
                           color={themeColorAccentForeground}
                         />
@@ -397,7 +385,7 @@ export default function VisitRequestCard({
           {status === "cancelled" && (
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-muted/10 px-3 py-2.5">
-                <CalendarX size={iconSize} color={iconColor} />
+                <IconCalendarX size={iconSize} color={iconColor} />
                 <Text className="flex-1 text-sm text-muted font-nunitoSemiBold">
                   {isDeclinedReschedule
                     ? "You declined the reschedule"
@@ -407,7 +395,7 @@ export default function VisitRequestCard({
 
               <View className="gap-2 opacity-70">
                 <InfoRow
-                  icon={<Calendar size={iconSize} color={iconColor} />}
+                  icon={<IconCalendar size={iconSize} color={iconColor} />}
                   label="Date"
                   value={formatDate(
                     isDeclinedReschedule ? confirmed_visit_date! : visit_date,
@@ -415,14 +403,14 @@ export default function VisitRequestCard({
                   )}
                 />
                 <InfoRow
-                  icon={<Clock size={iconSize} color={iconColor} />}
+                  icon={<IconClock size={iconSize} color={iconColor} />}
                   label="Time"
                   value={formatTime(
                     isDeclinedReschedule ? confirmed_time! : time,
                   )}
                 />
                 <InfoRow
-                  icon={<Users size={iconSize} color={iconColor} />}
+                  icon={<IconUsers size={iconSize} color={iconColor} />}
                   label="Visitors"
                   value={visitorsLabel}
                 />
@@ -430,7 +418,7 @@ export default function VisitRequestCard({
 
               <ActionButton
                 icon={
-                  <RotateCcw
+                  <IconRotate
                     size={iconSize}
                     color={themeColorAccentForeground}
                   />

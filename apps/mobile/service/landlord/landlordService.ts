@@ -474,6 +474,7 @@ export type LandlordApplication = {
   monthly_rent: number;
   apartment_city: string;
   apartment_address: string;
+  apartment_status: string;
 };
 
 export async function fetchLandlordApplications(
@@ -489,7 +490,7 @@ export async function fetchLandlordApplications(
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
       gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code),
+      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`
     )
     .order("created_at", { ascending: false });
@@ -543,6 +544,7 @@ export async function fetchLandlordApplications(
       apartment_name: asNullableString(apartment?.name) ?? "",
       monthly_rent: Number(asNullableString(apartment?.monthly_rent) ?? 0),
       apartment_city: asNullableString(apartment?.city) ?? "",
+      apartment_status: asNullableString(apartment?.status) ?? "available",
       apartment_address: formatAddress({
         street_address: asNullableString(apartment?.street_address),
         barangay: asNullableString(apartment?.barangay),
@@ -591,43 +593,6 @@ type RawApartmentImage = {
   is_cover: boolean | null;
 };
 
-// C5-deferred behavior preserved: apartment-image paths are still resolved
-// through signed URLs here until the bucket contract is approved.
-const signedUrlCache = new Map<string, { signedUrl: string; expiresAt: number }>();
-const SIGNED_URL_TTL_MS = 55 * 60 * 1000;
-
-async function resolveApartmentImageUrls(paths: string[]): Promise<Map<string, string>> {
-  const uncached: string[] = [];
-  const result = new Map<string, string>();
-
-  for (const path of paths) {
-    const cached = signedUrlCache.get(path);
-    if (cached && Date.now() < cached.expiresAt) {
-      result.set(path, cached.signedUrl);
-    } else {
-      uncached.push(path);
-    }
-  }
-
-  if (uncached.length > 0) {
-    const { data } = await supabase.storage
-      .from("apartment-images")
-      .createSignedUrls(uncached, 60 * 60);
-
-    for (const item of data ?? []) {
-      if (item.signedUrl && item.path) {
-        signedUrlCache.set(item.path, {
-          signedUrl: item.signedUrl,
-          expiresAt: Date.now() + SIGNED_URL_TTL_MS,
-        });
-        result.set(item.path, item.signedUrl);
-      }
-    }
-  }
-
-  return result;
-}
-
 export async function fetchLandlordVisitRequests(
   landlordId: string
 ): Promise<LandlordVisitRequest[]> {
@@ -673,19 +638,11 @@ export async function fetchLandlordVisitRequests(
 
   const rows = data ?? [];
 
-  const coverPaths: string[] = [];
-  for (const r of rows) {
-    const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
-    const cover = images.find((img) => img.is_cover === true);
-    if (cover?.url) coverPaths.push(cover.url);
-  }
-
-  const urlMap = await resolveApartmentImageUrls(coverPaths);
-
+  // apartment-images bucket is public — urls are already CDN public URLs (url / url_thumb)
   return rows.map((r) => {
     const images = (r.apartment?.apartment_images ?? []) as RawApartmentImage[];
     const cover = images.find((img) => img.is_cover === true);
-    const resolvedUrl = cover?.url ? (urlMap.get(cover.url) ?? cover.url) : null;
+    const resolvedUrl = cover?.url ?? null;
 
     return {
       ...r,
@@ -834,7 +791,12 @@ export async function updateLandlordMaintenanceStatus(
   nextStatus: MaintenanceRequestStatus,
   resolutionNotes?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const updatePayload: Record<string, unknown> = {
+  const updatePayload: {
+    status: string;
+    resolved_at?: string | null;
+    resolution_notes?: string | null;
+    cancelled_at?: string | null;
+  } = {
     status: DISPLAY_TO_DB_STATUS[nextStatus],
   };
   if (nextStatus === "Resolved") {

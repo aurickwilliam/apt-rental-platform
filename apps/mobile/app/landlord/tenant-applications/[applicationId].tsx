@@ -4,7 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
 import { Avatar, Button, Card, Chip, Separator, Spinner } from 'heroui-native';
-import { Mail, MapPin } from 'lucide-react-native';
+import { IconMail, IconMapPin } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -78,7 +78,7 @@ export default function TenantApplicationDetails() {
     openRejectDialog,
     closeRejectDialog,
     clearError
-  } = useApplicationActions(resolvedId);
+  } = useApplicationActions(resolvedId, application?.apartment_id);
 
   // Loading State
   if (loading) {
@@ -102,6 +102,7 @@ export default function TenantApplicationDetails() {
   const displayStatus = localStatus ?? application?.status;
   const statusStyle = getStatusStyle(displayStatus!, colors);
   const isPending = displayStatus === 'Applied';
+  const isUnitOccupied = application.apartment_status === 'occupied';
 
   return (
     <>
@@ -143,7 +144,7 @@ export default function TenantApplicationDetails() {
                 </Text>
 
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <Mail size={13} color={colors.gray500} />
+                  <IconMail size={13} color={colors.gray500} />
                   <Text
                     className="text-gray-500 text-xs font-inter"
                     numberOfLines={1}
@@ -153,7 +154,7 @@ export default function TenantApplicationDetails() {
                 </View>
 
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <MapPin size={13} color={colors.gray500} />
+                  <IconMapPin size={13} color={colors.gray500} />
                   <Text className="text-gray-500 text-xs font-inter">
                     {application.tenant_city}
                   </Text>
@@ -307,22 +308,34 @@ export default function TenantApplicationDetails() {
           </View>
 
           {isPending && (
-            <View className="flex-row gap-3 mt-2">
-              <Button
-                variant="danger-soft"
-                className="flex-1"
-                isDisabled={actionLoading}
-                onPress={openRejectDialog}
-              >
-                <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
-              </Button>
-              <Button
-                className="flex-1"
-                isDisabled={actionLoading}
-                onPress={approve}
-              >
-                <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
-              </Button>
+            <View className="gap-3 mt-2">
+              {isUnitOccupied && (
+                <Text
+                  className="text-sm font-inter"
+                  style={{ color: colors.danger }}
+                  accessibilityRole="alert"
+                >
+                  This unit is already occupied and cannot accept another
+                  tenant. Vacate it first, then approve.
+                </Text>
+              )}
+              <View className="flex-row gap-3">
+                <Button
+                  variant="danger-soft"
+                  className="flex-1"
+                  isDisabled={actionLoading}
+                  onPress={openRejectDialog}
+                >
+                  <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
+                </Button>
+                <Button
+                  className="flex-1"
+                  isDisabled={actionLoading || isUnitOccupied}
+                  onPress={approve}
+                >
+                  <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
+                </Button>
+              </View>
             </View>
           )}
         </View>

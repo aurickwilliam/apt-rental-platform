@@ -4,6 +4,7 @@ import {
   IconLayoutGrid,
   IconLayoutRows,
   IconHeart,
+  IconMap,
   IconMapPinFilled,
 } from '@tabler/icons-react-native';
 
@@ -20,6 +21,8 @@ type SearchHeaderProps = {
   isGridView: boolean;
   onToggleView: () => void;
   onFavoritesPress: () => void;
+  isNetflixMode?: boolean;
+  onMapPress?: () => void;
 };
 
 export default function SearchHeader({
@@ -29,6 +32,8 @@ export default function SearchHeader({
   isGridView,
   onToggleView,
   onFavoritesPress,
+  isNetflixMode = false,
+  onMapPress,
 }: SearchHeaderProps) {
   const { colors } = useColors();
 
@@ -48,25 +53,41 @@ export default function SearchHeader({
       </View>
 
       <View className='flex-row items-center gap-4'>
-        <Button 
-          onPress={onFavoritesPress} 
-          variant='ghost' 
+        <Button
+          onPress={onFavoritesPress}
+          variant='ghost'
           className='p-0'
+          accessibilityLabel="Favorites"
+          accessibilityRole="button"
         >
           <IconHeart size={24} color={colors.gray500} />
         </Button>
 
         <Button
-          onPress={onToggleView}
+          onPress={onMapPress}
           variant='ghost'
           className='p-0'
+          accessibilityLabel="Map search"
+          accessibilityRole="button"
         >
-          {isGridView ? (
-            <IconLayoutGrid size={24} color={colors.gray500} />
-          ) : (
-            <IconLayoutRows size={24} color={colors.gray500} />
-          )}
+          <IconMap size={24} color={colors.gray500} />
         </Button>
+
+        {!isNetflixMode && (
+          <Button
+            onPress={onToggleView}
+            variant='ghost'
+            className='p-0'
+            accessibilityLabel="Toggle view"
+            accessibilityRole="button"
+          >
+            {isGridView ? (
+              <IconLayoutGrid size={24} color={colors.gray500} />
+            ) : (
+              <IconLayoutRows size={24} color={colors.gray500} />
+            )}
+          </Button>
+        )}
       </View>
     </View>
   );

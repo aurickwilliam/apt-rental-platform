@@ -7,6 +7,7 @@ import Animated, {
   withSequence,
   withTiming,
   withDelay,
+  type SharedValue,
 } from 'react-native-reanimated';
 
 import { useColors } from '@/hooks/useTheme';
@@ -16,6 +17,20 @@ const DOT_SIZE = 6;
 const DOT_GAP = 4;
 const ANIMATION_DELAY = 200;
 
+function startTypingAnimation(opacity: SharedValue<number>, index: number) {
+  opacity.value = withDelay(
+    index * ANIMATION_DELAY,
+    withRepeat(
+      withSequence(
+        withTiming(1, { duration: 400 }),
+        withTiming(0.4, { duration: 400 })
+      ),
+      -1,
+      false
+    )
+  );
+}
+
 function TypingDot({ index }: { index: number }) {
   const opacity = useSharedValue(0.4);
 
@@ -24,17 +39,7 @@ function TypingDot({ index }: { index: number }) {
   }));
 
   useEffect(() => {
-    opacity.value = withDelay(
-      index * ANIMATION_DELAY,
-      withRepeat(
-        withSequence(
-          withTiming(1, { duration: 400 }),
-          withTiming(0.4, { duration: 400 })
-        ),
-        -1,
-        false
-      )
-    );
+    startTypingAnimation(opacity, index);
   }, [index, opacity]);
 
   return (

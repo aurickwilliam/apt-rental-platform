@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 
 import { IconBell } from "@tabler/icons-react-native";
 
@@ -9,7 +9,7 @@ import { useColors } from "@/hooks/useTheme";
 import { useUnreadNotificationCount } from "@/hooks/notifications";
 
 interface NotificationBellButtonProps {
-  route: string;
+  route: Href;
 }
 
 export default function NotificationBellButton({ route }: NotificationBellButtonProps) {

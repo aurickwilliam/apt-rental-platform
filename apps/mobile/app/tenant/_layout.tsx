@@ -14,6 +14,7 @@ export default function TenantLayout() {
       <Stack.Screen name="payment" />
       <Stack.Screen name="request-maintenance" />
       <Stack.Screen name="maintenance-history" />
+      <Stack.Screen name="map-search" />
     </Stack>
   )
 }

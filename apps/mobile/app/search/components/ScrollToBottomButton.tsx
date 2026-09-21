@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { TouchableOpacity } from "react-native";
 import Animated, {
-  useSharedValue,
+  useDerivedValue,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
@@ -20,23 +19,17 @@ export default function ScrollToBottomButton({
 }: ScrollToBottomButtonProps) {
   const { colors } = useColors();
 
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.5);
+  const opacity = useDerivedValue(() =>
+    withTiming(isNearBottom ? 0 : 1, { duration: isNearBottom ? 150 : 200 }),
+  );
+  const scale = useDerivedValue(() =>
+    withTiming(isNearBottom ? 0.5 : 1, { duration: isNearBottom ? 150 : 200 }),
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
-
-  useEffect(() => {
-    if (isNearBottom) {
-      opacity.value = withTiming(0, { duration: 150 });
-      scale.value = withTiming(0.5, { duration: 150 });
-    } else {
-      opacity.value = withTiming(1, { duration: 200 });
-      scale.value = withTiming(1, { duration: 200 });
-    }
-  }, [isNearBottom, opacity, scale]);
 
   return (
     <Animated.View

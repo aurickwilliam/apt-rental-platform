@@ -1,4 +1,4 @@
-import { FlatList, View, Text, Image, type ImageSourcePropType } from 'react-native'
+import { Alert, FlatList, View, Text, Image, type ImageSourcePropType } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { ListGroup, Separator } from 'heroui-native'
@@ -34,7 +34,10 @@ export default function Add() {
       return;
     }
 
-    router.push(`/tenant/payment/saved-methods/e-wallet-redirect?method=${type}`);
+    // TODO(payment): restore push to /tenant/payment/saved-methods/e-wallet-redirect
+    // once the e-wallet-redirect screen lands — the route does not exist yet, so a
+    // push would redbox today. E-wallet linking is coming soon.
+    Alert.alert('Coming soon', 'Linking e-wallet accounts is not available yet.');
   }
 
   const renderPaymentMethod = ({ item }: { item: PaymentMethodType }) => (

@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-import { House } from "lucide-react-native";
+import { IconHome } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -10,7 +10,7 @@ export default function EmptyApproved() {
   return (
     <View className="flex-1 items-center justify-center py-12">
       <View className="bg-white rounded-full p-5 mb-4">
-        <House size={28} color={colors.gray500} />
+        <IconHome size={28} color={colors.gray500} />
       </View>
       <Text className="text-foreground text-lg font-nunitoSemiBold">
         No approved visits

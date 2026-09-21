@@ -71,7 +71,7 @@ export default function PublicLandlordProfile() {
     const parsed = new Date(profile.created_at);
     if (Number.isNaN(parsed.getTime())) return '—';
     return String(parsed.getFullYear());
-  }, [profile?.created_at]);
+  }, [profile]);
 
   const location = [profile?.city, profile?.province].filter(Boolean).join(', ') || '—';
 

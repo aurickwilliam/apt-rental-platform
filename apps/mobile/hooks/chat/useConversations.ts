@@ -11,12 +11,33 @@ import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conv
 export const getConversationsQueryKey = (myId: string | null) =>
   ["conversations", myId] as const;
 
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+  return "An unexpected error occurred.";
+}
+
 type NewChatRow = {
   sender_id: string;
   receiver_id: string;
   apartment_id: string | null;
   message: string | null;
   message_type: string;
+  created_at: string;
+};
+
+type OldChatRow = {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  apartment_id: string | null;
   created_at: string;
 };
 
@@ -88,6 +109,45 @@ export function useConversations(role: ConversationRole) {
       });
     };
 
+    const handleDelete = (payload: { old: unknown }) => {
+      const row = payload.old as OldChatRow;
+      if (typeof row.sender_id !== "string") return;
+      if (row.sender_id !== myId && row.receiver_id !== myId) return;
+
+      const otherUserId = row.sender_id === myId ? row.receiver_id : row.sender_id;
+
+      queryClient.setQueryData<ConversationWithMeta[]>(queryKey, (current) => {
+        if (!current) return current;
+        const index = nextFindIndex(current, otherUserId, row.apartment_id);
+        if (index === -1) {
+          void queryClient.invalidateQueries({ queryKey, exact: true });
+          return current;
+        }
+        const next = [...current];
+        const updated = {
+          ...next[index],
+          last_message: "This message was unsent",
+          last_message_type: null,
+          last_message_time: row.created_at,
+          last_sender_is_me: row.sender_id === myId,
+        };
+        next[index] = updated;
+        // Keep ordering stable; background refetch will correct if deleted was not latest.
+        void queryClient.invalidateQueries({ queryKey, exact: true });
+        return next;
+      });
+
+      function nextFindIndex(
+        arr: ConversationWithMeta[],
+        otherId: string,
+        aptId: string | null
+      ) {
+        return arr.findIndex(
+          (conv) => conv.other_user_id === otherId && (conv.apartment_id ?? null) === (aptId ?? null)
+        );
+      }
+    };
+
     // A channel with this identity is still unregistering (removeChannel is
     // async): reuse it instead of re-registering on the joined channel. The
     // live callback closes over the same myId-scoped key, so behavior is
@@ -116,6 +176,15 @@ export function useConversations(role: ConversationRole) {
         },
         handleInsert
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "chat",
+        },
+        handleDelete
+      )
       .subscribe();
 
     channelRef.current = channel;
@@ -136,10 +205,13 @@ export function useConversations(role: ConversationRole) {
     );
   };
 
+  const error = getErrorMessage(currentUserQuery.error ?? conversationsQuery.error);
+
   return {
     conversations: conversationsQuery.data ?? [],
     loading: currentUserQuery.isLoading || conversationsQuery.isLoading,
     refreshing: conversationsQuery.isFetching && !conversationsQuery.isLoading,
+    error,
     refetch: conversationsQuery.refetch,
     markConversationRead,
   };

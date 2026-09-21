@@ -1,4 +1,4 @@
-import { PlatformPressable } from '@react-navigation/elements'
+import { PlatformPressable } from "expo-router/react-navigation"
 import { View, Text } from "react-native"
 import { JSX } from 'react';
 

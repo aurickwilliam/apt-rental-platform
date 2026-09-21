@@ -172,7 +172,7 @@ Minimal — flat + hairline border is the aesthetic.
 
 | Platform | Standard | Legacy (⚠) |
 |---|---|---|
-| Mobile | `@tabler/icons-react-native` | `lucide-react-native` (Chat, DateField, DropdownField) |
+| Mobile | `@tabler/icons-react-native` | — (migrated 2026-08-29, 0 files; `lucide-react-native` removed) |
 | Web | `lucide-react` + `@tabler/icons-react` (both accepted) | — |
 
 Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocused outline 1.8); header actions 24–26; section icons 24; inline/button 16–20; metadata 12–18; empty-state 64 (tenant bare primary) / 32–48 (landlord, in gray circle); status 18–26 (receipt check 48). Filled variants for active/selected; neutral `gray500`/`textPrimary`, emphasis `primary`/`secondary`. Never add a new icon library.
@@ -412,7 +412,7 @@ Never copy technical debt. Reference only, with migration direction.
 | 3 | Web dead CSS (`@layer components` `.button--*`, `.input`, `.select__trigger`, `.toggle-button`) | Unreferenced by any TSX | ⚠ No | Delete; use HeroUI + Tailwind |
 | 4 | Web undefined fonts (`font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold`) | Fallback font renders | ⚠ No | Use `font-nunito`/`font-inter` |
 | 5 | Web tenant `zinc-*` palette (my-rental) | Diverges from canonical grey tokens | ⚠ No | Normalize to `gray-*` |
-| 6 | `lucide-react-native` on mobile | ~29 files (chat, settings, apartment detail, inputs; public landlord/tenant profile screens + manage-apartment migrated) | ⚠ No | `@tabler/icons-react-native` |
+| 6 | `lucide-react-native` on mobile | ~~ ~29 files (chat, settings, apartment detail, inputs; public landlord/tenant profile screens + manage-apartment migrated)~~ **Migrated 2026-08-29 — 0 files** (all 39 migrated to `@tabler/icons-react-native`; `lucide-react-native` removed from `apps/mobile/package.json` + `pnpm-lock.yaml`) | ✅ Migrated | `@tabler/icons-react-native` |
 | 7 | Dead components (`TabBar`, `TabBarIcon`, unused inputs/display components) | Unused | ⚠ Delete | Remove when touched |
 | 8 | Legacy RN `Modal` (MoveInCost, DateField picker, video) | Works, outside HeroUI overlay system | 🚧 OK | Migrate to HeroUI `Dialog`/`BottomSheet` |
 | 9 | Custom form inputs (`DateField`, `DropdownField`, `UploadImageField`, `UploadFileField`, `TimeField`, `QuantityField`, `AppInput`) | Token-correct custom implementations | 🚧 Reuse | Re-evaluate HeroUI equivalents |

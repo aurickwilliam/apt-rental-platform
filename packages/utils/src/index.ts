@@ -10,6 +10,7 @@ export {
   handlePesoChange,
   extractRawNumber
 } from './formatCurrencyInput';
+export { calcMoveInCost, toMoveInNumber } from './calcMoveInCost';
 export * from './authErrors';
 export {
   formatCardNumber,

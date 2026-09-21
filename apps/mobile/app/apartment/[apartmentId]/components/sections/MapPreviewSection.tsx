@@ -1,52 +1,14 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
+import { View, TouchableOpacity, Linking, Platform } from 'react-native';
 
-import {
-  MapView,
-  Camera,
-  ShapeSource,
-  CircleLayer,
-  setAccessToken,
-} from '@maplibre/maplibre-react-native';
+import { IconMap } from '@tabler/icons-react-native';
 
-import { Map } from 'lucide-react-native';
-
-import { Dialog, Button } from "heroui-native"
+import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
-
-setAccessToken(null);
-
-const MAP_STYLE = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-tiles',
-      type: 'raster',
-      source: 'osm',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
-
-const DEFAULT_COORDS = {
-  latitude: 14.67,
-  longitude: 120.96,
-};
+import SectionHeader from '@/components/display/SectionHeader';
+import AppDialog from '@/components/display/AppDialog';
+import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 
 type DirectionMode = 'driving' | 'walking' | 'transit' | 'motorcycle';
 
@@ -67,8 +29,6 @@ export default function MapPreviewSection({
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] =
     useState(false);
-
-  const hasApartmentCoords = latitude != null && longitude != null;
 
   const openDirections = async (mode: DirectionMode) => {
     if (latitude == null || longitude == null) {
@@ -130,12 +90,10 @@ export default function MapPreviewSection({
 
   return (
     <>
-      <View className='flex-row items-center gap-2 mt-10 px-5'>
-        <Map size={26} color={colors.textPrimary} />
-        <Text className='font-nunitoSemiBold text-lg text-foreground'>
-          View on Map
-        </Text>
-      </View>
+      <SectionHeader
+        icon={<IconMap size={26} color={colors.textPrimary} />}
+        title="View on Map"
+      />
 
       <TouchableOpacity
         activeOpacity={0.7}
@@ -143,58 +101,17 @@ export default function MapPreviewSection({
         onPress={onOpenMap}
       >
         <View style={{ flex: 1 }} pointerEvents='none'>
-          <MapView
+          <MapViewSwitcher
+            latitude={latitude}
+            longitude={longitude}
+            interactive={false}
             style={{ flex: 1 }}
-            mapStyle={MAP_STYLE}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            rotateEnabled={false}
-            pitchEnabled={false}
-          >
-            <Camera
-              centerCoordinate={[
-                longitude ?? DEFAULT_COORDS.longitude,
-                latitude ?? DEFAULT_COORDS.latitude,
-              ]}
-              zoomLevel={15}
-              animationDuration={0}
-              maxZoomLevel={19}
-            />
-
-            {hasApartmentCoords && (
-              <ShapeSource
-                id='pin-source'
-                shape={{
-                  type: 'Feature',
-                  geometry: {
-                    type: 'Point',
-                    coordinates: [longitude as number, latitude as number],
-                  },
-                  properties: {},
-                }}
-              >
-                <CircleLayer
-                  id='pin-ring'
-                  style={{
-                    circleRadius: 10,
-                    circleColor: '#ffffff',
-                  }}
-                />
-                <CircleLayer
-                  id='pin-dot'
-                  style={{
-                    circleRadius: 7,
-                    circleColor: colors.primary,
-                  }}
-                />
-              </ShapeSource>
-            )}
-          </MapView>
+          />
         </View>
 
         <Button
-          onPress={(event) => {
-            event.stopPropagation();
+          onPress={(event: unknown) => {
+            (event as { stopPropagation?: () => void })?.stopPropagation?.();
             setIsDirectionsModalVisible(true);
           }}
           size="sm"
@@ -207,86 +124,51 @@ export default function MapPreviewSection({
         </Button>
       </TouchableOpacity>
 
-      <Dialog
+      <AppDialog
         isOpen={isDirectionsModalVisible}
         onOpenChange={setIsDirectionsModalVisible}
+        title="Choose Route Type"
+        description="Select how you want to get there."
+        footer={
+          <Button
+            variant="danger-soft"
+            size="sm"
+            onPress={() => setIsDirectionsModalVisible(false)}
+          >
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+        }
       >
-        <Dialog.Portal>
-          <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
-          
-          <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
-            <Dialog.Close 
-              variant="ghost" 
-              className="absolute top-4 right-4 z-50"
-            />
+        <View className="gap-3">
+          <Button size="sm" onPress={() => handleSelectDirectionMode("driving")}>
+            <Button.Label>Drive/4-Wheels</Button.Label>
+          </Button>
 
-            {/* Header */}
-            <View>
-              <Text className="font-nunitoSemiBold text-lg text-foreground">
-                Choose Route Type
-              </Text>
-              <Text className="mt-1 font-inter text-muted">
-                Select how you want to get there.
-              </Text>
-            </View>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("motorcycle")}
+          >
+            <Button.Label>Motorcycle</Button.Label>
+          </Button>
 
-            {/* Body */}
-            <View className="mt-4 gap-3">
-              <Button
-                size="sm"
-                onPress={() => handleSelectDirectionMode("driving")}
-              >
-                <Button.Label>
-                  Drive/4-Wheels
-                </Button.Label>
-              </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("transit")}
+          >
+            <Button.Label>Transit</Button.Label>
+          </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("motorcycle")}
-              >
-                <Button.Label>
-                  Motorcycle
-                </Button.Label>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("transit")}
-              >
-                <Button.Label>
-                  Transit
-                </Button.Label>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectDirectionMode("walking")}
-              >
-                <Button.Label>
-                  Walk/Bike
-                </Button.Label>
-              </Button>
-            </View>
-
-            {/* Footer */}
-            <View className="mt-5">
-              <Button
-                variant="danger-soft"
-                size="sm"
-                onPress={() => setIsDirectionsModalVisible(false)}
-              >
-                <Button.Label>
-                  Cancel
-                </Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => handleSelectDirectionMode("walking")}
+          >
+            <Button.Label>Walk/Bike</Button.Label>
+          </Button>
+        </View>
+      </AppDialog>
     </>
   );
 }

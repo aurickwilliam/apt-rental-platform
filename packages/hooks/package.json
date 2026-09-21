@@ -15,7 +15,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@repo/constants": "workspace:*",
-    "react": "^18.0.0"
+    "@repo/constants": "workspace:*"
   }
 }

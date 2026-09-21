@@ -13,7 +13,8 @@ export { clearPrivateMediaUrlCache, setPrivateMediaCacheUser } from './privateMe
 export type PrivateMediaBucket =
   | 'application-documents'
   | 'chat-images'
-  | 'maintenance-images';
+  | 'maintenance-images'
+  | 'lease-agreements';
 
 export type PrivateMediaUrlMap = Record<string, string | null>;
 

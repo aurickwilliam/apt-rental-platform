@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 
-import { ChevronLeft } from 'lucide-react-native';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme";
 import { IMAGES } from "constants/images";
@@ -39,7 +39,7 @@ export default function AIHeader({ onBackPress }: AIHeaderProps) {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <ChevronLeft size={24} color={colors.secondaryForeground} />
+          <IconChevronLeft size={24} color={colors.secondaryForeground} />
         </TouchableOpacity>
       </View>
 

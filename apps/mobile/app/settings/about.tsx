@@ -6,13 +6,7 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 
-import { 
-  Github, 
-  Globe, 
-  Mail, 
-  Facebook, 
-  Instagram 
-} from "lucide-react-native";
+import { IconBrandGithub, IconGlobe, IconMail, IconBrandFacebook, IconBrandInstagram } from '@tabler/icons-react-native';
 
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
@@ -34,31 +28,31 @@ const socials = [
   {
     id: 1,
     label: "Website",
-    icon: Globe,
+    icon: IconGlobe,
     url: "https://apt.com",
   },
   {
     id: 2,
     label: "Facebook",
-    icon: Facebook,
+    icon: IconBrandFacebook,
     url: "https://facebook.com/apt",
   },
   {
     id: 3,
     label: "Instagram",
-    icon: Instagram,
+    icon: IconBrandInstagram,
     url: "https://instagram.com/apt",
   },
   {
     id: 4,
     label: "Email",
-    icon: Mail,
+    icon: IconMail,
     url: "mailto:support@apt.com",
   },
   {
     id: 5,
     label: "GitHub",
-    icon: Github,
+    icon: IconBrandGithub,
     url: "https://github.com/apt",
   },
 ];

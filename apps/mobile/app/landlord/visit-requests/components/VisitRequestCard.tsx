@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 
 import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 
-import { Calendar, Home } from "lucide-react-native";
+import { IconCalendar, IconHome } from '@tabler/icons-react-native';
 
 import { useColors } from "@/hooks/useTheme"
 import {
@@ -56,7 +56,7 @@ export default function VisitRequestCard({
                   {tenantName}
                 </Text>
                 <View className="flex-row items-center gap-1 mt-1">
-                  <Home size={14} color={colors.gray400} />
+                  <IconHome size={14} color={colors.gray400} />
                   <Text
                     className="text-muted text-xs font-inter"
                     numberOfLines={1}
@@ -65,7 +65,7 @@ export default function VisitRequestCard({
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-1 mt-2">
-                  <Calendar size={14} color={colors.gray400} />
+                  <IconCalendar size={14} color={colors.gray400} />
                   <Text
                     className="text-gray-500 text-xs font-inter"
                     numberOfLines={1}

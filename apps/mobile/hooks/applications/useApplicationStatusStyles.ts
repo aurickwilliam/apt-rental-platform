@@ -1,5 +1,5 @@
 import { useColors } from "@/hooks/useTheme";
-import { Clock, CheckCircle, XCircle, type LucideIcon } from "lucide-react-native";
+import { IconClock, IconCircleCheck, IconCircleX, type Icon } from "@tabler/icons-react-native";
 
 export type ApplicationStatus =
   | "pending"
@@ -13,7 +13,7 @@ export type ChipColor = "accent" | "default" | "success" | "warning" | "danger";
 export type ApplicationStatusStyle = {
   label: string;
   description: string;
-  Icon: LucideIcon;
+  Icon: Icon;
   chipColor: ChipColor;
   iconColor: string;
 };
@@ -21,7 +21,7 @@ export type ApplicationStatusStyle = {
 const FALLBACK_STYLE = (colors: ReturnType<typeof useColors>["colors"]): ApplicationStatusStyle => ({
   label: "Unknown",
   description: "",
-  Icon: XCircle,
+  Icon: IconCircleX,
   chipColor: "default",
   iconColor: colors.gray500,
 });
@@ -34,7 +34,7 @@ export function useApplicationStatusStyles() {
       label: "Pending",
       description:
         "Your application is being reviewed by the landlord. We'll notify you once there's an update.",
-      Icon: Clock,
+      Icon: IconClock,
       chipColor: "warning",
       iconColor: colors.warning,
     },
@@ -42,14 +42,14 @@ export function useApplicationStatusStyles() {
       label: "Approved",
       description:
         "Your application has been approved! The landlord will reach out to finalize your lease.",
-      Icon: CheckCircle,
+      Icon: IconCircleCheck,
       chipColor: "success",
       iconColor: colors.success,
     },
     rejected: {
       label: "Rejected",
       description: "Unfortunately, your application was not approved this time.",
-      Icon: XCircle,
+      Icon: IconCircleX,
       chipColor: "danger",
       iconColor: colors.danger,
     },
@@ -57,7 +57,7 @@ export function useApplicationStatusStyles() {
       label: "Cancelled",
       description:
         "Your application has been cancelled. If you have any questions, please contact the landlord.",
-      Icon: XCircle,
+      Icon: IconCircleX,
       chipColor: "default",
       iconColor: colors.gray400,
     },
@@ -65,7 +65,7 @@ export function useApplicationStatusStyles() {
       label: "Closed",
       description:
         "This apartment has already been leased to another applicant, so this application is now closed.",
-      Icon: XCircle,
+      Icon: IconCircleX,
       chipColor: "default",
       iconColor: colors.gray400,
     },

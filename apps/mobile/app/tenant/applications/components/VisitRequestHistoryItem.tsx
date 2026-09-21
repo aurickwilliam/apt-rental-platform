@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { Calendar, Clock } from "lucide-react-native";
+import { IconCalendar, IconClock } from '@tabler/icons-react-native';
 import { formatDate, formatTime } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -49,11 +49,11 @@ export default function VisitRequestHistoryItem({ visitRequest }: Props) {
     <View className="bg-surface rounded-2xl border border-border px-3.5 py-3 gap-2.5">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2.5">
-          <Calendar size={14} color={colors.gray500} />
+          <IconCalendar size={14} color={colors.gray500} />
           <Text className="text-sm text-foreground font-nunitoSemiBold">
             {formatDate(displayDate, "long")}
           </Text>
-          <Clock size={14} color={colors.gray500} />
+          <IconClock size={14} color={colors.gray500} />
           <Text className="text-sm text-muted font-inter">
             {formatTime(displayTime)}
           </Text>

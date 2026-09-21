@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 type ChannelHandler = (event: { payload: unknown }) => void;
 
@@ -14,6 +14,7 @@ type MockChannel = {
 
 const mockChannels: MockChannel[] = [];
 const mockRemoveChannel = jest.fn();
+const mockGetChannels = jest.fn((): unknown[] => []);
 const mockChannel = jest.fn((name: string, _config?: unknown): MockChannel => {
   const channel: MockChannel = {
     name,
@@ -41,6 +42,7 @@ jest.mock('@repo/supabase', () => ({
   supabase: {
     channel: (name: string, config?: unknown) => mockChannel(name, config),
     removeChannel: (channel: unknown) => mockRemoveChannel(channel),
+    getChannels: () => mockGetChannels(),
   },
 }));
 
@@ -53,6 +55,9 @@ const APARTMENT_ID = 'apartment-id';
 beforeEach(() => {
   jest.clearAllMocks();
   mockChannels.length = 0;
+  mockGetChannels.mockReturnValue([]);
+  // The real removeChannel is async — resolve so `await` drains proceed.
+  mockRemoveChannel.mockResolvedValue('ok');
 });
 
 describe('useChatChannel', () => {
@@ -131,5 +136,84 @@ describe('useChatChannel', () => {
 
     unmount();
     expect(mockRemoveChannel).toHaveBeenCalledTimes(4);
+  });
+
+  /** Validates: stale-channel drain — a still-unregistering predecessor is
+   *  removed before new bindings are added (reproduces the
+   *  "cannot add `presence` callbacks ... after `subscribe()`" crash). */
+  it('drains a still-unregistering channel before binding presence handlers', async () => {
+    // Topics follow buildConversationKey(current, other, apartment):
+    // chat:<apartment>:<sorted user ids>, prefixed with `realtime:`.
+    const staleMsg = {
+      topic: 'realtime:chat:msg:chat:apartment-id:current-user:other-user',
+      on: jest.fn(),
+      subscribe: jest.fn(),
+    };
+    const stalePresence = {
+      topic: 'realtime:chat:presence:chat:apartment-id:current-user:other-user',
+      on: jest.fn(),
+      subscribe: jest.fn(),
+    };
+    mockGetChannels.mockReturnValue([staleMsg, stalePresence]);
+
+    const { unmount } = renderHook(() =>
+      useChatChannel({
+        currentUserId: CURRENT_USER_ID,
+        otherUserId: OTHER_USER_ID,
+        apartmentId: APARTMENT_ID,
+        onNewMessage: jest.fn(),
+        onOtherUserTypingChange: jest.fn(),
+      })
+    );
+
+    // Fresh channels are created only after the stale pair is removed.
+    await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(2));
+    expect(mockRemoveChannel).toHaveBeenCalledTimes(2);
+    expect(mockRemoveChannel.mock.invocationCallOrder[0]).toBeLessThan(
+      mockChannel.mock.invocationCallOrder[0]
+    );
+    // The stale joined channels never receive new bindings.
+    expect(staleMsg.on).not.toHaveBeenCalled();
+    expect(stalePresence.on).not.toHaveBeenCalled();
+    // The fresh channels get the full binding set (4 broadcast + 3 presence).
+    const freshEvents = mockChannels.flatMap((c) =>
+      c.on.mock.calls.map(([event]) => event as string)
+    );
+    expect(freshEvents.filter((e) => e === 'broadcast')).toHaveLength(4);
+    expect(freshEvents.filter((e) => e === 'presence')).toHaveLength(3);
+
+    unmount();
+  });
+
+  /** Validates: StrictMode-style unmount/remount on the same conversation
+   *  rebinds exactly once without throwing. */
+  it('survives an unmount-remount cycle on the same conversation', async () => {
+    const props = {
+      currentUserId: CURRENT_USER_ID,
+      otherUserId: OTHER_USER_ID,
+      apartmentId: APARTMENT_ID,
+      onNewMessage: jest.fn(),
+      onOtherUserTypingChange: jest.fn(),
+    };
+    const first = renderHook(() => useChatChannel(props));
+    await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(2));
+
+    // Simulate the async gap: the first mount's channels are still registered
+    // when the second mount sets up (removeChannel hasn't landed yet).
+    mockGetChannels.mockImplementation(() =>
+      mockChannels.map((c) => ({ ...c, topic: `realtime:${c.name}` }))
+    );
+    first.unmount();
+
+    renderHook(() => useChatChannel(props));
+    await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(4));
+
+    const fresh = mockChannels.slice(2);
+    expect(fresh).toHaveLength(2);
+    expect(fresh[1].on).toHaveBeenCalledWith(
+      'presence',
+      expect.anything(),
+      expect.any(Function)
+    );
   });
 });

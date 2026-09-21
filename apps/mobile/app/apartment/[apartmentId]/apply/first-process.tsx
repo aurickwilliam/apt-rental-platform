@@ -65,18 +65,8 @@ export default function FirstProcess() {
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
   const contentRef = useRef<View>(null);
+  const groupOffsets = useRef<Partial<Record<string, number>>>({});
   const fieldPositions = useRef<Partial<Record<keyof FieldErrors, number>>>({});
-
-  const registerFieldRef = (field: keyof FieldErrors) => (node: View | null) => {
-    if (!node || !contentRef.current) return;
-    node.measureLayout(
-      contentRef.current,
-      (_x: number, y: number) => {
-        fieldPositions.current[field] = y;
-      },
-      () => {},
-    );
-  };
 
   const clearFieldError = (field: keyof FieldErrors) => {
     setErrors((prev) => {
@@ -282,9 +272,19 @@ export default function FirstProcess() {
           Employment & Income Details
         </Text>
 
-        <View className="flex gap-3">
+        <View
+          className="flex gap-3"
+          onLayout={(e) => {
+            groupOffsets.current.employment = e.nativeEvent.layout.y;
+          }}
+        >
           {/* Employment Type */}
-          <View ref={registerFieldRef("employmentType")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.employmentType =
+                (groupOffsets.current.employment ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <DropdownField
               label="Employment Type"
               bottomSheetLabel="Select Employment Type"
@@ -315,7 +315,12 @@ export default function FirstProcess() {
           </View>
 
           {/* Occupation */}
-          <View ref={registerFieldRef("occupation")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.occupation =
+                (groupOffsets.current.employment ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <TextField
               isRequired={!isNoIncomeType}
               isInvalid={!!errors.occupation}
@@ -334,7 +339,12 @@ export default function FirstProcess() {
           </View>
 
           {/* Company Name — disabled for Unemployed / Student */}
-          <View ref={registerFieldRef("companyName")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.companyName =
+                (groupOffsets.current.employment ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <TextField
               isRequired={requiresCompanyName(tenantInformation.employmentType)}
               isDisabled={isNoIncomeType}
@@ -359,7 +369,12 @@ export default function FirstProcess() {
           </View>
 
           {/* Monthly Income */}
-          <View ref={registerFieldRef("monthlyIncome")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.monthlyIncome =
+                (groupOffsets.current.employment ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <TextField isRequired isInvalid={!!errors.monthlyIncome}>
               <Label>Monthly Income</Label>
               <Input
@@ -403,9 +418,19 @@ export default function FirstProcess() {
           Preferred for Fast-Track Review
         </Text>
 
-        <View className="flex gap-3">
+        <View
+          className="flex gap-3"
+          onLayout={(e) => {
+            groupOffsets.current.references = e.nativeEvent.layout.y;
+          }}
+        >
           {/* Previous Landlord Name */}
-          <View ref={registerFieldRef('previousLandlordName')}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.previousLandlordName =
+                (groupOffsets.current.references ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <TextField isInvalid={!!errors.previousLandlordName}>
               <Label>Previous Landlord Name</Label>
 
@@ -431,7 +456,12 @@ export default function FirstProcess() {
           </View>
 
           {/* Previous Landlord Contact */}
-          <View ref={registerFieldRef("previousLandlordContact")}>
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.previousLandlordContact =
+                (groupOffsets.current.references ?? 0) + e.nativeEvent.layout.y;
+            }}
+          >
             <TextField isInvalid={!!errors.previousLandlordContact}>
               <Label>Previous Landlord Contact</Label>
               <Input
