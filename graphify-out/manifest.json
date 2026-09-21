@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/success.tsx": {
-    "mtime": 1789994097.814352,
-    "ast_hash": "73b383520822491a2b085752c4d0f313",
+    "mtime": 1789997931.7968793,
+    "ast_hash": "f1eced24fec172d42cb7e77d655cef6a",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/upload-id.tsx": {
@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/[applicationId].tsx": {
-    "mtime": 1789994219.1902897,
-    "ast_hash": "fa3ecfae29822f68af389a6cbd817890",
+    "mtime": 1789995042.638173,
+    "ast_hash": "88b6b9ed58a23c19fa5f445b5b79e803",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/tenant-applications/application-history.tsx": {
@@ -4430,8 +4430,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/review.tsx": {
-    "mtime": 1789994119.0167444,
-    "ast_hash": "bf804de22a9e9aa1ece6e201994fdc1d",
+    "mtime": 1789996711.5448809,
+    "ast_hash": "64c311409c9b39c84128e4d0f2c24a15",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/verification/useVerification.test.tsx": {
@@ -4455,8 +4455,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/verify-account/review.test.tsx": {
-    "mtime": 1789994119.0170994,
-    "ast_hash": "0573f4076f1707c41710d50c0be2209a",
+    "mtime": 1789996711.5422454,
+    "ast_hash": "845bbe3bab453b6d6443ead7f14f044d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260917000000_create_user_verifications.sql": {
@@ -4492,6 +4492,11 @@
   "apps/mobile/tests/verify-account/utils/cropToFrame.test.ts": {
     "mtime": 1789994097.8345652,
     "ast_hash": "52b58b8d046a479d3f955e57cba4b113",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/verify-account/success.test.tsx": {
+    "mtime": 1789997953.4057524,
+    "ast_hash": "ded815f424a2faa0f5ffdf7a686a88af",
     "semantic_hash": ""
   }
 }

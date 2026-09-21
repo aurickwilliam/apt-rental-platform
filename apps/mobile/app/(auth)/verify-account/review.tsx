@@ -60,6 +60,8 @@ export default function Review() {
     label: string
     photoLabel: string
     uri: string
+    /** Card shape: true ID proportions for documents, square for the selfie. */
+    aspectRatio: number
     onRetake: () => void
   }
 
@@ -73,6 +75,7 @@ export default function Review() {
       label: `ID ${step.label}`,
       photoLabel: `ID ${step.label} photo`,
       uri: result.uri,
+      aspectRatio: step.aspectRatio,
       onRetake: () => handleEditIdStep(step.id),
     }];
   });
@@ -85,6 +88,7 @@ export default function Review() {
         label: 'Selfie',
         photoLabel: 'Selfie holding your ID',
         uri: selfie.uri,
+        aspectRatio: 1,
         onRetake: handleRetakeSelfie,
       }];
 
@@ -154,6 +158,7 @@ export default function Review() {
             label={item.label}
             photoLabel={item.photoLabel}
             uri={item.uri}
+            aspectRatio={item.aspectRatio}
             onView={() => setViewingIndex(index)}
             onRetake={item.onRetake}
           />
@@ -196,11 +201,12 @@ interface ReviewPhotoCardProps {
   label: string
   photoLabel: string
   uri: string
+  aspectRatio: number
   onView: () => void
   onRetake: () => void
 }
 
-function ReviewPhotoCard({ label, photoLabel, uri, onView, onRetake }: ReviewPhotoCardProps) {
+function ReviewPhotoCard({ label, photoLabel, uri, aspectRatio, onView, onRetake }: ReviewPhotoCardProps) {
   const { colors } = useColors();
   const [loadFailed, setLoadFailed] = useState(false);
 
@@ -218,7 +224,10 @@ function ReviewPhotoCard({ label, photoLabel, uri, onView, onRetake }: ReviewPho
       </View>
 
       {loadFailed ? (
-        <View className='w-full h-48 rounded-2xl border border-border items-center justify-center p-4'>
+        <View
+          style={{ width: '100%', aspectRatio }}
+          className='rounded-2xl border border-border items-center justify-center p-4'
+        >
           <Text className='text-sm text-gray-500 font-inter text-center'>
             Photo couldn&apos;t load. Please retake it.
           </Text>
@@ -232,7 +241,7 @@ function ReviewPhotoCard({ label, photoLabel, uri, onView, onRetake }: ReviewPho
         >
           <Image
             source={{ uri }}
-            style={{ width: '100%', height: 192 }}
+            style={{ width: '100%', aspectRatio }}
             contentFit="cover"
             accessibilityLabel={photoLabel}
             onError={() => setLoadFailed(true)}

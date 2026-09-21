@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Review from '@/app/(auth)/verify-account/review';
+import { CARD_ASPECT_RATIO } from '@/app/(auth)/verify-account/constants/captureSequences';
 import { initialVerificationState, useVerificationStore } from '@/stores/useVerificationStore';
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -155,16 +156,19 @@ describe('Review', () => {
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
-  it('renders card images with explicit style sizing (not className-only)', () => {
+  it('renders ID cards at ID proportions and the selfie card portrait', () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
     render(<Review />);
 
-    for (const label of ['ID Front photo', 'ID Back photo', 'Selfie holding your ID']) {
+    for (const label of ['ID Front photo', 'ID Back photo']) {
       const image = screen.getByLabelText(label);
-      expect(image.props.style).toEqual(
-        expect.objectContaining({ width: '100%', height: 192 }),
-      );
+      expect(image.props.style.width).toBe('100%');
+      expect(image.props.style.aspectRatio).toBeCloseTo(CARD_ASPECT_RATIO, 5);
     }
+
+    const selfieImage = screen.getByLabelText('Selfie holding your ID');
+    expect(selfieImage.props.style.width).toBe('100%');
+    expect(selfieImage.props.style.aspectRatio).toBe(1);
   });
 
   it('reopens live-capture for the tapped document', () => {
