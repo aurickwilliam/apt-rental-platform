@@ -97,13 +97,17 @@ export default function Review() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={4} totalSteps={5} stepName="Review & Submit" />
+      <StepProgress
+        currentStep={4}
+        totalSteps={5}
+        stepName="Review & Submit"
+      />
 
-      <View className='flex gap-2'>
+      <View className='flex gap-1'>
         <Text className='text-2xl text-accent font-nunitoMedium'>
           {selectedId}
         </Text>
-        <Text className='text-base text-gray-500 font-inter'>
+        <Text className='text-sm text-gray-500 font-inter'>
           Review your documents before submitting.
         </Text>
       </View>

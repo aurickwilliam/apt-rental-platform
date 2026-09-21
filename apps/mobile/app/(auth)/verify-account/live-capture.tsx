@@ -10,7 +10,8 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import GuidedFrameOverlay, { computeGuidedFrameRect } from '@/components/display/GuidedFrameOverlay'
-import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification'
+import { useCameraPermission } from '@/hooks/verification'
+import { cropPhotoToFrame, mapGuidedRectToImageCrop } from './utils/cropToFrame'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
@@ -27,8 +28,9 @@ interface CapturedPhoto {
 /**
  * Live_Capture_Screen — in-app camera capture for a single Capture_Step of
  * the tenant's Selected_Id_Type, with a guided frame sized to that step's
- * configured aspect ratio, real-time quality feedback, auto-capture, a
- * manual shutter, and a retake/confirm review step.
+ * configured aspect ratio, a static framing hint, a manual-only shutter
+ * with crop-to-frame capture (review shows exactly the framed content),
+ * and a retake/confirm review step.
  *
  * Validates: Requirements 2.6, 2.7, 3.1-3.9, 4.1-4.6
  */
@@ -55,26 +57,18 @@ export default function LiveCapture() {
   const [screenState, setScreenState] = useState<ScreenState>('preview');
   const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(null);
 
-  // Guards — see Task 14.4 for the rationale behind each.
+  // Guard against rapid double-taps of the manual shutter.
   const isCapturingRef = useRef(false);
-  const autoCaptureTriggeredRef = useRef(false);
 
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
-  const guidedFrameRect = computeGuidedFrameRect(viewportWidth, viewportHeight, captureStep?.aspectRatio);
 
-  const qualityCheckEnabled = permissionState === 'granted' && screenState === 'preview' && captureStep != null;
-
-  const { status, reasons, isStable } = useFrameQualityCheck(cameraRef, {
-    enabled: qualityCheckEnabled,
-    guidedFrameRect,
-    viewportWidth,
-    viewportHeight,
-  });
+  // Measured preview size for the frame-to-photo crop mapping. Falls back
+  // to the window dims until the preview reports its layout.
+  const [previewSize, setPreviewSize] = useState<{ width: number; height: number } | null>(null);
 
   const resetCameraLifecycleState = useCallback(() => {
     setCameraReady(false);
     isCapturingRef.current = false;
-    autoCaptureTriggeredRef.current = false;
   }, [setCameraReady]);
 
   const handleMountError = useCallback(
@@ -91,9 +85,11 @@ export default function LiveCapture() {
   }, [resetCameraLifecycleState, setCameraError]);
 
   /**
-   * The single code path allowed to call `takePictureAsync()` for an actual
-   * (non-sampling) capture. Both the manual shutter and the auto-capture
-   * trigger call this function — there is no duplicate capture logic.
+   * The single code path allowed to call `takePictureAsync()`. Only the
+   * manual shutter calls this function — there is no automatic capture and
+   * no background sampling. The full-sensor photo is cropped to the guided
+   * frame before review so what the user framed is what they get (WYSIWYG);
+   * a failed crop degrades to the uncropped photo rather than blocking.
    */
   const capturePhoto = useCallback(async () => {
     if (!cameraReady) return;
@@ -105,39 +101,49 @@ export default function LiveCapture() {
     isCapturingRef.current = true;
     try {
       const photo = await camera.takePictureAsync({ quality: 0.9, shutterSound: true });
-      setCapturedPhoto({ uri: photo.uri, width: photo.width, height: photo.height });
+
+      const viewWidth = previewSize?.width ?? viewportWidth;
+      const viewHeight = previewSize?.height ?? viewportHeight;
+      const frame = computeGuidedFrameRect(viewWidth, viewHeight, captureStep?.aspectRatio);
+      const region = mapGuidedRectToImageCrop(frame, viewWidth, viewHeight, photo.width, photo.height);
+
+      try {
+        const cropped = await cropPhotoToFrame(photo.uri, region, photo.width, photo.height);
+        console.log('ID capture crop mapping.', {
+          viewWidth,
+          viewHeight,
+          photoWidth: photo.width,
+          photoHeight: photo.height,
+          frame,
+          region,
+          croppedWidth: cropped.width,
+          croppedHeight: cropped.height,
+        });
+        setCapturedPhoto({ uri: cropped.uri, width: cropped.width, height: cropped.height });
+      } catch {
+        console.error('ID capture crop failed, using uncropped photo.', {
+          photoWidth: photo.width,
+          photoHeight: photo.height,
+          region,
+        });
+        setCapturedPhoto({ uri: photo.uri, width: photo.width, height: photo.height });
+      }
       setScreenState('reviewing');
     } catch (err) {
       setCameraError(err instanceof Error ? err.message : 'Failed to capture photo.');
     } finally {
       isCapturingRef.current = false;
     }
-  }, [cameraReady, setCapturedPhoto, setScreenState, setCameraError]);
+  }, [cameraReady, captureStep, previewSize, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError]);
 
   const handleManualCapture = useCallback(() => {
     void capturePhoto();
   }, [capturePhoto]);
 
-  // Auto-capture: trigger capturePhoto() once isStable becomes true, guarded
-  // against duplicate triggers across re-renders/samples within one preview
-  // session (Req 2.5).
-  useEffect(() => {
-    if (
-      isStable &&
-      screenState === 'preview' &&
-      cameraReady &&
-      !autoCaptureTriggeredRef.current
-    ) {
-      autoCaptureTriggeredRef.current = true;
-      void capturePhoto();
-    }
-  }, [isStable, screenState, cameraReady, capturePhoto]);
-
   const handleRetake = useCallback(() => {
     setCapturedPhoto(null);
     setScreenState('preview');
     isCapturingRef.current = false;
-    autoCaptureTriggeredRef.current = false;
   }, [setCapturedPhoto, setScreenState]);
 
   const handleUsePhoto = () => {
@@ -207,7 +213,16 @@ export default function LiveCapture() {
       )}
 
       {permissionState === 'granted' && !cameraError && !stepNotFound && screenState === 'preview' && (
-        <View className="flex-1">
+        <View
+          className="flex-1"
+          testID="camera-preview-container"
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            setPreviewSize((current) =>
+              current?.width === width && current?.height === height ? current : { width, height },
+            );
+          }}
+        >
           <CameraView
             ref={cameraRef}
             style={{ flex: 1 }}
@@ -234,7 +249,7 @@ export default function LiveCapture() {
             </Text>
           </View>
 
-          <QualityIndicator status={status} reasons={reasons} />
+          <CaptureHint isSelfie={stepId === SELFIE_STEP.id} />
 
           <View className="absolute bottom-12 left-0 right-0 items-center">
             <TouchableOpacity
@@ -301,28 +316,13 @@ function CameraErrorView({ message, onRetry }: { message: string; onRetry: () =>
   )
 }
 
-function QualityIndicator({
-  status,
-  reasons,
-}: {
-  status: 'evaluating' | 'pass' | 'fail'
-  reasons: ('blur' | 'glare' | 'fill')[]}) {
-  const dotColor = status === 'pass' ? 'bg-success' : status === 'fail' ? 'bg-danger' : 'bg-warning';
-
-  const message = (() => {
-    if (status === 'pass') return 'Looks good — hold steady';
-    if (status === 'evaluating') return 'Evaluating…';
-    if (reasons.includes('blur')) return 'Hold your device steady';
-    if (reasons.includes('glare')) return 'Reduce glare or improve lighting';
-    if (reasons.includes('fill')) return 'Move closer to fill the frame';
-    return 'Adjust framing';
-  })();
-
+function CaptureHint({ isSelfie }: { isSelfie: boolean }) {
   return (
     <View className="absolute bottom-32 left-0 right-0 items-center">
-      <View className="flex-row items-center gap-2 bg-black/50 rounded-full px-4 py-2">
-        <View className={`size-2.5 rounded-full ${dotColor}`} />
-        <Text className="text-white text-xs font-nunitoSemiBold">{message}</Text>
+      <View className="bg-black/50 rounded-full px-4 py-2">
+        <Text className="text-white text-xs font-nunitoSemiBold">
+          {isSelfie ? 'Fit your face inside the circle' : 'Fit the entire ID inside the frame'}
+        </Text>
       </View>
     </View>
   )

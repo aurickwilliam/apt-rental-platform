@@ -1,7 +1,8 @@
-import { View, Text } from 'react-native'
+import { Pressable, View, Text } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
+import ImageViewing from 'react-native-image-viewing'
 
 import { CloseButton, Button, Checkbox, ControlField, Label } from 'heroui-native'
 
@@ -27,11 +28,19 @@ export default function UploadId() {
   const clearCaptureResults = useVerificationStore((state) => state.clearCaptureResults);
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   const sequence = getCaptureSequence(selectedId);
   const progress = getCaptureProgress(sequence, captures);
   const canContinue = computeCanContinue(sequence, captures, isConfirmed);
   const firstIncompleteStepId = progress.steps.find(({ result }) => result === null)?.step.id ?? null;
+
+  // Completed steps drive both the summary cards and the fullscreen viewer
+  // so tapping a card opens the viewer on that exact photo.
+  const completedSteps = progress.steps.filter(
+    (entry): entry is { step: CaptureStepConfig; result: IdCaptureResult } => entry.result !== null,
+  );
+  const viewerImages = completedSteps.map(({ result }) => ({ uri: result.uri }));
 
   const navigateToCapture = (stepId: string) => {
     router.push(`/(auth)/verify-account/live-capture?idType=${encodeURIComponent(selectedId ?? '')}&stepId=${encodeURIComponent(stepId)}`);
@@ -57,6 +66,7 @@ export default function UploadId() {
   const handleRetakeIdPhotos = () => {
     clearCaptureResults(sequence.map((step) => step.id));
     setIsConfirmed(false);
+    setViewingIndex(null);
   };
 
   return (
@@ -90,7 +100,7 @@ export default function UploadId() {
 
       <StepProgress currentStep={2} totalSteps={5} stepName="Upload Your ID" />
 
-      <View className='flex gap-2'>
+      <View className='flex gap-1'>
         <Text className='text-2xl text-accent font-nunitoMedium'>
           {selectedId}
         </Text>
@@ -104,15 +114,14 @@ export default function UploadId() {
       {progress.isComplete && (
         <>
           <View className='flex gap-5 mt-5'>
-            {progress.steps.map(({ step, result }) =>
-              result !== null ? (
-                <CaptureStepSummary
-                  key={step.id}
-                  step={step}
-                  result={result}
-                />
-              ) : null,
-            )}
+            {completedSteps.map(({ step, result }, index) => (
+              <CaptureStepSummary
+                key={step.id}
+                step={step}
+                result={result}
+                onPress={() => setViewingIndex(index)}
+              />
+            ))}
           </View>
 
           <View className='mt-5'>
@@ -131,6 +140,22 @@ export default function UploadId() {
               </Label>
             </ControlField>
           </View>
+
+          <ImageViewing
+            images={viewerImages}
+            imageIndex={viewingIndex ?? 0}
+            visible={viewingIndex !== null}
+            onRequestClose={() => setViewingIndex(null)}
+            presentationStyle="overFullScreen"
+            backgroundColor="rgb(0, 0, 0, 0.8)"
+            FooterComponent={({ imageIndex: idx }) => (
+              <View className="p-10 items-center">
+                <Text className="text-white font-nunitoSemiBold">
+                  {idx + 1} / {viewerImages.length}
+                </Text>
+              </View>
+            )}
+          />
         </>
       )}
     </ScreenWrapper>
@@ -140,10 +165,12 @@ export default function UploadId() {
 interface CaptureStepSummaryProps {
   step: CaptureStepConfig
   result: IdCaptureResult
+  onPress: () => void
 }
 
-function CaptureStepSummary({ step, result }: CaptureStepSummaryProps) {
+function CaptureStepSummary({ step, result, onPress }: CaptureStepSummaryProps) {
   const { colors } = useColors();
+  const [loadFailed, setLoadFailed] = useState(false);
 
   return (
     <View className='gap-2'>
@@ -154,18 +181,28 @@ function CaptureStepSummary({ step, result }: CaptureStepSummaryProps) {
         <IconCheck size={18} color={colors.primary} />
       </View>
 
-      <View className='flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-4'>
-        <Image
-          source={{ uri: result.uri }}
-          className='size-14 rounded-lg'
-          contentFit="cover"
-          cachePolicy="disk"
-          accessibilityLabel={`${step.label} ID photo`}
-        />
-        <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
-          Captured photo
-        </Text>
-      </View>
+      {loadFailed ? (
+        <View className='w-full h-48 rounded-2xl border border-border items-center justify-center p-4'>
+          <Text className='text-sm text-gray-500 font-inter text-center'>
+            Photo couldn&apos;t load. Please use Retake ID Photos below.
+          </Text>
+        </View>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`View ${step.label} ID photo fullscreen`}
+          onPress={onPress}
+          className='w-full rounded-2xl border border-border overflow-hidden'
+        >
+          <Image
+            source={{ uri: result.uri }}
+            style={{ width: '100%', height: 192 }}
+            contentFit="cover"
+            accessibilityLabel={`${step.label} ID photo`}
+            onError={() => setLoadFailed(true)}
+          />
+        </Pressable>
+      )}
     </View>
   )
 }

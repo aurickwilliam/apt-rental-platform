@@ -1,9 +1,11 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import LiveCapture from '@/app/(auth)/verify-account/live-capture';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
-import { useCameraPermission, useFrameQualityCheck } from '@/hooks/verification';
+import { useCameraPermission } from '@/hooks/verification';
 import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO, SELFIE_STEP } from '@/app/(auth)/verify-account/constants/captureSequences';
+import { computeGuidedFrameRect } from '@/components/display/GuidedFrameOverlay';
+import { mapGuidedRectToImageCrop } from '@/app/(auth)/verify-account/utils/cropToFrame';
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
@@ -27,7 +29,6 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/hooks/verification', () => ({
   useCameraPermission: jest.fn(),
-  useFrameQualityCheck: jest.fn(),
 }));
 
 // Capture the onCameraReady/onMountError callbacks passed to CameraView so
@@ -56,6 +57,18 @@ jest.mock('expo-image', () => {
   const { View } = require('react-native');
   return { Image: (props: any) => <View testID="captured-image-preview" {...props} /> };
 });
+
+const mockManipulate = jest.fn();
+const mockCropAction = jest.fn();
+const mockRenderAsync = jest.fn();
+const mockSaveAsync = jest.fn();
+
+jest.mock('expo-image-manipulator', () => ({
+  SaveFormat: { JPEG: 'jpeg' },
+  ImageManipulator: {
+    manipulate: (...args: any[]) => mockManipulate(...args),
+  },
+}));
 
 // heroui-native ESM stub, matching the convention used elsewhere.
 jest.mock('heroui-native', () => {
@@ -92,8 +105,6 @@ jest.mock('@/components/display/GuidedFrameOverlay', () => {
   };
 });
 
-const DEFAULT_QUALITY_RESULT = { status: 'evaluating' as const, reasons: [], isStable: false };
-
 function setPermission(state: 'granted' | 'denied' | 'restricted' | 'undetermined') {
   (useCameraPermission as jest.Mock).mockReturnValue({
     state,
@@ -109,7 +120,9 @@ describe('LiveCapture', () => {
     latestGuidedFrameProps = null;
     mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
     mockTakePictureAsync = jest.fn().mockResolvedValue({ uri: 'file://captured.jpg', width: 400, height: 252 });
-    (useFrameQualityCheck as jest.Mock).mockReturnValue(DEFAULT_QUALITY_RESULT);
+    mockManipulate.mockReturnValue({ crop: mockCropAction, renderAsync: mockRenderAsync });
+    mockRenderAsync.mockResolvedValue({ saveAsync: mockSaveAsync });
+    mockSaveAsync.mockResolvedValue({ uri: 'file://cropped.jpg', width: 200, height: 126 });
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
@@ -207,6 +220,24 @@ describe('LiveCapture', () => {
     });
   });
 
+  describe('static framing hint', () => {
+    it('ID steps show the ID framing hint above the shutter', () => {
+      setPermission('granted');
+      mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
+      render(<LiveCapture />);
+
+      expect(screen.getByText('Fit the entire ID inside the frame')).toBeTruthy();
+    });
+
+    it('the selfie step shows the face framing hint above the shutter', () => {
+      setPermission('granted');
+      mockSearchParams = { stepId: SELFIE_STEP.id };
+      render(<LiveCapture />);
+
+      expect(screen.getByText('Fit your face inside the circle')).toBeTruthy();
+    });
+  });
+
   describe('camera error handling (Req 3.9)', () => {
     it('onMountError renders an error message and a retry control', () => {
       setPermission('granted');
@@ -236,10 +267,9 @@ describe('LiveCapture', () => {
     });
   });
 
-  describe('manual shutter and auto-capture (Req 3.4, 3.5)', () => {
-    it('manual shutter capture calls takePictureAsync regardless of status', async () => {
+  describe('manual shutter only (Req 3.4, 3.5)', () => {
+    it('manual shutter capture calls takePictureAsync', async () => {
       setPermission('granted');
-      (useFrameQualityCheck as jest.Mock).mockReturnValue({ status: 'fail', reasons: ['blur'], isStable: false });
       render(<LiveCapture />);
 
       act(() => {
@@ -254,9 +284,8 @@ describe('LiveCapture', () => {
       expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
     });
 
-    it('auto-capture triggers once isStable becomes true', async () => {
+    it('preview never captures on its own — only the manual shutter does', async () => {
       setPermission('granted');
-      (useFrameQualityCheck as jest.Mock).mockReturnValue({ status: 'pass', reasons: [], isStable: true });
 
       render(<LiveCapture />);
 
@@ -264,7 +293,97 @@ describe('LiveCapture', () => {
         latestCameraProps.onCameraReady();
       });
 
-      await waitFor(() => expect(mockTakePictureAsync).toHaveBeenCalledTimes(1));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTakePictureAsync).not.toHaveBeenCalled();
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
+    });
+
+    it('crops the capture to the guided frame measured from the preview layout', async () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+      try {
+        setPermission('granted');
+        mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
+        render(<LiveCapture />);
+
+        act(() => {
+          latestCameraProps.onCameraReady();
+        });
+
+        fireEvent(screen.getByTestId('camera-preview-container'), 'layout', {
+          nativeEvent: { layout: { width: 400, height: 800 } },
+        });
+
+        await act(async () => {
+          fireEvent.press(screen.getByLabelText('Capture photo'));
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        const expectedFrame = computeGuidedFrameRect(400, 800, CARD_ASPECT_RATIO);
+        const expectedRegion = mapGuidedRectToImageCrop(expectedFrame, 400, 800, 400, 252);
+        expect(mockCropAction).toHaveBeenCalledTimes(1);
+        expect(mockCropAction).toHaveBeenCalledWith(expectedRegion);
+        expect(mockSaveAsync).toHaveBeenCalledTimes(1);
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          'ID capture crop mapping.',
+          expect.objectContaining({
+            viewWidth: 400,
+            viewHeight: 800,
+            photoWidth: 400,
+            photoHeight: 252,
+            frame: expectedFrame,
+            region: expectedRegion,
+            croppedWidth: 200,
+            croppedHeight: 126,
+          }),
+        );
+      } finally {
+        consoleLogSpy.mockRestore();
+      }
+    });
+
+    it('falls back to the uncropped photo when the frame crop fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      try {
+        setPermission('granted');
+        mockSaveAsync.mockRejectedValueOnce(new Error('crop failed'));
+        render(<LiveCapture />);
+
+        act(() => {
+          latestCameraProps.onCameraReady();
+        });
+
+        await act(async () => {
+          fireEvent.press(screen.getByLabelText('Capture photo'));
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(screen.getByTestId('captured-image-preview')).toBeTruthy();
+        expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalled();
+
+        fireEvent.press(screen.getByText('Use Photo'));
+
+        expect(useVerificationStore.getState().captures.front).toEqual({
+          uri: 'file://captured.jpg',
+          width: 400,
+          height: 252,
+        });
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
     });
 
     it('capture attempted before onCameraReady fires is a graceful no-op', async () => {
@@ -349,7 +468,7 @@ describe('LiveCapture', () => {
       expect(screen.getByText('Use Photo')).toBeTruthy();
     });
 
-    it('Retake discards the captured image and returns to the camera preview, re-enabling quality sampling', async () => {
+    it('Retake discards the captured image and returns to the camera preview', async () => {
       await captureAndReachReview();
 
       fireEvent.press(screen.getByText('Retake'));
@@ -358,22 +477,28 @@ describe('LiveCapture', () => {
       expect(screen.getByTestId('camera-view')).toBeTruthy();
     });
 
-    it('a second auto-capture can occur after Retake (guard reset)', async () => {
+    it('Retake does not trigger an automatic capture — the user must press the shutter again', async () => {
       setPermission('granted');
-      (useFrameQualityCheck as jest.Mock).mockReturnValue({ status: 'pass', reasons: [], isStable: true });
 
       render(<LiveCapture />);
       act(() => {
         latestCameraProps.onCameraReady();
       });
-      await waitFor(() => expect(mockTakePictureAsync).toHaveBeenCalledTimes(1));
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
 
       fireEvent.press(screen.getByText('Retake'));
-      act(() => {
-        latestCameraProps.onCameraReady();
-      });
 
-      await waitFor(() => expect(mockTakePictureAsync).toHaveBeenCalledTimes(2));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
     });
 
     it('Use Photo commits the expected IdCaptureResult and replaces Front with Back capture', async () => {
@@ -383,9 +508,9 @@ describe('LiveCapture', () => {
       fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.front).toEqual({
-        uri: 'file://captured.jpg',
-        width: 400,
-        height: 252,
+        uri: 'file://cropped.jpg',
+        width: 200,
+        height: 126,
       });
       expect(mockReplace).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
@@ -400,9 +525,9 @@ describe('LiveCapture', () => {
       fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.back).toEqual({
-        uri: 'file://captured.jpg',
-        width: 400,
-        height: 252,
+        uri: 'file://cropped.jpg',
+        width: 200,
+        height: 126,
       });
       expect(mockBack).toHaveBeenCalledTimes(1);
       expect(mockReplace).not.toHaveBeenCalled();
@@ -415,9 +540,9 @@ describe('LiveCapture', () => {
       fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures['identity-page']).toEqual({
-        uri: 'file://captured.jpg',
-        width: 400,
-        height: 252,
+        uri: 'file://cropped.jpg',
+        width: 200,
+        height: 126,
       });
       expect(mockBack).toHaveBeenCalledTimes(1);
       expect(mockReplace).not.toHaveBeenCalled();
@@ -430,9 +555,9 @@ describe('LiveCapture', () => {
       fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.selfie).toEqual({
-        uri: 'file://captured.jpg',
-        width: 400,
-        height: 252,
+        uri: 'file://cropped.jpg',
+        width: 200,
+        height: 126,
       });
       expect(mockBack).toHaveBeenCalledTimes(1);
       expect(mockReplace).not.toHaveBeenCalled();

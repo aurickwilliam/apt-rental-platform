@@ -14,17 +14,3 @@ export type {
   UserVerificationRow,
   VerificationImageInput,
 } from './useVerification';
-
-export {
-  useFrameQualityCheck,
-  evaluateBlurHeuristic,
-  evaluateGlareHeuristic,
-  BLUR_EXPOSURE_TIME_THRESHOLD_SECONDS,
-  GLARE_BRIGHTNESS_MIN,
-  GLARE_BRIGHTNESS_MAX,
-} from './useFrameQualityCheck';
-export type {
-  FrameQualityResult,
-  FrameQualityReason,
-  FrameQualityCheckOptions,
-} from './useFrameQualityCheck';
