@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SLIDES } from '../../constants/onboarding-data/onboarding-data';
 import { USER_ROLES } from '../../constants/onboarding-data/user-role';
@@ -22,6 +23,7 @@ const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const insets = useSafeAreaInsets();
 
   const [scrollX] = useState(() => new Animated.Value(0));
   const scrollViewRef = useRef<ScrollView>(null);
@@ -58,7 +60,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View className='flex-1 bg-white'>
+    <View className='flex-1 bg-background' style={{ paddingTop: insets.top }}>
 
       {/* Image Slides */}
       <ScrollView
@@ -104,7 +106,7 @@ export default function OnboardingScreen() {
           return (
             <Animated.View
               key={index}
-              className='h-2 bg-primary rounded mx-1'
+              className='h-2 bg-accent rounded mx-1'
               style={[
                 {
                   width: dotWidth,
@@ -117,7 +119,10 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Bottom Buttons */}
-      <View className='flex-row items-center justify-between gap-8 px-5 mb-8'>
+      <View
+        className='flex-row items-center justify-between gap-8 px-5'
+        style={{ paddingBottom: insets.bottom + 32 }}
+      >
         {
           currentIndex < SLIDES.length - 1 ? (
             <>
@@ -153,9 +158,8 @@ export default function OnboardingScreen() {
                 >
                   <Button
                     variant={role.type === "primary" ? "primary" : "secondary"}
-                    className={role.type !== "primary" ? "bg-secondary" : undefined}
                   >
-                    <Button.Label className={role.type !== "primary" ? "text-white" : undefined}>
+                    <Button.Label>
                       {role.label}
                     </Button.Label>
                   </Button>

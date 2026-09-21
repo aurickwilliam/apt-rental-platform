@@ -21,11 +21,11 @@ export default function Index() {
         />
 
         <View className='flex mt-5 gap-3'>
-          <Text className='text-lg font-nunitoSemiBold text-center'>
+          <Text className='text-lg font-nunitoBold text-center text-foreground'>
             Help us keep our community safe.
           </Text>
 
-          <Text className='text-base font-inter text-center'>
+          <Text className='text-bas text-foreground font-inter text-center'>
              Upload a valid ID and take a quick selfie to verify your identity and unlock all features.
           </Text>
         </View>
