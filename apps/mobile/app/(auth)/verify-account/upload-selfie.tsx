@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import { Image } from 'expo-image'
 
@@ -41,16 +41,27 @@ export default function UploadSelfie() {
     router.push(`/(auth)/verify-account/live-capture?stepId=${SELFIE_STEP.id}`);
   };
 
+  // Auto-open the front camera when foregrounded without a selfie yet,
+  // mirroring upload-id's auto-advance (the capture button below stays as
+  // fallback and retake). Skipped for invalid sessions — the redirect
+  // effect above owns those — and once a selfie is stored.
+  useFocusEffect(() => {
+    if (selectedId === null || !idStepsComplete) return;
+    if (selfie !== null) return;
+
+    handleCaptureSelfie();
+  });
+
   return (
     <ScreenWrapper
       className='p-5'
       footer={
         <Button
           isDisabled={selfie === null}
-          onPress={() => router.push('/verify-account/success')}
+          onPress={() => router.push('/(auth)/verify-account/review')}
           className='mx-5'
         >
-          <Button.Label>Submit Verification</Button.Label>
+          <Button.Label>Review & Submit</Button.Label>
         </Button>
       }
     >
@@ -62,7 +73,7 @@ export default function UploadSelfie() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={3} totalSteps={4} stepName="Take a Selfie" />
+      <StepProgress currentStep={3} totalSteps={5} stepName="Take a Selfie" />
 
       <View className='flex-1 items-center justify-center'>
         {selfie !== null ? (

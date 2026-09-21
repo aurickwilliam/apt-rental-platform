@@ -13,6 +13,7 @@ export default function _layout() {
       <Stack.Screen name="live-capture" />
       <Stack.Screen name="selfie-prep" />
       <Stack.Screen name="upload-selfie" />
+      <Stack.Screen name="review" />
       <Stack.Screen name="success" />
       <Stack.Screen name="failed" />
     </Stack>

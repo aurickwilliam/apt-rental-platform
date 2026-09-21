@@ -1,6 +1,7 @@
-import { View, ScrollView } from 'react-native'
+import { View, ScrollView, Platform } from 'react-native'
 import { useRouter } from 'expo-router';
 import type React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@repo/supabase';
 
@@ -9,15 +10,20 @@ import { IconUserEdit, IconFileText, IconSettings, IconLogout } from '@tabler/ic
 import { Button, ListGroup, Separator } from 'heroui-native';
 
 import { useProfile } from 'hooks/auth';
+import { useLatestVerification } from 'hooks/verification';
 import { useColors } from '@/hooks/useTheme';
 import { clearQueryClient } from '@/utils/queryClient';
+import { formatDate } from '@repo/utils';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '../components/CustomTabBar';
+
 export default function Profile() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { profile, loading } = useProfile();
   const { colors } = useColors();
 
@@ -26,8 +32,11 @@ export default function Profile() {
   const backgroundPhotoUri = profile?.background_url ?? null;
 
   const accountStatus = (profile?.account_status ?? 'unverified') as 'verified' | 'pending' | 'rejected' | 'unverified';
-  const rejectedReason = 'Your submitted documents were not clear. Please resubmit clear copies of your ID and proof of income for verification.';
-  const dateVerified = 'June 15, 2024';
+  const { data: latestVerification } = useLatestVerification();
+  const rejectedReason = latestVerification?.rejection_reason ?? undefined;
+  const dateVerified = latestVerification?.reviewed_at
+    ? formatDate(latestVerification.reviewed_at, 'long')
+    : undefined;
 
   const handleLogout = async () => {
     clearQueryClient();
@@ -64,6 +73,12 @@ export default function Profile() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
+      contentContainerStyle={{
+        paddingBottom:
+          Platform.OS === 'android'
+            ? FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom + 24
+            : 0,
+      }}
     >
       <ProfileHeader
         backgroundPhotoUri={backgroundPhotoUri}

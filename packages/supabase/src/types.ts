@@ -982,6 +982,69 @@ export type Database = {
         }
         Relationships: []
       }
+      user_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          id_back_path: string | null
+          id_front_path: string
+          id_type: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string
+          status: string
+          submitted_at: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path: string
+          id_type: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string
+          id_type?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_request: {
         Row: {
           apartment_id: string

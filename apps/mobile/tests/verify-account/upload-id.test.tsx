@@ -32,6 +32,24 @@ jest.mock('expo-image', () => {
   };
 });
 
+let latestImageViewingProps: any = null;
+jest.mock('react-native-image-viewing', () => (props: any) => {
+  latestImageViewingProps = props;
+  const { View, Text, TouchableOpacity } = require('react-native');
+  if (!props.visible) return null;
+  return (
+    <View testID="image-viewer">
+      <Text testID="image-viewer-count">
+        {(props.imageIndex ?? 0) + 1} / {props.images.length}
+      </Text>
+      {props.images.map((image: { uri: string }) => (
+        <View key={image.uri} testID={`viewer-image-${image.uri}`} />
+      ))}
+      <TouchableOpacity testID="image-viewer-close" onPress={props.onRequestClose} />
+    </View>
+  );
+});
+
 // HeroUI Native ESM stub, matching the convention used elsewhere.
 jest.mock('heroui-native', () => {
   const { View, Text, TouchableOpacity } = require('react-native');
@@ -69,6 +87,7 @@ const AUTHENTICITY_DECLARATION = 'I confirm that the submitted ID is authentic, 
 describe('UploadId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    latestImageViewingProps = null;
     mockUseFocusEffect.mockImplementation((callback: () => void) => {
       callback();
     });
@@ -173,8 +192,22 @@ describe('UploadId', () => {
       expect(screen.queryByText('Back:')).toBeNull();
     });
 
-    it('only shows the authenticity declaration after the complete summary is available', () => {
+    it('renders card images with explicit style sizing (not className-only)', () => {
       useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      for (const label of ['Front ID photo', 'Back ID photo']) {
+        const image = screen.getByLabelText(label);
+        expect(image.props.style).toEqual(
+          expect.objectContaining({ width: '100%', height: 192 }),
+        );
+      }
+    });
+
+    it('only shows the authenticity declaration after the complete summary is available', () => {      useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE },
       });
@@ -192,6 +225,84 @@ describe('UploadId', () => {
 
       expect(screen.getByText(AUTHENTICITY_DECLARATION)).toBeTruthy();
       expect(screen.getByText('Retake ID Photos')).toBeTruthy();
+    });
+  });
+
+  describe('fullscreen photo viewer', () => {
+    it('tapping a captured photo opens the viewer on that photo', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      expect(screen.queryByTestId('image-viewer')).toBeNull();
+
+      fireEvent.press(screen.getByLabelText('View Back ID photo fullscreen'));
+
+      expect(latestImageViewingProps.visible).toBe(true);
+      expect(latestImageViewingProps.imageIndex).toBe(1);
+      expect(latestImageViewingProps.images).toEqual([
+        { uri: 'file://front.jpg' },
+        { uri: 'file://back.jpg' },
+      ]);
+      expect(screen.getByTestId('image-viewer')).toBeTruthy();
+      expect(screen.getByTestId('image-viewer-count')).toBeTruthy();
+    });
+
+    it('tapping the first captured photo opens the viewer on the first photo', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
+
+      expect(latestImageViewingProps.visible).toBe(true);
+      expect(latestImageViewingProps.imageIndex).toBe(0);
+    });
+
+    it('closing the viewer dismisses it', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
+      expect(screen.getByTestId('image-viewer')).toBeTruthy();
+
+      fireEvent.press(screen.getByTestId('image-viewer-close'));
+      expect(screen.queryByTestId('image-viewer')).toBeNull();
+    });
+
+    it('shows the single Passport photo in the viewer', () => {
+      useVerificationStore.setState({
+        selectedId: 'Passport',
+        captures: { 'identity-page': FRONT_CAPTURE },
+      });
+      render(<UploadId />);
+
+      fireEvent.press(screen.getByLabelText('View Identity Page ID photo fullscreen'));
+
+      expect(latestImageViewingProps.visible).toBe(true);
+      expect(latestImageViewingProps.images).toEqual([{ uri: 'file://front.jpg' }]);
+    });
+
+    it('shows a retake hint instead of a blank card when a photo fails to load', () => {
+      useVerificationStore.setState({
+        selectedId: 'National ID (PhilSys/PhilID)',
+        captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
+      });
+      render(<UploadId />);
+
+      fireEvent(screen.getByLabelText('Front ID photo'), 'error');
+
+      expect(screen.getByText(/Photo couldn't load/i)).toBeTruthy();
+      expect(screen.queryByLabelText('View Front ID photo fullscreen')).toBeNull();
+      // The other card is unaffected.
+      expect(screen.getByLabelText('View Back ID photo fullscreen')).toBeTruthy();
     });
   });
 
@@ -220,7 +331,7 @@ describe('UploadId', () => {
       fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
       fireEvent.press(screen.getByText('Continue to Selfie'));
 
-      expect(mockPush).toHaveBeenCalledWith('/verify-account/selfie-prep');
+      expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/selfie-prep');
     });
 
     it('retakes the complete ID sequence by clearing ID captures, resetting confirmation, and reopening Front', () => {

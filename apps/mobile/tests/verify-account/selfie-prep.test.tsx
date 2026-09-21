@@ -54,9 +54,10 @@ describe('SelfiePrep', () => {
     render(<SelfiePrep />);
 
     expect(screen.getByText('Get ready for your selfie')).toBeTruthy();
-    expect(screen.getByText(/Remove glasses, hats, and face coverings/i)).toBeTruthy();
-    expect(screen.getByText(/Use bright, even lighting/i)).toBeTruthy();
-    expect(screen.getByText(/Keep your full face visible/i)).toBeTruthy();
+    expect(screen.getByText('Use bright, even lighting.')).toBeTruthy();
+    expect(screen.getByText('Hold the same ID beside your face.')).toBeTruthy();
+    expect(screen.getByText('Keep your full face visible in the frame.')).toBeTruthy();
+    expect(screen.queryByText(/glasses, hats/i)).toBeNull();
     expect(screen.getByLabelText('Selfie preparation illustration')).toBeTruthy();
     expect(screen.getByText("I'm Ready")).toBeTruthy();
   });
@@ -70,7 +71,7 @@ describe('SelfiePrep', () => {
 
     fireEvent.press(screen.getByText("I'm Ready"));
 
-    expect(mockPush).toHaveBeenCalledWith('/verify-account/upload-selfie');
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
   it('redirects to ID selection without an active verification session', () => {

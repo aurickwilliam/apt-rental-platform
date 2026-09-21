@@ -10,6 +10,7 @@ export interface NotificationData {
   paymentId?: string;
   senderId?: string;
   senderAvatarUrl?: string;
+  verificationId?: string;
 }
 
 type Role = UserProfile["role"];
@@ -76,6 +77,14 @@ export function buildNotificationDeepLink(
     case "visitRequests":
       if (role === "tenant") return "/tenant/applications" as Href;
       return "/landlord/visit-requests" as Href;
+    case "verification":
+      // Verification has no apartment context; land on the role-aware
+      // profile screen where VerificationStatus shows the live state.
+      // Admins have no review UI on mobile (backend-only), so their taps
+      // resolve to null and callers no-op.
+      if (role === "landlord") return "/(tabs)/(landlord)/profile" as Href;
+      if (role === "tenant") return "/(tabs)/(tenant)/profile" as Href;
+      return null;
     case "payments":
       if (role === "landlord") {
         if (!payload.apartmentId) return null;
