@@ -52,6 +52,7 @@ export default function ApplicationDetailPage() {
 
   const hasVisit = !!visit;
 
+
   if (!app) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">

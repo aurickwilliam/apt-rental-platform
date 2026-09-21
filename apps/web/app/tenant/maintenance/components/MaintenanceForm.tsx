@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 import type { Key } from "@heroui/react";
 import {
+  Button,
   Card,
   ComboBox,
   FieldError,
@@ -147,13 +148,14 @@ export default function MaintenanceForm() {
 
   return (
     <>
-    <Card className="bg-surface border border-default-200 shadow-none p-6 md:p-8">
+    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm font-nunito">
+      <Card.Content className="p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-1">
+          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-zinc-400 mb-1">
             Maintenance Details
           </p>
-          <p className="text-sm text-default-500">
+          <p className="text-sm text-zinc-500">
             Tell us what&apos;s going on and we&apos;ll pass it along to your landlord.
           </p>
         </div>
@@ -169,13 +171,10 @@ export default function MaintenanceForm() {
           }}
           isInvalid={!!errors.title}
         >
-          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Title <span className="text-primary"></span>
+          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+            Issue Title
           </Label>
-          <Input
-            placeholder="Enter a short title for the issue..."
-            style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
-          />
+          <Input placeholder="Enter a short title for the issue..." />
           <FieldError>{errors.title}</FieldError>
         </TextField>
 
@@ -192,14 +191,11 @@ export default function MaintenanceForm() {
           isInvalid={!!errors.category}
         >
           {/* 2. Swapped HTML <label> to Hero UI <Label> inside <ComboBox> */}
-          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Category <span className="text-primary"></span>
+          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+            Issue Category
           </Label>
           <ComboBox.InputGroup>
-            <Input
-              placeholder="Select a category..."
-              style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
-            />
+            <Input placeholder="Select a category..." />
             <ComboBox.Trigger />
           </ComboBox.InputGroup>
           <ComboBox.Popover>
@@ -226,14 +222,13 @@ export default function MaintenanceForm() {
           }}
           isInvalid={!!errors.description}
         >
-          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
-            Issue Description <span className="text-primary"></span>
+          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+            Issue Description
           </Label>
           <TextArea
             rows={5}
             placeholder="Describe the issue in detail..."
             className="resize-none"
-            style={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
           />
           <FieldError>{errors.description}</FieldError>
         </TextField>
@@ -241,7 +236,7 @@ export default function MaintenanceForm() {
         {/* Urgency */}
         <div>
           {/* 3. Updated <label> to <Label> */}
-          <Label className="block text-sm font-poppinsSemibold text-foreground mb-2">
+          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             How urgent is this issue? <span className="text-primary">*</span>
           </Label>
           <ToggleButtonGroup
@@ -261,7 +256,7 @@ export default function MaintenanceForm() {
               <ToggleButton
                 key={level.id}
                 id={level.id}
-                className="rounded-full px-4 py-1.5 text-sm font-poppinsSemiBold transition-all"
+                className="rounded-full px-4 py-1.5 text-sm font-nunito font-semibold transition-all"
                 style={({ isSelected }) => ({
                   backgroundColor: level.bg,
                   color: level.text,
@@ -278,7 +273,7 @@ export default function MaintenanceForm() {
         {/* Add Photos or Videos */}
         <div>
           {/* 4. Updated <label> to <Label> */}
-          <Label className="block text-sm font-poppinsSemiBold text-foreground mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
             Add Photos or Videos
           </Label>
           <input
@@ -292,7 +287,7 @@ export default function MaintenanceForm() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-border !bg-card py-8 flex items-center justify-center gap-2 text-sm !text-card-foreground/70 hover:border-primary hover:!text-primary transition-colors"
+            className="w-full rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 py-8 flex items-center justify-center gap-2 text-sm text-zinc-500 hover:border-primary hover:text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
@@ -303,15 +298,15 @@ export default function MaintenanceForm() {
               {files.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center gap-2 rounded-lg border border-border !bg-card pl-2.5 pr-1.5 py-1.5 text-xs !text-card-foreground/70"
+                  className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-2.5 pr-1.5 py-1.5 text-xs text-zinc-500"
                 >
-                  <ImageIcon size={14} className="!text-card-foreground/50 shrink-0" />
+                  <ImageIcon size={14} className="text-zinc-400 shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
                     aria-label={`Remove ${file.name}`}
-                    className="!text-card-foreground/50 hover:!text-red-600 transition-colors"
+                    className="text-zinc-400 hover:text-red-600 transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -323,18 +318,20 @@ export default function MaintenanceForm() {
         </div>
 
         {/* Submit */}
-        <button type="submit" className="button--primary w-full rounded-full py-3 text-sm font-poppinsSemiBold mt-2">
+        <Button type="submit" className="w-full rounded-full font-nunito mt-2">
           Submit Request
-        </button>
+        </Button>
       </form>
+      </Card.Content>
     </Card>
 
     {lastStored && (
-      <Card className="bg-surface border border-default-200 shadow-none p-6 md:p-8 mt-6">
+      <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm mt-4 font-nunito">
+        <Card.Content className="p-6 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={20} className="text-success shrink-0" />
-            <p className="text-sm font-poppinsSemiBold text-foreground">
+            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
               Request received & stored
             </p>
           </div>
@@ -342,7 +339,7 @@ export default function MaintenanceForm() {
             type="button"
             onClick={() => setLastStored(null)}
             aria-label="Dismiss summary"
-            className="!text-card-foreground/50 hover:!text-card-foreground transition-colors"
+            className="text-zinc-400 hover:text-zinc-700 transition-colors"
           >
             <X size={16} />
           </button>
@@ -350,44 +347,44 @@ export default function MaintenanceForm() {
 
         <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
           <div>
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Issue Title
             </dt>
-            <dd className="text-foreground">{lastStored.title}</dd>
+            <dd className="text-zinc-900 dark:text-zinc-100">{lastStored.title}</dd>
           </div>
           <div>
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Category
             </dt>
-            <dd className="text-foreground">{lastStored.categoryLabel}</dd>
+            <dd className="text-zinc-900 dark:text-zinc-100">{lastStored.categoryLabel}</dd>
           </div>
           <div>
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Urgency
             </dt>
-            <dd className="text-foreground">
+            <dd className="text-zinc-900 dark:text-zinc-100">
               {URGENCY_LEVELS.find((level) => level.id === lastStored.urgency)?.label}
             </dd>
           </div>
           <div>
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Submitted
             </dt>
-            <dd className="text-foreground">
+            <dd className="text-zinc-900 dark:text-zinc-100">
               {new Date(lastStored.createdAt).toLocaleString()}
             </dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Description
             </dt>
-            <dd className="text-foreground whitespace-pre-line">{lastStored.description}</dd>
+            <dd className="text-zinc-900 dark:text-zinc-100 whitespace-pre-line">{lastStored.description}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="font-poppinsSemiBold text-xs uppercase tracking-widest text-default-500 mb-0.5">
+            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
               Attachments
             </dt>
-            <dd className="text-foreground">
+            <dd className="text-zinc-900 dark:text-zinc-100">
               {lastStored.files.length > 0
                 ? lastStored.files.map((file) => file.name).join(", ")
                 : "None"}
@@ -395,11 +392,12 @@ export default function MaintenanceForm() {
           </div>
         </dl>
 
-        <p className="mt-4 text-xs text-default-500">
-          Stored locally in <code className="text-foreground">apt.maintenance_requests</code>{" "}
+        <p className="mt-4 text-xs text-zinc-500">
+          Stored locally in <code className="text-zinc-900 dark:text-zinc-100">apt.maintenance_requests</code>{" "}
           (frontend-only). Request ID:{" "}
-          <code className="text-foreground">{lastStored.id}</code>
+          <code className="text-zinc-900 dark:text-zinc-100">{lastStored.id}</code>
         </p>
+        </Card.Content>
       </Card>
     )}
   </>
