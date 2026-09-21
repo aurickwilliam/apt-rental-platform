@@ -4,9 +4,12 @@ import type { ReactNode } from "react";
 
 import { useApplicationActions } from "./useApplicationActions";
 import { getLandlordApplicationsQueryKey } from "./useLandlordApplications";
+import { getLandlordUnitsQueryKey } from "hooks/apartments/useLandlordUnits";
+import { getLandlordTenancyQueryKey } from "hooks/tenancy/useLandlordTenancy";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
 const APPLICATION_ID = "application-1";
+const APARTMENT_ID = "apartment-1";
 const LANDLORD_ID = "landlord-1";
 const mockUseCurrentUser = jest.fn();
 const mockUpdate = jest.fn();
@@ -128,6 +131,63 @@ describe("useApplicationActions", () => {
     });
 
     expect(result.current.errorMessage).toBe("RLS blocked");
+    expect(invalidateSpy).not.toHaveBeenCalled();
+    unmount();
+    client.clear();
+  });
+
+  it("invalidates landlord-units alongside applications after approve", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    const invalidateSpy = jest.spyOn(client, "invalidateQueries");
+
+    const { result, unmount } = renderHook(
+      () => useApplicationActions(APPLICATION_ID, APARTMENT_ID),
+      { wrapper: QueryWrapper },
+    );
+
+    await act(async () => {
+      await result.current.approve();
+    });
+
+    await waitFor(() =>
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: getLandlordUnitsQueryKey(LANDLORD_ID),
+        exact: true,
+      }),
+    );
+    await waitFor(() =>
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: getLandlordTenancyQueryKey(APARTMENT_ID),
+        exact: true,
+      }),
+    );
+
+    unmount();
+    client.clear();
+  });
+
+  it("maps the occupied trigger error to a landlord-friendly message", async () => {
+    mockEq.mockResolvedValue({
+      error: {
+        message:
+          "Apartment is already occupied; cannot approve another application for it",
+      },
+    });
+    const { client, QueryWrapper } = createWrapper();
+    const invalidateSpy = jest.spyOn(client, "invalidateQueries");
+
+    const { result, unmount } = renderHook(
+      () => useApplicationActions(APPLICATION_ID, APARTMENT_ID),
+      { wrapper: QueryWrapper },
+    );
+
+    await act(async () => {
+      await result.current.approve();
+    });
+
+    expect(result.current.errorMessage).toBe(
+      "This unit is already occupied and cannot accept another tenant. Vacate it first, then approve.",
+    );
     expect(invalidateSpy).not.toHaveBeenCalled();
     unmount();
     client.clear();
