@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native'
+import { View, ScrollView, Platform } from 'react-native'
 import { useRouter } from 'expo-router';
 import type React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -74,7 +74,10 @@ export default function Profile() {
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
       contentContainerStyle={{
-        paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom + 24,
+        paddingBottom:
+          Platform.OS === 'android'
+            ? FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom + 24
+            : 0,
       }}
     >
       <ProfileHeader

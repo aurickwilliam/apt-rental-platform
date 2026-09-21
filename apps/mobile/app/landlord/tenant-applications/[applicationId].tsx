@@ -109,14 +109,13 @@ export default function TenantApplicationDetails() {
         header={<StandardHeader title="Application Details" />}
         scrollable
         className="p-5"
-        noBottomPadding
       >
         <View className="gap-4">
           <View>
             <Text className="text-foreground text-sm font-nunitoSemiBold">
               Tenant Application For
             </Text>
-            <Text className='text-secondary font-nunitoSemiBold text-lg'>
+            <Text className='text-accent font-nunitoSemiBold text-lg'>
               {application.apartment_name}
             </Text>
             <Text className="text-muted font-inter text-sm">

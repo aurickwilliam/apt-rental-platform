@@ -1,9 +1,10 @@
-import { View, Text } from 'react-native'
+import { Pressable, View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
+import ImageViewing from 'react-native-image-viewing'
 
-import { CloseButton, Button, Card } from 'heroui-native'
+import { CloseButton, Button } from 'heroui-native'
 
 import { IconChevronLeft, IconCheck } from '@tabler/icons-react-native'
 
@@ -30,6 +31,7 @@ export default function Review() {
 
   const { mutateAsync, isPending } = useSubmitVerification();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   // Guard against landing here with an incomplete session — e.g. a deep
   // link straight to this screen. Redirect to the correct step rather than
@@ -52,6 +54,39 @@ export default function Review() {
   const handleRetakeSelfie = () => {
     router.push(`/(auth)/verify-account/live-capture?stepId=${SELFIE_STEP.id}`);
   };
+
+  interface ReviewPhotoItem {
+    key: string
+    label: string
+    photoLabel: string
+    uri: string
+    onRetake: () => void
+  }
+
+  // Display order drives both the summary cards and the fullscreen viewer
+  // so tapping a card opens the viewer on that exact photo.
+  const idItems: ReviewPhotoItem[] = sequence.flatMap((step) => {
+    const result = captures[step.id] ?? null;
+    if (result === null) return [];
+    return [{
+      key: step.id,
+      label: `ID ${step.label}`,
+      photoLabel: `ID ${step.label} photo`,
+      uri: result.uri,
+      onRetake: () => handleEditIdStep(step.id),
+    }];
+  });
+
+  const viewerItems: ReviewPhotoItem[] =
+    selfie === null
+      ? idItems
+      : [...idItems, {
+        key: SELFIE_STEP.id,
+        label: 'Selfie',
+        photoLabel: 'Selfie holding your ID',
+        uri: selfie.uri,
+        onRetake: handleRetakeSelfie,
+      }];
 
   const handleSubmit = async () => {
     setErrorMessage(null);
@@ -113,69 +148,33 @@ export default function Review() {
       </View>
 
       <View className='flex gap-5 mt-5'>
-        {sequence.map((step) => {
-          const result = captures[step.id] ?? null;
-          if (result === null) return null;
+        {viewerItems.map((item, index) => (
+          <ReviewPhotoCard
+            key={item.key}
+            label={item.label}
+            photoLabel={item.photoLabel}
+            uri={item.uri}
+            onView={() => setViewingIndex(index)}
+            onRetake={item.onRetake}
+          />
+        ))}
+      </View>
 
-          return (
-            <View key={step.id} className='gap-2'>
-              <View className='flex-row items-center gap-2'>
-                <Text className='text-base font-nunitoSemiBold text-foreground'>
-                  ID {step.label}:
-                </Text>
-                <IconCheck size={18} color={colors.primary} />
-              </View>
-
-              <Card className='shadow-none border border-border bg-surface p-4'>
-                <View className='flex-row items-center gap-3'>
-                  <Image
-                    source={{ uri: result.uri }}
-                    className='size-14 rounded-lg'
-                    contentFit="cover"
-                    cachePolicy="disk"
-                    accessibilityLabel={`ID ${step.label} photo`}
-                  />
-                  <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
-                    Captured photo
-                  </Text>
-                  <Button variant="tertiary" size="sm" onPress={() => handleEditIdStep(step.id)}>
-                    <Button.Label>Retake</Button.Label>
-                  </Button>
-                </View>
-              </Card>
-            </View>
-          );
-        })}
-
-        {selfie !== null && (
-          <View className='gap-2'>
-            <View className='flex-row items-center gap-2'>
-              <Text className='text-base font-nunitoSemiBold text-foreground'>
-                Selfie:
-              </Text>
-              <IconCheck size={18} color={colors.primary} />
-            </View>
-
-            <Card className='shadow-none border border-border bg-surface p-4'>
-              <View className='flex-row items-center gap-3'>
-                <Image
-                  source={{ uri: selfie.uri }}
-                  className='size-14 rounded-full'
-                  contentFit="cover"
-                  cachePolicy="disk"
-                  accessibilityLabel="Selfie holding your ID"
-                />
-                <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
-                  Holding your ID
-                </Text>
-                <Button variant="tertiary" size="sm" onPress={handleRetakeSelfie}>
-                  <Button.Label>Retake</Button.Label>
-                </Button>
-              </View>
-            </Card>
+      <ImageViewing
+        images={viewerItems.map(({ uri }) => ({ uri }))}
+        imageIndex={viewingIndex ?? 0}
+        visible={viewingIndex !== null}
+        onRequestClose={() => setViewingIndex(null)}
+        presentationStyle="overFullScreen"
+        backgroundColor="rgb(0, 0, 0, 0.8)"
+        FooterComponent={({ imageIndex: idx }) => (
+          <View className="p-10 items-center">
+            <Text className="text-white font-nunitoSemiBold">
+              {idx + 1} / {viewerItems.length}
+            </Text>
           </View>
         )}
-      </View>
+      />
 
       <View className='mt-5 rounded-2xl border border-border bg-surface p-4'>
         <Text className='text-sm font-inter text-gray-500 text-center'>
@@ -190,5 +189,56 @@ export default function Review() {
         title="Submission Failed"
       />
     </ScreenWrapper>
+  )
+}
+
+interface ReviewPhotoCardProps {
+  label: string
+  photoLabel: string
+  uri: string
+  onView: () => void
+  onRetake: () => void
+}
+
+function ReviewPhotoCard({ label, photoLabel, uri, onView, onRetake }: ReviewPhotoCardProps) {
+  const { colors } = useColors();
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  return (
+    <View className='gap-2'>
+      <View className='flex-row items-center gap-2'>
+        <Text className='text-base font-nunitoSemiBold text-foreground'>
+          {label}:
+        </Text>
+        <IconCheck size={18} color={colors.primary} />
+        <View className='flex-1' />
+        <Button variant="tertiary" size="sm" onPress={onRetake}>
+          <Button.Label>Retake</Button.Label>
+        </Button>
+      </View>
+
+      {loadFailed ? (
+        <View className='w-full h-48 rounded-2xl border border-border items-center justify-center p-4'>
+          <Text className='text-sm text-gray-500 font-inter text-center'>
+            Photo couldn&apos;t load. Please retake it.
+          </Text>
+        </View>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`View ${photoLabel} fullscreen`}
+          onPress={onView}
+          className='w-full rounded-2xl border border-border overflow-hidden'
+        >
+          <Image
+            source={{ uri }}
+            style={{ width: '100%', height: 192 }}
+            contentFit="cover"
+            accessibilityLabel={photoLabel}
+            onError={() => setLoadFailed(true)}
+          />
+        </Pressable>
+      )}
+    </View>
   )
 }

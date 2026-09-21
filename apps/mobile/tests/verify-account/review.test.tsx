@@ -35,6 +35,24 @@ jest.mock('expo-image', () => {
   };
 });
 
+let latestImageViewingProps: any = null;
+jest.mock('react-native-image-viewing', () => (props: any) => {
+  latestImageViewingProps = props;
+  const { View, Text, TouchableOpacity } = require('react-native');
+  if (!props.visible) return null;
+  return (
+    <View testID="image-viewer">
+      <Text testID="image-viewer-count">
+        {(props.imageIndex ?? 0) + 1} / {props.images.length}
+      </Text>
+      {props.images.map((image: { uri: string }) => (
+        <View key={image.uri} testID={`viewer-image-${image.uri}`} />
+      ))}
+      <TouchableOpacity testID="image-viewer-close" onPress={props.onRequestClose} />
+    </View>
+  );
+});
+
 // HeroUI Native ESM stub, matching the convention used elsewhere.
 jest.mock('heroui-native', () => {
   const { View, Text, TouchableOpacity } = require('react-native');
@@ -94,6 +112,7 @@ const BUILT_INPUT = {
 describe('Review', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    latestImageViewingProps = null;
     mockMutateAsync.mockResolvedValue({ id: 'verification-1' });
     mockBuildVerificationInput.mockReturnValue(BUILT_INPUT);
     useVerificationStore.setState({ ...initialVerificationState });
@@ -136,6 +155,18 @@ describe('Review', () => {
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
+  it('renders card images with explicit style sizing (not className-only)', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    for (const label of ['ID Front photo', 'ID Back photo', 'Selfie holding your ID']) {
+      const image = screen.getByLabelText(label);
+      expect(image.props.style).toEqual(
+        expect.objectContaining({ width: '100%', height: 192 }),
+      );
+    }
+  });
+
   it('reopens live-capture for the tapped document', () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
     render(<Review />);
@@ -146,6 +177,66 @@ describe('Review', () => {
     expect(mockPush).toHaveBeenCalledWith(
       '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
     );
+  });
+
+  it('reopens the selfie camera from the selfie Retake action', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    const retakeButtons = screen.getAllByText('Retake');
+    fireEvent.press(retakeButtons[retakeButtons.length - 1]);
+
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?stepId=selfie');
+  });
+
+  it('tapping a photo opens the fullscreen viewer on that photo', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    expect(screen.queryByTestId('image-viewer')).toBeNull();
+
+    fireEvent.press(screen.getByLabelText('View ID Back photo fullscreen'));
+
+    expect(latestImageViewingProps.visible).toBe(true);
+    expect(latestImageViewingProps.imageIndex).toBe(1);
+    expect(latestImageViewingProps.images).toEqual([
+      { uri: 'file://front.jpg' },
+      { uri: 'file://back.jpg' },
+      { uri: 'file://selfie.jpg' },
+    ]);
+    expect(screen.getByTestId('image-viewer')).toBeTruthy();
+  });
+
+  it('tapping the selfie opens the viewer on the last photo', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    fireEvent.press(screen.getByLabelText('View Selfie holding your ID fullscreen'));
+
+    expect(latestImageViewingProps.visible).toBe(true);
+    expect(latestImageViewingProps.imageIndex).toBe(2);
+  });
+
+  it('closing the viewer dismisses it', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    fireEvent.press(screen.getByLabelText('View ID Front photo fullscreen'));
+    expect(screen.getByTestId('image-viewer')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('image-viewer-close'));
+    expect(screen.queryByTestId('image-viewer')).toBeNull();
+  });
+
+  it('shows a retake hint instead of a blank card when a photo fails to load', () => {
+    useVerificationStore.setState({ ...COMPLETE_STATE });
+    render(<Review />);
+
+    fireEvent(screen.getByLabelText('ID Front photo'), 'error');
+
+    expect(screen.getByText(/Photo couldn't load/i)).toBeTruthy();
+    expect(screen.queryByLabelText('View ID Front photo fullscreen')).toBeNull();
+    expect(screen.getByLabelText('View ID Back photo fullscreen')).toBeTruthy();
   });
 
   it('submits the built input and routes to the success screen', async () => {
