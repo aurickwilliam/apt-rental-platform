@@ -474,6 +474,7 @@ export type LandlordApplication = {
   monthly_rent: number;
   apartment_city: string;
   apartment_address: string;
+  apartment_status: string;
 };
 
 export async function fetchLandlordApplications(
@@ -489,7 +490,7 @@ export async function fetchLandlordApplications(
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
       gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code),
+      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`
     )
     .order("created_at", { ascending: false });
@@ -543,6 +544,7 @@ export async function fetchLandlordApplications(
       apartment_name: asNullableString(apartment?.name) ?? "",
       monthly_rent: Number(asNullableString(apartment?.monthly_rent) ?? 0),
       apartment_city: asNullableString(apartment?.city) ?? "",
+      apartment_status: asNullableString(apartment?.status) ?? "available",
       apartment_address: formatAddress({
         street_address: asNullableString(apartment?.street_address),
         barangay: asNullableString(apartment?.barangay),

@@ -4,8 +4,16 @@ import { supabase } from '@repo/supabase';
 import { useCurrentUser } from 'hooks/auth';
 import { type DisplayStatus } from 'hooks/applications';
 import { getLandlordApplicationsQueryKey } from 'hooks/applications/useLandlordApplications';
+import { getLandlordUnitsQueryKey } from 'hooks/apartments/useLandlordUnits';
+import { getLandlordTenancyQueryKey } from 'hooks/tenancy/useLandlordTenancy';
 
-export function useApplicationActions(applicationId: string | undefined) {
+const OCCUPIED_ERROR_MESSAGE =
+  'This unit is already occupied and cannot accept another tenant. Vacate it first, then approve.';
+
+export function useApplicationActions(
+  applicationId: string | undefined,
+  apartmentId?: string,
+) {
   const queryClient = useQueryClient();
   const currentUserQuery = useCurrentUser();
   const landlordId = currentUserQuery.data?.id ?? null;
@@ -14,10 +22,22 @@ export function useApplicationActions(applicationId: string | undefined) {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function invalidateApplications() {
+  function invalidateAfterStatusChange() {
     if (landlordId) {
       void queryClient.invalidateQueries({
         queryKey: getLandlordApplicationsQueryKey(landlordId),
+        exact: true,
+      });
+      // Approval flips apartments.status to occupied; vacate flips it back.
+      // Units list caches that flag, so it must go stale together.
+      void queryClient.invalidateQueries({
+        queryKey: getLandlordUnitsQueryKey(landlordId),
+        exact: true,
+      });
+    }
+    if (apartmentId) {
+      void queryClient.invalidateQueries({
+        queryKey: getLandlordTenancyQueryKey(apartmentId),
         exact: true,
       });
     }
@@ -32,10 +52,14 @@ export function useApplicationActions(applicationId: string | undefined) {
       .eq('id', applicationId);
     setActionLoading(false);
     if (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(
+        error.message.includes('already occupied')
+          ? OCCUPIED_ERROR_MESSAGE
+          : error.message,
+      );
     } else {
       setLocalStatus('Approved');
-      invalidateApplications();
+      invalidateAfterStatusChange();
     }
   }
 
@@ -55,7 +79,7 @@ export function useApplicationActions(applicationId: string | undefined) {
     } else {
       setLocalStatus('Rejected');
       setIsRejectDialogOpen(false);
-      invalidateApplications();
+      invalidateAfterStatusChange();
     }
   }
 

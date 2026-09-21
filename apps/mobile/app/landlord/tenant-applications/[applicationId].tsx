@@ -78,7 +78,7 @@ export default function TenantApplicationDetails() {
     openRejectDialog,
     closeRejectDialog,
     clearError
-  } = useApplicationActions(resolvedId);
+  } = useApplicationActions(resolvedId, application?.apartment_id);
 
   // Loading State
   if (loading) {
@@ -102,6 +102,7 @@ export default function TenantApplicationDetails() {
   const displayStatus = localStatus ?? application?.status;
   const statusStyle = getStatusStyle(displayStatus!, colors);
   const isPending = displayStatus === 'Applied';
+  const isUnitOccupied = application.apartment_status === 'occupied';
 
   return (
     <>
@@ -307,22 +308,34 @@ export default function TenantApplicationDetails() {
           </View>
 
           {isPending && (
-            <View className="flex-row gap-3 mt-2">
-              <Button
-                variant="danger-soft"
-                className="flex-1"
-                isDisabled={actionLoading}
-                onPress={openRejectDialog}
-              >
-                <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
-              </Button>
-              <Button
-                className="flex-1"
-                isDisabled={actionLoading}
-                onPress={approve}
-              >
-                <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
-              </Button>
+            <View className="gap-3 mt-2">
+              {isUnitOccupied && (
+                <Text
+                  className="text-sm font-inter"
+                  style={{ color: colors.danger }}
+                  accessibilityRole="alert"
+                >
+                  This unit is already occupied and cannot accept another
+                  tenant. Vacate it first, then approve.
+                </Text>
+              )}
+              <View className="flex-row gap-3">
+                <Button
+                  variant="danger-soft"
+                  className="flex-1"
+                  isDisabled={actionLoading}
+                  onPress={openRejectDialog}
+                >
+                  <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
+                </Button>
+                <Button
+                  className="flex-1"
+                  isDisabled={actionLoading || isUnitOccupied}
+                  onPress={approve}
+                >
+                  <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
+                </Button>
+              </View>
             </View>
           )}
         </View>

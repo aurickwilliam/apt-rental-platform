@@ -2,6 +2,7 @@ import { View, Text } from 'react-native'
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -29,7 +30,8 @@ import { supabase } from '@repo/supabase'
 
 import { useColors } from 'hooks/useTheme'
 import { useApartmentDetails } from 'hooks/apartments'
-import { useLandlordTenancy } from 'hooks/tenancy'
+import { getLandlordUnitsQueryKey } from 'hooks/apartments/useLandlordUnits'
+import { useLandlordTenancy, getLandlordTenancyQueryKey } from 'hooks/tenancy'
 import { useProfile } from 'hooks/auth'
 
 import { formatDate } from '@repo/utils';
@@ -45,6 +47,7 @@ export default function Index() {
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
   const { profile } = useProfile();
+  const queryClient = useQueryClient();
 
   const handleVacateUnit = () => {
     setIsVacateDialogOpen(true)
@@ -53,9 +56,14 @@ export default function Index() {
   const handleConfirmVacate = async () => {
     if (!apartmentId) return
     try {
+      // Canonical terminal status is 'ended' (matches tenancy history and
+      // the rent-due notifier's status='active' filter). The
+      // sync_apartment_available_on_tenancy_update trigger flips the
+      // apartment to available; the explicit apartment update below is
+      // belt-and-suspenders until the trigger is deployed everywhere.
       const { error } = await supabase
         .from('tenancies')
-        .update({ status: 'inactive' })
+        .update({ status: 'ended' })
         .eq('apartment_id', apartmentId)
         .eq('status', 'active')
 
@@ -68,6 +76,16 @@ export default function Index() {
 
       setIsVacateDialogOpen(false)
       refetch()
+      if (profile?.id) {
+        void queryClient.invalidateQueries({
+          queryKey: getLandlordUnitsQueryKey(profile.id),
+          exact: true,
+        });
+      }
+      void queryClient.invalidateQueries({
+        queryKey: getLandlordTenancyQueryKey(apartmentId),
+        exact: true,
+      });
     } catch (err) {
       console.error('Error vacating unit:', err)
       setIsVacateDialogOpen(false)
