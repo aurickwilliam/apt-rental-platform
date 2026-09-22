@@ -1,9 +1,11 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface QuickActionButtonProps {
-  label: string;
+  title: string;
+  subtitle: string;
   icon: LucideIcon;
   onPress?: () => void;
   badgeCount?: number;
@@ -14,7 +16,8 @@ function formatBadgeCount(count: number): string {
 }
 
 export default function QuickActionButton({
-  label,
+  title,
+  subtitle,
   icon: Icon,
   onPress,
   badgeCount,
@@ -23,10 +26,10 @@ export default function QuickActionButton({
     <button
       type="button"
       onClick={onPress}
-      className="flex w-1/4 flex-col items-center justify-start gap-2 px-2 transition-opacity hover:opacity-80 active:opacity-70"
+      className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-4 py-3 text-left transition-colors hover:bg-muted/60"
     >
-      <span className="relative flex aspect-square items-center justify-center rounded-2xl bg-muted p-4">
-        <Icon size={26} className="text-muted-foreground" strokeWidth={2} />
+      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted">
+        <Icon size={22} className="text-muted-foreground" strokeWidth={2} />
         {(badgeCount ?? 0) > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-card bg-primary px-1">
             <span className="text-[10px] font-semibold text-white">
@@ -35,7 +38,11 @@ export default function QuickActionButton({
           </span>
         )}
       </span>
-      <span className="text-center text-xs text-card-foreground">{label}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block truncate text-sm font-semibold text-card-foreground">{title}</span>
+        <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
+      </span>
+      <ChevronRight size={16} className="shrink-0 text-muted-foreground" />
     </button>
   );
 }

@@ -60,6 +60,11 @@ export default function LandlordVisitRequestsPage() {
     [visitRequests],
   );
 
+  const pendingPreview = useMemo(
+    () => visitRequests.filter((r) => r.status === "pending").slice(0, 4),
+    [visitRequests],
+  );
+
   const filteredApproved = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return visitRequests
@@ -105,13 +110,59 @@ export default function LandlordVisitRequestsPage() {
         </div>
       </div>
 
-      <VisitsCalendar
-        markedDates={markedDates}
-        selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
-        pendingCount={pendingCount}
-        onPendingPress={() => router.push("/landlord/visit-requests/pending")}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
+        <div className="border border-border bg-card rounded-2xl p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-card-foreground">
+              Pending Requests
+              {pendingCount > 0 && (
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                  {pendingCount}
+                </span>
+              )}
+            </h2>
+            {pendingCount > 4 && (
+              <button
+                type="button"
+                onClick={() => router.push("/landlord/visit-requests/pending")}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                View all
+              </button>
+            )}
+          </div>
+          {pendingPreview.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">
+              No pending requests. New tenant visits will appear here.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {pendingPreview.map((request) => (
+                <VisitRequestCard
+                  key={request.id}
+                  request={request}
+                  onPress={() => openRequest(request.id)}
+                />
+              ))}
+              {pendingCount > 0 && pendingCount <= 4 && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/landlord/visit-requests/pending")}
+                  className="text-xs font-medium text-primary hover:underline self-center"
+                >
+                  View all pending
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <VisitsCalendar
+          markedDates={markedDates}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
+      </div>
 
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-card-foreground">Approved Visit Requests</h2>
