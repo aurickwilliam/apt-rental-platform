@@ -220,8 +220,8 @@ export default function TenantApplicationDetails() {
             </Text>
 
             <View className='flex-row'>
-              <DetailField label="Occupation" value={application.occupation} />
-              <DetailField label="Employer" value={application.employer_name} />
+              <DetailField label="Occupation" value={application.occupation?.trim() ? application.occupation : '-'} />
+              <DetailField label="Employer" value={application.employer_name?.trim() ? application.employer_name : '-'} />
             </View>
 
             <View className='flex-row'>
@@ -262,11 +262,11 @@ export default function TenantApplicationDetails() {
             <View className='flex-row'>
               <DetailField
                 label="Name"
-                value={application.prev_landlord_name || 'Not provided'}
+                value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : '-'}
               />
               <DetailField
                 label="Contact"
-                value={application.prev_landlord_contact || 'Not provided'}
+                value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : '-'}
               />
             </View>
           </View>
