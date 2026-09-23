@@ -6,6 +6,7 @@ const LANDLORD_NAV = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
   { href: "/landlord/properties", label: "My Properties", icon: "Building2" },
   { href: "/landlord/applications", label: "Applications", icon: "FileCheckCorner" },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Wrench" },
   { href: "/landlord/payments", label: "Payments", icon: "Banknote" },
   { href: "/landlord/messages", label: "Messages", icon: "MessagesSquare" },
 ] as const;
@@ -14,6 +15,7 @@ const LANDLORD_TITLES: Record<string, string> = {
   "/landlord/dashboard": "Dashboard",
   "/landlord/properties": "My Properties",
   "/landlord/applications": "Applications",
+  "/landlord/maintenance-requests": "Maintenance",
   "/landlord/payments": "Payments",
   "/landlord/messages": "Messages",
 };

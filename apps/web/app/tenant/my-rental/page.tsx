@@ -16,8 +16,9 @@ import {
 import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
+import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
-import { MAINTENANCE_ITEMS } from "./constants";
+import { CATEGORIES } from "../maintenance/data/maintenance-data";
 import type {
   MaintenanceStatus,
   PaymentStatus,
@@ -49,7 +50,22 @@ function maintenanceBadge(status: MaintenanceStatus) {
     return <StatusChip variant="warning">In progress</StatusChip>;
   if (status === "resolved")
     return <StatusChip variant="success">Done</StatusChip>;
+  if (status === "cancelled")
+    return <StatusChip variant="neutral">Cancelled</StatusChip>;
   return <StatusChip variant="neutral">Pending</StatusChip>;
+}
+
+function categoryLabel(value: string) {
+  return CATEGORIES.find((c) => c.id === value)?.label ?? value;
+}
+
+function toPreviewStatus(
+  status: "Pending" | "In Progress" | "Resolved" | "Cancelled",
+): MaintenanceStatus {
+  if (status === "In Progress") return "in_progress";
+  if (status === "Resolved") return "resolved";
+  if (status === "Cancelled") return "cancelled";
+  return "pending";
 }
 
 function formatHeaderDate(date: Date) {
@@ -109,6 +125,11 @@ function getInitials(name: string) {
 
 export default function MyRental() {
   const { tenancy, payments, currentPayment, loading, error } = useTenancy();
+  const {
+    requests: maintenanceRequests,
+    loading: maintenanceLoading,
+    error: maintenanceError,
+  } = useMaintenanceRequestHistory(tenancy?.apartment.id ?? null);
 
   const today = useMemo(() => new Date(), []);
   const headerDate = useMemo(() => formatHeaderDate(today), [today]);
@@ -207,9 +228,16 @@ export default function MyRental() {
       "Landlord"
     : "Landlord";
 
-  const openMaintenanceCount = MAINTENANCE_ITEMS.filter(
-    (item) => item.status !== "resolved",
+  const openMaintenanceCount = maintenanceRequests.filter(
+    (item) => item.status !== "Resolved" && item.status !== "Cancelled",
   ).length;
+
+  const maintenancePreview = maintenanceRequests.slice(0, 3).map((item) => ({
+    id: item.id,
+    title: item.title,
+    subtitle: `${categoryLabel(item.category)} · Reported ${formatShortDate(item.created_at)}`,
+    status: toPreviewStatus(item.status),
+  }));
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -374,12 +402,28 @@ export default function MyRental() {
             <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               Maintenance
             </h2>
-            <StatusChip variant="warning">
-              {openMaintenanceCount} open
-            </StatusChip>
+            <div className="flex items-center gap-2">
+              <StatusChip variant="warning">
+                {openMaintenanceCount} open
+              </StatusChip>
+              <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">
+                View all
+              </Link>
+            </div>
           </div>
+          {maintenanceLoading ? (
+            <div className="flex justify-center py-6">
+              <Spinner color="accent" />
+            </div>
+          ) : maintenanceError ? (
+            <p className="text-xs text-red-600 py-4 text-center">{maintenanceError}</p>
+          ) : maintenancePreview.length === 0 ? (
+            <p className="text-xs text-zinc-500 py-4 text-center">
+              No maintenance requests yet.
+            </p>
+          ) : (
           <div className="space-y-0">
-            {MAINTENANCE_ITEMS.map((item) => (
+            {maintenancePreview.map((item) => (
               <div
                 key={item.id}
                 className="flex items-start gap-2.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0"
@@ -413,6 +457,7 @@ export default function MyRental() {
               </div>
             ))}
           </div>
+          )}
         </DashboardCard>
 
         <DashboardCard>
