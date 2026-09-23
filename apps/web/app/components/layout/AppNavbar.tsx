@@ -37,6 +37,11 @@ export default function AppNavbar() {
     return "/tenant/my-rental";
   };
 
+  const getProfileHref = () => {
+    if (profile?.role === "landlord") return "/landlord/profile";
+    return "/tenant/profile";
+  };
+
    useEffect(() => {                                 
     setMounted(true);
   }, []);
@@ -111,7 +116,7 @@ export default function AppNavbar() {
                 <Dropdown.Popover>
                   <Dropdown.Menu
                     onAction={(key) => {
-                      if (key === "profile")   window.location.href = "/profile";
+                      if (key === "profile")   window.location.href = getProfileHref();
                       if (key === "dashboard") window.location.href = getDashboardHref();
                       if (key === "settings")  window.location.href = "/settings";
                       if (key === "logout")    signOut();
@@ -175,7 +180,7 @@ export default function AppNavbar() {
 
           {!loading && user ? (
             <>
-              <Link href="/profile"   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+              <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
               <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
               <Link href="/settings"  className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Settings</Link>
               <button

@@ -18,6 +18,7 @@ const TENANT_TITLES: Record<string, string> = {
   "/tenant/favorites": "Favorites",
   "/tenant/maintenance": "Maintenance",
   "/tenant/messages": "Messages",
+  "/tenant/profile": "Profile",
 };
 
 export default async function TenantLayout({

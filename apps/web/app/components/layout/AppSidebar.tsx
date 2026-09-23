@@ -66,6 +66,8 @@ export function AppSidebar({ navItems, userName, userRole }: AppSidebarProps) {
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
+  const profileHref =
+    roleLabel.toLowerCase() === "landlord" ? "/landlord/profile" : "/tenant/profile";
 
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col bg-sidebar border-r border-sidebar-border min-h-screen sticky top-0 h-screen shadow-sm text-sidebar-foreground">
@@ -131,7 +133,7 @@ export function AppSidebar({ navItems, userName, userRole }: AppSidebarProps) {
           <Dropdown.Popover placement="top">
             <Dropdown.Menu
               onAction={(key) => {
-                if (key === "profile") window.location.href = "/profile";
+                if (key === "profile") window.location.href = profileHref;
                 if (key === "settings") window.location.href = "/settings";
                 if (key === "logout") signOut();
               }}

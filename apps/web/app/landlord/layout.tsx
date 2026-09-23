@@ -16,6 +16,7 @@ const LANDLORD_TITLES: Record<string, string> = {
   "/landlord/applications": "Applications",
   "/landlord/payments": "Payments",
   "/landlord/messages": "Messages",
+  "/landlord/profile": "Profile",
 };
 
 export default async function DashboardLayout({
