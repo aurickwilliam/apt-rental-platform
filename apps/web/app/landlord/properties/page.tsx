@@ -1,7 +1,7 @@
 import { createClient } from "@repo/supabase/server";
 import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
 import PropertiesTableSection from "./components/PropertiesTableSection";
-import AddPropertyBtn from "./components/AddPropertyBtn";
+import PropertyActions from "./components/PropertyActions";
 
 export const dynamic = "force-dynamic";
 
@@ -133,12 +133,12 @@ export default async function Properties() {
         ))}
       </div>
 
+      {/* Property Actions */}
+      <PropertyActions />
+
       {/* Table Header */}
       <div className="flex items-center justify-between mt-6">
         <h3 className="text-base font-medium font-noto-serif">All Properties</h3>
-
-        {/* New Button */}
-        <AddPropertyBtn />
       </div>
 
       {/* Properties Table */}
