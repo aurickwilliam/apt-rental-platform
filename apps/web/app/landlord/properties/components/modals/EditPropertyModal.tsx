@@ -13,6 +13,7 @@ import {
 } from "@heroui/react";
 
 import { createBrowserClient } from "@repo/supabase";
+import { toNullableNumber } from "@/service/landlordUnitDetailService";
 
 import AmenitiesSelect from "../../../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../../../components/inputs/perks";
@@ -63,23 +64,25 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
         name: form.name ?? undefined,
         description: form.description ?? undefined,
         monthly_rent: form.monthly_rent,
-        security_deposit: form.security_deposit ?? undefined,
-        advance_rent: form.advance_rent ?? undefined,
+        // Nullable numerics: empty/NaN coerce to null (never "" or NaN).
+        security_deposit: form.security_deposit ?? null,
+        advance_rent: form.advance_rent ?? null,
         type: form.type ?? undefined,
         street_address: form.street_address ?? undefined,
         barangay: form.barangay ?? undefined,
         city: form.city ?? undefined,
         province: form.province ?? undefined,
-        zip_code: form.zip_code ?? undefined,
-        no_bedrooms: form.no_bedrooms ?? undefined,
-        no_bathrooms: form.no_bathrooms ?? undefined,
-        area_sqm: form.area_sqm ?? undefined,
-        max_occupants: form.max_occupants ?? undefined,
+        zip_code: form.zip_code ?? null,
+        // Non-nullable in DB: fall back to the stored value when cleared.
+        no_bedrooms: form.no_bedrooms ?? property.no_bedrooms ?? undefined,
+        no_bathrooms: form.no_bathrooms ?? property.no_bathrooms ?? undefined,
+        area_sqm: form.area_sqm ?? property.area_sqm ?? undefined,
+        max_occupants: form.max_occupants ?? null,
         furnished_type: form.furnished_type ?? undefined,
         floor_level: form.floor_level ?? undefined,
         lease_duration: form.lease_duration ?? undefined,
-        latitude: form.latitude ?? undefined,
-        longitude: form.longitude ?? undefined,
+        latitude: form.latitude ?? null,
+        longitude: form.longitude ?? null,
         amenities: form.amenities ?? undefined,
       })
       .eq("id", property.id);
@@ -164,8 +167,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Input
                           type="number"
-                          value={String(form.security_deposit ?? "")}
-                          onChange={(e) => updateForm("security_deposit", Number(e.target.value))}
+                          value={form.security_deposit == null ? "" : String(form.security_deposit)}
+                          onChange={(e) => updateForm("security_deposit", toNullableNumber(e.target.value))}
                         />
                       </TextField>
                       <TextField>
@@ -175,8 +178,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Input
                           type="number"
-                          value={String(form.advance_rent ?? "")}
-                          onChange={(e) => updateForm("advance_rent", Number(e.target.value))}
+                          value={form.advance_rent == null ? "" : String(form.advance_rent)}
+                          onChange={(e) => updateForm("advance_rent", toNullableNumber(e.target.value))}
                         />
                       </TextField>
                     </div>
@@ -278,8 +281,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Input 
                           type="number" 
-                          value={String(form.no_bedrooms ?? "")} 
-                          onChange={(e) => updateForm("no_bedrooms", Number(e.target.value))} 
+                          value={form.no_bedrooms == null ? "" : String(form.no_bedrooms)} 
+                          onChange={(e) => updateForm("no_bedrooms", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
 
@@ -289,8 +292,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         </Label>
                         <Input 
                           type="number" 
-                          value={String(form.no_bathrooms ?? "")} 
-                          onChange={(e) => updateForm("no_bathrooms", Number(e.target.value))} 
+                          value={form.no_bathrooms == null ? "" : String(form.no_bathrooms)} 
+                          onChange={(e) => updateForm("no_bathrooms", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
 
@@ -300,8 +303,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         </Label>
                         <Input 
                           type="number" 
-                          value={String(form.area_sqm ?? "")} 
-                          onChange={(e) => updateForm("area_sqm", Number(e.target.value))} 
+                          value={form.area_sqm == null ? "" : String(form.area_sqm)} 
+                          onChange={(e) => updateForm("area_sqm", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
 
@@ -311,8 +314,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         </Label>
                         <Input 
                           type="number" 
-                          value={String(form.max_occupants ?? "")} 
-                          onChange={(e) => updateForm("max_occupants", Number(e.target.value))} 
+                          value={form.max_occupants == null ? "" : String(form.max_occupants)} 
+                          onChange={(e) => updateForm("max_occupants", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
                     </div>
@@ -381,8 +384,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         </Label>
                         <Input 
                           type="number" 
-                          value={String(form.zip_code ?? "")} 
-                          onChange={(e) => updateForm("zip_code", Number(e.target.value))} 
+                          value={form.zip_code == null ? "" : String(form.zip_code)} 
+                          onChange={(e) => updateForm("zip_code", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
                     </div>
@@ -396,16 +399,16 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         <Label>Latitude</Label>
                         <Input 
                           type="number" 
-                          value={String(form.latitude ?? "")} 
-                          onChange={(e) => updateForm("latitude", Number(e.target.value))} 
+                          value={form.latitude == null ? "" : String(form.latitude)} 
+                          onChange={(e) => updateForm("latitude", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
                       <TextField>
                         <Label>Longitude</Label>
                         <Input 
                           type="number" 
-                          value={String(form.longitude ?? "")} 
-                          onChange={(e) => updateForm("longitude", Number(e.target.value))} 
+                          value={form.longitude == null ? "" : String(form.longitude)} 
+                          onChange={(e) => updateForm("longitude", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
                     </div>
