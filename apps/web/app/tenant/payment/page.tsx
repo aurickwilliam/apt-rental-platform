@@ -1,18 +1,21 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Avatar, Button, Card, Chip, Separator, Modal, Spinner, useOverlayState } from "@heroui/react";
-import { Banknote, CalendarDays, House, MapPin, User, ArrowRight, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Avatar, Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
+import { Banknote, CalendarDays, House, MapPin, User, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
-import { MOCK_PAYMENTS, MOCK_TENANCY, mockPaymentByReference, mockSessionIdForReference } from "./constants";
 import type { CardInformation, PaymentMethod } from "./types";
 import { formatLeaseDate, periodMonthLabel } from "./utils";
-import ReceiptModal from "./components/ReceiptModal";
+import { paidAmountForPeriod, resolvePaymentPeriod, createCashPayment } from "@/service/paymentService";
+import { createCardPayment, createCheckoutSession, PaymongoError } from "@/service/paymongoService";
+import { usePayments } from "@/hooks/use-payments";
+import { useTenancy } from "@/hooks/use-tenancy";
+import { useUser } from "@/hooks/use-user";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
+import PaymentFooter from "./components/PaymentFooter";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
 
@@ -25,6 +28,13 @@ const INITIAL_CARD: CardInformation = {
   isCardNumberValid: false,
 };
 
+function toIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function PaymentContent() {
   const [activeMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
   const [cardInfo, setCardInfo] = useState<CardInformation>(INITIAL_CARD);
@@ -32,132 +42,236 @@ function PaymentContent() {
   const [cashDate, setCashDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
-  // Confirm dialog only — one overlay state object, so veil + dialog +
-  // scroll-lock can't desync. Success renders on its own route (mobile parity).
-  const [showConfirm, setShowConfirm] = useState(false);
-  const confirmState = useOverlayState({ isOpen: showConfirm, onOpenChange: setShowConfirm });
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const router = useRouter();
-  const params = useSearchParams();
-
-  // Fresh-payment receipt popup driven by ?receipt=<ref>&method=<m> —
-  // the modal replacement for the old success route. Unresolvable refs
-  // simply never open the modal.
-  const receiptRef = params.get("receipt");
-  const receiptMethod = params.get("method");
-  const receiptPayment = useMemo(
-    () => mockPaymentByReference(receiptRef, receiptMethod),
-    [receiptRef, receiptMethod],
-  );
-  const receiptState = useOverlayState({
-    isOpen: receiptPayment !== null,
+  const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null);
+  const errorState = useOverlayState({
+    isOpen: paymentError !== null,
     onOpenChange: (open) => {
-      if (!open) router.replace("/tenant/payment");
+      if (!open) setPaymentError(null);
     },
   });
+  const router = useRouter();
 
-  const tenancy = MOCK_TENANCY;
-  const apartment = tenancy.apartment;
-  const landlord = tenancy.landlord;
-  const period = tenancy.currentPeriod;
-  const monthLabel = periodMonthLabel(period.due_date);
-  const yearLabel = period.period_start.slice(0, 4);
-  const monthlyRent = tenancy.monthly_rent;
+  const { profile } = useUser();
+  const { tenancy, currentPayment, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy();
+  const paymentsQuery = usePayments(tenancy?.id ?? null);
 
-  // mock "already paid" guard — same as mobile paidAmountForPeriod check
-  const isPeriodPaid = useMemo(() => {
-    const paid = MOCK_PAYMENTS.filter((p) => p.period_start === period.period_start && p.status === "Paid").length > 0;
-    return paid;
-  }, [period.period_start]);
+  const apartment = tenancy?.apartment ?? null;
+  const landlord = tenancy?.landlord ?? null;
+  const monthlyRent = tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0;
 
-  const landlordName = `${landlord.first_name} ${landlord.last_name}`.trim();
-  const address = [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ");
+  const period = useMemo(
+    () =>
+      resolvePaymentPeriod(
+        currentPayment?.period_start ?? null,
+        currentPayment?.period_end ?? null,
+        currentPayment?.due_date ?? null,
+      ),
+    [currentPayment?.period_start, currentPayment?.period_end, currentPayment?.due_date],
+  );
+  const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
+  const yearLabel = period.periodStart.slice(0, 4);
 
-  const handlePayClick = () => {
+  // Full-amount policy: rent is always billed whole. A fully paid period
+  // cannot be paid again (prevents double-payment/overpay).
+  const isPeriodPaid =
+    monthlyRent > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent;
+
+  const landlordName =
+    landlord?.first_name || landlord?.last_name
+      ? `${landlord?.first_name ?? ""} ${landlord?.last_name ?? ""}`.trim()
+      : "—";
+  const address = apartment
+    ? [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ")
+    : "—";
+
+  const handlePay = async () => {
+    if (isProcessing) return;
     if (!activeMethod) {
-      setErrorMsg("Please select a payment method before proceeding.");
+      setPaymentError({ message: "Please select a payment method before proceeding.", title: "No Payment Method" });
       return;
     }
-    if (activeMethod === "Debit/Credit-Card") {
+    if (!tenancy || !apartment) {
+      setPaymentError({ message: "No active rental found on this account.", title: "No Active Rental" });
+      return;
+    }
+
+    const referenceId = `pay_${Date.now().toString(36)}`;
+    const paymentDescription = `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
+    const periodFields = {
+      tenancyId: tenancy.id,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+      dueDate: period.dueDate,
+    };
+
+    if (activeMethod === "GCash" || activeMethod === "Maya" || activeMethod === "QRPh") {
+      setIsProcessing(true);
+      try {
+        const methodMap: Record<string, "gcash" | "maya" | "qrph"> = {
+          GCash: "gcash",
+          Maya: "maya",
+          QRPh: "qrph",
+        };
+        const session = await createCheckoutSession({
+          referenceId,
+          amount: monthlyRent,
+          description: paymentDescription,
+          redirectBaseUrl: `${window.location.origin}/tenant/payment/verify`,
+          method: methodMap[activeMethod],
+          ...periodFields,
+        });
+        window.location.href = session.checkoutUrl;
+      } catch (error) {
+        setPaymentError({
+          message: error instanceof PaymongoError ? error.reason : "Unable to start your payment. Please try again.",
+        });
+      } finally {
+        setIsProcessing(false);
+      }
+    } else if (activeMethod === "Debit/Credit-Card") {
       const errs = validateCardInfo(cardInfo);
       if (Object.keys(errs).length > 0) {
         setCardErrors(errs);
         return;
       }
-    }
-    if (activeMethod === "Cash") {
+      const [expMonth, expYear] = cardInfo.expiryDate.split("/");
+      setIsProcessing(true);
+      try {
+        const result = await createCardPayment({
+          referenceId,
+          amount: monthlyRent,
+          description: paymentDescription,
+          card: {
+            number: cardInfo.cardNumber.replace(/\s/g, ""),
+            expMonth: Number(expMonth),
+            expYear: Number(`20${expYear}`),
+            cvc: cardInfo.cvv,
+            name: cardInfo.cardholderName,
+          },
+          ...periodFields,
+        });
+        if (result.status === "succeeded") {
+          router.push(`/tenant/payment/success?referenceId=${referenceId}`);
+        } else {
+          setPaymentError({ message: result.failureReason ?? "Your payment could not be completed." });
+        }
+      } catch (error) {
+        setPaymentError({
+          message: error instanceof PaymongoError ? error.reason : "Payment failed. Please try again.",
+        });
+      } finally {
+        setIsProcessing(false);
+      }
+    } else if (activeMethod === "Cash") {
       const errs = validateCashPayment({ paymentDate: cashDate });
       if (Object.keys(errs).length > 0) {
         setCashErrors(errs);
         return;
       }
+      if (!profile?.id) {
+        setPaymentError({ message: "No active rental found on this account.", title: "No Active Rental" });
+        return;
+      }
+      setIsProcessing(true);
+      try {
+        await createCashPayment({
+          referenceId,
+          amount: monthlyRent,
+          date: toIsoDate(cashDate ?? new Date()),
+          tenantId: profile.id,
+          apartmentId: apartment.id,
+          tenancyId: tenancy.id,
+          periodStart: period.periodStart,
+          periodEnd: period.periodEnd,
+          dueDate: period.dueDate,
+        });
+        router.push(`/tenant/payment/success?referenceId=${referenceId}`);
+      } catch {
+        setPaymentError({ message: "Could not record your cash payment. Please try again." });
+      } finally {
+        setIsProcessing(false);
+      }
     }
-    setShowConfirm(true);
   };
 
-  const handleConfirmPay = () => {
-    if (!activeMethod) {
-      setShowConfirm(false);
-      return;
-    }
-    // Mobile parity: referenceId per tap + period context for the record.
-    const referenceId = `pay_${Date.now().toString(36)}`;
-    const method = activeMethod;
-    setIsProcessing(true);
-    setShowConfirm(false);
-    // TODO(backend): e-wallets → createCheckoutSession (paymongo edge fn) then
-    // redirect to checkout_url; card → createCardPayment; cash → createCashPayment
-    // (pending). UI-only routing below mirrors the mobile destinations.
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (method === "GCash" || method === "Maya" || method === "QRPh") {
-        router.push(
-          `/tenant/payment/verify?sessionId=${mockSessionIdForReference(referenceId)}&referenceId=${referenceId}`,
-        );
-      } else {
-        router.push(`/tenant/payment?receipt=${referenceId}&method=${encodeURIComponent(method)}`);
-      }
-    }, 600);
-  };
+  if (tenancyLoading || paymentsQuery.loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
+        <Spinner size="lg" color="current" className="text-primary" />
+        <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment…</p>
+      </div>
+    );
+  }
+
+  if (tenancyError || !tenancy || !apartment) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
+            <ArrowLeft size={16} /> Back
+          </Button>
+          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+            <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
+              <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+                {tenancyError ?? "No active rental found on this account."}
+              </p>
+              <Button onPress={() => void refetch()} className="rounded-full font-nunito">
+                Try Again
+              </Button>
+            </Card.Content>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPeriodPaid) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
+            <ArrowLeft size={16} /> Back
+          </Button>
+          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+            <Card.Content className="py-16 flex flex-col items-center gap-3 text-center px-6">
+              <span className="rounded-full bg-green-600 p-3 text-white">
+                <CheckCircle2 size={32} />
+              </span>
+              <p className="text-xl font-nunito font-bold text-zinc-900 dark:text-zinc-100">Rent Already Paid</p>
+              <p className="text-sm text-zinc-500 max-w-sm">
+                Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <Button onPress={() => router.push("/tenant/my-rental")} className="rounded-full font-nunito">
+                  Go to Home
+                </Button>
+                <Button variant="secondary" onPress={() => router.push("/tenant/payment/history")} className="rounded-full font-nunito">
+                  View history
+                </Button>
+              </div>
+            </Card.Content>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <Link href="/tenant/my-rental" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 w-fit">
-            <ArrowRight size={12} className="rotate-180" /> Back to My Rental
-          </Link>
+          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
+            <ArrowLeft size={16} /> Back
+          </Button>
           <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
             <Banknote size={14} className="text-primary" /> Rent Payment
           </p>
           <div>
             <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
-            <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay — no backend required in this preview.</p>
+            <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay.</p>
           </div>
         </div>
-
-        {/* Already-paid banner */}
-        {isPeriodPaid && (
-          <Card className="rounded-2xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30">
-            <Card.Content className="p-4 flex flex-row items-center gap-3">
-              <span className="rounded-full bg-green-600 p-2 text-white">
-                <CheckCircle2 size={18} />
-              </span>
-              <div className="flex-1">
-                <p className="text-sm font-nunito font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
-                <p className="text-xs text-green-700/80 dark:text-green-300/80">
-                  Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
-                </p>
-              </div>
-              <Link href="/tenant/payment/history" className="no-underline">
-                <Button size="sm" variant="ghost" className="text-green-700">
-                  View receipt <ArrowRight size={14} />
-                </Button>
-              </Link>
-            </Card.Content>
-          </Card>
-        )}
 
         {/* Main grid — row 1 top cards share equal height via items-stretch */}
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
@@ -182,12 +296,12 @@ function PaymentContent() {
                     <div className="min-w-0">
                       <p className="text-xs text-zinc-500">Landlord</p>
                       <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
-                      <p className="text-sm text-zinc-500 truncate">{landlord.email}</p>
+                      <p className="text-sm text-zinc-500 truncate">{landlord?.email ?? "—"}</p>
                     </div>
                     <Avatar size="sm" className="ml-auto hidden sm:flex">
                       <Avatar.Fallback className="bg-primary text-white text-xs">
-                        {landlord.first_name[0]}
-                        {landlord.last_name[0]}
+                        {(landlord?.first_name?.[0] ?? "—")}
+                        {(landlord?.last_name?.[0] ?? "")}
                       </Avatar.Fallback>
                     </Avatar>
                   </div>
@@ -223,26 +337,18 @@ function PaymentContent() {
             </Card>
           </div>
 
-          {/* Row 1, right: payment summary (matches Details height, Pay inside) */}
+          {/* Row 1, right: payment summary (display-only, mobile parity) */}
           <div className="h-full">
-            <PaymentSummaryCard
-              month={monthLabel}
-              year={yearLabel}
-              dueDate={period.due_date}
-              monthlyRent={monthlyRent}
-              className="h-full"
-              onPayPress={handlePayClick}
-              isProcessing={isProcessing}
-              isDisabled={isProcessing || isPeriodPaid}
-              activeMethod={activeMethod}
-            />
+            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.dueDate} monthlyRent={monthlyRent} className="h-full" />
           </div>
 
           {/* Row 2: payment method (full width) */}
           <div className="lg:col-span-3 space-y-4">
-            {/* Payment method selector */}
             <PaymentMethodSelector
-              onPaymentMethodChange={(method) => { setActiveMethod(method); setErrorMsg(null); }}
+              onPaymentMethodChange={(method) => {
+                setActiveMethod(method);
+                setPaymentError(null);
+              }}
               cardInformation={cardInfo}
               onCardInformationChange={(patch) => {
                 setCardInfo((p) => ({ ...p, ...patch }));
@@ -256,91 +362,39 @@ function PaymentContent() {
               }}
               cashErrors={cashErrors}
             />
-
-            {/* Error inline */}
-            {errorMsg && (
-              <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50 p-3 text-sm text-amber-800 dark:text-amber-200">
-                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-                <span>{errorMsg}</span>
-                <Button size="sm" variant="ghost" className="ml-auto text-amber-700" onPress={() => setErrorMsg(null)}>
-                  Dismiss
-                </Button>
-              </div>
-            )}
           </div>
+        </div>
+
+        {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer parity) */}
+        <div className="sticky bottom-4 z-20 mt-4">
+          <PaymentFooter totalPayment={monthlyRent} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid} />
         </div>
       </div>
 
-      {/* Confirm dialog — success renders on its own route (mobile parity) */}
-      <Modal.Root state={confirmState}>
+      {/* Error dialog (mobile ErrorDialog parity, HeroUI Modal) */}
+      <Modal.Root state={errorState}>
         <Modal.Backdrop>
           <Modal.Container placement="center" size="sm">
             <Modal.Dialog className="rounded-2xl">
-              <Modal.Header className="text-base font-nunito font-semibold">Confirm payment</Modal.Header>
-              <Modal.Body className="space-y-3">
-                <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">Billing period</span>
-                    <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">
-                      {monthLabel} {yearLabel}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">Due date</span>
-                    <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{period.due_date}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">Method</span>
-                    <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{activeMethod ?? "—"}</span>
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="flex justify-between text-sm font-nunito font-semibold">
-                    <span className="text-zinc-900 dark:text-zinc-100">Total</span>
-                    <span className="text-primary">{formatPesoDisplay(monthlyRent)}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-zinc-500">
-                  This is a UI preview — no real charge will be made. Payment for {monthLabel} {yearLabel}.
-                </p>
+              <Modal.Header className="text-base font-nunito font-semibold">
+                {paymentError?.title ?? "Payment Failed"}
+              </Modal.Header>
+              <Modal.Body>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">{paymentError?.message ?? ""}</p>
               </Modal.Body>
-              <Modal.Footer className="flex justify-center">
-                <Button onPress={handleConfirmPay}>Confirm & pay {formatPesoDisplay(monthlyRent)}</Button>
+              <Modal.Footer className="flex justify-end">
+                <Button variant="secondary" size="sm" onPress={() => setPaymentError(null)} className="rounded-full font-nunito">
+                  Dismiss
+                </Button>
               </Modal.Footer>
-              <Modal.CloseTrigger>
-                <X size={16} className="text-zinc-700 dark:text-zinc-200" />
-              </Modal.CloseTrigger>
             </Modal.Dialog>
           </Modal.Container>
         </Modal.Backdrop>
       </Modal.Root>
-
-      {/* Fresh-payment receipt popup (mobile aesthetic, blue) */}
-      {receiptPayment && (
-        <ReceiptModal
-          payment={receiptPayment}
-          state={receiptState}
-          ctaLabel="View payment history"
-          onCtaPress={() => router.push("/tenant/payment/history")}
-        />
-      )}
     </div>
   );
 }
 
 export default function TenantPaymentPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
-          <Spinner size="lg" color="current" className="text-primary" />
-          <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment…</p>
-        </div>
-      }
-    >
-      <PaymentContent />
-    </Suspense>
-  );
+  return <PaymentContent />;
 }
-
-
-

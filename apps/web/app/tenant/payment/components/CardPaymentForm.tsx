@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Checkbox, Separator, Input, Label, TextField } from "@heroui/react";
+import { Checkbox, Separator, Input, Label, TextField } from "@heroui/react";
 import type { CardFormErrors } from "@repo/utils";
 import { formatExpiryDate, validateCardNumber } from "@repo/utils";
 import type { CardInformation } from "../types";

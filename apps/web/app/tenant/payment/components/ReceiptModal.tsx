@@ -3,7 +3,7 @@
 import { Button, Modal, useOverlayState } from "@heroui/react";
 import { X } from "lucide-react";
 import ReceiptView from "./ReceiptView";
-import type { PaymentRecord } from "../types";
+import type { PaymentRecord } from "@/service/paymentService";
 
 interface ReceiptModalProps {
   payment: PaymentRecord;
