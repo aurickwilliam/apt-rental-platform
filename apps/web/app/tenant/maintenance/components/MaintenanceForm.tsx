@@ -33,7 +33,7 @@ const URGENCY_LEVELS: {
   ring: string;
 }[] = [
   { id: "low", label: "Low", bg: "#E5E7EB", text: "#6C757D", ring: "#6C757D" },
-  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#333333", ring: "#FACC15" },
+  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#FACC15", ring: "#FACC15" },
   { id: "high", label: "High", bg: "#FDA4AF", text: "#E50914", ring: "#E50914" },
 ];
 
