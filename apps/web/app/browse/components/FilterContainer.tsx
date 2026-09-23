@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -9,9 +9,12 @@ import {
   Separator,
   CheckboxGroup,
   Checkbox,
+  Chip,
   RadioGroup,
   Radio,
   Label,
+  Spinner,
+  Switch,
   ToggleButtonGroup,
   ToggleButton,
 } from "@heroui/react";
@@ -27,6 +30,7 @@ import {
 
 import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../components/inputs/perks";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
@@ -41,7 +45,7 @@ const SORT_OPTIONS = [
   { value: "newest",     label: "Newest" },
   { value: "price_asc",  label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
-  { value: "popular",    label: "Most Popular" },
+  { value: "most_popular", label: "Most Popular" },
 ];
 
 type Filters = {
@@ -56,6 +60,7 @@ type Filters = {
   leaseDuration: string[];
   amenities: string[];
   sortBy: string;
+  verifiedOnly: boolean;
 };
 
 const INITIAL_FILTERS: Filters = {
@@ -70,101 +75,194 @@ const INITIAL_FILTERS: Filters = {
   leaseDuration: [...LEASE_DURATIONS],
   amenities: [],
   sortBy: "newest",
+  verifiedOnly: false,
 };
 
 type Props = {
   resultCount: number;
 };
 
+const FILTER_DEBOUNCE_MS = 300;
+
+function readFiltersFromParams(
+  params: URLSearchParams,
+  fallback: Filters = INITIAL_FILTERS,
+): Filters {
+  const locsRaw = params.get("locations");
+  const typesRaw = params.get("apt_types");
+
+  return {
+    locations: locsRaw ? locsRaw.split(",") : [...fallback.locations],
+    priceRange: [
+      Number(params.get("price_min") ?? fallback.priceRange[0]),
+      Number(params.get("price_max") ?? fallback.priceRange[1]),
+    ] as [number, number],
+    aptTypes: typesRaw ? typesRaw.split(",") : [...fallback.aptTypes],
+    bedroom: params.get("bedrooms") ?? fallback.bedroom,
+    bathroom: params.get("bathrooms") ?? fallback.bathroom,
+    sizeRange: [
+      Number(params.get("size_min") ?? fallback.sizeRange[0]),
+      Number(params.get("size_max") ?? fallback.sizeRange[1]),
+    ] as [number, number],
+    furnishing: params.get("furnishing")?.split(",") ?? [...fallback.furnishing],
+    floorLevel: params.get("floor_level")?.split(",") ?? [...fallback.floorLevel],
+    leaseDuration: params.get("lease")?.split(",") ?? [...fallback.leaseDuration],
+    amenities: params.get("amenities")?.split(",").filter(Boolean) ?? [...fallback.amenities],
+    sortBy: params.get("sort") ?? fallback.sortBy,
+    verifiedOnly: params.get("verified") === "1",
+  };
+}
+
+function serializeFilters(f: Filters, search: string | null): string {
+  const current = new URLSearchParams();
+
+  // Preserve text search from SearchContainer
+  if (search) current.set("search", search);
+
+  // Locations
+  if (f.locations.length > 0 && f.locations.length < LOCATIONS.length)
+    current.set("locations", f.locations.join(","));
+
+  // Price range
+  if (f.priceRange[0] > MIN_BUDGET)
+    current.set("price_min", String(f.priceRange[0]));
+  if (f.priceRange[1] < MAX_BUDGET)
+    current.set("price_max", String(f.priceRange[1]));
+
+  // Apartment types
+  if (f.aptTypes.length > 0 && f.aptTypes.length < APARTMENT_TYPES.length)
+    current.set("apt_types", f.aptTypes.join(","));
+
+  // Bedrooms
+  if (f.bedroom !== "Any") current.set("bedrooms", f.bedroom);
+
+  // Bathrooms
+  if (f.bathroom !== "Any") current.set("bathrooms", f.bathroom);
+
+  // Size range
+  if (f.sizeRange[0] > MIN_SIZE)
+    current.set("size_min", String(f.sizeRange[0]));
+  if (f.sizeRange[1] < MAX_SIZE)
+    current.set("size_max", String(f.sizeRange[1]));
+
+  // Furnishing (skip when fully deselected — empty means "no filter")
+  if (f.furnishing.length > 0 && f.furnishing.length < FURNISHED_TYPES.length)
+    current.set("furnishing", f.furnishing.join(","));
+
+  // Floor level
+  if (f.floorLevel.length > 0 && f.floorLevel.length < FLOOR_LEVELS.length)
+    current.set("floor_level", f.floorLevel.join(","));
+
+  // Lease duration
+  if (f.leaseDuration.length > 0 && f.leaseDuration.length < LEASE_DURATIONS.length)
+    current.set("lease", f.leaseDuration.join(","));
+
+  // Amenities
+  if (f.amenities.length > 0)
+    current.set("amenities", f.amenities.join(","));
+
+  // Sort
+  if (f.sortBy !== "newest") current.set("sort", f.sortBy);
+
+  // Verified listings only
+  if (f.verifiedOnly) current.set("verified", "1");
+
+  return current.toString();
+}
+
 export default function FilterContainer({ resultCount }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [filters, setFilters] = useState<Filters>(() => {
-    const locsRaw = searchParams.get("locations");
-    const typesRaw = searchParams.get("apt_types");
+  const [filters, setFilters] = useState<Filters>(() =>
+    readFiltersFromParams(searchParams),
+  );
 
-    return {
-      locations:     locsRaw ? locsRaw.split(",") : [...LOCATIONS],
-      priceRange: [
-        Number(searchParams.get("price_min") ?? MIN_BUDGET),
-        Number(searchParams.get("price_max") ?? MAX_BUDGET),
-      ] as [number, number],
-      aptTypes: typesRaw ? typesRaw.split(",") : [...APARTMENT_TYPES],
-      bedroom:       searchParams.get("bedrooms") ?? "Any",
-      bathroom:      searchParams.get("bathrooms") ?? "Any",
-      sizeRange:     [
-        Number(searchParams.get("size_min") ?? MIN_SIZE),
-        Number(searchParams.get("size_max") ?? MAX_SIZE),
-      ] as [number, number],
-      furnishing:    searchParams.get("furnishing")?.split(",") ?? [...FURNISHED_TYPES],
-      floorLevel:    searchParams.get("floor_level")?.split(",") ?? [...FLOOR_LEVELS],
-      leaseDuration: searchParams.get("lease")?.split(",") ?? [...LEASE_DURATIONS],
-      amenities:     searchParams.get("amenities")?.split(",").filter(Boolean) ?? [],
-      sortBy:        searchParams.get("sort") ?? "newest",
-    };
-  });
+  // Mirrors kept fresh in effects so event handlers and scheduled pushes
+  // never read stale closures.
+  const searchParamsRef = useRef(searchParams);
+  const filtersRef = useRef(filters);
 
-  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  // Signature of the last URL this panel pushed. The URL→state sync below
+  // ignores echoes of our own pushes, so in-flight interaction (e.g. a
+  // slider drag with a pending debounced push) is never clobbered.
+  const lastPushedRef = useRef<string | null>(null);
+
+  const pushFilters = (next: Filters) => {
+    const query = serializeFilters(next, searchParamsRef.current.get("search"));
+    lastPushedRef.current = query;
+    startTransition(() => {
+      router.replace(query ? `/browse?${query}` : "/browse");
+    });
   };
 
+  const { debounced: debouncedPush, cancel: cancelPush } =
+    useDebouncedCallback(pushFilters, FILTER_DEBOUNCE_MS);
+
+  // Applies a new filter state instantly to the UI and schedules the
+  // debounced URL sync. Called only from event handlers (never render).
+  const applyNext = (next: Filters) => {
+    filtersRef.current = next;
+    setFilters(next);
+    debouncedPush(next);
+  };
+
+  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
+    applyNext({ ...filtersRef.current, [key]: value });
+  };
+
+  const toggleArray = (
+    key: "locations" | "aptTypes" | "furnishing" | "floorLevel" | "leaseDuration",
+    value: string,
+  ) => {
+    const current = filtersRef.current[key];
+    applyNext({
+      ...filtersRef.current,
+      [key]: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
+    });
+  };
+
+  // "Search Apartment" applies any pending change immediately.
   const handleApply = () => {
-    const current = new URLSearchParams();
-    current.delete("page");
-
-    // Locations
-    if (filters.locations.length > 0 && filters.locations.length < LOCATIONS.length)
-      current.set("locations", filters.locations.join(","));
-
-    // Price range
-    if (filters.priceRange[0] > MIN_BUDGET)
-      current.set("price_min", String(filters.priceRange[0]));
-    if (filters.priceRange[1] < MAX_BUDGET)
-      current.set("price_max", String(filters.priceRange[1]));
-
-    // Apartment types
-    if (filters.aptTypes.length > 0 && filters.aptTypes.length < APARTMENT_TYPES.length)
-      current.set("apt_types", filters.aptTypes.join(","));
-
-    // Bedrooms
-    if (filters.bedroom !== "Any") current.set("bedrooms", filters.bedroom);
-
-    // Bathrooms
-    if (filters.bathroom !== "Any") current.set("bathrooms", filters.bathroom);
-
-    // Size range
-    if (filters.sizeRange[0] > MIN_SIZE)
-      current.set("size_min", String(filters.sizeRange[0]));
-    if (filters.sizeRange[1] < MAX_SIZE)
-      current.set("size_max", String(filters.sizeRange[1]));
-
-    // Furnishing
-    if (filters.furnishing.length < FURNISHED_TYPES.length)
-      current.set("furnishing", filters.furnishing.join(","));
-
-    // Floor level
-    if (filters.floorLevel.length < FLOOR_LEVELS.length)
-      current.set("floor_level", filters.floorLevel.join(","));
-
-    // Lease duration
-    if (filters.leaseDuration.length < LEASE_DURATIONS.length)
-      current.set("lease", filters.leaseDuration.join(","));
-
-    // Amenities
-    if (filters.amenities.length > 0)
-      current.set("amenities", filters.amenities.join(","));
-
-    // Sort
-    if (filters.sortBy !== "newest") current.set("sort", filters.sortBy);
-
-    router.push(`/browse?${current.toString()}`);
+    cancelPush();
+    pushFilters(filtersRef.current);
   };
 
   const handleClear = () => {
+    cancelPush();
+    filtersRef.current = INITIAL_FILTERS;
     setFilters(INITIAL_FILTERS);
-    router.push("/browse");
+    // Clear All also drops the text search so results are fully unfiltered.
+    lastPushedRef.current = "";
+    startTransition(() => {
+      router.replace("/browse");
+    });
   };
+
+  // Stay in sync when the URL changes elsewhere (browser back/forward).
+  // Echoes of this panel's own pushes are ignored so in-flight interaction
+  // (e.g. a slider drag with a pending debounced push) is never clobbered
+  // by a stale URL.
+  const paramsSignature = searchParams.toString();
+  useEffect(() => {
+    if (lastPushedRef.current === paramsSignature) return;
+    lastPushedRef.current = paramsSignature;
+    const next = readFiltersFromParams(searchParams);
+    filtersRef.current = next;
+    setFilters(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsSignature]);
 
   return (
     <div className="bg-surface rounded-xl p-4 border ">
@@ -189,24 +287,44 @@ export default function FilterContainer({ resultCount }: Props) {
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-medium">Filters</h3>
-        <p className="text-sm text-default-500">{resultCount} results found</p>
+        <p className="flex items-center gap-1.5 text-sm text-default-500">
+          {isPending ? (
+            <Spinner size="sm" color="current" aria-label="Updating results" />
+          ) : null}
+          {resultCount} results found
+        </p>
       </div>
+
+      {/* Verification */}
+      <Switch
+        isSelected={filters.verifiedOnly}
+        onChange={(val) => updateFilter("verifiedOnly", val)}
+      >
+        <Switch.Content className="flex w-full items-center justify-between">
+          <Label>Verified listings only</Label>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+        </Switch.Content>
+      </Switch>
+
+      <Separator className="my-5" />
 
       {/* Location */}
       <p className="text-sm font-medium mb-2">Location</p>
       <CheckboxGroup
+        name="locations"
         value={filters.locations}
         onChange={(val) => updateFilter("locations", val)}
         className="flex flex-col"
       >
         {LOCATIONS.map((option) => (
           <Checkbox key={option} value={option}>
-            <Checkbox.Control>
-              <Checkbox.Indicator/>
-            </Checkbox.Control>
-
             <Checkbox.Content>
-              <Label>{option}</Label>
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              {option}
             </Checkbox.Content>
           </Checkbox>
         ))}
@@ -250,40 +368,39 @@ export default function FilterContainer({ resultCount }: Props) {
 
       {/* Unit Type */}
       <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
-      <CheckboxGroup
-        value={filters.aptTypes}
-        onChange={(val) => updateFilter("aptTypes", val)}
-        className="flex flex-col"
-      >
-        {APARTMENT_TYPES.map((type) => (
-          <Checkbox key={type} value={type}>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-
-            <Checkbox.Content>
-              <Label>{type}</Label>
-            </Checkbox.Content>
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
+      <div className="flex flex-wrap gap-2">
+        {APARTMENT_TYPES.map((type) => {
+          const selected = filters.aptTypes.includes(type);
+          return (
+            <Chip
+              key={type}
+              variant={selected ? "primary" : "secondary"}
+              color={selected ? "accent" : "default"}
+              onClick={() => toggleArray("aptTypes", type)}
+              className="cursor-pointer"
+            >
+              {type}
+            </Chip>
+          );
+        })}
+      </div>
 
       <Separator className="my-5" />
 
       {/* Sort By */}
       <p className="text-sm font-medium mb-2">Sort By</p>
       <RadioGroup
+        name="sort"
         value={filters.sortBy}
         onChange={(val) => updateFilter("sortBy", val)}
       >
         {SORT_OPTIONS.map((opt) => (
           <Radio key={opt.value} value={opt.value}>
-            <Radio.Control>
-              <Radio.Indicator />
-            </Radio.Control>
-
             <Radio.Content>
-              <Label>{opt.label}</Label>
+              <Radio.Control>
+                <Radio.Indicator />
+              </Radio.Control>
+              {opt.label}
             </Radio.Content>
           </Radio>
         ))}
@@ -296,7 +413,7 @@ export default function FilterContainer({ resultCount }: Props) {
         selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
         onSelectionChange={(keys) => {
           const selected = [...keys][0];
-          updateFilter("bedroom", String(selected) ?? null);
+          updateFilter("bedroom", selected ? String(selected) : "Any");
         }}
         fullWidth
         className="w-full"
@@ -320,7 +437,7 @@ export default function FilterContainer({ resultCount }: Props) {
         selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
         onSelectionChange={(keys) => {
           const selected = [...keys][0];
-          updateFilter("bathroom", String(selected) ?? null);
+          updateFilter("bathroom", selected ? String(selected) : "Any");
         }}
         fullWidth
         className="w-full"
@@ -370,63 +487,60 @@ export default function FilterContainer({ resultCount }: Props) {
 
       {/* Furnishing */}
       <p className="text-sm font-medium mb-2">Furnishing</p>
-      <CheckboxGroup
-        value={filters.furnishing}
-        onChange={(val) => updateFilter("furnishing", val)}
-        className="flex flex-col"
-      >
-        {FURNISHED_TYPES.map((option) => (
-          <Checkbox key={option} value={option}>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-
-            <Checkbox.Content>
-              <Label>{option}</Label>
-            </Checkbox.Content>
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
+      <div className="flex flex-wrap gap-2">
+        {FURNISHED_TYPES.map((option) => {
+          const selected = filters.furnishing.includes(option);
+          return (
+            <Chip
+              key={option}
+              variant={selected ? "primary" : "secondary"}
+              color={selected ? "accent" : "default"}
+              onClick={() => toggleArray("furnishing", option)}
+              className="cursor-pointer"
+            >
+              {option}
+            </Chip>
+          );
+        })}
+      </div>
 
       {/* Floor Level */}
       <p className="text-sm font-medium mt-6 mb-2">Floor Level</p>
-      <CheckboxGroup
-        value={filters.floorLevel}
-        onChange={(val) => updateFilter("floorLevel", val)}
-        className="flex flex-col"
-      >
-        {FLOOR_LEVELS.map((option) => (
-          <Checkbox key={option} value={option}>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-
-            <Checkbox.Content>
-              <Label>{option}</Label>
-            </Checkbox.Content>
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
+      <div className="flex flex-wrap gap-2">
+        {FLOOR_LEVELS.map((option) => {
+          const selected = filters.floorLevel.includes(option);
+          return (
+            <Chip
+              key={option}
+              variant={selected ? "primary" : "secondary"}
+              color={selected ? "accent" : "default"}
+              onClick={() => toggleArray("floorLevel", option)}
+              className="cursor-pointer"
+            >
+              {option}
+            </Chip>
+          );
+        })}
+      </div>
 
       {/* Lease Duration */}
       <p className="text-sm font-medium mt-6 mb-2">Lease Duration</p>
-      <CheckboxGroup
-        value={filters.leaseDuration}
-        onChange={(val) => updateFilter("leaseDuration", val)}
-        className="flex flex-col"
-      >
-        {LEASE_DURATIONS.map((option) => (
-          <Checkbox key={option} value={option}>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-
-            <Checkbox.Content>
-              <Label>{option}</Label>
-            </Checkbox.Content>
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
+      <div className="flex flex-wrap gap-2">
+        {LEASE_DURATIONS.map((option) => {
+          const selected = filters.leaseDuration.includes(option);
+          return (
+            <Chip
+              key={option}
+              variant={selected ? "primary" : "secondary"}
+              color={selected ? "accent" : "default"}
+              onClick={() => toggleArray("leaseDuration", option)}
+              className="cursor-pointer"
+            >
+              {option}
+            </Chip>
+          );
+        })}
+      </div>
 
       <Separator className="my-5" />
 
