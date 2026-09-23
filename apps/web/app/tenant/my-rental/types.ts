@@ -1,5 +1,5 @@
 export type PaymentStatus = "paid" | "pending" | "late";
-export type MaintenanceStatus = "pending" | "in_progress" | "resolved";
+export type MaintenanceStatus = "pending" | "in_progress" | "resolved" | "cancelled";
 
 export interface PaymentHistoryItem {
   id: string;
@@ -13,11 +13,4 @@ export interface PaymentBreakdownItem {
   key: string;
   label: string;
   amount: number;
-}
-
-export interface MaintenanceItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  status: MaintenanceStatus;
 }

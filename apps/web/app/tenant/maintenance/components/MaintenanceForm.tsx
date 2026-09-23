@@ -159,14 +159,14 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
   };
 
   return (
-    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
       <Card.Content className="p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Maintenance Details
           </p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             Tell us what&apos;s going on and we&apos;ll pass it along to your landlord.
           </p>
         </div>
@@ -182,7 +182,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           }}
           isInvalid={!!errors.title}
         >
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Title
           </Label>
           <Input placeholder="Enter a short title for the issue..." />
@@ -201,7 +201,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           }}
           isInvalid={!!errors.category}
         >
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Category
           </Label>
           <ComboBox.InputGroup>
@@ -232,7 +232,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           }}
           isInvalid={!!errors.description}
         >
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Description
           </Label>
           <TextArea
@@ -245,7 +245,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
 
         {/* Urgency */}
         <div>
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-2">
             How urgent is this issue? <span className="text-primary">*</span>
           </Label>
           <ToggleButtonGroup
@@ -280,7 +280,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
 
         {/* Add Photos */}
         <div>
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Add Photos
           </Label>
           <input
@@ -294,7 +294,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 py-8 flex items-center justify-center gap-2 text-sm text-zinc-500 hover:border-primary hover:text-primary transition-colors"
+            className="w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
@@ -305,15 +305,15 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
               {files.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-2.5 pr-1.5 py-1.5 text-xs text-zinc-500"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-card pl-2.5 pr-1.5 py-1.5 text-xs text-muted-foreground"
                 >
-                  <ImageIcon size={14} className="text-zinc-400 shrink-0" />
+                  <ImageIcon size={14} className="text-muted-foreground shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
                     aria-label={`Remove ${file.name}`}
-                    className="text-zinc-400 hover:text-red-600 transition-colors"
+                    className="text-muted-foreground hover:text-red-600 transition-colors"
                   >
                     <X size={14} />
                   </button>

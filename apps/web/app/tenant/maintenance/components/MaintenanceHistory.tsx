@@ -63,15 +63,15 @@ export default function MaintenanceHistory({
   };
 
   return (
-    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
       <Card.Content className="p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
-          <h2 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="text-base font-nunito font-semibold text-card-foreground">
             Your requests
           </h2>
         </div>
-        <p className="text-sm text-zinc-500 mb-4">
+        <p className="text-sm text-muted-foreground mb-4">
           Track status and cancel open requests. Photos load via short-lived signed URLs.
         </p>
 
@@ -82,7 +82,7 @@ export default function MaintenanceHistory({
         ) : error ? (
           <p className="text-sm text-red-600">{error}</p>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-zinc-500 text-center py-6">
+          <p className="text-sm text-muted-foreground text-center py-6">
             No maintenance requests yet.
           </p>
         ) : (
@@ -93,14 +93,14 @@ export default function MaintenanceHistory({
               return (
                 <div
                   key={request.id}
-                  className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4"
+                  className="rounded-xl border border-border p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                      <p className="text-sm font-semibold text-card-foreground truncate">
                         {request.title}
                       </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {categoryLabel(request.category)} ·{" "}
                         {new Date(request.created_at).toLocaleString()}
                       </p>
@@ -119,7 +119,7 @@ export default function MaintenanceHistory({
                     </div>
                   </div>
 
-                  <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2 whitespace-pre-line">
+                  <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">
                     {request.message}
                   </p>
 
@@ -131,7 +131,7 @@ export default function MaintenanceHistory({
                           href={url}
                           target="_blank"
                           rel="noreferrer"
-                          className="block size-20 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800"
+                          className="block size-20 rounded-lg overflow-hidden border border-border"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -145,12 +145,12 @@ export default function MaintenanceHistory({
                   )}
 
                   {request.resolved_at && (
-                    <div className="mt-3 rounded-lg bg-zinc-50 dark:bg-zinc-950 p-3">
-                      <p className="text-xs text-zinc-500">
+                    <div className="mt-3 rounded-lg bg-muted p-3">
+                      <p className="text-xs text-muted-foreground">
                         Resolved {new Date(request.resolved_at).toLocaleString()}
                       </p>
                       {request.resolution_notes && (
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                        <p className="text-sm text-card-foreground mt-1">
                           {request.resolution_notes}
                         </p>
                       )}

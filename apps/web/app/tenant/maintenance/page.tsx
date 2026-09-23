@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button, Spinner } from "@heroui/react";
-import { ArrowLeft, Wrench } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
@@ -34,22 +34,20 @@ export default function MaintenanceRequestPage() {
     : "N/A";
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Header */}
-          <div className="flex flex-col gap-1">
-            <Button variant="outline" size="sm" className="w-fit" onPress={() => router.back()}>
-              <ArrowLeft size={16} /> Back
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="w-fit shrink-0" onPress={() => router.back()}>
+              <ArrowLeft size={16} />
+              Back
             </Button>
-            <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-              <Wrench size={14} className="text-primary" /> Maintenance
-            </p>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+              <h1 className="text-2xl font-bold font-nunito text-card-foreground">
                 Request Maintenance
               </h1>
-              <p className="text-sm text-zinc-500 mt-1">
+              <p className="text-sm text-muted-foreground">
                 Let your landlord know about an issue with your unit. We&apos;ll
                 notify them right away and keep you posted on the status.
               </p>
@@ -61,11 +59,11 @@ export default function MaintenanceRequestPage() {
               <Spinner color="accent" />
             </div>
           ) : !tenancy || !apartmentId ? (
-            <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-6 text-center">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className="rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm font-semibold text-card-foreground">
                 No active lease found
               </p>
-              <p className="text-sm text-zinc-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Maintenance requests are linked to your current rental. Once you have an
                 active tenancy, you can submit requests here.
               </p>
