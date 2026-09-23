@@ -1,19 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Avatar, Button, Chip, Dropdown, InputGroup, Separator, Table } from "@heroui/react";
 import { Search, ListFilter, Hammer, Calendar } from "lucide-react";
 import { formatDate, getInitials } from "@repo/utils";
 
-import { MOCK_MAINTENANCE_REQUESTS } from "./data/mock-maintenance-requests";
+import { useLandlordMaintenanceRequests } from "@/hooks/use-landlord-maintenance-requests";
+import { useLandlordActionBadges } from "@/hooks/use-landlord-action-badges";
 import {
   MAINTENANCE_URGENCY_STYLE,
   maintenanceStatusChipColor,
   type LandlordMaintenanceStatus,
 } from "./lib/maintenance-status";
 import MaintenanceEmptyState from "./components/MaintenanceEmptyState";
+import { MaintenanceTableSkeleton } from "./components/MaintenanceSkeletons";
 
 const STATUS_OPTIONS = ["All", "Pending", "In Progress", "Resolved", "Cancelled"] as const;
 const URGENCY_OPTIONS = [
@@ -25,8 +27,8 @@ const URGENCY_OPTIONS = [
 
 export default function MaintenanceRequestsPage() {
   const router = useRouter();
-  // UI-first: mock data. Backend wiring will replace this with a landlord hook.
-  const requests = MOCK_MAINTENANCE_REQUESTS;
+  const { requests, loading, error, refresh } = useLandlordMaintenanceRequests();
+  const { markViewed } = useLandlordActionBadges();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<LandlordMaintenanceStatus | "All">("All");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("All");
@@ -60,6 +62,10 @@ export default function MaintenanceRequestsPage() {
     setUrgencyFilter("All");
     setCityFilter("All");
   };
+
+  useEffect(() => {
+    markViewed("maintenance");
+  }, [markViewed]);
 
   const openDetail = (id: string) => router.push(`/landlord/maintenance-requests/${id}`);
 
@@ -165,7 +171,26 @@ export default function MaintenanceRequestsPage() {
 
       <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <>
+          <div className="hidden md:block">
+            <MaintenanceTableSkeleton />
+          </div>
+          <div className="grid gap-3 md:hidden">
+            <div className="rounded-3xl border border-border bg-card p-4 animate-pulse">
+              <div className="h-4 w-2/3 rounded bg-muted" />
+              <div className="h-3 w-1/3 rounded bg-muted mt-2" />
+            </div>
+          </div>
+        </>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12">
+          <p className="text-sm font-medium text-red-600">{error}</p>
+          <Button size="sm" variant="outline" className="mt-3" onPress={() => void refresh()}>
+            Retry
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
         <MaintenanceEmptyState />
       ) : (
         <>
