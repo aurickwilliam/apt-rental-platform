@@ -1,13 +1,38 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { ArrowLeft, Wrench } from "lucide-react";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
+import MaintenanceHistory from "./components/MaintenanceHistory";
+import { useTenancy } from "@/hooks/use-tenancy";
+import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
 export default function MaintenanceRequestPage() {
   const router = useRouter();
+  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const apartmentId = tenancy?.apartment.id ?? null;
+  const {
+    requests,
+    loading: historyLoading,
+    error: historyError,
+    refresh,
+    cancelRequest,
+    cancellingId,
+  } = useMaintenanceRequestHistory(apartmentId);
+
+  const apartment = tenancy?.apartment ?? null;
+  const landlord = tenancy?.landlord ?? null;
+  const propertyName = apartment
+    ? [apartment.name, apartment.street_address, apartment.barangay, apartment.city]
+        .filter(Boolean)
+        .join(" · ")
+    : "No property on file";
+  const landlordName = landlord
+    ? `${landlord.first_name ?? ""} ${landlord.last_name ?? ""}`.trim() || "Landlord"
+    : "N/A";
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
@@ -31,8 +56,33 @@ export default function MaintenanceRequestPage() {
             </div>
           </div>
 
-          <PropertyContextCard propertyName="123 Rizal St., Unit 4B" landlordName="N/A" />
-          <MaintenanceForm />
+          {tenancyLoading ? (
+            <div className="flex justify-center py-12">
+              <Spinner color="accent" />
+            </div>
+          ) : !tenancy || !apartmentId ? (
+            <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-6 text-center">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                No active lease found
+              </p>
+              <p className="text-sm text-zinc-500 mt-1">
+                Maintenance requests are linked to your current rental. Once you have an
+                active tenancy, you can submit requests here.
+              </p>
+            </div>
+          ) : (
+            <>
+              <PropertyContextCard propertyName={propertyName} landlordName={landlordName} />
+              <MaintenanceForm apartmentId={apartmentId} onSubmitted={refresh} />
+              <MaintenanceHistory
+                requests={requests}
+                loading={historyLoading}
+                error={historyError}
+                cancellingId={cancellingId}
+                onCancel={cancelRequest}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>
