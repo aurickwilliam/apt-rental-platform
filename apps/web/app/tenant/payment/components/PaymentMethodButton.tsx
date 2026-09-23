@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { CheckCircle2, Banknote } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { ReactNode } from "react";
 
 type Variant = "tile" | "chip";

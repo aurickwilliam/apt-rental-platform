@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Button, Separator } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import { CheckCircle2, AlertCircle, XCircle, Download, Share2 } from "lucide-react";
 import { formatPesoDisplay } from "../utils";
 import type { PaymentStatus } from "../types";

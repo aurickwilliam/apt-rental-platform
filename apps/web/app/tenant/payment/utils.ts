@@ -28,11 +28,14 @@ export function periodMonthLabel(dueOrPeriod: string | null | undefined): string
   return new Intl.DateTimeFormat("en-US", { month: "long" }).format(d);
 }
 
-export function methodLabel(method: string): string {
+export function methodLabel(method: string | null | undefined): string {
+  if (!method) return "—";
   if (method === "Debit/Credit-Card") return "Debit/Credit Card";
   if (method === "gcash") return "GCash";
   if (method === "maya") return "Maya";
   if (method === "qrph") return "QRPh";
+  if (method === "card") return "Debit/Credit Card";
+  if (method === "cash") return "Cash";
   return method;
 }
 

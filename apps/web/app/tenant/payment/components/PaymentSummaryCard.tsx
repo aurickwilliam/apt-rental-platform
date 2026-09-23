@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Card, Separator, Spinner } from "@heroui/react";
-import { formatPesoDisplay, periodMonthLabel } from "../utils";
+import { Card, Separator } from "@heroui/react";
+import { formatPesoDisplay } from "../utils";
 
 interface PaymentSummaryCardProps {
   month: string;
@@ -9,10 +9,6 @@ interface PaymentSummaryCardProps {
   dueDate: string;
   monthlyRent: number;
   className?: string;
-  onPayPress?: () => void;
-  isProcessing?: boolean;
-  isDisabled?: boolean;
-  activeMethod?: string | null;
 }
 
 function formatDueDate(iso: string): string {
@@ -21,7 +17,7 @@ function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
 }
 
-export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, className = "", onPayPress, isProcessing = false, isDisabled = false, activeMethod }: PaymentSummaryCardProps) {
+export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, className = "" }: PaymentSummaryCardProps) {
   return (
     <Card className={`rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col ${className}`}>
       <Card.Header className="px-4 pt-4 pb-0">
@@ -50,20 +46,6 @@ export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, 
           <span className="text-sm font-nunito font-semibold text-primary">Total Payment</span>
           <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(monthlyRent)}</span>
         </div>
-
-        {activeMethod && <p className="text-xs text-zinc-500">Method: {activeMethod}</p>}
-
-        {onPayPress && (
-          <Button onPress={onPayPress} isDisabled={isDisabled} className="w-full rounded-full mt-3 font-nunito">
-            {isProcessing ? (
-              <>
-                <Spinner size="sm" color="current" /> Processing…
-              </>
-            ) : (
-              "Pay now"
-            )}
-          </Button>
-        )}
       </Card.Content>
     </Card>
   );

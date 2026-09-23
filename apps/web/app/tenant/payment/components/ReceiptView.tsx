@@ -9,7 +9,7 @@ import {
   paymentStatusLabel,
   periodMonthLabel,
 } from "../utils";
-import type { PaymentRecord } from "../types";
+import type { PaymentRecord } from "@/service/paymentService";
 
 // Shared receipt body for the success + per-row history routes
 // (mobile parity: both render the same ReceiptCard).
