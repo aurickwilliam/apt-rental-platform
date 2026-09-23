@@ -7,6 +7,7 @@ import { Card, Button, Spinner } from "@heroui/react";
 import { Star, Heart } from "lucide-react";
 
 import { formatPesoDisplay } from "@repo/utils";
+import { VerifiedBadge } from "../VerifiedBadge";
 
 interface ApartmentCardProps {
   name: string;
@@ -18,6 +19,7 @@ interface ApartmentCardProps {
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
+  isVerified?: boolean;
 }
 
 export default function ApartmentCard({
@@ -30,6 +32,7 @@ export default function ApartmentCard({
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
+  isVerified = false,
 }: ApartmentCardProps) {
   const showFavoriteButton = Boolean(onFavoritePress);
 
@@ -50,9 +53,7 @@ export default function ApartmentCard({
           />
 
           <div className="p-2">
-            <h3 className="text-[15px] font-semibold truncate">
-              {name}
-            </h3>
+            <div className="flex items-center gap-2"><h3 className="text-[15px] font-semibold truncate">{name}</h3>{isVerified ? <VerifiedBadge /> : null}</div>
 
             <div className="flex items-center gap-1">
               <p className="bg-surface-variant text-xs">

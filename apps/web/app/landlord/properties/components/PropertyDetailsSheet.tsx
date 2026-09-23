@@ -31,6 +31,7 @@ import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
 import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
+import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
 
 type ApartmentImage = {
   id: string;

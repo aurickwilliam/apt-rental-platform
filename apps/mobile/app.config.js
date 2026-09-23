@@ -165,6 +165,9 @@ module.exports = {
       reactCompiler: true,
     },
     extra: {
+      // Available to the JS runtime via Constants.expoConfig.extra so the map
+      // feature gate agrees with the native Maps SDK configuration.
+      EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: googleMapsKey,
       eas: {
         projectId: '77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb',
       },

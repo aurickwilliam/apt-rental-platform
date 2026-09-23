@@ -20,6 +20,9 @@ import {
   FileCheckCorner,
   Banknote,
   MessagesSquare,
+  Users,
+  ShieldCheck,
+  History,
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
@@ -36,6 +39,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   FileCheckCorner,
   Banknote,
   MessagesSquare,
+  Users,
+  ShieldCheck,
+  History,
 };
 
 type NavItem = {
@@ -48,6 +54,7 @@ type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
   userRole: string;
+  showAccountLinks?: boolean;
 };
 
 function isActive(pathname: string, href: string) {
@@ -61,7 +68,7 @@ function getInitials(value: string) {
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "U";
 }
 
-export function AppSidebar({ navItems, userName, userRole }: AppSidebarProps) {
+export function AppSidebar({ navItems, userName, userRole, showAccountLinks = true }: AppSidebarProps) {
   const pathname = usePathname();
 
   const displayName = userName?.trim() || "User";
@@ -136,12 +143,14 @@ export function AppSidebar({ navItems, userName, userRole }: AppSidebarProps) {
                 if (key === "logout") signOut();
               }}
             >
-              <Dropdown.Item id="profile" textValue="Profile">
-                <Label>Profile</Label>
-              </Dropdown.Item>
-              <Dropdown.Item id="settings" textValue="Settings">
-                <Label>Settings</Label>
-              </Dropdown.Item>
+              {showAccountLinks ? (<>
+                <Dropdown.Item id="profile" textValue="Profile">
+                  <Label>Profile</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="settings" textValue="Settings">
+                  <Label>Settings</Label>
+                </Dropdown.Item>
+              </>) : null}
               <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
                 <Label className="flex items-center gap-2">
                   <LogOut size={14} /> Log Out
