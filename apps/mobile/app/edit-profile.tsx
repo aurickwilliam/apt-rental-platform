@@ -256,7 +256,6 @@ export default function EditProfile() {
           province: form.province || null,
           // postal_code is int4 in DB
           postal_code: postalCode ? parseInt(postalCode, 10) : null,
-          updated_at: new Date().toISOString(),
         })
         .eq("user_id", profile.user_id);
 

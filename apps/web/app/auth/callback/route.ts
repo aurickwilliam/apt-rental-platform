@@ -18,6 +18,37 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const isOAuth = user?.app_metadata?.provider === "google";
+      let profileRole: string | null = null;
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("mobile_number, role")
+          .eq("user_id", user.id)
+          .single();
+        profileRole = profile?.role ?? null;
+
+        if (isOAuth && role && profile && !profile.mobile_number && profile.role !== "admin") {
+          const { error: roleError } = await supabase.rpc("set_onboarding_role", { requested_role: role });
+          if (roleError) {
+            console.error("Could not set OAuth onboarding role", roleError);
+            await supabase.auth.signOut();
+            return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+          }
+          profileRole = role;
+        }
+
+        if (!isPopup && isOAuth && profileRole !== "admin" && !profile?.mobile_number) {
+          return NextResponse.redirect(
+            `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
+          );
+        }
+      }
+
       if (isPopup) {
         return new NextResponse(
           `<html><body><script>window.close();</script></body></html>`,
@@ -25,30 +56,8 @@ export async function GET(request: Request) {
         );
       }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const isOAuth = user?.app_metadata?.provider === "google";
-
-      if (isOAuth) {
-        const { data: profile } = await supabase
-          .from("users")
-          .select("mobile_number, role")
-          .eq("user_id", user!.id)
-          .single();
-
-        if (role && profile && !profile.mobile_number && profile.role !== role) {
-          await supabase
-            .from("users")
-            .update({ role })
-            .eq("user_id", user!.id);
-        }
-
-        if (!profile?.mobile_number) {
-          return NextResponse.redirect(
-            `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
-          );
-        }
+      if (profileRole === "admin") {
+        return NextResponse.redirect(`${origin}/admin/dashboard`);
       }
 
       const forwardedHost = request.headers.get("x-forwarded-host");

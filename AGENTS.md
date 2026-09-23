@@ -95,6 +95,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
   ```sql
   (SELECT id FROM public.users WHERE user_id = auth.uid())
   ```
+- `public.users.role` and `account_status` are server-managed. Client profile UPDATE grants cover only editable fields; registration INSERT is restricted to tenant/landlord with `unverified` status. Google OAuth users may choose tenant/landlord while incomplete through `set_onboarding_role()` only. Admin promotion uses a trusted database-operator connection (see `docs/admin-provisioning.md`); never add a client-side role update or admin registration option.
 - When a table has multiple FKs to `public.users` (e.g. `reviews`, `chat`), disambiguate joins explicitly: `users!reviews_tenant_id_fkey`.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
 - Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read. **Exception:** `apartment-images` is **public** (`public=true`, 10 MB limit) — `apartment_images.url` / `url_thumb` store permanent CDN public URLs (`getPublicUrl`) and render via `expo-image cachePolicy="disk"` with no signing (verified `storage.buckets.public=true` on `apartment-images`).

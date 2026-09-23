@@ -160,7 +160,7 @@ Supabase `auth.users` is the canonical identity (email, password, OAuth). Each s
 
 - an internal UUID primary key `id`
 - `user_id` referencing `auth.users.id` (`auth.uid()`)
-- `role` — `'tenant'` or `'landlord'`
+- `role` — `'tenant'`, `'landlord'`, or a provisioned `'admin'`
 - profile fields (name, gender, birth date, mobile number, PH address, postal code)
 
 **All RLS policies and foreign keys in the database reference the internal `public.users.id`, not `auth.uid()`.** Client code therefore resolves the internal id on every profile-dependent query:
@@ -170,6 +170,8 @@ Supabase `auth.users` is the canonical identity (email, password, OAuth). Each s
 ```
 
 Both platforms resolve this in hooks: `users.select(...).eq('user_id', user.id)` (e.g. `apps/mobile/hooks/auth/useProfile.ts`, `apps/web/hooks/use-user.ts`).
+
+Phase 0 admin authorization hardening: browser/mobile profile edits cannot change `role` or `account_status`; registration can create only tenant/landlord profiles with unverified status. New Google users may choose a tenant/landlord role only while their profile is incomplete via the caller-bound `set_onboarding_role()` RPC. Admin assignment is an operator-only database change (`docs/admin-provisioning.md`). The admin UI itself is not yet implemented.
 
 ### 4.3 Web flow
 
@@ -199,7 +201,9 @@ sequenceDiagram
     U->>SA: sign-in (email, password, selected role)
     SA->>A: signInWithPassword()
     SA->>DB: SELECT role WHERE user_id = uid
-    alt role ≠ selected role
+    alt stored role = admin
+        SA-->>U: redirect → /admin/dashboard (route still unimplemented)
+    else role ≠ selected tenant/landlord role
         SA->>A: signOut() → error "wrong portal"
     else
         SA-->>U: redirect → landlord/dashboard | tenant/my-rental
@@ -213,7 +217,7 @@ sequenceDiagram
     end
 ```
 
-Key files: `apps/web/app/(auth)/actions/{send-otp,sign-up,sign-in,sign-out,complete-profile,check-email-availability}.ts` (the only server actions in the app), `apps/web/app/auth/callback/route.ts` (OAuth code exchange; handles `popup=true`, role sync, and the `/complete-profile` branch), `apps/web/app/(auth)/sign-up-form/hooks/useOtpFlow.ts` (browser-side OTP verify with 120s resend cooldown).
+Key files: `apps/web/app/(auth)/actions/{send-otp,sign-up,sign-in,sign-out,complete-profile,check-email-availability}.ts` (the only server actions in the app), `apps/web/app/auth/callback/route.ts` (OAuth code exchange; handles `popup=true`, the onboarding-role RPC, provisioned-admin redirect, and the `/complete-profile` branch), `apps/web/app/(auth)/sign-up-form/hooks/useOtpFlow.ts` (browser-side OTP verify with 120s resend cooldown).
 
 **Route guards** (packages/supabase/src/middleware.ts): a public-route allowlist (note: includes `/help`, `/contact`, `/safety`, `/faq` for which no routes exist — debt D12); signed-out users on non-public routes → `/sign-in`; signed-in users on `/sign-in`, `/sign-up`, `/sign-up-form` → `/`; role-prefix protection maps `tenant → /tenant`, `landlord → /landlord`, `admin → /admin` and redirects to the user's own first route on mismatch. Server actions bypass middleware (`next-action` header check). `auth/users` row queries in middleware run through RLS.
 

@@ -111,21 +111,28 @@ export async function updateSession(request: NextRequest) {
 
   // Role-based protection
   const isProtected = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route),
+    pathname === route || pathname.startsWith(`${route}/`),
   );
 
   if (user && isProtected) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("role")
       .eq("user_id", user.id)
       .single();
 
-    const role = profile?.role as string;
-    const ownRoutes = ROLE_ROUTES[role];
+    const ownRoutes = profile?.role ? ROLE_ROUTES[profile.role] : undefined;
+
+    if (profileError || !ownRoutes) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
 
     const isWrongRoute = PROTECTED_ROUTES.some(
-      (route) => !ownRoutes.includes(route) && pathname.startsWith(route),
+      (route) =>
+        !ownRoutes.includes(route) &&
+        (pathname === route || pathname.startsWith(`${route}/`)),
     );
 
     if (isWrongRoute) {

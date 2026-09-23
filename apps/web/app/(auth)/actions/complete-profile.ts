@@ -57,6 +57,15 @@ export async function completeProfile(
     requestedRole === "landlord" || requestedRole === "tenant"
       ? requestedRole
       : "tenant";
+
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("role, mobile_number")
+    .eq("user_id", user.id)
+    .single();
+  if (profileError || !profile || profile.role === "admin" || profile.mobile_number) {
+    return { error: "Profile setup is no longer available for this account." };
+  }
   const postalCode = formData.get("postal_code")
     ? Number(formData.get("postal_code"))
     : null;
@@ -84,6 +93,11 @@ export async function completeProfile(
   if (age === null) return { error: "Invalid birth date." };
   if (age < 18) return { error: "You must be at least 18 years old to register." };
 
+  const { error: roleError } = await supabase.rpc("set_onboarding_role", {
+    requested_role: role,
+  });
+  if (roleError) return { error: "Could not select your account type. Please try again." };
+
   const { error } = await supabase
     .from("users")
     .update({
@@ -97,7 +111,6 @@ export async function completeProfile(
       barangay,
       city,
       province,
-      role,
       postal_code: postalCode,
     })
     .eq("user_id", user.id);

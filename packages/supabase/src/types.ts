@@ -1194,6 +1194,7 @@ export type Database = {
         Returns: Json
       }
       notify_rent_due_status: { Args: never; Returns: undefined }
+      set_onboarding_role: { Args: { requested_role: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
