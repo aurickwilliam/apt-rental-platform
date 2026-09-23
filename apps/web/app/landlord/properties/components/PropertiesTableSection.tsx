@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import PropertiesTable from "./PropertiesTable";
 import PropertyDetailsSheet from "./PropertyDetailsSheet";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function PropertiesTableSection({ properties: initial }: Props) {
+  const router = useRouter();
   const [properties, setProperties] = useState<Property[]>(initial);
   const [selected, setSelected] = useState<Property | null>(null);
   const [openEditMode, setOpenEditMode] = useState(false);
@@ -66,7 +68,7 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
     <>
       <PropertiesTable
         properties={properties}
-        onRowClick={(property) => openSheet(property)}
+        onRowClick={(property) => router.push(`/landlord/properties/${property.id}`)}
         onEditClick={(property) => openSheet(property, true)}
         onDeleteClick={(property) => setDeleteTarget(property)}
       />
