@@ -1,35 +1,53 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 type ZigzagEdgeProps = {
   cutColor?: string;
-  toothColor?: string;
   depth?: number;
   toothWidth?: number;
   className?: string;
 };
 
-export default function ZigzagEdge({ cutColor = "#fafafa", toothColor = "white", depth = 12, toothWidth = 20, className = "" }: ZigzagEdgeProps) {
-  // Decorative scalloped bottom — CSS triangle row + solid cap
-  // Pure div/CSS so it works with Tailwind without RN canvas
-  const teeth = 32; // enough to fill width responsively via flex
+// Web twin of mobile ZigzagEdge: an SVG notch path filled with the background
+// color behind the card (cutColor), so the white receipt looks cut out.
+// Teeth recompute from measured width so they fit evenly, no partial tooth.
+export default function ZigzagEdge({ cutColor = "#376BF5", depth = 13, toothWidth = 20, className = "" }: ZigzagEdgeProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setWidth(el.clientWidth);
+    const observer = new ResizeObserver((entries) => {
+      const next = Math.round(entries[0]?.contentRect.width ?? 0);
+      setWidth(next);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  if (width === 0) {
+    return <div ref={ref} style={{ height: depth }} className={className} aria-hidden />;
+  }
+
+  const teeth = Math.max(1, Math.round(width / toothWidth));
+  const tooth = width / teeth;
+
+  let d = `M0,${depth} `;
+  for (let i = 0; i < teeth; i++) {
+    const peakX = i * tooth + tooth / 2;
+    const troughX = (i + 1) * tooth;
+    d += `L${peakX},0 L${troughX},${depth} `;
+  }
+  d += "Z";
+
   return (
-    <div className={`relative w-full overflow-hidden ${className}`} aria-hidden>
-      <div className="flex w-full" style={{ height: depth }}>
-        {Array.from({ length: teeth }).map((_, i) => (
-          <div
-            key={i}
-            className="flex-1"
-            style={{
-              background: toothColor,
-              clipPath: i % 2 === 0 ? "polygon(0 0, 100% 0, 50% 100%)" : "polygon(0 0, 100% 0, 50% 0)",
-              marginLeft: i === 0 ? 0 : -1,
-            }}
-          />
-        ))}
-      </div>
-      <div className="h-2 w-full" style={{ background: cutColor, marginTop: -1 }} />
+    <div ref={ref} className={`w-full ${className}`} style={{ height: depth }} aria-hidden>
+      <svg width={width} height={depth} viewBox={`0 0 ${width} ${depth}`} className="block w-full">
+        <path d={d} fill={cutColor} />
+      </svg>
     </div>
   );
 }
-
-

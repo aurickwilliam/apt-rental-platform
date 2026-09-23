@@ -1,13 +1,13 @@
 "use client";
 
 import { ClipboardList } from "lucide-react";
-import { usePendingApplications } from "@/hooks/use-pending-applications";
+import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import ApplicationStatusCard from "./ApplicationStatusCard";
 import ApplicationStatusCardSkeleton from "./ApplicationStatusCardSkeleton";
 import ApplicationsEmptyState from "./ApplicationsEmptyState";
 
 export default function ApplicationsList({ className = "" }: { className?: string }) {
-  const { applications, loading } = usePendingApplications();
+  const { applications, loading, error } = useTenantApplications();
 
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
@@ -22,6 +22,8 @@ export default function ApplicationsList({ className = "" }: { className?: strin
           <ApplicationStatusCardSkeleton />
           <ApplicationStatusCardSkeleton />
         </div>
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
       ) : applications.length === 0 ? (
         <ApplicationsEmptyState />
       ) : (
@@ -31,9 +33,9 @@ export default function ApplicationsList({ className = "" }: { className?: strin
               key={a.id}
               id={a.id}
               status={a.status}
-              apartmentName={a.apartmentName}
-              apartmentId={a.apartmentId}
-              createdAt={a.createdAt}
+              apartmentName={a.apartments?.name ?? null}
+              apartmentId={a.apartment_id}
+              createdAt={a.created_at}
             />
           ))}
         </div>

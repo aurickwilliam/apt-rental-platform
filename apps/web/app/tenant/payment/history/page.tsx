@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, Chip, Spinner, useOverlayState } from "@heroui/react";
 import { ArrowLeft, Banknote, Receipt, SlidersHorizontal } from "lucide-react";
-import { MOCK_PAYMENTS } from "../constants";
-import type { PaymentHistoryFilter, PaymentRecord } from "../types";
-import { formatDateShort, formatPesoDisplay, methodLabel, paymentStatusLabel, periodMonthLabel } from "../utils";
+import type { PaymentHistoryFilter } from "../types";
+import type { PaymentRecord } from "@/service/paymentService";
+import { formatPesoDisplay, methodLabel, paymentStatusLabel, periodMonthLabel } from "../utils";
+import { usePayment, usePayments } from "@/hooks/use-payments";
+import { useTenancy } from "@/hooks/use-tenancy";
 import PaymentHistoryFilters from "../components/PaymentHistoryFilters";
 import ReceiptModal from "../components/ReceiptModal";
 
@@ -46,14 +48,13 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                {periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}{" "}
-                <span className="text-zinc-400 font-normal">• {formatDateShort(payment.date)}</span>
+                {periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">{payment.apartment_name ?? "—"}</p>
               <p className="text-xs text-zinc-400 mt-1">via {methodLabel(payment.method)}</p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
-              <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(payment.amount)}</span>
+              <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(payment.amount ?? 0)}</span>
               <Chip size="sm" variant="soft" color={color} className="text-[11px]">
                 {status}
               </Chip>
@@ -71,15 +72,16 @@ function HistoryContent() {
   const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy();
+  const paymentsQuery = usePayments(tenancy?.id ?? null);
+
   // Receipt popup driven by ?receipt=<id> — deep-linkable, back-button
   // closes it naturally. Unresolvable ids simply never open the modal.
   const receiptId = params.get("receipt");
-  const receiptPayment = useMemo(
-    () => MOCK_PAYMENTS.find((p) => p.id === receiptId) ?? null,
-    [receiptId],
-  );
+  const receiptQuery = usePayment(receiptId);
+  const receiptPayment = receiptQuery.data;
   const receiptState = useOverlayState({
-    isOpen: receiptPayment !== null,
+    isOpen: receiptPayment !== null && receiptPayment !== undefined,
     onOpenChange: (open) => {
       if (!open) router.replace("/tenant/payment/history");
     },
@@ -87,18 +89,26 @@ function HistoryContent() {
   const closeReceipt = () => router.replace("/tenant/payment/history");
 
   const currentYear = String(new Date().getFullYear());
-  const availableYears = useMemo(() => [...new Set(MOCK_PAYMENTS.map(toYear))].sort((a, b) => Number(b) - Number(a)), []);
+  // Mobile parity: history hides pending rows (pending lives in verify/success flow).
+  const visiblePayments = useMemo(
+    () => (paymentsQuery.data ?? []).filter((p) => paymentStatusLabel(p.status) !== "Pending"),
+    [paymentsQuery.data],
+  );
+  const availableYears = useMemo(
+    () => [...new Set(visiblePayments.map(toYear))].sort((a, b) => Number(b) - Number(a)),
+    [visiblePayments],
+  );
 
   const activeCount = filters.years.length + filters.statuses.length;
 
   const filtered = useMemo(() => {
-    let r = [...MOCK_PAYMENTS];
+    let r = [...visiblePayments];
     if (filters.years.length > 0) r = r.filter((p) => filters.years.includes(toYear(p)));
     if (filters.statuses.length > 0) r = r.filter((p) => filters.statuses.includes(paymentStatusLabel(p.status)));
     const dir = filters.sort === "Newest" ? -1 : 1;
     r.sort((a, b) => dir * (new Date(a.date).getTime() - new Date(b.date).getTime()));
     return r;
-  }, [filters]);
+  }, [filters, visiblePayments]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, PaymentRecord[]>();
@@ -111,14 +121,45 @@ function HistoryContent() {
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
   }, [filtered, filters.sort]);
 
+  if (tenancyLoading || paymentsQuery.loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
+        <Spinner size="lg" color="current" className="text-primary" />
+        <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment history…</p>
+      </div>
+    );
+  }
+
+  if (tenancyError || paymentsQuery.error || !tenancy) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
+            <ArrowLeft size={16} /> Back
+          </Button>
+          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+            <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
+              <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">
+                {tenancyError ?? paymentsQuery.error ?? "We could not load your payment history."}
+              </p>
+              <Button onPress={() => void refetch()} className="rounded-full font-nunito">
+                Try Again
+              </Button>
+            </Card.Content>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="flex flex-col gap-1 mb-4">
-          <Link href="/tenant/payment" className="inline-flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-700 w-fit">
-            <ArrowLeft size={14} /> Back to payment
-          </Link>
+          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
+            <ArrowLeft size={16} /> Back
+          </Button>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
@@ -220,6 +261,3 @@ export default function TenantPaymentHistoryPage() {
     </Suspense>
   );
 }
-
-
-

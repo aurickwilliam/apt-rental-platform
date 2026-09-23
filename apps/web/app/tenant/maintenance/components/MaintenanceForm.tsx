@@ -17,23 +17,20 @@ import {
   ToggleButtonGroup,
   toast,
 } from "@heroui/react";
-import { UploadCloud, X, ImageIcon, CheckCircle2 } from "lucide-react";
+import { UploadCloud, X, ImageIcon } from "lucide-react";
 import { CATEGORIES, FORM_LIMITS } from "../data/maintenance-data";
-import {
-  saveMaintenanceRequest,
-  type MaintenanceRequestPayload,
-  type StoredMaintenanceRequest,
-} from "../lib/maintenance-store";
+import { useSubmitMaintenanceRequest } from "@/hooks/use-submit-maintenance-request";
+import type { MaintenanceUrgency } from "@/service/maintenanceService";
 
 const URGENCY_LEVELS: {
-  id: "low" | "medium" | "high";
+  id: MaintenanceUrgency;
   label: string;
   bg: string;
   text: string;
   ring: string;
 }[] = [
   { id: "low", label: "Low", bg: "#E5E7EB", text: "#6C757D", ring: "#6C757D" },
-  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#333333", ring: "#FACC15" },
+  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#FACC15", ring: "#FACC15" },
   { id: "high", label: "High", bg: "#FDA4AF", text: "#E50914", ring: "#E50914" },
 ];
 
@@ -46,16 +43,21 @@ type FormErrors = {
   urgency?: string;
 };
 
-export default function MaintenanceForm() {
+type MaintenanceFormProps = {
+  apartmentId: string;
+  onSubmitted?: () => void;
+};
+
+export default function MaintenanceForm({ apartmentId, onSubmitted }: MaintenanceFormProps) {
   const [title, setTitle] = useState("");
   const [categoryKey, setCategoryKey] = useState<Key | null>(null);
   const [description, setDescription] = useState("");
-  const [urgency, setUrgency] = useState<"low" | "medium" | "high" | null>(null);
+  const [urgency, setUrgency] = useState<MaintenanceUrgency | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [lastStored, setLastStored] = useState<StoredMaintenanceRequest | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { submit, isSubmitting } = useSubmitMaintenanceRequest();
 
   const clearError = (field: keyof FormErrors) => {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -68,8 +70,8 @@ export default function MaintenanceForm() {
     const messages: string[] = [];
 
     for (const file of incoming) {
-      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-        messages.push(`${file.name}: only image and video files are allowed.`);
+      if (!file.type.startsWith("image/")) {
+        messages.push(`${file.name}: only image files are allowed.`);
       } else if (file.size > MAX_FILE_SIZE_BYTES) {
         messages.push(
           `${file.name}: each file must be ${FORM_LIMITS.maxFileSizeMB}MB or smaller.`
@@ -82,7 +84,7 @@ export default function MaintenanceForm() {
     const remaining = FORM_LIMITS.maxFiles - files.length;
     if (accepted.length > remaining) {
       accepted.length = Math.max(remaining, 0);
-      messages.push(`You can attach up to ${FORM_LIMITS.maxFiles} files.`);
+      messages.push(`You can attach up to ${FORM_LIMITS.maxFiles} photos.`);
     }
 
     if (accepted.length > 0) {
@@ -98,14 +100,14 @@ export default function MaintenanceForm() {
 
   const validateForm = (): FormErrors => {
     const next: FormErrors = {};
-    if (title.trim().length < FORM_LIMITS.titleMinLength) {
-      next.title = `Title must be at least ${FORM_LIMITS.titleMinLength} characters.`;
+    if (!title.trim()) {
+      next.title = "Title is required.";
     }
     if (!categoryKey) {
-      next.category = "Please select a category.";
+      next.category = "Category is required.";
     }
-    if (description.trim().length < FORM_LIMITS.descriptionMinLength) {
-      next.description = `Description must be at least ${FORM_LIMITS.descriptionMinLength} characters.`;
+    if (!description.trim()) {
+      next.description = "Description is required.";
     }
     if (!urgency) {
       next.urgency = "Please select an urgency level.";
@@ -113,7 +115,7 @@ export default function MaintenanceForm() {
     return next;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const nextErrors = validateForm();
@@ -124,19 +126,28 @@ export default function MaintenanceForm() {
     }
 
     const category = CATEGORIES.find((cat) => cat.id === categoryKey);
-    const payload: MaintenanceRequestPayload = {
-      title: title.trim(),
-      categoryId: category!.id,
-      categoryLabel: category!.label,
-      description: description.trim(),
-      urgency: urgency!,
-      files: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
-    };
+    if (!category) {
+      toast.danger("Please select a valid category.");
+      return;
+    }
 
-    const stored = saveMaintenanceRequest(payload);
-    setLastStored(stored);
+    const result = await submit({
+      apartmentId,
+      form: {
+        title: title.trim(),
+        category: category.id,
+        message: description.trim(),
+        urgency,
+      },
+      files,
+    });
+
+    if (!result.success) {
+      toast.danger(result.error);
+      return;
+    }
+
     toast.success("Maintenance request submitted");
-
     setTitle("");
     setCategoryKey(null);
     setDescription("");
@@ -144,18 +155,18 @@ export default function MaintenanceForm() {
     setFiles([]);
     setFileError(null);
     setErrors({});
+    onSubmitted?.();
   };
 
   return (
-    <>
-    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
       <Card.Content className="p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Maintenance Details
           </p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             Tell us what&apos;s going on and we&apos;ll pass it along to your landlord.
           </p>
         </div>
@@ -171,7 +182,7 @@ export default function MaintenanceForm() {
           }}
           isInvalid={!!errors.title}
         >
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Title
           </Label>
           <Input placeholder="Enter a short title for the issue..." />
@@ -190,8 +201,7 @@ export default function MaintenanceForm() {
           }}
           isInvalid={!!errors.category}
         >
-          {/* 2. Swapped HTML <label> to Hero UI <Label> inside <ComboBox> */}
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Category
           </Label>
           <ComboBox.InputGroup>
@@ -222,7 +232,7 @@ export default function MaintenanceForm() {
           }}
           isInvalid={!!errors.description}
         >
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Description
           </Label>
           <TextArea
@@ -235,8 +245,7 @@ export default function MaintenanceForm() {
 
         {/* Urgency */}
         <div>
-          {/* 3. Updated <label> to <Label> */}
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-2">
             How urgent is this issue? <span className="text-primary">*</span>
           </Label>
           <ToggleButtonGroup
@@ -246,10 +255,9 @@ export default function MaintenanceForm() {
             selectedKeys={urgency ? [urgency] : []}
             onSelectionChange={(keys) => {
               const [first] = Array.from(keys);
-              setUrgency((first as "low" | "medium" | "high") ?? null);
+              setUrgency((first as MaintenanceUrgency) ?? null);
               clearError("urgency");
             }}
-            
             className="flex flex-wrap gap-2"
           >
             {URGENCY_LEVELS.map((level) => (
@@ -270,16 +278,15 @@ export default function MaintenanceForm() {
           {errors.urgency && <p className="text-xs text-danger mt-1">{errors.urgency}</p>}
         </div>
 
-        {/* Add Photos or Videos */}
+        {/* Add Photos */}
         <div>
-          {/* 4. Updated <label> to <Label> */}
-          <Label className="block text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
-            Add Photos or Videos
+          <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
+            Add Photos
           </Label>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
+            accept="image/*"
             multiple
             className="hidden"
             onChange={(e) => addFiles(e.target.files)}
@@ -287,7 +294,7 @@ export default function MaintenanceForm() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 py-8 flex items-center justify-center gap-2 text-sm text-zinc-500 hover:border-primary hover:text-primary transition-colors"
+            className="w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
@@ -298,15 +305,15 @@ export default function MaintenanceForm() {
               {files.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-2.5 pr-1.5 py-1.5 text-xs text-zinc-500"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-card pl-2.5 pr-1.5 py-1.5 text-xs text-muted-foreground"
                 >
-                  <ImageIcon size={14} className="text-zinc-400 shrink-0" />
+                  <ImageIcon size={14} className="text-muted-foreground shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
                     aria-label={`Remove ${file.name}`}
-                    className="text-zinc-400 hover:text-red-600 transition-colors"
+                    className="text-muted-foreground hover:text-red-600 transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -318,88 +325,11 @@ export default function MaintenanceForm() {
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="w-full rounded-full font-nunito mt-2">
-          Submit Request
+        <Button type="submit" className="w-full rounded-full font-nunito mt-2" isDisabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit Request"}
         </Button>
       </form>
       </Card.Content>
     </Card>
-
-    {lastStored && (
-      <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm mt-4 font-nunito">
-        <Card.Content className="p-6 sm:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={20} className="text-success shrink-0" />
-            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-              Request received & stored
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setLastStored(null)}
-            aria-label="Dismiss summary"
-            className="text-zinc-400 hover:text-zinc-700 transition-colors"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
-          <div>
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Issue Title
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100">{lastStored.title}</dd>
-          </div>
-          <div>
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Category
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100">{lastStored.categoryLabel}</dd>
-          </div>
-          <div>
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Urgency
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100">
-              {URGENCY_LEVELS.find((level) => level.id === lastStored.urgency)?.label}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Submitted
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100">
-              {new Date(lastStored.createdAt).toLocaleString()}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Description
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100 whitespace-pre-line">{lastStored.description}</dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="font-nunito font-semibold text-xs uppercase tracking-wider text-zinc-400 mb-0.5">
-              Attachments
-            </dt>
-            <dd className="text-zinc-900 dark:text-zinc-100">
-              {lastStored.files.length > 0
-                ? lastStored.files.map((file) => file.name).join(", ")
-                : "None"}
-            </dd>
-          </div>
-        </dl>
-
-        <p className="mt-4 text-xs text-zinc-500">
-          Stored locally in <code className="text-zinc-900 dark:text-zinc-100">apt.maintenance_requests</code>{" "}
-          (frontend-only). Request ID:{" "}
-          <code className="text-zinc-900 dark:text-zinc-100">{lastStored.id}</code>
-        </p>
-        </Card.Content>
-      </Card>
-    )}
-  </>
   );
 }
