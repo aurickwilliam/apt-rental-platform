@@ -19,7 +19,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
 
   let query = supabase.from("apartments").select(
     `id, name, barangay, city, monthly_rent, average_rating,
-      no_bedrooms, no_bathrooms, area_sqm,
+      no_bedrooms, no_bathrooms, area_sqm, is_verified,
       apartment_images(url, is_cover, created_at)`,
     { count: "exact" },
   );
@@ -84,6 +84,11 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     query = query.contains("amenities", params.amenities.split(","));
   }
 
+  // Verified listings only
+  if (params.verified === "1") {
+    query = query.eq("is_verified", true);
+  }
+
   // Text search by name or location
   if (params.search) {
     query = query.or(
@@ -124,6 +129,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     location: apt.city,
     price: apt.monthly_rent,
     rating: apt.average_rating ?? 0,
+    isVerified: apt.is_verified ?? false,
     image:
       apt.apartment_images?.find((img) => img.is_cover)?.url ??
       "/default/default-thumbnail.jpeg",

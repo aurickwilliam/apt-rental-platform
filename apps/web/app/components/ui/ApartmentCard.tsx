@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Card, Button, Spinner } from "@heroui/react";
 
 import { Star, Heart } from "lucide-react";
+import { IconShieldCheckFilled } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 import { VerifiedBadge } from "../VerifiedBadge";
@@ -14,6 +15,7 @@ interface ApartmentCardProps {
   location: string;
   price: number;
   rating: number;
+  isVerified?: boolean;
   thumbnailUrl: string;
   onPress?: () => void;
   isFavorite?: boolean;
@@ -27,6 +29,7 @@ export default function ApartmentCard({
   location,
   price,
   rating,
+  isVerified = false,
   thumbnailUrl,
   onPress,
   isFavorite = false,
@@ -76,11 +79,19 @@ export default function ApartmentCard({
           </div>
         </Card.Footer>
 
+        {isVerified ? (
+          <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-500">
+            <IconShieldCheckFilled size={14} className="text-green-500" />
+            Verified
+          </span>
+        ) : null}
+
         {showFavoriteButton ? (
           <Button
             variant="ghost"
-            className="absolute top-2 right-2 bg-black/30"
+            className="absolute top-2 right-2 bg-white/75"
             isIconOnly
+            aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             isPending={isFavoriteLoading}
             onPress={() => {
               onFavoritePress?.();
@@ -95,7 +106,8 @@ export default function ApartmentCard({
                   />
                 ) : (
                   <Heart
-                    className={isFavorite ? "text-red-500" : "text-white"}
+                    size={18}
+                    className={isFavorite ? "text-red-500" : "text-grey-500"}
                     fill={isFavorite ? "currentColor" : "none"}
                   />
                 )}

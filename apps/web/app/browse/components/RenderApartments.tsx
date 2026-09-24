@@ -15,6 +15,7 @@ interface ApartmentItem {
   location: string;
   price: number;
   rating: number;
+  isVerified: boolean;
   image: string;
 }
 
@@ -38,6 +39,8 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
     current.set("page", String(newPage));
     router.push(`/browse?${current.toString()}`);
   };
+
+  const isVerifiedOnly = searchParams.get("verified") === "1";
 
   const handleFavoriteToggle = async (apartmentId: string) => {
     setActiveFavoriteId(apartmentId);
@@ -72,7 +75,9 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
     <div className="flex flex-col gap-4">
       {apartment.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-default-400">
-          <p className="text-lg font-medium">No apartments found</p>
+          <p className="text-lg font-medium">
+            {isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
+          </p>
           <p className="text-sm">Try adjusting your filters</p>
         </div>
       ) : (
@@ -84,6 +89,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
               location={apt.location}
               price={apt.price}
               rating={apt.rating}
+              isVerified={apt.isVerified}
               thumbnailUrl={apt.image}
               isFavorite={isFavorite(apt.id)}
               isFavoriteLoading={activeFavoriteId === apt.id}

@@ -8,7 +8,6 @@ import {
   Button,
   Chip,
   InputGroup,
-  Label,
 } from "@heroui/react";
 
 import { ChevronDown, Search, X } from "lucide-react";
@@ -37,6 +36,7 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
   };
 
   const getLabel = (id: string) => amenities.find((a) => a.id === id)?.name ?? id;
+  const getIcon = (id: string) => amenities.find((a) => a.id === id)?.icon;
 
   return (
     <div className="flex flex-col gap-2">
@@ -76,11 +76,14 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
                     isSelected={selected.includes(perk.id)}
                     onChange={() => toggle(perk.id)}
                   >
-                    <Checkbox.Control className="shadow-none border-2">
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
                     <Checkbox.Content>
-                      <Label>{perk.name}</Label>
+                      <Checkbox.Control className="shadow-none border-2">
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <span className="flex items-center gap-2">
+                        <perk.icon size={14} className="text-muted-foreground shrink-0" />
+                        {perk.name}
+                      </span>
                     </Checkbox.Content>
                   </Checkbox>
                 ))
@@ -93,23 +96,27 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
       {/* Selected chips */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {selected.map((id) => (
-            <Chip
-              key={id}
-              size="sm"
-              variant="soft"
-              className="pl-2.5 pr-1 py-1 gap-1 bg-blue-50 text-blue-600 border border-blue-100"
-            >
-              {getLabel(id)}
-              <button
-                type="button"
-                onClick={() => toggle(id)}
-                className="cursor-pointer flex items-center justify-center size-3.5 rounded-full bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 transition-colors"
+          {selected.map((id) => {
+            const Icon = getIcon(id);
+            return (
+              <Chip
+                key={id}
+                size="sm"
+                variant="soft"
+                className="pl-2.5 pr-1 py-1 gap-1 bg-blue-50 text-blue-600 border border-blue-100"
               >
-                <X size={9} strokeWidth={2.5} />
-              </button>
-            </Chip>
-          ))}
+                {Icon ? <Icon size={12} className="shrink-0" /> : null}
+                {getLabel(id)}
+                <button
+                  type="button"
+                  onClick={() => toggle(id)}
+                  className="cursor-pointer flex items-center justify-center size-3.5 rounded-full bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 transition-colors"
+                >
+                  <X size={9} strokeWidth={2.5} />
+                </button>
+              </Chip>
+            );
+          })}
         </div>
       )}
     </div>
