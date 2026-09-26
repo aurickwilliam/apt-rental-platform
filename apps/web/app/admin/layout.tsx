@@ -8,6 +8,7 @@ const ADMIN_NAV = [
   { href: "/admin/apartments", label: "Apartments", icon: "Building2" },
   { href: "/admin/verification", label: "Verification", icon: "ShieldCheck" },
   { href: "/admin/activity", label: "Activity", icon: "History" },
+  { href: "/admin/analytics", label: "Analytics", icon: "ChartBar" },
 ] as const;
 
 const ADMIN_TITLES: Record<string, string> = {
@@ -16,6 +17,7 @@ const ADMIN_TITLES: Record<string, string> = {
   "/admin/apartments": "Apartments",
   "/admin/verification": "Verification",
   "/admin/activity": "Activity",
+  "/admin/analytics": "Analytics",
 };
 
 export default async function AdminLayout({

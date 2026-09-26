@@ -25,6 +25,7 @@ describe("useSearchLogic", () => {
     let query: {
       select: jest.Mock;
       is: jest.Mock;
+      eq: jest.Mock;
       in: jest.Mock;
       range: jest.Mock;
       order: jest.Mock;
@@ -32,6 +33,7 @@ describe("useSearchLogic", () => {
     query = {
       select: jest.fn(() => query),
       is: jest.fn(() => query),
+      eq: jest.fn(() => query),
       in: jest.fn(() => query),
       range: jest.fn(() => query),
       order: jest.fn(),
@@ -62,6 +64,7 @@ describe("useSearchLogic", () => {
     await waitFor(() => expect(result.current.resultCount).toBe(1));
 
     expect(query.select).toHaveBeenCalledWith(expect.any(String), { count: "estimated" });
+    expect(query.eq).toHaveBeenCalledWith("is_hidden_by_admin", false);
     expect(query.range).toHaveBeenCalledWith(0, 9);
     expect(result.current.apartments).toHaveLength(1);
 
@@ -72,6 +75,7 @@ describe("useSearchLogic", () => {
     let query: {
       select: jest.Mock;
       is: jest.Mock;
+      eq: jest.Mock;
       in: jest.Mock;
       or: jest.Mock;
       range: jest.Mock;
@@ -81,6 +85,7 @@ describe("useSearchLogic", () => {
     query = {
       select: jest.fn(() => query),
       is: jest.fn(() => query),
+      eq: jest.fn(() => query),
       in: jest.fn(() => query),
       or: jest.fn(() => query),
       range: jest.fn(() => query),
@@ -123,6 +128,7 @@ describe("useSearchLogic", () => {
     let query: {
       select: jest.Mock;
       is: jest.Mock;
+      eq: jest.Mock;
       in: jest.Mock;
       or: jest.Mock;
       range: jest.Mock;
@@ -132,6 +138,7 @@ describe("useSearchLogic", () => {
     query = {
       select: jest.fn(() => query),
       is: jest.fn(() => query),
+      eq: jest.fn(() => query),
       in: jest.fn(() => query),
       or: jest.fn(() => query),
       range: jest.fn(() => query),

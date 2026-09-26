@@ -92,6 +92,7 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
         )
       `, { count: "estimated" })
       .is("deleted_at", null)
+      .eq("is_hidden_by_admin", false)
       .in("status", ["available", "unverified"])
       .range(from, to);
 

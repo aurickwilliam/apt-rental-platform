@@ -23,6 +23,7 @@ import {
   Users,
   ShieldCheck,
   History,
+  ChartBar,
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
@@ -42,6 +43,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Users,
   ShieldCheck,
   History,
+  ChartBar,
 };
 
 type NavItem = {

@@ -42,6 +42,7 @@ function RequestVisitPageInner() {
         .from("apartments")
         .select("landlord_id")
         .eq("id", apartmentIdParam)
+        .eq("is_hidden_by_admin", false)
         .maybeSingle();
       setLandlordId(data?.landlord_id ?? null);
       setResolvingLandlord(false);

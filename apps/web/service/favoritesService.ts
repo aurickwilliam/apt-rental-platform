@@ -132,6 +132,7 @@ export async function fetchApartmentsByIds(apartmentIds: string[]): Promise<Favo
       `,
     )
     .is("deleted_at", null)
+    .eq("is_hidden_by_admin", false)
     .in("id", apartmentIds);
 
   if (error) throw error;

@@ -42,6 +42,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
       apartment_images(url, is_cover)
     `)
     .eq('id', apartmentId)
+    .eq('is_hidden_by_admin', false)
     .single();
 
   // Fetch Lease Agreement URL if it exists
@@ -70,6 +71,8 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
     .select('id, name, city, monthly_rent, average_rating, apartment_images(url, is_cover)')
     .eq('city', apartment.city)
     .neq('id', apartmentId)
+    .eq('is_hidden_by_admin', false)
+    .is('deleted_at', null)
     .limit(10);
 
   const relatedMapped = (related ?? []).map((apt) => ({

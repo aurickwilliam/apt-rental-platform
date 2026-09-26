@@ -24,7 +24,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     { count: "exact" },
   );
 
-  query = query.is('deleted_at', null);
+  query = query.is('deleted_at', null).eq('is_hidden_by_admin', false);
 
   // SearchContainer filters
 
