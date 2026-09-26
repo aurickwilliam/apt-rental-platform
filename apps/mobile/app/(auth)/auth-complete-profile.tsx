@@ -211,6 +211,15 @@ export default function AuthCompleteProfile() {
       });
       if (updateError) throw updateError;
 
+      const selectedRole = Array.isArray(userSide) ? userSide[0] : userSide;
+      if (selectedRole !== 'tenant' && selectedRole !== 'landlord') {
+        throw new Error('Invalid account type.');
+      }
+      const { error: roleError } = await supabase.rpc('set_onboarding_role', {
+        requested_role: selectedRole,
+      });
+      if (roleError) throw roleError;
+
       // Write profile data to users table
       const { error: profileUpdateError } = await supabase
         .from('users')
@@ -227,7 +236,6 @@ export default function AuthCompleteProfile() {
           barangay: profileForm.barangay,
           postal_code: postalCode ? parseInt(postalCode, 10) : null,
           street_address: profileForm.streetAddress,
-          role: Array.isArray(userSide) ? userSide[0] : userSide,
         })
         .eq('user_id', user.id);
 

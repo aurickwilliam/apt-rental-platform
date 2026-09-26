@@ -35,6 +35,7 @@ export default async function CompleteProfilePage({
     .eq("user_id", user.id)
     .single();
 
+  if (profile?.role === "admin") redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
 
   const profileRole = profile?.role === "landlord" ? "landlord" : "tenant";

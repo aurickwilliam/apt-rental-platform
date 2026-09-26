@@ -441,6 +441,12 @@ function asNullableString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+function asNullableText(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
 export type LandlordApplication = {
   id: string;
   status: DisplayStatus;
@@ -536,13 +542,13 @@ export async function fetchLandlordApplications(
         barangay: asNullableString(tenant?.barangay),
         city: asNullableString(tenant?.city),
         province: asNullableString(tenant?.province),
-        zip_code: asNullableString(tenant?.postal_code),
+        zip_code: asNullableText(tenant?.postal_code),
       }),
       tenant_email: asNullableString(tenant?.email),
       tenant_mobile_number: asNullableString(tenant?.mobile_number),
       tenant_city: asNullableString(tenant?.city) ?? "",
       apartment_name: asNullableString(apartment?.name) ?? "",
-      monthly_rent: Number(asNullableString(apartment?.monthly_rent) ?? 0),
+      monthly_rent: Number(apartment?.monthly_rent ?? 0),
       apartment_city: asNullableString(apartment?.city) ?? "",
       apartment_status: asNullableString(apartment?.status) ?? "available",
       apartment_address: formatAddress({
@@ -550,7 +556,7 @@ export async function fetchLandlordApplications(
         barangay: asNullableString(apartment?.barangay),
         city: asNullableString(apartment?.city),
         province: asNullableString(apartment?.province),
-        zip_code: asNullableString(apartment?.zip_code),
+        zip_code: asNullableText(apartment?.zip_code),
       }),
     };
   });

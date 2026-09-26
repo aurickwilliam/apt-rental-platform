@@ -31,6 +31,7 @@ import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
 import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
+import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
 
 type ApartmentImage = {
   id: string;
@@ -103,6 +104,7 @@ export default function PropertyDetailsSheet({
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [verification, setVerification] = useState<{ status: string; rejection_reason: string | null } | null>(null);
 
   const lastSelectedId = useRef<string | null>(null);
 
@@ -116,6 +118,7 @@ export default function PropertyDetailsSheet({
   useEffect(() => {
     if (!selected) {
       setForm({});
+      setVerification(null);
       setEditModalOpen(false);
       setDescriptionModalOpen(false);
       setAmenitiesModalOpen(false);
@@ -126,6 +129,18 @@ export default function PropertyDetailsSheet({
     }
 
     setForm({ ...selected });
+
+    void (async () => {
+      const supabase = createBrowserClient();
+      const { data } = await supabase
+        .from("apartment_verifications")
+        .select("status, rejection_reason")
+        .eq("apartment_id", selected.id)
+        .order("submitted_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setVerification(data);
+    })();
 
     const isNewSelection = lastSelectedId.current !== selected.id;
     if (isNewSelection) {
@@ -274,6 +289,7 @@ export default function PropertyDetailsSheet({
                           isIconOnly
                           variant="ghost"
                           size="sm"
+                          aria-label="Edit property details"
                           onPress={() => setEditModalOpen(true)}
                         >
                           <Pencil size={14} />
@@ -283,6 +299,7 @@ export default function PropertyDetailsSheet({
                           isIconOnly
                           variant="ghost"
                           size="sm"
+                          aria-label="View lease agreement"
                           onPress={() => handleViewLease()}
                         >
                           <FileText size={14} />
@@ -293,6 +310,7 @@ export default function PropertyDetailsSheet({
                             isIconOnly 
                             variant="tertiary" 
                             size="sm"
+                            aria-label="More property actions"
                           >
                             <MoreHorizontal 
                               size={16} 
@@ -353,6 +371,17 @@ export default function PropertyDetailsSheet({
                     </div>
 
                     <div className="px-4 pb-6 flex flex-col gap-6">
+                      <section className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                        <div>
+                          <SectionTitle>Verification</SectionTitle>
+                          <p className="mt-1 text-sm text-grey-500">Submit this listing for an admin trust review.</p>
+                        </div>
+                        <SubmitApartmentVerificationButton
+                          apartmentId={selected.id}
+                          status={verification?.status ?? null}
+                          rejectionReason={verification?.rejection_reason}
+                        />
+                      </section>
                       <section>
                         <SectionTitle>
                           Price Details

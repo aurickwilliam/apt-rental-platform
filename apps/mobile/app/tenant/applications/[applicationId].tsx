@@ -320,11 +320,11 @@ export default function ApplicationApartment() {
                   <View className="gap-3 pb-2">
                     <DetailField
                       label="Occupation"
-                      value={application.occupation}
+                      value={application.occupation?.trim() ? application.occupation : '-'}
                     />
                     <DetailField
                       label="Employer"
-                      value={application.employer_name}
+                      value={application.employer_name?.trim() ? application.employer_name : '-'}
                     />
                     <DetailField
                       label="Employment Type"
@@ -337,11 +337,11 @@ export default function ApplicationApartment() {
                     <Separator className="my-2" />
                     <DetailField
                       label="Previous Landlord Name"
-                      value={application.prev_landlord_name ?? "—"}
+                      value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : '-'}
                     />
                     <DetailField
                       label="Previous Landlord Contact"
-                      value={application.prev_landlord_contact ?? "—"}
+                      value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : '-'}
                     />
                   </View>
                 </Accordion.Content>

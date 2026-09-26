@@ -53,7 +53,12 @@ export default function ThirdPartySignIn() {
             .eq("user_id", session.user.id)
             .single();
 
-          if (!profile?.mobile_number) {
+           if (profile?.role === "admin") {
+             window.location.href = "/admin/dashboard";
+             return;
+           }
+
+           if (!profile?.mobile_number) {
             window.location.href = `/complete-profile?role=${role}`;
             return;
           }

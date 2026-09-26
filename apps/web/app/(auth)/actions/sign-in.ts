@@ -40,13 +40,21 @@ export async function signIn(
     return { error: error.message };
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    await supabase.auth.signOut();
+    return { error: "Could not verify your account. Please try again." };
+  }
 
   const { data: userData } = await supabase
     .from("users")
     .select("role")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .single();
+
+  if (userData?.role === "admin") {
+    redirect("/admin/dashboard");
+  }
 
   if (!userData || userData.role !== role) {
     await supabase.auth.signOut();
@@ -59,7 +67,7 @@ export async function signIn(
   }
 
   // Redirect based on role
-  if (role === "landlord") {
+  if (userData.role === "landlord") {
     redirect("/landlord/dashboard");
   } else {
     redirect("/tenant/my-rental");

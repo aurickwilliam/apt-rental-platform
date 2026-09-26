@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { COLORS } from '@repo/constants';
 
 import { useProfile } from 'hooks/auth';
+import { supabase } from '@repo/supabase';
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -12,7 +13,15 @@ export default function TabsLayout() {
   const { profile, loading } = useProfile();
 
   useEffect(() => {
-    if (loading || !profile?.role) return;
+    if (loading) return;
+
+    if (profile?.role !== 'tenant' && profile?.role !== 'landlord') {
+      void supabase.auth.signOut().then(({ error }) => {
+        if (error) console.error('Could not clear unsupported mobile session', error);
+        router.replace('/sign-in');
+      });
+      return;
+    }
 
     // Only enforce tab-group routing when we're actually inside (tabs)
     if (segments[0] !== '(tabs)') return;
@@ -26,7 +35,7 @@ export default function TabsLayout() {
     }
   }, [profile, loading, router, segments]);
 
-  if (loading) {
+  if (loading || (profile?.role !== 'tenant' && profile?.role !== 'landlord')) {
     // Splash-colored backdrop while the profile loads — no spinner, so the
     // splash-to-home transition is seamless
     return <View style={{ flex: 1, backgroundColor: COLORS.light.primary }} />;

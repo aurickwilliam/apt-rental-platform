@@ -36,17 +36,25 @@ export function useGoogleAuth() {
         return;
       }
 
-      // Fetch profile to check role and account creation time
+      // Fetch the stored role and whether OAuth onboarding is complete.
       const userId = data.session.user.id;
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .select("role, created_at, mobile_number")
+        .select("role, mobile_number")
         .eq("user_id", userId)
         .single();
 
       // Show error if we can't load the user's profile for any reason 
       if (profileError || !profile) {
+        await supabase.auth.signOut();
         setError("Could not load your profile.");
+        setLoading(false);
+        return;
+      }
+
+      if (profile.role === "admin") {
+        await supabase.auth.signOut();
+        setError("Admin accounts are available on the web portal only.");
         setLoading(false);
         return;
       }
@@ -55,16 +63,17 @@ export function useGoogleAuth() {
       let role = profile.role;
 
       // Check if this is a new user
-      const isNewUser = Date.now() - new Date(profile.created_at).getTime() < 10000;
-
-      // If it's a new user and their role doesn't match the portal they signed in from,
-      // update the DB to reflect the correct role
-      if (isNewUser && profile.role !== userSide) {
-        await supabase
-          .from("users")
-          .update({ role: userSide })
-          .eq("user_id", userId);
-
+      // Only incomplete Google profiles may choose a tenant/landlord role.
+      if (!profile.mobile_number && profile.role !== "admin") {
+        const { error: roleError } = await supabase.rpc("set_onboarding_role", {
+          requested_role: userSide,
+        });
+        if (roleError) {
+          await supabase.auth.signOut();
+          setError("Could not select your account type. Please try again.");
+          setLoading(false);
+          return;
+        }
         role = userSide;
       }
 

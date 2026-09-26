@@ -1,4 +1,5 @@
 import {
+  fetchLandlordApplications,
   fetchLandlordPayments,
   fetchLandlordTenancy,
   updateLandlordPaymentStatus,
@@ -169,5 +170,77 @@ describe('updateLandlordPaymentStatus', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toBe('RLS blocked')
+  })
+})
+
+describe('fetchLandlordApplications', () => {
+  const baseRow = {
+    id: 'app-1',
+    status: 'approved',
+    created_at: '2026-09-21T12:51:26.728404+00:00',
+    rejected_reason: null,
+    apartment_id: 'apt-1',
+    tenant_id: 'tenant-1',
+    occupation: '',
+    employer_name: '',
+    monthly_income: 0,
+    employment_type: 'Student',
+    prev_landlord_name: null,
+    prev_landlord_contact: null,
+    move_in_date: '2026-09-23',
+    no_occupants: 1,
+    has_pets: false,
+    has_smoker: false,
+    need_parking: false,
+    message: 'hello',
+    gov_id_url: 'tenant/app/govId.jpg',
+    proof_of_income_url: null,
+    proof_of_billing_url: 'tenant/app/billing.jpg',
+    nbi_clearance_url: null,
+    users: {
+      first_name: 'Watermalown',
+      last_name: 'Zero',
+      avatar_url: null,
+      street_address: null,
+      barangay: null,
+      city: null,
+      province: null,
+      postal_code: null,
+      email: 'watermalownzero@gmail.com',
+      mobile_number: null,
+    },
+  }
+
+  const apartmentRow = {
+    name: 'Kaunlaran Affordable Studio',
+    monthly_rent: 9000,
+    city: 'Caloocan',
+    street_address: '67 Rizal Avenue Extension',
+    barangay: 'Kaunlaran',
+    province: 'Metro Manila',
+    zip_code: 1410,
+    status: 'occupied',
+  }
+
+  it('maps numeric monthly_rent and numeric zip_code (regression: ₱0 bug)', async () => {
+    mockFrom.mockReset()
+    mockFrom.mockReturnValue(chainWith({ data: [{ ...baseRow, apartments: apartmentRow }] }))
+
+    const result = await fetchLandlordApplications('landlord-1')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].monthly_rent).toBe(9000)
+    expect(result[0].apartment_address).toContain('1410')
+  })
+
+  it('maps string monthly_rent from PostgREST numeric columns', async () => {
+    mockFrom.mockReset()
+    mockFrom.mockReturnValue(
+      chainWith({ data: [{ ...baseRow, apartments: { ...apartmentRow, monthly_rent: '9000' } }] }),
+    )
+
+    const result = await fetchLandlordApplications('landlord-1')
+
+    expect(result[0].monthly_rent).toBe(9000)
   })
 })

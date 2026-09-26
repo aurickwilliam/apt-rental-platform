@@ -101,8 +101,8 @@ export function useImageUpload(
       // Update the users table
       const updates =
         target === "avatar"
-          ? { avatar_url: publicUrl, updated_at: new Date().toISOString() }
-          : { background_url: publicUrl, updated_at: new Date().toISOString() };
+          ? { avatar_url: publicUrl }
+          : { background_url: publicUrl };
       const { error: dbError } = await supabase
         .from("users")
         .update(updates)

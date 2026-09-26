@@ -44,16 +44,26 @@ export async function signUp(
       };
     }
 
+    const requestedRole = formData.get("role");
+    if (requestedRole !== "tenant" && requestedRole !== "landlord") {
+      return { error: "Please choose a valid account type.", success: false };
+    }
+
     const parsedBirthDate = new Date(`${mapped.birthDate}T00:00:00`);
     const calculatedAge = calculateAgeFromBirthDate(parsedBirthDate);
     const parsedPostalCode = mapped.postalCode ?? null;
 
     const supabase = await createClient();
 
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user || user.id !== userId) {
+      return { error: "Session not found. Please verify your email again.", success: false };
+    }
+
     const { error: insertError } = await supabase.from("users").insert({
       user_id: userId,
       email: mapped.email,
-      role: (formData.get("role") as string) || "tenant",
+      role: requestedRole,
       first_name: mapped.firstName,
       last_name: mapped.lastName,
       middle_name: mapped.middleName || null,

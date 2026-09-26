@@ -30,8 +30,11 @@ export default function Index() {
 
       if (userProfile?.role === "landlord") {
         router.replace("/(tabs)/(landlord)/dashboard");
-      } else {
+      } else if (userProfile?.role === "tenant") {
         router.replace("/(tabs)/(tenant)/rentals");
+      } else {
+        await supabase.auth.signOut();
+        router.replace("/sign-in");
       }
     };
 
