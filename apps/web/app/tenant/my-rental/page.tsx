@@ -183,6 +183,26 @@ export default function MyRental() {
 
   const amountDue = currentPayment?.amount ?? monthlyRent;
 
+  const currentPeriodStart = currentPayment?.period_start ?? null;
+  // Next period after the paid one (due on the 5th, same convention as billing).
+  const nextPeriod =
+    currentPeriodStart !== null
+      ? (() => {
+          const d = new Date(`${currentPeriodStart.slice(0, 7)}-01T00:00:00`);
+          const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          const y = next.getFullYear();
+          const m = String(next.getMonth() + 1).padStart(2, "0");
+          return { periodStart: `${y}-${m}-01`, dueDate: `${y}-${m}-05` };
+        })()
+      : null;
+  // Same full-amount guard as the payment page: a fully paid period can't be paid again.
+  const isPeriodPaid =
+    monthlyRent > 0 &&
+    currentPeriodStart !== null &&
+    payments
+      .filter((p) => p.status === "paid" && p.period_start === currentPeriodStart)
+      .reduce((sum, p) => sum + (p.amount ?? 0), 0) >= monthlyRent;
+
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
     const paymentDate =
       payment.date ??
@@ -262,28 +282,53 @@ export default function MyRental() {
         <div className="grid gap-3 lg:grid-cols-3">
           <DashboardCard className="lg:col-span-2">
             <div className="flex h-full flex-col">
-              <p className="text-xs text-zinc-400 uppercase tracking-wider">
-                Payment due
-              </p>
-              <div className="flex items-end gap-2 mt-2">
-                <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  {formatPesoDisplay(amountDue)}
-                </p>
-                <span className="text-sm text-zinc-400">.00</span>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {paymentStatus === "paid" ? (
-                  <StatusChip variant="success">Paid</StatusChip>
-                ) : (
-                  <StatusChip
-                    variant={paymentStatus === "late" ? "danger" : "warning"}
-                  >
-                    {dueLabel}
-                  </StatusChip>
-                )}
-                <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
-                <StatusChip variant="neutral">Monthly rent</StatusChip>
-              </div>
+              {isPeriodPaid ? (
+                <>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                    Payment due
+                  </p>
+                  <div className="flex items-end gap-2 mt-2">
+                    <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      Already Paid
+                    </p>
+                  </div>
+                  {nextPeriod && (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      Next payment · {formatMonthYear(nextPeriod.periodStart)} — due {formatShortDate(nextPeriod.dueDate)}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <StatusChip variant="success">Paid</StatusChip>
+                    <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
+                    <StatusChip variant="neutral">Monthly rent</StatusChip>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                    Payment due
+                  </p>
+                  <div className="flex items-end gap-2 mt-2">
+                    <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatPesoDisplay(amountDue)}
+                    </p>
+                    <span className="text-sm text-zinc-400">.00</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {paymentStatus === "paid" ? (
+                      <StatusChip variant="success">Paid</StatusChip>
+                    ) : (
+                      <StatusChip
+                        variant={paymentStatus === "late" ? "danger" : "warning"}
+                      >
+                        {dueLabel}
+                      </StatusChip>
+                    )}
+                    <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
+                    <StatusChip variant="neutral">Monthly rent</StatusChip>
+                  </div>
+                </>
+              )}
               <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid gap-4 sm:grid-cols-3">
                 <div>
                   <p className="text-xs text-zinc-400">Lease start</p>
@@ -306,12 +351,21 @@ export default function MyRental() {
                   </p>
                 </div>
               </div>
-              <Link href="/tenant/payment" className="mt-10 w-fit md:mt-auto no-underline">
-                <Button>
-                  <CreditCard size={14} />
-                  Pay now
-                </Button>
-              </Link>
+              {isPeriodPaid ? (
+                <Link href="/tenant/payment/history" className="mt-10 w-fit md:mt-auto no-underline">
+                  <Button variant="secondary">
+                    <Receipt size={14} />
+                    View history
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/tenant/payment" className="mt-10 w-fit md:mt-auto no-underline">
+                  <Button>
+                    <CreditCard size={14} />
+                    Pay now
+                  </Button>
+                </Link>
+              )}
             </div>
           </DashboardCard>
 

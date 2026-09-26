@@ -85,7 +85,7 @@ function PaymentContent() {
     : "—";
 
   const handlePay = async () => {
-    if (isProcessing) return;
+    if (isProcessing || isPeriodPaid) return;
     if (!activeMethod) {
       setPaymentError({ message: "Please select a payment method before proceeding.", title: "No Payment Method" });
       return;
@@ -225,37 +225,6 @@ function PaymentContent() {
     );
   }
 
-  if (isPeriodPaid) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
-          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-            <ArrowLeft size={16} /> Back
-          </Button>
-          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
-            <Card.Content className="py-16 flex flex-col items-center gap-3 text-center px-6">
-              <span className="rounded-full bg-green-600 p-3 text-white">
-                <CheckCircle2 size={32} />
-              </span>
-              <p className="text-xl font-nunito font-bold text-zinc-900 dark:text-zinc-100">Rent Already Paid</p>
-              <p className="text-sm text-zinc-500 max-w-sm">
-                Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                <Button onPress={() => router.push("/tenant/my-rental")} className="rounded-full font-nunito">
-                  Go to Home
-                </Button>
-                <Button variant="secondary" onPress={() => router.push("/tenant/payment/history")} className="rounded-full font-nunito">
-                  View history
-                </Button>
-              </div>
-            </Card.Content>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
@@ -272,6 +241,31 @@ function PaymentContent() {
             <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay.</p>
           </div>
         </div>
+
+        {/* Non-blocking paid notice — page stays interactive, Pay grays out below */}
+        {isPeriodPaid && (
+          <Card className="rounded-2xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30">
+            <Card.Content className="p-4 flex flex-row items-center gap-3">
+              <span className="rounded-full bg-green-600 p-2 text-white shrink-0">
+                <CheckCircle2 size={18} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-nunito font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
+                <p className="text-xs text-green-700/80 dark:text-green-300/80">
+                  Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => router.push("/tenant/payment/history")}
+                className="text-green-700 shrink-0"
+              >
+                View history
+              </Button>
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Main grid — row 1 top cards share equal height via items-stretch */}
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
