@@ -21,7 +21,6 @@ interface ApartmentCardProps {
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
-  isVerified?: boolean;
 }
 
 export default function ApartmentCard({
@@ -35,7 +34,6 @@ export default function ApartmentCard({
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
-  isVerified = false,
 }: ApartmentCardProps) {
   const showFavoriteButton = Boolean(onFavoritePress);
 

@@ -18,16 +18,30 @@ const ADMIN_TITLES: Record<string, string> = {
   "/admin/activity": "Activity",
 };
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const profile = await requireAdmin();
-  const userName = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || profile.email || "Administrator";
+  const userName =
+    `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
+    profile.email ||
+    "Administrator";
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...ADMIN_NAV]} userName={userName} userRole="Administrator" showAccountLinks={false} />
+      <AppSidebar
+        navItems={[...ADMIN_NAV]}
+        userName={userName}
+        userRole="Administrator"
+        showAccountLinks={false}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopBar titleMap={ADMIN_TITLES} navItems={[...ADMIN_NAV]} />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
+          {children}
+        </main>
       </div>
     </div>
   );
