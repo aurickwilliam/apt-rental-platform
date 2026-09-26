@@ -20,7 +20,7 @@ export default async function ActivityPage({
   } = await supabase
     .from("admin_audit_logs")
     .select(
-      "id, admin_id, action, target_type, reason, created_at, users!admin_audit_logs_admin_id_fkey(first_name, last_name, email)",
+      "id, admin_id, action, target_type, target_id, reason, created_at, users!admin_audit_logs_admin_id_fkey(first_name, last_name, email)",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -31,7 +31,7 @@ export default async function ActivityPage({
       <div>
         <h1 className="font-nunito text-3xl font-bold">Activity</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verification review audit history.
+          Account access, listing moderation, and verification review history.
         </p>
       </div>
       {error ? (
@@ -67,7 +67,11 @@ export default async function ActivityPage({
                         </td>
                         <td className="p-3">{name}</td>
                         <td className="p-3 capitalize">
-                          {event.target_type.replaceAll("_", " ")}
+                          {event.target_type === "user" || event.target_type === "apartment" ? (
+                            <Link className="font-semibold text-primary hover:underline" href={`/admin/${event.target_type === "user" ? "users" : "apartments"}/${event.target_id}`}>
+                              {event.target_type}
+                            </Link>
+                          ) : event.target_type.replaceAll("_", " ")}
                         </td>
                         <td className="max-w-72 wrap-break-word p-3 text-muted-foreground">
                           {event.reason ?? "—"}

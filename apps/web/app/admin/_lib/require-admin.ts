@@ -16,11 +16,11 @@ export async function requireAdmin(): Promise<AdminProfile> {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id, first_name, last_name, email, role")
+    .select("id, first_name, last_name, email, role, is_suspended")
     .eq("user_id", user.id)
     .single();
 
-  if (!profile || profile.role !== "admin") notFound();
+  if (!profile || profile.role !== "admin" || profile.is_suspended) notFound();
 
   return profile;
 }

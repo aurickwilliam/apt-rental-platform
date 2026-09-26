@@ -90,7 +90,8 @@ export async function fetchLandlordReviews(
   const { data: owned, error: ownedError } = await supabase
     .from("apartments")
     .select("id")
-    .eq("landlord_id", landlordId);
+    .eq("landlord_id", landlordId)
+    .eq("is_hidden_by_admin", false);
   if (ownedError) throw ownedError;
   const apartmentIds = (owned ?? []).map((a) => a.id);
   if (apartmentIds.length === 0) return { reviews: [], totalCount: 0 };
