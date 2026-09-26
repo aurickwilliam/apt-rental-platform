@@ -26,4 +26,4 @@ jobs:
         run: pnpm --filter mobile lint
 
       - name: Mobile tests
-        run: pnpm --filter mobile exec jest --runInBand
+        run: pnpm --filter mobile exec jest --runInBand --forceExit

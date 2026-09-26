@@ -16,6 +16,10 @@ jest.mock("@/service/apartments/apartmentDetailsService", () => ({
 
 function createWrapper() {
   const client = createMobileQueryClient();
+  client.setDefaultOptions({
+    ...client.getDefaultOptions(),
+    queries: { ...client.getDefaultOptions().queries, gcTime: Infinity },
+  });
 
   function QueryWrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
