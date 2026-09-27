@@ -36,11 +36,11 @@ export function useGoogleAuth() {
         return;
       }
 
-      // Fetch the stored role and whether OAuth onboarding is complete.
+      // Fetch the stored roles and whether OAuth onboarding is complete.
       const userId = data.session.user.id;
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .select("role, mobile_number")
+        .select("role, roles, mobile_number")
         .eq("user_id", userId)
         .single();
 
@@ -95,9 +95,14 @@ export function useGoogleAuth() {
         return;
       }
 
+      // Multi-role: honor the selected portal tab when the account holds
+      // it; otherwise fall back to the onboarding role (single-role parity).
+      const heldRoles: string[] = profile.roles ?? [];
+      const landingSide = heldRoles.includes(userSide) ? userSide : role;
+
       // Route the user based on their role
       router.replace(
-        role === "landlord"
+        landingSide === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
           : "../(tabs)/(tenant)/rentals",
       );

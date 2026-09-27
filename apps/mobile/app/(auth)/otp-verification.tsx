@@ -108,6 +108,8 @@ export default function OTPVerification() {
         user_id: authData.user.id,
         email: emailValue || data.email!,
         role: data.userSide ?? 'tenant',
+        // Phase 1 multi-role dual-write: roles[0] mirrors the primary role.
+        roles: [data.userSide ?? 'tenant'],
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,

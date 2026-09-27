@@ -130,10 +130,10 @@ export default function SignIn() {
         return;
       }
 
-      // Fetch role from public.users using the auth user id
+      // Fetch roles from public.users using the auth user id
       const { data: userProfile, error: profileError } = await supabase
         .from("users")
-        .select("role")
+        .select("role, roles")
         .eq("user_id", authData.user!.id)
         .single();
 
@@ -143,26 +143,21 @@ export default function SignIn() {
         return;
       }
 
-      // Check if user is signing in on the correct portal
-      if (userSide === "landlord" && userProfile.role !== "landlord") {
+      // Multi-role: the account may enter through any portal it holds.
+      const heldRoles: string[] = userProfile.roles ?? [];
+      if (!heldRoles.includes(userSide)) {
         setError(
-          "No landlord account found. Try signing in as a tenant instead.",
+          userSide === "landlord"
+            ? "No landlord account found. Try signing in as a tenant instead."
+            : "No tenant account found. Try signing in as a landlord instead.",
         );
         await supabase.auth.signOut(); // clear the session since we're blocking access
         return;
       }
 
-      if (userSide === "tenant" && userProfile.role !== "tenant") {
-        setError(
-          "No tenant account found. Try signing in as a landlord instead.",
-        );
-        await supabase.auth.signOut();
-        return;
-      }
-
-      // Route based on actual role from DB
+      // Route based on the requested portal (membership already verified)
       router.replace(
-        userProfile.role === "landlord"
+        userSide === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
           : "../(tabs)/(tenant)/rentals",
       );

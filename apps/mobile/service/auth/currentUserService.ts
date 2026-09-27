@@ -15,6 +15,7 @@ export type UserProfile = Pick<
   | "account_status"
   | "background_url"
   | "role"
+  | "roles"
   | "gender"
   | "birth_date"
   | "street_address"
@@ -26,7 +27,7 @@ export type UserProfile = Pick<
 >;
 
 const USER_PROFILE_FIELDS =
-  "id, user_id, first_name, last_name, middle_name, email, mobile_number, avatar_url, account_status, background_url, role, gender, birth_date, street_address, barangay, city, province, postal_code, preferences";
+  "id, user_id, first_name, last_name, middle_name, email, mobile_number, avatar_url, account_status, background_url, role, roles, gender, birth_date, street_address, barangay, city, province, postal_code, preferences";
 
 async function getUserProfileByColumn(
   column: "id" | "user_id",
