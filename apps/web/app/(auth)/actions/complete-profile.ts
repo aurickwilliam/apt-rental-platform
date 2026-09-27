@@ -60,10 +60,16 @@ export async function completeProfile(
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("role, mobile_number")
+    .select("role, mobile_number, account_status")
     .eq("user_id", user.id)
     .single();
-  if (profileError || !profile || profile.role === "admin" || profile.mobile_number) {
+  if (
+    profileError ||
+    !profile ||
+    profile.role === "admin" ||
+    profile.mobile_number ||
+    profile.account_status !== "unverified"
+  ) {
     return { error: "Profile setup is no longer available for this account." };
   }
   const postalCode = formData.get("postal_code")
