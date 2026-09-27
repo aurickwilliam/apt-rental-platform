@@ -64,7 +64,7 @@ function RecentSection({
               ) : (
                 <Link
                   href={item.href}
-                  className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex items-center gap-3 rounded-3xl bg-muted/50 p-3 transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <History size={19} aria-hidden="true" />
@@ -73,18 +73,18 @@ function RecentSection({
                     <span className="block truncate font-nunito text-sm font-bold capitalize">
                       {item.name}
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {item.detail}
+                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="truncate">{item.detail}</span>
+                      <span aria-hidden="true" className="shrink-0">
+                        ·
+                      </span>
+                      <time dateTime={item.date} className="shrink-0">
+                        {new Intl.DateTimeFormat("en-PH", {
+                          dateStyle: "medium",
+                          timeZone: "Asia/Manila",
+                        }).format(new Date(item.date))}
+                      </time>
                     </span>
-                    <time
-                      dateTime={item.date}
-                      className="block text-xs text-muted-foreground"
-                    >
-                      {new Intl.DateTimeFormat("en-PH", {
-                        dateStyle: "medium",
-                        timeZone: "Asia/Manila",
-                      }).format(new Date(item.date))}
-                    </time>
                   </span>
                   <ChevronRight
                     size={16}
