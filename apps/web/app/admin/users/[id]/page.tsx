@@ -54,7 +54,7 @@ export default async function AdminUserDetailPage({
         </p>
       </div>
       {user.role !== "admin" && (
-        <section className="rounded-xl border border-border p-4">
+        <section className="rounded-3xl border border-border p-4">
           <h2 className="font-nunito text-lg font-bold">Account access</h2>
           <p className="mt-2 text-sm font-semibold">{user.is_suspended ? "Suspended" : "Active"}</p>
           {user.is_suspended && (
@@ -69,7 +69,7 @@ export default async function AdminUserDetailPage({
           )}
         </section>
       )}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Verification history</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {verifications?.length ? (
@@ -94,7 +94,7 @@ export default async function AdminUserDetailPage({
         </ul>
       </section>
       {user.role === "landlord" ? (
-        <section className="rounded-xl border border-border p-4">
+        <section className="rounded-3xl border border-border p-4">
           <h2 className="font-nunito text-lg font-bold">Owned apartments</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {apartments?.length ? (
@@ -115,7 +115,7 @@ export default async function AdminUserDetailPage({
           </ul>
         </section>
       ) : null}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Account and review activity</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {activity?.length ? (

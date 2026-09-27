@@ -12,6 +12,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { requireAdmin } from "../_lib/require-admin";
 import DashboardTrends from "./components/DashboardTrends";
+import CurrentMonthCalendar from "./components/CurrentMonthCalendar";
 import PlatformTotalCard from "./components/PlatformTotalCard";
 import VerificationQueue from "./components/VerificationQueue";
 import { QueueChart } from "./components/DashboardCharts";
@@ -42,7 +43,7 @@ function RecentSection({
   kind: "users" | "apartments" | "activity";
 }) {
   return (
-    <section className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <section className="min-w-0 rounded-3xl border border-border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-nunito text-lg font-bold">{title}</h2>
         <Link
@@ -243,25 +244,28 @@ export default async function AdminDashboardPage({
         ))}
       </section>
 
-      <div className="grid min-w-0 gap-4 xl:grid-cols-4">
-        <div className="min-w-0 xl:col-span-3">
+      <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-4">
+        <div className="min-w-0 self-stretch xl:col-span-3">
           <VerificationQueue requests={data.queue} />
         </div>
-        <section
-          className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5"
-          aria-labelledby="queue-heading"
-        >
-          <h2 id="queue-heading" className="font-nunito text-lg font-bold">
-            Verification queue
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Pending right now · all submissions
-          </p>
-          <QueueChart
-            users={data.totals.pendingUsers}
-            apartments={data.totals.pendingApartments}
-          />
-        </section>
+        <div className="flex min-w-0 flex-col gap-4">
+          <CurrentMonthCalendar today={today} />
+          <section
+            className="min-w-0 rounded-3xl border border-border bg-card p-4 sm:p-5"
+            aria-labelledby="queue-heading"
+          >
+            <h2 id="queue-heading" className="font-nunito text-lg font-bold">
+              Verification queue
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Pending right now · all submissions
+            </p>
+            <QueueChart
+              users={data.totals.pendingUsers}
+              apartments={data.totals.pendingApartments}
+            />
+          </section>
+        </div>
       </div>
 
       <DashboardTrends
@@ -269,11 +273,6 @@ export default async function AdminDashboardPage({
         to={to}
         today={today}
         initialTrends={data.trends}
-        reportingPeriodError={
-          custom && !validRange
-            ? "Choose a valid period within the last 90 days. Showing the last 30 days instead."
-            : undefined
-        }
       />
 
       <section aria-labelledby="recent-heading">

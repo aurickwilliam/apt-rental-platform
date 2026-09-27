@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import {
   DateField,
   DateRangePicker,
-  FieldError,
   Label,
   RangeCalendar,
 } from "@heroui/react";
@@ -15,7 +14,6 @@ interface DateRangeControlProps {
   to: string;
   today: string;
   onRangeChange?: (from: string, to: string) => void;
-  errorMessage?: string;
 }
 
 export default function DateRangeControl({
@@ -23,18 +21,18 @@ export default function DateRangeControl({
   to,
   today,
   onRangeChange,
-  errorMessage,
 }: DateRangeControlProps) {
   const router = useRouter();
+  const minDate = parseDate(today).subtract({ days: 89 });
+  const maxDate = parseDate(today);
 
   return (
     <DateRangePicker
       key={`${from}-${to}`}
       className="w-full sm:w-80"
       defaultValue={{ start: parseDate(from), end: parseDate(to) }}
-      isInvalid={Boolean(errorMessage)}
-      minValue={parseDate(today).subtract({ days: 89 })}
-      maxValue={parseDate(today)}
+      minValue={minDate}
+      maxValue={maxDate}
       onChange={(range) => {
         if (range?.start && range.end) {
           const nextFrom = range.start.toString();
@@ -99,7 +97,6 @@ export default function DateRangeControl({
           </RangeCalendar.YearPickerGrid>
         </RangeCalendar>
       </DateRangePicker.Popover>
-      {errorMessage ? <FieldError>{errorMessage}</FieldError> : null}
     </DateRangePicker>
   );
 }

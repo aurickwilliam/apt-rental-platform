@@ -77,7 +77,7 @@ export default async function AdminAnalyticsPage({ searchParams }: {
       </form>
       {error ? <p role="alert" className="text-sm text-danger">{error}</p> : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {rows.map((group) => <section key={group.title} className="rounded-xl border border-border bg-card p-4">
+          {rows.map((group) => <section key={group.title} className="rounded-3xl border border-border bg-card p-4">
             <h2 className="font-nunito text-lg font-bold">{group.title}</h2>
             <dl className="mt-3 space-y-2">{group.values.map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 text-sm"><dt className="text-muted-foreground">{label}</dt><dd className="font-semibold">{value}</dd></div>)}</dl>
           </section>)}

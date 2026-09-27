@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Avatar, Button, Chip, Table } from "@heroui/react";
+import { Avatar, Chip, Table, Tabs } from "@heroui/react";
 import { Building2, ChevronRight } from "lucide-react";
 import type { VerificationRequest } from "../lib/get-dashboard-data";
 
@@ -57,7 +57,7 @@ export default function VerificationQueue({
 
   return (
     <section
-      className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5"
+      className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 sm:p-5"
       aria-labelledby="verification-heading"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -79,36 +79,44 @@ export default function VerificationQueue({
           View all
         </Link>
       </div>
-      <div
-        className="mt-4 flex gap-2"
-        role="group"
-        aria-label="Filter verification requests"
+      <Tabs
+        selectedKey={filter}
+        onSelectionChange={(key) =>
+          setFilter(key as "all" | "users" | "apartments")
+        }
+        className="mt-4 w-fit"
       >
-        {(
-          [
-            ["all", "All"],
-            ["users", "Users"],
-            ["apartments", "Apartments"],
-          ] as const
-        ).map(([value, label]) => (
-          <Button
-            key={value}
-            size="sm"
-            variant={filter === value ? "primary" : "tertiary"}
-            onPress={() => setFilter(value)}
-            aria-pressed={filter === value}
+        <Tabs.ListContainer className="w-fit">
+          <Tabs.List
+            aria-label="Filter verification requests"
+            className="w-fit *:text-muted-foreground"
           >
-            {label}
-          </Button>
-        ))}
-      </div>
+            {(
+              [
+                ["all", "All"],
+                ["users", "Users"],
+                ["apartments", "Apartments"],
+              ] as const
+            ).map(([value, label]) => (
+              <Tabs.Tab
+                key={value}
+                id={value}
+                className="text-xs data-[selected=true]:text-primary"
+              >
+                {label}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
       {filtered.length ? (
         <>
-          <div className="mt-4 hidden md:block">
-            <Table>
-              <Table.ScrollContainer>
+          <div className="mt-4 hidden min-h-0 flex-1 md:flex">
+            <Table className="h-full w-full">
+              <Table.ScrollContainer className="h-full">
                 <Table.Content aria-label="Latest pending verification requests">
-                  <Table.Header>
+                  <Table.Header className="text-foreground! [&_th]:text-foreground!">
                     <Table.Column isRowHeader>Request</Table.Column>
                     <Table.Column>Type</Table.Column>
                     <Table.Column>Submitted</Table.Column>
@@ -122,7 +130,7 @@ export default function VerificationQueue({
                       <Table.Row
                         key={`${request.kind}-${request.id}`}
                         id={`${request.kind}-${request.id}`}
-                        className="hover:bg-primary/5"
+                        className="cursor-pointer hover:bg-primary/10"
                       >
                         <Table.Cell>
                           <div className="flex items-center gap-3">

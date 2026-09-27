@@ -132,7 +132,7 @@ export function TrendChart({
   const total = data.reduce((sum, point) => sum + point[dataKey], 0);
   return (
     <section
-      className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5"
+      className="min-w-0 rounded-3xl border border-border bg-card p-4 sm:p-5"
       aria-label={title}
     >
       <p className="font-nunito text-sm font-bold text-muted-foreground">

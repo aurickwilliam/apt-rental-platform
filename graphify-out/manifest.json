@@ -4510,23 +4510,23 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/activity/page.tsx": {
-    "mtime": 1790518210.0053356,
-    "ast_hash": "e1cb4bc3ca67a5f39fb2d8a36018a686",
+    "mtime": 1790522937.9704685,
+    "ast_hash": "ba56984f47c0dbd3cdc7f4a1cd054364",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/page.tsx": {
-    "mtime": 1790518210.0057817,
-    "ast_hash": "46883fa2c744bf3fe55198e2e78a6449",
+    "mtime": 1790522937.9709935,
+    "ast_hash": "c36960e1134188756a107a679acbbac5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/page.tsx": {
-    "mtime": 1790518210.0059032,
-    "ast_hash": "dd6b0c3f2a56419902bb347c1054bd57",
+    "mtime": 1790522937.970271,
+    "ast_hash": "af026157ef146875fe3b6056e9ea27a7",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
-    "mtime": 1790522383.0061407,
-    "ast_hash": "647c5f81e09f46415813113681a1678f",
+    "mtime": 1790524645.6977923,
+    "ast_hash": "ca699a45e6559ca185ce6dc81d76ecc0",
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
@@ -4535,13 +4535,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/page.tsx": {
-    "mtime": 1790518210.0072405,
-    "ast_hash": "620743aa034b22efae76adb826c1e893",
+    "mtime": 1790522937.9708376,
+    "ast_hash": "3707bad46bfb032c6a32eb175b62443c",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/page.tsx": {
-    "mtime": 1790518210.0073175,
-    "ast_hash": "0544e2502874bb05ea9398c23a9ab250",
+    "mtime": 1790522937.9700508,
+    "ast_hash": "16ddb28a6d8bb418a962e0dcb329f9c1",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/ReviewForm.tsx": {
@@ -4550,18 +4550,18 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/apartments/[id]/page.tsx": {
-    "mtime": 1790518210.0075486,
-    "ast_hash": "5fe654688c448f8990373b89f95a13af",
+    "mtime": 1790522937.9713469,
+    "ast_hash": "291cf9072adb9600cfd9c11df6302221",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/page.tsx": {
-    "mtime": 1790518210.007613,
-    "ast_hash": "7e0cdf6c04112412dc57df295954d766",
+    "mtime": 1790522937.96986,
+    "ast_hash": "3675d6c543d78ff8e498cec46054e222",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/users/[id]/page.tsx": {
-    "mtime": 1790518210.0077448,
-    "ast_hash": "f0f6f7070e3d390a0d359f9f643ffca8",
+    "mtime": 1790522937.971197,
+    "ast_hash": "38d3f138e4c30a61093e445de462fa82",
     "semantic_hash": ""
   },
   "apps/web/app/components/VerifiedBadge.tsx": {
@@ -4985,8 +4985,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/page.tsx": {
-    "mtime": 1790518210.0056055,
-    "ast_hash": "73c7c9f7ef4ef08a748d7d1a40aa6c7e",
+    "mtime": 1790522937.9706688,
+    "ast_hash": "4a5fb8c993a9c7b444769e930b3951fb",
     "semantic_hash": ""
   },
   "supabase/functions/admin-user-access/index.ts": {
@@ -5015,18 +5015,18 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DashboardCharts.tsx": {
-    "mtime": 1790519617.4277055,
-    "ast_hash": "612f4b3b861129cb5ec6e74cf03055c5",
+    "mtime": 1790522937.969649,
+    "ast_hash": "283c64573b77b2f3e3bf890626210daf",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DateRangeControl.tsx": {
-    "mtime": 1790522383.0056944,
-    "ast_hash": "de1e248218bddd33bb3265f139f7c939",
+    "mtime": 1790524437.7114604,
+    "ast_hash": "4cef4bfeb5829561208fe5ca20130472",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/VerificationQueue.tsx": {
-    "mtime": 1790519617.4281685,
-    "ast_hash": "95196ccc4ad4f79df8fe9254639ebf0b",
+    "mtime": 1790524345.759687,
+    "ast_hash": "a458d0397df0f750df4a428276cc4c52",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/lib/get-dashboard-data.ts": {
@@ -5040,8 +5040,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DashboardTrends.tsx": {
-    "mtime": 1790522383.0059574,
-    "ast_hash": "606dcd5cece2f732fd10e615324066d6",
+    "mtime": 1790524437.7112305,
+    "ast_hash": "71b788e4e97818d9c905c93947cc8a77",
     "semantic_hash": ""
   },
   "supabase/migrations/20260927150549_admin_dashboard_trends_rpc.sql": {
@@ -5052,6 +5052,11 @@
   "supabase/migrations/20260927151112_harden_admin_dashboard_trends_rpc.sql": {
     "mtime": 1790521877.890524,
     "ast_hash": "0a4e1be3787b891c853fc9355306ac96",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/dashboard/components/CurrentMonthCalendar.tsx": {
+    "mtime": 1790524984.49859,
+    "ast_hash": "48203bd00bd88a7e6e244133aea1a132",
     "semantic_hash": ""
   }
 }

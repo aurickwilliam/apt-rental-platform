@@ -55,7 +55,7 @@ export default async function UserVerificationReviewPage({
           Submitted {new Date(verification.submitted_at).toLocaleString()}
         </p>
       </div>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Applicant</h2>
         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
           <div>
@@ -75,7 +75,7 @@ export default async function UserVerificationReviewPage({
           </div>
         </dl>
       </section>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Private documents</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {urls.map((url, index) =>
@@ -94,7 +94,7 @@ export default async function UserVerificationReviewPage({
         </div>
       </section>
       {verification.status === "pending" ? (
-        <section className="rounded-xl border border-border p-4">
+        <section className="rounded-3xl border border-border p-4">
           <h2 className="font-nunito text-lg font-bold">Decision</h2>
           <p className="mb-3 text-sm text-muted-foreground">
             Approving verifies the account. Rejections must include a reason.
