@@ -50,16 +50,19 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
           </h3>
         </div>
 
+        {/* First-time Google arrival banner. The `!`-suffixed utilities
+            below are intentional: @heroui/styles ships unlayered CSS,
+            which beats layered Tailwind utilities without them. */}
         {type === 'sign-up' && showWelcomeNotice && (
-          <Alert status="accent" className="mt-4">
-            <Alert.Indicator>
+          <Alert status="accent" className="mt-4 border border-primary/20 bg-accent!">
+            <Alert.Indicator className="text-primary!">
               <Sparkles size={18} className="shrink-0" />
             </Alert.Indicator>
-            <Alert.Content>
-              <Alert.Title className="font-poppinsSemiBold text-foreground">
+            <Alert.Content className="gap-1">
+              <Alert.Title className="font-poppinsSemiBold text-foreground!">
                 Welcome!
               </Alert.Title>
-              <Alert.Description className="text-sm text-foreground/80">
+              <Alert.Description className="text-sm text-foreground/80!">
                 Looks like this is your first time here — pick a role below
                 to get your account set up.
               </Alert.Description>
