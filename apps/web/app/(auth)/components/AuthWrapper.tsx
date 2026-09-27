@@ -14,9 +14,10 @@ import Link from "next/link";
 interface AuthWrapperProps {
   type: 'sign-in' | 'sign-up';
   initialRole?: 'tenant' | 'landlord';
+  portalError?: string | null;
 }
 
-function AuthContent() {
+function AuthContent({ portalError }: { portalError?: string | null }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -81,6 +82,12 @@ function AuthContent() {
         </Tabs>
 
 
+        {portalError && (
+          <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
+            <p className="text-sm text-red-600">{portalError}</p>
+          </div>
+        )}
+
         <AuthForm />
 
         {/* Divider */}
@@ -104,10 +111,10 @@ function AuthContent() {
   );
 }
 
-export default function AuthWrapper({ type, initialRole }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent />
+      <AuthContent portalError={portalError} />
     </AuthProvider>
   );
 }

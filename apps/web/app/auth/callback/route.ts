@@ -62,7 +62,9 @@ export async function GET(request: Request) {
           if (roleError) {
             console.error("Could not set OAuth onboarding role", roleError);
             await supabase.auth.signOut();
-            return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+            return NextResponse.redirect(
+              `${origin}/sign-in?error=auth_callback_error`,
+            );
           }
           profileRole = role;
         }

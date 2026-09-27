@@ -16,7 +16,6 @@ export default function ThirdPartySignIn() {
   const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
@@ -109,12 +108,15 @@ export default function ThirdPartySignIn() {
         isPending={loading}
         onPress={handleGoogleSignIn}
       >
-        {
-          !loading && (
-            <Image src="/third-party/google-logo.svg" alt="Google" width={20} height={20} />
-          )
-        }
-        Sign {type === 'sign-in' ? 'in' : 'up'} with Google
+        {!loading && (
+          <Image
+            src="/third-party/google-logo.svg"
+            alt="Google"
+            width={20}
+            height={20}
+          />
+        )}
+        Sign {type === "sign-in" ? "in" : "up"} with Google
       </Button>
     </div>
   );
