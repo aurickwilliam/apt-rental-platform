@@ -43,7 +43,7 @@ export default function SettingsRow({
   );
 
   const trailingEl = (
-    <div className="flex items-center gap-2 justify-self-end min-w-[120px]">
+    <div className="flex items-center gap-2 justify-self-end min-w-0">
       {suffix}
       {isInteractive && (
         <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />

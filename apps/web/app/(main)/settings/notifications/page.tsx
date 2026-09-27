@@ -29,7 +29,7 @@ export default function NotificationSettingsPage() {
       <div className="p-4 sm:p-5 divide-y divide-border">
         {/* General */}
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="General" />
           </div>
           <div className="divide-y divide-border">
@@ -53,10 +53,10 @@ export default function NotificationSettingsPage() {
 
         {/* Notification Types */}
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="Notification Types" />
           </div>
-          <p className="px-4 sm:px-5 text-sm text-muted-foreground">
+          <p className="px-4 pb-3 text-sm text-muted-foreground">
             Per-type toggles are shared by both channels, so they only matter when at least one master is on.
           </p>
           <div className="divide-y divide-border">
@@ -82,7 +82,7 @@ export default function NotificationSettingsPage() {
         </div>
 
         {/* Reset */}
-        <div className="pt-4 pb-6 px-4 sm:px-5">
+        <div className="pt-4 pb-6 px-4">
           <Button variant="outline" onClick={resetToDefaults}>
             Reset to Defaults
           </Button>

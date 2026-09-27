@@ -2,7 +2,6 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Separator } from "@heroui/react";
 
 import SettingsShell from "../components/SettingsShell";
 
@@ -45,10 +44,13 @@ export default function FAQPage() {
   return (
     <SettingsShell title="Frequently Asked Questions" subtitle="Find answers to common questions" showBack>
       <div className="p-4 sm:p-5 space-y-4">
-        {faqs.map((faq, index) => (
+        {faqs.map((faq) => (
           <div key={faq.id} className="rounded-lg bg-muted/30">
             <button
+              type="button"
               onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
+              aria-expanded={openId === faq.id}
+              aria-controls={`faq-answer-${faq.id}`}
               className="w-full flex items-center justify-between p-4 text-left"
             >
               <span className="font-nunito font-semibold text-base text-foreground pr-4">
@@ -56,15 +58,14 @@ export default function FAQPage() {
               </span>
               <ChevronDown
                 size={18}
-                className={`text-muted-foreground transition-transform ${openId === faq.id ? "rotate-180" : ""}`}
+                className={`text-muted-foreground transition-transform flex-shrink-0 ${openId === faq.id ? "rotate-180" : ""}`}
               />
             </button>
             {openId === faq.id && (
-              <div className="px-4 pb-4 border-t border-border">
+              <div id={`faq-answer-${faq.id}`} className="px-4 pt-4 pb-4 border-t border-border">
                 <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
               </div>
             )}
-            {index < faqs.length - 1 && <Separator className="my-0" />}
           </div>
         ))}
 

@@ -16,27 +16,25 @@ export default function SettingsShell({ title, subtitle, children, showBack }: S
   const router = useRouter();
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 md:px-12 py-10">
-        {showBack && (
-          <Button
-            variant="outline"
-            size="sm"
-            onPress={() => router.back()}
-            className="mb-4 gap-1.5"
-          >
-            <ArrowLeft size={16} />
-            Back
-          </Button>
-        )}
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      {showBack && (
+        <Button
+          variant="outline"
+          size="sm"
+          onPress={() => router.back()}
+          className="mb-6 gap-1.5"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+      )}
 
-        <h1 className="text-4xl md:text-5xl text-secondary font-bold mb-2">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground mb-6">{subtitle}</p>}
+      <h1 className="text-4xl md:text-5xl text-secondary font-bold">{title}</h1>
+      {subtitle && <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>}
 
-        <div className="max-w-3xl">
-          <div className="rounded-xl border border-border bg-card shadow-sm">
-            {children}
-          </div>
+      <div className="mt-6">
+        <div className="rounded-xl border border-border bg-card shadow-sm">
+          {children}
         </div>
       </div>
     </div>

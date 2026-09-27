@@ -40,7 +40,7 @@ export default function LanguageRegionPage() {
     <SettingsShell title="Language & Region" subtitle="Configure your language and region settings" showBack>
       <div className="p-4 sm:p-5 divide-y divide-border">
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="Language" />
           </div>
           <div className="divide-y divide-border">
@@ -53,7 +53,7 @@ export default function LanguageRegionPage() {
                   onChange={setSelectedLanguage}
                   options={LANGUAGES.map(l => l.label)}
                   placeholder="Select language"
-                  className="w-48"
+                  className="w-full max-w-[12rem] sm:w-48"
                 />
               }
             />
@@ -61,7 +61,7 @@ export default function LanguageRegionPage() {
         </div>
 
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="Region" />
           </div>
           <div className="divide-y divide-border">
@@ -74,14 +74,14 @@ export default function LanguageRegionPage() {
                   onChange={setSelectedRegion}
                   options={REGIONS}
                   placeholder="Select region"
-                  className="w-64"
+                  className="w-full max-w-[16rem] sm:w-64"
                 />
               }
             />
           </div>
         </div>
 
-        <div className="pt-4 pb-6 px-4 sm:px-5">
+        <div className="pt-4 pb-6 px-4">
           <p className="text-muted-foreground text-sm font-inter">
             Note: Some changes may require restarting the app. This feature is coming soon.
           </p>

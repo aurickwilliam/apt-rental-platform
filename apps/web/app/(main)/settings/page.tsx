@@ -84,7 +84,7 @@ export default function SettingsHub() {
           title: "Rental Preferences",
           href: "/settings/preferences",
           suffix: (
-            <span className="text-muted-foreground text-sm font-inter truncate flex-1 text-right max-w-[200px]">
+            <span className="text-muted-foreground text-sm font-inter truncate max-w-[200px]">
               {rentalSummary}
             </span>
           ),
@@ -154,10 +154,10 @@ export default function SettingsHub() {
 
   return (
     <SettingsShell title="Settings" subtitle="Manage your account, preferences, and privacy">
-      <div className="divide-y divide-border">
+      <div className="p-4 sm:p-5 divide-y divide-border">
         {sections.map((section, sIndex) => (
           <div key={section.title} className={sIndex > 0 ? "pt-6" : ""}>
-            <div className="px-4 sm:px-5 pb-3">
+            <div className="px-4 pb-3">
               <SectionTitle title={section.title} />
             </div>
             <div className="divide-y divide-border">

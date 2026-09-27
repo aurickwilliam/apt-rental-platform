@@ -48,7 +48,7 @@ export default function AboutPage() {
     <SettingsShell title="About Us" subtitle="Learn more about APT and our team" showBack>
       <div className="p-4 sm:p-5 divide-y divide-border">
         {/* App Info */}
-        <div className="pt-6">
+        <div>
           <div className="items-center text-center py-8 space-y-4">
             <Image
               src="/logo/logo-name-transparent.svg"
@@ -69,10 +69,10 @@ export default function AboutPage() {
 
         {/* Description */}
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="About the App" />
           </div>
-          <div className="px-4 sm:px-5 space-y-3">
+          <div className="px-4 space-y-3">
             <p className="text-sm text-muted-foreground leading-relaxed">
               APT is a property rental platform designed for the Philippine
               market, primarily targeting Metro Manila. It connects tenants and
@@ -84,10 +84,10 @@ export default function AboutPage() {
 
         {/* Meet the Team */}
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="Meet the Team" />
           </div>
-          <div className="px-4 sm:px-5 space-y-3">
+          <div className="px-4 space-y-3">
             {teamMembers.map((dev) => (
               <Link
                 key={dev.name}
@@ -112,10 +112,10 @@ export default function AboutPage() {
 
         {/* Social Links */}
         <div className="pt-6">
-          <div className="px-4 sm:px-5 pb-3">
+          <div className="px-4 pb-3">
             <SectionTitle title="Connect with Us" />
           </div>
-          <div className="px-4 sm:px-5 space-y-2">
+          <div className="px-4 space-y-3">
             {socials.map((social) => {
               const Icon = social.icon;
               return (
@@ -126,7 +126,9 @@ export default function AboutPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-muted/30 rounded-xl px-4 py-3 hover:bg-muted/50 transition-colors"
                 >
-                  <Icon size={18} className="text-primary" />
+                  <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                    <Icon size={18} className="text-primary" />
+                  </div>
                   <span className="text-sm text-foreground">{social.label}</span>
                 </Link>
               );
@@ -135,7 +137,7 @@ export default function AboutPage() {
         </div>
 
         {/* STI Branding */}
-        <div className="pt-4 pb-6 px-4 sm:px-5 text-center text-xs text-muted-foreground">
+        <div className="pt-4 pb-6 px-4 text-center text-xs text-muted-foreground">
           <p>Developed as a capstone project at</p>
           <p className="font-nunito font-semibold">STI College Caloocan</p>
           <p className="mt-1">
