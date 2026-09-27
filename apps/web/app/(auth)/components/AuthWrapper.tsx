@@ -29,16 +29,18 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
     <div className="flex-1 min-w-0 bg-white flex flex-col md:px-16 md:py-5 overflow-y-auto h-full">
       <div className="w-full max-w-lg mx-auto px-10 py-5 flex flex-col flex-1 min-h-full">
         <div className="flex items-center justify-between">
-          {/* Back Button */}
-          <Button
-            isIconOnly
-            variant="ghost"
-            className="-ml-2"
-          >
-            <Link href="/">
+          {/* Back Button: anchor outside the button so every click
+              navigates (a link nested inside a button swallows clicks
+              that land on the button padding). */}
+          <Link href="/" aria-label="Back to home">
+            <Button
+              isIconOnly
+              variant="ghost"
+              className="-ml-2"
+            >
               <ArrowLeft size={20} />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
 
         <div className="mt-5">
