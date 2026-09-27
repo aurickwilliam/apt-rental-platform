@@ -55,7 +55,7 @@ function AuthContent({ portalError }: { portalError?: string | null }) {
           className="mt-5"
         >
           <Tabs.ListContainer>
-            <Tabs.List 
+            <Tabs.List
               aria-label="Select role"
               className="*:text-black"
             >
@@ -68,7 +68,7 @@ function AuthContent({ portalError }: { portalError?: string | null }) {
                 <Tabs.Indicator />
               </Tabs.Tab>
 
-              {/* Landlord Tab */}              
+              {/* Landlord Tab */}
               <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary">
                 <Tabs.Separator />
                 <span className="flex items-center gap-1.5">

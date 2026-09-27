@@ -119,8 +119,8 @@ export default function AuthForm() {
                 placeholder='Enter your password'
               />
 
-              <Link 
-                href="/(auth)/forgot-password" 
+              <Link
+                href="/forgot-password"
                 className="text-sm text-right text-secondary underline"
               >
                 Forgot Password?
