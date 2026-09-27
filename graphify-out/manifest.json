@@ -2190,9 +2190,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/layout.tsx": {
-    "mtime": 1787060341.9684358,
-    "ast_hash": "446ee52bf644132745e47e6296ed69c7",
-    "semantic_hash": "446ee52bf644132745e47e6296ed69c7"
+    "mtime": 1790526546.222987,
+    "ast_hash": "3415b79d8a1f3b06e41b833c1d3427a1",
+    "semantic_hash": ""
   },
   "apps/web/app/providers.tsx": {
     "mtime": 1787060341.9685342,
@@ -2770,8 +2770,8 @@
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
   },
   "pnpm-workspace.yaml": {
-    "mtime": 1787912037.221996,
-    "ast_hash": "e5034f5058b36d9629fa6923f1a95acc",
+    "mtime": 1790526589.7103832,
+    "ast_hash": "53434194249674575484ca8018b2acd4",
     "semantic_hash": ""
   },
   "apps/mobile/assets/icons/android/adaptive-icon.png": {
@@ -4525,8 +4525,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
-    "mtime": 1790524645.6977923,
-    "ast_hash": "ca699a45e6559ca185ce6dc81d76ecc0",
+    "mtime": 1790526546.2224164,
+    "ast_hash": "7b0b72d6b70b6aa0e3411d097331c13e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
@@ -5057,6 +5057,21 @@
   "apps/web/app/admin/dashboard/components/CurrentMonthCalendar.tsx": {
     "mtime": 1790524984.49859,
     "ast_hash": "48203bd00bd88a7e6e244133aea1a132",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/dashboard/components/RecentUserCard.tsx": {
+    "mtime": 1790526281.5574949,
+    "ast_hash": "b27b45fd2bc20e8291183758db5a68da",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/dashboard/components/RecentApartmentCard.tsx": {
+    "mtime": 1790526364.661648,
+    "ast_hash": "ebb1b794d7f4e64f06cbb8b435aacfbe",
+    "semantic_hash": ""
+  },
+  "apps/web/app/theme-init-script.ts": {
+    "mtime": 1790526546.2228112,
+    "ast_hash": "705366a002c6bb0192ebb2049edbfbc0",
     "semantic_hash": ""
   }
 }

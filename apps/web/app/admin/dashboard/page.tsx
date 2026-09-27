@@ -1,6 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Avatar } from "@heroui/react";
 import {
   Building2,
   ChevronRight,
@@ -14,6 +12,8 @@ import { requireAdmin } from "../_lib/require-admin";
 import DashboardTrends from "./components/DashboardTrends";
 import CurrentMonthCalendar from "./components/CurrentMonthCalendar";
 import PlatformTotalCard from "./components/PlatformTotalCard";
+import RecentApartmentCard from "./components/RecentApartmentCard";
+import RecentUserCard from "./components/RecentUserCard";
 import VerificationQueue from "./components/VerificationQueue";
 import { QueueChart } from "./components/DashboardCharts";
 import { getDashboardData, type RecentItem } from "./lib/get-dashboard-data";
@@ -57,67 +57,42 @@ function RecentSection({
         {items.length ? (
           items.map((item) => (
             <li key={item.id}>
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {kind === "users" ? (
-                  <Avatar
-                    size="sm"
-                    className="shrink-0 bg-primary/10 text-primary"
-                  >
-                    {item.image ? (
-                      <Avatar.Image src={item.image} alt="" />
-                    ) : null}
-                    <Avatar.Fallback className="bg-primary/10 text-primary">
-                      {item.name
-                        .split(/\s+/)
-                        .slice(0, 2)
-                        .map((part) => part[0]?.toUpperCase())
-                        .join("")}
-                    </Avatar.Fallback>
-                  </Avatar>
-                ) : kind === "apartments" && item.image ? (
-                  <Image
-                    src={item.image}
-                    alt=""
-                    unoptimized
-                    width={44}
-                    height={44}
-                    className="size-11 shrink-0 rounded-lg object-cover"
-                  />
-                ) : (
+              {kind === "users" ? (
+                <RecentUserCard user={item} />
+              ) : kind === "apartments" ? (
+                <RecentApartmentCard apartment={item} />
+              ) : (
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    {kind === "apartments" ? (
-                      <Building2 size={19} aria-hidden="true" />
-                    ) : (
-                      <History size={19} aria-hidden="true" />
-                    )}
+                    <History size={19} aria-hidden="true" />
                   </span>
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-nunito text-sm font-bold capitalize">
-                    {item.name}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-nunito text-sm font-bold capitalize">
+                      {item.name}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {item.detail}
+                    </span>
+                    <time
+                      dateTime={item.date}
+                      className="block text-xs text-muted-foreground"
+                    >
+                      {new Intl.DateTimeFormat("en-PH", {
+                        dateStyle: "medium",
+                        timeZone: "Asia/Manila",
+                      }).format(new Date(item.date))}
+                    </time>
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {item.detail}
-                  </span>
-                  <time
-                    dateTime={item.date}
-                    className="block text-xs text-muted-foreground"
-                  >
-                    {new Intl.DateTimeFormat("en-PH", {
-                      dateStyle: "medium",
-                      timeZone: "Asia/Manila",
-                    }).format(new Date(item.date))}
-                  </time>
-                </span>
-                <ChevronRight
-                  size={16}
-                  className="shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-              </Link>
+                  <ChevronRight
+                    size={16}
+                    className="shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                </Link>
+              )}
             </li>
           ))
         ) : (
