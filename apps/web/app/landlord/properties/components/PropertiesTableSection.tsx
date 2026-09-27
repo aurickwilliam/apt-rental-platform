@@ -73,13 +73,16 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
         onDeleteClick={(property) => setDeleteTarget(property)}
       />
 
-      <PropertyDetailsSheet
-        selected={selected}
-        openEditMode={openEditMode}
-        onClose={closeSheet}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-      />
+      {selected ? (
+        <PropertyDetailsSheet
+          key={selected.id}
+          selected={selected}
+          openEditMode={openEditMode}
+          onClose={closeSheet}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      ) : null}
 
       <DeletePropertyModal 
         isOpen={!!deleteTarget}

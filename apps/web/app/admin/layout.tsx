@@ -1,5 +1,4 @@
-import { AppSidebar } from "@/app/components/layout/AppSidebar";
-import { AppTopBar } from "@/app/components/layout/AppTopBar";
+import { AppSidebar, MobileSidebarNavigation } from "@/app/components/layout/AppSidebar";
 import { requireAdmin } from "./_lib/require-admin";
 
 const ADMIN_NAV = [
@@ -10,15 +9,6 @@ const ADMIN_NAV = [
   { href: "/admin/activity", label: "Activity", icon: "History" },
   { href: "/admin/analytics", label: "Analytics", icon: "ChartBar" },
 ] as const;
-
-const ADMIN_TITLES: Record<string, string> = {
-  "/admin/dashboard": "Admin dashboard",
-  "/admin/users": "Users",
-  "/admin/apartments": "Apartments",
-  "/admin/verification": "Verification",
-  "/admin/activity": "Activity",
-  "/admin/analytics": "Analytics",
-};
 
 export default async function AdminLayout({
   children,
@@ -40,11 +30,11 @@ export default async function AdminLayout({
         showAccountLinks={false}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppTopBar titleMap={ADMIN_TITLES} navItems={[...ADMIN_NAV]} />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
+        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">
           {children}
         </main>
       </div>
+      <MobileSidebarNavigation navItems={[...ADMIN_NAV]} />
     </div>
   );
 }

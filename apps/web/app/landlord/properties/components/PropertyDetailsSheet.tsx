@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 import {
@@ -40,7 +40,7 @@ type ApartmentImage = {
 };
 
 type Props = {
-  selected: Property | null;
+  selected: Property;
   openEditMode: boolean;
   onClose: () => void;
   onUpdate: (property: Property) => void;
@@ -90,7 +90,6 @@ export default function PropertyDetailsSheet({
   onUpdate,
   onDelete,
 }: Props) {
-  const [form, setForm] = useState<Partial<Property>>({});
   const [deleting, setDeleting] = useState(false);
 
   const [imagesModalOpen, setImagesModalOpen] = useState(false);
@@ -99,64 +98,44 @@ export default function PropertyDetailsSheet({
   const [leaseModalOpen, setLeaseModalOpen] = useState(false);
   const [viewingLease, setViewingLease] = useState(false);
 
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(openEditMode);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [verification, setVerification] = useState<{ status: string; rejection_reason: string | null } | null>(null);
 
-  const lastSelectedId = useRef<string | null>(null);
-
   const drawerState = useOverlayState({
-    isOpen: !!selected,
+    isOpen: true,
     onOpenChange: (open) => {
       if (!open) onClose();
     },
   });
 
   useEffect(() => {
-    if (!selected) {
-      setForm({});
-      setVerification(null);
-      setEditModalOpen(false);
-      setDescriptionModalOpen(false);
-      setAmenitiesModalOpen(false);
-      setLeaseModalOpen(false);
-      setImagesModalOpen(false);
-      lastSelectedId.current = null;
-      return;
-    }
+    let isCurrent = true;
 
-    setForm({ ...selected });
-
-    void (async () => {
+    async function loadVerification() {
       const supabase = createBrowserClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("apartment_verifications")
         .select("status, rejection_reason")
         .eq("apartment_id", selected.id)
         .order("submitted_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      setVerification(data);
-    })();
-
-    const isNewSelection = lastSelectedId.current !== selected.id;
-    if (isNewSelection) {
-      setEditModalOpen(openEditMode);
-      setDescriptionModalOpen(false);
-      setAmenitiesModalOpen(false);
-      setLeaseModalOpen(false);
-      setImagesModalOpen(false);
-      lastSelectedId.current = selected.id;
-      return;
+      if (error) {
+        console.error("Unable to load apartment verification", error);
+        return;
+      }
+      if (isCurrent) setVerification(data);
     }
 
-    if (openEditMode) {
-      setEditModalOpen(true);
-    }
-  }, [selected, openEditMode]);
+    void loadVerification();
+    return () => {
+      isCurrent = false;
+    };
+  }, [selected.id]);
 
   const handleDelete = async () => {
     if (!selected || deleting) return;
@@ -194,7 +173,7 @@ export default function PropertyDetailsSheet({
   };
 
   const handleViewLease = async () => {
-    if (!selected?.lease_agreement_url) return;
+    if (!selected.lease_agreement_url) return;
     setViewingLease(true);
     try {
       const supabase = createBrowserClient();
@@ -246,7 +225,7 @@ export default function PropertyDetailsSheet({
         <Drawer.Trigger className="hidden" />
         <Drawer.Backdrop isDismissable={!isAnyModalOpen} className="z-50">
           <Drawer.Content placement="right" className="z-60">
-            <Drawer.Dialog className="flex h-full flex-col p-0 w-[500px] max-w-[90vw]">
+            <Drawer.Dialog className="flex h-full flex-col p-0 w-125 max-w-[90vw]">
               <Drawer.Body className="flex-1 overflow-y-auto p-0">
                 {selected && (
                   <div className="flex flex-col">
@@ -264,7 +243,7 @@ export default function PropertyDetailsSheet({
                             {selected.name}
                           </p>
                           <p className="text-white/80 text-sm flex items-center gap-1">
-                            {buildAddress(selected)} 
+                            {buildAddress(selected)}
                           </p>
                         </div>
 
@@ -300,20 +279,22 @@ export default function PropertyDetailsSheet({
                           variant="ghost"
                           size="sm"
                           aria-label="View lease agreement"
-                          onPress={() => handleViewLease()}
+                          isPending={viewingLease}
+                          isDisabled={!selected.lease_agreement_url}
+                          onPress={handleViewLease}
                         >
                           <FileText size={14} />
                         </Button>
 
                         <Dropdown>
-                          <Button 
-                            isIconOnly 
-                            variant="tertiary" 
+                          <Button
+                            isIconOnly
+                            variant="tertiary"
                             size="sm"
                             aria-label="More property actions"
                           >
-                            <MoreHorizontal 
-                              size={16} 
+                            <MoreHorizontal
+                              size={16}
                               className="text-black"
                             />
                           </Button>
@@ -386,7 +367,7 @@ export default function PropertyDetailsSheet({
                         <SectionTitle>
                           Price Details
                         </SectionTitle>
-                        
+
                         <div className="grid grid-cols-2 gap-3 mt-1">
                           <div className="col-span-2 rounded-lg border border-default-200 bg-default-50 p-3 flex items-center justify-between">
                             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -418,7 +399,7 @@ export default function PropertyDetailsSheet({
                         <SectionTitle>
                           Unit Details
                         </SectionTitle>
-                              
+
                         <div className="grid grid-cols-2 gap-3">
                           <ReadOnlyField
                             label="Bedrooms"
@@ -468,7 +449,7 @@ export default function PropertyDetailsSheet({
                           <SectionTitle>
                             Amenities
                           </SectionTitle>
-                          
+
                           {amenities.length > 0 && (
                             <Button
                               size="sm"
@@ -485,14 +466,14 @@ export default function PropertyDetailsSheet({
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
                             {previewAmenities.map((item) => (
-                              <Chip 
-                                key={item.id} 
-                                size="sm" 
+                              <Chip
+                                key={item.id}
+                                size="sm"
                                 variant="soft"
                                 className="flex flex-row gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100"
                               >
                                 {item.perk.icon && (
-                                  <item.perk.icon 
+                                  <item.perk.icon
                                     size={14}
                                   />
                                 )}

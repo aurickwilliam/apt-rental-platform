@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   History,
   ChartBar,
+  Menu,
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
@@ -165,6 +166,32 @@ export function AppSidebar({ navItems, userName, userRole, showAccountLinks = tr
         </Dropdown>
       </div>
     </aside>
+  );
+}
+
+export function MobileSidebarNavigation({ navItems }: { navItems: NavItem[] }) {
+  const pathname = usePathname();
+
+  return (
+    <nav aria-label="Admin navigation" className="fixed bottom-4 left-4 z-40 md:hidden">
+      <Dropdown>
+        <Button variant="primary" className="rounded-full shadow-sm" aria-label="Open admin navigation">
+          <Menu size={18} aria-hidden="true" /> Menu
+        </Button>
+        <Dropdown.Popover placement="top start">
+          <Dropdown.Menu aria-label="Admin pages">
+            {navItems.map(({ href, label, icon }) => {
+              const Icon = ICON_MAP[icon] ?? Search;
+              return (
+                <Dropdown.Item key={href} id={href} textValue={label} href={href} aria-current={isActive(pathname, href) ? "page" : undefined}>
+                  <Label className="flex items-center gap-2"><Icon size={18} aria-hidden="true" />{label}</Label>
+                </Dropdown.Item>
+              );
+            })}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
+      </Dropdown>
+    </nav>
   );
 }
 
