@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
-import { ArrowLeft, UserRoundKey, Building } from "lucide-react";
+import { ArrowLeft, UserRoundKey, Building, Sparkles } from "lucide-react";
 
 import Link from "next/link";
 
@@ -51,12 +51,15 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
         </div>
 
         {type === 'sign-up' && showWelcomeNotice && (
-          <Alert color="primary" className="mt-5">
+          <Alert status="accent" className="mt-4">
+            <Alert.Indicator>
+              <Sparkles size={18} className="shrink-0" />
+            </Alert.Indicator>
             <Alert.Content>
-              <Alert.Title>
+              <Alert.Title className="font-poppinsSemiBold text-foreground">
                 Welcome!
               </Alert.Title>
-              <Alert.Description>
+              <Alert.Description className="text-sm text-foreground/80">
                 Looks like this is your first time here — pick a role below
                 to get your account set up.
               </Alert.Description>
