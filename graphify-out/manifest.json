@@ -2100,8 +2100,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/PropertyDetailsSheet.tsx": {
-    "mtime": 1790517819.8009312,
-    "ast_hash": "6c7dd775d4f9e04f1a6ea6f75c1f893e",
+    "mtime": 1790517911.1040447,
+    "ast_hash": "b598c11396d03ef9b735a5888a020dfe",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/modals/AmenitiesModal.tsx": {
