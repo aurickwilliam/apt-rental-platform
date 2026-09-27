@@ -218,15 +218,6 @@ export default async function AdminDashboardPage({
         </div>
       </header>
 
-      {custom && !validRange ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger"
-        >
-          Choose a valid reporting period within the last 90 days. Showing the
-          last 30 days instead.
-        </p>
-      ) : null}
       {data.hasError || data.chartsError ? (
         <p
           role="alert"
@@ -278,6 +269,11 @@ export default async function AdminDashboardPage({
         to={to}
         today={today}
         initialTrends={data.trends}
+        reportingPeriodError={
+          custom && !validRange
+            ? "Choose a valid period within the last 90 days. Showing the last 30 days instead."
+            : undefined
+        }
       />
 
       <section aria-labelledby="recent-heading">

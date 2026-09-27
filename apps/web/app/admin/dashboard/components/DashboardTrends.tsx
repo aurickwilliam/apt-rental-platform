@@ -11,6 +11,7 @@ interface DashboardTrendsProps {
   to: string;
   today: string;
   initialTrends: TrendPoint[];
+  reportingPeriodError?: string;
 }
 
 function rangeKey(from: string, to: string): string {
@@ -29,6 +30,7 @@ export default function DashboardTrends({
   to,
   today,
   initialTrends,
+  reportingPeriodError,
 }: DashboardTrendsProps) {
   const initialKey = rangeKey(from, to);
   const trendsByRange = useRef(
@@ -91,6 +93,7 @@ export default function DashboardTrends({
           to={to}
           today={today}
           onRangeChange={handleRangeChange}
+          errorMessage={reportingPeriodError}
         />
       </div>
 

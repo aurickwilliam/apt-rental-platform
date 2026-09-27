@@ -4525,8 +4525,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
-    "mtime": 1790521676.2874246,
-    "ast_hash": "863acc73aec5dec2b4d0ec5e413c9e10",
+    "mtime": 1790522383.0061407,
+    "ast_hash": "647c5f81e09f46415813113681a1678f",
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
@@ -5020,8 +5020,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DateRangeControl.tsx": {
-    "mtime": 1790521915.634975,
-    "ast_hash": "66518b19c113881b27f190ade518164e",
+    "mtime": 1790522383.0056944,
+    "ast_hash": "de1e248218bddd33bb3265f139f7c939",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/VerificationQueue.tsx": {
@@ -5040,8 +5040,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DashboardTrends.tsx": {
-    "mtime": 1790521924.8864303,
-    "ast_hash": "71b788e4e97818d9c905c93947cc8a77",
+    "mtime": 1790522383.0059574,
+    "ast_hash": "606dcd5cece2f732fd10e615324066d6",
     "semantic_hash": ""
   },
   "supabase/migrations/20260927150549_admin_dashboard_trends_rpc.sql": {

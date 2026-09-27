@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-09-27)
 
 ## Corpus Check
-- 946 files · ~869,384 words
+- 946 files · ~869,387 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3b6af084`
+- Built from commit: `96d66a2e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -326,7 +326,7 @@
 - components/ApplicationHeader.tsx
 - ProfitByPropertyCard.tsx
 - RenderReviews.tsx
-- class-variance-authority
+- embla-carousel-react
 - @repo/hooks
 - admin-user-access/index.ts
 
@@ -548,7 +548,7 @@ Nodes (27): CashPaymentErrors, CashPaymentForm(), CashPaymentFormProps, validate
 
 ### Community 46 - "dependencies"
 Cohesion: 0.10
-Nodes (21): dependencies, clsx, embla-carousel-react, @heroui/react, @heroui/styles, lucide-react, next-themes, react-icons (+13 more)
+Nodes (21): dependencies, class-variance-authority, clsx, @heroui/react, @heroui/styles, lucide-react, next-themes, react-icons (+13 more)
 
 ### Community 47 - "browse/[apartmentId]/page.tsx"
 Cohesion: 0.17
