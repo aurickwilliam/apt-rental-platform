@@ -483,6 +483,8 @@ export type Database = {
           title: string
           updated_at: string | null
           urgency: string
+          fee_amount: number | null
+          fee_status: string | null
         }
         Insert: {
           apartment_id: string
@@ -500,6 +502,8 @@ export type Database = {
           title: string
           updated_at?: string | null
           urgency: string
+          fee_amount?: number | null
+          fee_status?: string | null
         }
         Update: {
           apartment_id?: string
@@ -517,6 +521,8 @@ export type Database = {
           title?: string
           updated_at?: string | null
           urgency?: string
+          fee_amount?: number | null
+          fee_status?: string | null
         }
         Relationships: [
           {

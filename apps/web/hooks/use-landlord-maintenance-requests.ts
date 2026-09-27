@@ -42,7 +42,12 @@ export function useLandlordMaintenanceRequests() {
   }, [refresh]);
 
   const updateStatus = useCallback(
-    async (id: string, nextStatus: "In Progress" | "Resolved", resolutionNotes?: string) => {
+    async (
+      id: string,
+      nextStatus: "In Progress" | "Resolved",
+      resolutionNotes?: string,
+      feeAmount?: number,
+    ) => {
       const previous = requests;
       setActionLoading(true);
       setRequests((current) =>
@@ -53,6 +58,9 @@ export function useLandlordMaintenanceRequests() {
                 status: nextStatus,
                 resolution_notes:
                   nextStatus === "Resolved" ? (resolutionNotes ?? request.resolution_notes) : request.resolution_notes,
+                fee_amount: nextStatus === "Resolved" && feeAmount !== undefined ? feeAmount : request.fee_amount,
+                fee_status:
+                  nextStatus === "Resolved" && feeAmount !== undefined ? "pending" : request.fee_status,
               }
             : request,
         ),
@@ -68,6 +76,7 @@ export function useLandlordMaintenanceRequests() {
           context.landlordId,
           nextStatus,
           resolutionNotes,
+          feeAmount,
         );
         if (!result.success) {
           setRequests(previous);
@@ -99,11 +108,14 @@ export function useLandlordMaintenanceRequests() {
   );
 
   const resolveRequest = useCallback(
-    async (id: string, resolutionNotes: string) => {
+    async (id: string, resolutionNotes: string, feeAmount?: number) => {
       if (!resolutionNotes.trim()) {
         return { success: false as const, error: "Resolution notes are required." };
       }
-      return updateStatus(id, "Resolved", resolutionNotes);
+      if (feeAmount !== undefined && !(feeAmount > 0)) {
+        return { success: false as const, error: "Fee amount must be greater than ₱0." };
+      }
+      return updateStatus(id, "Resolved", resolutionNotes, feeAmount);
     },
     [updateStatus],
   );

@@ -193,6 +193,39 @@ export async function fetchMaintenanceRequestHistory(
   return Promise.all(rows.map((row) => mapRow(row)));
 }
 
+export type PendingMaintenanceFee = {
+  title: string;
+  amount: number;
+};
+
+export async function fetchPendingMaintenanceFees(
+  apartmentId: string,
+  tenantId: string,
+): Promise<PendingMaintenanceFee[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("maintenance_request")
+    .select("title, fee_amount")
+    .eq("apartment_id", apartmentId)
+    .eq("tenant_id", tenantId)
+    .eq("fee_status", "pending");
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as { title: string; fee_amount: number | null }[])
+    .filter((row) => (row.fee_amount ?? 0) > 0)
+    .map((row) => ({ title: row.title, amount: row.fee_amount ?? 0 }));
+}
+
+export async function fetchPendingMaintenanceFeesTotal(
+  apartmentId: string,
+  tenantId: string,
+): Promise<number> {
+  const fees = await fetchPendingMaintenanceFees(apartmentId, tenantId);
+  return fees.reduce((sum, fee) => sum + fee.amount, 0);
+}
+
 export async function fetchLatestMaintenanceRequest(
   apartmentId: string,
   tenantId: string,

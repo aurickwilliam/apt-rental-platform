@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
 import {
   CreditCard,
@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   House,
+  CalendarDays,
 } from "lucide-react";
 
 import { formatPesoDisplay } from "@repo/utils";
@@ -134,6 +135,33 @@ export default function MyRental() {
   const today = useMemo(() => new Date(), []);
   const headerDate = useMemo(() => formatHeaderDate(today), [today]);
 
+  // Pending maintenance fees ride on top of the next rent (fee_status 'pending').
+  const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
+  const apartmentIdForFees = tenancy?.apartment.id ?? null;
+  useEffect(() => {
+    if (!apartmentIdForFees) return;
+    const apartmentId = apartmentIdForFees;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      void (async () => {
+        try {
+          const { getTenantContext } = await import("@/service/favoritesService");
+          const context = await getTenantContext();
+          if (!context.tenantId || cancelled) return;
+          const { fetchPendingMaintenanceFees } = await import("@/service/maintenanceService");
+          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId);
+          if (!cancelled) setPendingFees(fees);
+        } catch {
+          // Fees are additive info only — a failed lookup must not break the page.
+        }
+      })();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [apartmentIdForFees]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -182,6 +210,9 @@ export default function MyRental() {
     : formatMonthYear(today.toISOString());
 
   const amountDue = currentPayment?.amount ?? monthlyRent;
+
+  const pendingFeesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
+  const nextPeriodTotal = monthlyRent + pendingFeesTotal;
 
   const currentPeriodStart = currentPayment?.period_start ?? null;
   // Next period after the paid one (due on the 5th, same convention as billing).
@@ -287,20 +318,67 @@ export default function MyRental() {
                   <p className="text-xs text-zinc-400 uppercase tracking-wider">
                     Payment due
                   </p>
-                  <div className="flex items-end gap-2 mt-2">
-                    <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-                      Already Paid
-                    </p>
-                  </div>
-                  {nextPeriod && (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                      Next payment · {formatMonthYear(nextPeriod.periodStart)} — due {formatShortDate(nextPeriod.dueDate)}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <StatusChip variant="success">Paid</StatusChip>
-                    <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
-                    <StatusChip variant="neutral">Monthly rent</StatusChip>
+                  <div className="grid gap-3 sm:grid-cols-2 mt-3">
+                    <div className="rounded-2xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30 p-4 flex flex-col gap-2">
+                      <p className="text-xs font-nunito font-semibold text-green-700 dark:text-green-300 uppercase tracking-wider flex items-center gap-2">
+                        <span className="rounded-full bg-green-600 p-1 text-white">
+                          <CheckCircle2 size={14} />
+                        </span>
+                        Already Paid
+                      </p>
+                      <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {paymentPeriodLabel}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Payment received for this month.
+                      </p>
+                    </div>
+                    {nextPeriod && (
+                      <div className="rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-2">
+                        <p className="text-xs font-nunito font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                          <span className="rounded-full bg-primary/10 p-1 text-primary">
+                            <CalendarDays size={14} />
+                          </span>
+                          Next Payment
+                        </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                              {formatMonthYear(nextPeriod.periodStart)}
+                            </p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              Due {formatShortDate(nextPeriod.dueDate)}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0 sm:border-l sm:border-blue-100 sm:dark:border-blue-900/40 sm:pl-3">
+                            <p className="text-2xl font-nunito font-bold text-primary">
+                              {formatPesoDisplay(nextPeriodTotal)}
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Total due</p>
+                          </div>
+                        </div>
+                        <div className="rounded-xl bg-white/70 dark:bg-zinc-900/50 px-3 py-2 grid gap-2 sm:grid-cols-2">
+                          <div className="min-w-0 sm:border-r sm:border-zinc-200 sm:dark:border-zinc-800 sm:pr-3">
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Monthly rent</p>
+                            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+                              {formatPesoDisplay(monthlyRent)}
+                            </p>
+                          </div>
+                          {pendingFeesTotal > 0 && (
+                            <div className="min-w-0">
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Additional fee</p>
+                              <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                {formatPesoDisplay(pendingFees[0].amount)}{" "}
+                                <span className="font-normal text-zinc-500">· {pendingFees[0].title}</span>
+                                {pendingFees.length > 1 && (
+                                  <span className="font-normal text-zinc-400"> +{pendingFees.length - 1} more</span>
+                                )}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
