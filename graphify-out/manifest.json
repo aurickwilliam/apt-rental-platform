@@ -2670,8 +2670,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1790518210.0208158,
-    "ast_hash": "22624ab097e30d1e9dc4ee1dc1dfb443",
+    "mtime": 1790521583.8249955,
+    "ast_hash": "d7141cdf6966ae5fd43ddd1ceaf03f5d",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -4525,8 +4525,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
-    "mtime": 1790520215.2794054,
-    "ast_hash": "080d7af9153baf1470599118aafde249",
+    "mtime": 1790521676.2874246,
+    "ast_hash": "863acc73aec5dec2b4d0ec5e413c9e10",
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
@@ -5020,8 +5020,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DateRangeControl.tsx": {
-    "mtime": 1790519617.4279366,
-    "ast_hash": "63b0d906d80ed883e439d3400bfbf94a",
+    "mtime": 1790521915.634975,
+    "ast_hash": "66518b19c113881b27f190ade518164e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/VerificationQueue.tsx": {
@@ -5030,13 +5030,28 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/lib/get-dashboard-data.ts": {
-    "mtime": 1790519617.428403,
-    "ast_hash": "82ff070e98665ce040d871b016adf693",
+    "mtime": 1790521613.279616,
+    "ast_hash": "d311e75b0c0097bb4d004ee19192cd2a",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/PlatformTotalCard.tsx": {
-    "mtime": 1790520215.2790642,
-    "ast_hash": "cf4fe7258c996d84837c88d45753dd86",
+    "mtime": 1790520669.7375839,
+    "ast_hash": "1bc1b1f790c6c97b146e19f2c5a02949",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/dashboard/components/DashboardTrends.tsx": {
+    "mtime": 1790521924.8864303,
+    "ast_hash": "71b788e4e97818d9c905c93947cc8a77",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260927150549_admin_dashboard_trends_rpc.sql": {
+    "mtime": 1790521926.4127762,
+    "ast_hash": "24dc01c32809e5062f48a5ef530e28a4",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260927151112_harden_admin_dashboard_trends_rpc.sql": {
+    "mtime": 1790521877.890524,
+    "ast_hash": "0a4e1be3787b891c853fc9355306ac96",
     "semantic_hash": ""
   }
 }

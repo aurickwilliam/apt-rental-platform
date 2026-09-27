@@ -23,7 +23,7 @@ export default function PlatformTotalCard({
       className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <Card
-        className={`min-h-28 rounded-3xl border p-4 shadow-none transition-colors ${primary ? "border-primary bg-primary text-white group-hover:bg-primary/90" : "border-border bg-card group-hover:border-primary"}`}
+        className={`h-28 rounded-3xl border p-4 shadow-none transition-colors ${primary ? "border-primary bg-primary text-white group-hover:bg-primary/90" : "border-border bg-card group-hover:border-primary"}`}
       >
         <Card.Content className="flex h-full flex-col justify-between gap-3 p-0">
           <span className="flex items-center gap-3">

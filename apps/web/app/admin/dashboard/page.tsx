@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { requireAdmin } from "../_lib/require-admin";
-import DateRangeControl from "./components/DateRangeControl";
+import DashboardTrends from "./components/DashboardTrends";
+import PlatformTotalCard from "./components/PlatformTotalCard";
 import VerificationQueue from "./components/VerificationQueue";
-import { QueueChart, TrendChart } from "./components/DashboardCharts";
+import { QueueChart } from "./components/DashboardCharts";
 import { getDashboardData, type RecentItem } from "./lib/get-dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -203,7 +204,7 @@ export default async function AdminDashboardPage({
 
   return (
     <div className="w-full min-w-0 space-y-6 p-4 font-inter sm:p-6 xl:p-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header>
         <div>
           <p className="font-nunito text-sm font-bold text-primary">
             ADMIN OVERVIEW
@@ -215,9 +216,8 @@ export default async function AdminDashboardPage({
             Here&apos;s what needs your attention today.
           </p>
         </div>
-        <DateRangeControl from={from} to={to} today={today} />
       </header>
-      
+
       {custom && !validRange ? (
         <p
           role="alert"
@@ -240,28 +240,15 @@ export default async function AdminDashboardPage({
         aria-label="Current platform totals"
         className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
       >
-        {stats.map(({ label, value, href, icon: Icon, primary }) => (
-          <Link
+        {stats.map(({ label, value, href, icon, primary }) => (
+          <PlatformTotalCard
             key={label}
+            label={label}
+            value={value}
             href={href}
-            className={`group flex min-h-36 flex-col justify-between rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${primary ? "border-primary bg-primary text-white hover:bg-primary/90" : "border-border bg-card hover:border-primary"}`}
-          >
-            <span className="flex items-center gap-3">
-              <span
-                className={`flex size-9 items-center justify-center rounded-lg ${primary ? "bg-white/20" : "bg-primary/10 text-primary"}`}
-              >
-                <Icon size={18} aria-hidden="true" />
-              </span>
-              <span
-                className={`font-nunito text-sm font-semibold ${primary ? "text-white" : "text-muted-foreground"}`}
-              >
-                {label}
-              </span>
-            </span>
-            <span className="font-nunito text-3xl font-bold tabular-nums">
-              {value === null ? "—" : value.toLocaleString("en-PH")}
-            </span>
-          </Link>
+            icon={icon}
+            primary={primary}
+          />
         ))}
       </section>
 
@@ -286,37 +273,12 @@ export default async function AdminDashboardPage({
         </section>
       </div>
 
-      <section aria-labelledby="trends-heading">
-        <div className="mb-3">
-          <h2 id="trends-heading" className="font-nunito text-xl font-bold">
-            Platform trends
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Activity in the selected period · Philippine time
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          <TrendChart
-            data={data.trends}
-            dataKey="users"
-            title="New users"
-            description="Accounts registered"
-          />
-          <TrendChart
-            data={data.trends}
-            dataKey="apartments"
-            title="New apartments"
-            description="Listings created"
-            variant="bar"
-          />
-          <TrendChart
-            data={data.trends}
-            dataKey="reviews"
-            title="Reviews completed"
-            description="User and apartment decisions"
-          />
-        </div>
-      </section>
+      <DashboardTrends
+        from={from}
+        to={to}
+        today={today}
+        initialTrends={data.trends}
+      />
 
       <section aria-labelledby="recent-heading">
         <h2 id="recent-heading" className="mb-3 font-nunito text-xl font-bold">

@@ -43,12 +43,6 @@ export interface DashboardData {
 
 const QUEUE_LIMIT = 8;
 const RECENT_LIMIT = 5;
-const TREND_BUCKETS = 6;
-const DAY_MS = 86_400_000;
-
-function dateTime(date: Date): string {
-  return `${date.toISOString().slice(0, 10)}T00:00:00+08:00`;
-}
 
 function fullName(
   profile:
@@ -204,71 +198,9 @@ export async function getDashboardData(
     }),
   ].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 
-  const start = new Date(`${from}T00:00:00.000Z`);
-  const end = new Date(`${to}T00:00:00.000Z`);
-  const dayCount = Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1;
-  const bucketCount = Math.min(TREND_BUCKETS, dayCount);
-  const buckets = Array.from({ length: bucketCount }, (_, index) => {
-    const first = new Date(
-      start.getTime() + Math.floor((index * dayCount) / bucketCount) * DAY_MS,
-    );
-    const next = new Date(
-      start.getTime() +
-        Math.floor(((index + 1) * dayCount) / bucketCount) * DAY_MS,
-    );
-    return {
-      first,
-      next,
-      label: new Intl.DateTimeFormat("en-PH", {
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      }).format(first),
-    };
-  });
-
-  const chartResults = await Promise.all(
-    buckets.map(async ({ first, next, label }) => {
-      const lower = dateTime(first);
-      const upper = dateTime(next);
-      const [newUsers, newApartments, reviewedUsers, reviewedApartments] =
-        await Promise.all([
-          supabase
-            .from("users")
-            .select("id", { count: "exact", head: true })
-            .gte("created_at", lower)
-            .lt("created_at", upper),
-          supabase
-            .from("apartments")
-            .select("id", { count: "exact", head: true })
-            .gte("created_at", lower)
-            .lt("created_at", upper),
-          supabase
-            .from("user_verifications")
-            .select("id", { count: "exact", head: true })
-            .in("status", ["approved", "rejected"])
-            .gte("reviewed_at", lower)
-            .lt("reviewed_at", upper),
-          supabase
-            .from("apartment_verifications")
-            .select("id", { count: "exact", head: true })
-            .in("status", ["approved", "rejected"])
-            .gte("reviewed_at", lower)
-            .lt("reviewed_at", upper),
-        ]);
-      return {
-        label,
-        users: newUsers.count ?? 0,
-        apartments: newApartments.count ?? 0,
-        reviews: (reviewedUsers.count ?? 0) + (reviewedApartments.count ?? 0),
-        error: [
-          newUsers,
-          newApartments,
-          reviewedUsers,
-          reviewedApartments,
-        ].some((result) => Boolean(result.error)),
-      };
-    }),
+  const { data: trendData, error: trendsError } = await supabase.rpc(
+    "get_admin_dashboard_trends",
+    { p_from: from, p_to: to },
   );
 
   const hasError = [
@@ -285,7 +217,7 @@ export async function getDashboardData(
     queueApartments,
     images,
   ].some((result) => Boolean(result.error));
-  const chartsError = chartResults.some((result) => result.error);
+  const chartsError = Boolean(trendsError);
   if (hasError || chartsError)
     console.error("Admin dashboard: some queries failed");
 
@@ -321,14 +253,7 @@ export async function getDashboardData(
       image: null,
       date: row.created_at,
     })),
-    trends: chartsError
-      ? []
-      : chartResults.map(({ label, users, apartments, reviews }) => ({
-          label,
-          users,
-          apartments,
-          reviews,
-        })),
+    trends: trendData ?? [],
     hasError,
     chartsError,
   };

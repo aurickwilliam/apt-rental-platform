@@ -13,12 +13,14 @@ interface DateRangeControlProps {
   from: string;
   to: string;
   today: string;
+  onRangeChange?: (from: string, to: string) => void;
 }
 
 export default function DateRangeControl({
   from,
   to,
   today,
+  onRangeChange,
 }: DateRangeControlProps) {
   const router = useRouter();
 
@@ -31,9 +33,13 @@ export default function DateRangeControl({
       maxValue={parseDate(today)}
       onChange={(range) => {
         if (range?.start && range.end) {
-          router.push(
-            `/admin/dashboard?from=${range.start.toString()}&to=${range.end.toString()}`,
-          );
+          const nextFrom = range.start.toString();
+          const nextTo = range.end.toString();
+          if (onRangeChange) {
+            onRangeChange(nextFrom, nextTo);
+            return;
+          }
+          router.push(`/admin/dashboard?from=${nextFrom}&to=${nextTo}`);
         }
       }}
     >
