@@ -104,9 +104,13 @@ export async function updateSession(request: NextRequest) {
   // If the user is signed in and trying to access auth routes,
   // redirect them to the home page
   if (user && authRoutes.some((route) => pathname.startsWith(route))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+    const { data: profile } = await supabase.from("users")
+      .select("id").eq("user_id", user.id).maybeSingle();
+    if (profile) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   // Role-based protection
@@ -125,7 +129,7 @@ export async function updateSession(request: NextRequest) {
 
     if (profileError || !ownRoutes) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/sign-in";
       return NextResponse.redirect(url);
     }
 

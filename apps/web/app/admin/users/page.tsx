@@ -26,7 +26,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
   let query = supabase
     .from("users")
     .select(
-      "id, first_name, last_name, email, role, account_status, created_at",
+      "id, first_name, last_name, email, role, account_status, is_suspended, created_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
@@ -115,6 +115,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
                   <th className="p-3">User</th>
                   <th className="p-3">Role</th>
                   <th className="p-3">Verification</th>
+                  <th className="p-3">Access</th>
                   <th className="p-3">
                     <span className="sr-only">Details</span>
                   </th>
@@ -133,6 +134,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
                       </td>
                       <td className="p-3 capitalize">{user.role}</td>
                       <td className="p-3 capitalize">{user.account_status}</td>
+                      <td className="p-3">{user.is_suspended ? "Suspended" : "Active"}</td>
                       <td className="p-3 text-right">
                         <Link
                           href={`/admin/users/${user.id}`}
@@ -146,7 +148,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
                 ) : (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="p-8 text-center text-muted-foreground"
                     >
                       No users match these filters.

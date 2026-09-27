@@ -10,6 +10,7 @@ interface PageProps {
     landlord?: string;
     verification?: string;
     status?: string;
+    visibility?: string;
     page?: string;
   }>;
 }
@@ -21,19 +22,22 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
     landlord = "",
     verification = "",
     status = "",
+    visibility = "",
     page: pageParam,
   } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const supabase = await createClient();
   let query = supabase
     .from("apartments")
-    .select("id, name, city, status, is_verified, monthly_rent", {
+    .select("id, name, city, status, is_verified, is_hidden_by_admin, monthly_rent", {
       count: "exact",
     })
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (verification === "verified") query = query.eq("is_verified", true);
   if (verification === "unverified") query = query.eq("is_verified", false);
+  if (visibility === "visible") query = query.eq("is_hidden_by_admin", false);
+  if (visibility === "hidden") query = query.eq("is_hidden_by_admin", true);
   if (
     ["available", "occupied", "under_maintenance", "unverified"].includes(
       status,
@@ -65,6 +69,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
     ...(landlord ? { landlord } : {}),
     ...(verification ? { verification } : {}),
     ...(status ? { status } : {}),
+    ...(visibility ? { visibility } : {}),
   });
   const hrefFor = (targetPage: number) =>
     `/admin/apartments?${new URLSearchParams({ ...Object.fromEntries(params), page: String(targetPage) })}`;
@@ -125,6 +130,12 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
           <option value="under_maintenance">Under maintenance</option>
           <option value="unverified">Unverified</option>
         </select>
+        <label className="sr-only" htmlFor="apartment-visibility">Visibility</label>
+        <select id="apartment-visibility" name="visibility" defaultValue={visibility} className="h-10 rounded-xl border border-border bg-card px-3 text-sm">
+          <option value="">All visibility</option>
+          <option value="visible">Visible</option>
+          <option value="hidden">Hidden</option>
+        </select>
         <button className="rounded-xl bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">
           Apply
         </button>
@@ -142,6 +153,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
                   <th className="p-3">Apartment</th>
                   <th className="p-3">Status</th>
                   <th className="p-3">Verification</th>
+                  <th className="p-3">Visibility</th>
                   <th className="p-3">
                     <span className="sr-only">Details</span>
                   </th>
@@ -161,6 +173,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
                       <td className="p-3">
                         {apartment.is_verified ? "Verified" : "Unverified"}
                       </td>
+                      <td className="p-3">{apartment.is_hidden_by_admin ? "Hidden by admin" : "Visible"}</td>
                       <td className="p-3 text-right">
                         <Link
                           href={`/admin/apartments/${apartment.id}`}
@@ -174,7 +187,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
                 ) : (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="p-8 text-center text-muted-foreground"
                     >
                       No apartments match these filters.

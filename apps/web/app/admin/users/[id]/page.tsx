@@ -2,20 +2,22 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../../_lib/require-admin";
+import OperationForm from "../../OperationForm";
+import { setUserAccess } from "../../actions/operations";
 
 export default async function AdminUserDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const [{ data: user }, { data: verifications }, { data: apartments }] =
     await Promise.all([
       supabase
         .from("users")
-        .select("id, first_name, last_name, email, role, account_status")
+        .select("id, first_name, last_name, email, role, account_status, is_suspended, suspended_at, suspension_reason")
         .eq("id", id)
         .single(),
       supabase
@@ -35,15 +37,12 @@ export default async function AdminUserDetailPage({
   const verificationIds = (verifications ?? []).map(
     (verification) => verification.id,
   );
-  const { data: activity } = verificationIds.length
-    ? await supabase
-        .from("admin_audit_logs")
-        .select("id, action, reason, created_at")
-        .eq("target_type", "user_verification")
-        .in("target_id", verificationIds)
-        .order("created_at", { ascending: false })
-        .limit(20)
-    : { data: [] };
+  const { data: activity } = await supabase
+    .from("admin_audit_logs")
+    .select("id, action, reason, created_at")
+    .or(`and(target_type.eq.user,target_id.eq.${id})${verificationIds.map((item) => `,and(target_type.eq.user_verification,target_id.eq.${item})`).join("")}`)
+    .order("created_at", { ascending: false })
+    .limit(20);
   const name =
     `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "User";
   return (
@@ -54,6 +53,22 @@ export default async function AdminUserDetailPage({
           {user.email} · {user.role} · {user.account_status}
         </p>
       </div>
+      {user.role !== "admin" && (
+        <section className="rounded-xl border border-border p-4">
+          <h2 className="font-nunito text-lg font-bold">Account access</h2>
+          <p className="mt-2 text-sm font-semibold">{user.is_suspended ? "Suspended" : "Active"}</p>
+          {user.is_suspended && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {user.suspension_reason} · {user.suspended_at && new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(user.suspended_at))}
+            </p>
+          )}
+          {user.id !== admin.id && (
+            <div className="mt-4">
+              <OperationForm id={user.id} decision={user.is_suspended ? "reactivate" : "suspend"} onSubmit={setUserAccess} />
+            </div>
+          )}
+        </section>
+      )}
       <section className="rounded-xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Verification history</h2>
         <ul className="mt-3 space-y-2 text-sm">
@@ -101,7 +116,7 @@ export default async function AdminUserDetailPage({
         </section>
       ) : null}
       <section className="rounded-xl border border-border p-4">
-        <h2 className="font-nunito text-lg font-bold">Review activity</h2>
+        <h2 className="font-nunito text-lg font-bold">Account and review activity</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {activity?.length ? (
             activity.map((event) => (

@@ -53,6 +53,8 @@ export default async function Home() {
       average_rating,
       apartment_images(url, is_cover)
     `)
+    .eq('is_hidden_by_admin', false)
+    .is('deleted_at', null)
     .limit(10)
     .order('created_at', { ascending: false });
 

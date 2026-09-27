@@ -14,6 +14,8 @@ export default async function ApplyPage({ params }: { params: Promise<{ apartmen
     `
     )
     .eq("id", apartmentId)
+    .eq("is_hidden_by_admin", false)
+    .is("deleted_at", null)
     .single();
 
   let landlord: { id: string; first_name: string | null; last_name: string | null; avatar_url: string | null } | null = null;

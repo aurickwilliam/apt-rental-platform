@@ -17,7 +17,9 @@ Every architectural claim in this document was verified against the repository a
 
 ## 1. System Overview
 
-APT is a rental management platform for the Philippine market (CAMANAVA area focus). It connects **tenants** (students and renters) with **landlords** (property owners): tenants browse listings, apply, visit, chat, pay rent, and file maintenance requests; landlords publish units, manage applications, visits, payments, and maintenance. An **admin** role exists only as a middleware guard and has no UI or feature implementation.
+APT is a rental management platform for the Philippine market (CAMANAVA area focus). It connects **tenants** (students and renters) with **landlords** (property owners): tenants browse listings, apply, visit, chat, pay rent, and file maintenance requests; landlords publish units, manage applications, visits, payments, and maintenance. The web admin portal reviews account/property verifications, moderates account access and listing visibility, and reports aggregate metrics. Admin promotion remains a trusted database-operator action.
+
+Admin operations run through server actions and constrained database functions, with the Auth ban/unban performed by a service-role Edge Function. Account suspension revokes refreshable sessions; restrictive table/storage RLS blocks data access from already-issued JWTs until expiry. Listing visibility is independent of apartment availability and deletion; tenant discovery filters hidden listings while owner/admin reads and existing tenancy records remain accessible. See `docs/plans/phase-2-admin-portal.md` for the rollout and acceptance matrix; Phase 2's migration and Edge Function require an approved production deployment.
 
 ```mermaid
 flowchart LR

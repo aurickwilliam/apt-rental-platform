@@ -58,6 +58,7 @@ export async function fetchApartmentsInBbox(bbox: BBox, limit = 100): Promise<Ma
     `,
     )
     .is('deleted_at', null)
+    .eq('is_hidden_by_admin', false)
     .in('status', ['available', 'unverified'])
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)

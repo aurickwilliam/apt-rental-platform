@@ -186,7 +186,11 @@ export type Database = {
           description: string
           floor_level: string | null
           furnished_type: string | null
+          hidden_at: string | null
+          hidden_by: string | null
+          hidden_reason: string | null
           id: string
+          is_hidden_by_admin: boolean
           is_verified: boolean
           landlord_id: string | null
           latitude: number | null
@@ -221,7 +225,11 @@ export type Database = {
           description: string
           floor_level?: string | null
           furnished_type?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
           id?: string
+          is_hidden_by_admin?: boolean
           is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
@@ -256,7 +264,11 @@ export type Database = {
           description?: string
           floor_level?: string | null
           furnished_type?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
           id?: string
+          is_hidden_by_admin?: boolean
           is_verified?: boolean
           landlord_id?: string | null
           latitude?: number | null
@@ -280,6 +292,13 @@ export type Database = {
           zip_code?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "apartments_hidden_by_fkey"
+            columns: ["hidden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "apartments_landlord_id_fkey1"
             columns: ["landlord_id"]
@@ -1019,6 +1038,7 @@ export type Database = {
           first_name: string | null
           gender: string | null
           id: string
+          is_suspended: boolean
           last_name: string | null
           middle_name: string | null
           mobile_number: string | null
@@ -1028,6 +1048,9 @@ export type Database = {
           role: string
           street_address: string | null
           suffix: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1043,6 +1066,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1052,6 +1076,9 @@ export type Database = {
           role?: string
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1067,6 +1094,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1076,10 +1104,21 @@ export type Database = {
           role?: string
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_verifications: {
         Row: {
@@ -1238,6 +1277,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_apartment_visibility: {
+        Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
+        Returns: undefined
+      }
+      admin_set_user_access: {
+        Args: { p_actor_auth_id: string; p_target_id: string; p_suspend: boolean; p_reason: string }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_data?: Json
@@ -1282,6 +1329,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_admin_analytics: { Args: { date_from: string; date_to: string }; Returns: Json }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
       get_search_sections: {
         Args: {

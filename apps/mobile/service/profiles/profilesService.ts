@@ -70,6 +70,7 @@ export async function fetchPublicLandlordProfile(
     )
     .eq("landlord_id", landlordId)
     .is("deleted_at", null)
+    .eq("is_hidden_by_admin", false)
     .order("created_at", { ascending: false });
 
   if (aptError) {
