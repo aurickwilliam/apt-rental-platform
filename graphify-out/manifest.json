@@ -1595,8 +1595,8 @@
     "semantic_hash": "d8c70193a130e28e5e1eaf2a72ae6e43"
   },
   "apps/web/app/(auth)/actions/complete-profile.ts": {
-    "mtime": 1790519234.5706184,
-    "ast_hash": "19ced97b754919b66a84f81ea57f8285",
+    "mtime": 1790519599.1901476,
+    "ast_hash": "d0702c3e332796757d1327a42e93851f",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/send-otp.ts": {
@@ -1625,8 +1625,8 @@
     "semantic_hash": "6c7d5bbcc1ba673410e4b817c71f01b7"
   },
   "apps/web/app/(auth)/complete-profile/page.tsx": {
-    "mtime": 1790519234.5704029,
-    "ast_hash": "fc239893c034fb607ccb15fd4b2ec978",
+    "mtime": 1790519599.1903157,
+    "ast_hash": "6e4e1ac98499bb4dfa6b2e5990f9811f",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/components/AuthContext.tsx": {
@@ -1650,8 +1650,8 @@
     "semantic_hash": "68318d5474428e886911419d6a560a0d"
   },
   "apps/web/app/(auth)/components/ThirdPartySignIn.tsx": {
-    "mtime": 1790519271.698622,
-    "ast_hash": "37591fdde9fb3c7da0b11a7e7fda3dff",
+    "mtime": 1790519599.190445,
+    "ast_hash": "3f28789ed002d1cd593a3351875332f3",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/sign-in/page.tsx": {
@@ -1855,8 +1855,8 @@
     "semantic_hash": "22cd5e24e26a28df6724b54ce0c32948"
   },
   "apps/web/app/auth/callback/route.ts": {
-    "mtime": 1790519234.569869,
-    "ast_hash": "bc41a8afdf708b48ebacafb9c3969470",
+    "mtime": 1790519599.190586,
+    "ast_hash": "b145fbc2b3fa211202dc46ba7ad84a2e",
     "semantic_hash": ""
   },
   "apps/web/app/auth/sign-out/route.ts": {
@@ -4525,8 +4525,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
-    "mtime": 1790519309.2634914,
-    "ast_hash": "e7ba1047886fad2d7fc3f1f0506be5b1",
+    "mtime": 1790520215.2794054,
+    "ast_hash": "080d7af9153baf1470599118aafde249",
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
@@ -5015,23 +5015,28 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DashboardCharts.tsx": {
-    "mtime": 1790518210.006307,
-    "ast_hash": "fe82def6b27ad27d70d0f2cca168885b",
+    "mtime": 1790519617.4277055,
+    "ast_hash": "612f4b3b861129cb5ec6e74cf03055c5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DateRangeControl.tsx": {
-    "mtime": 1790518210.006464,
-    "ast_hash": "5f19a1255f2fc5f69442bd40b9d591c2",
+    "mtime": 1790519617.4279366,
+    "ast_hash": "63b0d906d80ed883e439d3400bfbf94a",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/VerificationQueue.tsx": {
-    "mtime": 1790518210.006587,
-    "ast_hash": "015e99461112c837d755ebfb8c5f0782",
+    "mtime": 1790519617.4281685,
+    "ast_hash": "95196ccc4ad4f79df8fe9254639ebf0b",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/lib/get-dashboard-data.ts": {
-    "mtime": 1790519308.2494464,
+    "mtime": 1790519617.428403,
     "ast_hash": "82ff070e98665ce040d871b016adf693",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/dashboard/components/PlatformTotalCard.tsx": {
+    "mtime": 1790520215.2790642,
+    "ast_hash": "cf4fe7258c996d84837c88d45753dd86",
     "semantic_hash": ""
   }
 }

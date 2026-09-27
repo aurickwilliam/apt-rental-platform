@@ -217,6 +217,7 @@ export default async function AdminDashboardPage({
         </div>
         <DateRangeControl from={from} to={to} today={today} />
       </header>
+      
       {custom && !validRange ? (
         <p
           role="alert"
