@@ -5,7 +5,7 @@ import ThirdPartySignIn from "./ThirdPartySignIn";
 import AuthForm from "./AuthForm";
 import { AuthProvider, useAuth } from "./AuthContext";
 
-import { Separator, Button, Tabs } from "@heroui/react";
+import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
 import { ArrowLeft, UserRoundKey, Building } from "lucide-react";
 
@@ -15,9 +15,10 @@ interface AuthWrapperProps {
   type: 'sign-in' | 'sign-up';
   initialRole?: 'tenant' | 'landlord';
   portalError?: string | null;
+  showWelcomeNotice?: boolean;
 }
 
-function AuthContent({ portalError }: { portalError?: string | null }) {
+function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string | null; showWelcomeNotice?: boolean }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -48,6 +49,20 @@ function AuthContent({ portalError }: { portalError?: string | null }) {
             {description}
           </h3>
         </div>
+
+        {type === 'sign-up' && showWelcomeNotice && (
+          <Alert color="primary" className="mt-5">
+            <Alert.Content>
+              <Alert.Title>
+                Welcome!
+              </Alert.Title>
+              <Alert.Description>
+                Looks like this is your first time here — pick a role below
+                to get your account set up.
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+        )}
 
         <Tabs
           selectedKey={role}
@@ -111,10 +126,10 @@ function AuthContent({ portalError }: { portalError?: string | null }) {
   );
 }
 
-export default function AuthWrapper({ type, initialRole, portalError }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent portalError={portalError} />
+      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} />
     </AuthProvider>
   );
 }

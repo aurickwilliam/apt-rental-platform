@@ -2,12 +2,15 @@ import Image from "next/image";
 import AuthWrapper from "../components/AuthWrapper";
 
 interface SignUpPageProps {
-  searchParams: Promise<{ role?: string }>;
+  searchParams: Promise<{ role?: string; from?: string }>;
 }
 
 export default async function SignUp({ searchParams }: SignUpPageProps) {
-  const { role } = await searchParams;
+  const { role, from } = await searchParams;
   const initialRole = role === 'landlord' ? 'landlord' : 'tenant';
+  // First-time Google arrivals from sign-in (no profile yet) get a
+  // contextual welcome banner; normal visits never set this param.
+  const showWelcomeNotice = from === 'google-new';
 
   return (
     <main className="flex w-screen h-screen overflow-hidden">
@@ -16,6 +19,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
         <AuthWrapper
           type="sign-up"
           initialRole={initialRole}
+          showWelcomeNotice={showWelcomeNotice}
         />
       </div>
       
