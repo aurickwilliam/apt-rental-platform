@@ -3,6 +3,7 @@ import { createClient } from "@repo/supabase/server";
 export interface VerificationRequest {
   id: string;
   kind: "users" | "apartments";
+  role: string | null;
   name: string;
   detail: string;
   submittedAt: string;
@@ -141,7 +142,7 @@ export async function getDashboardData(
     userIds.length
       ? supabase
           .from("users")
-          .select("id, first_name, last_name, email, avatar_url")
+          .select("id, first_name, last_name, email, avatar_url, role")
           .in("id", userIds)
       : Promise.resolve({ data: [], error: null }),
     apartmentIds.length
@@ -179,6 +180,7 @@ export async function getDashboardData(
       return {
         id: row.id,
         kind: "users" as const,
+        role: profile?.role ?? null,
         name: fullName(profile, "Unknown applicant"),
         detail: profile?.email ?? "Account verification",
         submittedAt: row.submitted_at,
@@ -187,11 +189,13 @@ export async function getDashboardData(
     }),
     ...(apartmentQueue.data ?? []).map((row) => {
       const apartment = apartmentsById.get(row.apartment_id);
+      const landlord = profilesById.get(row.landlord_id);
       return {
         id: row.id,
         kind: "apartments" as const,
+        role: landlord?.role ?? null,
         name: apartment?.name ?? "Unknown apartment",
-        detail: fullName(profilesById.get(row.landlord_id), "Unknown landlord"),
+        detail: fullName(landlord, "Unknown landlord"),
         submittedAt: row.submitted_at,
         image: imageByApartment.get(row.apartment_id) ?? null,
       };

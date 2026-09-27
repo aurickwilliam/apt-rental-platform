@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Avatar, Chip, Table, Tabs } from "@heroui/react";
 import { Building2, ChevronRight } from "lucide-react";
 import type { VerificationRequest } from "../lib/get-dashboard-data";
@@ -45,6 +46,7 @@ function RequestImage({ request }: { request: VerificationRequest }) {
 export default function VerificationQueue({
   requests,
 }: VerificationQueueProps) {
+  const router = useRouter();
   const [filter, setFilter] = useState<"all" | "users" | "apartments">("all");
   const filtered = requests
     .filter((request) => filter === "all" || request.kind === filter)
@@ -54,6 +56,11 @@ export default function VerificationQueue({
       dateStyle: "medium",
       timeZone: "Asia/Manila",
     }).format(new Date(value));
+  const role = (value: string | null) =>
+    value ? `${value[0].toUpperCase()}${value.slice(1)}` : "—";
+  const reviewRequest = (request: VerificationRequest) => {
+    router.push(`/admin/verification/${request.kind}/${request.id}`);
+  };
 
   return (
     <section
@@ -115,22 +122,31 @@ export default function VerificationQueue({
           <div className="mt-4 hidden min-h-0 flex-1 md:flex">
             <Table className="h-full w-full">
               <Table.ScrollContainer className="h-full">
-                <Table.Content aria-label="Latest pending verification requests">
+                <Table.Content
+                  aria-label="Latest pending verification requests"
+                  onRowAction={(key) => {
+                    const request = filtered.find(
+                      (item) => `${item.kind}-${item.id}` === String(key),
+                    );
+                    if (request) {
+                      reviewRequest(request);
+                    }
+                  }}
+                >
                   <Table.Header className="text-foreground! [&_th]:text-foreground!">
                     <Table.Column isRowHeader>Request</Table.Column>
                     <Table.Column>Type</Table.Column>
+                    <Table.Column>Role</Table.Column>
                     <Table.Column>Submitted</Table.Column>
                     <Table.Column>Status</Table.Column>
-                    <Table.Column>
-                      <span className="sr-only">Action</span>
-                    </Table.Column>
                   </Table.Header>
                   <Table.Body>
                     {filtered.map((request) => (
                       <Table.Row
                         key={`${request.kind}-${request.id}`}
                         id={`${request.kind}-${request.id}`}
-                        className="cursor-pointer hover:bg-primary/10"
+                        onClick={() => reviewRequest(request)}
+                        className="cursor-pointer hover:bg-primary/10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-primary"
                       >
                         <Table.Cell>
                           <div className="flex items-center gap-3">
@@ -148,6 +164,9 @@ export default function VerificationQueue({
                         <Table.Cell className="text-sm">
                           {request.kind === "users" ? "User" : "Apartment"}
                         </Table.Cell>
+                        <Table.Cell className="text-sm">
+                          {role(request.role)}
+                        </Table.Cell>
                         <Table.Cell className="whitespace-nowrap text-sm text-muted-foreground">
                           {date(request.submittedAt)}
                         </Table.Cell>
@@ -155,14 +174,6 @@ export default function VerificationQueue({
                           <Chip size="sm" variant="soft" color="warning">
                             Pending
                           </Chip>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Link
-                            href={`/admin/verification/${request.kind}/${request.id}`}
-                            className="font-nunito text-sm font-bold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            Review
-                          </Link>
                         </Table.Cell>
                       </Table.Row>
                     ))}
