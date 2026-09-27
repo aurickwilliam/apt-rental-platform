@@ -40,7 +40,7 @@ export function useGoogleAuth() {
       const userId = data.session.user.id;
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .select("role, roles, mobile_number")
+        .select("roles, mobile_number")
         .eq("user_id", userId)
         .single();
 
@@ -52,19 +52,19 @@ export function useGoogleAuth() {
         return;
       }
 
-      if (profile.role === "admin") {
+      if ((profile.roles ?? []).includes("admin")) {
         await supabase.auth.signOut();
         setError("Admin accounts are available on the web portal only.");
         setLoading(false);
         return;
       }
 
-      // Set role
-      let role = profile.role;
+      // Set role (primary)
+      let role = profile.roles?.[0] ?? "tenant";
 
       // Check if this is a new user
       // Only incomplete Google profiles may choose a tenant/landlord role.
-      if (!profile.mobile_number && profile.role !== "admin") {
+      if (!profile.mobile_number && !(profile.roles ?? []).includes("admin")) {
         const { error: roleError } = await supabase.rpc("set_onboarding_role", {
           requested_role: userSide,
         });

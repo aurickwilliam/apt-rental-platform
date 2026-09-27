@@ -133,7 +133,7 @@ export default function SignIn() {
       // Fetch roles from public.users using the auth user id
       const { data: userProfile, error: profileError } = await supabase
         .from("users")
-        .select("role, roles")
+        .select("roles")
         .eq("user_id", authData.user!.id)
         .single();
 

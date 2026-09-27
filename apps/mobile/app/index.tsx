@@ -24,14 +24,12 @@ export default function Index() {
     const redirectByRole = async (userId: string) => {
       const { data: userProfile } = await supabase
         .from("users")
-        .select("role, roles")
+        .select("roles")
         .eq("user_id", userId)
         .single();
 
-      // Multi-role: boot into the primary role's portal (roles[0] mirrors
-      // the legacy role, so single-role accounts behave exactly as before).
-      const primaryRole =
-        userProfile?.roles?.[0] ?? userProfile?.role ?? null;
+      // Multi-role: boot into the primary role's portal (roles[0]).
+      const primaryRole = userProfile?.roles?.[0] ?? null;
 
       if (primaryRole === "landlord") {
         router.replace("/(tabs)/(landlord)/dashboard");

@@ -1045,7 +1045,6 @@ export type Database = {
           postal_code: number | null
           preferences: Json | null
           province: string | null
-          role: string
           roles: string[]
           street_address: string | null
           suffix: string | null
@@ -1074,7 +1073,6 @@ export type Database = {
           postal_code?: number | null
           preferences?: Json | null
           province?: string | null
-          role?: string
           roles?: string[]
           street_address?: string | null
           suffix?: string | null
@@ -1103,7 +1101,6 @@ export type Database = {
           postal_code?: number | null
           preferences?: Json | null
           province?: string | null
-          role?: string
           roles?: string[]
           street_address?: string | null
           suffix?: string | null

@@ -15,7 +15,7 @@ export default function TabsLayout() {
   // Multi-role: the account may enter through any portal it holds.
   // Routing preference is the primary role (roles[0]); the switcher UI
   // navigates cross-portal explicitly. Single-role parity is preserved.
-  const heldRoles: string[] = profile?.roles ?? (profile?.role ? [profile.role] : []);
+  const heldRoles: string[] = profile?.roles ?? [];
   const hasAppAccess = heldRoles.includes('tenant') || heldRoles.includes('landlord');
   const primaryRole = heldRoles[0] ?? null;
 
