@@ -1046,6 +1046,7 @@ export type Database = {
           preferences: Json | null
           province: string | null
           role: string
+          roles: string[]
           street_address: string | null
           suffix: string | null
           suspended_at: string | null
@@ -1074,6 +1075,7 @@ export type Database = {
           preferences?: Json | null
           province?: string | null
           role?: string
+          roles?: string[]
           street_address?: string | null
           suffix?: string | null
           suspended_at?: string | null
@@ -1102,6 +1104,7 @@ export type Database = {
           preferences?: Json | null
           province?: string | null
           role?: string
+          roles?: string[]
           street_address?: string | null
           suffix?: string | null
           suspended_at?: string | null
