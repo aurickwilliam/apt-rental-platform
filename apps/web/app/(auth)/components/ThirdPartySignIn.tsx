@@ -49,16 +49,21 @@ export default function ThirdPartySignIn() {
           // Check if profile is complete
           const { data: profile } = await supabase
             .from("users")
-            .select("mobile_number, role")
+            .select("mobile_number, role, account_status")
             .eq("user_id", session.user.id)
             .single();
 
-           if (profile?.role === "admin") {
-             window.location.href = "/admin/dashboard";
-             return;
-           }
+          if (!profile) {
+            setError("We could not load your account profile. Please try again.");
+            return;
+          }
 
-           if (!profile?.mobile_number) {
+          if (profile.role === "admin") {
+            window.location.href = "/admin/dashboard";
+            return;
+          }
+
+          if (!profile.mobile_number && profile.account_status === "unverified") {
             window.location.href = `/complete-profile?role=${role}`;
             return;
           }

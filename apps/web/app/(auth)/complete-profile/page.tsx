@@ -31,12 +31,15 @@ export default async function CompleteProfilePage({
   // If already complete, skip this page
   const { data: profile } = await supabase
     .from("users")
-    .select("mobile_number, first_name, last_name, email, role")
+    .select("mobile_number, first_name, last_name, email, role, account_status")
     .eq("user_id", user.id)
     .single();
 
   if (profile?.role === "admin") redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
+  if (profile?.account_status !== "unverified") {
+    redirect(profile?.role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
+  }
 
   const profileRole = profile?.role === "landlord" ? "landlord" : "tenant";
   const effectiveRole = role ?? profileRole;

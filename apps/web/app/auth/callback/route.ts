@@ -27,12 +27,17 @@ export async function GET(request: Request) {
       if (user) {
         const { data: profile } = await supabase
           .from("users")
-          .select("mobile_number, role")
+          .select("mobile_number, role, account_status")
           .eq("user_id", user.id)
           .single();
         profileRole = profile?.role ?? null;
+        const isInitialGoogleOnboarding =
+          isOAuth &&
+          profile?.role !== "admin" &&
+          !profile?.mobile_number &&
+          profile?.account_status === "unverified";
 
-        if (isOAuth && role && profile && !profile.mobile_number && profile.role !== "admin") {
+        if (isInitialGoogleOnboarding && role && profileRole !== role) {
           const { error: roleError } = await supabase.rpc("set_onboarding_role", { requested_role: role });
           if (roleError) {
             console.error("Could not set OAuth onboarding role", roleError);
@@ -42,9 +47,9 @@ export async function GET(request: Request) {
           profileRole = role;
         }
 
-        if (!isPopup && isOAuth && profileRole !== "admin" && !profile?.mobile_number) {
+        if (!isPopup && isInitialGoogleOnboarding) {
           return NextResponse.redirect(
-            `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
+            `${origin}/complete-profile${profileRole ? `?role=${profileRole}` : ""}`,
           );
         }
       }
