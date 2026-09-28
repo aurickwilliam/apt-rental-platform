@@ -75,7 +75,7 @@ export function useRentalPreferencesForm() {
     return parsePreferences(profile.preferences);
   }, [profile?.preferences]);
 
-  const isTenant = profile?.role === "tenant";
+  const isTenant = profile?.roles.includes("tenant") ?? false;
 
   const initialState: TenantPreferences = {
     selectedCities: [],
@@ -273,7 +273,7 @@ export function useUserPreferences() {
     return parsePreferences(profile.preferences);
   }, [profile?.preferences]);
 
-  const isTenant = profile?.role === "tenant";
+  const isTenant = profile?.roles.includes("tenant") ?? false;
   const hasPrefs = isTenant && hasPersonalization(parsedPrefs);
   const personalizedCity = parsedPrefs?.selectedCities[0] ?? "CAMANAVA";
   const extraCitiesCount = Math.max(0, (parsedPrefs?.selectedCities.length ?? 0) - 1);
