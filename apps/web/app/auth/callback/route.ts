@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@repo/supabase/server";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
+
+interface UserRolesProfile { mobile_number: string | null; roles: string[] }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -23,16 +26,29 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
       const isOAuth = user?.app_metadata?.provider === "google";
       let profileRole: string | null = null;
+      let selectedPortal: "tenant" | "landlord" | null = null;
 
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from("users")
-          .select("mobile_number, role")
+          .select("mobile_number, roles")
           .eq("user_id", user.id)
           .single();
-        profileRole = profile?.role ?? null;
+        const profile = profileData as unknown as UserRolesProfile | null;
+        if (profileError || !profile) {
+          console.error("Could not load OAuth profile", profileError);
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+        }
+        const isAdmin = profile?.roles.includes("admin") ?? false;
+        profileRole = isAdmin ? "admin" : null;
 
-        if (isOAuth && role && profile && !profile.mobile_number && profile.role !== "admin") {
+        if (!isAdmin && role && profile.mobile_number && !profile.roles.includes(role)) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/sign-in?error=role_mismatch`);
+        }
+
+        if (isOAuth && role && !profile.mobile_number && !isAdmin) {
           const { error: roleError } = await supabase.rpc("set_onboarding_role", { requested_role: role });
           if (roleError) {
             console.error("Could not set OAuth onboarding role", roleError);
@@ -42,7 +58,9 @@ export async function GET(request: Request) {
           profileRole = role;
         }
 
-        if (!isPopup && isOAuth && profileRole !== "admin" && !profile?.mobile_number) {
+        if (!isAdmin && role && profile.roles.includes(role)) selectedPortal = role;
+
+        if (!isPopup && isOAuth && !isAdmin && !profile.mobile_number) {
           return NextResponse.redirect(
             `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
           );
@@ -63,13 +81,17 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      const destination = isLocalEnv || !forwardedHost
+        ? `${origin}${next}`
+        : `https://${forwardedHost}${next}`;
+      const response = NextResponse.redirect(destination);
+      if (selectedPortal) {
+        response.cookies.set(PORTAL_COOKIE, selectedPortal, {
+          path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 30,
+        });
       }
+      return response;
     }
   }
 

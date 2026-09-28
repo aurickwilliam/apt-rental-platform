@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
+
+interface UserRolesProfile { mobile_number: string | null; roles: string[] }
 
 export default function ThirdPartySignIn() {
   const { role, type } = useAuth();
@@ -47,26 +50,39 @@ export default function ThirdPartySignIn() {
         } = await supabase.auth.getSession();
         if (session) {
           // Check if profile is complete
-          const { data: profile } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from("users")
-            .select("mobile_number, role")
+            .select("mobile_number, roles")
             .eq("user_id", session.user.id)
             .single();
+          const profile = profileData as unknown as UserRolesProfile | null;
 
-           if (profile?.role === "admin") {
-             window.location.href = "/admin/dashboard";
-             return;
-           }
+          if (profileError || !profile) {
+            console.error("Could not load Google sign-in profile", profileError);
+            setError("Could not load your profile. Please try again.");
+            return;
+          }
 
-           if (!profile?.mobile_number) {
+          if (profile?.roles.includes("admin")) {
+            window.location.href = "/admin/dashboard";
+            return;
+          }
+
+          if (!profile.mobile_number) {
             window.location.href = `/complete-profile?role=${role}`;
             return;
           }
 
-          window.location.href =
-            profile.role === "landlord"
-              ? "/landlord/dashboard"
-              : "/tenant/my-rental";
+          if (!profile.roles.includes(role)) {
+            setError(`This account is not registered as a ${role}.`);
+            await supabase.auth.signOut();
+            return;
+          }
+
+          document.cookie = `${PORTAL_COOKIE}=${role}; Path=/; SameSite=Lax; Max-Age=2592000${location.protocol === "https:" ? "; Secure" : ""}`;
+          window.location.href = role === "landlord"
+            ? "/landlord/dashboard"
+            : "/tenant/my-rental";
         }
       }
     }, 500);

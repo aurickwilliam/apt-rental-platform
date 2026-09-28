@@ -5,6 +5,14 @@ import { createClient } from "@repo/supabase/server";
 
 import CompleteProfileForm from "./components/CompleteProfileForm";
 
+interface UserRolesProfile {
+  mobile_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  roles: string[];
+}
+
 type CompleteProfilePageProps = {
   searchParams: Promise<{
     role?: string;
@@ -29,16 +37,19 @@ export default async function CompleteProfilePage({
   if (!user) redirect("/sign-in");
 
   // If already complete, skip this page
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("users")
-    .select("mobile_number, first_name, last_name, email, role")
+    .select("mobile_number, first_name, last_name, email, roles")
     .eq("user_id", user.id)
     .single();
+  const profile = profileData as unknown as UserRolesProfile | null;
 
-  if (profile?.role === "admin") redirect("/admin/dashboard");
+  if (profile?.roles.includes("admin")) redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
 
-  const profileRole = profile?.role === "landlord" ? "landlord" : "tenant";
+  const profileRole = profile?.roles.includes("landlord")
+    ? "landlord"
+    : "tenant";
   const effectiveRole = role ?? profileRole;
 
   return (

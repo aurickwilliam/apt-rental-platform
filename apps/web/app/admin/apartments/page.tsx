@@ -49,7 +49,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
     const { data: landlords } = await supabase
       .from("users")
       .select("id")
-      .eq("role", "landlord")
+      .filter("roles", "cs", "{landlord}")
       .or(
         `first_name.ilike.%${landlord.trim()}%,last_name.ilike.%${landlord.trim()}%,email.ilike.%${landlord.trim()}%`,
       )

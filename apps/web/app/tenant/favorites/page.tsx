@@ -15,11 +15,11 @@ export default async function FavoritesPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id, role")
+    .select("id, roles")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!profile || profile.role !== "tenant") {
+  if (!(profile as unknown as { roles: string[] } | null)?.roles.includes("tenant")) {
     redirect("/browse");
   }
 

@@ -32,6 +32,12 @@ export function useSubmitVisitRequest() {
       notes,
     } = payload;
 
+    if (landlordId === profile.id) {
+      const message = "You cannot request a visit to your own property.";
+      setError(message);
+      return { success: false };
+    }
+
     // Convert to 24h time for DB (time without time zone column)
     const hourNum = parseInt(hour, 10);
     const hour24 =

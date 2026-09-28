@@ -1,11 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 export interface SignInFormState {
   error: string | null;
 }
+
+interface UserRolesProfile { roles: string[] }
 
 export async function signIn(
   _prevState: SignInFormState,
@@ -46,17 +50,24 @@ export async function signIn(
     return { error: "Could not verify your account. Please try again." };
   }
 
-  const { data: userData } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("users")
-    .select("role")
+    .select("roles")
     .eq("user_id", user.id)
     .single();
+  const profile = profileData as unknown as UserRolesProfile | null;
 
-  if (userData?.role === "admin") {
+  if (profile?.roles.includes("admin")) {
     redirect("/admin/dashboard");
   }
 
-  if (!userData || userData.role !== role) {
+  if (profileError || !profile) {
+    console.error("Could not load sign-in profile", profileError);
+    await supabase.auth.signOut();
+    return { error: "Could not load your profile. Please try again." };
+  }
+
+  if ((role !== "tenant" && role !== "landlord") || !profile.roles.includes(role)) {
     await supabase.auth.signOut();
     return {
       error:
@@ -66,8 +77,10 @@ export async function signIn(
     };
   }
 
+  (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
+
   // Redirect based on role
-  if (userData.role === "landlord") {
+  if (role === "landlord") {
     redirect("/landlord/dashboard");
   } else {
     redirect("/tenant/my-rental");

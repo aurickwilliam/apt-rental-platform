@@ -19,6 +19,15 @@ export interface RecentItem {
   date: string;
 }
 
+interface ProfileWithRoles {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  roles: string[];
+}
+
 export interface TrendPoint {
   label: string;
   users: number;
@@ -142,7 +151,7 @@ export async function getDashboardData(
     userIds.length
       ? supabase
           .from("users")
-          .select("id, first_name, last_name, email, avatar_url, role")
+          .select("id, first_name, last_name, email, avatar_url, roles")
           .in("id", userIds)
       : Promise.resolve({ data: [], error: null }),
     apartmentIds.length
@@ -162,7 +171,10 @@ export async function getDashboardData(
   ]);
 
   const profilesById = new Map(
-    (profiles.data ?? []).map((profile) => [profile.id, profile]),
+    ((profiles.data ?? []) as unknown as ProfileWithRoles[]).map((profile) => [
+      profile.id,
+      profile,
+    ]),
   );
   const apartmentsById = new Map(
     (queueApartments.data ?? []).map((apartment) => [apartment.id, apartment]),
@@ -180,7 +192,7 @@ export async function getDashboardData(
       return {
         id: row.id,
         kind: "users" as const,
-        role: profile?.role ?? null,
+        role: profile?.roles.join(", ") ?? null,
         name: fullName(profile, "Unknown applicant"),
         detail: profile?.email ?? "Account verification",
         submittedAt: row.submitted_at,
@@ -193,7 +205,7 @@ export async function getDashboardData(
       return {
         id: row.id,
         kind: "apartments" as const,
-        role: landlord?.role ?? null,
+        role: landlord?.roles.join(", ") ?? null,
         name: apartment?.name ?? "Unknown apartment",
         detail: fullName(landlord, "Unknown landlord"),
         submittedAt: row.submitted_at,

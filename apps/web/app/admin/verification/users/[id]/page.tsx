@@ -24,7 +24,7 @@ export default async function UserVerificationReviewPage({
   if (!verification) notFound();
   const { data: user } = await supabase
     .from("users")
-    .select("first_name, last_name, email, role, account_status")
+    .select("first_name, last_name, email, account_status")
     .eq("id", verification.user_id)
     .single();
   const paths = [

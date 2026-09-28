@@ -1,11 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 export type CompleteProfileState = {
   error?: string;
 };
+
+interface UserRolesProfile { mobile_number: string | null; roles: string[] }
 
 function calculateAgeFromBirthDate(birthDateValue: string): number | null {
   const isoDate = birthDateValue?.slice(0, 10);
@@ -58,12 +62,18 @@ export async function completeProfile(
       ? requestedRole
       : "tenant";
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("users")
-    .select("role, mobile_number")
+    .select("roles, mobile_number")
     .eq("user_id", user.id)
     .single();
-  if (profileError || !profile || profile.role === "admin" || profile.mobile_number) {
+  const profile = profileData as unknown as UserRolesProfile | null;
+  if (
+    profileError ||
+    !profile ||
+    profile.roles.includes("admin") ||
+    profile.mobile_number
+  ) {
     return { error: "Profile setup is no longer available for this account." };
   }
   const postalCode = formData.get("postal_code")
@@ -117,5 +127,6 @@ export async function completeProfile(
 
   if (error) return { error: error.message };
 
+  (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
   redirect(role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
 }

@@ -3,6 +3,7 @@
 import { createClient } from "@repo/supabase/server";
 import { validateForm, calculateAgeFromBirthDate } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
+import type { Database } from "@repo/supabase";
 
 export interface SignUpFormState {
   error: string | null;
@@ -60,10 +61,11 @@ export async function signUp(
       return { error: "Session not found. Please verify your email again.", success: false };
     }
 
-    const { error: insertError } = await supabase.from("users").insert({
+    // Shared generated types still describe the legacy schema; production uses roles[].
+    const profileInsert = {
       user_id: userId,
       email: mapped.email,
-      role: requestedRole,
+      roles: [requestedRole],
       first_name: mapped.firstName,
       last_name: mapped.lastName,
       middle_name: mapped.middleName || null,
@@ -75,7 +77,8 @@ export async function signUp(
       city: mapped.city,
       province: mapped.stateProvince,
       postal_code: parsedPostalCode,
-    });
+    } as unknown as Database["public"]["Tables"]["users"]["Insert"];
+    const { error: insertError } = await supabase.from("users").insert(profileInsert);
 
     if (insertError) {
       if (insertError.code === "23505") {

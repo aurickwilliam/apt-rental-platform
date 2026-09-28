@@ -6,6 +6,7 @@ import { createClient } from "@repo/supabase/server";
 
 import ProfileAvatar from "@/app/components/profile/ProfileAvatar";
 import ProfileForm from "@/app/components/profile/ProfileForm";
+import type { ProfileInitial } from "@/app/components/profile/ProfileForm";
 
 function getInitials(firstName: string | null, lastName: string | null, email: string | null) {
   const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
@@ -28,13 +29,18 @@ export default async function LandlordProfilePage() {
 
   if (!user) redirect("/sign-in");
 
-  const { data: profile, error } = await supabase
+  const { data: profileData, error } = await supabase
     .from("users")
     .select(
-      "email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, role, account_status, avatar_url"
+      "email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url"
     )
     .eq("user_id", user.id)
     .maybeSingle();
+  const profile = profileData as unknown as (ProfileInitial & {
+    roles: string[];
+    account_status: string;
+    avatar_url: string | null;
+  }) | null;
 
   if (error) {
     return (
@@ -49,7 +55,7 @@ export default async function LandlordProfilePage() {
     );
   }
 
-  if (!profile || profile.role !== "landlord") {
+  if (!profile?.roles.includes("landlord")) {
     redirect("/browse");
   }
 
