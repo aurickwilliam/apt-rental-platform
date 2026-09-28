@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
+import { isPendingOnboarding } from "@repo/supabase";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 interface UserRolesProfile {
@@ -83,12 +84,11 @@ export default function ThirdPartySignIn() {
               setError("Profile setup is unavailable for this account.");
               return;
             }
-            // Brand-new Google account with no explicit role (sign-in entry):
-            // do not default to a tenant form. Send them to sign-up to
-            // choose a role first (welcome banner); set_onboarding_role runs
-            // only after they pick a role on that flow.
-            if (type === "sign-in") {
-              await supabase.auth.signOut();
+            // Pending onboarding (placeholder tenant row, no role chosen yet)
+            // from the sign-in entry: keep the session and send them to the
+            // role picker on sign-up (welcome banner). set_onboarding_role
+            // runs only after they pick a role there.
+            if (type === "sign-in" && isPendingOnboarding(profile)) {
               window.location.href = "/sign-up?from=google-new";
               return;
             }

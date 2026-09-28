@@ -3,6 +3,7 @@
 import BottomLinks from "./BottomLinks";
 import ThirdPartySignIn from "./ThirdPartySignIn";
 import AuthForm from "./AuthForm";
+import RolePickerContinue from "./RolePickerContinue";
 import { AuthProvider, useAuth } from "./AuthContext";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
@@ -16,9 +17,10 @@ interface AuthWrapperProps {
   initialRole?: 'tenant' | 'landlord';
   portalError?: string | null;
   showWelcomeNotice?: boolean;
+  rolePickerMode?: boolean;
 }
 
-function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string | null; showWelcomeNotice?: boolean }) {
+function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -109,39 +111,49 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
         )}
 
 
-        {portalError && (
-          <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
-            <p className="text-sm text-red-600">{portalError}</p>
-          </div>
+        {/* Pending-onboarding role picker: the user is already logged in
+            with a placeholder profile. Show only the banner, the role
+            selector above, and Continue. The email/password form, Google
+            button, and footer links stay hidden. */}
+        {rolePickerMode ? (
+          <RolePickerContinue />
+        ) : (
+          <>
+            {portalError && (
+              <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
+                <p className="text-sm text-red-600">{portalError}</p>
+              </div>
+            )}
+
+            <AuthForm />
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mt-5">
+              <Separator className="flex-1" />
+              <p className="text-sm text-gray-400 whitespace-nowrap">or sign {type === "sign-in" ? "in" : "up"} with</p>
+              <Separator className="flex-1" />
+            </div>
+
+            <ThirdPartySignIn />
+
+            <div className="mt-auto flex flex-col items-center gap-5 pt-8">
+              <BottomLinks />
+
+              <div className="text-center text-sm text-default-500">
+                APT Rental Platform &copy; {new Date().getFullYear()}
+              </div>
+            </div>
+          </>
         )}
-
-        <AuthForm />
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 mt-5">
-          <Separator className="flex-1" />
-          <p className="text-sm text-gray-400 whitespace-nowrap">or sign {type === "sign-in" ? "in" : "up"} with</p>
-          <Separator className="flex-1" />
-        </div>
-
-        <ThirdPartySignIn />
-
-        <div className="mt-auto flex flex-col items-center gap-5 pt-8">
-          <BottomLinks />
-
-          <div className="text-center text-sm text-default-500">
-            APT Rental Platform &copy; {new Date().getFullYear()}
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
-export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} />
+      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} />
     </AuthProvider>
   );
 }

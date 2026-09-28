@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@repo/supabase/server";
+import { isPendingOnboarding } from "@repo/supabase";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 interface UserRolesProfile {
@@ -47,17 +48,14 @@ export async function GET(request: Request) {
         const isAdmin = profile.roles.includes("admin");
         profileRole = isAdmin ? "admin" : null;
         const isInitialGoogleOnboarding =
-          isOAuth &&
-          !isAdmin &&
-          !profile.mobile_number &&
-          profile.account_status === "unverified";
+          isOAuth && !isAdmin && isPendingOnboarding(profile);
 
         // Brand-new Google arrival with no explicit role (sign-in entry,
-        // non-popup): do not default to a tenant form. Sign out so the
-        // sign-up page stays reachable, then let them choose a role there
-        // (welcome banner). set_onboarding_role runs only after that choice.
+        // non-popup): do not default to a tenant form and do not sign out.
+        // Keep the session and send them to the role picker on sign-up
+        // (welcome banner). set_onboarding_role runs only after they pick
+        // a role there.
         if (!isPopup && isInitialGoogleOnboarding && !role) {
-          await supabase.auth.signOut();
           return NextResponse.redirect(`${origin}/sign-up?from=google-new`);
         }
 
