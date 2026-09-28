@@ -4555,8 +4555,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/page.tsx": {
-    "mtime": 1790574395.840247,
-    "ast_hash": "980c4eed785cd6bc7be53c5e4c9f9b4b",
+    "mtime": 1790575717.5643828,
+    "ast_hash": "953b4258ac631a3a1d85b4c6b2ec7a99",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/users/[id]/page.tsx": {
@@ -5125,8 +5125,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/UsersClient.tsx": {
-    "mtime": 1790574035.202563,
-    "ast_hash": "68a48f3258c43b929cb33d67feefde9e",
+    "mtime": 1790575836.7600515,
+    "ast_hash": "5236081f3016da8d0c27b6e0bd43a9d9",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/components/UserAvatar.tsx": {
@@ -5155,8 +5155,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/ApartmentsClient.tsx": {
-    "mtime": 1790574035.2025452,
-    "ast_hash": "95d34014bbb8f83b2a48df4c2758925b",
+    "mtime": 1790575854.3212066,
+    "ast_hash": "0a38795672be8257e93653ec3a15cc6e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/components/ApartmentCardList.tsx": {
@@ -5182,6 +5182,46 @@
   "apps/web/app/admin/verification/components/VerificationTabs.tsx": {
     "mtime": 1790575104.0143843,
     "ast_hash": "950d51eb7c91f197445911f49afa2ed2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationCardList.tsx": {
+    "mtime": 1790575302.4933655,
+    "ast_hash": "67ce608d7edd9bbea7f83a8f9c1c960b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationImage.tsx": {
+    "mtime": 1790575302.4931276,
+    "ast_hash": "a36a8cb47a2bdd802e39b3b2fd910d88",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationTable.tsx": {
+    "mtime": 1790575465.067708,
+    "ast_hash": "98891d91d23b637a2442b56d065a49f2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/lib/verification-display.ts": {
+    "mtime": 1790575302.4931245,
+    "ast_hash": "5f03ce7b6750bea86c840ae2960ffd4c",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationResults.tsx": {
+    "mtime": 1790575478.253361,
+    "ast_hash": "e6dc6bc0f08c2709fb851d3c9d8d5441",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationEmptyState.tsx": {
+    "mtime": 1790575717.5608506,
+    "ast_hash": "9bb9eaf0615c8ef264e43d9b17e7a261",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/components/ApartmentsEmptyState.tsx": {
+    "mtime": 1790575828.6703248,
+    "ast_hash": "0bf9716348fca3216ff60b8206de35d8",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/components/UsersEmptyState.tsx": {
+    "mtime": 1790575828.6703243,
+    "ast_hash": "9edec30c43e1e71f142c6a8d77882a2a",
     "semantic_hash": ""
   }
 }

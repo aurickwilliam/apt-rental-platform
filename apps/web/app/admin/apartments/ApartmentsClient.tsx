@@ -14,6 +14,7 @@ import {
 } from "@heroui/react";
 import ApartmentsTable from "./components/ApartmentsTable";
 import ApartmentCardList from "./components/ApartmentCardList";
+import ApartmentsEmptyState from "./components/ApartmentsEmptyState";
 import type { AdminApartment } from "./lib/apartment-display";
 
 interface ApartmentFilters {
@@ -270,9 +271,7 @@ export default function ApartmentsClient({
                 <ApartmentCardList apartments={apartments} />
               </>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">
-                No apartments match these filters.
-              </p>
+              <ApartmentsEmptyState />
             )}
           </div>
 

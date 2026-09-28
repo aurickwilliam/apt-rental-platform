@@ -14,6 +14,7 @@ import {
 } from "@heroui/react";
 import UsersTable from "./components/UsersTable";
 import UserCardList from "./components/UserCardList";
+import UsersEmptyState from "./components/UsersEmptyState";
 import type { AdminUser } from "./lib/user-display";
 
 interface UserFilters {
@@ -237,9 +238,7 @@ export default function UsersClient({
                 <UserCardList users={users} />
               </>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">
-                No users match these filters.
-              </p>
+              <UsersEmptyState />
             )}
           </div>
 
