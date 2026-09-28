@@ -2,44 +2,16 @@ import { IconChartBar } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 import AnalyticsControls from "./AnalyticsControls";
+import AnalyticsPanels, {
+  type AnalyticsMetrics,
+  type ApplicationStatusCounts,
+  type ListingStatus,
+  type ListingCityCount,
+  type PaymentTrend,
+  type AnalyticsTrend,
+} from "./AnalyticsPanels";
 
 export const dynamic = "force-dynamic";
-
-interface Metrics {
-  users: {
-    total: number;
-    new: number;
-    newTenants: number;
-    newLandlords: number;
-    tenants: number;
-    landlords: number;
-    verified: number;
-    suspended: number;
-  };
-  apartments: {
-    total: number;
-    new: number;
-    hidden: number;
-    verified: number;
-    available: number;
-  };
-  userVerifications: { pending: number; approved: number; rejected: number };
-  apartmentVerifications: {
-    pending: number;
-    approved: number;
-    rejected: number;
-  };
-  applications: { new: number; approved: number };
-  tenancies: { new: number; active: number; occupiedUnits: number };
-  payments: { paidCount: number; paidTotal: number };
-  maintenance: {
-    total: number;
-    pending: number;
-    inProgress: number;
-    resolved: number;
-    cancelled: number;
-  };
-}
 
 function parseDate(value: string | undefined): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -76,108 +48,63 @@ export default async function AdminAnalyticsPage({
     finish.getTime() <= end.getTime() &&
     finish.getTime() - start.getTime() <= 365 * 86400000;
 
-  let metrics: Metrics | null = null;
+  let metrics: AnalyticsMetrics | null = null;
+  let trends: AnalyticsTrend[] | null = null;
+  let paymentTrends: PaymentTrend[] | null = null;
+  let listingStatus: ListingStatus | null = null;
+  let listingsByCity: ListingCityCount[] | null = null;
+  let applicationStatus: ApplicationStatusCounts | null = null;
   let error = valid
     ? null
     : "Select valid dates within the past year (up to 366 days).";
   if (valid && start && finish) {
     const supabase = await createClient();
-    const { data, error: queryError } = await supabase.rpc(
-      "get_admin_analytics",
-      {
-        date_from: start.toISOString().slice(0, 10),
-        date_to: finish.toISOString().slice(0, 10),
-      },
-    );
-    if (queryError) {
-      console.error("Admin analytics failed", queryError);
+    const from = start.toISOString().slice(0, 10);
+    const to = finish.toISOString().slice(0, 10);
+    const [summary, growth, payments, inventory, cities, applications] =
+      await Promise.all([
+        supabase.rpc("get_admin_analytics", { date_from: from, date_to: to }),
+        supabase.rpc("get_admin_analytics_trends", { p_from: from, p_to: to }),
+        supabase.rpc("get_admin_rental_payment_trends", {
+          p_from: from,
+          p_to: to,
+        }),
+        supabase.rpc("get_admin_listing_status"),
+        supabase.rpc("get_admin_listings_by_city"),
+        supabase.rpc("get_admin_application_status"),
+      ]);
+    if (summary.error) {
+      console.error("Admin analytics failed", summary.error);
       error = "Unable to load analytics. Refresh and try again.";
     } else {
-      metrics = data as unknown as Metrics;
+      metrics = summary.data as unknown as AnalyticsMetrics;
+    }
+    if (growth.error) {
+      console.error("Admin analytics growth failed", growth.error);
+    } else {
+      trends = growth.data as AnalyticsTrend[];
+    }
+    if (payments.error) {
+      console.error("Admin rental payment trends failed", payments.error);
+    } else {
+      paymentTrends = payments.data;
+    }
+    if (inventory.error) {
+      console.error("Admin listing status failed", inventory.error);
+    } else {
+      listingStatus = inventory.data[0] ?? null;
+    }
+    if (cities.error) {
+      console.error("Admin listings by city failed", cities.error);
+    } else {
+      listingsByCity = cities.data;
+    }
+    if (applications.error) {
+      console.error("Admin application status failed", applications.error);
+    } else {
+      applicationStatus = applications.data[0] ?? null;
     }
   }
-
-  const rows: { title: string; values: [string, number | string][] }[] = metrics
-    ? [
-        {
-          title: "Accounts",
-          values: [
-            ["Total users", metrics.users.total],
-            ["New users", metrics.users.new],
-            ["New tenants", metrics.users.newTenants],
-            ["New landlords", metrics.users.newLandlords],
-            ["Tenants now", metrics.users.tenants],
-            ["Landlords now", metrics.users.landlords],
-            ["Verified now", metrics.users.verified],
-            ["Suspended now", metrics.users.suspended],
-          ],
-        },
-        {
-          title: "Listings",
-          values: [
-            ["Total", metrics.apartments.total],
-            ["New", metrics.apartments.new],
-            ["Available", metrics.apartments.available],
-            ["Verified", metrics.apartments.verified],
-            ["Hidden", metrics.apartments.hidden],
-          ],
-        },
-        {
-          title: "Account verification",
-          values: [
-            ["Pending now", metrics.userVerifications.pending],
-            ["Approved in range", metrics.userVerifications.approved],
-            ["Rejected in range", metrics.userVerifications.rejected],
-          ],
-        },
-        {
-          title: "Listing verification",
-          values: [
-            ["Pending now", metrics.apartmentVerifications.pending],
-            ["Approved in range", metrics.apartmentVerifications.approved],
-            ["Rejected in range", metrics.apartmentVerifications.rejected],
-          ],
-        },
-        {
-          title: "Applications",
-          values: [
-            ["Submitted", metrics.applications.new],
-            ["Approved", metrics.applications.approved],
-          ],
-        },
-        {
-          title: "Tenancies",
-          values: [
-            ["New", metrics.tenancies.new],
-            ["Active now", metrics.tenancies.active],
-            ["Occupied units now", metrics.tenancies.occupiedUnits],
-          ],
-        },
-        {
-          title: "Payments",
-          values: [
-            ["Paid count", metrics.payments.paidCount],
-            [
-              "Paid amount (PHP)",
-              new Intl.NumberFormat("en-PH", {
-                style: "currency",
-                currency: "PHP",
-              }).format(metrics.payments.paidTotal),
-            ],
-          ],
-        },
-        {
-          title: "Maintenance",
-          values: [
-            ["New requests", metrics.maintenance.total],
-            ["Pending", metrics.maintenance.pending],
-            ["In progress", metrics.maintenance.inProgress],
-            ["Resolved", metrics.maintenance.resolved],
-            ["Cancelled", metrics.maintenance.cancelled],
-          ],
-        },
-      ]
-    : [];
   const endDate = end.toISOString().slice(0, 10);
   const controlFrom = (valid && start ? start : defaultStart)
     .toISOString()
@@ -185,51 +112,47 @@ export default async function AdminAnalyticsPage({
   const controlTo = (valid && finish ? finish : end).toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
-      <h1 className="flex items-center gap-2 font-nunito text-3xl text-primary font-bold">
-        <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10">
-          <IconChartBar size={28} className="text-primary" aria-hidden="true" />
-        </div>
-        Analytics
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        Counts marked “now” are current totals; other activity is measured
-        within the selected dates (UTC).
-      </p>
+    <div className="mx-auto w-full max-w-7xl space-y-6 p-4">
+      <header className="space-y-4">
+        <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
+          <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10">
+            <IconChartBar
+              size={28}
+              className="text-primary"
+              aria-hidden="true"
+            />
+          </span>
+          Analytics
+        </h1>
 
-      <AnalyticsControls
-        from={controlFrom}
-        to={controlTo}
-        today={endDate}
-        selectedDays={custom ? null : days}
-      />
+        <p className="text-sm text-muted-foreground">
+          Selected-period activity uses UTC dates. Current-state totals are
+          marked separately and do not change with the reporting range.
+        </p>
+
+        <AnalyticsControls
+          from={controlFrom}
+          to={controlTo}
+          today={endDate}
+          selectedDays={custom ? null : days}
+        />
+      </header>
       {error ? (
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {rows.map((group) => (
-            <section
-              key={group.title}
-              className="rounded-3xl border border-border bg-card p-4"
-            >
-              <h2 className="font-nunito text-lg font-bold">{group.title}</h2>
-              <dl className="mt-3 space-y-2">
-                {group.values.map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex items-center justify-between gap-4 text-sm"
-                  >
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-semibold">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ))}
-        </div>
-      )}
+      ) : metrics && valid && start && finish ? (
+        <AnalyticsPanels
+          metrics={metrics}
+          trends={trends}
+          paymentTrends={paymentTrends}
+          listingStatus={listingStatus}
+          listingsByCity={listingsByCity}
+          applicationStatus={applicationStatus}
+          from={start.toISOString().slice(0, 10)}
+          to={finish.toISOString().slice(0, 10)}
+        />
+      ) : null}
     </div>
   );
 }

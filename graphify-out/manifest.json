@@ -2670,8 +2670,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1790565473.988721,
-    "ast_hash": "d7141cdf6966ae5fd43ddd1ceaf03f5d",
+    "mtime": 1790588126.7515886,
+    "ast_hash": "e52d076647ed264d62e824146c93ccc0",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -4985,8 +4985,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/page.tsx": {
-    "mtime": 1790577876.2845125,
-    "ast_hash": "a4d7fc2c90837491ac9a21737c92579d",
+    "mtime": 1790588497.3907938,
+    "ast_hash": "98745b8f23d996d57abebeac741f9d23",
     "semantic_hash": ""
   },
   "supabase/functions/admin-user-access/index.ts": {
@@ -5257,6 +5257,46 @@
   "apps/web/app/admin/analytics/AnalyticsControls.tsx": {
     "mtime": 1790578109.0801826,
     "ast_hash": "39cbe882816c38227b3f5fb94b3106fc",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/AnalyticsPanels.tsx": {
+    "mtime": 1790588583.147371,
+    "ast_hash": "d7c957e7e2c672a9cb874aa90dfd2adc",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928082331_admin_analytics_trends.sql": {
+    "mtime": 1790583863.627296,
+    "ast_hash": "b717d73b2286b851a901d2732894f92d",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928084441_aggregate_admin_analytics_growth_by_period.sql": {
+    "mtime": 1790585106.0751772,
+    "ast_hash": "c7405f6c128103a3cf5fe8890767dece",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928085001_add_admin_analytics_role_trends.sql": {
+    "mtime": 1790585428.68087,
+    "ast_hash": "be441a5c386fb42ab32d29130e36eb8a",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928091000_add_admin_rental_payment_trends.sql": {
+    "mtime": 1790586838.1884904,
+    "ast_hash": "587d21615bf0fd736697dffee5a2f373",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928100000_add_admin_listing_status.sql": {
+    "mtime": 1790587624.6292324,
+    "ast_hash": "436eeeca9010f024806fb3065291a484",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928103000_add_admin_listings_by_city.sql": {
+    "mtime": 1790587920.612362,
+    "ast_hash": "4c79059c3c72744e70997cbc0f8fff46",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928110000_add_admin_application_status.sql": {
+    "mtime": 1790588117.0247958,
+    "ast_hash": "8eeba521f1a3831b01e112682847266e",
     "semantic_hash": ""
   }
 }

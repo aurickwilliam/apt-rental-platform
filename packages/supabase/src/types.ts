@@ -1349,6 +1349,55 @@ export type Database = {
           urgency: string
         }[]
       }
+      get_admin_analytics_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          bucket_start: string
+          bucket_end: string
+          users: number
+          apartments: number
+          tenants: number
+          landlords: number
+        }[]
+      }
+      get_admin_rental_payment_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          bucket_start: string
+          bucket_end: string
+          payment_total: number
+          payment_count: number
+        }[]
+      }
+      get_admin_listing_status: {
+        Args: never
+        Returns: {
+          total: number
+          available: number
+          occupied: number
+          hidden: number
+          pending_verification: number
+          other: number
+        }[]
+      }
+      get_admin_listings_by_city: {
+        Args: never
+        Returns: {
+          city: string
+          listing_count: number
+        }[]
+      }
+      get_admin_application_status: {
+        Args: never
+        Returns: {
+          total: number
+          pending: number
+          approved: number
+          rejected: number
+          cancelled: number
+          closed: number
+        }[]
+      }
       get_admin_dashboard_trends: {
         Args: { p_from: string; p_to: string }
         Returns: {
