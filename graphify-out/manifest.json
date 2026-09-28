@@ -4520,8 +4520,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/page.tsx": {
-    "mtime": 1790566767.6321597,
-    "ast_hash": "e6f65a9783b908e730d6e240784a98e8",
+    "mtime": 1790573887.1771586,
+    "ast_hash": "f9cd3e3d4a2c0f946a6095f4d70b8b1e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/page.tsx": {
@@ -5125,8 +5125,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/UsersClient.tsx": {
-    "mtime": 1790571167.5931575,
-    "ast_hash": "cf6a346d3f32ece17818121693f4b93d",
+    "mtime": 1790574035.202563,
+    "ast_hash": "68a48f3258c43b929cb33d67feefde9e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/components/UserAvatar.tsx": {
@@ -5147,6 +5147,36 @@
   "apps/web/app/admin/users/lib/user-display.ts": {
     "mtime": 1790570482.4506495,
     "ast_hash": "5ecb5222b08f39897407617abc57cbc4",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928050421_add_apartment_visibility_columns.sql": {
+    "mtime": 1790571888.4343357,
+    "ast_hash": "e8f1911fd1065dff38a189bf26bb6d0a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/ApartmentsClient.tsx": {
+    "mtime": 1790574035.2025452,
+    "ast_hash": "95d34014bbb8f83b2a48df4c2758925b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/components/ApartmentCardList.tsx": {
+    "mtime": 1790573429.2150908,
+    "ast_hash": "ba9d0b41c41fa59a223b61bfe2fae639",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/components/ApartmentsTable.tsx": {
+    "mtime": 1790574098.240149,
+    "ast_hash": "9bffb80d9850f05ac16dbd6493f5e42a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/lib/apartment-display.ts": {
+    "mtime": 1790573557.5622191,
+    "ast_hash": "8d4138b8b82a45c01a7582d767870c5f",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/components/ApartmentThumbnail.tsx": {
+    "mtime": 1790572827.4634058,
+    "ast_hash": "5d8b0c21d8e2e34c7e848359331e66a0",
     "semantic_hash": ""
   }
 }

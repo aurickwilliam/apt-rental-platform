@@ -250,6 +250,7 @@ export default function UsersClient({
                   <Pagination.Previous
                     isDisabled={page <= 1}
                     onPress={() => changePage(page - 1)}
+                    className="font-nunito text-primary"
                   >
                     <Pagination.PreviousIcon />
                     <span>Previous</span>
@@ -269,6 +270,7 @@ export default function UsersClient({
                   <Pagination.Next
                     isDisabled={page >= totalPages}
                     onPress={() => changePage(page + 1)}
+                    className="font-nunito text-primary"
                   >
                     <span>Next</span>
                     <Pagination.NextIcon />
