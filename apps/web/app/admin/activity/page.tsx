@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconHistory } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 
@@ -29,7 +30,12 @@ export default async function ActivityPage({
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
       <div>
-        <h1 className="font-nunito text-3xl font-bold">Activity</h1>
+        <h1 className="flex items-center gap-2 font-nunito text-3xl text-primary font-bold">
+          <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10">
+            <IconHistory size={28} className="text-primary" aria-hidden="true" />
+          </div>
+          Activity
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Account access, listing moderation, and verification review history.
         </p>

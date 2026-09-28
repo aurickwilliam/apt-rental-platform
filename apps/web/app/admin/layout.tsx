@@ -22,7 +22,7 @@ export default async function AdminLayout({
     "Administrator";
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
       <AppSidebar
         navItems={[...ADMIN_NAV]}
         userName={userName}

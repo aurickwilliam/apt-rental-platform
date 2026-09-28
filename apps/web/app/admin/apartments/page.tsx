@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconBuilding } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 
@@ -76,7 +77,12 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
       <div>
-        <h1 className="font-nunito text-3xl font-bold">Apartments</h1>
+        <h1 className="flex items-center gap-2 font-nunito text-3xl text-primary font-bold">
+          <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10">
+            <IconBuilding size={28} className="text-primary" aria-hidden="true" />
+          </div>
+          Apartments
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Review published and pending property records.
         </p>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconChartBar } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 
@@ -65,7 +66,12 @@ export default async function AdminAnalyticsPage({ searchParams }: {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
-      <h1 className="font-nunito text-3xl font-bold">Analytics</h1>
+      <h1 className="flex items-center gap-2 font-nunito text-3xl text-primary font-bold">
+        <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10">
+          <IconChartBar size={28} className="text-primary" aria-hidden="true" />
+        </div>
+        Analytics
+      </h1>
       <p className="text-sm text-muted-foreground">Counts marked “now” are current totals; other activity is measured within the selected dates (UTC).</p>
       <nav aria-label="Date presets" className="flex gap-4 text-sm font-semibold text-primary">
         {[7, 30, 90].map((period) => <Link key={period} href={`/admin/analytics?days=${period}`} className="hover:underline">Last {period} days</Link>)}
