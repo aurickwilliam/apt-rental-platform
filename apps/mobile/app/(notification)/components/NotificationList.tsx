@@ -21,7 +21,7 @@ export default function NotificationList({ filter }: NotificationListProps) {
   const router = useRouter();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
-  const currentUserRole = currentUserQuery.data?.role ?? null;
+  const currentUserRole = currentUserQuery.data?.roles?.[0] ?? null;
 
   const { notifications, loading, error } = useNotifications();
   const { markAsRead } = useNotificationActions(currentUserId);

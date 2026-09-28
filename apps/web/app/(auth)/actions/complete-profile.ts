@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
+import { validateBirthDate } from "@/lib/birth-date";
 
 export type CompleteProfileState = {
   error?: string;
@@ -13,28 +14,6 @@ interface UserRolesProfile {
   mobile_number: string | null;
   roles: string[];
   account_status: string;
-}
-
-function calculateAgeFromBirthDate(birthDateValue: string): number | null {
-  const isoDate = birthDateValue?.slice(0, 10);
-  if (!isoDate) return null;
-
-  const birthDate = new Date(`${isoDate}T00:00:00Z`);
-  if (Number.isNaN(birthDate.getTime())) return null;
-
-  const today = new Date();
-  const thisYearBirthday = new Date(
-    Date.UTC(
-      today.getUTCFullYear(),
-      birthDate.getUTCMonth(),
-      birthDate.getUTCDate()
-    )
-  );
-
-  let age = today.getUTCFullYear() - birthDate.getUTCFullYear();
-  if (Date.now() < thisYearBirthday.getTime()) age -= 1;
-
-  return age >= 0 ? age : null;
 }
 
 export async function completeProfile(
@@ -104,9 +83,8 @@ export async function completeProfile(
     return { error: `${missingField[0]} is required.` };
   }
 
-  const age = calculateAgeFromBirthDate(birthDate);
-  if (age === null) return { error: "Invalid birth date." };
-  if (age < 18) return { error: "You must be at least 18 years old to register." };
+  const birthDateError = validateBirthDate(birthDate);
+  if (birthDateError) return { error: birthDateError };
 
   const { error: roleError } = await supabase.rpc("set_onboarding_role", {
     requested_role: role,

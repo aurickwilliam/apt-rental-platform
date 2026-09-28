@@ -26,7 +26,7 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
-let mockProfile: { role: string } | null = { role: 'tenant' };
+let mockProfile: { roles: string[] } | null = { roles: ['tenant'] };
 jest.mock('hooks/auth', () => ({
   useProfile: () => ({ profile: mockProfile, loading: false, refetch: jest.fn() }),
 }));
@@ -55,7 +55,7 @@ describe('Success', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     latestBeforeRemoveHandler = null;
-    mockProfile = { role: 'tenant' };
+    mockProfile = { roles: ['tenant'] };
     mockAddListener.mockImplementation((_event: string, handler: any) => {
       latestBeforeRemoveHandler = handler;
       return jest.fn();
@@ -103,7 +103,7 @@ describe('Success', () => {
   });
 
   it('routes landlords to the landlord profile', () => {
-    mockProfile = { role: 'landlord' };
+    mockProfile = { roles: ['landlord'] };
     render(<Success />);
 
     fireEvent.press(screen.getByText('Go to Profile'));

@@ -1045,7 +1045,7 @@ export type Database = {
           postal_code: number | null
           preferences: Json | null
           province: string | null
-          role: string
+          roles: string[]
           street_address: string | null
           suffix: string | null
           suspended_at: string | null
@@ -1073,7 +1073,7 @@ export type Database = {
           postal_code?: number | null
           preferences?: Json | null
           province?: string | null
-          role?: string
+          roles?: string[]
           street_address?: string | null
           suffix?: string | null
           suspended_at?: string | null
@@ -1101,7 +1101,7 @@ export type Database = {
           postal_code?: number | null
           preferences?: Json | null
           province?: string | null
-          role?: string
+          roles?: string[]
           street_address?: string | null
           suffix?: string | null
           suspended_at?: string | null
@@ -1340,6 +1340,7 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      grant_user_role: { Args: { new_role: string }; Returns: string[] }
       get_search_sections: {
         Args: {
           p_city?: string

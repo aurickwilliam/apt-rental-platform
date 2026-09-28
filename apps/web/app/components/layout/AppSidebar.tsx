@@ -58,6 +58,11 @@ type AppSidebarProps = {
   userName: string;
   userRole: string;
   showAccountLinks?: boolean;
+  // Multi-role switching: all roles the account holds + which portal
+  // this sidebar belongs to. The switch item only appears when the
+  // account holds the other portal's role.
+  userRoles?: string[];
+  activePortal?: "tenant" | "landlord";
 };
 
 function isActive(pathname: string, href: string) {
@@ -71,13 +76,23 @@ function getInitials(value: string) {
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "U";
 }
 
-export function AppSidebar({ navItems, userName, userRole, showAccountLinks = true }: AppSidebarProps) {
+export function AppSidebar({ navItems, userName, userRole, showAccountLinks = true, userRoles = [], activePortal }: AppSidebarProps) {
   const pathname = usePathname();
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
   const profileHref =
     roleLabel.toLowerCase() === "landlord" ? "/landlord/profile" : "/tenant/profile";
+
+  // One-click role switch: offered only when the account holds the other
+  // portal's role. Navigating cross-portal is the context switch — no
+  // re-authentication needed.
+  const switchTarget =
+    activePortal === "tenant" && userRoles.includes("landlord")
+      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
+      : activePortal === "landlord" && userRoles.includes("tenant")
+        ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
+        : null;
 
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col bg-sidebar border-r border-sidebar-border min-h-screen sticky top-0 h-screen shadow-sm text-sidebar-foreground">
@@ -145,6 +160,7 @@ export function AppSidebar({ navItems, userName, userRole, showAccountLinks = tr
               onAction={(key) => {
                 if (key === "profile") window.location.href = profileHref;
                 if (key === "settings") window.location.href = "/settings";
+                if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
                 if (key === "logout") signOut();
               }}
             >
@@ -155,6 +171,11 @@ export function AppSidebar({ navItems, userName, userRole, showAccountLinks = tr
                 <Dropdown.Item id="settings" textValue="Settings">
                   <Label>Settings</Label>
                 </Dropdown.Item>
+                {switchTarget ? (
+                  <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
+                    <Label>{switchTarget.label}</Label>
+                  </Dropdown.Item>
+                ) : null}
               </>) : null}
               <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
                 <Label className="flex items-center gap-2">

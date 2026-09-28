@@ -16,6 +16,7 @@ import {
 
 import { useActionState, useState } from "react";
 import { completeProfile } from "../../actions/complete-profile";
+import { validateBirthDate } from "@/lib/birth-date";
 import { GENDERS, PROVINCES } from "@repo/constants";
 
 type Props = {
@@ -32,11 +33,22 @@ export default function CompleteProfileForm({
   role,
 }: Props) {
   const [state, action, isPending] = useActionState(completeProfile, {});
-  const [postalCode, setPostalCode] = useState(""); 
+  const [postalCode, setPostalCode] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
+  const [birthDateError, setBirthDateError] = useState<string | null>(null);
+
+  // Instant client-side feedback using the same shared validator the
+  // server enforces; the server remains the real gate.
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const error = validateBirthDate(
+      new FormData(e.currentTarget).get("birth_date") as string | null,
+    );
+    setBirthDateError(error);
+    if (error) e.preventDefault();
+  };
 
   return (
-    <form action={action} className="flex flex-col gap-8">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-8">
       <input type="hidden" name="role" value={role} />
 
       {/* Personal Information */}
@@ -211,9 +223,9 @@ export default function CompleteProfileForm({
         </div>
       </section>
 
-      {state?.error && (
+      {(birthDateError ?? state?.error) && (
         <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
-          <p className="text-center text-sm text-danger">{state.error}</p>
+          <p className="text-center text-sm text-danger">{birthDateError ?? state?.error}</p>
         </div>
       )}
 

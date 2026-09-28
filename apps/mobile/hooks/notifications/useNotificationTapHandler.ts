@@ -18,7 +18,7 @@ export function useNotificationTapHandler() {
   const router = useRouter();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
-  const currentUserRole = currentUserQuery.data?.role ?? null;
+  const currentUserRole = currentUserQuery.data?.roles?.[0] ?? null;
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
 
   useEffect(() => {

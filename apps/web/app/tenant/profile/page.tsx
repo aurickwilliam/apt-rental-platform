@@ -7,6 +7,7 @@ import { createClient } from "@repo/supabase/server";
 import ProfileAvatar from "@/app/components/profile/ProfileAvatar";
 import ProfileForm from "@/app/components/profile/ProfileForm";
 import type { ProfileInitial } from "@/app/components/profile/ProfileForm";
+import AddRoleSection from "@/app/components/profile/AddRoleSection";
 
 function getInitials(firstName: string | null, lastName: string | null, email: string | null) {
   const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
@@ -86,6 +87,10 @@ export default async function TenantProfilePage() {
 
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
         <ProfileForm initial={profile} />
+      </Card>
+
+      <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
+        <AddRoleSection currentRoles={profile.roles ?? []} targetRole="landlord" />
       </Card>
     </div>
   );
