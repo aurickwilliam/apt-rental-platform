@@ -1,3 +1,11 @@
+import {
+  IconBuildingSkyscraper,
+  IconHome,
+  IconShieldCheck,
+  type IconProps,
+} from "@tabler/icons-react";
+import type { ComponentType } from "react";
+
 export interface AdminUser {
   id: string;
   first_name: string | null;
@@ -116,6 +124,33 @@ export function verificationChipColor(
       return "danger";
     default:
       return "default";
+  }
+}
+
+export function roleChipStyle(role: string): {
+  color: "default";
+  className?: string;
+} {
+  switch (role) {
+    case "tenant":
+      return { color: "default", className: "bg-primary/10 text-primary" };
+    case "landlord":
+      return { color: "default", className: "bg-secondary/10 text-secondary" };
+    default:
+      return { color: "default" };
+  }
+}
+
+export function roleChipIcon(
+  role: string,
+): ComponentType<IconProps> {
+  switch (role) {
+    case "tenant":
+      return IconHome;
+    case "landlord":
+      return IconBuildingSkyscraper;
+    default:
+      return IconShieldCheck;
   }
 }
 

@@ -4535,8 +4535,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/page.tsx": {
-    "mtime": 1790592854.930473,
-    "ast_hash": "8e8fc996ee2bd097d73d2a89faa8da68",
+    "mtime": 1790593741.4474888,
+    "ast_hash": "71cddfcbcd9b937134e89bba7dd16120",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/page.tsx": {
@@ -5400,8 +5400,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserProfileHeader.tsx": {
-    "mtime": 1790592680.1809804,
-    "ast_hash": "dd28110431227904630657276f7bf7a1",
+    "mtime": 1790593303.6819854,
+    "ast_hash": "361e4fe14ce599f0cba255e4aa2317ec",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserReputation.tsx": {

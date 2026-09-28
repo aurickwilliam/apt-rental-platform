@@ -1,17 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { IconChevronLeft } from "@tabler/icons-react";
-import { Avatar, Chip } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import OperationForm from "../../../OperationForm";
 import { setUserAccess } from "../../../actions/operations";
 import {
-  formatRoles,
   getFullName,
   getInitials,
   joinedFormatter,
-  verificationChipColor,
+  roleChipIcon,
+  roleChipStyle,
   type AdminUserDetail,
 } from "../../lib/user-display";
+import ProfilePhoto from "./ProfilePhoto";
 
 interface UserProfileHeaderProps {
   user: AdminUserDetail;
@@ -44,30 +45,34 @@ export default function UserProfileHeader({
         </Link>
       </div>
       <div className="flex flex-wrap items-start gap-4 p-4">
-        <Avatar
-          size="lg"
-          className="-mt-12 size-24 shrink-0 border-4 border-background bg-primary/10 text-primary"
-        >
-          {user.avatar_url ? (
-            <Avatar.Image src={user.avatar_url} alt={name} />
-          ) : null}
-          <Avatar.Fallback className="bg-primary/10 text-xl text-primary">
-            {getInitials(name)}
-          </Avatar.Fallback>
-        </Avatar>
+        <ProfilePhoto
+          src={user.avatar_url}
+          name={name}
+          initials={getInitials(name)}
+        />
         <div className="min-w-0 flex-1 basis-48">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-nunito text-2xl font-bold wrap-break-word">
               {name}
             </h1>
-            <Chip
-              size="sm"
-              variant="soft"
-              color={verificationChipColor(user.account_status)}
-              className="shrink-0 capitalize"
-            >
-              {user.account_status}
-            </Chip>
+            {user.roles.map((role) => {
+              const style = roleChipStyle(role);
+              const RoleIcon = roleChipIcon(role);
+              return (
+                <Chip
+                  key={role}
+                  size="md"
+                  variant="soft"
+                  color={style.color}
+                  className={`shrink-0 capitalize ${style.className ?? ""}`}
+                >
+                  <span className="flex items-center gap-1">
+                    <RoleIcon size={14} aria-hidden="true" />
+                    {role}
+                  </span>
+                </Chip>
+              );
+            })}
             {user.is_suspended ? (
               <Chip
                 size="sm"
@@ -80,11 +85,7 @@ export default function UserProfileHeader({
             ) : null}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {formatRoles(user.roles)} · Joined{" "}
-            {joinedFormatter.format(new Date(user.created_at))}
-          </p>
-          <p className="mt-0.5 text-sm text-muted-foreground wrap-break-word">
-            {user.email ?? "No email"} · {user.mobile_number ?? "No mobile"}
+            Joined {joinedFormatter.format(new Date(user.created_at))}
           </p>
         </div>
         <div className="shrink-0">
