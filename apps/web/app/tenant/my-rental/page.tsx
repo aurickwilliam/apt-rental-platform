@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
 import {
   CreditCard,
@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   House,
+  CalendarDays,
 } from "lucide-react";
 
 import { formatPesoDisplay } from "@repo/utils";
@@ -134,6 +135,33 @@ export default function MyRental() {
   const today = useMemo(() => new Date(), []);
   const headerDate = useMemo(() => formatHeaderDate(today), [today]);
 
+  // Pending maintenance fees ride on top of the next rent (fee_status 'pending').
+  const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
+  const apartmentIdForFees = tenancy?.apartment.id ?? null;
+  useEffect(() => {
+    if (!apartmentIdForFees) return;
+    const apartmentId = apartmentIdForFees;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      void (async () => {
+        try {
+          const { getTenantContext } = await import("@/service/favoritesService");
+          const context = await getTenantContext();
+          if (!context.tenantId || cancelled) return;
+          const { fetchPendingMaintenanceFees } = await import("@/service/maintenanceService");
+          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId);
+          if (!cancelled) setPendingFees(fees);
+        } catch {
+          // Fees are additive info only — a failed lookup must not break the page.
+        }
+      })();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [apartmentIdForFees]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -182,6 +210,29 @@ export default function MyRental() {
     : formatMonthYear(today.toISOString());
 
   const amountDue = currentPayment?.amount ?? monthlyRent;
+
+  const pendingFeesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
+  const nextPeriodTotal = monthlyRent + pendingFeesTotal;
+
+  const currentPeriodStart = currentPayment?.period_start ?? null;
+  // Next period after the paid one (due on the 5th, same convention as billing).
+  const nextPeriod =
+    currentPeriodStart !== null
+      ? (() => {
+          const d = new Date(`${currentPeriodStart.slice(0, 7)}-01T00:00:00`);
+          const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          const y = next.getFullYear();
+          const m = String(next.getMonth() + 1).padStart(2, "0");
+          return { periodStart: `${y}-${m}-01`, dueDate: `${y}-${m}-05` };
+        })()
+      : null;
+  // Same full-amount guard as the payment page: a fully paid period can't be paid again.
+  const isPeriodPaid =
+    monthlyRent > 0 &&
+    currentPeriodStart !== null &&
+    payments
+      .filter((p) => p.status === "paid" && p.period_start === currentPeriodStart)
+      .reduce((sum, p) => sum + (p.amount ?? 0), 0) >= monthlyRent;
 
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
     const paymentDate =
@@ -262,56 +313,164 @@ export default function MyRental() {
         <div className="grid gap-3 lg:grid-cols-3">
           <DashboardCard className="lg:col-span-2">
             <div className="flex h-full flex-col">
-              <p className="text-xs text-zinc-400 uppercase tracking-wider">
-                Payment due
-              </p>
-              <div className="flex items-end gap-2 mt-2">
-                <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  {formatPesoDisplay(amountDue)}
-                </p>
-                <span className="text-sm text-zinc-400">.00</span>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {paymentStatus === "paid" ? (
-                  <StatusChip variant="success">Paid</StatusChip>
-                ) : (
-                  <StatusChip
-                    variant={paymentStatus === "late" ? "danger" : "warning"}
-                  >
-                    {dueLabel}
-                  </StatusChip>
-                )}
-                <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
-                <StatusChip variant="neutral">Monthly rent</StatusChip>
-              </div>
-              <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid gap-4 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs text-zinc-400">Lease start</p>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {formatShortDate(tenancy.lease_start)}
+              {isPeriodPaid ? (
+                <>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                    Payment due
                   </p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400">Lease end</p>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {tenancy.lease_end
-                      ? formatShortDate(tenancy.lease_end)
-                      : "Ongoing"}
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch mt-3">
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="rounded-2xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30 p-4 flex flex-col gap-2">
+                      <p className="text-xs font-nunito font-semibold text-green-700 dark:text-green-300 uppercase tracking-wider flex items-center gap-2 leading-none">
+                        <span className="rounded-full bg-green-600 p-1 text-white shrink-0 self-center">
+                          <CheckCircle2 size={14} className="block" />
+                        </span>
+                        Already Paid
+                      </p>
+                      <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {paymentPeriodLabel}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Payment received for this month.
+                      </p>
+                    </div>
+                    <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs text-zinc-400">Lease start</p>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {formatShortDate(tenancy.lease_start)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-400">Lease end</p>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {tenancy.lease_end
+                            ? formatShortDate(tenancy.lease_end)
+                            : "Ongoing"}
+                        </p>
+                      </div>
+                    </div>
+                    <Link href="/tenant/payment/history" className="mt-4 w-fit md:mt-auto no-underline">
+                      <Button variant="secondary">
+                        <Receipt size={14} />
+                        View history
+                      </Button>
+                    </Link>
+                  </div>
+                  {nextPeriod && (
+                    <div className="rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-2 w-full sm:w-72 shrink-0">
+                      <p className="text-xs font-nunito font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                        <span className="rounded-full bg-primary/10 p-1 text-primary">
+                          <CalendarDays size={14} />
+                        </span>
+                        Next Payment
+                      </p>
+                      <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {formatMonthYear(nextPeriod.periodStart)}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Due {formatShortDate(nextPeriod.dueDate)}
+                      </p>
+                      <div className="mt-auto pt-2">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Total due</p>
+                        <p className="text-2xl font-nunito font-bold text-primary">
+                          {formatPesoDisplay(nextPeriodTotal)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/70 dark:bg-zinc-900/50 px-3 py-2 grid gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Monthly rent</p>
+                          <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+                            {formatPesoDisplay(monthlyRent)}
+                          </p>
+                        </div>
+                        {pendingFeesTotal > 0 && (
+                          <div className="min-w-0 border-t border-zinc-200 dark:border-zinc-800 pt-2">
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Maintenance fee</p>
+                            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+                              {formatPesoDisplay(pendingFees[0].amount)}{" "}
+                              <span className="font-normal text-zinc-500">· {pendingFees[0].title}</span>
+                              {pendingFees.length > 1 && (
+                                <span className="font-normal text-zinc-400"> +{pendingFees.length - 1} more</span>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                    Payment due
                   </p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400">Monthly rent</p>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {formatPesoDisplay(monthlyRent)}
-                  </p>
-                </div>
-              </div>
-              <Link href="/tenant/payment" className="mt-10 w-fit md:mt-auto no-underline">
-                <Button>
-                  <CreditCard size={14} />
-                  Pay now
-                </Button>
-              </Link>
+                  <div className="flex items-end gap-2 mt-2">
+                    <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatPesoDisplay(pendingFeesTotal > 0 ? monthlyRent + pendingFeesTotal : amountDue)}
+                    </p>
+                    <span className="text-sm text-zinc-400">.00</span>
+                  </div>
+                  {pendingFeesTotal > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {pendingFees.slice(0, 3).map((fee) => (
+                        <p key={fee.title} className="text-xs text-zinc-500 dark:text-zinc-400">
+                          + {formatPesoDisplay(fee.amount)} Maintenance fee — {fee.title}
+                        </p>
+                      ))}
+                      {pendingFees.length > 3 && (
+                        <p className="text-xs text-zinc-400">+{pendingFees.length - 3} more</p>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {paymentStatus === "paid" ? (
+                      <StatusChip variant="success">Paid</StatusChip>
+                    ) : (
+                      <StatusChip
+                        variant={paymentStatus === "late" ? "danger" : "warning"}
+                      >
+                        {dueLabel}
+                      </StatusChip>
+                    )}
+                    <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
+                    <StatusChip variant="neutral">Monthly rent</StatusChip>
+                  </div>
+                </>
+              )}
+              {!isPeriodPaid && (
+                <>
+                  <div className="border-t border-zinc-100 dark:border-zinc-800 mt-4 pt-4 grid gap-4 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs text-zinc-400">Lease start</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        {formatShortDate(tenancy.lease_start)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-400">Lease end</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        {tenancy.lease_end
+                          ? formatShortDate(tenancy.lease_end)
+                          : "Ongoing"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-400">Monthly rent</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        {formatPesoDisplay(monthlyRent)}
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/tenant/payment" className="mt-10 w-fit md:mt-auto no-underline">
+                    <Button>
+                      <CreditCard size={14} />
+                      Pay now
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </DashboardCard>
 

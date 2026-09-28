@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Chip, Separator, Drawer } from "@heroui/react";
+import { Button, Chip, Separator, Modal, useOverlayState } from "@heroui/react";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { PaymentHistoryFilter, PaymentStatus } from "../types";
 
@@ -34,110 +34,121 @@ export default function PaymentHistoryFilters({
 
   const setSort = (v: PaymentHistoryFilter["sort"]) => onChange({ ...filters, sort: v });
   const clearAll = () => onChange({ years: [], statuses: [], sort: "Newest" });
+  const close = () => onOpenChange(false);
+
+  // Same overlay contract as the receipt modal on this page (useOverlayState +
+  // state prop) — the documented first-class Modal API.
+  const modalState = useOverlayState({
+    isOpen,
+    onOpenChange,
+  });
 
   return (
     <>
-      <Drawer isOpen={isOpen} onOpenChange={onOpenChange}>
-        <Drawer.Backdrop />
-        <Drawer.Content placement="right" className="max-w-[420px] w-[92vw] z-50">
-          <Drawer.Dialog className="bg-white dark:bg-zinc-900 rounded-l-2xl shadow-xl flex flex-col h-full">
-            <Drawer.Header className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <SlidersHorizontal size={16} /> Filters
-              </h3>
-              <div className="flex items-center gap-2">
-                {activeCount > 0 && (
-                  <Button variant="ghost" size="sm" onPress={clearAll} className="text-danger text-xs">
-                    Clear all
+      {/* Conditionally mounted: guarantees no backdrop residue. A stuck drawer
+          backdrop was previously observed swallowing all clicks until refresh. */}
+      {isOpen && (
+        <Modal.Root state={modalState}>
+          <Modal.Backdrop>
+            <Modal.Container placement="center" size="sm">
+              <Modal.Dialog className="rounded-2xl">
+                <Modal.Header className="flex flex-row items-center justify-between">
+                  <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                    <SlidersHorizontal size={16} /> Filters
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {activeCount > 0 && (
+                      <Button variant="ghost" size="sm" onPress={clearAll} className="text-danger text-xs">
+                        Clear all
+                      </Button>
+                    )}
+                    <Button isIconOnly variant="ghost" size="sm" onPress={close} aria-label="Close">
+                      <X size={16} />
+                    </Button>
+                  </div>
+                </Modal.Header>
+
+                <Modal.Body className="space-y-6">
+                  <div>
+                    <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Year</p>
+                    <div className="flex flex-wrap gap-2">
+                      {availableYears.length === 0 ? (
+                        <p className="text-xs text-zinc-400">No years available</p>
+                      ) : (
+                        availableYears.map((year) => {
+                          const selected = filters.years.includes(year);
+                          const label = year === currentYear ? "This Year" : year;
+                          return (
+                            <Chip
+                              key={year}
+                              variant="soft"
+                              color={selected ? "accent" : "default"}
+                              onClick={() => toggle("years", year)}
+                              className="cursor-pointer text-[11px]"
+                            >
+                              {label}
+                            </Chip>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Status</p>
+                    <div className="flex flex-wrap gap-2">
+                      {STATUS_OPTIONS.map((s) => {
+                        const selected = filters.statuses.includes(s);
+                        return (
+                          <Chip
+                            key={s}
+                            variant="soft"
+                            color={selected ? "accent" : "default"}
+                            onClick={() => toggle("statuses", s)}
+                            className="cursor-pointer text-[11px]"
+                          >
+                            {s}
+                          </Chip>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Sort by</p>
+                    <div className="flex flex-wrap gap-2">
+                      {SORT_OPTIONS.map((s) => {
+                        const selected = filters.sort === s;
+                        return (
+                          <Chip
+                            key={s}
+                            variant="soft"
+                            color={selected ? "accent" : "default"}
+                            onClick={() => setSort(s)}
+                            className="cursor-pointer text-[11px]"
+                          >
+                            {s}
+                          </Chip>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </Modal.Body>
+
+                <Modal.Footer className="flex justify-center">
+                  <Button className="w-full rounded-full font-nunito" onPress={close}>
+                    Done
                   </Button>
-                )}
-                <Button isIconOnly variant="ghost" size="sm" onPress={() => onOpenChange(false)} aria-label="Close">
-                  <X size={16} />
-                </Button>
-              </div>
-            </Drawer.Header>
-
-            <Drawer.Body className="px-5 py-5 space-y-6 overflow-y-auto">
-              <div>
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Year</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableYears.length === 0 ? (
-                    <p className="text-xs text-zinc-400">No years available</p>
-                  ) : (
-                    availableYears.map((year) => {
-                      const selected = filters.years.includes(year);
-                      const label = year === currentYear ? "This Year" : year;
-                      return (
-                        <Chip
-                          key={year}
-                          variant={selected ? "primary" : "secondary"}
-                          color={selected ? "accent" : "default"}
-                          onClick={() => toggle("years", year)}
-                          className="cursor-pointer"
-                        >
-                          {label}
-                        </Chip>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Status</p>
-                <div className="flex flex-wrap gap-2">
-                  {STATUS_OPTIONS.map((s) => {
-                    const selected = filters.statuses.includes(s);
-                    return (
-                      <Chip
-                        key={s}
-                        variant={selected ? "primary" : "secondary"}
-                        color={selected ? "accent" : "default"}
-                        onClick={() => toggle("statuses", s)}
-                        className="cursor-pointer"
-                      >
-                        {s}
-                      </Chip>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Sort by</p>
-                <div className="flex flex-wrap gap-2">
-                  {SORT_OPTIONS.map((s) => {
-                    const selected = filters.sort === s;
-                    return (
-                      <Chip
-                        key={s}
-                        variant={selected ? "primary" : "secondary"}
-                        color={selected ? "accent" : "default"}
-                        onClick={() => setSort(s)}
-                        className="cursor-pointer"
-                      >
-                        {s}
-                      </Chip>
-                    );
-                  })}
-                </div>
-              </div>
-            </Drawer.Body>
-
-            <Drawer.Footer className="p-5 border-t border-zinc-100 dark:border-zinc-800">
-              <Button className="w-full" onPress={() => onOpenChange(false)}>
-                Done
-              </Button>
-            </Drawer.Footer>
-          </Drawer.Dialog>
-        </Drawer.Content>
-      </Drawer>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal.Root>
+      )}
     </>
   );
 }
-
-
