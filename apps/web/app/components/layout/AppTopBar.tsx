@@ -23,6 +23,7 @@ function getTitle(pathname: string, titleMap: Record<string, string>) {
 export function AppTopBar({ titleMap, navItems }: AppTopBarProps) {
   const pathname = usePathname();
   const title = getTitle(pathname, titleMap);
+  if (pathname === "/tenant" || pathname.startsWith("/tenant/") || pathname === "/landlord" || pathname.startsWith("/landlord/")) return null;
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-4 md:px-6">
       <div className="flex items-center gap-3">

@@ -24,9 +24,10 @@ interface RenderApartmentsProps {
   page: number;
   totalCount: number;
   pageSize: number;
+  basePath?: string;
 }
 
-export default function RenderApartments({ apartment, page, totalCount, pageSize }: RenderApartmentsProps) {
+export default function RenderApartments({ apartment, page, totalCount, pageSize, basePath = "/browse" }: RenderApartmentsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -37,7 +38,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const handlePageChange = (newPage: number) => {
     const current = new URLSearchParams(searchParams.toString());
     current.set("page", String(newPage));
-    router.push(`/browse?${current.toString()}`);
+    router.push(`${basePath}?${current.toString()}`);
   };
 
   const isVerifiedOnly = searchParams.get("verified") === "1";
