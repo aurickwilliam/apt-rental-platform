@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Spinner } from "@heroui/react";
 import { usePaymentByReference } from "@/hooks/use-payments";
+import { useTenancy } from "@/hooks/use-tenancy";
+import { useUser } from "@/hooks/use-user";
 import ReceiptView from "../components/ReceiptView";
 
 // Web twin of mobile success.tsx: dedicated blue receipt route.
@@ -19,6 +21,33 @@ function SuccessContent() {
   const payment = paymentQuery.data;
 
   const isLoading = paymentQuery.loading || (payment?.status === "pending" && payment.method !== "cash");
+
+  // Once this period's payment is confirmed paid, settle any maintenance fees
+  // raised before it (they ride on this rent). Once per reference. Cash moves
+  // through this same path when the landlord flips it to paid.
+  const { tenancy } = useTenancy();
+  const { profile } = useUser();
+  const settledRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!payment || payment.status !== "paid" || !referenceId) return;
+    if (settledRef.current === referenceId) return;
+    const apartmentId = tenancy?.apartment.id;
+    const tenantId = profile?.id;
+    if (!apartmentId || !tenantId) return;
+    settledRef.current = referenceId;
+    queueMicrotask(() => {
+      void (async () => {
+        try {
+          const { settleMaintenanceFees } = await import("@/service/maintenanceService");
+          await settleMaintenanceFees(apartmentId, tenantId, payment.created_at);
+        } catch {
+          // Display-only concern — a failed settle must not break the receipt.
+          // Fees stay pending and settle on the next paid observation.
+          settledRef.current = null;
+        }
+      })();
+    });
+  }, [payment, referenceId, tenancy?.apartment.id, profile?.id]);
 
   const handleGoHome = () => {
     router.replace("/tenant/my-rental");

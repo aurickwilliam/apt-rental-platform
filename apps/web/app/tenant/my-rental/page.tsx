@@ -408,10 +408,22 @@ export default function MyRental() {
                   </p>
                   <div className="flex items-end gap-2 mt-2">
                     <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                      {formatPesoDisplay(amountDue)}
+                      {formatPesoDisplay(pendingFeesTotal > 0 ? monthlyRent + pendingFeesTotal : amountDue)}
                     </p>
                     <span className="text-sm text-zinc-400">.00</span>
                   </div>
+                  {pendingFeesTotal > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {pendingFees.slice(0, 3).map((fee) => (
+                        <p key={fee.title} className="text-xs text-zinc-500 dark:text-zinc-400">
+                          + {formatPesoDisplay(fee.amount)} Maintenance fee — {fee.title}
+                        </p>
+                      ))}
+                      {pendingFees.length > 3 && (
+                        <p className="text-xs text-zinc-400">+{pendingFees.length - 3} more</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {paymentStatus === "paid" ? (
                       <StatusChip variant="success">Paid</StatusChip>

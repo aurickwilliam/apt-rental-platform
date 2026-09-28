@@ -226,6 +226,29 @@ export async function fetchPendingMaintenanceFeesTotal(
   return fees.reduce((sum, fee) => sum + fee.amount, 0);
 }
 
+// Marks pending fees as paid once their period's rent payment is observed
+// `paid`. `paidBeforeIso` bounds the flip to fees raised before the payment
+// (a fee added after payment stays pending for the next one).
+export async function settleMaintenanceFees(
+  apartmentId: string,
+  tenantId: string,
+  paidBeforeIso: string,
+): Promise<number> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("maintenance_request")
+    .update({ fee_status: "paid" })
+    .eq("apartment_id", apartmentId)
+    .eq("tenant_id", tenantId)
+    .eq("fee_status", "pending")
+    .lte("created_at", paidBeforeIso)
+    .select("id");
+
+  if (error) throw error;
+  return (data ?? []).length;
+}
+
 export async function fetchLatestMaintenanceRequest(
   apartmentId: string,
   tenantId: string,

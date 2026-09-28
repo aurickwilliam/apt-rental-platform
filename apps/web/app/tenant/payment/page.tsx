@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar, Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
 import { Banknote, CalendarDays, House, MapPin, User, ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -59,6 +59,36 @@ function PaymentContent() {
   const landlord = tenancy?.landlord ?? null;
   const monthlyRent = tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0;
 
+  // Pending maintenance fees ride on top of this period's rent.
+  const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
+  const apartmentIdForFees = apartment?.id ?? null;
+  useEffect(() => {
+    if (!apartmentIdForFees) return;
+    const apartmentId = apartmentIdForFees;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      void (async () => {
+        try {
+          const { getTenantContext } = await import("@/service/favoritesService");
+          const context = await getTenantContext();
+          if (!context.tenantId || cancelled) return;
+          const { fetchPendingMaintenanceFees } = await import("@/service/maintenanceService");
+          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId);
+          if (!cancelled) setPendingFees(fees);
+        } catch {
+          // Additive info only — a failed lookup must not block payment.
+        }
+      })();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [apartmentIdForFees]);
+
+  const feesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
+  const totalDue = monthlyRent + feesTotal;
+
   const period = useMemo(
     () =>
       resolvePaymentPeriod(
@@ -71,10 +101,10 @@ function PaymentContent() {
   const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
   const yearLabel = period.periodStart.slice(0, 4);
 
-  // Full-amount policy: rent is always billed whole. A fully paid period
-  // cannot be paid again (prevents double-payment/overpay).
+  // Full-amount policy: rent + pending fees are always billed whole. A fully
+  // paid period cannot be paid again (prevents double-payment/overpay).
   const isPeriodPaid =
-    monthlyRent > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent;
+    totalDue > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= totalDue;
 
   const landlordName =
     landlord?.first_name || landlord?.last_name
@@ -96,7 +126,11 @@ function PaymentContent() {
     }
 
     const referenceId = `pay_${Date.now().toString(36)}`;
-    const paymentDescription = `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
+    const paymentDescription =
+      feesTotal > 0
+        ? `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name} (incl. maintenance fees)`
+        : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
+    const amount = totalDue;
     const periodFields = {
       tenancyId: tenancy.id,
       periodStart: period.periodStart,
@@ -114,7 +148,7 @@ function PaymentContent() {
         };
         const session = await createCheckoutSession({
           referenceId,
-          amount: monthlyRent,
+          amount,
           description: paymentDescription,
           redirectBaseUrl: `${window.location.origin}/tenant/payment/verify`,
           method: methodMap[activeMethod],
@@ -139,7 +173,7 @@ function PaymentContent() {
       try {
         const result = await createCardPayment({
           referenceId,
-          amount: monthlyRent,
+          amount,
           description: paymentDescription,
           card: {
             number: cardInfo.cardNumber.replace(/\s/g, ""),
@@ -176,7 +210,7 @@ function PaymentContent() {
       try {
         await createCashPayment({
           referenceId,
-          amount: monthlyRent,
+          amount,
           date: toIsoDate(cashDate ?? new Date()),
           tenantId: profile.id,
           apartmentId: apartment.id,
@@ -350,7 +384,7 @@ function PaymentContent() {
 
           {/* Row 1, right: payment summary (display-only, mobile parity) */}
           <div className="h-full">
-            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.dueDate} monthlyRent={monthlyRent} className="h-full" />
+            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.dueDate} monthlyRent={monthlyRent} fees={pendingFees} className="h-full" />
           </div>
 
           {/* Row 2: payment method (full width) */}
@@ -378,7 +412,7 @@ function PaymentContent() {
 
         {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer parity) */}
         <div className="sticky bottom-4 z-20 mt-4">
-          <PaymentFooter totalPayment={monthlyRent} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid} />
+          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid} />
         </div>
       </div>
 
