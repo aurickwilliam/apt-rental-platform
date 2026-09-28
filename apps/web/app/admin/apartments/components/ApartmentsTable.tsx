@@ -62,10 +62,10 @@ export default function ApartmentsTable({
                     <div className="flex items-center gap-3">
                       <ApartmentThumbnail url={apartment.thumbnail_url} />
                       <div className="min-w-0">
-                        <p className="max-w-48 truncate font-nunito text-sm font-bold">
+                        <p className="font-nunito text-sm font-bold">
                           {apartment.name}
                         </p>
-                        <p className="max-w-48 truncate text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {apartment.city}
                         </p>
                       </div>

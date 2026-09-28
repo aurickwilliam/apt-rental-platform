@@ -13,6 +13,7 @@ interface DateRangeControlProps {
   from: string;
   to: string;
   today: string;
+  maxRangeDays?: number;
   onRangeChange?: (from: string, to: string) => void;
 }
 
@@ -20,10 +21,11 @@ export default function DateRangeControl({
   from,
   to,
   today,
+  maxRangeDays = 90,
   onRangeChange,
 }: DateRangeControlProps) {
   const router = useRouter();
-  const minDate = parseDate(today).subtract({ days: 89 });
+  const minDate = parseDate(today).subtract({ days: maxRangeDays - 1 });
   const maxDate = parseDate(today);
 
   return (

@@ -50,10 +50,10 @@ export default function UsersTable({ users, onSelectUser }: UsersTableProps) {
                       <div className="flex items-center gap-3">
                         <UserAvatar user={user} name={name} />
                         <div className="min-w-0">
-                          <p className="max-w-48 truncate font-nunito text-sm font-bold">
+                          <p className="font-nunito text-sm font-bold">
                             {name}
                           </p>
-                          <p className="max-w-48 truncate text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground">
                             {user.email}
                           </p>
                         </div>

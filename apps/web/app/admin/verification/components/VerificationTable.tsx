@@ -57,10 +57,10 @@ export default function VerificationTable({
                         name={row.label}
                       />
                       <div className="min-w-0">
-                        <p className="max-w-48 truncate font-nunito text-sm font-bold">
+                        <p className="font-nunito text-sm font-bold">
                           {row.label}
                         </p>
-                        <p className="max-w-48 truncate text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {row.detail}
                         </p>
                       </div>

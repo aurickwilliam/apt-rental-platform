@@ -4510,8 +4510,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/activity/page.tsx": {
-    "mtime": 1790566767.6333718,
-    "ast_hash": "203e2ffa32b2f2cce666dc3b3dcbc631",
+    "mtime": 1790576162.2721624,
+    "ast_hash": "9bcc1fd69fd81331bee095067c89858f",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/page.tsx": {
@@ -4985,8 +4985,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/page.tsx": {
-    "mtime": 1790566767.6333783,
-    "ast_hash": "1ceaddafe8df7fb0ff3da27a0b27b839",
+    "mtime": 1790577876.2845125,
+    "ast_hash": "a4d7fc2c90837491ac9a21737c92579d",
     "semantic_hash": ""
   },
   "supabase/functions/admin-user-access/index.ts": {
@@ -5020,8 +5020,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/DateRangeControl.tsx": {
-    "mtime": 1790565473.9736972,
-    "ast_hash": "4cef4bfeb5829561208fe5ca20130472",
+    "mtime": 1790577876.2839239,
+    "ast_hash": "edaa70da5e3d7e3fac0de467c48ce7f8",
     "semantic_hash": ""
   },
   "apps/web/app/admin/dashboard/components/VerificationQueue.tsx": {
@@ -5140,8 +5140,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/components/UsersTable.tsx": {
-    "mtime": 1790570787.3741689,
-    "ast_hash": "103d74333c85bb00c0f75ac0625dd254",
+    "mtime": 1790576428.4978788,
+    "ast_hash": "959bb67797682a0b0c47303ca08389a8",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/lib/user-display.ts": {
@@ -5165,8 +5165,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/components/ApartmentsTable.tsx": {
-    "mtime": 1790574098.240149,
-    "ast_hash": "9bffb80d9850f05ac16dbd6493f5e42a",
+    "mtime": 1790576428.4968648,
+    "ast_hash": "dc7709cbc17bbae75446f00bb5358c94",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/lib/apartment-display.ts": {
@@ -5195,8 +5195,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/components/VerificationTable.tsx": {
-    "mtime": 1790575465.067708,
-    "ast_hash": "98891d91d23b637a2442b56d065a49f2",
+    "mtime": 1790576428.4968646,
+    "ast_hash": "cc4aee4f27077cd1e0cf6cf0f00ef1bc",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/lib/verification-display.ts": {
@@ -5222,6 +5222,41 @@
   "apps/web/app/admin/users/components/UsersEmptyState.tsx": {
     "mtime": 1790575828.6703243,
     "ast_hash": "9edec30c43e1e71f142c6a8d77882a2a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/activity/ActivityClient.tsx": {
+    "mtime": 1790576134.0340157,
+    "ast_hash": "e8f65eda732683a9f69b736305cee90e",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/activity/components/ActivityCardList.tsx": {
+    "mtime": 1790576125.348642,
+    "ast_hash": "dc1439c70d98a60756f818920a52b129",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/activity/components/ActivityEmptyState.tsx": {
+    "mtime": 1790576125.3509064,
+    "ast_hash": "2fc3b39d38295921d877b25b01c826f5",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/activity/components/ActivityTable.tsx": {
+    "mtime": 1790576307.0537622,
+    "ast_hash": "88b191ad79644779cc5fd72d7c6c301c",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/activity/lib/activity-display.ts": {
+    "mtime": 1790576125.3482232,
+    "ast_hash": "f063fee51603de52cab5af3e96b71901",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928062444_add_get_admin_analytics_rpc.sql": {
+    "mtime": 1790576714.0808308,
+    "ast_hash": "8681537f8b80c2ba08277786e75332c4",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/AnalyticsControls.tsx": {
+    "mtime": 1790578109.0801826,
+    "ast_hash": "39cbe882816c38227b3f5fb94b3106fc",
     "semantic_hash": ""
   }
 }
