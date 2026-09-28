@@ -2,8 +2,18 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 
 import { createClient } from "@repo/supabase/server";
+import { preferredPortal } from "@/lib/portal-preference";
 
 import CompleteProfileForm from "./components/CompleteProfileForm";
+
+interface UserRolesProfile {
+  mobile_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 type CompleteProfilePageProps = {
   searchParams: Promise<{
@@ -29,19 +39,23 @@ export default async function CompleteProfilePage({
   if (!user) redirect("/sign-in");
 
   // If already complete, skip this page
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("users")
-    .select("mobile_number, first_name, last_name, email, role, account_status")
+    .select("mobile_number, first_name, last_name, email, roles, account_status")
     .eq("user_id", user.id)
     .single();
+  const profile = profileData as unknown as UserRolesProfile | null;
 
-  if (profile?.role === "admin") redirect("/admin/dashboard");
+  if (profile?.roles.includes("admin")) redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
   if (profile?.account_status !== "unverified") {
-    redirect(profile?.role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
+    const portal = preferredPortal(profile?.roles ?? [], role);
+    redirect(portal === "landlord" ? "/landlord/dashboard" : portal === "tenant" ? "/tenant/my-rental" : "/");
   }
 
-  const profileRole = profile?.role === "landlord" ? "landlord" : "tenant";
+  const profileRole = profile?.roles.includes("landlord")
+    ? "landlord"
+    : "tenant";
   const effectiveRole = role ?? profileRole;
 
   return (

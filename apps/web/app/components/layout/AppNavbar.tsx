@@ -11,6 +11,7 @@ import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 const NAV_LINKS = [
   { label: "For Owners", href: "/forowners" },
@@ -32,14 +33,21 @@ export default function AppNavbar() {
   const { user, profile, loading } = useUser();
 
   const getDashboardHref = () => {
-    if (profile?.role === "landlord") return "/landlord/dashboard";
-    if (profile?.role === "admin") return "/admin/dashboard";
-    return "/tenant/my-rental";
+    if (profile?.roles.includes("admin")) return "/admin/dashboard";
+    if (pathname.startsWith("/tenant") && profile?.roles.includes("tenant")) return "/tenant/my-rental";
+    const selected = document.cookie.split("; ").find((item) => item.startsWith(`${PORTAL_COOKIE}=`))?.split("=")[1] ?? null;
+    return preferredPortal(profile?.roles ?? [], selected) === "landlord"
+      ? "/landlord/dashboard"
+      : "/tenant/my-rental";
   };
 
   const getProfileHref = () => {
-    if (profile?.role === "landlord") return "/landlord/profile";
-    return "/tenant/profile";
+    if (pathname.startsWith("/landlord") && profile?.roles.includes("landlord")) return "/landlord/profile";
+    if (profile?.roles.includes("admin")) return "/admin/dashboard";
+    const selected = document.cookie.split("; ").find((item) => item.startsWith(`${PORTAL_COOKIE}=`))?.split("=")[1] ?? null;
+    return preferredPortal(profile?.roles ?? [], selected) === "landlord"
+      ? "/landlord/profile"
+      : "/tenant/profile";
   };
 
    useEffect(() => {                                 

@@ -49,7 +49,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
     const { data: landlords } = await supabase
       .from("users")
       .select("id")
-      .eq("role", "landlord")
+      .filter("roles", "cs", "{landlord}")
       .or(
         `first_name.ilike.%${landlord.trim()}%,last_name.ilike.%${landlord.trim()}%,email.ilike.%${landlord.trim()}%`,
       )
@@ -146,7 +146,7 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-3xl border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>

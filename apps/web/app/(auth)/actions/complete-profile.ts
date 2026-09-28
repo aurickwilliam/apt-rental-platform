@@ -1,11 +1,19 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 export type CompleteProfileState = {
   error?: string;
 };
+
+interface UserRolesProfile {
+  mobile_number: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 function calculateAgeFromBirthDate(birthDateValue: string): number | null {
   const isoDate = birthDateValue?.slice(0, 10);
@@ -58,15 +66,16 @@ export async function completeProfile(
       ? requestedRole
       : "tenant";
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("users")
-    .select("role, mobile_number, account_status")
+    .select("roles, mobile_number, account_status")
     .eq("user_id", user.id)
     .single();
+  const profile = profileData as unknown as UserRolesProfile | null;
   if (
     profileError ||
     !profile ||
-    profile.role === "admin" ||
+    profile.roles.includes("admin") ||
     profile.mobile_number ||
     profile.account_status !== "unverified"
   ) {
@@ -123,5 +132,6 @@ export async function completeProfile(
 
   if (error) return { error: error.message };
 
+  (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
   redirect(role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
 }
