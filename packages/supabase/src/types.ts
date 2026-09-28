@@ -1336,6 +1336,15 @@ export type Database = {
         }[]
       }
       get_admin_analytics: { Args: { date_from: string; date_to: string }; Returns: Json }
+      get_admin_dashboard_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          apartments: number
+          label: string
+          reviews: number
+          users: number
+        }[]
+      }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
       get_search_sections: {
         Args: {

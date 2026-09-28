@@ -4,6 +4,15 @@ import { requireAdmin } from "../_lib/require-admin";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 30;
+interface AdminUser {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  roles: string[];
+  account_status: string;
+  created_at: string;
+}
 interface PageProps {
   searchParams: Promise<{
     q?: string;
@@ -26,12 +35,12 @@ export default async function UsersPage({ searchParams }: PageProps) {
   let query = supabase
     .from("users")
     .select(
-      "id, first_name, last_name, email, role, account_status, is_suspended, created_at",
+      "id, first_name, last_name, email, roles, account_status, created_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
   if (["tenant", "landlord", "admin"].includes(role))
-    query = query.eq("role", role);
+    query = query.filter("roles", "cs", `{${role}}`);
   if (["unverified", "pending", "verified", "rejected"].includes(verification))
     query = query.eq("account_status", verification);
   if (q.trim())
@@ -39,10 +48,11 @@ export default async function UsersPage({ searchParams }: PageProps) {
       `first_name.ilike.%${q.trim()}%,last_name.ilike.%${q.trim()}%,email.ilike.%${q.trim()}%`,
     );
   const {
-    data: users,
+    data: usersData,
     error,
     count,
   } = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  const users = usersData as unknown as AdminUser[] | null;
   const params = new URLSearchParams({
     ...(q ? { q } : {}),
     ...(role ? { role } : {}),
@@ -108,7 +118,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-3xl border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -132,9 +142,11 @@ export default async function UsersPage({ searchParams }: PageProps) {
                         </p>
                         <p className="text-muted-foreground">{user.email}</p>
                       </td>
-                      <td className="p-3 capitalize">{user.role}</td>
+                      <td className="p-3 capitalize">
+                        {user.roles.join(", ")}
+                      </td>
                       <td className="p-3 capitalize">{user.account_status}</td>
-                      <td className="p-3">{user.is_suspended ? "Suspended" : "Active"}</td>
+                      <td className="p-3">Active</td>
                       <td className="p-3 text-right">
                         <Link
                           href={`/admin/users/${user.id}`}

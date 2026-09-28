@@ -62,6 +62,7 @@ async function uploadDoc(
 
 export function useSubmitApplication() {
   const { profile } = useProfile()
+  const tenantId = profile?.id ?? null
 
   const {
     tenantInformation,
@@ -78,7 +79,7 @@ export function useSubmitApplication() {
     async ({ apartmentId }: SubmitArgs): Promise<SubmitResult> => {
       setError(null)
 
-      if (!profile?.id) {
+      if (!tenantId) {
         const msg = 'You must be signed in to submit an application.'
         setError(msg)
         return { success: false, error: msg }
@@ -119,9 +120,28 @@ export function useSubmitApplication() {
         return { success: false, error: msg }
       }
 
+      // Reject own listings before uploading private application documents.
+      const { data: apartment, error: apartmentError } = await supabase
+        .from('apartments')
+        .select('landlord_id')
+        .eq('id', apartmentId)
+        .single()
+
+      if (apartmentError || !apartment) {
+        if (apartmentError) console.error('Could not verify apartment ownership', apartmentError)
+        const msg = 'Could not verify this apartment. Please try again.'
+        setError(msg)
+        return { success: false, error: msg }
+      }
+
+      if (apartment.landlord_id === tenantId) {
+        const msg = 'You cannot apply to your own property.'
+        setError(msg)
+        return { success: false, error: msg }
+      }
+
       setIsSubmitting(true)
 
-      const tenantId = profile.id
       const applicationId = randomUUID()
 
       const uploadedSoFar: string[] = []
@@ -231,7 +251,7 @@ export function useSubmitApplication() {
       }
     },
     [
-      profile?.id,
+      tenantId,
       tenantInformation,
       rentalPreferences,
       documents,

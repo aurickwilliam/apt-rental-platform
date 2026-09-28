@@ -5,6 +5,8 @@ import HeroSection from "./components/HeroSection";
 import { Separator, Surface } from "@heroui/react";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 import {
   KeyRound,
@@ -28,19 +30,16 @@ export default async function Home() {
     // Fetch the user's role from your profile/users table
     const { data: profile } = await supabase
       .from('users')
-      .select('role')
+      .select('roles')
       .eq('user_id', user.id)
       .single();
 
     // Redirect based on role
-    switch (profile?.role) {
-      case 'tenant':
-        redirect('/tenant/my-rental');
-      case 'landlord':
-        redirect('/landlord/dashboard');
-      case 'admin':
-        redirect('/admin/dashboard');
-    }
+    const roles = (profile as unknown as { roles: string[] } | null)?.roles ?? [];
+    if (roles.includes('admin')) redirect('/admin/dashboard');
+    const portal = preferredPortal(roles, (await cookies()).get(PORTAL_COOKIE)?.value ?? null);
+    if (portal === 'landlord') redirect('/landlord/dashboard');
+    if (portal === 'tenant') redirect('/tenant/my-rental');
   }
 
   const { data: apartments, error } = await supabase

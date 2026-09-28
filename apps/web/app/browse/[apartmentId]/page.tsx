@@ -54,7 +54,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
         .from('users')
         .select('first_name, last_name, mobile_number, avatar_url')
         .eq('id', apartment.landlord_id)
-        .eq('role', 'landlord')
+        .filter('roles', 'cs', '{landlord}')
         .single()
     : { data: null };
 

@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@repo/supabase/server";
+import { PORTAL_COOKIE } from "@/lib/portal-preference";
+
+interface UserRolesProfile {
+  mobile_number: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -23,21 +30,34 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
       const isOAuth = user?.app_metadata?.provider === "google";
       let profileRole: string | null = null;
+      let selectedPortal: "tenant" | "landlord" | null = null;
 
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from("users")
-          .select("mobile_number, role, account_status")
+          .select("mobile_number, roles, account_status")
           .eq("user_id", user.id)
           .single();
-        profileRole = profile?.role ?? null;
+        const profile = profileData as unknown as UserRolesProfile | null;
+        if (profileError || !profile) {
+          console.error("Could not load OAuth profile", profileError);
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+        }
+        const isAdmin = profile.roles.includes("admin");
+        profileRole = isAdmin ? "admin" : null;
         const isInitialGoogleOnboarding =
           isOAuth &&
-          profile?.role !== "admin" &&
-          !profile?.mobile_number &&
-          profile?.account_status === "unverified";
+          !isAdmin &&
+          !profile.mobile_number &&
+          profile.account_status === "unverified";
 
-        if (isInitialGoogleOnboarding && role && profileRole !== role) {
+        if (!isAdmin && role && profile.mobile_number && !profile.roles.includes(role)) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/sign-in?error=role_mismatch`);
+        }
+
+        if (isInitialGoogleOnboarding && role && !profile.roles.includes(role)) {
           const { error: roleError } = await supabase.rpc("set_onboarding_role", { requested_role: role });
           if (roleError) {
             console.error("Could not set OAuth onboarding role", roleError);
@@ -45,6 +65,10 @@ export async function GET(request: Request) {
             return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
           }
           profileRole = role;
+        }
+
+        if (!isAdmin && role && (profile.roles.includes(role) || isInitialGoogleOnboarding)) {
+          selectedPortal = role;
         }
 
         if (!isPopup && isInitialGoogleOnboarding) {
@@ -68,13 +92,17 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      const destination = isLocalEnv || !forwardedHost
+        ? `${origin}${next}`
+        : `https://${forwardedHost}${next}`;
+      const response = NextResponse.redirect(destination);
+      if (selectedPortal) {
+        response.cookies.set(PORTAL_COOKIE, selectedPortal, {
+          path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 30,
+        });
       }
+      return response;
     }
   }
 

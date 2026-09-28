@@ -79,14 +79,16 @@ export async function getLandlordContext(): Promise<LandlordContext> {
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("id, role")
+    .select("id, roles")
     .eq("user_id", user.id)
     .maybeSingle();
 
   if (profileError) throw profileError;
 
-  const role = profile?.role ?? null;
-  const landlordId = role === "landlord" ? profile?.id ?? null : null;
+  const typedProfile = profile as unknown as { id: string; roles: string[] } | null;
+  const roles = typedProfile?.roles ?? [];
+  const role = roles.includes("landlord") ? "landlord" : null;
+  const landlordId = role === "landlord" ? typedProfile?.id ?? null : null;
 
   return { landlordId, role, isAuthenticated: true };
 }

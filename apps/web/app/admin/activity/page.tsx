@@ -40,7 +40,7 @@ export default async function ActivityPage({
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-3xl border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>

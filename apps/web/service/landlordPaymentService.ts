@@ -19,12 +19,14 @@ export async function fetchLandlordApartments(): Promise<LandlordApartment[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data: profile } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("users")
-    .select("id, role")
+    .select("id, roles")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!profile || (profile.role as string) !== "landlord") return [];
+  if (profileError) throw profileError;
+  const profile = profileData as unknown as { id: string; roles: string[] } | null;
+  if (!profile?.roles.includes("landlord")) return [];
 
   const { data, error } = await supabase
     .from("apartments")

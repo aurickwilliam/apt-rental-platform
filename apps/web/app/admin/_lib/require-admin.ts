@@ -6,6 +6,7 @@ export interface AdminProfile {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
+  roles: string[];
 }
 
 export async function requireAdmin(): Promise<AdminProfile> {
@@ -19,34 +20,18 @@ export async function requireAdmin(): Promise<AdminProfile> {
     redirect("/sign-in");
   }
 
-  const { data: profile, error } = await supabase
+  const { data: profileData, error } = await supabase
     .from("users")
-    .select("id, first_name, last_name, email, role, is_suspended")
+    .select("id, first_name, last_name, email, roles")
     .eq("user_id", user.id)
     .single();
-
-  // Older APT projects have admin roles but have not deployed the suspension column yet.
-  // Only fall back for that specific schema mismatch; never ignore other query failures.
-  if (error?.code === "42703" && error.message.includes("is_suspended")) {
-    const { data: legacyProfile, error: legacyError } = await supabase
-      .from("users")
-      .select("id, first_name, last_name, email, role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (legacyError) {
-      console.error("Unable to verify admin profile", legacyError);
-      throw new Error("Unable to verify administrator access.");
-    }
-    if (!legacyProfile || legacyProfile.role !== "admin") notFound();
-    return legacyProfile;
-  }
 
   if (error) {
     console.error("Unable to verify admin profile", error);
     throw new Error("Unable to verify administrator access.");
   }
-  if (!profile || profile.role !== "admin" || profile.is_suspended) notFound();
+  const profile = profileData as unknown as AdminProfile | null;
+  if (!profile || !profile.roles.includes("admin")) notFound();
 
   return profile;
 }
