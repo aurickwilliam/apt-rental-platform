@@ -326,7 +326,7 @@ export default function MyRental() {
                         </span>
                         Already Paid
                       </p>
-                      <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                         {paymentPeriodLabel}
                       </p>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -343,7 +343,7 @@ export default function MyRental() {
                         </p>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                            <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                               {formatMonthYear(nextPeriod.periodStart)}
                             </p>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400">
