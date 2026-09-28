@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Card } from "@heroui/react";
+import { IconHistory } from "@tabler/icons-react";
 import { activityDateFormatter } from "../../../activity/lib/activity-display";
 
 export interface UserActivityEvent {
@@ -23,8 +25,12 @@ function targetHref(targetType: string, targetId: string) {
 
 export default function UserActivityTimeline({ events }: UserActivityTimelineProps) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-      <h2 className="font-nunito text-lg font-bold">Activity timeline</h2>
+    <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+      <Card.Content className="p-0">
+      <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+        <IconHistory size={20} className="shrink-0 text-primary" aria-hidden="true" />
+        Activity timeline
+      </h2>
       {events.length ? (
         <ul className="mt-3 space-y-3 text-sm">
           {events.map((event) => {
@@ -69,6 +75,7 @@ export default function UserActivityTimeline({ events }: UserActivityTimelinePro
           No account activity yet
         </p>
       )}
-    </section>
+      </Card.Content>
+    </Card>
   );
 }

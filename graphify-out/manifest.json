@@ -4535,8 +4535,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/page.tsx": {
-    "mtime": 1790593741.4474888,
-    "ast_hash": "71cddfcbcd9b937134e89bba7dd16120",
+    "mtime": 1790598756.0036373,
+    "ast_hash": "9175967bf0a16a461ab9d1fae1d91cba",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/page.tsx": {
@@ -5145,8 +5145,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/lib/user-display.ts": {
-    "mtime": 1790590881.3938713,
-    "ast_hash": "fffa81d311be0d5185e799bbe31eccc0",
+    "mtime": 1790594673.3626692,
+    "ast_hash": "3e82feecc09c97b15173520fe4ec1a0d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260928050421_add_apartment_visibility_columns.sql": {
@@ -5380,38 +5380,38 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserActivityTimeline.tsx": {
-    "mtime": 1790592740.6401734,
-    "ast_hash": "9a57996c34cbe0e96f405d220d5dd8a0",
+    "mtime": 1790595147.6066773,
+    "ast_hash": "f97af7f18b1f3ac954cc0c42ad895ff2",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserMaintenance.tsx": {
-    "mtime": 1790592734.9771116,
-    "ast_hash": "4b7aa80b856e0f443c5fce050576abb2",
+    "mtime": 1790595164.3799367,
+    "ast_hash": "3d0008a3e1963bdc2e4b81730a9dc616",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserPayments.tsx": {
-    "mtime": 1790592721.9035487,
-    "ast_hash": "a9ffe61c10e60282311690b4f1bab5b6",
+    "mtime": 1790595164.3799372,
+    "ast_hash": "7a7079306874c48083353929e1708a05",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserPersonalInfo.tsx": {
-    "mtime": 1790592685.7931466,
-    "ast_hash": "216588fdb085a79e652b18688c13beb3",
+    "mtime": 1790596761.9049966,
+    "ast_hash": "5f5212ce428605a588e18236f5d40703",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserProfileHeader.tsx": {
-    "mtime": 1790593303.6819854,
-    "ast_hash": "361e4fe14ce599f0cba255e4aa2317ec",
+    "mtime": 1790595966.5887396,
+    "ast_hash": "cd13a0fac71e8b2eeed54d2f54583a5d",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserReputation.tsx": {
-    "mtime": 1790592727.761989,
-    "ast_hash": "bfa6d949637df4c5b7b85e0c8ac62512",
+    "mtime": 1790595164.3800342,
+    "ast_hash": "bc571b085304c3356a9af129447e409c",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserTrustSafety.tsx": {
-    "mtime": 1790592703.395635,
-    "ast_hash": "a5f2d37260b1d6e277d19fa6193a0f37",
+    "mtime": 1790595147.6031737,
+    "ast_hash": "1b799cfe67638fbc993b23ae25b55d3a",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserDetailPrimitives.tsx": {
@@ -5420,13 +5420,18 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserRentalActivity.tsx": {
-    "mtime": 1790592715.2001252,
-    "ast_hash": "390b5daedecd68af28a9cdf4eeb8ec18",
+    "mtime": 1790598629.3322792,
+    "ast_hash": "99c219626ef47c8db7806810237888ba",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserVerificationCard.tsx": {
-    "mtime": 1790592825.3794177,
-    "ast_hash": "ece9ca7ff10b691160b5febb04dd6357",
+    "mtime": 1790595147.60623,
+    "ast_hash": "57992b8bf44e1b51e3aca7a16ae5730a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/[id]/components/ProfilePhoto.tsx": {
+    "mtime": 1790594659.3681428,
+    "ast_hash": "8e6095d00fb0ac3608473c050a6bc923",
     "semantic_hash": ""
   }
 }

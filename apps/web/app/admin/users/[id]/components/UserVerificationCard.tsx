@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Chip } from "@heroui/react";
+import { IconShieldCheck } from "@tabler/icons-react";
+import { Card, Chip } from "@heroui/react";
 import { verificationChipColor } from "../../lib/user-display";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState } from "./UserDetailPrimitives";
@@ -27,9 +28,13 @@ export default function UserVerificationCard({
   const pending = verifications.filter((item) => item.status === "pending");
   const actionId = pending[0]?.id ?? latest?.id ?? null;
   return (
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-5">
+    <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+      <Card.Content className="p-0">
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-nunito text-lg font-bold">Verification</h2>
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+          <IconShieldCheck size={20} className="shrink-0 text-primary" aria-hidden="true" />
+          Verification
+        </h2>
         <Chip
           size="sm"
           variant="soft"
@@ -62,6 +67,7 @@ export default function UserVerificationCard({
       ) : (
         <DetailEmptyState>No verification submission</DetailEmptyState>
       )}
-    </section>
+      </Card.Content>
+    </Card>
   );
 }

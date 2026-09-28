@@ -1,3 +1,5 @@
+import { Card } from "@heroui/react";
+import { IconLock } from "@tabler/icons-react";
 import {
   getAccountAgeDays,
   joinedFormatter,
@@ -20,8 +22,12 @@ export default function UserTrustSafety({
 }: UserTrustSafetyProps) {
   const accountAgeDays = getAccountAgeDays(user.created_at);
   return (
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-      <h2 className="font-nunito text-lg font-bold">Trust and safety</h2>
+    <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+      <Card.Content className="p-0">
+      <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+        <IconLock size={20} className="shrink-0 text-primary" aria-hidden="true" />
+        Trust and safety
+      </h2>
       <dl className="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <InfoField
           label="Account status"
@@ -50,6 +56,7 @@ export default function UserTrustSafety({
           migration is applied.
         </p>
       )}
-    </section>
+      </Card.Content>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
-import { Chip } from "@heroui/react";
+import { IconTools } from "@tabler/icons-react";
+import { Card, Chip, Separator } from "@heroui/react";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState, MetricItem } from "./UserDetailPrimitives";
 
@@ -27,8 +28,12 @@ export default function UserMaintenance({
   breakdown,
 }: UserMaintenanceProps) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-      <h2 className="font-nunito text-lg font-bold">Maintenance</h2>
+    <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+      <Card.Content className="p-0">
+      <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+        <IconTools size={20} className="shrink-0 text-primary" aria-hidden="true" />
+        Maintenance
+      </h2>
       <div className="mt-3 grid grid-cols-4 gap-4">
         <MetricItem value={String(breakdown.total)} label="Total" />
         <MetricItem value={String(breakdown.pending)} label="Pending" />
@@ -36,7 +41,9 @@ export default function UserMaintenance({
         <MetricItem value={String(breakdown.resolved)} label="Resolved" />
       </div>
       {items.length ? (
-        <ul className="mt-3 space-y-2 border-t border-border pt-3 text-sm">
+        <>
+          <Separator className="my-3" />
+          <ul className="space-y-2 text-sm">
           {items.slice(0, 3).map((item) => (
             <li
               key={item.id}
@@ -54,10 +61,12 @@ export default function UserMaintenance({
               </Chip>
             </li>
           ))}
-        </ul>
+          </ul>
+        </>
       ) : (
         <DetailEmptyState>No maintenance requests</DetailEmptyState>
       )}
-    </section>
+      </Card.Content>
+    </Card>
   );
 }

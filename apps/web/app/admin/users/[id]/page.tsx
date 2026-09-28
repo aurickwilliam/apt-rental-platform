@@ -113,10 +113,11 @@ export default async function AdminUserDetailPage({
     supabase
       .from("tenancies")
       .select(
-        "id, status, lease_start, lease_end, monthly_rent, apartment_id, apartment:apartments!tenancies_apartment_id_fkey(name)",
+        "id, status, lease_start, lease_end, monthly_rent, apartment_id, apartment:apartments!tenancies_apartment_id_fkey(name), tenant:users!tenancies_tenant_id_fkey(first_name,last_name)",
       )
       .eq("landlord_id", id)
-      .order("lease_start", { ascending: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(10),
     supabase
       .from("rental_application")
@@ -312,6 +313,26 @@ export default async function AdminUserDetailPage({
   const apartments = (
     (apartmentsData ?? []) as unknown as OwnedApartment[]
   ).slice(0, 20);
+  const apartmentThumbnails = new Map<string, string>();
+  if (apartments.length) {
+    const { data: covers } = await supabase
+      .from("apartment_images")
+      .select("apartment_id, url, url_thumb")
+      .in(
+        "apartment_id",
+        apartments.map((apartment) => apartment.id),
+      )
+      .eq("is_cover", true);
+    for (const cover of covers ?? []) {
+      if (cover.apartment_id && !apartmentThumbnails.has(cover.apartment_id)) {
+        apartmentThumbnails.set(cover.apartment_id, cover.url_thumb ?? cover.url);
+      }
+    }
+  }
+  const apartmentsWithThumbnails = apartments.map((apartment) => ({
+    ...apartment,
+    thumbnail_url: apartmentThumbnails.get(apartment.id) ?? null,
+  }));
 
   type TenancyRow = {
     id: string;
@@ -321,7 +342,18 @@ export default async function AdminUserDetailPage({
     monthly_rent: number | null;
     apartment_id: string;
     apartment: ApartmentRef | ApartmentRef[] | null;
+    tenant?: {
+      first_name: string | null;
+      last_name: string | null;
+    } | null;
   };
+  function tenantDisplayName(row: TenancyRow): string | null {
+    if (!row.tenant) return null;
+    return (
+      `${row.tenant.first_name ?? ""} ${row.tenant.last_name ?? ""}`.trim() ||
+      null
+    );
+  }
   function toActiveTenancy(
     row: TenancyRow,
     counterparty_role: "tenant" | "landlord",
@@ -335,6 +367,7 @@ export default async function AdminUserDetailPage({
       apartment_id: row.apartment_id,
       apartment_name: apartmentName(row.apartment, "Apartment"),
       counterparty_role,
+      tenant_name: tenantDisplayName(row),
     };
   }
   const tenanciesAsTenant = (
@@ -497,7 +530,7 @@ export default async function AdminUserDetailPage({
           <UserPersonalInfo user={{ ...user, roles }} />
           <UserRentalActivity
             roles={roles}
-            apartments={apartments}
+          apartments={apartmentsWithThumbnails}
             tenanciesAsTenant={tenanciesAsTenant}
             tenanciesAsLandlord={tenanciesAsLandlord}
             applications={applications}

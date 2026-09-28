@@ -1,3 +1,5 @@
+import { Card, Separator } from "@heroui/react";
+import { IconStar } from "@tabler/icons-react";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState, MetricItem } from "./UserDetailPrimitives";
 
@@ -26,8 +28,12 @@ export default function UserReputation({
 }: UserReputationProps) {
   const latest = reviews[0] ?? null;
   return (
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-      <h2 className="font-nunito text-lg font-bold">Reputation</h2>
+    <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+      <Card.Content className="p-0">
+      <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+        <IconStar size={20} className="shrink-0 text-primary" aria-hidden="true" />
+        Reputation
+      </h2>
       <div className="mt-3 grid grid-cols-3 gap-4">
         <MetricItem value={String(totalReviews)} label="Reviews" />
         <MetricItem
@@ -40,7 +46,9 @@ export default function UserReputation({
         />
       </div>
       {latest ? (
-        <div className="mt-3 border-t border-border pt-3 text-sm">
+        <>
+          <Separator className="my-3" />
+          <div className="text-sm">
           <p className="font-medium wrap-break-word">
             {latest.rating}/5 · {latest.apartment_name}
           </p>
@@ -54,10 +62,12 @@ export default function UserReputation({
               {submittedFormatter.format(new Date(latest.created_at))}
             </p>
           ) : null}
-        </div>
+          </div>
+        </>
       ) : (
         <DetailEmptyState>No review activity yet</DetailEmptyState>
       )}
-    </section>
+      </Card.Content>
+    </Card>
   );
 }

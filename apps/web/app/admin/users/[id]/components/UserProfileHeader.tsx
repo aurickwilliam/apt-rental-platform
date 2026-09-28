@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { IconChevronLeft } from "@tabler/icons-react";
-import { Chip } from "@heroui/react";
+import { Card, Chip } from "@heroui/react";
 import OperationForm from "../../../OperationForm";
 import { setUserAccess } from "../../../actions/operations";
 import {
@@ -25,7 +25,8 @@ export default function UserProfileHeader({
 }: UserProfileHeaderProps) {
   const name = getFullName(user);
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border bg-card">
+    <Card className="relative overflow-hidden rounded-3xl border border-border bg-card p-0 shadow-none">
+      <Card.Content className="p-0">
       <div className="relative h-28 w-full bg-muted sm:h-32">
         {user.background_url ? (
           <Image
@@ -98,6 +99,7 @@ export default function UserProfileHeader({
           ) : null}
         </div>
       </div>
-    </section>
+      </Card.Content>
+    </Card>
   );
 }
