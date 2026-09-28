@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./types";
+import { isPendingOnboarding } from "./pending-onboarding";
 
 const ROLE_ROUTES: Record<string, string[]> = {
   tenant: ["/tenant"],
@@ -108,10 +109,26 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If the user is signed in and trying to access auth routes,
-  // redirect them to the home page
+  // redirect them to the home page — except pending-onboarding users, who
+  // may only stay on the role picker and are sent back to it otherwise.
   if (user && authRoutes.some((route) => pathname.startsWith(route))) {
-    const { data: profile } = await supabase.from("users")
-      .select("id").eq("user_id", user.id).maybeSingle();
+    const { data: profileData } = await supabase.from("users")
+      .select("id, roles, account_status, mobile_number").eq("user_id", user.id).maybeSingle();
+    const profile = profileData as unknown as {
+      id: string;
+      roles: string[] | null;
+      account_status: string | null;
+      mobile_number: string | null;
+    } | null;
+    if (profile && isPendingOnboarding(profile)) {
+      if (pathname !== "/sign-up") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/sign-up";
+        url.search = "?from=google-new";
+        return NextResponse.redirect(url);
+      }
+      return supabaseResponse;
+    }
     if (profile) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
@@ -127,10 +144,26 @@ export async function updateSession(request: NextRequest) {
   if (user && isProtected) {
     const { data: profileData, error: profileError } = await supabase
       .from("users")
-      .select("roles")
+      .select("roles, account_status, mobile_number")
       .eq("user_id", user.id)
       .single();
     const profile = profileData as unknown as UserRolesProfile | null;
+    // Pending-onboarding users hold no real portal yet (admins can never be
+    // pending); send them to the role picker before any portal checks.
+    if (
+      isPendingOnboarding(
+        profileData as unknown as {
+          roles: string[] | null;
+          account_status: string | null;
+          mobile_number: string | null;
+        } | null,
+      )
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/sign-up";
+      url.search = "?from=google-new";
+      return NextResponse.redirect(url);
+    }
     const profileRoles = profile?.roles ?? [];
 
     const role = defaultRole(profileRoles);

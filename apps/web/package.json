@@ -9,8 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@heroui/react": "^3.2.4",
-    "@heroui/styles": "^3.2.4",
+    "@heroui/react": "3.2.6",
+    "@heroui/styles": "3.2.6",
     "@internationalized/date": "^3.12.4",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",

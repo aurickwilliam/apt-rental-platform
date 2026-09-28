@@ -93,7 +93,7 @@ export function useUserPreferences() {
     return parsed;
   }, [profile?.preferences]);
 
-  const isTenant = profile?.role === "tenant";
+  const isTenant = (profile?.roles ?? []).includes("tenant");
   const hasPrefs = isTenant && hasPersonalization(preferences);
   const personalizedCity = preferences?.selectedCities[0] ?? "CAMANAVA";
   const extraCitiesCount = Math.max(0, (preferences?.selectedCities.length ?? 0) - 1);

@@ -59,26 +59,29 @@ export default function OtpModal({
                     <span className="font-semibold text-foreground">{email}</span>.
                   </p>
 
-                  <InputOTP
-                    maxLength={6}
-                    value={otp}
-                    onChange={(val) => onOtpChange(val)}
-                    isInvalid={!!otpError}
-                    pattern={REGEXP_ONLY_DIGITS}
-                    autoFocus
-                  >
-                    <InputOTP.Group>
-                      <InputOTP.Slot index={0} />
-                      <InputOTP.Slot index={1} />
-                      <InputOTP.Slot index={2} />
-                    </InputOTP.Group>
-                    <InputOTP.Separator />
-                    <InputOTP.Group>
-                      <InputOTP.Slot index={3} />
-                      <InputOTP.Slot index={4} />
-                      <InputOTP.Slot index={5} />
-                    </InputOTP.Group>
-                  </InputOTP>
+                  <div className="flex w-full justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(val) => onOtpChange(val)}
+                      isInvalid={!!otpError}
+                      pattern={REGEXP_ONLY_DIGITS}
+                      autoFocus
+                      className="justify-center"
+                    >
+                      <InputOTP.Group>
+                        <InputOTP.Slot index={0} />
+                        <InputOTP.Slot index={1} />
+                        <InputOTP.Slot index={2} />
+                      </InputOTP.Group>
+                      <InputOTP.Separator />
+                      <InputOTP.Group>
+                        <InputOTP.Slot index={3} />
+                        <InputOTP.Slot index={4} />
+                        <InputOTP.Slot index={5} />
+                      </InputOTP.Group>
+                    </InputOTP>
+                  </div>
 
                   {otpError && (
                     <p className="text-center text-sm text-danger">{otpError}</p>

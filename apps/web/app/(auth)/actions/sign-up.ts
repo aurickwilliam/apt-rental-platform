@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import { validateForm, calculateAgeFromBirthDate } from "../sign-up-form/utils";
+import { validateForm } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
 import type { Database } from "@repo/supabase";
 
@@ -50,8 +50,6 @@ export async function signUp(
       return { error: "Please choose a valid account type.", success: false };
     }
 
-    const parsedBirthDate = new Date(`${mapped.birthDate}T00:00:00`);
-    const calculatedAge = calculateAgeFromBirthDate(parsedBirthDate);
     const parsedPostalCode = mapped.postalCode ?? null;
 
     const supabase = await createClient();

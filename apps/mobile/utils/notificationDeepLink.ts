@@ -1,7 +1,5 @@
 import type { Href } from "expo-router";
 
-import type { UserProfile } from "@/service/auth/currentUserService";
-
 export interface NotificationData {
   screen?: string;
   apartmentId?: string;
@@ -13,7 +11,8 @@ export interface NotificationData {
   verificationId?: string;
 }
 
-type Role = UserProfile["role"];
+// Primary-role string (roles[0]); callers pass the active portal's role.
+type Role = string | null;
 
 function parseConversationKey(key: string): { userIdA: string; userIdB: string; apartmentId: string | null } | null {
   const parts = key.split(":");

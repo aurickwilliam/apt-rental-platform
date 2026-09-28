@@ -1,4 +1,5 @@
 import { SignUpFormData } from "./types";
+import { validateBirthDate } from "@/lib/birth-date";
 
 export function validateForm(formData: SignUpFormData): string | null {
   if (!formData.firstName || !formData.lastName) {
@@ -31,14 +32,9 @@ export function validateForm(formData: SignUpFormData): string | null {
     return "Complete address information is required.";
   }
 
-  const parsedBirthDate = new Date(`${formData.birthDate}T00:00:00`);
-  if (Number.isNaN(parsedBirthDate.getTime()) || parsedBirthDate > new Date()) {
-    return "Please enter a valid birth date.";
-  }
-
-  const age = calculateAgeFromBirthDate(parsedBirthDate);
-  if (age < 18 || age > 120) {
-    return "You must be at least 18 years old to register.";
+  const birthDateError = validateBirthDate(formData.birthDate);
+  if (birthDateError) {
+    return birthDateError;
   }
 
   if (
@@ -49,14 +45,4 @@ export function validateForm(formData: SignUpFormData): string | null {
   }
 
   return null;
-}
-
-export function calculateAgeFromBirthDate(birthDate: Date): number {
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age -= 1;
-  }
-  return age;
 }

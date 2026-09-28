@@ -34,9 +34,10 @@ export default async function CompleteProfilePage({
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/sign-in");
+  if (userError || !user) redirect("/sign-in");
 
   // If already complete, skip this page
   const { data: profileData } = await supabase

@@ -88,13 +88,13 @@ export default function Profile() {
         email={profile?.email}
         avatarInitials={avatarInitials}
         loading={loading}
-        role={profile?.role}
+        role={profile?.roles?.[0] ?? null}
       />
 
       {!profile?.mobile_number && (
         <CompleteProfileCard
           email={profile?.email ?? ''}
-          role={profile?.role ?? ''}
+          role={profile?.roles?.[0] ?? ''}
           firstName={profile?.first_name ?? ''}
           lastName={profile?.last_name ?? ''}
         />
