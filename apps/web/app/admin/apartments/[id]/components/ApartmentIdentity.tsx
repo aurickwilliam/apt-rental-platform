@@ -1,9 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button, Dropdown } from "@heroui/react";
-import { IconDots } from "@tabler/icons-react";
+import { Button, Dropdown, toast } from "@heroui/react";
+import {
+  IconClock,
+  IconDots,
+  IconEye,
+  IconEyeOff,
+  IconHome,
+  IconHomeCheck,
+  IconMapPin,
+  IconShieldCheckFilled,
+  IconShieldX,
+  IconTool,
+} from "@tabler/icons-react";
 import type { Apartment, Verification } from "../types";
 import { dateOnly, StatusChip } from "./DetailPrimitives";
 
@@ -17,7 +27,6 @@ export default function ApartmentIdentity({
   verification,
 }: ApartmentIdentityProps) {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
   const address = [
     apartment.street_address,
     apartment.barangay,
@@ -26,22 +35,33 @@ export default function ApartmentIdentity({
   ]
     .filter(Boolean)
     .join(", ");
+  const verificationStatus =
+    verification?.status === "pending"
+      ? "pending"
+      : apartment.is_verified
+        ? "verified"
+        : verification?.status === "rejected"
+          ? "rejected"
+          : "unverified";
+  const occupancyStatus =
+    apartment.status === "available" ? "vacant" : apartment.status;
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-nunito text-2xl font-bold wrap-break-word sm:text-3xl">
+          <h1 className="text-primary font-nunito text-2xl font-bold wrap-break-word sm:text-3xl">
             {apartment.name}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{address}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            ID {apartment.id} · Created{" "}
-            {dateOnly.format(new Date(apartment.created_at))}
-            {apartment.updated_at
-              ? ` · Updated ${dateOnly.format(new Date(apartment.updated_at))}`
-              : ""}
+          <p className="mt-1 text-sm text-muted-foreground">
+            <IconMapPin
+              size={16}
+              className="inline-block align-text-bottom mr-1"
+              aria-hidden="true"
+            />
+            {address}{" "}
           </p>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           {verification?.status === "pending" ? (
             <Button
@@ -67,8 +87,8 @@ export default function ApartmentIdentity({
                   if (key === "copy") {
                     void navigator.clipboard
                       .writeText(apartment.id)
-                      .then(() => setCopied(true))
-                      .catch(() => setCopied(false));
+                       .then(() => toast.success("Listing ID copied"))
+                       .catch(() => toast.danger("Could not copy listing ID. Please try again."));
                   }
                 }}
               >
@@ -98,31 +118,50 @@ export default function ApartmentIdentity({
           </Dropdown>
         </div>
       </div>
-      {copied ? (
-        <span role="status" className="text-xs text-primary">
-          Listing ID copied
-        </span>
-      ) : null}
-      <div className="flex flex-wrap gap-2" aria-label="Apartment status">
-        <StatusChip
-          status={
-            verification?.status === "pending"
-              ? "pending"
-              : apartment.is_verified
-                ? "verified"
-                : verification?.status === "rejected"
-                  ? "rejected"
-                  : "unverified"
-          }
-        />
-        <StatusChip
-          status={
-            apartment.status === "available" ? "vacant" : apartment.status
-          }
-        />
-        <StatusChip
-          status={apartment.is_hidden_by_admin ? "hidden" : "visible"}
-        />
+
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mt-2">
+        <div className="flex flex-wrap gap-2" aria-label="Apartment status">
+          <StatusChip
+            status={verificationStatus}
+            icon={
+              verificationStatus === "verified" ? (
+                <IconShieldCheckFilled size={14} aria-hidden="true" />
+              ) : verificationStatus === "pending" ? (
+                <IconClock size={14} aria-hidden="true" />
+              ) : (
+                <IconShieldX size={14} aria-hidden="true" />
+              )
+            }
+          />
+          <StatusChip
+            status={occupancyStatus}
+            icon={
+              occupancyStatus === "occupied" ? (
+                <IconHomeCheck size={14} aria-hidden="true" />
+              ) : occupancyStatus === "under_maintenance" ? (
+                <IconTool size={14} aria-hidden="true" />
+              ) : (
+                <IconHome size={14} aria-hidden="true" />
+              )
+            }
+          />
+          <StatusChip
+            status={apartment.is_hidden_by_admin ? "hidden" : "visible"}
+            icon={
+              apartment.is_hidden_by_admin ? (
+                <IconEyeOff size={14} aria-hidden="true" />
+              ) : (
+                <IconEye size={14} aria-hidden="true" />
+              )
+            }
+          />
+        </div>
+        <p className="text-xs text-muted-foreground sm:ml-auto sm:text-right">
+          Created {dateOnly.format(new Date(apartment.created_at))}
+          {apartment.updated_at
+            ? ` · Updated ${dateOnly.format(new Date(apartment.updated_at))}`
+            : ""}
+        </p>
       </div>
     </div>
   );

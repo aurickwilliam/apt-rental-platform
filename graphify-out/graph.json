@@ -1440,7 +1440,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_app_auth_verify_account_success_success",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "success()"
     },
@@ -1946,7 +1946,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_landlord_profile_profile",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "profile()"
     },
@@ -2133,7 +2133,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_tenant_profile_profile",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "profile()"
     },
@@ -2221,7 +2221,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_app_tabs_layout_tabslayout",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "tabslayout()"
     },
@@ -3882,7 +3882,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_apartment_summary",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "apartment-summary.tsx"
     },
@@ -3893,7 +3893,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_apply_apartment_summary_apartmentsummary",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "apartmentsummary()"
     },
@@ -4520,7 +4520,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_components_sections_mappreviewsection_mappreviewsection",
-      "community": 103,
+      "community": 353,
       "community_name": "MapPreviewSection",
       "norm_label": "mappreviewsection()"
     },
@@ -4641,7 +4641,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_included_perks_includedperks",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "includedperks()"
     },
@@ -4751,7 +4751,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_mobile_app_apartment_apartmentid_rate_apartment_rateapartment",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "rateapartment()"
     },
@@ -6390,7 +6390,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyoverviewskeleton",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "propertyoverviewskeleton.tsx"
     },
@@ -6401,7 +6401,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_components_propertyoverviewskeleton_propertyoverviewskeleton",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "propertyoverviewskeleton()"
     },
@@ -6753,7 +6753,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_index",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "manage-apartment/[apartmentid]/index.tsx"
     },
@@ -6764,7 +6764,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_apartmentid_index_index",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "index()"
     },
@@ -6918,7 +6918,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_amenities_amenities",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "amenities()"
     },
@@ -6929,7 +6929,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "fifth-step.tsx"
     },
@@ -6940,7 +6940,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_map_style",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "map_style"
     },
@@ -6951,7 +6951,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_default_coords",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "default_coords"
     },
@@ -6962,7 +6962,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "fifthstep()"
     },
@@ -6995,7 +6995,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "add-apartment/index.tsx"
     },
@@ -7006,7 +7006,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index_formerrors",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "formerrors"
     },
@@ -7017,7 +7017,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_index_index",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "index()"
     },
@@ -8755,7 +8755,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_applicationid",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "applications/[applicationid].tsx"
     },
@@ -8766,7 +8766,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_applicationid_applicationapartment",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "applicationapartment()"
     },
@@ -8920,7 +8920,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_mobile_app_tenant_applications_request_visit_requestvisit",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "requestvisit()"
     },
@@ -10449,7 +10449,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_confirmdialog",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "confirmdialog.tsx"
     },
@@ -10460,7 +10460,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_components_display_confirmdialog_props",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "props"
     },
@@ -10471,7 +10471,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_components_display_confirmdialog_confirmdialog",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "confirmdialog()"
     },
@@ -10548,7 +10548,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "display/documentrow.tsx"
     },
@@ -10559,7 +10559,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_documentrowprops",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "documentrowprops"
     },
@@ -10570,7 +10570,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_image_extensions",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "image_extensions"
     },
@@ -10581,7 +10581,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_getextension",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "getextension()"
     },
@@ -10592,7 +10592,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_components_display_documentrow_documentrow",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "documentrow()"
     },
@@ -12330,7 +12330,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_index",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "apartments/index.ts"
     },
@@ -12341,8 +12341,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_test",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "useapartmentdetails.test.tsx"
     },
     {
@@ -12352,8 +12352,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_test_mockfetchapartmentdetails",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockfetchapartmentdetails"
     },
     {
@@ -12363,8 +12363,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_test_mockfetchreviewspreview",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockfetchreviewspreview"
     },
     {
@@ -12374,8 +12374,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_test_createwrapper",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
     {
@@ -12396,7 +12396,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_getapartmentdetailsquerykey",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "getapartmentdetailsquerykey()"
     },
@@ -12407,7 +12407,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_getapartmentreviewspreviewquerykey",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "getapartmentreviewspreviewquerykey()"
     },
@@ -12429,7 +12429,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_useapartmentdetails_useapartmentdetails",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "useapartmentdetails()"
     },
@@ -12627,7 +12627,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_usepublishapartment",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usepublishapartment.ts"
     },
@@ -12660,7 +12660,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_usepublishapartment_getmimetype",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "getmimetype()"
     },
@@ -12671,7 +12671,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "apps_mobile_hooks_apartments_usepublishapartment_usepublishapartment",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usepublishapartment()"
     },
@@ -12858,7 +12858,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usecancelapplication_usecancelapplication",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usecancelapplication()"
     },
@@ -13111,8 +13111,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_test",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "usetenantapplications.test.tsx"
     },
     {
@@ -13122,8 +13122,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_test_mockusecurrentuser",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockusecurrentuser"
     },
     {
@@ -13133,8 +13133,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_test_mockfetchtenantapplications",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockfetchtenantapplications"
     },
     {
@@ -13144,8 +13144,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_hooks_applications_usetenantapplications_test_createwrapper",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
     {
@@ -13298,8 +13298,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_auth_usecurrentuser",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "usecurrentuser.ts"
     },
     {
@@ -13353,8 +13353,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_auth_useprofile",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "useprofile.ts"
     },
     {
@@ -13364,7 +13364,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_hooks_auth_useprofile_useprofile",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "useprofile()"
     },
@@ -13969,8 +13969,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "usefavorites.test.tsx"
     },
     {
@@ -13980,8 +13980,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_mockusecurrentuser",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "mockusecurrentuser"
     },
     {
@@ -13991,8 +13991,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_mockdeletefavorite",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "mockdeletefavorite"
     },
     {
@@ -14002,8 +14002,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_mockfetchapartmentsbyids",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "mockfetchapartmentsbyids"
     },
     {
@@ -14013,8 +14013,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_mockfetchfavoriteapartmentids",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "mockfetchfavoriteapartmentids"
     },
     {
@@ -14024,8 +14024,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_mockinsertfavorite",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "mockinsertfavorite"
     },
     {
@@ -14035,8 +14035,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_mobile_hooks_favorites_usefavorites_test_createwrapper",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 233,
+      "community_name": "useFavorites.test.tsx",
       "norm_label": "createwrapper()"
     },
     {
@@ -14750,7 +14750,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "usenotificationrealtime.ts"
     },
@@ -14772,7 +14772,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_channelentry",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "channelentry"
     },
@@ -14783,7 +14783,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_registry",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "registry"
     },
@@ -14794,7 +14794,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_handleevent",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "handleevent()"
     },
@@ -14805,7 +14805,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_attach",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "attach()"
     },
@@ -14816,7 +14816,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_detach",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "detach()"
     },
@@ -14827,7 +14827,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotificationrealtime_usenotificationrealtime",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "usenotificationrealtime()"
     },
@@ -14860,7 +14860,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotifications",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "usenotifications.ts"
     },
@@ -14882,7 +14882,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotifications_getunreadnotificationsquerykey",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "getunreadnotificationsquerykey()"
     },
@@ -14893,7 +14893,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotifications_geterrormessage",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "geterrormessage()"
     },
@@ -14904,7 +14904,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_usenotifications_usenotifications",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "usenotifications()"
     },
@@ -14948,7 +14948,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_useunreadnotificationcount",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "useunreadnotificationcount.ts"
     },
@@ -14959,7 +14959,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_hooks_notifications_useunreadnotificationcount_useunreadnotificationcount",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "useunreadnotificationcount()"
     },
@@ -15531,7 +15531,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_ratings_usesubmitreview",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usesubmitreview.ts"
     },
@@ -15542,7 +15542,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_mobile_hooks_ratings_usesubmitreview_submitreviewparams",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "submitreviewparams"
     },
@@ -15553,7 +15553,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_mobile_hooks_ratings_usesubmitreview_submitreviewresult",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "submitreviewresult"
     },
@@ -15564,7 +15564,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_mobile_hooks_ratings_usesubmitreview_usesubmitreview",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usesubmitreview()"
     },
@@ -15619,8 +15619,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "usetenancy.test.tsx"
     },
     {
@@ -15630,8 +15630,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test_mockusecurrentuser",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockusecurrentuser"
     },
     {
@@ -15641,8 +15641,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test_mockfetchtenancy",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockfetchtenancy"
     },
     {
@@ -15652,8 +15652,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test_mockremovechannel",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockremovechannel"
     },
     {
@@ -15663,8 +15663,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test_mockchannel",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "mockchannel"
     },
     {
@@ -15674,8 +15674,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_mobile_hooks_tenancy_usetenancy_test_createwrapper",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "createwrapper()"
     },
     {
@@ -16323,7 +16323,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_userespondtoreschedule_userespondtoreschedule",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "userespondtoreschedule()"
     },
@@ -16334,7 +16334,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_test",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usesubmitvisitrequest.test.tsx"
     },
@@ -16345,7 +16345,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_test_mockfrom",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "mockfrom"
     },
@@ -16378,7 +16378,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usesubmitvisitrequest_usesubmitvisitrequest",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usesubmitvisitrequest()"
     },
@@ -16389,7 +16389,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usevisitrequest.ts"
     },
@@ -16400,7 +16400,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest_getvisitrequestquerykey",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "getvisitrequestquerykey()"
     },
@@ -16411,7 +16411,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_mobile_hooks_visitrequests_usevisitrequest_usevisitrequest",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "usevisitrequest()"
     },
@@ -19183,8 +19183,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_service_auth_currentuserservice",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "currentuserservice.ts"
     },
     {
@@ -19194,8 +19194,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_service_auth_currentuserservice_userprofile",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "userprofile"
     },
     {
@@ -19205,8 +19205,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_mobile_service_auth_currentuserservice_getuserprofilebycolumn",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "getuserprofilebycolumn()"
     },
     {
@@ -19216,8 +19216,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "apps_mobile_service_auth_currentuserservice_getuserprofilebyid",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "getuserprofilebyid()"
     },
     {
@@ -19227,8 +19227,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "apps_mobile_service_auth_currentuserservice_getcurrentuser",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "getcurrentuser()"
     },
     {
@@ -21152,7 +21152,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_mobile_service_notifications_notificationservice_notificationitem",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "notificationitem"
     },
@@ -21229,7 +21229,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "apps_mobile_service_notifications_notificationservice_fetchnotifications",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "fetchnotifications()"
     },
@@ -21240,7 +21240,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "apps_mobile_service_notifications_notificationservice_fetchunreadnotificationcount",
-      "community": 86,
+      "community": 56,
       "community_name": "useNotifications.ts",
       "norm_label": "fetchunreadnotificationcount()"
     },
@@ -22351,7 +22351,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "visitrequests/visitrequestsservice.ts"
     },
@@ -22362,7 +22362,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_visitrequest",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "visitrequest"
     },
@@ -22373,7 +22373,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_visitrequestresult",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "visitrequestresult"
     },
@@ -22384,7 +22384,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_mobile_service_visitrequests_visitrequestsservice_fetchvisitrequest",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "fetchvisitrequest()"
     },
@@ -22395,7 +22395,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "useapartmentformstore.ts"
     },
@@ -22406,7 +22406,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_apartmentformdata",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "apartmentformdata"
     },
@@ -22417,7 +22417,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_apartmentformactions",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "apartmentformactions"
     },
@@ -22428,7 +22428,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_initialstate",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "initialstate"
     },
@@ -22439,7 +22439,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
-      "community": 56,
+      "community": 78,
       "community_name": "useProfile",
       "norm_label": "useapartmentformstore"
     },
@@ -24100,8 +24100,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_mobile_utils_queryclient_current_user_query_key",
-      "community": 7,
-      "community_name": "audit-fix.characterization.test.ts",
+      "community": 86,
+      "community_name": "currentUserService.ts",
       "norm_label": "current_user_query_key"
     },
     {
@@ -24166,8 +24166,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_mobile_utils_queryclient_createmobilequeryclient",
-      "community": 253,
-      "community_name": "createMobileQueryClient",
+      "community": 17,
+      "community_name": "queryClient.ts",
       "norm_label": "createmobilequeryclient()"
     },
     {
@@ -27650,7 +27650,7 @@
       "label": "ApartmentIdentityProps",
       "file_type": "code",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L10",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "apps_web_app_admin_apartments_id_components_apartmentidentity_apartmentidentityprops",
       "community": 210,
@@ -27661,7 +27661,7 @@
       "label": "ApartmentIdentity()",
       "file_type": "code",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L15",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "apps_web_app_admin_apartments_id_components_apartmentidentity_apartmentidentity",
       "community": 210,
@@ -27881,7 +27881,7 @@
       "label": "Section()",
       "file_type": "code",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L49",
+      "source_location": "L50",
       "_origin": "ast",
       "id": "apps_web_app_admin_apartments_id_components_detailprimitives_section",
       "community": 210,
@@ -27892,7 +27892,7 @@
       "label": "SectionError()",
       "file_type": "code",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "_origin": "ast",
       "id": "apps_web_app_admin_apartments_id_components_detailprimitives_sectionerror",
       "community": 210,
@@ -27903,7 +27903,7 @@
       "label": "Metric()",
       "file_type": "code",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L82",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "apps_web_app_admin_apartments_id_components_detailprimitives_metric",
       "community": 210,
@@ -30700,7 +30700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_browse_apartmentid_components_imageheader",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "imageheader.tsx"
     },
@@ -30711,7 +30711,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_web_app_browse_apartmentid_components_imageheader_imageheaderprops",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "imageheaderprops"
     },
@@ -30722,7 +30722,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_web_app_browse_apartmentid_components_imageheader_imageheader",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "imageheader()"
     },
@@ -31745,7 +31745,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_components_display_photogallerymodal",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "photogallerymodal.tsx"
     },
@@ -31756,7 +31756,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_web_app_components_display_photogallerymodal_galleryphoto",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "galleryphoto"
     },
@@ -31767,7 +31767,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_web_app_components_display_photogallerymodal_photogallerymodalprops",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "photogallerymodalprops"
     },
@@ -31778,7 +31778,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_web_app_components_display_photogallerymodal_photogallerymodal",
-      "community": 233,
+      "community": 253,
       "community_name": "ImageHeader.tsx",
       "norm_label": "photogallerymodal()"
     },
@@ -36871,7 +36871,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_paymenthistoryfilters",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "paymenthistoryfilters.tsx"
     },
@@ -36882,7 +36882,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_paymenthistoryfilters_status_options",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "status_options"
     },
@@ -36893,7 +36893,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_paymenthistoryfilters_sort_options",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "sort_options"
     },
@@ -36904,7 +36904,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_paymenthistoryfilters_paymenthistoryfiltersprops",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "paymenthistoryfiltersprops"
     },
@@ -36915,7 +36915,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_paymenthistoryfilters_paymenthistoryfilters",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "paymenthistoryfilters()"
     },
@@ -37102,7 +37102,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_receiptmodal",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "receiptmodal.tsx"
     },
@@ -37113,7 +37113,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_receiptmodal_receiptmodalprops",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "receiptmodalprops"
     },
@@ -37124,7 +37124,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_receiptmodal_receiptmodal",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "receiptmodal()"
     },
@@ -37135,7 +37135,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_components_receiptmodal_rationale_17",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "note: the dialog background uses an inline style on purpose \u2014 heroui's"
     },
@@ -37311,7 +37311,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_history_page",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "history/page.tsx"
     },
@@ -37322,7 +37322,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_history_page_toyear",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "toyear()"
     },
@@ -37333,7 +37333,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_history_page_sectionheader",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "sectionheader()"
     },
@@ -37355,7 +37355,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_history_page_historycontent",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "historycontent()"
     },
@@ -37366,7 +37366,7 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_history_page_tenantpaymenthistorypage",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "tenantpaymenthistorypage()"
     },
@@ -37553,7 +37553,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "apps_web_app_tenant_payment_types_paymenthistoryfilter",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "paymenthistoryfilter"
     },
@@ -38345,8 +38345,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_web_components_ui_chart_chartcontainer",
-      "community": 202,
-      "community_name": "RentDonut.tsx",
+      "community": 13,
+      "community_name": "analytics-format.ts",
       "norm_label": "chartcontainer()"
     },
     {
@@ -39225,7 +39225,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_empty_module",
-      "community": 103,
+      "community": 353,
       "community_name": "MapPreviewSection",
       "norm_label": "empty-module.ts"
     },
@@ -39236,7 +39236,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_empty_module_platform",
-      "community": 103,
+      "community": 353,
       "community_name": "MapPreviewSection",
       "norm_label": "platform"
     },
@@ -40556,8 +40556,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_web_package_dependencies_class_variance_authority",
-      "community": 46,
-      "community_name": "dependencies",
+      "community": 221,
+      "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
     {
@@ -40567,8 +40567,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "class_variance_authority",
-      "community": 46,
-      "community_name": "dependencies",
+      "community": 221,
+      "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
     {
@@ -40600,8 +40600,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_web_package_dependencies_embla_carousel_react",
-      "community": 221,
-      "community_name": "embla-carousel-react",
+      "community": 46,
+      "community_name": "dependencies",
       "norm_label": "embla-carousel-react"
     },
     {
@@ -40611,8 +40611,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "embla_carousel_react",
-      "community": 221,
-      "community_name": "embla-carousel-react",
+      "community": 46,
+      "community_name": "dependencies",
       "norm_label": "embla-carousel-react"
     },
     {
@@ -42305,7 +42305,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_web_service_paymentservice_paymentrecord",
-      "community": 78,
+      "community": 92,
       "community_name": "history/page.tsx",
       "norm_label": "paymentrecord"
     },
@@ -45649,7 +45649,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_supabase_src_client",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "client.ts"
     },
@@ -45660,7 +45660,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "packages_supabase_src_client_getauthstorage",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "getauthstorage()"
     },
@@ -45671,7 +45671,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "packages_supabase_src_client_storage",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "storage"
     },
@@ -45803,7 +45803,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_supabase_src_types",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "src/types.ts"
     },
@@ -45814,7 +45814,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_supabase_src_types_json",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "json"
     },
@@ -45825,7 +45825,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "packages_supabase_src_types_database",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "database"
     },
@@ -45836,7 +45836,7 @@
       "source_location": "L1414",
       "_origin": "ast",
       "id": "packages_supabase_src_types_databasewithoutinternals",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "databasewithoutinternals"
     },
@@ -45847,7 +45847,7 @@
       "source_location": "L1416",
       "_origin": "ast",
       "id": "packages_supabase_src_types_defaultschema",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "defaultschema"
     },
@@ -45858,7 +45858,7 @@
       "source_location": "L1418",
       "_origin": "ast",
       "id": "packages_supabase_src_types_tables",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "tables"
     },
@@ -45869,7 +45869,7 @@
       "source_location": "L1447",
       "_origin": "ast",
       "id": "packages_supabase_src_types_tablesinsert",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "tablesinsert"
     },
@@ -45880,7 +45880,7 @@
       "source_location": "L1472",
       "_origin": "ast",
       "id": "packages_supabase_src_types_tablesupdate",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "tablesupdate"
     },
@@ -45891,7 +45891,7 @@
       "source_location": "L1497",
       "_origin": "ast",
       "id": "packages_supabase_src_types_enums",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "enums"
     },
@@ -45902,7 +45902,7 @@
       "source_location": "L1514",
       "_origin": "ast",
       "id": "packages_supabase_src_types_compositetypes",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "compositetypes"
     },
@@ -45913,7 +45913,7 @@
       "source_location": "L1531",
       "_origin": "ast",
       "id": "packages_supabase_src_types_constants",
-      "community": 92,
+      "community": 103,
       "community_name": "src/types.ts",
       "norm_label": "constants"
     },
@@ -46243,8 +46243,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_utils_src_calcmoveincost",
-      "community": 53,
-      "community_name": "utils/src/index.ts",
+      "community": 272,
+      "community_name": "formatPesoDisplay",
       "norm_label": "calcmoveincost.ts"
     },
     {
@@ -46254,8 +46254,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "packages_utils_src_calcmoveincost_tomoveinnumber",
-      "community": 53,
-      "community_name": "utils/src/index.ts",
+      "community": 272,
+      "community_name": "formatPesoDisplay",
       "norm_label": "tomoveinnumber()"
     },
     {
@@ -46265,8 +46265,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "packages_utils_src_calcmoveincost_calcmoveincost",
-      "community": 53,
-      "community_name": "utils/src/index.ts",
+      "community": 272,
+      "community_name": "formatPesoDisplay",
       "norm_label": "calcmoveincost()"
     },
     {
@@ -46309,8 +46309,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_utils_src_formatcurrencyinput",
-      "community": 53,
-      "community_name": "utils/src/index.ts",
+      "community": 272,
+      "community_name": "formatPesoDisplay",
       "norm_label": "formatcurrencyinput.ts"
     },
     {
@@ -46320,8 +46320,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_utils_src_formatcurrencyinput_extractrawnumber",
-      "community": 53,
-      "community_name": "utils/src/index.ts",
+      "community": 272,
+      "community_name": "formatPesoDisplay",
       "norm_label": "extractrawnumber()"
     },
     {
@@ -129114,7 +129114,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L15",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129125,7 +129125,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L10",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129137,7 +129137,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L8",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129149,7 +129149,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L8",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129161,7 +129161,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L8",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129173,7 +129173,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L7",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129185,7 +129185,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L7",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129197,7 +129197,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L7",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity",
@@ -129221,7 +129221,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L11",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity_apartmentidentityprops",
@@ -129233,7 +129233,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx",
-      "source_location": "L12",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_apartmentidentity_apartmentidentityprops",
@@ -130070,7 +130070,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L82",
+      "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_detailprimitives",
@@ -130081,7 +130081,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_detailprimitives",
@@ -130092,7 +130092,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_web_app_admin_apartments_id_components_detailprimitives",
@@ -174018,5 +174018,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8a0143c38d9591077bedb8497a3cd6f9271d26ce"
+  "built_at_commit": "6a46e74b08ec28ce28f38bed2e3a62db248d40a6"
 }

@@ -19,7 +19,7 @@ export function fullName(
     : "";
 }
 
-export function StatusChip({ status }: { status: string }) {
+export function StatusChip({ status, icon }: { status: string; icon?: ReactNode }) {
   const color =
     status === "verified" ||
     status === "approved" ||
@@ -41,6 +41,7 @@ export function StatusChip({ status }: { status: string }) {
           : "default";
   return (
     <Chip size="sm" variant="soft" color={color} className="capitalize">
+      {icon}
       {status.replaceAll("_", " ")}
     </Chip>
   );

@@ -67,7 +67,11 @@ export function ApartmentOverview({
   return (
     <Card className="order-1 min-w-0 overflow-hidden rounded-3xl border border-border bg-card p-0 shadow-none xl:order-none">
       <Card.Content className="p-0">
-        <ApartmentGallery name={apartment.name} images={ordered} imagesError={imagesError} />
+        <ApartmentGallery
+          name={apartment.name}
+          images={ordered}
+          imagesError={imagesError}
+        />
 
         <div className="space-y-4 p-4">
           <ApartmentIdentity
