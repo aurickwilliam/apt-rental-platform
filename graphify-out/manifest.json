@@ -5440,8 +5440,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOverview.tsx": {
-    "mtime": 1790602904.22104,
-    "ast_hash": "f0766f1383c0a1f875b598928152275b",
+    "mtime": 1790606446.193488,
+    "ast_hash": "0e8cad7cc32d503f51575c789d24e806",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentSidebar.tsx": {

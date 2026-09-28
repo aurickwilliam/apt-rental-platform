@@ -1,16 +1,18 @@
 import type { ReactNode } from "react";
 import { Card, Chip, Separator } from "@heroui/react";
-import { IconCurrencyPeso } from "@tabler/icons-react";
 import {
   Armchair,
   Bath,
   BedDouble,
   Building2,
   Calendar,
+  Coins,
   Expand,
   House,
   MapPin,
+  PhilippinePeso,
   Users,
+  Wallet,
 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { Apartment, ApartmentImage, Verification } from "../types";
@@ -34,13 +36,15 @@ function PropertyFact({
   value: string;
 }) {
   return (
-    <div className="flex min-w-0 items-start gap-2 text-sm">
+    <div className="flex min-w-0 items-center gap-2">
       <span className="mt-0.5 shrink-0 text-primary" aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-nunito font-semibold wrap-break-word">{value}</p>
+        <p className="font-nunito text-base font-semibold text-foreground wrap-break-word">
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -83,80 +87,89 @@ export function ApartmentOverview({
             <h2 className="font-nunito text-lg font-bold text-primary">
               Property overview
             </h2>
-            <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <PropertyFact
-                icon={<IconCurrencyPeso size={20} />}
-                label="Monthly rent"
-                value={formatPesoDisplay(apartment.monthly_rent)}
-              />
-              <PropertyFact
-                icon={<BedDouble size={20} />}
-                label="Bedrooms"
-                value={String(apartment.no_bedrooms)}
-              />
-              <PropertyFact
-                icon={<Bath size={20} />}
-                label="Bathrooms"
-                value={String(apartment.no_bathrooms)}
-              />
-              <PropertyFact
-                icon={<Users size={20} />}
-                label="Max occupants"
-                value={
-                  apartment.max_occupants == null
-                    ? "—"
-                    : String(apartment.max_occupants)
-                }
-              />
-            </div>
-            <Separator className="my-4" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <PropertyFact
-                icon={<House size={20} />}
-                label="Property type"
-                value={apartment.type}
-              />
-              <PropertyFact
-                icon={<Expand size={20} />}
-                label="Floor area"
-                value={`${apartment.area_sqm} sqm`}
-              />
-              <PropertyFact
-                icon={<Armchair size={20} />}
-                label="Furnishing"
-                value={apartment.furnished_type ?? "—"}
-              />
-              <PropertyFact
-                icon={<Building2 size={20} />}
-                label="Floor level"
-                value={apartment.floor_level ?? "—"}
-              />
-              <PropertyFact
-                icon={<Calendar size={20} />}
-                label="Lease duration"
-                value={apartment.lease_duration ?? "—"}
-              />
-            </div>
-            <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <dt className="text-xs text-muted-foreground">
-                  Security deposit
-                </dt>
-                <dd className="font-nunito font-semibold">
-                  {apartment.security_deposit == null
-                    ? "—"
-                    : formatPesoDisplay(apartment.security_deposit)}
-                </dd>
+            <div className="mt-4 space-y-6">
+              <div className="rounded-2xl bg-muted/30 p-4">
+                <h3 className="font-nunito text-sm font-semibold text-foreground">
+                  Rent &amp; Lease
+                </h3>
+                <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
+                  <PropertyFact
+                    icon={<PhilippinePeso size={20} />}
+                    label="Monthly rent"
+                    value={formatPesoDisplay(apartment.monthly_rent)}
+                  />
+                  <PropertyFact
+                    icon={<Wallet size={20} />}
+                    label="Security deposit"
+                    value={
+                      apartment.security_deposit == null
+                        ? "—"
+                        : formatPesoDisplay(apartment.security_deposit)
+                    }
+                  />
+                  <PropertyFact
+                    icon={<Coins size={20} />}
+                    label="Advance rent"
+                    value={
+                      apartment.advance_rent == null
+                        ? "—"
+                        : formatPesoDisplay(apartment.advance_rent)
+                    }
+                  />
+                  <PropertyFact
+                    icon={<Calendar size={20} />}
+                    label="Lease duration"
+                    value={apartment.lease_duration ?? "—"}
+                  />
+                </div>
               </div>
               <div>
-                <dt className="text-xs text-muted-foreground">Advance rent</dt>
-                <dd className="font-nunito font-semibold">
-                  {apartment.advance_rent == null
-                    ? "—"
-                    : formatPesoDisplay(apartment.advance_rent)}
-                </dd>
+                <h3 className="font-nunito text-sm font-semibold text-foreground">
+                  Property Details
+                </h3>
+                <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
+                  <PropertyFact
+                    icon={<House size={20} />}
+                    label="Property type"
+                    value={apartment.type}
+                  />
+                  <PropertyFact
+                    icon={<BedDouble size={20} />}
+                    label="Bedrooms"
+                    value={String(apartment.no_bedrooms)}
+                  />
+                  <PropertyFact
+                    icon={<Bath size={20} />}
+                    label="Bathrooms"
+                    value={String(apartment.no_bathrooms)}
+                  />
+                  <PropertyFact
+                    icon={<Expand size={20} />}
+                    label="Floor area"
+                    value={`${apartment.area_sqm} sqm`}
+                  />
+                  <PropertyFact
+                    icon={<Armchair size={20} />}
+                    label="Furnishing"
+                    value={apartment.furnished_type ?? "—"}
+                  />
+                  <PropertyFact
+                    icon={<Building2 size={20} />}
+                    label="Floor level"
+                    value={apartment.floor_level ?? "—"}
+                  />
+                  <PropertyFact
+                    icon={<Users size={20} />}
+                    label="Max occupants"
+                    value={
+                      apartment.max_occupants == null
+                        ? "—"
+                        : String(apartment.max_occupants)
+                    }
+                  />
+                </div>
               </div>
-            </dl>
+            </div>
           </section>
           <Separator />
           <section>
