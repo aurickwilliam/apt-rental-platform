@@ -29,7 +29,7 @@ export function useInAppNotificationBanner() {
   const pathname = usePathname();
   const currentUserQuery = useCurrentUser();
   const userId = currentUserQuery.data?.id ?? null;
-  const role = currentUserQuery.data?.role ?? null;
+  const role = currentUserQuery.data?.roles?.[0] ?? null;
 
   const { preferences, loading: preferencesLoading } = useNotificationPreferences();
 

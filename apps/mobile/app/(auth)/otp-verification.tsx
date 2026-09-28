@@ -107,7 +107,7 @@ export default function OTPVerification() {
       const { error: insertError } = await supabase.from('users').insert({
         user_id: authData.user.id,
         email: emailValue || data.email!,
-        role: data.userSide ?? 'tenant',
+        roles: [data.userSide ?? 'tenant'],
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,

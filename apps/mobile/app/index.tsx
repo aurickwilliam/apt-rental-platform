@@ -24,13 +24,16 @@ export default function Index() {
     const redirectByRole = async (userId: string) => {
       const { data: userProfile } = await supabase
         .from("users")
-        .select("role")
+        .select("roles")
         .eq("user_id", userId)
         .single();
 
-      if (userProfile?.role === "landlord") {
+      // Multi-role: boot into the primary role's portal (roles[0]).
+      const primaryRole = userProfile?.roles?.[0] ?? null;
+
+      if (primaryRole === "landlord") {
         router.replace("/(tabs)/(landlord)/dashboard");
-      } else if (userProfile?.role === "tenant") {
+      } else if (primaryRole === "tenant") {
         router.replace("/(tabs)/(tenant)/rentals");
       } else {
         await supabase.auth.signOut();

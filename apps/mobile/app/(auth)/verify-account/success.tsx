@@ -43,7 +43,7 @@ export default function Success() {
   const handleGoToProfile = () => {
     canLeaveRef.current = true;
     router.replace(
-      profile?.role === 'landlord'
+      profile?.roles?.[0] === 'landlord'
         ? '/(tabs)/(landlord)/profile'
         : '/(tabs)/(tenant)/profile',
     );
