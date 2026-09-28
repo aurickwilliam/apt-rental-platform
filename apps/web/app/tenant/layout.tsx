@@ -3,7 +3,7 @@ import { AppTopBar } from "../components/layout/AppTopBar";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
-  { href: "/browse", label: "Browse", icon: "Search" },
+  { href: "/tenant/browse", label: "Browse", icon: "Search" },
   { href: "/tenant/my-rental", label: "My Rental", icon: "House" },
   { href: "/tenant/applications", label: "Applications", icon: "FileText" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
@@ -12,7 +12,7 @@ const TENANT_NAV = [
 ] as const;
 
 const TENANT_TITLES: Record<string, string> = {
-  "/browse": "Browse",
+  "/tenant/browse": "Browse",
   "/tenant/my-rental": "My Rental",
   "/tenant/applications": "Applications",
   "/tenant/favorites": "Favorites",
