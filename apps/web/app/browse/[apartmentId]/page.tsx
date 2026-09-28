@@ -95,7 +95,7 @@ export default async function ApartmentDetailsPage({ params }: { params: Promise
       </div>
 
       <div className="my-4">
-        <ImageHeader imageUrl={images} />
+        <ImageHeader imageUrl={images} name={apartment.name} />
       </div>
 
       <div className="w-full flex gap-5">

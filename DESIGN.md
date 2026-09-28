@@ -271,7 +271,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 ### Web (HeroUI v3)
 
-- **Modal** ✅: `Modal.Backdrop` → `Container placement="center" size="sm"|"lg" scroll="inside"` → `Dialog` with `CloseTrigger`, `Header/Heading (font-medium text-2xl)`, `Body`, `Footer`; blur backdrop for OTP; lightbox `size="cover"` + `bg-black/80`, white card `w-2/3 rounded-2xl p-4`, `h-[65vh]` stage, thumbs `w-24 h-16 rounded-lg border-2`
+- **Modal** ✅: `Modal.Backdrop` → `Container placement="center" size="sm"|"lg" scroll="inside"` → `Dialog` with `CloseTrigger`, `Header/Heading (font-medium text-2xl)`, `Body`, `Footer`; blur backdrop for OTP. Apartment photo lightbox uses shared `app/components/display/PhotoGalleryModal.tsx`: centered content-height container, `bg-black/80` backdrop, responsive `max-w-5xl rounded-3xl` card, contained rounded photo stage, Previous/Next buttons and selectable thumbnails.
 - **Drawer** ✅ (PropertyDetailsSheet): right `w-[500px] max-w-[90vw] z-60`; cover `h-56` w/ `bg-linear-to-t from-black/60`; section titles `text-xs font-medium text-primary uppercase`; ReadOnlyField (label `text-xs text-grey-500` / value `text-sm font-medium`)
 
 ### Mobile (HeroUI Native)
@@ -300,11 +300,11 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 ## 16. Images
 
 - **Thumbnails:** square (mobile `aspect-square`; `w-20 h-20` rows), `object-cover`/`contentFit="cover"`, `cachePolicy="disk"` (expo-image), gray placeholder `bg-gray-200` + icon
-- **Web hero (detail):** `w-full h-128` grid — main `w-2/3` + stacked `w-1/3` halves, all `rounded-2xl hover:brightness-90 transition`; "See more photos" pill
+- **Web hero (browse detail):** `w-full h-128` grid — main `w-2/3` + up to two stacked photos in `w-1/3`, all `rounded-2xl hover:brightness-90 transition`; "See all photos" pill opens the shared gallery. With one photo, the main image fills the width.
 - **Mobile hero:** `h-168 p-5 justify-end` w/ gradient, or full-bleed `h-80 rounded-b-3xl`
 - **Ratios:** 1:1 thumbs, `w-36 h-52` gallery (≈3:4), `w-24 h-16` lightbox thumbs, `w-12 h-12` table thumbs
 - **Avatars:** HeroUI `Avatar` sm/md/lg; profile `size-36 border-4 border-background`; initials fallback `bg-primary text-white` (web) / `bg-gray-100 text-accent` (mobile); landlord `size-12 rounded-full border`
-- **Lightbox:** web HeroUI Modal (§14); mobile `react-native-image-viewing` (`presentationStyle overFullScreen`, `rgba(0,0,0,0.8)`)
+- **Lightbox:** web browse/admin apartment details share `PhotoGalleryModal` (§14); mobile `react-native-image-viewing` (`presentationStyle overFullScreen`, `rgba(0,0,0,0.8)`)
 - Private Supabase storage: always signed URLs at read time
 
 ---

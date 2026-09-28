@@ -358,6 +358,7 @@ export default function UserRentalActivity({
           </Modal.Container>
         </Modal.Backdrop>
       </Modal>
+
       <Modal
         isOpen={isTenanciesModalOpen}
         onOpenChange={setIsTenanciesModalOpen}
