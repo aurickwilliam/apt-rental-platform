@@ -1349,6 +1349,7 @@ export type Database = {
           urgency: string
         }[]
       }
+      get_admin_analytics_start_date: { Args: never; Returns: string }
       get_admin_analytics_trends: {
         Args: { p_from: string; p_to: string }
         Returns: {

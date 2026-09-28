@@ -4,30 +4,35 @@ import { useRouter } from "next/navigation";
 import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import DateRangeControl from "../dashboard/components/DateRangeControl";
 
-const PERIODS = [7, 30, 90] as const;
+const PERIODS = [7, 30, 90, "all"] as const;
 
 interface AnalyticsControlsProps {
   from: string;
   to: string;
   today: string;
-  selectedDays: number | null;
+  selectedPeriod: number | "all" | null;
 }
 
 export default function AnalyticsControls({
   from,
   to,
   today,
-  selectedDays,
+  selectedPeriod,
 }: AnalyticsControlsProps) {
   const router = useRouter();
 
-  function selectPeriod(days: number): void {
-    router.push(`/admin/analytics?days=${days}`);
+  function selectPeriod(period: number | "all"): void {
+    router.push(`/admin/analytics?days=${period}`);
   }
 
   function selectRange(nextFrom: string, nextTo: string): void {
     router.push(`/admin/analytics?from=${nextFrom}&to=${nextTo}`);
   }
+
+  const historyDays = Math.round(
+    (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+      86400000,
+  ) + 1;
 
   return (
     <section
@@ -38,18 +43,18 @@ export default function AnalyticsControls({
         from={from}
         to={to}
         today={today}
-        maxRangeDays={366}
+        maxRangeDays={Math.max(366, historyDays)}
         onRangeChange={selectRange}
       />
       <ToggleButtonGroup
         aria-label="Quick reporting periods"
         selectionMode="single"
         selectedKeys={
-          selectedDays ? new Set([String(selectedDays)]) : new Set<string>()
+          selectedPeriod ? new Set([String(selectedPeriod)]) : new Set<string>()
         }
         onSelectionChange={(keys) => {
           const selected = Array.from(keys)[0];
-          if (selected) selectPeriod(Number(selected));
+          if (selected) selectPeriod(selected === "all" ? "all" : Number(selected));
         }}
         className="shrink-0 self-start sm:self-auto"
       >
@@ -60,7 +65,7 @@ export default function AnalyticsControls({
             className="px-3 py-2 font-nunito text-sm font-semibold"
           >
             {index > 0 ? <ToggleButtonGroup.Separator /> : null}
-            {period} days
+            {period === "all" ? "All Time" : `${period} days`}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

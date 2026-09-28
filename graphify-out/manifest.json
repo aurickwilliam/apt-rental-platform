@@ -2670,8 +2670,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1790588126.7515886,
-    "ast_hash": "e52d076647ed264d62e824146c93ccc0",
+    "mtime": 1790589378.6863081,
+    "ast_hash": "29a6b579e222580146b0049e7e42f2b4",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -4985,8 +4985,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/page.tsx": {
-    "mtime": 1790588497.3907938,
-    "ast_hash": "98745b8f23d996d57abebeac741f9d23",
+    "mtime": 1790589378.6860776,
+    "ast_hash": "00b7f6abde00e22207da6fda4c4028f9",
     "semantic_hash": ""
   },
   "supabase/functions/admin-user-access/index.ts": {
@@ -5255,13 +5255,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/AnalyticsControls.tsx": {
-    "mtime": 1790578109.0801826,
-    "ast_hash": "39cbe882816c38227b3f5fb94b3106fc",
+    "mtime": 1790589378.685758,
+    "ast_hash": "68ffbe408adc9b2b35b2d88e6722ac21",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/AnalyticsPanels.tsx": {
-    "mtime": 1790588583.147371,
-    "ast_hash": "d7c957e7e2c672a9cb874aa90dfd2adc",
+    "mtime": 1790589116.162456,
+    "ast_hash": "9a6d2a3e6ca4a3e062c7a2c264ea7a00",
     "semantic_hash": ""
   },
   "supabase/migrations/20260928082331_admin_analytics_trends.sql": {
@@ -5297,6 +5297,86 @@
   "supabase/migrations/20260928110000_add_admin_application_status.sql": {
     "mtime": 1790588117.0247958,
     "ast_hash": "8eeba521f1a3831b01e112682847266e",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/AnalyticsSection.tsx": {
+    "mtime": 1790589115.9874065,
+    "ast_hash": "14fee542df01813cf2742ec787660292",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/ApplicationStatusPanel.tsx": {
+    "mtime": 1790589115.9998057,
+    "ast_hash": "bb3d2bd2fc60277b3d696b9b232a652a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/ApplicationsTenanciesPanel.tsx": {
+    "mtime": 1790589116.0192518,
+    "ast_hash": "c0a0a42b8c398521ab11c365a88b3888",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/ListingStatusPanel.tsx": {
+    "mtime": 1790589116.0522916,
+    "ast_hash": "b9bfc44aa34dd837436e496b69317b5f",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/ListingsByCityPanel.tsx": {
+    "mtime": 1790589116.041288,
+    "ast_hash": "eee8b88032c7a8b6e7e26ebffd316a63",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/MaintenanceRequestsPanel.tsx": {
+    "mtime": 1790589116.0595565,
+    "ast_hash": "82188eb9142269a4922c5ce87e53a93d",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/NewUsersByRolePanel.tsx": {
+    "mtime": 1790589116.0737774,
+    "ast_hash": "0d68cc474eecaf9ab859b3ad0a4829e7",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/Panel.tsx": {
+    "mtime": 1790589116.0841894,
+    "ast_hash": "12fa504e6ac9582997020adcd9c66a92",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/PlatformGrowthPanel.tsx": {
+    "mtime": 1790589116.1062415,
+    "ast_hash": "48b676a791406b8d98f2cd6469efd570",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/RentalPaymentsPanel.tsx": {
+    "mtime": 1790589116.1312935,
+    "ast_hash": "70349b34abcdbee6fee0922d17d0dfcc",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/SnapshotCard.tsx": {
+    "mtime": 1790589116.134266,
+    "ast_hash": "93fdf759b7ecea548ffbab353bff425c",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/StatusDonut.tsx": {
+    "mtime": 1790589116.1393964,
+    "ast_hash": "e7840a73fb193b281f1a21c2b20ff4dd",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/VerificationActivityPanel.tsx": {
+    "mtime": 1790589116.1483116,
+    "ast_hash": "d1cd893fe394b9eaf48d4278526d0c35",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/components/analytics-format.ts": {
+    "mtime": 1790589116.1558542,
+    "ast_hash": "2579ca245b55374e1011b62704e4eb79",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/analytics/types.ts": {
+    "mtime": 1790588948.4182491,
+    "ast_hash": "bae81f6976299bbee66ec3ac4b660296",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260928120000_admin_analytics_all_time.sql": {
+    "mtime": 1790589616.0189645,
+    "ast_hash": "adc00103895f59233cc13b0796b6db60",
     "semantic_hash": ""
   }
 }

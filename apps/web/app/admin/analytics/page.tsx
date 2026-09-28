@@ -2,16 +2,18 @@ import { IconChartBar } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 import AnalyticsControls from "./AnalyticsControls";
-import AnalyticsPanels, {
-  type AnalyticsMetrics,
-  type ApplicationStatusCounts,
-  type ListingStatus,
-  type ListingCityCount,
-  type PaymentTrend,
-  type AnalyticsTrend,
-} from "./AnalyticsPanels";
+import AnalyticsPanels from "./AnalyticsPanels";
+import type {
+  AnalyticsMetrics,
+  ApplicationStatusCounts,
+  ListingStatus,
+  ListingCityCount,
+  PaymentTrend,
+  AnalyticsTrend,
+} from "./types";
 
 export const dynamic = "force-dynamic";
+const MAX_REPORTING_DAYS = 36525;
 
 function parseDate(value: string | undefined): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -39,14 +41,27 @@ export default async function AdminAnalyticsPage({
   const defaultStart = new Date(end);
   defaultStart.setUTCDate(defaultStart.getUTCDate() - days + 1);
   const custom = params.from !== undefined || params.to !== undefined;
-  const start = custom ? parseDate(params.from) : defaultStart;
+  const allTime = !custom && params.days === "all";
+  const supabase = await createClient();
+  let start = custom ? parseDate(params.from) : defaultStart;
   const finish = custom ? parseDate(params.to) : end;
+  let startError: string | null = null;
+  if (allTime) {
+    const { data, error } = await supabase.rpc("get_admin_analytics_start_date");
+    if (error) {
+      console.error("Admin analytics start date failed", error);
+      startError = "Unable to load the full reporting history. Refresh and try again.";
+      start = null;
+    } else {
+      start = parseDate(data);
+    }
+  }
   const valid =
     start !== null &&
     finish !== null &&
     finish.getTime() >= start.getTime() &&
     finish.getTime() <= end.getTime() &&
-    finish.getTime() - start.getTime() <= 365 * 86400000;
+    finish.getTime() - start.getTime() <= MAX_REPORTING_DAYS * 86400000;
 
   let metrics: AnalyticsMetrics | null = null;
   let trends: AnalyticsTrend[] | null = null;
@@ -54,11 +69,8 @@ export default async function AdminAnalyticsPage({
   let listingStatus: ListingStatus | null = null;
   let listingsByCity: ListingCityCount[] | null = null;
   let applicationStatus: ApplicationStatusCounts | null = null;
-  let error = valid
-    ? null
-    : "Select valid dates within the past year (up to 366 days).";
-  if (valid && start && finish) {
-    const supabase = await createClient();
+  let error = startError ?? (valid ? null : "Select a valid reporting range of up to 100 years.");
+  if (!error && valid && start && finish) {
     const from = start.toISOString().slice(0, 10);
     const to = finish.toISOString().slice(0, 10);
     const [summary, growth, payments, inventory, cities, applications] =
@@ -134,7 +146,7 @@ export default async function AdminAnalyticsPage({
           from={controlFrom}
           to={controlTo}
           today={endDate}
-          selectedDays={custom ? null : days}
+          selectedPeriod={custom ? null : allTime ? "all" : days}
         />
       </header>
       {error ? (
