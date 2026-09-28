@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
-import { PORTAL_COOKIE } from "@/lib/portal-preference";
+import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 interface UserRolesProfile {
   mobile_number: string | null;
@@ -21,10 +21,17 @@ export default function ThirdPartySignIn() {
     setError(null);
 
     const supabase = createClient();
+    // Sign-in is role-agnostic: send no explicit role so the callback and
+    // post-login routing fall back to the user's held roles. Sign-up sends
+    // the chosen tab role so set_onboarding_role can run for new accounts.
+    const redirectTo =
+      type === "sign-in"
+        ? `${window.location.origin}/auth/callback?popup=true`
+        : `${window.location.origin}/auth/callback?popup=true&role=${role}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?popup=true&role=${role}`,
+        redirectTo,
         skipBrowserRedirect: true,
       },
     });
@@ -76,18 +83,46 @@ export default function ThirdPartySignIn() {
               setError("Profile setup is unavailable for this account.");
               return;
             }
+            // Brand-new Google account with no explicit role (sign-in entry):
+            // do not default to a tenant form. Send them to sign-up to
+            // choose a role first (welcome banner); set_onboarding_role runs
+            // only after they pick a role on that flow.
+            if (type === "sign-in") {
+              await supabase.auth.signOut();
+              window.location.href = "/sign-up?from=google-new";
+              return;
+            }
             window.location.href = `/complete-profile?role=${role}`;
             return;
           }
 
-          if (!profile.roles.includes(role)) {
-            setError(`This account is not registered as a ${role}.`);
+          // Sign-up entries request an explicit portal role: enforce it.
+          if (type === "sign-up") {
+            if (!profile.roles.includes(role)) {
+              setError(`This account is not registered as a ${role}.`);
+              await supabase.auth.signOut();
+              return;
+            }
+
+            document.cookie = `${PORTAL_COOKIE}=${role}; Path=/; SameSite=Lax; Max-Age=2592000${location.protocol === "https:" ? "; Secure" : ""}`;
+            window.location.href = role === "landlord"
+              ? "/landlord/dashboard"
+              : "/tenant/my-rental";
+            return;
+          }
+
+          // Sign-in entries are role-agnostic: route by held roles,
+          // respecting the last portal choice. Admin is handled above.
+          const selected = document.cookie.split("; ").find((item) => item.startsWith(`${PORTAL_COOKIE}=`))?.split("=")[1] ?? null;
+          const portal = preferredPortal(profile.roles, selected);
+          if (!portal) {
+            setError("No account profile was found. Please sign up first.");
             await supabase.auth.signOut();
             return;
           }
 
-          document.cookie = `${PORTAL_COOKIE}=${role}; Path=/; SameSite=Lax; Max-Age=2592000${location.protocol === "https:" ? "; Secure" : ""}`;
-          window.location.href = role === "landlord"
+          document.cookie = `${PORTAL_COOKIE}=${portal}; Path=/; SameSite=Lax; Max-Age=2592000${location.protocol === "https:" ? "; Secure" : ""}`;
+          window.location.href = portal === "landlord"
             ? "/landlord/dashboard"
             : "/tenant/my-rental";
         }

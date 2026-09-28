@@ -52,6 +52,15 @@ export async function GET(request: Request) {
           !profile.mobile_number &&
           profile.account_status === "unverified";
 
+        // Brand-new Google arrival with no explicit role (sign-in entry,
+        // non-popup): do not default to a tenant form. Sign out so the
+        // sign-up page stays reachable, then let them choose a role there
+        // (welcome banner). set_onboarding_role runs only after that choice.
+        if (!isPopup && isInitialGoogleOnboarding && !role) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/sign-up?from=google-new`);
+        }
+
         if (!isAdmin && role && profile.mobile_number && !profile.roles.includes(role)) {
           await supabase.auth.signOut();
           return NextResponse.redirect(`${origin}/sign-in?error=role_mismatch`);

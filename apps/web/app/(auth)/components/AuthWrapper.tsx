@@ -23,7 +23,7 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
 
   const description = type === 'sign-up'
     ? role === 'tenant' ? "Join as tenant to start renting." : "Join us and start listing your properties in minutes."
-    : role === 'tenant' ? "Log in to continue your apartment journey." : "Access your listings and manage your tenants easily.";
+    : "Log in to continue your apartment journey.";
 
   return (
     <div className="flex-1 min-w-0 bg-white flex flex-col md:px-16 md:py-5 overflow-y-auto h-full">
@@ -72,37 +72,41 @@ function AuthContent({ portalError, showWelcomeNotice }: { portalError?: string 
           </Alert>
         )}
 
-        <Tabs
-          selectedKey={role}
-          onSelectionChange={(key) => setRole(key as 'tenant' | 'landlord')}
-          className="mt-5"
-        >
-          <Tabs.ListContainer>
-            <Tabs.List
-              aria-label="Select role"
-              className="*:text-black"
-            >
-              {/* Tenant Tab */}
-              <Tabs.Tab id="tenant" className="data-[selected=true]:text-primary">
-                <span className="flex items-center gap-1.5">
-                  <UserRoundKey size={15} />
-                  Tenant
-                </span>
-                <Tabs.Indicator />
-              </Tabs.Tab>
+        {/* Role is chosen on sign-up only. Sign-in is role-agnostic and
+            routes by the user's held roles after login. */}
+        {type === 'sign-up' && (
+          <Tabs
+            selectedKey={role}
+            onSelectionChange={(key) => setRole(key as 'tenant' | 'landlord')}
+            className="mt-5"
+          >
+            <Tabs.ListContainer>
+              <Tabs.List
+                aria-label="Select role"
+                className="*:text-black"
+              >
+                {/* Tenant Tab */}
+                <Tabs.Tab id="tenant" className="data-[selected=true]:text-primary">
+                  <span className="flex items-center gap-1.5">
+                    <UserRoundKey size={15} />
+                    Tenant
+                  </span>
+                  <Tabs.Indicator />
+                </Tabs.Tab>
 
-              {/* Landlord Tab */}
-              <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary">
-                <Tabs.Separator />
-                <span className="flex items-center gap-1.5">
-                  <Building size={15} />
-                  Landlord
-                </span>
-                <Tabs.Indicator />
-              </Tabs.Tab>
-            </Tabs.List>
-          </Tabs.ListContainer>
-        </Tabs>
+                {/* Landlord Tab */}
+                <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary">
+                  <Tabs.Separator />
+                  <span className="flex items-center gap-1.5">
+                    <Building size={15} />
+                    Landlord
+                  </span>
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
+          </Tabs>
+        )}
 
 
         {portalError && (
