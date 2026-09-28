@@ -19,7 +19,13 @@ export function fullName(
     : "";
 }
 
-export function StatusChip({ status, icon }: { status: string; icon?: ReactNode }) {
+export function StatusChip({
+  status,
+  icon,
+}: {
+  status: string;
+  icon?: ReactNode;
+}) {
   const color =
     status === "verified" ||
     status === "approved" ||
@@ -40,7 +46,7 @@ export function StatusChip({ status, icon }: { status: string; icon?: ReactNode 
           ? "warning"
           : "default";
   return (
-    <Chip size="sm" variant="soft" color={color} className="capitalize">
+    <Chip size="md" variant="soft" color={color} className="capitalize">
       {icon}
       {status.replaceAll("_", " ")}
     </Chip>
@@ -50,11 +56,13 @@ export function StatusChip({ status, icon }: { status: string; icon?: ReactNode 
 export function Section({
   title,
   icon,
+  headerExtra,
   children,
   className = "",
 }: {
   title: string;
   icon?: ReactNode;
+  headerExtra?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
@@ -64,10 +72,19 @@ export function Section({
     >
       <Card.Content className="p-0">
         <section aria-label={title}>
-          <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-            {icon ? <span className="shrink-0" aria-hidden="true">{icon}</span> : null}
-            {title}
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="flex min-w-0 items-center gap-2 font-nunito text-lg font-bold text-primary">
+              {icon ? (
+                <span className="shrink-0" aria-hidden="true">
+                  {icon}
+                </span>
+              ) : null}
+              {title}
+            </h2>
+            {headerExtra ? (
+              <span className="shrink-0">{headerExtra}</span>
+            ) : null}
+          </div>
           <div className="mt-3">{children}</div>
         </section>
       </Card.Content>

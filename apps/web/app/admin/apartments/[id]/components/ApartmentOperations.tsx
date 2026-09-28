@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatPesoDisplay } from "@repo/utils";
 import {
   CalendarDays,
@@ -26,6 +27,26 @@ import {
   StatusChip,
 } from "./DetailPrimitives";
 
+function OperationalEmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex min-h-40 flex-col items-center justify-center gap-2 px-3 py-5 text-center">
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true">
+        {icon}
+      </span>
+      <p className="font-nunito font-semibold text-foreground">{title}</p>
+      <p className="max-w-xs text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
 export function CurrentTenancyCard({
   tenancy,
   payment,
@@ -43,7 +64,7 @@ export function CurrentTenancyCard({
     <Section
       title="Current tenancy"
       icon={<KeyRound size={20} />}
-      className="order-4 xl:order-none"
+      className="order-4 xl:order-0"
     >
       {error ? (
         <SectionError />
@@ -114,106 +135,90 @@ export function ApartmentPipelineSummary({
   visits: Summary<Visit>;
 }) {
   return (
-    <Section
-      title="Applications & visits"
-      icon={<ClipboardList size={20} />}
-      className="order-6 xl:order-none"
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <h3 className="flex items-center gap-2 font-nunito font-bold">
-            <ClipboardList size={18} className="text-primary" aria-hidden="true" />
-            Applications
-          </h3>
-          {applications.error ? (
-            <SectionError />
-          ) : (
-            <>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                <Metric label="Total" value={applications.counts.total ?? 0} />
-                <Metric
-                  label="Pending"
-                  value={applications.counts.pending ?? 0}
-                />
-                <Metric
-                  label="Approved"
-                  value={applications.counts.approved ?? 0}
-                />
-                <Metric
-                  label="Rejected"
-                  value={applications.counts.rejected ?? 0}
-                />
-              </div>
-              {applications.items.length ? (
-                <ul className="mt-3 divide-y divide-border text-sm">
-                  {applications.items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-2 py-2"
-                    >
-                      <span>{dateOnly.format(new Date(item.created_at))}</span>
-                      <StatusChip status={item.status} />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  No applications yet.
-                </p>
-              )}
-            </>
-          )}
-        </div>
-        <div>
-          <h3 className="flex items-center gap-2 font-nunito font-bold">
-            <CalendarDays size={18} className="text-primary" aria-hidden="true" />
-            Visit requests
-          </h3>
-          {visits.error ? (
-            <SectionError />
-          ) : (
-            <>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                <Metric label="Total" value={visits.counts.total ?? 0} />
-                <Metric label="Pending" value={visits.counts.pending ?? 0} />
-                <Metric label="Approved" value={visits.counts.approved ?? 0} />
-                <Metric
-                  label="Rescheduled"
-                  value={visits.counts.rescheduled ?? 0}
-                />
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Cancelled: {visits.counts.cancelled ?? 0} · Rejected:{" "}
-                {visits.counts.rejected ?? 0}
+    <div className="order-6 grid min-w-0 gap-4 md:grid-cols-2 xl:order-0">
+      <Section title="Applications" icon={<ClipboardList size={20} />}>
+        {applications.error ? (
+          <SectionError />
+        ) : !applications.items.length && (applications.counts.total ?? 0) === 0 ? (
+          <OperationalEmptyState
+            icon={<ClipboardList size={24} />}
+            title="No applications yet"
+            description="Rental applications for this property will appear here."
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2 2xl:grid-cols-4">
+              <Metric label="Total" value={applications.counts.total ?? 0} />
+              <Metric label="Pending" value={applications.counts.pending ?? 0} />
+              <Metric label="Approved" value={applications.counts.approved ?? 0} />
+              <Metric label="Rejected" value={applications.counts.rejected ?? 0} />
+            </div>
+            {applications.items.length ? (
+              <ul className="mt-3 divide-y divide-border text-sm">
+                {applications.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 py-2"
+                  >
+                    <span>{dateOnly.format(new Date(item.created_at))}</span>
+                    <StatusChip status={item.status} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No recent applications to display.
               </p>
-              {visits.items.length ? (
-                <ul className="mt-3 divide-y divide-border text-sm">
-                  {visits.items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-2 py-2"
-                    >
-                      <span>
-                        {dateOnly.format(
-                          new Date(
-                            item.confirmed_visit_date ?? item.visit_date,
-                          ),
-                        )}
-                      </span>
-                      <StatusChip status={item.status} />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  No visit requests yet.
-                </p>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </Section>
+            )}
+          </>
+        )}
+      </Section>
+      <Section title="Visit requests" icon={<CalendarDays size={20} />}>
+        {visits.error ? (
+          <SectionError />
+        ) : !visits.items.length && (visits.counts.total ?? 0) === 0 ? (
+          <OperationalEmptyState
+            icon={<CalendarDays size={24} />}
+            title="No visit requests yet"
+            description="Visit requests for this property will appear here."
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2 2xl:grid-cols-4">
+              <Metric label="Total" value={visits.counts.total ?? 0} />
+              <Metric label="Pending" value={visits.counts.pending ?? 0} />
+              <Metric label="Approved" value={visits.counts.approved ?? 0} />
+              <Metric label="Rescheduled" value={visits.counts.rescheduled ?? 0} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cancelled: {visits.counts.cancelled ?? 0} · Rejected:{" "}
+              {visits.counts.rejected ?? 0}
+            </p>
+            {visits.items.length ? (
+              <ul className="mt-3 divide-y divide-border text-sm">
+                {visits.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 py-2"
+                  >
+                    <span>
+                      {dateOnly.format(
+                        new Date(item.confirmed_visit_date ?? item.visit_date),
+                      )}
+                    </span>
+                    <StatusChip status={item.status} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No recent visit requests to display.
+              </p>
+            )}
+          </>
+        )}
+      </Section>
+    </div>
   );
 }
 
@@ -226,10 +231,16 @@ export function ApartmentMaintenanceSummary({
     <Section
       title="Maintenance"
       icon={<Wrench size={20} />}
-      className="order-7 xl:order-none"
+      className="order-7 xl:order-0"
     >
       {summary.error ? (
         <SectionError />
+      ) : !summary.items.length && Object.values(summary.counts).every((count) => count === 0) ? (
+        <OperationalEmptyState
+          icon={<Wrench size={24} />}
+          title="No maintenance requests"
+          description="Reported maintenance issues for this property will appear here."
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -273,7 +284,7 @@ export function ApartmentMaintenanceSummary({
             </ul>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">
-              No maintenance requests.
+              No recent maintenance requests to display.
             </p>
           )}
         </>
@@ -297,10 +308,16 @@ export function ApartmentReviewsSummary({
     <Section
       title="Reviews"
       icon={<Star size={20} />}
-      className="order-8 xl:order-none"
+      className="order-8 xl:order-0"
     >
       {error ? (
         <SectionError />
+      ) : !reviews.length && (total ?? 0) === 0 && (rating == null || rating === 0) ? (
+        <OperationalEmptyState
+          icon={<Star size={24} />}
+          title="No reviews yet"
+          description="Tenant reviews for this property will appear here."
+        />
       ) : (
         <>
           <div className="flex items-baseline gap-3">
@@ -331,7 +348,7 @@ export function ApartmentReviewsSummary({
             </ul>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">
-              No reviews yet.
+              No recent reviews to display.
             </p>
           )}
         </>
@@ -353,49 +370,51 @@ export function ApartmentActivityTimeline({
     <Section
       title="Admin activity & history"
       icon={<History size={20} />}
-      className="order-9 xl:order-none"
+      className="order-9 xl:order-0"
     >
       {error ? (
         <SectionError />
       ) : (
         <>
-          <ol className="divide-y divide-border text-sm">
-            {events.map((event) => (
-              <li key={event.id} className="py-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-medium capitalize">
-                    {event.action.replaceAll("_", " ").toLowerCase()}
-                  </span>
-                  <time
-                    dateTime={event.created_at}
-                    className="text-xs text-muted-foreground"
-                  >
-                    {dateTime.format(new Date(event.created_at))}
-                  </time>
-                </div>
-                <p className="text-muted-foreground">
-                  {event.admin_name
-                    ? `By ${event.admin_name}`
-                    : "Administrator"}
-                  {event.reason ? ` · ${event.reason}` : ""}
-                </p>
-              </li>
-            ))}
-            <li className="py-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <span className="font-medium">Apartment created</span>
-                <time
-                  dateTime={createdAt}
-                  className="text-xs text-muted-foreground"
-                >
-                  {dateTime.format(new Date(createdAt))}
-                </time>
-              </div>
-            </li>
-          </ol>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Landlord edits and rent changes are not recorded in this audit log.
           </p>
+          <div className="mt-3 rounded-3xl border border-border bg-muted/30 px-4">
+            <ol className="divide-y divide-border text-sm">
+              {events.map((event) => (
+                <li key={event.id} className="py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium capitalize">
+                      {event.action.replaceAll("_", " ").toLowerCase()}
+                    </span>
+                    <time
+                      dateTime={event.created_at}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {dateTime.format(new Date(event.created_at))}
+                    </time>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {event.admin_name
+                      ? `By ${event.admin_name}`
+                      : "Administrator"}
+                    {event.reason ? ` · ${event.reason}` : ""}
+                  </p>
+                </li>
+              ))}
+              <li className="py-3">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="font-medium">Apartment created</span>
+                  <time
+                    dateTime={createdAt}
+                    className="text-xs text-muted-foreground"
+                  >
+                    {dateTime.format(new Date(createdAt))}
+                  </time>
+                </div>
+              </li>
+            </ol>
+          </div>
         </>
       )}
     </Section>

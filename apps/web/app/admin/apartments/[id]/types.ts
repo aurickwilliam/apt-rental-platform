@@ -18,6 +18,7 @@ export type Landlord = Pick<
   | "avatar_url"
   | "account_status"
   | "created_at"
+  | "updated_at"
 >;
 export type Verification = Pick<
   Tables<"apartment_verifications">,

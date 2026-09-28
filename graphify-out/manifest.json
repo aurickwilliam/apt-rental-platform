@@ -4515,8 +4515,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/page.tsx": {
-    "mtime": 1790602641.7244306,
-    "ast_hash": "afa017c52c38a8067d3ada49310f8395",
+    "mtime": 1790609928.115759,
+    "ast_hash": "afc110b95591babbc3f19f8a171b73b5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/page.tsx": {
@@ -4975,8 +4975,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/OperationForm.tsx": {
-    "mtime": 1790518210.004673,
-    "ast_hash": "245d369ab9aec2f258c01a1bdc753052",
+    "mtime": 1790610857.8205383,
+    "ast_hash": "51ae375c69234d1adc1e23c2941b11a6",
     "semantic_hash": ""
   },
   "apps/web/app/admin/actions/operations.ts": {
@@ -5435,23 +5435,23 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOperations.tsx": {
-    "mtime": 1790607239.6182148,
-    "ast_hash": "79576c55d681e1e453b4ce4003a6f674",
+    "mtime": 1790608799.204392,
+    "ast_hash": "68e678e80d64b2ad114f30c443bcdb46",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOverview.tsx": {
-    "mtime": 1790607101.3513467,
-    "ast_hash": "af7f7888a7a756fb3138b26bc38d4a75",
+    "mtime": 1790607821.5296168,
+    "ast_hash": "896a6d5d800444c84715a62a6f33854f",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentSidebar.tsx": {
-    "mtime": 1790607239.6184838,
-    "ast_hash": "db73efa61ac7c78f4558a09ff9d99957",
+    "mtime": 1790611557.6703916,
+    "ast_hash": "8b2d1f53ecf1231a5af9b6212f9ca6e5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx": {
-    "mtime": 1790607211.996832,
-    "ast_hash": "878601ac3e4eb407ef1765ba6e4bda7b",
+    "mtime": 1790611157.2923083,
+    "ast_hash": "6bb642e46135bcd67e6d9243e414f0a5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/error.tsx": {
@@ -5470,8 +5470,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/types.ts": {
-    "mtime": 1790602643.85381,
-    "ast_hash": "7bf44ce6846ef771ae70fca963dd8a67",
+    "mtime": 1790609891.4775991,
+    "ast_hash": "bf1adfa5db902280899a3ed7244924c3",
     "semantic_hash": ""
   },
   "supabase/migrations/20260928131454_admin_apartment_detail_access.sql": {

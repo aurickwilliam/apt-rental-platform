@@ -19,6 +19,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
+import { PERKS } from "@/app/components/inputs/perks";
 import type { Apartment, ApartmentImage, Verification } from "../types";
 import ApartmentDescription from "./ApartmentDescription";
 import ApartmentGallery from "./ApartmentGallery";
@@ -29,6 +30,24 @@ interface ApartmentOverviewProps {
   verification: Verification | null;
   images: ApartmentImage[];
   imagesError: boolean;
+}
+
+const AMENITY_LABELS: Record<string, string> = {
+  ac: "AC",
+  cabletv: "Cable TV",
+  cctv: "CCTV",
+  hotwater: "Hot Water",
+  moving_in: "Moving In",
+  smartlock: "Smart Lock",
+  tv: "TV",
+  wifi: "Wi-Fi",
+};
+
+function amenityLabel(key: string): string {
+  return (
+    AMENITY_LABELS[key] ??
+    key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
 }
 
 function PropertyFact({
@@ -93,9 +112,13 @@ export function ApartmentOverview({
               <ClipboardList size={20} aria-hidden="true" /> Property overview
             </h2>
             <div className="mt-4 space-y-6">
-              <div className="rounded-2xl bg-muted/30 p-4">
+              <div className="rounded-3xl bg-muted/30 p-4">
                 <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
-                  <ReceiptText size={20} className="text-primary" aria-hidden="true" />
+                  <ReceiptText
+                    size={20}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
                   Rent &amp; Lease
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
@@ -131,7 +154,11 @@ export function ApartmentOverview({
               </div>
               <div>
                 <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
-                  <LayoutGrid size={20} className="text-primary" aria-hidden="true" />
+                  <LayoutGrid
+                    size={20}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
                   Property Details
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
@@ -187,12 +214,24 @@ export function ApartmentOverview({
                 <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
                   <Tags size={20} aria-hidden="true" /> Amenities
                 </h2>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {apartment.amenities.map((amenity) => (
-                    <Chip key={amenity} size="sm" variant="soft">
-                      {amenity.replaceAll("_", " ")}
-                    </Chip>
-                  ))}
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {apartment.amenities.map((amenity) => {
+                    const key = amenity
+                      .toLowerCase()
+                      .trim()
+                      .replaceAll(" ", "_");
+                    const Icon = PERKS[key]?.icon ?? House;
+                    return (
+                      <Chip key={amenity} size="md" variant="soft">
+                        <Icon
+                          size={16}
+                          className="text-primary mr-1"
+                          aria-hidden="true"
+                        />
+                        {amenityLabel(key)}
+                      </Chip>
+                    );
+                  })}
                 </div>
               </section>
             </>
@@ -203,7 +242,7 @@ export function ApartmentOverview({
               <MapPin size={20} aria-hidden="true" /> Google Maps
             </h2>
             {mapCoordinates ? (
-              <div className="mt-3 overflow-hidden rounded-2xl border border-border">
+              <div className="mt-3 overflow-hidden rounded-3xl border border-border">
                 <iframe
                   title={`Map of ${apartment.name}`}
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(mapCoordinates)}&z=15&output=embed`}

@@ -65,7 +65,7 @@ export default async function AdminApartmentDetailPage({
       ? supabase
           .from("users")
           .select(
-            "id, first_name, last_name, email, mobile_number, avatar_url, account_status, created_at",
+            "id, first_name, last_name, email, mobile_number, avatar_url, account_status, created_at, updated_at",
           )
           .eq("id", apartment.landlord_id)
           .maybeSingle()
@@ -152,7 +152,7 @@ export default async function AdminApartmentDetailPage({
     "resolved",
     "high",
   ] as const;
-  const [applicationCounts, visitCounts, maintenanceCounts, propertyCount] =
+  const [applicationCounts, visitCounts, maintenanceCounts, propertyCount, verifiedPropertyCount] =
     await Promise.all([
       Promise.all(
         applicationStatuses.map(async (status) => {
@@ -197,6 +197,14 @@ export default async function AdminApartmentDetailPage({
             .from("apartments")
             .select("id", { count: "exact", head: true })
             .eq("landlord_id", apartment.landlord_id)
+            .is("deleted_at", null)
+        : Promise.resolve({ count: null, error: null }),
+      apartment.landlord_id
+        ? supabase
+            .from("apartments")
+            .select("id", { count: "exact", head: true })
+            .eq("landlord_id", apartment.landlord_id)
+            .eq("is_verified", true)
             .is("deleted_at", null)
         : Promise.resolve({ count: null, error: null }),
     ]);
@@ -310,7 +318,9 @@ export default async function AdminApartmentDetailPage({
     .slice(0, 20);
   const operationalError = Boolean(tenancyResult.error || paymentResult.error);
   const sectionErrors = {
-    landlord: Boolean(landlordResult.error || propertyCount.error),
+    landlord: Boolean(
+      landlordResult.error || propertyCount.error || verifiedPropertyCount.error,
+    ),
     images: Boolean(imagesResult.error),
     verification: Boolean(verificationResult.error || reviewersResult.error),
     tenancy: operationalError,
@@ -381,6 +391,7 @@ export default async function AdminApartmentDetailPage({
           <ApartmentLandlordCard
             landlord={landlordResult.data as Landlord | null}
             count={propertyCount.count}
+            verifiedCount={verifiedPropertyCount.count}
             error={sectionErrors.landlord}
           />
         </aside>
