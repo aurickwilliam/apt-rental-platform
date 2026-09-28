@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing } from "lucide-react";
+import { MessageSquare, Home, Wrench, CreditCard, Settings } from "lucide-react";
 import { Button } from "@heroui/react";
 
 import SettingsShell from "../components/SettingsShell";
@@ -9,20 +9,18 @@ import SectionTitle from "../components/SectionTitle";
 import ToggleSwitch from "../components/ToggleSwitch";
 import { useNotificationPreferences } from "../hooks/use-notification-prefs";
 
+const TYPE_ICONS: Record<string, React.ReactNode> = {
+  payment: <CreditCard className="w-5 h-5" />,
+  message: <MessageSquare className="w-5 h-5" />,
+  maintenance: <Wrench className="w-5 h-5" />,
+  apartment: <Home className="w-5 h-5" />,
+  system: <Settings className="w-5 h-5" />,
+};
+
 export default function NotificationSettingsPage() {
-  const { preferences, loading, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
+  const { preferences, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
 
   const typesDisabled = !preferences.notifications_enabled && !preferences.push_enabled;
-
-  if (loading) {
-    return (
-      <SettingsShell title="Notifications" showBack>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </SettingsShell>
-    );
-  }
 
   return (
     <SettingsShell title="Notifications" showBack>
@@ -43,7 +41,7 @@ export default function NotificationSettingsPage() {
                   <ToggleSwitch
                     isSelected={preferences[key]}
                     onValueChange={() => toggleGeneral(key)}
-                    disabled={loading}
+                    aria-label={title}
                   />
                 }
               />
@@ -65,7 +63,7 @@ export default function NotificationSettingsPage() {
                 key={type}
                 icon={
                   <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <BellRing className="w-5 h-5" />
+                    {TYPE_ICONS[type]}
                   </span>
                 }
                 title={label}
@@ -73,7 +71,8 @@ export default function NotificationSettingsPage() {
                   <ToggleSwitch
                     isSelected={preferences[type]}
                     onValueChange={() => toggleType(type)}
-                    disabled={typesDisabled || loading}
+                    disabled={typesDisabled}
+                    aria-label={label}
                   />
                 }
               />

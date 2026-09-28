@@ -52,11 +52,19 @@ export default function SettingsRow({
   );
 
   if (href) {
+    if (disabled) {
+      return (
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4" aria-disabled={true}>
+          {iconEl}
+          {labelEl}
+          {trailingEl}
+        </div>
+      );
+    }
     return (
       <Link
         href={href}
         className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 hover:bg-muted/40 transition-colors"
-        aria-disabled={disabled}
       >
         {iconEl}
         {labelEl}

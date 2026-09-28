@@ -14,27 +14,27 @@ const faqs = [
   {
     id: 2,
     question: "How do I submit a maintenance request?",
-    answer: "Go to your Rentals tab and tap 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
+    answer: "Go to your Rentals page and click 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
   },
   {
     id: 3,
     question: "How do I view my lease agreement?",
-    answer: "Go to your Rentals tab and tap 'View Lease'. You can view and download your lease agreement from there.",
+    answer: "Go to your Rentals page and click 'View Lease'. You can view and download your lease agreement from there.",
   },
   {
     id: 4,
     question: "How do I contact my landlord?",
-    answer: "You can message your landlord directly through the Chat tab or by tapping 'Chat Landlord' in your Rentals quick actions.",
+    answer: "You can message your landlord directly through the Chat page or by clicking 'Chat Landlord' in your Rentals quick actions.",
   },
   {
     id: 5,
     question: "How do I list my property?",
-    answer: "As a landlord, go to the Units tab and tap the '+' button to add a new apartment listing. Fill in the required details across the steps.",
+    answer: "As a landlord, go to the Units page and click the '+' button to add a new apartment listing. Fill in the required details across the steps.",
   },
   {
     id: 6,
     question: "How do I verify my account?",
-    answer: "Go to your Profile tab and tap on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
+    answer: "Go to your Profile page and click on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
   },
 ];
 

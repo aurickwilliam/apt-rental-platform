@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useUser } from "@/hooks/use-user";
 import { toast } from "@heroui/react";
-import { CAMANAVA_CITIES } from "@repo/constants";
 
 export type TenantPreferences = {
   selectedCities: string[];
@@ -25,11 +24,27 @@ export type TenantPreferences = {
 const DEFAULT_BUDGET_MIN = 5_000;
 const DEFAULT_BUDGET_MAX = 100_000;
 
+const DEFAULT_PREFS: TenantPreferences = {
+  selectedCities: [],
+  budgetMin: DEFAULT_BUDGET_MIN,
+  budgetMax: DEFAULT_BUDGET_MAX,
+  bedroomCount: null,
+  householdSize: null,
+  hasPets: false,
+  kindOfPets: "",
+  nameOfPets: null,
+  hasParking: false,
+  noOfParkingSpots: 1,
+  listOfVehicles: [],
+  hasSmoker: false,
+  hasDisability: false,
+};
+
 function isDefaultBudget(prefs: TenantPreferences): boolean {
   return prefs.budgetMin === DEFAULT_BUDGET_MIN && prefs.budgetMax === DEFAULT_BUDGET_MAX;
 }
 
-function hasPersonalization(prefs: TenantPreferences | null | undefined): boolean {
+export function hasPersonalization(prefs: TenantPreferences | null | undefined): boolean {
   if (!prefs) return false;
   if (prefs.selectedCities.length > 0) return true;
   if (!isDefaultBudget(prefs)) return true;
@@ -42,7 +57,7 @@ function hasPersonalization(prefs: TenantPreferences | null | undefined): boolea
   return false;
 }
 
-function parsePreferences(raw: unknown): TenantPreferences | null {
+export function parsePreferences(raw: unknown): TenantPreferences | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
   if (!Array.isArray(obj.selectedCities)) return null;
@@ -63,226 +78,241 @@ function parsePreferences(raw: unknown): TenantPreferences | null {
   };
 }
 
+function prefsEqual(a: TenantPreferences, b: TenantPreferences): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function prefsKey(prefs: TenantPreferences): string {
+  return JSON.stringify(prefs);
+}
+
 export function useRentalPreferencesForm() {
   const { profile, user } = useUser();
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const userId = user?.id ?? null;
+  const profileId = profile?.id ?? null;
 
-  const parsedPrefs = useMemo((): TenantPreferences | null => {
-    if (!profile?.preferences) return null;
-    return parsePreferences(profile.preferences);
-  }, [profile?.preferences]);
+  // Stable key for preferences raw data - updated via effect
+  const prefsRawKeyRef = useRef<string>("none");
+  useEffect(() => {
+    const current = serializePrefs(profile?.preferences ?? null);
+    if (prefsRawKeyRef.current !== current) {
+      prefsRawKeyRef.current = current;
+    }
+  }, [profile]);
+
+  const initialPrefs = useMemo<TenantPreferences>(() => {
+    if (!profile?.preferences) return DEFAULT_PREFS;
+    return parsePreferences(profile.preferences) ?? DEFAULT_PREFS;
+  }, [prefsRawKeyRef.current]);
+
+  const initialPrefsKey = useMemo(() => prefsKey(initialPrefs), [initialPrefs]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
 
-  const initialState: TenantPreferences = {
-    selectedCities: [],
-    budgetMin: DEFAULT_BUDGET_MIN,
-    budgetMax: DEFAULT_BUDGET_MAX,
-    bedroomCount: null,
-    householdSize: null,
-    hasPets: false,
-    kindOfPets: "",
-    nameOfPets: null,
-    hasParking: false,
-    noOfParkingSpots: 1,
-    listOfVehicles: [],
-    hasSmoker: false,
-    hasDisability: false,
-  };
+  // Single form state object - initialized from initialPrefs
+  const [formState, setFormState] = useState<TenantPreferences>(initialPrefs);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [formState, setFormState] = useState<TenantPreferences>(initialState);
-
-  // Sync form state when parsed preferences change (after profile loads)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Reset form state when initialPrefsKey changes (profile loads/changes)
+  const prevKeyRef = useRef<string>(initialPrefsKey);
   useEffect(() => {
-    if (parsedPrefs) {
-      setFormState({
-        selectedCities: parsedPrefs.selectedCities ?? [],
-        budgetMin: parsedPrefs.budgetMin ?? DEFAULT_BUDGET_MIN,
-        budgetMax: parsedPrefs.budgetMax ?? DEFAULT_BUDGET_MAX,
-        bedroomCount: parsedPrefs.bedroomCount ?? null,
-        householdSize: parsedPrefs.householdSize ?? null,
-        hasPets: parsedPrefs.hasPets ?? false,
-        kindOfPets: parsedPrefs.kindOfPets ?? "",
-        nameOfPets: parsedPrefs.nameOfPets ?? null,
-        hasParking: parsedPrefs.hasParking ?? false,
-        noOfParkingSpots: parsedPrefs.noOfParkingSpots ?? 1,
-        listOfVehicles: parsedPrefs.listOfVehicles ?? [],
-        hasSmoker: parsedPrefs.hasSmoker ?? false,
-        hasDisability: parsedPrefs.hasDisability ?? false,
-      });
+    if (prevKeyRef.current !== initialPrefsKey) {
+      prevKeyRef.current = initialPrefsKey;
+      setFormState(initialPrefs);
     }
-    setIsLoading(false);
-  }, [parsedPrefs]);
+  }, [initialPrefsKey, initialPrefs]);
 
-  const markDirty = useCallback(() => setIsDirty(true), []);
+  const currentPrefs = formState;
+
+  const isDirty = useMemo(() => !prefsEqual(initialPrefs, currentPrefs), [initialPrefs, currentPrefs]);
 
   const toggleCity = useCallback((city: string) => {
-    setFormState((prev) => {
-      const cities = ["CAMANAVA", ...CAMANAVA_CITIES];
-      if (city === "CAMANAVA") {
-        const allCities = cities.slice(1);
-        const allSelected = allCities.every((c) => prev.selectedCities.includes(c));
-        if (allSelected) {
-          return { ...prev, selectedCities: [] };
-        } else {
-          return { ...prev, selectedCities: allCities };
-        }
-      }
-      const selected = prev.selectedCities.includes(city)
+    setFormState((prev) => ({
+      ...prev,
+      selectedCities: prev.selectedCities.includes(city)
         ? prev.selectedCities.filter((c) => c !== city)
-        : [...prev.selectedCities, city];
-      return { ...prev, selectedCities: selected };
-    });
-    markDirty();
-  }, [markDirty]);
+        : [...prev.selectedCities, city],
+    }));
+  }, []);
 
   const toggleVehicle = useCallback((vehicle: string) => {
-    setFormState((prev) => {
-      const vehicles = prev.listOfVehicles.includes(vehicle)
+    setFormState((prev) => ({
+      ...prev,
+      listOfVehicles: prev.listOfVehicles.includes(vehicle)
         ? prev.listOfVehicles.filter((v) => v !== vehicle)
-        : [...prev.listOfVehicles, vehicle];
-      return { ...prev, listOfVehicles: vehicles };
-    });
-    markDirty();
-  }, [markDirty]);
+        : [...prev.listOfVehicles, vehicle],
+    }));
+  }, []);
 
-  const setBudgetRange = useCallback((min: number, max: number) => {
-    setFormState((prev) => ({ ...prev, budgetMin: min, budgetMax: max }));
-    markDirty();
-  }, [markDirty]);
+  const setPetsEnabled = useCallback((val: boolean) => {
+    setFormState((prev) => ({
+      ...prev,
+      hasPets: val,
+      kindOfPets: val ? prev.kindOfPets : "",
+      nameOfPets: val ? prev.nameOfPets : null,
+    }));
+  }, []);
 
-  const setBedroomCount = useCallback((value: string) => {
-    setFormState((prev) => ({ ...prev, bedroomCount: value }));
-    markDirty();
-  }, [markDirty]);
+  const setParkingEnabled = useCallback((val: boolean) => {
+    setFormState((prev) => ({
+      ...prev,
+      hasParking: val,
+      listOfVehicles: val ? prev.listOfVehicles : [],
+    }));
+  }, []);
 
-  const setHouseholdSize = useCallback((value: string) => {
-    setFormState((prev) => ({ ...prev, householdSize: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setHasPets = useCallback((value: boolean) => {
-    setFormState((prev) => ({ ...prev, hasPets: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setKindOfPets = useCallback((value: string) => {
-    setFormState((prev) => ({ ...prev, kindOfPets: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setNameOfPets = useCallback((value: string) => {
-    setFormState((prev) => ({ ...prev, nameOfPets: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setHasParking = useCallback((value: boolean) => {
-    setFormState((prev) => ({ ...prev, hasParking: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setNoOfParkingSpots = useCallback((value: number) => {
-    setFormState((prev) => ({ ...prev, noOfParkingSpots: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setHasSmoker = useCallback((value: boolean) => {
-    setFormState((prev) => ({ ...prev, hasSmoker: value }));
-    markDirty();
-  }, [markDirty]);
-
-  const setHasDisability = useCallback((value: boolean) => {
-    setFormState((prev) => ({ ...prev, hasDisability: value }));
-    markDirty();
-  }, [markDirty]);
+  const handleSelectPetKind = useCallback((val: string | null) => {
+    const v = val ?? "";
+    setFormState((prev) => ({
+      ...prev,
+      kindOfPets: v,
+      nameOfPets: v === "Other" ? prev.nameOfPets : null,
+    }));
+  }, []);
 
   const save = useCallback(async () => {
-    if (!profile?.id || !user?.id) {
+    if (!profileId || !userId) {
       toast.danger("Not signed in");
       return;
     }
     setIsSaving(true);
-    setError(null);
     try {
       const supabase = createClient();
-      const { error } = await supabase
-        .from("users")
-        .update({ preferences: formState })
-        .eq("id", profile.id);
-
+      const { error } = await supabase.from("users").update({ preferences: currentPrefs }).eq("id", profileId);
       if (error) throw error;
-
       toast.success("Preferences saved");
-      setIsDirty(false);
     } catch (err: unknown) {
       console.error("Failed to save preferences", err);
       const errMsg = err instanceof Error ? err.message : "Try again.";
       toast.danger("Couldn't save", { description: errMsg });
-      setError(err instanceof Error ? err : new Error(errMsg));
     } finally {
       setIsSaving(false);
     }
-  }, [profile?.id, user?.id, formState, toast]);
+  }, [profileId, userId, currentPrefs]);
+
+  const reset = useCallback(() => {
+    setFormState(initialPrefs);
+  }, [initialPrefs]);
+
+  // Destructure for return
+  const {
+    selectedCities,
+    budgetMin,
+    budgetMax,
+    bedroomCount,
+    householdSize,
+    hasPets,
+    kindOfPets,
+    nameOfPets,
+    hasParking,
+    noOfParkingSpots,
+    listOfVehicles,
+    hasSmoker,
+    hasDisability,
+  } = formState;
+
+  const setBudgetMin = useCallback((val: number) => {
+    setFormState((prev) => ({ ...prev, budgetMin: val }));
+  }, []);
+
+  const setBudgetMax = useCallback((val: number) => {
+    setFormState((prev) => ({ ...prev, budgetMax: val }));
+  }, []);
+
+  const setBedroomCount = useCallback((val: string | null) => {
+    setFormState((prev) => ({ ...prev, bedroomCount: val }));
+  }, []);
+
+  const setHouseholdSize = useCallback((val: string | null) => {
+    setFormState((prev) => ({ ...prev, householdSize: val }));
+  }, []);
+
+  const setNameOfPets = useCallback((val: string | null) => {
+    setFormState((prev) => ({ ...prev, nameOfPets: val }));
+  }, []);
+
+  const setNoOfParkingSpots = useCallback((val: number) => {
+    setFormState((prev) => ({ ...prev, noOfParkingSpots: val }));
+  }, []);
+
+  const setListOfVehicles = useCallback((val: string[]) => {
+    setFormState((prev) => ({ ...prev, listOfVehicles: val }));
+  }, []);
+
+  const setHasSmoker = useCallback((val: boolean) => {
+    setFormState((prev) => ({ ...prev, hasSmoker: val }));
+  }, []);
+
+  const setHasDisability = useCallback((val: boolean) => {
+    setFormState((prev) => ({ ...prev, hasDisability: val }));
+  }, []);
 
   return {
     profile,
     isTenant,
-    selectedCities: formState.selectedCities,
-    budgetMin: formState.budgetMin,
-    budgetMax: formState.budgetMax,
-    bedroomCount: formState.bedroomCount,
-    householdSize: formState.householdSize,
-    hasPets: formState.hasPets,
-    kindOfPets: formState.kindOfPets,
-    nameOfPets: formState.nameOfPets,
-    hasParking: formState.hasParking,
-    noOfParkingSpots: formState.noOfParkingSpots,
-    listOfVehicles: formState.listOfVehicles,
-    hasSmoker: formState.hasSmoker,
-    hasDisability: formState.hasDisability,
+    initialPrefs,
+    selectedCities,
+    budgetMin,
+    budgetMax,
+    bedroomCount,
+    householdSize,
+    hasPets,
+    kindOfPets,
+    nameOfPets,
+    hasParking,
+    noOfParkingSpots,
+    listOfVehicles,
+    hasSmoker,
+    hasDisability,
     isSaving,
     isDirty,
-    isLoading,
-    error,
-    setBudgetRange,
+    currentPrefs,
+    setBudgetMin,
+    setBudgetMax,
+    setBudgetRange: (min: number, max: number) => {
+      setBudgetMin(min);
+      setBudgetMax(max);
+    },
     setBedroomCount,
     setHouseholdSize,
-    setHasPets,
-    setKindOfPets,
+    setHasPets: setPetsEnabled,
+    setKindOfPets: handleSelectPetKind,
     setNameOfPets,
-    setHasParking,
+    setHasParking: setParkingEnabled,
     setNoOfParkingSpots,
+    setListOfVehicles,
     setHasSmoker,
     setHasDisability,
+    hasPetsRaw: setPetsEnabled,
+    hasParkingRaw: setParkingEnabled,
     toggleCity,
     toggleVehicle,
     save,
+    reset,
   };
 }
 
 export function useUserPreferences() {
   const { profile } = useUser();
-  const [isLoading, setIsLoading] = useState(true);
 
-  const parsedPrefs = useMemo((): TenantPreferences | null => {
+  // Stable key for preferences raw data - updated via effect
+  const prefsRawKeyRef = useRef<string>("none");
+  useEffect(() => {
+    const current = serializePrefs(profile?.preferences ?? null);
+    if (prefsRawKeyRef.current !== current) {
+      prefsRawKeyRef.current = current;
+    }
+  }, [profile]);
+
+  const parsedPrefs = useMemo<TenantPreferences | null>(() => {
     if (!profile?.preferences) return null;
     return parsePreferences(profile.preferences);
-  }, [profile?.preferences]);
+  }, [prefsRawKeyRef.current]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
   const hasPrefs = isTenant && hasPersonalization(parsedPrefs);
   const personalizedCity = parsedPrefs?.selectedCities[0] ?? "CAMANAVA";
   const extraCitiesCount = Math.max(0, (parsedPrefs?.selectedCities.length ?? 0) - 1);
-  const prefsHash = parsedPrefs ? JSON.stringify(parsedPrefs) : null;
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    setIsLoading(false);
-  }, [profile?.preferences]);
 
   return {
     profile,
@@ -291,8 +321,9 @@ export function useUserPreferences() {
     hasPrefs,
     personalizedCity,
     extraCitiesCount,
-    prefsHash,
-    isLoading,
-    error: null,
   };
+}
+
+function serializePrefs(raw: unknown): string {
+  return raw ? JSON.stringify(raw) : "none";
 }
