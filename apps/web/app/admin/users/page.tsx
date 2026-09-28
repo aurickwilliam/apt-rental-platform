@@ -4,6 +4,7 @@ import UsersClient, { type AdminUser } from "./UsersClient";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 30;
+const VALID_ROLES = ["tenant", "landlord", "admin"] as const;
 interface PageProps {
   searchParams: Promise<{
     q?: string;
@@ -22,6 +23,16 @@ export default async function UsersPage({ searchParams }: PageProps) {
     page: pageParam,
   } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
+  const roles = [
+    ...new Set(
+      role
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value): value is (typeof VALID_ROLES)[number] =>
+          (VALID_ROLES as readonly string[]).includes(value),
+        ),
+    ),
+  ];
   const supabase = await createClient();
   let query = supabase
     .from("users")
@@ -30,8 +41,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
-  if (["tenant", "landlord", "admin"].includes(role))
-    query = query.filter("roles", "cs", `{${role}}`);
+  if (roles.length) query = query.filter("roles", "ov", `{${roles.join(",")}}`);
   if (["unverified", "pending", "verified", "rejected"].includes(verification))
     query = query.eq("account_status", verification);
   if (q.trim())
@@ -46,10 +56,10 @@ export default async function UsersPage({ searchParams }: PageProps) {
   const users = usersData as unknown as AdminUser[] | null;
   return (
     <UsersClient
-      key={`${q}:${role}:${verification}`}
+      key={`${q}:${roles.join(",")}:${verification}`}
       users={users ?? []}
       error={Boolean(error)}
-      filters={{ q, role, verification }}
+      filters={{ q, role: roles, verification }}
       page={page}
       totalCount={count ?? 0}
       pageSize={PAGE_SIZE}

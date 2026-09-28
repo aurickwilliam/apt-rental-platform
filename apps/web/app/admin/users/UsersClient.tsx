@@ -6,8 +6,6 @@ import { IconUsers } from "@tabler/icons-react";
 import {
   Avatar,
   Button,
-  ComboBox,
-  Input,
   Label,
   ListBox,
   Pagination,
@@ -30,7 +28,7 @@ export interface AdminUser {
 
 interface UserFilters {
   q: string;
-  role: string;
+  role: string[];
   verification: string;
 }
 
@@ -44,7 +42,6 @@ interface UsersClientProps {
 }
 
 const ROLE_OPTIONS = [
-  { id: "all", label: "All roles" },
   { id: "tenant", label: "Tenant" },
   { id: "landlord", label: "Landlord" },
   { id: "admin", label: "Administrator" },
@@ -83,7 +80,7 @@ export default function UsersClient({
   const router = useRouter();
   const [isNavigating, startTransition] = useTransition();
   const [search, setSearch] = useState(filters.q);
-  const [role, setRole] = useState(filters.role || "all");
+  const [roles, setRoles] = useState<string[]>(filters.role);
   const [verification, setVerification] = useState(
     filters.verification || "all",
   );
@@ -97,7 +94,8 @@ export default function UsersClient({
   function navigate(nextFilters: UserFilters, nextPage: number) {
     const params = new URLSearchParams();
     if (nextFilters.q.trim()) params.set("q", nextFilters.q.trim());
-    if (nextFilters.role) params.set("role", nextFilters.role);
+    if (nextFilters.role.length)
+      params.set("role", nextFilters.role.join(","));
     if (nextFilters.verification)
       params.set("verification", nextFilters.verification);
     params.set("page", String(nextPage));
@@ -111,7 +109,7 @@ export default function UsersClient({
     navigate(
       {
         q: search,
-        role: role === "all" ? "" : role,
+        role: roles,
         verification: verification === "all" ? "" : verification,
       },
       1,
@@ -146,7 +144,7 @@ export default function UsersClient({
             navigate(
               {
                 q: "",
-                role: role === "all" ? "" : role,
+                role: roles,
                 verification: verification === "all" ? "" : verification,
               },
               1,
@@ -163,18 +161,22 @@ export default function UsersClient({
         </SearchField>
 
         <div className="ml-auto flex flex-wrap items-end gap-3">
-          <ComboBox
-            className="w-full sm:w-48"
-            selectedKey={role}
-            onSelectionChange={(key) => setRole(key ? String(key) : "all")}
+          <Select
+            className="w-full sm:w-60"
+            selectionMode="multiple"
+            value={roles}
+            onChange={(value) => {
+              setRoles(Array.isArray(value) ? value.map(String) : []);
+            }}
+            placeholder="All roles"
           >
             <Label>Role</Label>
-            <ComboBox.InputGroup>
-              <Input placeholder="Select a role" />
-              <ComboBox.Trigger />
-            </ComboBox.InputGroup>
-            <ComboBox.Popover>
-              <ListBox>
+            <Select.Trigger className="focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
+              <Select.Value className="min-w-0 truncate" />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox selectionMode="multiple">
                 {ROLE_OPTIONS.map((option) => (
                   <ListBox.Item
                     key={option.id}
@@ -186,8 +188,8 @@ export default function UsersClient({
                   </ListBox.Item>
                 ))}
               </ListBox>
-            </ComboBox.Popover>
-          </ComboBox>
+            </Select.Popover>
+          </Select>
 
           <Select
             className="w-full sm:w-60"
@@ -196,7 +198,7 @@ export default function UsersClient({
             placeholder="Select a status"
           >
             <Label>Verification status</Label>
-            <Select.Trigger>
+            <Select.Trigger className="focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -209,6 +211,7 @@ export default function UsersClient({
                     textValue={option.label}
                   >
                     {option.label}
+                    <ListBox.ItemIndicator />
                   </ListBox.Item>
                 ))}
               </ListBox>
