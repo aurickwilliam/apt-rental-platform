@@ -6,7 +6,11 @@ import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
-interface UserRolesProfile { mobile_number: string | null; roles: string[] }
+interface UserRolesProfile {
+  mobile_number: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 export default function ThirdPartySignIn() {
   const { role, type } = useAuth();
@@ -52,7 +56,7 @@ export default function ThirdPartySignIn() {
           // Check if profile is complete
           const { data: profileData, error: profileError } = await supabase
             .from("users")
-            .select("mobile_number, roles")
+            .select("mobile_number, roles, account_status")
             .eq("user_id", session.user.id)
             .single();
           const profile = profileData as unknown as UserRolesProfile | null;
@@ -63,12 +67,16 @@ export default function ThirdPartySignIn() {
             return;
           }
 
-          if (profile?.roles.includes("admin")) {
+          if (profile.roles.includes("admin")) {
             window.location.href = "/admin/dashboard";
             return;
           }
 
           if (!profile.mobile_number) {
+            if (profile.account_status !== "unverified") {
+              setError("Profile setup is unavailable for this account.");
+              return;
+            }
             window.location.href = `/complete-profile?role=${role}`;
             return;
           }

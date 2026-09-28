@@ -9,7 +9,11 @@ export type CompleteProfileState = {
   error?: string;
 };
 
-interface UserRolesProfile { mobile_number: string | null; roles: string[] }
+interface UserRolesProfile {
+  mobile_number: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 function calculateAgeFromBirthDate(birthDateValue: string): number | null {
   const isoDate = birthDateValue?.slice(0, 10);
@@ -64,7 +68,7 @@ export async function completeProfile(
 
   const { data: profileData, error: profileError } = await supabase
     .from("users")
-    .select("roles, mobile_number")
+    .select("roles, mobile_number, account_status")
     .eq("user_id", user.id)
     .single();
   const profile = profileData as unknown as UserRolesProfile | null;
@@ -72,7 +76,8 @@ export async function completeProfile(
     profileError ||
     !profile ||
     profile.roles.includes("admin") ||
-    profile.mobile_number
+    profile.mobile_number ||
+    profile.account_status !== "unverified"
   ) {
     return { error: "Profile setup is no longer available for this account." };
   }

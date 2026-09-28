@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 
 import { createClient } from "@repo/supabase/server";
+import { preferredPortal } from "@/lib/portal-preference";
 
 import CompleteProfileForm from "./components/CompleteProfileForm";
 
@@ -11,6 +12,7 @@ interface UserRolesProfile {
   last_name: string | null;
   email: string | null;
   roles: string[];
+  account_status: string;
 }
 
 type CompleteProfilePageProps = {
@@ -39,13 +41,17 @@ export default async function CompleteProfilePage({
   // If already complete, skip this page
   const { data: profileData } = await supabase
     .from("users")
-    .select("mobile_number, first_name, last_name, email, roles")
+    .select("mobile_number, first_name, last_name, email, roles, account_status")
     .eq("user_id", user.id)
     .single();
   const profile = profileData as unknown as UserRolesProfile | null;
 
   if (profile?.roles.includes("admin")) redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
+  if (profile?.account_status !== "unverified") {
+    const portal = preferredPortal(profile?.roles ?? [], role);
+    redirect(portal === "landlord" ? "/landlord/dashboard" : portal === "tenant" ? "/tenant/my-rental" : "/");
+  }
 
   const profileRole = profile?.roles.includes("landlord")
     ? "landlord"

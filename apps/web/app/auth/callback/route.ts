@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@repo/supabase/server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
-interface UserRolesProfile { mobile_number: string | null; roles: string[] }
+interface UserRolesProfile {
+  mobile_number: string | null;
+  roles: string[];
+  account_status: string;
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -31,7 +35,7 @@ export async function GET(request: Request) {
       if (user) {
         const { data: profileData, error: profileError } = await supabase
           .from("users")
-          .select("mobile_number, roles")
+          .select("mobile_number, roles, account_status")
           .eq("user_id", user.id)
           .single();
         const profile = profileData as unknown as UserRolesProfile | null;
@@ -40,15 +44,20 @@ export async function GET(request: Request) {
           await supabase.auth.signOut();
           return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
         }
-        const isAdmin = profile?.roles.includes("admin") ?? false;
+        const isAdmin = profile.roles.includes("admin");
         profileRole = isAdmin ? "admin" : null;
+        const isInitialGoogleOnboarding =
+          isOAuth &&
+          !isAdmin &&
+          !profile.mobile_number &&
+          profile.account_status === "unverified";
 
         if (!isAdmin && role && profile.mobile_number && !profile.roles.includes(role)) {
           await supabase.auth.signOut();
           return NextResponse.redirect(`${origin}/sign-in?error=role_mismatch`);
         }
 
-        if (isOAuth && role && !profile.mobile_number && !isAdmin) {
+        if (isInitialGoogleOnboarding && role && !profile.roles.includes(role)) {
           const { error: roleError } = await supabase.rpc("set_onboarding_role", { requested_role: role });
           if (roleError) {
             console.error("Could not set OAuth onboarding role", roleError);
@@ -58,11 +67,13 @@ export async function GET(request: Request) {
           profileRole = role;
         }
 
-        if (!isAdmin && role && profile.roles.includes(role)) selectedPortal = role;
+        if (!isAdmin && role && (profile.roles.includes(role) || isInitialGoogleOnboarding)) {
+          selectedPortal = role;
+        }
 
-        if (!isPopup && isOAuth && !isAdmin && !profile.mobile_number) {
+        if (!isPopup && isInitialGoogleOnboarding) {
           return NextResponse.redirect(
-            `${origin}/complete-profile${role ? `?role=${role}` : ""}`,
+            `${origin}/complete-profile${profileRole ? `?role=${profileRole}` : ""}`,
           );
         }
       }
