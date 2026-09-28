@@ -4,15 +4,23 @@ import { createClient } from "@repo/supabase/server";
 import { isPendingOnboarding } from "@repo/supabase";
 
 interface SignUpPageProps {
-  searchParams: Promise<{ role?: string; from?: string }>;
+  searchParams: Promise<{ role?: string; from?: string; error?: string }>;
 }
 
 export default async function SignUp({ searchParams }: SignUpPageProps) {
-  const { role, from } = await searchParams;
+  const { role, from, error } = await searchParams;
   const initialRole = role === 'landlord' ? 'landlord' : 'tenant';
   // First-time Google arrivals from sign-in (no profile yet) get a
   // contextual welcome banner; normal visits never set this param.
   const showWelcomeNotice = from === 'google-new';
+  // OAuth failures surface here in the same tab (the session was signed
+  // out in the callback so this page stays reachable).
+  const portalError =
+    error === "role_mismatch"
+      ? "Admin accounts cannot add tenant or landlord roles."
+      : error === "grant_failed"
+        ? "We couldn't add that role to your account. Please sign in and try adding it from your profile."
+        : null;
 
   // Pending-onboarding users arrive here authenticated with a placeholder
   // profile. Render the role picker (banner + selector + Continue) instead
@@ -47,6 +55,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
           initialRole={initialRole}
           showWelcomeNotice={showWelcomeNotice}
           rolePickerMode={rolePickerMode}
+          portalError={portalError}
         />
       </div>
       

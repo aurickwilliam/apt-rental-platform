@@ -47,7 +47,9 @@ export default function AuthForm() {
       }
 
       if (exists) {
-        setSignUpError('This email is already registered. Please sign in instead.');
+        // Never grant a role without authentication: point them at sign-in;
+        // adding a portal to an existing account happens from the profile.
+        setSignUpError('This email is already registered. Please sign in, then add the role from your profile.');
         return;
       }
 
