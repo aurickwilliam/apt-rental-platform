@@ -57,7 +57,7 @@ const PAYMENT_SELECT = `
   due_date,
   apartment:apartments (
     name,
-    landlord:users (first_name, last_name)
+    landlord:users!apartments_landlord_id_fkey1 (first_name, last_name)
   ),
   tenant:users!payment_tenant_id_fkey (first_name, last_name)
 `;

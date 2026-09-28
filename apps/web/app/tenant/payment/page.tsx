@@ -186,8 +186,25 @@ function PaymentContent() {
           dueDate: period.dueDate,
         });
         router.push(`/tenant/payment/success?referenceId=${referenceId}`);
-      } catch {
-        setPaymentError({ message: "Could not record your cash payment. Please try again." });
+      } catch (error) {
+        const detail =
+          error instanceof Error
+            ? error.message
+            : typeof error === "object" && error !== null
+              ? [
+                  (error as { message?: unknown }).message,
+                  (error as { code?: unknown }).code
+                    ? `(code ${String((error as { code?: unknown }).code)})`
+                    : "",
+                  (error as { details?: unknown }).details
+                    ? String((error as { details?: unknown }).details)
+                    : "",
+                ]
+                  .filter((p): p is string => typeof p === "string" && p.length > 0)
+                  .join(" ") || "Unknown error."
+              : "Unknown error.";
+        console.error("createCashPayment failed:", detail, error);
+        setPaymentError({ message: `Could not record your cash payment. Please try again. (${detail})` });
       } finally {
         setIsProcessing(false);
       }

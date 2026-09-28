@@ -37,6 +37,7 @@ function SuccessContent() {
       <div className="min-h-screen px-5 flex flex-col" style={{ backgroundColor: "#376BF5" }}>
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
           <p className="text-white text-lg font-nunito font-semibold">We could not load your payment details.</p>
+          <p className="text-white/70 text-xs font-inter break-all">{paymentQuery.error}</p>
           <Button onPress={handleRetry} className="bg-white text-primary rounded-full font-nunito">
             Try Again
           </Button>

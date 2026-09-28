@@ -14,6 +14,13 @@ export type { LandlordApartment, PaymentRecord };
 
 function toMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null) {
+    const e = error as { message?: unknown; code?: unknown; details?: unknown; hint?: unknown };
+    const parts = [e.message, e.code ? `(code ${String(e.code)})` : "", e.details ? String(e.details) : "", e.hint ? `Hint: ${String(e.hint)}` : ""].filter(
+      (p): p is string => typeof p === "string" && p.length > 0,
+    );
+    if (parts.length > 0) return parts.join(" ");
+  }
   return "Failed to load payments.";
 }
 

@@ -142,6 +142,9 @@ function HistoryContent() {
               <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">
                 {tenancyError ?? paymentsQuery.error ?? "We could not load your payment history."}
               </p>
+              <p className="text-xs text-zinc-400 break-all">
+                {tenancyError ? `tenancy: ${tenancyError}` : paymentsQuery.error ? `payments: ${paymentsQuery.error}` : !tenancy ? "no tenancy found" : ""}
+              </p>
               <Button onPress={() => void refetch()} className="rounded-full font-nunito">
                 Try Again
               </Button>
