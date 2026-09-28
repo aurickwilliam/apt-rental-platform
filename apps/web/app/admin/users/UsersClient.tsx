@@ -4,7 +4,6 @@ import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { IconUsers } from "@tabler/icons-react";
 import {
-  Avatar,
   Button,
   Label,
   ListBox,
@@ -12,19 +11,10 @@ import {
   SearchField,
   Select,
   Spinner,
-  Table,
 } from "@heroui/react";
-
-export interface AdminUser {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  avatar_url: string | null;
-  roles: string[];
-  account_status: string;
-  created_at: string;
-}
+import UsersTable from "./components/UsersTable";
+import UserCardList from "./components/UserCardList";
+import type { AdminUser } from "./lib/user-display";
 
 interface UserFilters {
   q: string;
@@ -55,20 +45,6 @@ const VERIFICATION_OPTIONS = [
   { id: "rejected", label: "Rejected" },
 ];
 
-function getUserName(user: AdminUser) {
-  return (
-    `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "Unnamed user"
-  );
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
 export default function UsersClient({
   users,
   error,
@@ -94,8 +70,7 @@ export default function UsersClient({
   function navigate(nextFilters: UserFilters, nextPage: number) {
     const params = new URLSearchParams();
     if (nextFilters.q.trim()) params.set("q", nextFilters.q.trim());
-    if (nextFilters.role.length)
-      params.set("role", nextFilters.role.join(","));
+    if (nextFilters.role.length) params.set("role", nextFilters.role.join(","));
     if (nextFilters.verification)
       params.set("verification", nextFilters.verification);
     params.set("page", String(nextPage));
@@ -230,10 +205,7 @@ export default function UsersClient({
         </p>
       ) : (
         <>
-          <div
-            aria-busy={isNavigating}
-            className="relative overflow-hidden rounded-xl border border-border bg-card"
-          >
+          <div aria-busy={isNavigating} className="relative">
             {isNavigating ? (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
                 <Spinner
@@ -244,84 +216,19 @@ export default function UsersClient({
                 />
               </div>
             ) : null}
-            <Table className="bg-card">
-              <Table.ScrollContainer>
-                <Table.Content aria-label="Users" className="bg-card">
-                  <Table.Header className="bg-muted text-[11px] uppercase tracking-wider text-muted-foreground">
-                    <Table.Column isRowHeader>User</Table.Column>
-                    <Table.Column>Role</Table.Column>
-                    <Table.Column>Verification</Table.Column>
-                    <Table.Column>Access</Table.Column>
-                    <Table.Column>
-                      <span className="sr-only">Details</span>
-                    </Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    {users.length ? (
-                      users.map((user) => {
-                        const name = getUserName(user);
-                        return (
-                          <Table.Row key={user.id} id={user.id}>
-                            <Table.Cell>
-                              <div className="flex items-center gap-3">
-                                <Avatar
-                                  size="sm"
-                                  className="shrink-0 bg-primary/10 text-primary"
-                                >
-                                  {user.avatar_url ? (
-                                    <Avatar.Image
-                                      src={user.avatar_url}
-                                      alt=""
-                                    />
-                                  ) : null}
-                                  <Avatar.Fallback className="bg-primary/10 text-primary">
-                                    {getInitials(name)}
-                                  </Avatar.Fallback>
-                                </Avatar>
-                                <div className="min-w-0">
-                                  <p className="font-medium">{name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {user.email}
-                                  </p>
-                                </div>
-                              </div>
-                            </Table.Cell>
-                            <Table.Cell className="capitalize">
-                              {user.roles.join(", ")}
-                            </Table.Cell>
-                            <Table.Cell className="capitalize">
-                              {user.account_status}
-                            </Table.Cell>
-                            <Table.Cell>Active</Table.Cell>
-                            <Table.Cell>
-                              <Button
-                                variant="tertiary"
-                                size="sm"
-                                onPress={() =>
-                                  router.push(`/admin/users/${user.id}`)
-                                }
-                                aria-label={`View ${name}`}
-                              >
-                                View
-                              </Button>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })
-                    ) : (
-                      <Table.Row id="empty">
-                        <Table.Cell
-                          colSpan={5}
-                          className="py-8 text-center text-muted-foreground"
-                        >
-                          No users match these filters.
-                        </Table.Cell>
-                      </Table.Row>
-                    )}
-                  </Table.Body>
-                </Table.Content>
-              </Table.ScrollContainer>
-            </Table>
+            {users.length ? (
+              <>
+                <UsersTable
+                  users={users}
+                  onSelectUser={(id) => router.push(`/admin/users/${id}`)}
+                />
+                <UserCardList users={users} />
+              </>
+            ) : (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                No users match these filters.
+              </p>
+            )}
           </div>
 
           <nav aria-label="User pagination" className="flex justify-center">

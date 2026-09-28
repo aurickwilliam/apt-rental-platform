@@ -1,6 +1,7 @@
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
-import UsersClient, { type AdminUser } from "./UsersClient";
+import UsersClient from "./UsersClient";
+import type { AdminUser } from "./lib/user-display";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 30;

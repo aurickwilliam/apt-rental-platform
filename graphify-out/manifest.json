@@ -4540,8 +4540,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/page.tsx": {
-    "mtime": 1790568912.1499348,
-    "ast_hash": "cd9e483f3a64ab9bd422c95e46f77ff8",
+    "mtime": 1790570496.0461893,
+    "ast_hash": "da4568a2f64405bdc77e37512da4394f",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/ReviewForm.tsx": {
@@ -5125,8 +5125,28 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/UsersClient.tsx": {
-    "mtime": 1790569773.94964,
-    "ast_hash": "285ea93ce1fc475b08b275f7a0b6fe3f",
+    "mtime": 1790570496.0461717,
+    "ast_hash": "8b9ec6a158fca0e5f68c13ac5b154daf",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/components/UserAvatar.tsx": {
+    "mtime": 1790570482.4506686,
+    "ast_hash": "548cd918c937819fa3cfaa9cc7d9a81a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/components/UserCardList.tsx": {
+    "mtime": 1790570482.4506516,
+    "ast_hash": "de06b3f7b45fe168faeb648fad38651f",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/components/UsersTable.tsx": {
+    "mtime": 1790570787.3741689,
+    "ast_hash": "103d74333c85bb00c0f75ac0625dd254",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/lib/user-display.ts": {
+    "mtime": 1790570482.4506495,
+    "ast_hash": "5ecb5222b08f39897407617abc57cbc4",
     "semantic_hash": ""
   }
 }
