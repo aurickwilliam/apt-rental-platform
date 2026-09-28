@@ -4555,8 +4555,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/page.tsx": {
-    "mtime": 1790566767.6321552,
-    "ast_hash": "6a8ef56086cf0b997220fb9b42e13acd",
+    "mtime": 1790574395.840247,
+    "ast_hash": "980c4eed785cd6bc7be53c5e4c9f9b4b",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/users/[id]/page.tsx": {
@@ -5177,6 +5177,11 @@
   "apps/web/app/admin/apartments/components/ApartmentThumbnail.tsx": {
     "mtime": 1790572827.4634058,
     "ast_hash": "5d8b0c21d8e2e34c7e848359331e66a0",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationTabs.tsx": {
+    "mtime": 1790575104.0143843,
+    "ast_hash": "950d51eb7c91f197445911f49afa2ed2",
     "semantic_hash": ""
   }
 }

@@ -3,6 +3,7 @@ import { IconShieldCheck } from "@tabler/icons-react";
 import { Chip } from "@heroui/react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
+import VerificationTabs from "./components/VerificationTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -108,20 +109,11 @@ export default async function VerificationPage({
           Unable to load every verification request. Refresh and try again.
         </p>
       ) : null}
-      <nav className="flex gap-2" aria-label="Verification queues">
-        <Link
-          className={`rounded-full px-4 py-2 text-sm font-semibold ${selected === "users" ? "bg-primary text-white" : "bg-muted text-foreground"}`}
-          href="/admin/verification?tab=users"
-        >
-          Users ({userCount.count ?? 0})
-        </Link>
-        <Link
-          className={`rounded-full px-4 py-2 text-sm font-semibold ${selected === "apartments" ? "bg-primary text-white" : "bg-muted text-foreground"}`}
-          href="/admin/verification?tab=apartments"
-        >
-          Apartments ({apartmentCount.count ?? 0})
-        </Link>
-      </nav>
+      <VerificationTabs
+        selected={selected}
+        userCount={userCount.count ?? 0}
+        apartmentCount={apartmentCount.count ?? 0}
+      />
       <div className="overflow-x-auto rounded-3xl border border-border">
         <table className="w-full text-left text-sm">
           <thead className="bg-muted text-[11px] uppercase tracking-wider text-muted-foreground">
