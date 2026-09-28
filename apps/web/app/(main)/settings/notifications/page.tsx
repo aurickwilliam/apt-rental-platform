@@ -18,9 +18,19 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function NotificationSettingsPage() {
-  const { preferences, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
+  const { preferences, loading, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
 
   const typesDisabled = !preferences.notifications_enabled && !preferences.push_enabled;
+
+  if (loading) {
+    return (
+      <SettingsShell title="Notifications" showBack>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </SettingsShell>
+    );
+  }
 
   return (
     <SettingsShell title="Notifications" showBack>
@@ -61,11 +71,7 @@ export default function NotificationSettingsPage() {
             {NOTIFICATION_TYPE_LABELS.map(({ type, label }) => (
               <SettingsRow
                 key={type}
-                icon={
-                  <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    {TYPE_ICONS[type]}
-                  </span>
-                }
+                icon={TYPE_ICONS[type]}
                 title={label}
                 suffix={
                   <ToggleSwitch

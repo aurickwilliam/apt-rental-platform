@@ -82,30 +82,17 @@ function prefsEqual(a: TenantPreferences, b: TenantPreferences): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-function prefsKey(prefs: TenantPreferences): string {
-  return JSON.stringify(prefs);
-}
-
 export function useRentalPreferencesForm() {
   const { profile, user } = useUser();
   const userId = user?.id ?? null;
   const profileId = profile?.id ?? null;
 
-  // Stable key for preferences raw data - updated via effect
-  const prefsRawKeyRef = useRef<string>("none");
-  useEffect(() => {
-    const current = serializePrefs(profile?.preferences ?? null);
-    if (prefsRawKeyRef.current !== current) {
-      prefsRawKeyRef.current = current;
-    }
-  }, [profile]);
-
+  // Initial prefs from profile.preferences — stable reference because useUser
+  // recreates the profile object only when the DB row changes.
   const initialPrefs = useMemo<TenantPreferences>(() => {
     if (!profile?.preferences) return DEFAULT_PREFS;
     return parsePreferences(profile.preferences) ?? DEFAULT_PREFS;
-  }, [prefsRawKeyRef.current]);
-
-  const initialPrefsKey = useMemo(() => prefsKey(initialPrefs), [initialPrefs]);
+  }, [profile?.preferences]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
 
@@ -113,14 +100,15 @@ export function useRentalPreferencesForm() {
   const [formState, setFormState] = useState<TenantPreferences>(initialPrefs);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Reset form state when initialPrefsKey changes (profile loads/changes)
-  const prevKeyRef = useRef<string>(initialPrefsKey);
+  // Reset form state when initialPrefs changes (profile loads/changes)
+  const prevKeyRef = useRef<string>(JSON.stringify(initialPrefs));
   useEffect(() => {
-    if (prevKeyRef.current !== initialPrefsKey) {
-      prevKeyRef.current = initialPrefsKey;
+    const currentKey = JSON.stringify(initialPrefs);
+    if (prevKeyRef.current !== currentKey) {
+      prevKeyRef.current = currentKey;
       setFormState(initialPrefs);
     }
-  }, [initialPrefsKey, initialPrefs]);
+  }, [initialPrefs]);
 
   const currentPrefs = formState;
 
@@ -181,6 +169,8 @@ export function useRentalPreferencesForm() {
       const { error } = await supabase.from("users").update({ preferences: currentPrefs }).eq("id", profileId);
       if (error) throw error;
       toast.success("Preferences saved");
+      // Update baseline so isDirty clears (profile.preferences won't update until next fetch)
+      setFormState(currentPrefs);
     } catch (err: unknown) {
       console.error("Failed to save preferences", err);
       const errMsg = err instanceof Error ? err.message : "Try again.";
@@ -250,7 +240,6 @@ export function useRentalPreferencesForm() {
   return {
     profile,
     isTenant,
-    initialPrefs,
     selectedCities,
     budgetMin,
     budgetMax,
@@ -283,8 +272,6 @@ export function useRentalPreferencesForm() {
     setListOfVehicles,
     setHasSmoker,
     setHasDisability,
-    hasPetsRaw: setPetsEnabled,
-    hasParkingRaw: setParkingEnabled,
     toggleCity,
     toggleVehicle,
     save,
@@ -295,19 +282,10 @@ export function useRentalPreferencesForm() {
 export function useUserPreferences() {
   const { profile } = useUser();
 
-  // Stable key for preferences raw data - updated via effect
-  const prefsRawKeyRef = useRef<string>("none");
-  useEffect(() => {
-    const current = serializePrefs(profile?.preferences ?? null);
-    if (prefsRawKeyRef.current !== current) {
-      prefsRawKeyRef.current = current;
-    }
-  }, [profile]);
-
   const parsedPrefs = useMemo<TenantPreferences | null>(() => {
     if (!profile?.preferences) return null;
     return parsePreferences(profile.preferences);
-  }, [prefsRawKeyRef.current]);
+  }, [profile?.preferences]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
   const hasPrefs = isTenant && hasPersonalization(parsedPrefs);
@@ -322,8 +300,4 @@ export function useUserPreferences() {
     personalizedCity,
     extraCitiesCount,
   };
-}
-
-function serializePrefs(raw: unknown): string {
-  return raw ? JSON.stringify(raw) : "none";
 }
