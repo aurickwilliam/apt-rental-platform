@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Key, Mail, Globe, Bell, Moon, Sun, AlertCircle, HelpCircle, FileText, Shield, Users, Settings } from "lucide-react";
 
 import SettingsRow from "./components/SettingsRow";
@@ -28,7 +29,11 @@ interface SettingSection {
 
 export default function SettingsHub() {
   const { resolvedTheme, setTheme } = useTheme();
-  const mounted = resolvedTheme !== undefined;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
   const { preferences: notifPrefs } = useNotificationPreferences();
