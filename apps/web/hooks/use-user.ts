@@ -12,7 +12,7 @@ type Profile = {
   last_name: string | null;
   avatar_url: string | null;
   mobile_number: string | null;
-  role: string | null;
+  roles: string[];
 };
 
 export function useUser() {
@@ -24,11 +24,12 @@ export function useUser() {
     const supabase = createBrowserClient();
 
     const fetchUserAndProfile = async (userId: string, authUser: User) => {
-      const { data } = await supabase
+      const { data: profileData } = await supabase
         .from('users')
-        .select('id, first_name, last_name, avatar_url, mobile_number, role')
+        .select('id, first_name, last_name, avatar_url, mobile_number, roles')
         .eq('user_id', userId)
         .single();
+      const data = profileData as unknown as Profile | null;
 
       setProfile({
         id: data?.id ?? null,
@@ -36,7 +37,7 @@ export function useUser() {
         last_name: data?.last_name ?? null,
         avatar_url: data?.avatar_url ?? authUser?.user_metadata?.avatar_url ?? null,
         mobile_number: data?.mobile_number ?? null,
-        role: data?.role ?? null,
+        roles: data?.roles ?? [],
       });
     };
 

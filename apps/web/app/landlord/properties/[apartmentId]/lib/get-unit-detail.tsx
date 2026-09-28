@@ -14,13 +14,14 @@ export async function getLandlordUnitDetail(apartmentId: string): Promise<UnitLo
   } = await supabase.auth.getUser();
   if (!user) return { error: { title: "Not authenticated", message: "Please sign in to view this property." } };
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("users")
-    .select("id, role")
+    .select("id, roles")
     .eq("user_id", user.id)
     .single();
+  const profile = profileData as unknown as { id: string; roles: string[] } | null;
 
-  if (!profile || (profile.role as string) !== "landlord") {
+  if (!profile?.roles.includes("landlord")) {
     return { error: { title: "Unauthorized", message: "Only landlords can view this page." } };
   }
 

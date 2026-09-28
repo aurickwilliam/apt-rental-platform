@@ -62,7 +62,7 @@ export default async function ApartmentVerificationReviewPage({
           Submitted {new Date(verification.submitted_at).toLocaleString()}
         </p>
       </div>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Property</h2>
         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
           <div>
@@ -87,7 +87,7 @@ export default async function ApartmentVerificationReviewPage({
           </div>
         </dl>
       </section>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Listing evidence</h2>
         {images?.length ? (
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -130,7 +130,7 @@ export default async function ApartmentVerificationReviewPage({
         )}
       </section>
       {verification.status === "pending" ? (
-        <section className="rounded-xl border border-border p-4">
+        <section className="rounded-3xl border border-border p-4">
           <h2 className="font-nunito text-lg font-bold">Decision</h2>
           <p className="mb-3 text-sm text-muted-foreground">
             Approval sets this apartment as verified. Rejections must include a

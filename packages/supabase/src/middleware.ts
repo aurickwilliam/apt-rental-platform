@@ -10,6 +10,12 @@ const ROLE_ROUTES: Record<string, string[]> = {
 
 const PROTECTED_ROUTES = Object.values(ROLE_ROUTES).flat();
 
+interface UserRolesProfile { roles: string[] }
+
+function defaultRole(roles: string[]): string | undefined {
+  return ["admin", "landlord", "tenant"].find((role) => roles.includes(role));
+}
+
 export async function updateSession(request: NextRequest) {
   if (request.headers.get("next-action") !== null) {
     return NextResponse.next({ request });
@@ -119,13 +125,16 @@ export async function updateSession(request: NextRequest) {
   );
 
   if (user && isProtected) {
-    const { data: profile, error: profileError } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from("users")
-      .select("role")
+      .select("roles")
       .eq("user_id", user.id)
       .single();
+    const profile = profileData as unknown as UserRolesProfile | null;
+    const profileRoles = profile?.roles ?? [];
 
-    const ownRoutes = profile?.role ? ROLE_ROUTES[profile.role] : undefined;
+    const role = defaultRole(profileRoles);
+    const ownRoutes = role ? ROLE_ROUTES[role] : undefined;
 
     if (profileError || !ownRoutes) {
       const url = request.nextUrl.clone();
@@ -133,11 +142,16 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const isWrongRoute = PROTECTED_ROUTES.some(
-      (route) =>
-        !ownRoutes.includes(route) &&
-        (pathname === route || pathname.startsWith(`${route}/`)),
-    );
+    const isWrongRoute = PROTECTED_ROUTES.some((route) => {
+      const routeRole = Object.entries(ROLE_ROUTES).find(([, routes]) =>
+        routes.includes(route),
+      )?.[0];
+      return (
+        routeRole !== undefined &&
+        !profileRoles.includes(routeRole) &&
+        (pathname === route || pathname.startsWith(`${route}/`))
+      );
+    });
 
     if (isWrongRoute) {
       const url = request.nextUrl.clone();

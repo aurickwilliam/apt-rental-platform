@@ -2,22 +2,20 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../../_lib/require-admin";
-import OperationForm from "../../OperationForm";
-import { setUserAccess } from "../../actions/operations";
 
 export default async function AdminUserDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const admin = await requireAdmin();
+  await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: user }, { data: verifications }, { data: apartments }] =
+  const [{ data: userData }, { data: verifications }, { data: apartments }] =
     await Promise.all([
       supabase
         .from("users")
-        .select("id, first_name, last_name, email, role, account_status, is_suspended, suspended_at, suspension_reason")
+        .select("id, first_name, last_name, email, roles, account_status")
         .eq("id", id)
         .single(),
       supabase
@@ -33,6 +31,14 @@ export default async function AdminUserDetailPage({
         .is("deleted_at", null)
         .limit(20),
     ]);
+  const user = userData as unknown as {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    roles: string[];
+    account_status: string;
+  } | null;
   if (!user) notFound();
   const verificationIds = (verifications ?? []).map(
     (verification) => verification.id,
@@ -50,26 +56,10 @@ export default async function AdminUserDetailPage({
       <div>
         <h1 className="font-nunito text-3xl font-bold">{name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {user.email} · {user.role} · {user.account_status}
+          {user.email} · {user.roles.join(", ")} · {user.account_status}
         </p>
       </div>
-      {user.role !== "admin" && (
-        <section className="rounded-xl border border-border p-4">
-          <h2 className="font-nunito text-lg font-bold">Account access</h2>
-          <p className="mt-2 text-sm font-semibold">{user.is_suspended ? "Suspended" : "Active"}</p>
-          {user.is_suspended && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {user.suspension_reason} · {user.suspended_at && new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(user.suspended_at))}
-            </p>
-          )}
-          {user.id !== admin.id && (
-            <div className="mt-4">
-              <OperationForm id={user.id} decision={user.is_suspended ? "reactivate" : "suspend"} onSubmit={setUserAccess} />
-            </div>
-          )}
-        </section>
-      )}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Verification history</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {verifications?.length ? (
@@ -93,8 +83,8 @@ export default async function AdminUserDetailPage({
           )}
         </ul>
       </section>
-      {user.role === "landlord" ? (
-        <section className="rounded-xl border border-border p-4">
+      {user.roles.includes("landlord") ? (
+        <section className="rounded-3xl border border-border p-4">
           <h2 className="font-nunito text-lg font-bold">Owned apartments</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {apartments?.length ? (
@@ -115,7 +105,7 @@ export default async function AdminUserDetailPage({
           </ul>
         </section>
       ) : null}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Account and review activity</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {activity?.length ? (

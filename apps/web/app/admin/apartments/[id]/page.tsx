@@ -48,7 +48,7 @@ export default async function AdminApartmentDetailPage({ params }: PageProps) {
           {apartment.status} · {apartment.is_hidden_by_admin ? "Hidden by admin" : "Visible"}
         </p>
       </div>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Listing</h2>
         <p className="mt-2 text-sm">{apartment.description}</p>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -62,7 +62,7 @@ export default async function AdminApartmentDetailPage({ params }: PageProps) {
             .join(", ")}
         </p>
       </section>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Listing visibility</h2>
         <p className="mt-2 text-sm font-semibold">{apartment.is_hidden_by_admin ? "Hidden from discovery" : "Visible in discovery"}</p>
         {apartment.is_hidden_by_admin && (
@@ -75,7 +75,7 @@ export default async function AdminApartmentDetailPage({ params }: PageProps) {
           {moderation?.map((event) => <li key={event.id}>{event.action.replaceAll("_", " ")} · {event.reason} · {new Date(event.created_at).toLocaleDateString("en-PH")}</li>)}
         </ul>
       </section>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Landlord</h2>
         {landlord ? (
           <Link
@@ -89,7 +89,7 @@ export default async function AdminApartmentDetailPage({ params }: PageProps) {
           <p className="text-sm text-muted-foreground">Unavailable</p>
         )}
       </section>
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-3xl border border-border p-4">
         <h2 className="font-nunito text-lg font-bold">Verification history</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {history?.length ? (
