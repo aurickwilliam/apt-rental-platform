@@ -2,7 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { IconUsers } from "@tabler/icons-react";
+import { IconRefresh, IconUsers } from "@tabler/icons-react";
 import {
   Button,
   Label,
@@ -134,6 +134,18 @@ export default function UsersClient({
             <SearchField.ClearButton className="text-white" />
           </SearchField.Group>
         </SearchField>
+        <Button
+          isIconOnly
+          variant="tertiary"
+          aria-label="Refresh users"
+          onPress={() => {
+            startTransition(() => {
+              router.refresh();
+            });
+          }}
+        >
+          <IconRefresh size={18} aria-hidden="true" />
+        </Button>
 
         <div className="ml-auto flex flex-wrap items-end gap-3">
           <Select
