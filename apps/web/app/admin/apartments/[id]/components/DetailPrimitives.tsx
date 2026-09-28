@@ -49,10 +49,12 @@ export function StatusChip({ status, icon }: { status: string; icon?: ReactNode 
 
 export function Section({
   title,
+  icon,
   children,
   className = "",
 }: {
   title: string;
+  icon?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
@@ -62,7 +64,8 @@ export function Section({
     >
       <Card.Content className="p-0">
         <section aria-label={title}>
-          <h2 className="font-nunito text-lg font-bold text-primary">
+          <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+            {icon ? <span className="shrink-0" aria-hidden="true">{icon}</span> : null}
             {title}
           </h2>
           <div className="mt-3">{children}</div>

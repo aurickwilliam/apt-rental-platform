@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import ApartmentThumbnail from "../../components/ApartmentThumbnail";
 import OperationForm from "../../../OperationForm";
 import { setApartmentVisibility } from "../../../actions/operations";
@@ -24,7 +25,11 @@ export function ApartmentVerificationCard({
   leaseUrl: string | null;
 }) {
   return (
-    <Section title="Verification" className="order-2 xl:order-none">
+    <Section
+      title="Verification"
+      icon={<ShieldCheck size={20} />}
+      className="order-2 xl:order-none"
+    >
       {error ? (
         <SectionError />
       ) : verification ? (
@@ -85,7 +90,11 @@ export function ApartmentListingControls({
   apartment: Apartment;
 }) {
   return (
-    <Section title="Listing controls" className="order-3 xl:order-none">
+    <Section
+      title="Listing controls"
+      icon={<SlidersHorizontal size={20} />}
+      className="order-3 xl:order-none"
+    >
       <div className="flex items-center justify-between gap-2 text-sm">
         <span>Discovery visibility</span>
         <StatusChip
@@ -123,7 +132,11 @@ export function ApartmentLandlordCard({
   error: boolean;
 }) {
   return (
-    <Section title="Landlord" className="order-5 xl:order-none">
+    <Section
+      title="Landlord"
+      icon={<UserRound size={20} />}
+      className="order-5 xl:order-none"
+    >
       {error ? (
         <SectionError />
       ) : landlord ? (

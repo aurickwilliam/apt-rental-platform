@@ -5435,23 +5435,23 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOperations.tsx": {
-    "mtime": 1790602661.4013748,
-    "ast_hash": "a4f92489839e1df7fdba1cea9b41faf8",
+    "mtime": 1790607239.6182148,
+    "ast_hash": "79576c55d681e1e453b4ce4003a6f674",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOverview.tsx": {
-    "mtime": 1790606446.193488,
-    "ast_hash": "0e8cad7cc32d503f51575c789d24e806",
+    "mtime": 1790607101.3513467,
+    "ast_hash": "af7f7888a7a756fb3138b26bc38d4a75",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentSidebar.tsx": {
-    "mtime": 1790602663.3088741,
-    "ast_hash": "ebdda1112c1f65c4c7a96043394d4f64",
+    "mtime": 1790607239.6184838,
+    "ast_hash": "db73efa61ac7c78f4558a09ff9d99957",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/DetailPrimitives.tsx": {
-    "mtime": 1790604997.948458,
-    "ast_hash": "96220d4ab88121c7fff78d2dca80a3ae",
+    "mtime": 1790607211.996832,
+    "ast_hash": "878601ac3e4eb407ef1765ba6e4bda7b",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/error.tsx": {
@@ -5492,6 +5492,11 @@
   "apps/web/app/components/display/PhotoGalleryModal.tsx": {
     "mtime": 1790604695.005107,
     "ast_hash": "9461accd2c018176a0eafacc0446bfdb",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/apartments/[id]/components/ApartmentDescription.tsx": {
+    "mtime": 1790607095.1849353,
+    "ast_hash": "f7c4027e123a7babe0aa41f1ab3bf46f",
     "semantic_hash": ""
   }
 }

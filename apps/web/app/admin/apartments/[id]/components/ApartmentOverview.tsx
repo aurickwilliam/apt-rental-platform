@@ -6,16 +6,21 @@ import {
   BedDouble,
   Building2,
   Calendar,
+  ClipboardList,
   Coins,
   Expand,
   House,
+  LayoutGrid,
   MapPin,
   PhilippinePeso,
+  ReceiptText,
+  Tags,
   Users,
   Wallet,
 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { Apartment, ApartmentImage, Verification } from "../types";
+import ApartmentDescription from "./ApartmentDescription";
 import ApartmentGallery from "./ApartmentGallery";
 import ApartmentIdentity from "./ApartmentIdentity";
 
@@ -84,12 +89,13 @@ export function ApartmentOverview({
           />
           <Separator />
           <section aria-label="Property overview">
-            <h2 className="font-nunito text-lg font-bold text-primary">
-              Property overview
+            <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+              <ClipboardList size={20} aria-hidden="true" /> Property overview
             </h2>
             <div className="mt-4 space-y-6">
               <div className="rounded-2xl bg-muted/30 p-4">
-                <h3 className="font-nunito text-sm font-semibold text-foreground">
+                <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
+                  <ReceiptText size={20} className="text-primary" aria-hidden="true" />
                   Rent &amp; Lease
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
@@ -124,7 +130,8 @@ export function ApartmentOverview({
                 </div>
               </div>
               <div>
-                <h3 className="font-nunito text-sm font-semibold text-foreground">
+                <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
+                  <LayoutGrid size={20} className="text-primary" aria-hidden="true" />
                   Property Details
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
@@ -172,20 +179,13 @@ export function ApartmentOverview({
             </div>
           </section>
           <Separator />
-          <section>
-            <h2 className="font-nunito text-lg font-bold text-primary">
-              Description
-            </h2>
-            <p className="mt-2 whitespace-pre-line text-sm leading-6">
-              {apartment.description || "No description provided."}
-            </p>
-          </section>
+          <ApartmentDescription description={apartment.description} />
           {apartment.amenities?.length ? (
             <>
               <Separator />
               <section>
-                <h2 className="font-nunito text-lg font-bold text-primary">
-                  Amenities
+                <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+                  <Tags size={20} aria-hidden="true" /> Amenities
                 </h2>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {apartment.amenities.map((amenity) => (

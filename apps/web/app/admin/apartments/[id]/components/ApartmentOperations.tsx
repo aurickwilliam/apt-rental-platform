@@ -1,4 +1,12 @@
 import { formatPesoDisplay } from "@repo/utils";
+import {
+  CalendarDays,
+  ClipboardList,
+  History,
+  KeyRound,
+  Star,
+  Wrench,
+} from "lucide-react";
 import type {
   Activity,
   Application,
@@ -32,7 +40,11 @@ export function CurrentTenancyCard({
   occupied: boolean;
 }) {
   return (
-    <Section title="Current tenancy" className="order-4 xl:order-none">
+    <Section
+      title="Current tenancy"
+      icon={<KeyRound size={20} />}
+      className="order-4 xl:order-none"
+    >
       {error ? (
         <SectionError />
       ) : tenancy ? (
@@ -102,10 +114,17 @@ export function ApartmentPipelineSummary({
   visits: Summary<Visit>;
 }) {
   return (
-    <Section title="Applications & visits" className="order-6 xl:order-none">
+    <Section
+      title="Applications & visits"
+      icon={<ClipboardList size={20} />}
+      className="order-6 xl:order-none"
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <h3 className="font-nunito font-bold">Applications</h3>
+          <h3 className="flex items-center gap-2 font-nunito font-bold">
+            <ClipboardList size={18} className="text-primary" aria-hidden="true" />
+            Applications
+          </h3>
           {applications.error ? (
             <SectionError />
           ) : (
@@ -146,7 +165,10 @@ export function ApartmentPipelineSummary({
           )}
         </div>
         <div>
-          <h3 className="font-nunito font-bold">Visit requests</h3>
+          <h3 className="flex items-center gap-2 font-nunito font-bold">
+            <CalendarDays size={18} className="text-primary" aria-hidden="true" />
+            Visit requests
+          </h3>
           {visits.error ? (
             <SectionError />
           ) : (
@@ -201,7 +223,11 @@ export function ApartmentMaintenanceSummary({
   summary: Summary<Maintenance>;
 }) {
   return (
-    <Section title="Maintenance" className="order-7 xl:order-none">
+    <Section
+      title="Maintenance"
+      icon={<Wrench size={20} />}
+      className="order-7 xl:order-none"
+    >
       {summary.error ? (
         <SectionError />
       ) : (
@@ -268,7 +294,11 @@ export function ApartmentReviewsSummary({
   error: boolean;
 }) {
   return (
-    <Section title="Reviews" className="order-8 xl:order-none">
+    <Section
+      title="Reviews"
+      icon={<Star size={20} />}
+      className="order-8 xl:order-none"
+    >
       {error ? (
         <SectionError />
       ) : (
@@ -320,7 +350,11 @@ export function ApartmentActivityTimeline({
   error: boolean;
 }) {
   return (
-    <Section title="Admin activity & history" className="order-9 xl:order-none">
+    <Section
+      title="Admin activity & history"
+      icon={<History size={20} />}
+      className="order-9 xl:order-none"
+    >
       {error ? (
         <SectionError />
       ) : (
