@@ -1,16 +1,16 @@
 # Graph Report - apt-rental-platform  (2026-09-28)
 
 ## Corpus Check
-- 961 files · ~874,485 words
+- 961 files · ~874,563 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4498 nodes · 9712 edges · 339 communities (223 shown, 116 thin omitted)
+- 4498 nodes · 9712 edges · 337 communities (221 shown, 116 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 53 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `53840d20`
+- Built from commit: `3b950bdc`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -76,7 +76,7 @@
 - my-rental/page.tsx
 - compilerOptions
 - cookies/page.tsx
-- useChatChannel.ts
+- useChat.ts
 - chart.tsx
 - about/page.tsx
 - [sectionId].tsx
@@ -91,7 +91,7 @@
 - history/index.tsx
 - queryClient.ts
 - card.tsx
-- landlordService.test.ts
+- create/page.tsx
 - third-step.tsx
 - first-process.tsx
 - onboarding.tsx
@@ -118,7 +118,7 @@
 - Mobile resource-query migration and focused reads
 - Netflix-Style Search Refactor — A2 Parallel Sections (6 defs × 8, Always Lazy, RPC Batch)
 - MapPicker.tsx
-- create/page.tsx
+- landlordService.test.ts
 - metro.config.js
 - useCurrentUser
 - careers/page.tsx
@@ -201,14 +201,12 @@
 - ApplicationsList.tsx
 - dropdown-menu.tsx
 - playground.tsx
-- audit-fix.characterization.test.ts
 - usePersonalizationStore.ts
 - Mobile roles migration and production Supabase types
 - sign-in.tsx
 - address.ts
 - ratings/page.tsx
 - web/app/tenant/payment/components/ReceiptCard.tsx
-- conversationService.test.ts
 - Identity Verification — Recommended Provider (Future Work)
 - utils/src/index.ts
 - payments/paymongoService.ts
@@ -353,7 +351,7 @@
 - 3-file cycle: `apps/mobile/hooks/applications/index.ts -> apps/mobile/hooks/applications/useTenantApplications.ts -> apps/mobile/service/applications/tenantApplicationsService.ts -> apps/mobile/hooks/applications/index.ts`
 - 3-file cycle: `apps/mobile/hooks/payments/index.ts -> apps/mobile/hooks/payments/usePayments.ts -> apps/mobile/service/payments/paymentService.ts -> apps/mobile/hooks/payments/index.ts`
 
-## Communities (339 total, 116 thin omitted)
+## Communities (337 total, 116 thin omitted)
 
 ### Community 0 - "landlordUnitDetailService.ts"
 Cohesion: 0.09
@@ -384,8 +382,8 @@ Cohesion: 0.25
 Nodes (16): useCurrentUserId(), getUserVerificationHistoryQueryKey(), getUserVerificationQueryKey(), useLatestVerification(), useSubmitVerification(), useVerificationHistory(), buildVerificationInput(), fetchLatestVerification() (+8 more)
 
 ### Community 7 - "manage-apartment/[apartmentId]/index.tsx"
-Cohesion: 0.15
-Nodes (17): PropertyOverviewSkeleton(), Index(), getLandlordUnitsQueryKey(), useLandlordUnits(), createWrapper(), mockEq, mockFrom, mockUpdate (+9 more)
+Cohesion: 0.13
+Nodes (20): PropertyOverviewSkeleton(), Index(), getLandlordUnitsQueryKey(), useLandlordUnits(), createWrapper(), mockEq, mockFrom, mockUpdate (+12 more)
 
 ### Community 8 - "apartment/[apartmentId]/index.tsx"
 Cohesion: 0.13
@@ -456,8 +454,8 @@ Cohesion: 0.07
 Nodes (27): eslint-plugin-import, author, bugs, url, description, devDependencies, eslint-import-resolver-typescript, eslint-plugin-import (+19 more)
 
 ### Community 25 - "conversationService.ts"
-Cohesion: 0.07
-Nodes (28): ConversationRow(), ConversationRowProps, Chat(), Chat(), sortUnreadFirst(), EMPTY_STATE_IMAGES, getConversationsQueryKey(), getErrorMessage() (+20 more)
+Cohesion: 0.06
+Nodes (34): ConversationRow(), ConversationRowProps, Chat(), Chat(), sortUnreadFirst(), EMPTY_STATE_IMAGES, getConversationsQueryKey(), getErrorMessage() (+26 more)
 
 ### Community 26 - "tenant/messages/components/ConversationView.tsx"
 Cohesion: 0.14
@@ -509,7 +507,7 @@ Nodes (26): compilerOptions, allowUmdGlobalAccess, jsx, paths, strict, types, ex
 
 ### Community 38 - "request-maintenance.tsx"
 Cohesion: 0.08
-Nodes (45): MaintenanceRequestCard(), MaintenanceRequestCardProps, ResolveRequestDialog(), ResolveRequestDialogProps, MaintenanceRequests(), MaintenanceRequestDetails(), MaintenanceRequestCard(), MaintenanceRequestCardProps (+37 more)
+Nodes (44): MaintenanceRequestCard(), MaintenanceRequestCardProps, ResolveRequestDialog(), ResolveRequestDialogProps, MaintenanceRequestDetails(), MaintenanceRequestCard(), MaintenanceRequestCardProps, MaintenanceDetails() (+36 more)
 
 ### Community 39 - "pap/page.tsx"
 Cohesion: 0.17
@@ -599,9 +597,9 @@ Nodes (17): compilerOptions, declaration, declarationMap, esModuleInterop, jsx, 
 Cohesion: 0.17
 Nodes (14): CookiesContact(), CookiesHero(), CookiesSection(), CookiesSectionProps, CookiesTableOfContents(), CookiesTableOfContentsProps, fadeUp, stagger (+6 more)
 
-### Community 61 - "useChatChannel.ts"
-Cohesion: 0.11
-Nodes (16): BroadcastEvent, BroadcastPayload, DeleteEvent, DeletePayload, PresenceJoinEvent, PresenceLeaveEvent, PresenceState, ReactionBroadcast (+8 more)
+### Community 61 - "useChat.ts"
+Cohesion: 0.09
+Nodes (27): Options, useChat(), BroadcastEvent, BroadcastPayload, DeleteEvent, DeletePayload, PresenceJoinEvent, PresenceLeaveEvent (+19 more)
 
 ### Community 62 - "chart.tsx"
 Cohesion: 0.11
@@ -636,8 +634,8 @@ Cohesion: 0.07
 Nodes (48): ApartmentMapViewScreen(), DirectionMode, MapPin(), MapPreviewSheet(), Props, INITIAL_REGION, TenantMapSearchScreen(), GoogleMapPin (+40 more)
 
 ### Community 70 - "chatService.ts"
-Cohesion: 0.11
-Nodes (32): Options, useChat(), useChatChannel(), Options, useChatTyping(), ChatMessagePlacement, mergeChatMessages(), AttachmentUploadFailure (+24 more)
+Cohesion: 0.07
+Nodes (31): ChatRow, mockChannel, mockChatRows, mockCreateSignedUrls, mockFrom, mockGetUser, mockRemoveChannel, mockStorageFrom (+23 more)
 
 ### Community 71 - "apartments/index.ts"
 Cohesion: 0.17
@@ -659,9 +657,9 @@ Nodes (12): QueryProvider(), QueryProviderProps, mockFrom, mockGetUser, profileR
 Cohesion: 0.25
 Nodes (7): Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader(), CardTitle()
 
-### Community 76 - "landlordService.test.ts"
-Cohesion: 0.18
-Nodes (13): getLandlordPaymentsQueryKey(), useLandlordPaymentConfirmation(), useLandlordPayments(), useLandlordStats(), fetchLandlordPayments(), fetchLandlordStats(), LandlordPaymentRecord, LandlordStats (+5 more)
+### Community 76 - "create/page.tsx"
+Cohesion: 0.08
+Nodes (28): AppNavbar(), getInitials(), NAV_LINKS, Footer(), NavbarSwitcher(), ThemeToggle(), Props, Step1Photos() (+20 more)
 
 ### Community 77 - "third-step.tsx"
 Cohesion: 0.16
@@ -693,11 +691,11 @@ Nodes (14): getPublicLandlordProfileQueryKey(), usePublicLandlordProfile(), getP
 
 ### Community 84 - "landlordService.ts"
 Cohesion: 0.09
-Nodes (28): Units(), EMPTY_COUNTS, getLandlordBadgesQueryKey(), useLandlordActionBadges(), ActionBadgeCategory, ActionBadgeCounts, asNullableString(), asNullableText() (+20 more)
+Nodes (28): Units(), EMPTY_COUNTS, getLandlordBadgesQueryKey(), useLandlordActionBadges(), useLandlordStats(), ActionBadgeCategory, ActionBadgeCounts, asNullableString() (+20 more)
 
 ### Community 85 - "ChatBubble.tsx"
-Cohesion: 0.19
-Nodes (16): BlurBackdrop(), calculateImageSize(), ChatBubble(), ChatBubbleContent(), ChatBubbleContentProps, ChatBubbleProps, getReplySnippet(), playReactionHaptic() (+8 more)
+Cohesion: 0.21
+Nodes (15): calculateImageSize(), ChatBubble(), ChatBubbleContent(), ChatBubbleContentProps, ChatBubbleProps, getReplySnippet(), playReactionHaptic(), mockPlayer (+7 more)
 
 ### Community 86 - "payment/types.ts"
 Cohesion: 0.11
@@ -747,9 +745,9 @@ Nodes (16): 1. Goals & Non-Goals, 2. Section Definitions (6 defs — Approved), 
 Cohesion: 0.29
 Nodes (3): DEFAULT_CENTER, markerIcon, Props
 
-### Community 103 - "create/page.tsx"
-Cohesion: 0.08
-Nodes (28): AppNavbar(), getInitials(), NAV_LINKS, Footer(), NavbarSwitcher(), ThemeToggle(), Props, Step1Photos() (+20 more)
+### Community 103 - "landlordService.test.ts"
+Cohesion: 0.23
+Nodes (10): getLandlordPaymentsQueryKey(), useLandlordPaymentConfirmation(), useLandlordPayments(), fetchLandlordPayments(), LandlordPaymentRecord, mockFrom, QueryResult, ROW (+2 more)
 
 ### Community 104 - "metro.config.js"
 Cohesion: 0.33
@@ -856,8 +854,8 @@ Cohesion: 0.15
 Nodes (15): Index(), SettingItem, SettingSection, BEDROOM_OPTIONS, FAMILY_OPTIONS, NO_PARKING_OPTIONS, RentalPreferences(), DEFAULT_PREFS (+7 more)
 
 ### Community 148 - "maintenance-requests/index.tsx"
-Cohesion: 0.21
-Nodes (9): EmptyMaintenanceRequestsList(), MaintenanceRequestCardSkeleton(), LOCATION_OPTIONS, MaintenanceRequestFilters, MaintenanceRequestFilterSheet(), Props, STATUS_OPTIONS, URGENCY_OPTIONS (+1 more)
+Cohesion: 0.19
+Nodes (10): EmptyMaintenanceRequestsList(), MaintenanceRequestCardSkeleton(), LOCATION_OPTIONS, MaintenanceRequestFilters, MaintenanceRequestFilterSheet(), Props, STATUS_OPTIONS, URGENCY_OPTIONS (+2 more)
 
 ### Community 149 - "payment/utils.ts"
 Cohesion: 0.11
@@ -983,10 +981,6 @@ Nodes (9): ApplicationStatus, getApplicationStatusStyle(), StatusStyle, Applicat
 Cohesion: 0.12
 Nodes (9): DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem(), DropdownMenuSeparator(), DropdownMenuShortcut(), DropdownMenuSubContent() (+1 more)
 
-### Community 190 - "audit-fix.characterization.test.ts"
-Cohesion: 0.12
-Nodes (10): ChatRow, mockChannel, mockChatRows, mockCreateSignedUrls, mockFrom, mockGetUser, mockRemoveChannel, mockStorageFrom (+2 more)
-
 ### Community 191 - "usePersonalizationStore.ts"
 Cohesion: 0.14
 Nodes (18): CityCheckBox(), CityCheckBoxProps, PersonalizationProgress(), Props, PersonalizationRadioButton(), PersonalizationRadioButtonProps, StepFour(), StepOne() (+10 more)
@@ -1011,10 +1005,6 @@ Nodes (34): ApartmentReviewsPreview(), ApartmentReviewsPreviewProps, formatRevie
 Cohesion: 0.28
 Nodes (6): ReceiptCard(), ReceiptCardProps, STATUS_META, ZigzagEdge(), ZigzagEdgeProps, PaymentStatus
 
-### Community 197 - "conversationService.test.ts"
-Cohesion: 0.33
-Nodes (6): Conversation, createQuery(), mockFrom, mockLegacyQueries(), mockRpc, seedV2Conversations
-
 ### Community 198 - "Identity Verification — Recommended Provider (Future Work)"
 Cohesion: 0.22
 Nodes (8): Decision notes, Identity Verification — Recommended Provider (Future Work), Recommended path (3 tiers), Requirements for a real verification provider, Tier 1 — MVP: PhilSys eKYC (official) + human review, Tier 2 — Scale: on-device document scan + liveness + face match, Tier 3 — Enterprise / regulatory scale, What the current capture flow actually verifies
@@ -1037,7 +1027,7 @@ Nodes (26): MaintenanceEmptyState(), MaintenanceTableSkeleton(), PhotoGrid(), Re
 
 ### Community 203 - "[conversationId].tsx"
 Cohesion: 0.09
-Nodes (25): ATTACHMENT_OPTIONS, ChatBox(), ChatBoxProps, getSnippet(), StagedAsset, formatHoldDate(), ChatHeader(), ChatHeaderProps (+17 more)
+Nodes (26): ATTACHMENT_OPTIONS, ChatBox(), ChatBoxProps, getSnippet(), StagedAsset, BlurBackdrop(), formatHoldDate(), ChatHeader() (+18 more)
 
 ### Community 206 - "Bounded mobile chat history with stable realtime channels"
 Cohesion: 0.29
@@ -1129,7 +1119,7 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `useColors()` connect `useColors` to `applications/index.ts`, `manage-apartment/[apartmentId]/index.tsx`, `apartment/[apartmentId]/index.tsx`, `document-id/index.tsx`, `live-capture.tsx`, `ai-search.tsx`, `ScreenWrapper.tsx`, `units.tsx`, `preferences.tsx`, `maintenance-requests/index.tsx`, `review-information.tsx`, `supabase/src/index.ts`, `ProfitTrendCard.tsx`, `conversationService.ts`, `useFavorites`, `tenant-applications/[applicationId].tsx`, `second-step.tsx`, `visit-requests/index.tsx`, `payment/index.tsx`, `request-maintenance.tsx`, `search.tsx`, `StandardHeader.tsx`, `HoldMenu.tsx`, `applications/[applicationId].tsx`, `captureSequences.ts`, `ProfitByPropertyCard.tsx`, `edit-profile.tsx`, `upload.tsx`, `[landlordId].tsx`, `usePersonalizationStore.ts`, `[sectionId].tsx`, `sign-in.tsx`, `map-search.tsx`, `apartments/index.ts`, `utils/src/index.ts`, `history/index.tsx`, `notificationService.ts`, `[conversationId].tsx`, `third-step.tsx`, `useApartmentFormStore`, `ChatBubble.tsx`, `reviews/index.tsx`, `TabBar.tsx`, `notifications/index.ts`, `MessageCard.tsx`, `payments/paymentService.ts`, `useCurrentUser`, `formatDate`, `description/index.tsx`, `edit-main.tsx`, `dashboardService.ts`?**
   _High betweenness centrality (0.079) - this node is a cross-community bridge._
-- **Why does `formatPesoDisplay()` connect `formatPesoDisplay` to `tenant/applications/[applicationId]/page.tsx`, `payment/page.tsx`, `service/favoritesService.ts`, `ScreenWrapper.tsx`, `units.tsx`, `review-information.tsx`, `supabase/src/index.ts`, `payment/utils.ts`, `tenant-applications/[applicationId].tsx`, `payment/index.tsx`, `carousel.tsx`, `browse/[apartmentId]/page.tsx`, `applications/[applicationId].tsx`, `useColors`, `my-rental/page.tsx`, `ApplicationsList.tsx`, `chart.tsx`, `[sectionId].tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `map-search.tsx`, `utils/src/index.ts`, `history/index.tsx`, `third-step.tsx`, `first-process.tsx`, `landlordApplicationsService.ts`, `payments/paymentService.ts`, `create/page.tsx`, `formatDate`, `PropertyDetailClient.tsx`, `description/index.tsx`, `dashboardService.ts`?**
+- **Why does `formatPesoDisplay()` connect `formatPesoDisplay` to `tenant/applications/[applicationId]/page.tsx`, `payment/page.tsx`, `service/favoritesService.ts`, `ScreenWrapper.tsx`, `units.tsx`, `review-information.tsx`, `supabase/src/index.ts`, `payment/utils.ts`, `tenant-applications/[applicationId].tsx`, `payment/index.tsx`, `carousel.tsx`, `browse/[apartmentId]/page.tsx`, `applications/[applicationId].tsx`, `useColors`, `my-rental/page.tsx`, `ApplicationsList.tsx`, `chart.tsx`, `[sectionId].tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `map-search.tsx`, `utils/src/index.ts`, `history/index.tsx`, `create/page.tsx`, `third-step.tsx`, `first-process.tsx`, `landlordApplicationsService.ts`, `payments/paymentService.ts`, `formatDate`, `PropertyDetailClient.tsx`, `description/index.tsx`, `dashboardService.ts`?**
   _High betweenness centrality (0.045) - this node is a cross-community bridge._
 - **Why does `cn()` connect `cn` to `carousel.tsx`, `table.tsx`, `card.tsx`, `tooltip.tsx`, `dropdown-menu.tsx`, `chart.tsx`?**
   _High betweenness centrality (0.036) - this node is a cross-community bridge._

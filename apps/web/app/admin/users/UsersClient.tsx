@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { IconUsers } from "@tabler/icons-react";
 import {
@@ -13,6 +13,7 @@ import {
   Pagination,
   SearchField,
   Select,
+  Spinner,
   Table,
 } from "@heroui/react";
 
@@ -80,6 +81,7 @@ export default function UsersClient({
   pageSize,
 }: UsersClientProps) {
   const router = useRouter();
+  const [isNavigating, startTransition] = useTransition();
   const [search, setSearch] = useState(filters.q);
   const [role, setRole] = useState(filters.role || "all");
   const [verification, setVerification] = useState(
@@ -99,7 +101,9 @@ export default function UsersClient({
     if (nextFilters.verification)
       params.set("verification", nextFilters.verification);
     params.set("page", String(nextPage));
-    router.push(`/admin/users?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/admin/users?${params.toString()}`);
+    });
   }
 
   function applyFilters(event: FormEvent<HTMLFormElement>) {
@@ -137,71 +141,84 @@ export default function UsersClient({
           name="q"
           value={search}
           onChange={setSearch}
-          className="w-full sm:w-64"
+          onClear={() => {
+            setSearch("");
+            navigate(
+              {
+                q: "",
+                role: role === "all" ? "" : role,
+                verification: verification === "all" ? "" : verification,
+              },
+              1,
+            );
+          }}
+          className="w-full sm:w-80"
         >
           <Label>Search users</Label>
-          <SearchField.Group>
-            <SearchField.SearchIcon />
+          <SearchField.Group className="border border-border bg-card shadow-none focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+            <SearchField.SearchIcon className="text-muted-foreground" />
             <SearchField.Input placeholder="Search name or email…" />
-            <SearchField.ClearButton />
+            <SearchField.ClearButton className="text-white" />
           </SearchField.Group>
         </SearchField>
 
-        <ComboBox
-          className="w-full sm:w-48"
-          selectedKey={role}
-          onSelectionChange={(key) => setRole(key ? String(key) : "all")}
-        >
-          <Label>Role</Label>
-          <ComboBox.InputGroup>
-            <Input placeholder="Select a role" />
-            <ComboBox.Trigger />
-          </ComboBox.InputGroup>
-          <ComboBox.Popover>
-            <ListBox>
-              {ROLE_OPTIONS.map((option) => (
-                <ListBox.Item
-                  key={option.id}
-                  id={option.id}
-                  textValue={option.label}
-                >
-                  {option.label}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </ComboBox.Popover>
-        </ComboBox>
+        <div className="ml-auto flex flex-wrap items-end gap-3">
+          <ComboBox
+            className="w-full sm:w-48"
+            selectedKey={role}
+            onSelectionChange={(key) => setRole(key ? String(key) : "all")}
+          >
+            <Label>Role</Label>
+            <ComboBox.InputGroup>
+              <Input placeholder="Select a role" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox>
+                {ROLE_OPTIONS.map((option) => (
+                  <ListBox.Item
+                    key={option.id}
+                    id={option.id}
+                    textValue={option.label}
+                  >
+                    {option.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
 
-        <Select
-          className="w-full sm:w-60"
-          value={verification}
-          onChange={(key) => setVerification(key ? String(key) : "all")}
-          placeholder="Select a status"
-        >
-          <Label>Verification status</Label>
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {VERIFICATION_OPTIONS.map((option) => (
-                <ListBox.Item
-                  key={option.id}
-                  id={option.id}
-                  textValue={option.label}
-                >
-                  {option.label}
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
+          <Select
+            className="w-full sm:w-60"
+            value={verification}
+            onChange={(key) => setVerification(key ? String(key) : "all")}
+            placeholder="Select a status"
+          >
+            <Label>Verification status</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {VERIFICATION_OPTIONS.map((option) => (
+                  <ListBox.Item
+                    key={option.id}
+                    id={option.id}
+                    textValue={option.label}
+                  >
+                    {option.label}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
 
-        <Button type="submit" variant="primary">
-          Apply
-        </Button>
+          <Button type="submit" variant="primary">
+            Apply
+          </Button>
+        </div>
       </form>
 
       {error ? (
@@ -210,7 +227,20 @@ export default function UsersClient({
         </p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div
+            aria-busy={isNavigating}
+            className="relative overflow-hidden rounded-xl border border-border bg-card"
+          >
+            {isNavigating ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
+                <Spinner
+                  size="lg"
+                  color="current"
+                  className="text-primary"
+                  aria-label="Loading users"
+                />
+              </div>
+            ) : null}
             <Table className="bg-card">
               <Table.ScrollContainer>
                 <Table.Content aria-label="Users" className="bg-card">
