@@ -9,7 +9,7 @@ import { useDebouncedCallback } from "./use-debounced-callback";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export default function SearchContainer() {
+export default function SearchContainer({ basePath = "/browse" }: { basePath?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
@@ -23,7 +23,7 @@ export default function SearchContainer() {
     else current.delete("search");
     current.delete("page");
     startTransition(() => {
-      router.replace(`/browse?${current.toString()}`);
+      router.replace(`${basePath}?${current.toString()}`);
     });
   };
 
