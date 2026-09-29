@@ -5,6 +5,7 @@ export interface AdminProfile {
   id: string;
   first_name: string | null;
   last_name: string | null;
+  avatar_url: string | null;
   email: string | null;
   roles: string[];
 }
@@ -22,7 +23,7 @@ export async function requireAdmin(): Promise<AdminProfile> {
 
   const { data: profileData, error } = await supabase
     .from("users")
-    .select("id, first_name, last_name, email, roles")
+    .select("id, first_name, last_name, avatar_url, email, roles")
     .eq("user_id", user.id)
     .single();
 
@@ -33,5 +34,8 @@ export async function requireAdmin(): Promise<AdminProfile> {
   const profile = profileData as unknown as AdminProfile | null;
   if (!profile || !profile.roles.includes("admin")) notFound();
 
-  return profile;
+  return {
+    ...profile,
+    avatar_url: profile.avatar_url ?? user.user_metadata.avatar_url ?? null,
+  };
 }

@@ -120,6 +120,7 @@ type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
   userRole: string;
+  avatarUrl?: string | null;
   showAccountLinks?: boolean;
   // Multi-role switching: all roles the account holds + which portal
   // this sidebar belongs to. The switch item only appears when the
@@ -151,6 +152,7 @@ export function AppSidebar({
   navItems,
   userName,
   userRole,
+  avatarUrl,
   showAccountLinks = true,
   profileHref: accountProfileHref,
   iconSet = "lucide",
@@ -168,6 +170,7 @@ export function AppSidebar({
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
+  const avatarSrc = avatarUrl?.trim() || undefined;
   const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
     ? "/landlord/profile"
     : "/tenant/profile");
@@ -295,6 +298,9 @@ export function AppSidebar({
             className={`w-full flex items-center h-auto hover:bg-sidebar-accent text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
             <Avatar size="sm" className="shrink-0 bg-primary text-white">
+              {avatarSrc ? (
+                <Avatar.Image src={avatarSrc} alt={`${displayName}'s profile photo`} />
+              ) : null}
               <Avatar.Fallback className="bg-primary text-white">
                 {getInitials(displayName)}
               </Avatar.Fallback>
