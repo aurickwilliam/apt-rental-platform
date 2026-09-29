@@ -21,7 +21,7 @@ export default function ErrorModal({
       >
         <Modal.Container placement="center">
           <Modal.Dialog>
-            <Modal.CloseTrigger className="text-black" />
+            <Modal.CloseTrigger className="text-foreground" />
             <Modal.Header>
               <Modal.Heading>
                 Something went wrong
@@ -32,7 +32,7 @@ export default function ErrorModal({
               <div className="rounded-full bg-danger-100 p-3">
                 <CircleAlert size={45} className="text-danger" />
               </div>
-              <p className="text-center text-sm text-black">
+              <p className="text-center text-sm text-foreground">
                 {error}
               </p>
             </Modal.Body>
