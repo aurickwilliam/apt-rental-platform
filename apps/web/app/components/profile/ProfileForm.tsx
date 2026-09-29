@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Button,
@@ -16,8 +17,27 @@ import {
 
 import { Lock } from "lucide-react";
 
+import {
+  IconId,
+  IconMapPin,
+  IconPencil,
+  IconPhone,
+  IconUser,
+} from "@tabler/icons-react";
+
 import { GENDERS, PROVINCES } from "@repo/constants";
+import { createBrowserClient } from "@repo/supabase";
 import { updateProfile } from "@/app/(auth)/actions/update-profile";
+import {
+  compressAvatarImage,
+  compressBackgroundImage,
+  uploadAvatar,
+  uploadBackground,
+} from "@/lib/avatar-upload";
+import ProfileAvatar from "./ProfileAvatar";
+import ProfileBackground from "./ProfileBackground";
+import ProfilePhotoErrorDialog from "./ProfilePhotoErrorDialog";
+import ProfileSaveSuccessDialog from "./ProfileSaveSuccessDialog";
 
 export type ProfileInitial = {
   email: string | null;
@@ -60,51 +80,79 @@ function formatBirthDate(value: string | null) {
   }).format(parsed);
 }
 
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "U";
+}
+
 export default function ProfileForm({
   initial,
   initialMode = "view",
   showMissingPrompt = true,
+  align = "center",
+  successRedirectHref,
+  showEditHeading = true,
+  photoEditing,
 }: {
   initial: ProfileInitial;
   initialMode?: "view" | "edit";
   showMissingPrompt?: boolean;
+  align?: "center" | "left";
+  successRedirectHref?: string;
+  showEditHeading?: boolean;
+  photoEditing?: {
+    authUserId: string;
+    avatarUrl: string | null;
+    backgroundUrl: string | null;
+  };
 }) {
+  const router = useRouter();
   const [state, action, isPending] = useActionState(updateProfile, {});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [stagedAvatar, setStagedAvatar] = useState<File | null>(null);
+  const [stagedBackground, setStagedBackground] = useState<File | null>(null);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const photosCommittedRef = useRef(false);
 
   const [mobileNumber, setMobileNumber] = useState(initial.mobile_number ?? "");
   const [postalCode, setPostalCode] = useState(
-    initial.postal_code != null ? String(initial.postal_code) : ""
+    initial.postal_code != null ? String(initial.postal_code) : "",
   );
   const [gender, setGender] = useState(initial.gender ?? "");
   const [province, setProvince] = useState(initial.province ?? "");
-  const [streetAddress, setStreetAddress] = useState(initial.street_address ?? "");
+  const [streetAddress, setStreetAddress] = useState(
+    initial.street_address ?? "",
+  );
   const [barangay, setBarangay] = useState(initial.barangay ?? "");
   const [city, setCity] = useState(initial.city ?? "");
   const [mode, setMode] = useState<"view" | "edit">(initialMode);
   const [justSaved, setJustSaved] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Return to view mode after a successful save. Render-phase adjustment on the
   // new state object identity (one per completed submission), so repeat saves
-  // with an identical message still transition.
+  // with an identical message still transition. When a redirect target is set,
+  // show the success modal instead — closing it routes away.
   const [lastState, setLastState] = useState(state);
   if (state !== lastState) {
     setLastState(state);
     if (state?.success) {
-      setMode("view");
-      setJustSaved(true);
+      if (successRedirectHref) {
+        setShowSuccessModal(true);
+      } else {
+        setMode("view");
+        setJustSaved(true);
+      }
     }
   }
 
-  const resetToInitial = () => {
-    setMobileNumber(initial.mobile_number ?? "");
-    setPostalCode(initial.postal_code != null ? String(initial.postal_code) : "");
-    setGender(initial.gender ?? "");
-    setProvince(initial.province ?? "");
-    setStreetAddress(initial.street_address ?? "");
-    setBarangay(initial.barangay ?? "");
-    setCity(initial.city ?? "");
-    setErrors({});
+  const handleSuccessClose = () => {
+    if (successRedirectHref) router.push(successRedirectHref);
   };
 
   const handleEdit = () => {
@@ -113,22 +161,27 @@ export default function ProfileForm({
     setMode("edit");
   };
 
-  const handleCancel = () => {
-    resetToInitial();
-    setJustSaved(false);
-    setMode("view");
+  const handleAvatarSelect = (file: File | null) => {
+    setStagedAvatar(file);
+    photosCommittedRef.current = false;
+  };
+
+  const handleBackgroundSelect = (file: File | null) => {
+    setStagedBackground(file);
+    photosCommittedRef.current = false;
   };
 
   const clearError = (key: string) =>
     setErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     const next: Record<string, string> = {};
     if (!gender.trim()) next.gender = "Gender is required.";
     if (!mobileNumber.trim()) next.mobile_number = "Mobile number is required.";
     else if (!/^09\d{9}$/.test(mobileNumber.trim()))
       next.mobile_number = "Must be 11 digits starting with 09.";
-    if (!streetAddress.trim()) next.street_address = "Street address is required.";
+    if (!streetAddress.trim())
+      next.street_address = "Street address is required.";
     if (!barangay.trim()) next.barangay = "Barangay is required.";
     if (!city.trim()) next.city = "City is required.";
     if (!province.trim()) next.province = "Province is required.";
@@ -136,10 +189,57 @@ export default function ProfileForm({
     else if (!/^\d{4}$/.test(postalCode.trim()))
       next.postal_code = "Must be 4 digits.";
     setErrors(next);
-    if (Object.values(next).some(Boolean)) e.preventDefault();
+    if (Object.values(next).some(Boolean)) {
+      e.preventDefault();
+      return;
+    }
+    // Staged photos commit first, then the field update submits normally.
+    if (
+      photoEditing &&
+      (stagedAvatar || stagedBackground) &&
+      !photosCommittedRef.current
+    ) {
+      e.preventDefault();
+      setIsUploadingPhotos(true);
+      try {
+        const supabase = createBrowserClient();
+        if (stagedAvatar) {
+          const compressed = await compressAvatarImage(stagedAvatar);
+          await uploadAvatar(supabase, photoEditing.authUserId, compressed);
+        }
+        if (stagedBackground) {
+          const compressed = await compressBackgroundImage(stagedBackground);
+          await uploadBackground(
+            supabase,
+            photoEditing.authUserId,
+            compressed,
+          );
+        }
+        photosCommittedRef.current = true;
+        setStagedAvatar(null);
+        setStagedBackground(null);
+        formRef.current?.requestSubmit();
+      } catch (err) {
+        console.error("Staged photo upload failed", err);
+        const raw =
+          err instanceof Error ? err.message : "Upload failed. Please try again.";
+        setPhotoError(
+          /permission denied|row-level security/i.test(raw)
+            ? "Couldn't save your photos due to a permissions issue. Please try again later."
+            : raw,
+        );
+      } finally {
+        setIsUploadingPhotos(false);
+      }
+    }
   };
 
-  const fullName = [initial.first_name, initial.middle_name, initial.last_name, initial.suffix]
+  const fullName = [
+    initial.first_name,
+    initial.middle_name,
+    initial.last_name,
+    initial.suffix,
+  ]
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(" ");
@@ -153,12 +253,39 @@ export default function ProfileForm({
   if (!province.trim()) missingLabels.push("province");
   if (!postalCode.trim()) missingLabels.push("postal code");
 
+  const fieldsDirty =
+    mobileNumber !== (initial.mobile_number ?? "") ||
+    gender !== (initial.gender ?? "") ||
+    streetAddress !== (initial.street_address ?? "") ||
+    barangay !== (initial.barangay ?? "") ||
+    city !== (initial.city ?? "") ||
+    province !== (initial.province ?? "") ||
+    postalCode !==
+      (initial.postal_code != null ? String(initial.postal_code) : "");
+  const isPristine =
+    !fieldsDirty && stagedAvatar === null && stagedBackground === null;
+
+  const displayName =
+    fullName || initial.email || "User";
+
   if (mode === "view") {
     return (
       <div className="flex flex-col gap-10">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Profile Details</h2>
-          <Button type="button" variant="outline" size="sm" onPress={handleEdit}>
+          <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+            <IconUser
+              size={20}
+              className="shrink-0 text-primary"
+              aria-hidden="true"
+            />
+            Profile Details
+          </h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onPress={handleEdit}
+          >
             Edit
           </Button>
         </div>
@@ -172,8 +299,9 @@ export default function ProfileForm({
         {showMissingPrompt && missingLabels.length > 0 ? (
           <div className="rounded-lg border border-warning-200 bg-warning-50 p-3">
             <p className="text-sm text-warning">
-              Your profile is incomplete — add your {formatMissingList(missingLabels)} so
-              landlords can reach you and verify your application faster.
+              Your profile is incomplete — add your{" "}
+              {formatMissingList(missingLabels)} so landlords can reach you and
+              verify your application faster.
             </p>
             <Button
               type="button"
@@ -188,101 +316,214 @@ export default function ProfileForm({
         ) : null}
 
         <div className="grid gap-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
-        <section className="flex flex-col gap-6">
-          <h3 className="text-lg font-semibold">Personal Information</h3>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <SummaryRow label="Full Name" value={fullName} />
-            <SummaryRow label="Email" value={initial.email ?? ""} />
-            <SummaryRow label="Birth Date" value={formatBirthDate(initial.birth_date)} />
-          </div>
-        </section>
+          <section className="flex flex-col gap-6">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+              <IconId
+                size={20}
+                className="shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              Personal Information
+            </h3>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <SummaryRow label="Full Name" value={fullName} />
+              <SummaryRow label="Email" value={initial.email ?? ""} />
+              <SummaryRow
+                label="Birth Date"
+                value={formatBirthDate(initial.birth_date)}
+              />
+            </div>
+          </section>
 
-        <Separator orientation="vertical" className="hidden lg:block" />
-        <Separator className="my-2 lg:hidden" />
+          <Separator orientation="vertical" className="hidden lg:block" />
+          <Separator className="my-2 lg:hidden" />
 
-        <section className="flex flex-col gap-6">
-          <h3 className="text-lg font-semibold">Contact &amp; Address</h3>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <SummaryRow label="Mobile Number" value={mobileNumber} />
-            <SummaryRow label="Gender" value={gender} />
-            <SummaryRow label="Street Address" value={streetAddress} />
-            <SummaryRow label="Barangay" value={barangay} />
-            <SummaryRow label="City" value={city} />
-            <SummaryRow label="Province" value={province} />
-            <SummaryRow label="Postal Code" value={postalCode} />
-          </div>
-        </section>
+          <section className="flex flex-col gap-6">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+              <IconPhone
+                size={20}
+                className="shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              Contact
+            </h3>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <SummaryRow label="Mobile Number" value={mobileNumber} />
+              <SummaryRow label="Gender" value={gender} />
+            </div>
+          </section>
+
+          <section className="flex flex-col gap-6">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+              <IconMapPin
+                size={20}
+                className="shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              Address
+            </h3>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <SummaryRow label="Street Address" value={streetAddress} />
+              <SummaryRow label="Barangay" value={barangay} />
+              <SummaryRow label="City" value={city} />
+              <SummaryRow label="Province" value={province} />
+              <SummaryRow label="Postal Code" value={postalCode} />
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-10 max-w-3xl w-full mx-auto">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Edit Profile</h2>
-        <Button type="button" variant="ghost" size="sm" onPress={handleCancel}>
-          Cancel
-        </Button>
-      </div>
+    <form
+      ref={formRef}
+      action={action}
+      onSubmit={handleSubmit}
+      className={
+        align === "left"
+          ? "flex flex-col gap-5 w-full"
+          : "flex flex-col gap-5 max-w-3xl w-full mx-auto"
+      }
+    >
+      <ProfileSaveSuccessDialog
+        isOpen={showSuccessModal}
+        onClose={handleSuccessClose}
+      />
+      {photoError ? (
+        <ProfilePhotoErrorDialog
+          message={photoError}
+          onClose={() => setPhotoError(null)}
+        />
+      ) : null}
+      {photoEditing ? (
+        <div>
+          <div className="-m-4 sm:-m-5">
+            <ProfileBackground
+              authUserId={photoEditing.authUserId}
+              initialUrl={photoEditing.backgroundUrl}
+              staged
+              onFileSelect={handleBackgroundSelect}
+            />
+          </div>
+          <div className="-mt-12 ml-2 w-fit">
+            <ProfileAvatar
+              authUserId={photoEditing.authUserId}
+              initialUrl={photoEditing.avatarUrl}
+              initials={getInitials(displayName)}
+              displayName={displayName}
+              circular
+              staged
+              onFileSelect={handleAvatarSelect}
+            />
+          </div>
+        </div>
+      ) : null}
+      {showEditHeading ? (
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <IconPencil
+            size={20}
+            className="shrink-0 text-primary"
+            aria-hidden="true"
+          />
+          Edit Profile
+        </h2>
+      ) : null}
 
       {/* Identity — read-only (names + birth date locked, like mobile) */}
       <section className="flex flex-col gap-6">
-        <h2 className="text-lg font-semibold">Personal Information</h2>
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <IconId
+            size={20}
+            className="shrink-0 text-primary"
+            aria-hidden="true"
+          />
+          Personal Information
+        </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <TextField isReadOnly defaultValue={initial.email ?? "—"} fullWidth>
             <Label className="flex items-center gap-1.5">
-              Email <Lock size={12} className="text-muted-foreground" aria-hidden />
+              Email{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
 
-          <TextField isReadOnly defaultValue={initial.first_name ?? "—"} fullWidth>
+          <TextField
+            isReadOnly
+            defaultValue={initial.first_name ?? "—"}
+            fullWidth
+          >
             <Label className="flex items-center gap-1.5">
-              First Name <Lock size={12} className="text-muted-foreground" aria-hidden />
+              First Name{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
 
-          <TextField isReadOnly defaultValue={initial.middle_name ?? "—"} fullWidth>
+          <TextField
+            isReadOnly
+            defaultValue={initial.middle_name ?? "—"}
+            fullWidth
+          >
             <Label className="flex items-center gap-1.5">
-              Middle Name <Lock size={12} className="text-muted-foreground" aria-hidden />
+              Middle Name{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
 
-          <TextField isReadOnly defaultValue={initial.last_name ?? "—"} fullWidth>
+          <TextField
+            isReadOnly
+            defaultValue={initial.last_name ?? "—"}
+            fullWidth
+          >
             <Label className="flex items-center gap-1.5">
-              Last Name <Lock size={12} className="text-muted-foreground" aria-hidden />
+              Last Name{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
 
           <TextField isReadOnly defaultValue={initial.suffix ?? "—"} fullWidth>
             <Label className="flex items-center gap-1.5">
-              Suffix <Lock size={12} className="text-muted-foreground" aria-hidden />
+              Suffix{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
 
-          <TextField isReadOnly defaultValue={formatBirthDate(initial.birth_date)} fullWidth>
+          <TextField
+            isReadOnly
+            defaultValue={formatBirthDate(initial.birth_date)}
+            fullWidth
+          >
             <Label className="flex items-center gap-1.5">
-              Birth Date <Lock size={12} className="text-muted-foreground" aria-hidden />
+              Birth Date{" "}
+              <Lock size={12} className="text-muted-foreground" aria-hidden />
             </Label>
             <Input className="bg-muted text-muted-foreground cursor-not-allowed" />
           </TextField>
         </div>
         <p className="text-xs text-muted-foreground">
-          Names and birth date are locked. Contact support if they need correction.
+          Names and birth date are locked. Contact support if they need
+          correction.
         </p>
       </section>
 
       <Separator className="my-2" />
 
-      {/* Contact + address — editable */}
+      {/* Contact — editable */}
       <section className="flex flex-col gap-6">
-        <h2 className="text-lg font-semibold">Contact &amp; Address</h2>
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <IconPhone
+            size={20}
+            className="shrink-0 text-primary"
+            aria-hidden="true"
+          />
+          Contact
+        </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <TextField
@@ -333,7 +574,23 @@ export default function ProfileForm({
               <p className="text-sm text-danger mt-1">{errors.gender}</p>
             ) : null}
           </div>
+        </div>
+      </section>
 
+      <Separator className="my-2" />
+
+      {/* Address — editable */}
+      <section className="flex flex-col gap-6">
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <IconMapPin
+            size={20}
+            className="shrink-0 text-primary"
+            aria-hidden="true"
+          />
+          Address
+        </h2>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <TextField
             name="street_address"
             isRequired
@@ -427,7 +684,11 @@ export default function ProfileForm({
             isInvalid={!!errors.postal_code}
           >
             <Label>Postal Code</Label>
-            <Input placeholder="Enter your postal code" inputMode="numeric" maxLength={4} />
+            <Input
+              placeholder="Enter your postal code"
+              inputMode="numeric"
+              maxLength={4}
+            />
             <FieldError>{errors.postal_code}</FieldError>
           </TextField>
         </div>
@@ -444,12 +705,12 @@ export default function ProfileForm({
         variant="primary"
         size="lg"
         className="w-full font-semibold"
-        isDisabled={isPending}
+        isDisabled={isPending || isUploadingPhotos || isPristine}
       >
-        {isPending ? (
+        {isPending || isUploadingPhotos ? (
           <>
             <Spinner size="sm" />
-            Saving...
+            {isUploadingPhotos ? "Uploading photos..." : "Saving..."}
           </>
         ) : (
           "Save Changes"
