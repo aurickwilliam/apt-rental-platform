@@ -136,18 +136,18 @@ export default function SettingsHub() {
         },
         {
           icon: <FileText size={18} />,
-          title: "Terms and Conditions",
-          href: "/settings/terms",
+          title: "Terms of Service",
+          href: "/tos",
         },
         {
           icon: <Shield size={18} />,
           title: "Privacy Policy",
-          href: "/settings/privacy-policy",
+          href: "/pap",
         },
         {
           icon: <Users size={18} />,
           title: "About Us",
-          href: "/settings/about",
+          href: "/about",
         },
       ],
     },
