@@ -29,10 +29,10 @@ export default function SuccessModal({
               <div className="rounded-full bg-green-100 p-4">
                 <CircleCheck size={48} className="text-green-600" />
               </div>
-              <h2 className="font-nunitoSemiBold text-black text-center text-2xl font-semibold">
+              <h2 className="font-nunitoSemiBold text-foreground text-center text-2xl font-semibold">
                 Account Created!
               </h2>
-              <p className="max-w-xs text-center text-sm text-black">
+              <p className="max-w-xs text-center text-sm text-foreground">
                 Your account has been created successfully. You can now sign in
                 with your email and password.
               </p>

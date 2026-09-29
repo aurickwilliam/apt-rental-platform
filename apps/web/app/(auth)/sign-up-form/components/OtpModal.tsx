@@ -54,7 +54,7 @@ export default function OtpModal({
                     <Mail size={32} className="text-primary" />
                   </div>
 
-                  <p className="text-center text-sm text-black">
+                  <p className="text-center text-sm text-foreground">
                     We sent a 6-digit verification code to{" "}
                     <span className="font-semibold text-foreground">{email}</span>.
                   </p>
@@ -87,7 +87,7 @@ export default function OtpModal({
                     <p className="text-center text-sm text-danger">{otpError}</p>
                   )}
 
-                  <div className="flex items-center gap-2 text-sm text-black">
+                  <div className="flex items-center gap-2 text-sm text-foreground">
                     <span>Didn&apos;t receive a code?</span>
                     {resendCooldown > 0 ? (
                       <span className="font-medium text-primary">

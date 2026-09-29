@@ -42,7 +42,7 @@ export default function PasswordChecklist({
       {checks.map(({ isValid, label }) => (
         <div key={label} className="flex items-center gap-2">
           <CheckIcon password={password} isValid={isValid} />
-          <p className="text-sm text-gray-600">{label}</p>
+          <p className="text-sm text-gray-600 dark:text-muted-foreground">{label}</p>
         </div>
       ))}
 
@@ -54,7 +54,7 @@ export default function PasswordChecklist({
         ) : (
           <CircleX size={24} className="text-red-500" />
         )}
-        <p className="text-sm text-gray-600">Passwords match</p>
+        <p className="text-sm text-gray-600 dark:text-muted-foreground">Passwords match</p>
       </div>
     </div>
   );
