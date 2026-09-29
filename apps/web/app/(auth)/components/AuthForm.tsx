@@ -93,7 +93,7 @@ export default function AuthForm() {
         >
           <Label>Email</Label>
 
-          <Input placeholder="Enter your email"/>
+          <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
 
           <FieldError>
             {({ validationDetails }) => {
