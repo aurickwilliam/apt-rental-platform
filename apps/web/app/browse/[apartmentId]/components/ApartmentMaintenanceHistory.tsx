@@ -47,8 +47,8 @@ export default function ApartmentMaintenanceHistory({
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <Wrench size={18} className="text-primary" />
-        <h2 className="text-base font-semibold text-foreground">Maintenance history</h2>
+        <Wrench size={20} className="text-primary" />
+        <h2 className="text-lg font-medium text-foreground">Maintenance history</h2>
       </div>
       <p className="text-sm text-foreground mb-4">
         {total === 0
