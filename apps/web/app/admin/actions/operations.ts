@@ -70,5 +70,6 @@ export async function setApartmentVisibility(formData: FormData): Promise<Operat
   revalidatePath("/admin/activity");
   revalidatePath("/admin/analytics");
   revalidatePath("/browse");
+  revalidatePath(`/browse/${parsed.id}`);
   return {};
 }

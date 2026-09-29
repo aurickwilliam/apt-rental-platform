@@ -21,6 +21,7 @@
     "@tabler/icons-react": "^3.38.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "docx-preview": "0.4.1",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.34.5",
     "leaflet": "^1.9.4",

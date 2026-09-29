@@ -22,19 +22,24 @@ export default async function AdminLayout({
     "Administrator";
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
       <AppSidebar
         navItems={[...ADMIN_NAV]}
         userName={userName}
         userRole="Administrator"
-        showAccountLinks={false}
+        profileHref="/admin/profile"
+        iconSet="tabler"
+        collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">
           {children}
         </main>
       </div>
-      <MobileSidebarNavigation navItems={[...ADMIN_NAV]} />
+      <MobileSidebarNavigation
+        navItems={[...ADMIN_NAV, { href: "/admin/profile", label: "Profile", icon: "User" }]}
+        iconSet="tabler"
+      />
     </div>
   );
 }

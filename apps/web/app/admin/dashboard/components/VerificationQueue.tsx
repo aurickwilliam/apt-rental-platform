@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, Chip, Table, Tabs } from "@heroui/react";
-import { Building2, ChevronRight } from "lucide-react";
+import { IconBuilding, IconChevronRight } from "@tabler/icons-react";
 import type { VerificationRequest } from "../lib/get-dashboard-data";
 
 interface VerificationQueueProps {
@@ -25,7 +25,7 @@ function RequestImage({ request }: { request: VerificationRequest }) {
       />
     ) : (
       <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <Building2 size={20} aria-hidden="true" />
+        <IconBuilding size={20} aria-hidden="true" />
       </span>
     );
   }
@@ -199,7 +199,7 @@ export default function VerificationQueue({
                         {request.detail}
                       </p>
                     </div>
-                    <ChevronRight
+                    <IconChevronRight
                       size={18}
                       className="shrink-0 text-primary"
                       aria-hidden="true"

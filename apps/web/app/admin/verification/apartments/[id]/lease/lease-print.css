@@ -1,0 +1,47 @@
+@media screen {
+  .lease-page-label {
+    align-self: center;
+    margin: -20px 0 16px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 12px;
+  }
+}
+
+@media print {
+  body:has(.lease-document-preview) * {
+    visibility: hidden !important;
+  }
+
+  body:has(.lease-document-preview) .lease-print-content,
+  body:has(.lease-document-preview) .lease-print-content * {
+    visibility: visible !important;
+  }
+
+  .lease-print-content {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .lease-print-content .docx-wrapper {
+    background: none !important;
+    padding: 0 !important;
+  }
+
+  .lease-print-content .docx {
+    box-shadow: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    break-after: page;
+  }
+
+  .lease-print-content .docx:last-of-type {
+    break-after: auto;
+  }
+}

@@ -1,162 +1,47 @@
 "use client";
-import { Button, Modal, useOverlayState } from "@heroui/react";
 
-import NextImage from "next/image";
 import { useState } from "react";
-
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { Button } from "@heroui/react";
+import { IconPhoto } from "@tabler/icons-react";
+import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 
 interface ImageHeaderProps {
   imageUrl: string[];
+  name: string;
 }
 
-export default function ImageHeader({ imageUrl }: ImageHeaderProps) {
-  const state = useOverlayState();
+export default function ImageHeader({ imageUrl, name }: ImageHeaderProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const availableImages = imageUrl.filter(Boolean);
+  const photos = (availableImages.length ? availableImages : ["/default/default-thumbnail.jpeg"]).map((url) => ({ url }));
 
-  const handleImagePress = (index: number) => {
+  function openGallery(index: number) {
     setActiveIndex(index);
-    state.open();
-  };
+    setIsOpen(true);
+  }
 
   return (
     <>
-      <div className="w-full h-128 relative flex gap-5">
-        <div
-          className="w-2/3 relative h-full cursor-pointer"
-          onClick={() => handleImagePress(0)}
-        >
-          <NextImage
-            src={imageUrl[0]}
-            alt="Apartment Image"
-            fill
-            className="object-cover hover:brightness-90 transition rounded-2xl"
-          />
-        </div>
-        <div className="w-1/3 flex flex-col gap-5">
-          <div
-            className="relative h-1/2 cursor-pointer"
-            onClick={() => handleImagePress(1)}
-          >
-            <NextImage
-              src={imageUrl[1]}
-              alt="Apartment Image"
-              fill
-              className="object-cover hover:brightness-90 transition rounded-2xl"
-            />
+      <div className="relative flex h-128 w-full gap-5">
+        <button type="button" className={`relative h-full overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary ${photos.length > 1 ? "w-2/3" : "w-full"}`} onClick={() => openGallery(0)} aria-label={`View photos of ${name}`}>
+          <Image src={photos[0].url} alt={`${name} cover`} fill className="object-cover transition hover:brightness-90" />
+        </button>
+        {photos.length > 1 ? (
+          <div className="flex w-1/3 flex-col gap-5">
+            {photos.slice(1, 3).map((photo, offset) => (
+              <button key={`${photo.url}-${offset}`} type="button" onClick={() => openGallery(offset + 1)} className="relative min-h-0 flex-1 overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary" aria-label={`View photo ${offset + 2} of ${name}`}>
+                <Image src={photo.url} alt={`${name} photo ${offset + 2}`} fill className="object-cover transition hover:brightness-90" />
+              </button>
+            ))}
           </div>
-          <div
-            className="relative h-1/2 cursor-pointer"
-            onClick={() => handleImagePress(2)}
-          >
-            <NextImage
-              src={imageUrl[2]}
-              alt="Apartment Image"
-              fill
-              className="object-cover hover:brightness-90 transition rounded-2xl"
-            />
-            <Button
-              variant="tertiary"
-              className="absolute bottom-2 right-2 z-10 rounded-full"
-              size="sm"
-              onPress={() => handleImagePress(2)}
-            >
-              See more photos
-            </Button>
-          </div>
-        </div>
+        ) : null}
+        <Button variant="tertiary" size="sm" className="absolute right-3 bottom-3 z-10 rounded-full bg-black/65 text-white hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-white" onPress={() => openGallery(0)}>
+          <IconPhoto size={18} aria-hidden="true" /> See all photos ({photos.length})
+        </Button>
       </div>
-
-      {/* Lightbox Modal */}
-      <Modal>
-        <Modal.Backdrop
-          isOpen={state.isOpen}
-          onOpenChange={state.setOpen}
-          className="bg-black/80"
-        >
-          <Modal.Container
-            size="cover"
-            className="bg-transparent p-0 shadow-none"
-          >
-            <Modal.Dialog className="bg-transparent h-full flex flex-col justify-center">
-              <Modal.Body className="p-0 h-full flex flex-col justify-center">
-
-                {/* Outer layout: buttons + white box */}
-                <div className="flex items-center justify-center gap-4 w-full px-8">
-                  {/* Left button — outside the white box */}
-                  <Button
-                    isIconOnly
-                    variant="ghost"
-                    className="rounded-full bg-white/20 hover:bg-white/40 text-white shrink-0"
-                    onPress={() =>
-                      setActiveIndex(
-                        (prev) => (prev - 1 + imageUrl.length) % imageUrl.length
-                      )
-                    }
-                  >
-                    <ChevronLeft size={20} />
-                  </Button>
-
-                  {/* White card — 2/3 width */}
-                  <div className="w-2/3 bg-white rounded-2xl overflow-hidden flex flex-col relative p-4">
-                    {/* Close Button */}
-                    <div className="absolute top-1 right-1 z-10">
-                      <Modal.CloseTrigger className="text-black" />
-                    </div>
-
-                    {/* Main image */}
-                    <div className="relative w-full h-[65vh]">
-                      <NextImage
-                        src={imageUrl[activeIndex]}
-                        alt="Apartment Image"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-
-                    {/* Thumbnails */}
-                    <div className="flex gap-2 overflow-x-auto justify-start pt-3">
-                      {imageUrl.map((url, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setActiveIndex(index)}
-                          className={`relative w-24 h-16 shrink-0 rounded-lg overflow-hidden border-2 transition ${
-                            activeIndex === index
-                              ? "border-primary opacity-100"
-                              : "border-transparent opacity-50 hover:opacity-75"
-                          }`}
-                        >
-                          <NextImage
-                            src={url}
-                            alt={`Thumbnail ${index}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-
-                  </div>
-
-                  {/* Right button — outside the white box */}
-                  <Button
-                    isIconOnly
-                    variant="ghost"
-                    className="rounded-full bg-white/20 hover:bg-white/40 text-white shrink-0"
-                    onPress={() =>
-                      setActiveIndex((prev) => (prev + 1) % imageUrl.length)
-                    }
-                  >
-                    <ChevronRight size={20} />
-                  </Button>
-
-                </div>
-
-              </Modal.Body>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      <PhotoGalleryModal name={name} photos={photos} isOpen={isOpen} onOpenChange={setIsOpen} activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
     </>
   );
 }

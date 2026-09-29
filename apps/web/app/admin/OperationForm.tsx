@@ -8,6 +8,7 @@ interface OperationFormProps {
   id: string;
   decision: "suspend" | "reactivate" | "hide" | "restore";
   onSubmit: (formData: FormData) => Promise<OperationResult>;
+  label?: string;
 }
 
 const COPY = {
@@ -17,17 +18,17 @@ const COPY = {
   restore: "This listing will become visible in discovery again, subject to its normal availability status.",
 };
 
-export default function OperationForm({ id, decision, onSubmit }: OperationFormProps) {
+export default function OperationForm({ id, decision, onSubmit, label }: OperationFormProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const label = decision[0].toUpperCase() + decision.slice(1);
+  const buttonLabel = label ?? decision[0].toUpperCase() + decision.slice(1);
 
   return (
     <>
       {error && <p role="alert" className="mb-3 text-sm text-danger">{error}</p>}
       <Button variant={decision === "hide" || decision === "suspend" ? "danger-soft" : "primary"} onPress={() => { setError(null); setOpen(true); }}>
-        {label}
+        {buttonLabel}
       </Button>
       <Modal isOpen={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
         <Modal.Backdrop>
