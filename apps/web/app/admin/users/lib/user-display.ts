@@ -136,6 +136,8 @@ export function roleChipStyle(role: string): {
       return { color: "default", className: "bg-primary/10 text-primary" };
     case "landlord":
       return { color: "default", className: "bg-secondary/10 text-secondary" };
+    case "admin":
+      return { color: "default", className: "bg-primary/10 text-primary" };
     default:
       return { color: "default" };
   }

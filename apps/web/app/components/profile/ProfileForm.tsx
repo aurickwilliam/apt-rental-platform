@@ -60,7 +60,15 @@ function formatBirthDate(value: string | null) {
   }).format(parsed);
 }
 
-export default function ProfileForm({ initial }: { initial: ProfileInitial }) {
+export default function ProfileForm({
+  initial,
+  initialMode = "view",
+  showMissingPrompt = true,
+}: {
+  initial: ProfileInitial;
+  initialMode?: "view" | "edit";
+  showMissingPrompt?: boolean;
+}) {
   const [state, action, isPending] = useActionState(updateProfile, {});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -73,7 +81,7 @@ export default function ProfileForm({ initial }: { initial: ProfileInitial }) {
   const [streetAddress, setStreetAddress] = useState(initial.street_address ?? "");
   const [barangay, setBarangay] = useState(initial.barangay ?? "");
   const [city, setCity] = useState(initial.city ?? "");
-  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [mode, setMode] = useState<"view" | "edit">(initialMode);
   const [justSaved, setJustSaved] = useState(false);
 
   // Return to view mode after a successful save. Render-phase adjustment on the
@@ -161,7 +169,7 @@ export default function ProfileForm({ initial }: { initial: ProfileInitial }) {
           </div>
         ) : null}
 
-        {missingLabels.length > 0 ? (
+        {showMissingPrompt && missingLabels.length > 0 ? (
           <div className="rounded-lg border border-warning-200 bg-warning-50 p-3">
             <p className="text-sm text-warning">
               Your profile is incomplete — add your {formatMissingList(missingLabels)} so

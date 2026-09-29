@@ -18,6 +18,7 @@ import {
   IconSelector,
   IconShieldCheck,
   IconUsers,
+  IconUser,
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
@@ -66,6 +67,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 const ADMIN_ICON_MAP: Record<string, TablerIcon> = {
   LayoutDashboard: IconLayoutDashboard,
   Users: IconUsers,
+  User: IconUser,
   Building2: IconBuilding,
   ShieldCheck: IconShieldCheck,
   History: IconHistory,
@@ -124,6 +126,7 @@ type AppSidebarProps = {
   // account holds the other portal's role.
   userRoles?: string[];
   activePortal?: "tenant" | "landlord";
+  profileHref?: string;
   iconSet?: "lucide" | "tabler";
   collapsible?: boolean;
 };
@@ -149,6 +152,7 @@ export function AppSidebar({
   userName,
   userRole,
   showAccountLinks = true,
+  profileHref: accountProfileHref,
   iconSet = "lucide",
   collapsible = false,
   userRoles = [],
@@ -164,10 +168,9 @@ export function AppSidebar({
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
-  const profileHref =
-    roleLabel.toLowerCase() === "landlord"
-      ? "/landlord/profile"
-      : "/tenant/profile";
+  const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
+    ? "/landlord/profile"
+    : "/tenant/profile");
 
   // One-click role switch: offered only when the account holds the other
   // portal's role. Navigating cross-portal is the context switch — no
@@ -337,12 +340,14 @@ export function AppSidebar({
                 <Dropdown.Item id="profile" textValue="Profile">
                   <Label>Profile</Label>
                 </Dropdown.Item>
-                <Dropdown.Item id="settings" textValue="Settings">
-                  <Label>Settings</Label>
-                </Dropdown.Item>
                 {switchTarget ? (
                   <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
                     <Label>{switchTarget.label}</Label>
+                  </Dropdown.Item>
+                ) : null}
+                {!accountProfileHref ? (
+                  <Dropdown.Item id="settings" textValue="Settings">
+                    <Label>Settings</Label>
                   </Dropdown.Item>
                 ) : null}
               </>) : null}

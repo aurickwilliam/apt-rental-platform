@@ -113,6 +113,7 @@ export default function LeaseDocumentPreview({
               Page {currentPage} of {pageCount}
             </span>
           ) : null}
+
           <Button
             variant="outline"
             size="sm"
@@ -121,6 +122,7 @@ export default function LeaseDocumentPreview({
             <IconDownload size={18} aria-hidden="true" />
             Download
           </Button>
+
           <Button
             variant="outline"
             size="sm"

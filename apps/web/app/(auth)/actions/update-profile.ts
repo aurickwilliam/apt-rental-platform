@@ -76,6 +76,7 @@ export async function updateProfile(
 
   revalidatePath("/tenant/profile");
   revalidatePath("/landlord/profile");
+  revalidatePath("/admin/profile");
 
   return { success: "Profile updated." };
 }

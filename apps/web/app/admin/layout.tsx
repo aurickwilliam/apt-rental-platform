@@ -27,7 +27,7 @@ export default async function AdminLayout({
         navItems={[...ADMIN_NAV]}
         userName={userName}
         userRole="Administrator"
-        showAccountLinks={false}
+        profileHref="/admin/profile"
         iconSet="tabler"
         collapsible
       />
@@ -36,7 +36,10 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
-      <MobileSidebarNavigation navItems={[...ADMIN_NAV]} iconSet="tabler" />
+      <MobileSidebarNavigation
+        navItems={[...ADMIN_NAV, { href: "/admin/profile", label: "Profile", icon: "User" }]}
+        iconSet="tabler"
+      />
     </div>
   );
 }
