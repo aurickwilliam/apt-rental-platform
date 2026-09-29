@@ -526,6 +526,7 @@ export default async function AdminUserDetailPage({
           <UserProfileHeader
             user={{ ...user, roles }}
             suspensionSupported={suspensionSupported}
+            settings={{ verifications: verificationItems, activityEvents }}
           />
           <UserPersonalInfo user={{ ...user, roles }} />
           <UserRentalActivity

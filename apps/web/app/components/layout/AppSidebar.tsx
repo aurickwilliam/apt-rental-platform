@@ -3,9 +3,10 @@
 import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
+  IconArrowsExchange,
   IconBuilding,
   IconChartBar,
   IconHistory,
@@ -15,6 +16,7 @@ import {
   IconLogout,
   IconMenu2,
   IconSearch,
+  IconSettings,
   IconSelector,
   IconShieldCheck,
   IconUsers,
@@ -24,9 +26,11 @@ import {
 
 import { Avatar, Button, Dropdown, Label } from "@heroui/react";
 import {
+  ArrowLeftRight,
   LogOut,
   ChevronsUpDown,
   Search,
+  Settings,
   House,
   FileText,
   Heart,
@@ -38,6 +42,7 @@ import {
   Banknote,
   MessagesSquare,
   Users,
+  UserRound,
   ShieldCheck,
   History,
   ChartBar,
@@ -128,6 +133,8 @@ type AppSidebarProps = {
   userRoles?: string[];
   activePortal?: "tenant" | "landlord";
   profileHref?: string;
+  settingsHref?: string;
+  settingsQueryParam?: string;
   iconSet?: "lucide" | "tabler";
   collapsible?: boolean;
 };
@@ -155,12 +162,15 @@ export function AppSidebar({
   avatarUrl,
   showAccountLinks = true,
   profileHref: accountProfileHref,
+  settingsHref,
+  settingsQueryParam,
   iconSet = "lucide",
   collapsible = false,
   userRoles = [],
   activePortal,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const savedCollapsed = useSyncExternalStore(
     subscribeToSidebarState,
     getStoredSidebarState,
@@ -337,32 +347,61 @@ export function AppSidebar({
             <Dropdown.Menu
               onAction={(key) => {
                 if (key === "profile") window.location.href = profileHref;
-                if (key === "settings") window.location.href = "/settings";
+                if (key === "settings") {
+                  if (settingsQueryParam) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("settings", settingsQueryParam);
+                    router.push(`${url.pathname}${url.search}${url.hash}`);
+                  } else {
+                    window.location.href = settingsHref ?? "/settings";
+                  }
+                }
                 if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
                 if (key === "logout") signOut();
               }}
             >
-              {showAccountLinks ? (<>
+                {showAccountLinks ? (<>
                 <Dropdown.Item id="profile" textValue="Profile">
-                  <Label>Profile</Label>
+                  <Label className="flex items-center gap-2">
+                    {iconSet === "tabler" ? (
+                      <IconUser size={18} aria-hidden="true" />
+                    ) : (
+                      <UserRound size={18} aria-hidden="true" />
+                    )}
+                    Profile
+                  </Label>
                 </Dropdown.Item>
                 {switchTarget ? (
                   <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
-                    <Label>{switchTarget.label}</Label>
+                    <Label className="flex items-center gap-2">
+                      {iconSet === "tabler" ? (
+                        <IconArrowsExchange size={18} aria-hidden="true" />
+                      ) : (
+                        <ArrowLeftRight size={18} aria-hidden="true" />
+                      )}
+                      {switchTarget.label}
+                    </Label>
                   </Dropdown.Item>
                 ) : null}
-                {!accountProfileHref ? (
+                {settingsHref || settingsQueryParam || !accountProfileHref ? (
                   <Dropdown.Item id="settings" textValue="Settings">
-                    <Label>Settings</Label>
+                    <Label className="flex items-center gap-2">
+                      {iconSet === "tabler" ? (
+                        <IconSettings size={18} aria-hidden="true" />
+                      ) : (
+                        <Settings size={18} aria-hidden="true" />
+                      )}
+                      Settings
+                    </Label>
                   </Dropdown.Item>
                 ) : null}
               </>) : null}
               <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
                 <Label className="flex items-center gap-2">
                   {iconSet === "tabler" ? (
-                    <IconLogout size={14} />
+                    <IconLogout size={18} aria-hidden="true" />
                   ) : (
-                    <LogOut size={14} />
+                    <LogOut size={18} aria-hidden="true" />
                   )}{" "}
                   Log Out
                 </Label>

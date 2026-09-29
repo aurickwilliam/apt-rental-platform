@@ -13,10 +13,17 @@ import {
   type AdminUserDetail,
 } from "../../lib/user-display";
 import ProfilePhoto from "./ProfilePhoto";
+import UserSettingsModal from "./UserSettingsModal";
+import type { UserActivityEvent } from "./UserActivityTimeline";
+import type { UserVerificationItem } from "./UserVerificationCard";
 
 interface UserProfileHeaderProps {
   user: AdminUserDetail;
   suspensionSupported: boolean;
+  settings?: {
+    verifications: UserVerificationItem[];
+    activityEvents: UserActivityEvent[];
+  };
   showBackLink?: boolean;
   headingLevel?: "h1" | "h2";
 }
@@ -24,6 +31,7 @@ interface UserProfileHeaderProps {
 export default function UserProfileHeader({
   user,
   suspensionSupported,
+  settings,
   showBackLink = true,
   headingLevel = "h1",
 }: UserProfileHeaderProps) {
@@ -97,7 +105,14 @@ export default function UserProfileHeader({
           </p>
         </div>
         <div className="shrink-0">
-          {suspensionSupported ? (
+          {settings ? (
+            <UserSettingsModal
+              user={user}
+              verifications={settings.verifications}
+              activityEvents={settings.activityEvents}
+              suspensionSupported={suspensionSupported}
+            />
+          ) : suspensionSupported ? (
             <OperationForm
               id={user.id}
               decision={user.is_suspended ? "reactivate" : "suspend"}

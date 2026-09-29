@@ -2195,9 +2195,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/providers.tsx": {
-    "mtime": 1787060341.9685342,
-    "ast_hash": "12e698eb2b424c6899fd200bf4e06f06",
-    "semantic_hash": "12e698eb2b424c6899fd200bf4e06f06"
+    "mtime": 1790692794.2336338,
+    "ast_hash": "9394da0c065858866f2a58f7cc9291cb",
+    "semantic_hash": ""
   },
   "apps/web/app/tenant/favorites/components/FavoriteListCard.tsx": {
     "mtime": 1787060341.968682,
@@ -4165,8 +4165,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/layout/AppSidebar.tsx": {
-    "mtime": 1790690840.011397,
-    "ast_hash": "ba00e7c5143c56b6eb098cd5ad822964",
+    "mtime": 1790696116.5369258,
+    "ast_hash": "842f45431a67f40d3b9b3ec9c54d609a",
     "semantic_hash": ""
   },
   "apps/web/app/components/layout/AppTopBar.tsx": {
@@ -4530,13 +4530,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/layout.tsx": {
-    "mtime": 1790690781.0316439,
-    "ast_hash": "b495abb65402b0b80a8ec73ec8439ea8",
+    "mtime": 1790696107.1561859,
+    "ast_hash": "819256941866a7e59635227fe2b4ec07",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/page.tsx": {
-    "mtime": 1790690386.162848,
-    "ast_hash": "9175967bf0a16a461ab9d1fae1d91cba",
+    "mtime": 1790691750.7025344,
+    "ast_hash": "4a04ab7f4aa9ed19a56b0784058260dd",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/page.tsx": {
@@ -5400,8 +5400,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserProfileHeader.tsx": {
-    "mtime": 1790690386.1623917,
-    "ast_hash": "57bf5c88bb3068308c1493f42a78dc7e",
+    "mtime": 1790691750.702347,
+    "ast_hash": "999537a0e702ac49e6182d0f5aff9704",
     "semantic_hash": ""
   },
   "apps/web/app/admin/users/[id]/components/UserReputation.tsx": {
@@ -5540,7 +5540,7 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/profile/page.tsx": {
-    "mtime": 1790690386.1617684,
+    "mtime": 1790696107.1564937,
     "ast_hash": "2ff5c61cd958caf2484378b215671b03",
     "semantic_hash": ""
   },
@@ -5560,8 +5560,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/profile/AccountActions.tsx": {
-    "mtime": 1790690386.161444,
-    "ast_hash": "6adcc589f2ddbf7b29a2cb16ac4620c1",
+    "mtime": 1790692004.0724976,
+    "ast_hash": "5aed60adc4d117f2d99d7ab80a48948e",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/ApartmentMaintenanceHistory.tsx": {
@@ -5652,6 +5652,26 @@
   "apps/web/app/components/profile/ProfileSaveSuccessDialog.tsx": {
     "mtime": 1790690386.1684098,
     "ast_hash": "e2e0aa7c11befd1842f003dcfbb0a6f9",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/users/[id]/components/UserSettingsModal.tsx": {
+    "mtime": 1790692004.0718355,
+    "ast_hash": "fbf1fc4b2dc01a3e025b2f1165e9b0eb",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/profile/AdminSettingsModal.tsx": {
+    "mtime": 1790696107.1552026,
+    "ast_hash": "3fa3b88b845ceb61fd4055240e53ed66",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/reduced-motion.ts": {
+    "mtime": 1790692794.2334144,
+    "ast_hash": "2a7f6a395678e66a94d6f685f937d7b4",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/AdminSettingsOverlay.tsx": {
+    "mtime": 1790696143.231071,
+    "ast_hash": "62de1bc0112db2bdab264799cecac48d",
     "semantic_hash": ""
   }
 }
