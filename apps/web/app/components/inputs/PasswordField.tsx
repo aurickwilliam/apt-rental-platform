@@ -38,7 +38,7 @@ export default function PasswordField({
     >
       <Label>{label}</Label>
 
-      <InputGroup className="rounded-xl border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+      <InputGroup className="rounded-xl border border-input bg-card transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
         <InputGroup.Input
           placeholder={placeholder}
           type={isVisible ? "text" : "password"}

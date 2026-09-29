@@ -46,7 +46,7 @@ export default function ThirdPartySignIn() {
       )}
       <Button
         variant="outline"
-        className="w-full h-11 border border-default-300 bg-white font-medium"
+        className="w-full h-11 border border-default-300 bg-card font-medium"
         isPending={loading}
         isDisabled={loading}
         onPress={handleGoogleSignIn}
