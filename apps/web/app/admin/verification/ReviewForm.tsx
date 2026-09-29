@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button, Label, ListBox, Modal, Select, TextArea } from "@heroui/react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 import type { ReviewResult } from "../actions/verification";
 
 type ReviewKind = "user" | "apartment";
@@ -9,6 +10,7 @@ type ReviewKind = "user" | "apartment";
 interface ReviewFormProps {
   verificationId: string;
   kind?: ReviewKind;
+  sticky?: boolean;
   onReview: (formData: FormData) => Promise<ReviewResult>;
 }
 
@@ -34,6 +36,7 @@ const REJECTION_REASONS: Record<ReviewKind, string[]> = {
 export function ReviewForm({
   verificationId,
   kind = "user",
+  sticky = false,
   onReview,
 }: ReviewFormProps) {
   const [isPending, startTransition] = useTransition();
@@ -73,26 +76,37 @@ export function ReviewForm({
   const isRejecting = decision === "rejected";
   return (
     <>
-      {error ? (
-        <p role="alert" aria-live="polite" className="mb-3 text-sm text-danger">
-          {error}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="primary"
-          onPress={() => setDecision("approved")}
-        >
-          Approve
-        </Button>
-        <Button
-          type="button"
-          variant="danger-soft"
-          onPress={() => setDecision("rejected")}
-        >
-          Reject
-        </Button>
+      <div className={sticky ? "pointer-events-none fixed right-4 bottom-20 left-4 z-30 md:right-6 md:bottom-6 md:left-70" : ""}>
+        <div className={sticky ? "pointer-events-auto mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-lg sm:p-5" : ""}>
+          {sticky ? (
+            <p className="font-nunito text-sm font-bold sm:text-base">
+              Do you want to approve this user?
+            </p>
+          ) : null}
+          {error ? (
+            <p role="alert" aria-live="polite" className={`${sticky ? "" : "mb-3"} text-sm text-danger`}>
+              {error}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={sticky ? "danger-soft" : "primary"}
+              onPress={() => setDecision(sticky ? "rejected" : "approved")}
+            >
+              {sticky ? <IconX size={18} aria-hidden="true" /> : <IconCheck size={18} aria-hidden="true" />}
+              {sticky ? "Reject" : "Approve"}
+            </Button>
+            <Button
+              type="button"
+              variant={sticky ? "primary" : "danger-soft"}
+              onPress={() => setDecision(sticky ? "approved" : "rejected")}
+            >
+              {sticky ? <IconCheck size={18} aria-hidden="true" /> : <IconX size={18} aria-hidden="true" />}
+              {sticky ? "Approve" : "Reject"}
+            </Button>
+          </div>
+        </div>
       </div>
       <Modal
         isOpen={decision !== null}

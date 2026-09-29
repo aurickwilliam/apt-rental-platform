@@ -13,8 +13,6 @@ interface VerificationTableProps {
   selected: "users" | "apartments";
 }
 
-const MIN_ROWS = 10;
-
 export default function VerificationTable({
   rows,
   selected,
@@ -22,7 +20,6 @@ export default function VerificationTable({
   const router = useRouter();
   const review = (id: string) =>
     router.push(`/admin/verification/${selected}/${id}`);
-  const placeholderCount = Math.max(0, MIN_ROWS - rows.length);
   return (
     <div className="hidden md:block">
       <Table>
@@ -74,18 +71,6 @@ export default function VerificationTable({
                       Pending
                     </Chip>
                   </Table.Cell>
-                </Table.Row>
-              ))}
-              {Array.from({ length: placeholderCount }, (_, index) => (
-                <Table.Row
-                  key={`placeholder-${index}`}
-                  id={`placeholder-${index}`}
-                  aria-hidden="true"
-                  className="h-14"
-                >
-                  <Table.Cell>&nbsp;</Table.Cell>
-                  <Table.Cell>&nbsp;</Table.Cell>
-                  <Table.Cell>&nbsp;</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>

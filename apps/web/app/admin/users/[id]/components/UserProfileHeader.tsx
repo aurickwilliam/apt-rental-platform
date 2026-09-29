@@ -17,13 +17,18 @@ import ProfilePhoto from "./ProfilePhoto";
 interface UserProfileHeaderProps {
   user: AdminUserDetail;
   suspensionSupported: boolean;
+  showBackLink?: boolean;
+  headingLevel?: "h1" | "h2";
 }
 
 export default function UserProfileHeader({
   user,
   suspensionSupported,
+  showBackLink = true,
+  headingLevel = "h1",
 }: UserProfileHeaderProps) {
   const name = getFullName(user);
+  const Heading = headingLevel;
   return (
     <Card className="relative overflow-hidden rounded-3xl border border-border bg-card p-0 shadow-none">
       <Card.Content className="p-0">
@@ -37,13 +42,15 @@ export default function UserProfileHeader({
             className="object-cover"
           />
         ) : null}
-        <Link
-          href="/admin/users"
-          className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <IconChevronLeft size={16} aria-hidden="true" />
-          Back to users
-        </Link>
+        {showBackLink ? (
+          <Link
+            href="/admin/users"
+            className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <IconChevronLeft size={16} aria-hidden="true" />
+            Back to users
+          </Link>
+        ) : null}
       </div>
       <div className="flex flex-wrap items-start gap-4 p-4">
         <ProfilePhoto
@@ -53,9 +60,9 @@ export default function UserProfileHeader({
         />
         <div className="min-w-0 flex-1 basis-48">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-nunito text-2xl font-bold wrap-break-word">
+            <Heading className="font-nunito text-2xl font-bold wrap-break-word">
               {name}
-            </h1>
+            </Heading>
             {user.roles.map((role) => {
               const style = roleChipStyle(role);
               const RoleIcon = roleChipIcon(role);

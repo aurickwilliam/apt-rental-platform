@@ -15,6 +15,8 @@ export interface UserActivityEvent {
 
 interface UserActivityTimelineProps {
   events: UserActivityEvent[];
+  title?: string;
+  emptyMessage?: string;
 }
 
 function targetHref(targetType: string, targetId: string) {
@@ -23,13 +25,17 @@ function targetHref(targetType: string, targetId: string) {
   return null;
 }
 
-export default function UserActivityTimeline({ events }: UserActivityTimelineProps) {
+export default function UserActivityTimeline({
+  events,
+  title = "Activity timeline",
+  emptyMessage = "No account activity yet",
+}: UserActivityTimelineProps) {
   return (
     <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
       <Card.Content className="p-0">
         <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
           <IconHistory size={20} className="shrink-0 text-primary" aria-hidden="true" />
-          Activity timeline
+           {title}
         </h2>
         {events.length ? (
           <ul className="mt-3 space-y-3 text-sm">
@@ -77,7 +83,7 @@ export default function UserActivityTimeline({ events }: UserActivityTimelinePro
           </ul>
         ) : (
           <p className="mt-3 text-sm text-muted-foreground">
-            No account activity yet
+             {emptyMessage}
           </p>
         )}
       </Card.Content>

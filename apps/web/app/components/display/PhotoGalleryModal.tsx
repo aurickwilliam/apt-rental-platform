@@ -12,6 +12,7 @@ export interface GalleryPhoto {
 interface PhotoGalleryModalProps {
   name: string;
   photos: GalleryPhoto[];
+  labels?: string[];
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   activeIndex: number;
@@ -21,6 +22,7 @@ interface PhotoGalleryModalProps {
 export default function PhotoGalleryModal({
   name,
   photos,
+  labels,
   isOpen,
   onOpenChange,
   activeIndex,
@@ -43,14 +45,14 @@ export default function PhotoGalleryModal({
             />
             <Modal.Header className="pr-12">
               <Modal.Heading className="font-nunito text-lg font-bold">
-                {name} · Photo {activeIndex + 1} of {photos.length}
+                 {name} · {labels?.[activeIndex] ?? `Photo ${activeIndex + 1} of ${photos.length}`}
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body className="p-0">
               <div className="relative h-[48dvh] w-full overflow-hidden rounded-3xl bg-neutral-950 sm:h-[55dvh]">
                 <Image
                   src={photos[activeIndex].url}
-                  alt={`${name} photo ${activeIndex + 1}`}
+                   alt={`${name} ${labels?.[activeIndex] ?? `photo ${activeIndex + 1}`}`}
                   fill
                   unoptimized
                   className="object-contain"
@@ -82,14 +84,14 @@ export default function PhotoGalleryModal({
                   </div>
                   <div
                     className="mt-3 flex gap-2 overflow-x-auto pb-1"
-                    aria-label="Choose a property photo"
+                     aria-label={`Choose a ${name.toLowerCase()} image`}
                   >
                     {photos.map((photo, index) => (
                       <button
                         key={`${photo.url}-${index}`}
                         type="button"
                         onClick={() => onActiveIndexChange(index)}
-                        aria-label={`Photo ${index + 1}`}
+                         aria-label={labels?.[index] ?? `Photo ${index + 1}`}
                         aria-pressed={index === activeIndex}
                         className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 focus-visible:outline-2 focus-visible:outline-primary ${index === activeIndex ? "border-primary" : "border-transparent"}`}
                       >
