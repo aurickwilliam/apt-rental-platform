@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Card } from "@heroui/react";
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@tabler/icons-react";
 
 interface PlatformTotalCardProps {
   label: string;
   value: number | null;
   href: string;
-  icon: LucideIcon;
+  icon: Icon;
   primary?: boolean;
 }
 

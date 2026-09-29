@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Building2, ChevronRight } from "lucide-react";
+import { IconBuilding, IconChevronRight } from "@tabler/icons-react";
 import type { RecentItem } from "../lib/get-dashboard-data";
 
 interface RecentApartmentCardProps {
@@ -31,7 +31,7 @@ export default function RecentApartmentCard({
         />
       ) : (
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Building2 size={19} aria-hidden="true" />
+          <IconBuilding size={19} aria-hidden="true" />
         </span>
       )}
       <span className="min-w-0 flex-1">
@@ -48,7 +48,7 @@ export default function RecentApartmentCard({
           </time>
         </span>
       </span>
-      <ChevronRight
+      <IconChevronRight
         size={16}
         className="shrink-0 text-primary"
         aria-hidden="true"

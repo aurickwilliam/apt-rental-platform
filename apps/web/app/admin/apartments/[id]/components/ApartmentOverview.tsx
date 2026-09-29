@@ -1,25 +1,63 @@
 import type { ReactNode } from "react";
 import { Card, Chip, Separator } from "@heroui/react";
 import {
-  Armchair,
-  Bath,
-  BedDouble,
-  Building2,
-  Calendar,
-  ClipboardList,
-  Coins,
-  Expand,
-  House,
-  LayoutGrid,
-  MapPin,
-  PhilippinePeso,
-  ReceiptText,
-  Tags,
-  Users,
-  Wallet,
-} from "lucide-react";
+  IconAirConditioning,
+  IconAlertTriangle,
+  IconArmchair,
+  IconArrowsMaximize,
+  IconArrowsUpDown,
+  IconBabyCarriage,
+  IconBarbell,
+  IconBath,
+  IconBed,
+  IconBellRinging,
+  IconBolt,
+  IconBrush,
+  IconBuilding,
+  IconCalendar,
+  IconCamera,
+  IconCar,
+  IconClipboardList,
+  IconCoffee,
+  IconCoins,
+  IconCurrencyPeso,
+  IconDeviceTv,
+  IconDroplets,
+  IconFence,
+  IconFireExtinguisher,
+  IconFlame,
+  IconFridge,
+  IconHome,
+  IconLamp,
+  IconLayoutGrid,
+  IconLock,
+  IconMapPin,
+  IconMicrowave,
+  IconMotorbike,
+  IconPackage,
+  IconParking,
+  IconPaw,
+  IconPlug,
+  IconPool,
+  IconReceipt,
+  IconShieldCheck,
+  IconShirt,
+  IconSmoking,
+  IconSmokingNo,
+  IconSun,
+  IconTags,
+  IconTemperature,
+  IconToolsKitchen2,
+  IconTree,
+  IconTruck,
+  IconUsers,
+  IconWallet,
+  IconWashMachine,
+  IconWifi,
+  IconWind,
+  type Icon,
+} from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
-import { PERKS } from "@/app/components/inputs/perks";
 import type { Apartment, ApartmentImage, Verification } from "../types";
 import ApartmentDescription from "./ApartmentDescription";
 import ApartmentGallery from "./ApartmentGallery";
@@ -41,6 +79,60 @@ const AMENITY_LABELS: Record<string, string> = {
   smartlock: "Smart Lock",
   tv: "TV",
   wifi: "Wi-Fi",
+};
+
+// Admin detail icons stay on Tabler; the shared PERKS catalog uses Lucide for other portals.
+const AMENITY_ICONS: Record<string, Icon> = {
+  bath: IconBath,
+  hotwater: IconTemperature,
+  toilet: IconBath,
+  cleaning: IconBrush,
+  washer: IconWashMachine,
+  dryer: IconWind,
+  wifi: IconWifi,
+  tv: IconDeviceTv,
+  cabletv: IconDeviceTv,
+  ac: IconAirConditioning,
+  electricfan: IconWind,
+  ceiling_fan: IconWind,
+  fridge: IconFridge,
+  microwave: IconMicrowave,
+  kettle: IconCoffee,
+  kitchen: IconToolsKitchen2,
+  stove: IconFlame,
+  cooking_utensils: IconToolsKitchen2,
+  no_cooking: IconToolsKitchen2,
+  water_dispenser: IconDroplets,
+  furniture: IconArmchair,
+  wardrobe: IconShirt,
+  bed: IconBed,
+  lamp: IconLamp,
+  balcony: IconSun,
+  garden: IconTree,
+  fenced: IconFence,
+  elevator: IconArrowsUpDown,
+  rooftop: IconBuilding,
+  parking: IconCar,
+  parkroad: IconCar,
+  motorbikeparking: IconMotorbike,
+  covered_parking: IconParking,
+  security: IconShieldCheck,
+  cctv: IconCamera,
+  smartlock: IconLock,
+  intercom: IconBellRinging,
+  smokealarm: IconAlertTriangle,
+  fireextinguisher: IconFireExtinguisher,
+  electricity: IconBolt,
+  water: IconDroplets,
+  generator: IconPlug,
+  gym: IconBarbell,
+  pool: IconPool,
+  petfriendly: IconPaw,
+  childfriendly: IconBabyCarriage,
+  nonsmoking: IconSmokingNo,
+  smoking: IconSmoking,
+  storage: IconPackage,
+  moving_in: IconTruck,
 };
 
 function amenityLabel(key: string): string {
@@ -109,12 +201,12 @@ export function ApartmentOverview({
           <Separator />
           <section aria-label="Property overview">
             <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <ClipboardList size={20} aria-hidden="true" /> Property overview
+              <IconClipboardList size={20} aria-hidden="true" /> Property overview
             </h2>
             <div className="mt-4 space-y-6">
               <div className="rounded-3xl bg-muted/30 p-4">
                 <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
-                  <ReceiptText
+                  <IconReceipt
                     size={20}
                     className="text-primary"
                     aria-hidden="true"
@@ -123,12 +215,12 @@ export function ApartmentOverview({
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
                   <PropertyFact
-                    icon={<PhilippinePeso size={20} />}
+                    icon={<IconCurrencyPeso size={20} />}
                     label="Monthly rent"
                     value={formatPesoDisplay(apartment.monthly_rent)}
                   />
                   <PropertyFact
-                    icon={<Wallet size={20} />}
+                    icon={<IconWallet size={20} />}
                     label="Security deposit"
                     value={
                       apartment.security_deposit == null
@@ -137,7 +229,7 @@ export function ApartmentOverview({
                     }
                   />
                   <PropertyFact
-                    icon={<Coins size={20} />}
+                    icon={<IconCoins size={20} />}
                     label="Advance rent"
                     value={
                       apartment.advance_rent == null
@@ -146,7 +238,7 @@ export function ApartmentOverview({
                     }
                   />
                   <PropertyFact
-                    icon={<Calendar size={20} />}
+                    icon={<IconCalendar size={20} />}
                     label="Lease duration"
                     value={apartment.lease_duration ?? "—"}
                   />
@@ -154,7 +246,7 @@ export function ApartmentOverview({
               </div>
               <div>
                 <h3 className="flex items-center gap-2 font-nunito text-sm font-semibold text-foreground">
-                  <LayoutGrid
+                  <IconLayoutGrid
                     size={20}
                     className="text-primary"
                     aria-hidden="true"
@@ -163,37 +255,37 @@ export function ApartmentOverview({
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-4">
                   <PropertyFact
-                    icon={<House size={20} />}
+                    icon={<IconHome size={20} />}
                     label="Property type"
                     value={apartment.type}
                   />
                   <PropertyFact
-                    icon={<BedDouble size={20} />}
+                    icon={<IconBed size={20} />}
                     label="Bedrooms"
                     value={String(apartment.no_bedrooms)}
                   />
                   <PropertyFact
-                    icon={<Bath size={20} />}
+                    icon={<IconBath size={20} />}
                     label="Bathrooms"
                     value={String(apartment.no_bathrooms)}
                   />
                   <PropertyFact
-                    icon={<Expand size={20} />}
+                    icon={<IconArrowsMaximize size={20} />}
                     label="Floor area"
                     value={`${apartment.area_sqm} sqm`}
                   />
                   <PropertyFact
-                    icon={<Armchair size={20} />}
+                    icon={<IconArmchair size={20} />}
                     label="Furnishing"
                     value={apartment.furnished_type ?? "—"}
                   />
                   <PropertyFact
-                    icon={<Building2 size={20} />}
+                    icon={<IconBuilding size={20} />}
                     label="Floor level"
                     value={apartment.floor_level ?? "—"}
                   />
                   <PropertyFact
-                    icon={<Users size={20} />}
+                    icon={<IconUsers size={20} />}
                     label="Max occupants"
                     value={
                       apartment.max_occupants == null
@@ -212,7 +304,7 @@ export function ApartmentOverview({
               <Separator />
               <section>
                 <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-                  <Tags size={20} aria-hidden="true" /> Amenities
+                  <IconTags size={20} aria-hidden="true" /> Amenities
                 </h2>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {apartment.amenities.map((amenity) => {
@@ -220,10 +312,10 @@ export function ApartmentOverview({
                       .toLowerCase()
                       .trim()
                       .replaceAll(" ", "_");
-                    const Icon = PERKS[key]?.icon ?? House;
+                    const AmenityIcon = AMENITY_ICONS[key] ?? IconHome;
                     return (
                       <Chip key={amenity} size="md" variant="soft">
-                        <Icon
+                        <AmenityIcon
                           size={16}
                           className="text-primary mr-1"
                           aria-hidden="true"
@@ -239,7 +331,7 @@ export function ApartmentOverview({
           <Separator />
           <section>
             <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <MapPin size={20} aria-hidden="true" /> Google Maps
+              <IconMapPin size={20} aria-hidden="true" /> Google Maps
             </h2>
             {mapCoordinates ? (
               <div className="mt-3 overflow-hidden rounded-3xl border border-border">

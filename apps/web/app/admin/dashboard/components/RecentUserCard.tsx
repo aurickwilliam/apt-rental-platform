@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "@heroui/react";
-import { ChevronRight } from "lucide-react";
+import { IconChevronRight } from "@tabler/icons-react";
 import type { RecentItem } from "../lib/get-dashboard-data";
 
 interface RecentUserCardProps {
@@ -44,7 +44,7 @@ export default function RecentUserCard({ user }: RecentUserCardProps) {
           </time>
         </span>
       </span>
-      <ChevronRight
+      <IconChevronRight
         size={16}
         className="shrink-0 text-primary"
         aria-hidden="true"

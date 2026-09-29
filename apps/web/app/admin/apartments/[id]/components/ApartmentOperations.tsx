@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import { formatPesoDisplay } from "@repo/utils";
 import {
-  CalendarDays,
-  ClipboardList,
-  History,
-  KeyRound,
-  Star,
-  Wrench,
-} from "lucide-react";
+  IconCalendarEvent,
+  IconClipboardList,
+  IconHistory,
+  IconKey,
+  IconStar,
+  IconTools,
+} from "@tabler/icons-react";
 import type {
   Activity,
   Application,
@@ -63,7 +63,7 @@ export function CurrentTenancyCard({
   return (
     <Section
       title="Current tenancy"
-      icon={<KeyRound size={20} />}
+      icon={<IconKey size={20} />}
       className="order-4 xl:order-0"
     >
       {error ? (
@@ -136,12 +136,12 @@ export function ApartmentPipelineSummary({
 }) {
   return (
     <div className="order-6 grid min-w-0 gap-4 md:grid-cols-2 xl:order-0">
-      <Section title="Applications" icon={<ClipboardList size={20} />}>
+      <Section title="Applications" icon={<IconClipboardList size={20} />}>
         {applications.error ? (
           <SectionError />
         ) : !applications.items.length && (applications.counts.total ?? 0) === 0 ? (
           <OperationalEmptyState
-            icon={<ClipboardList size={24} />}
+            icon={<IconClipboardList size={24} />}
             title="No applications yet"
             description="Rental applications for this property will appear here."
           />
@@ -173,12 +173,12 @@ export function ApartmentPipelineSummary({
           </>
         )}
       </Section>
-      <Section title="Visit requests" icon={<CalendarDays size={20} />}>
+      <Section title="Visit requests" icon={<IconCalendarEvent size={20} />}>
         {visits.error ? (
           <SectionError />
         ) : !visits.items.length && (visits.counts.total ?? 0) === 0 ? (
           <OperationalEmptyState
-            icon={<CalendarDays size={24} />}
+            icon={<IconCalendarEvent size={24} />}
             title="No visit requests yet"
             description="Visit requests for this property will appear here."
           />
@@ -230,14 +230,14 @@ export function ApartmentMaintenanceSummary({
   return (
     <Section
       title="Maintenance"
-      icon={<Wrench size={20} />}
+      icon={<IconTools size={20} />}
       className="order-7 xl:order-0"
     >
       {summary.error ? (
         <SectionError />
       ) : !summary.items.length && Object.values(summary.counts).every((count) => count === 0) ? (
         <OperationalEmptyState
-          icon={<Wrench size={24} />}
+          icon={<IconTools size={24} />}
           title="No maintenance requests"
           description="Reported maintenance issues for this property will appear here."
         />
@@ -307,14 +307,14 @@ export function ApartmentReviewsSummary({
   return (
     <Section
       title="Reviews"
-      icon={<Star size={20} />}
+      icon={<IconStar size={20} />}
       className="order-8 xl:order-0"
     >
       {error ? (
         <SectionError />
       ) : !reviews.length && (total ?? 0) === 0 && (rating == null || rating === 0) ? (
         <OperationalEmptyState
-          icon={<Star size={24} />}
+          icon={<IconStar size={24} />}
           title="No reviews yet"
           description="Tenant reviews for this property will appear here."
         />
@@ -369,7 +369,7 @@ export function ApartmentActivityTimeline({
   return (
     <Section
       title="Admin activity & history"
-      icon={<History size={20} />}
+      icon={<IconHistory size={20} />}
       className="order-9 xl:order-0"
     >
       {error ? (

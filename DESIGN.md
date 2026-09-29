@@ -175,6 +175,8 @@ Minimal — flat + hairline border is the aesthetic.
 | Mobile | `@tabler/icons-react-native` | — (migrated 2026-08-29, 0 files; `lucide-react-native` removed) |
 | Web | `lucide-react` + `@tabler/icons-react` (both accepted) | — |
 
+The web admin portal uses `@tabler/icons-react` exclusively, including shared navigation when rendered for admin. Landlord and tenant web portals may continue to use Lucide.
+
 Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocused outline 1.8); header actions 24–26; section icons 24; inline/button 16–20; metadata 12–18; empty-state 64 (tenant bare primary) / 32–48 (landlord, in gray circle); status 18–26 (receipt check 48). Filled variants for active/selected; neutral `gray500`/`textPrimary`, emphasis `primary`/`secondary`. Never add a new icon library.
 
 ---
@@ -253,6 +255,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 - **Navbar** ✅ (AppNavbar/TenantNavbar): `sticky top-0 z-40 h-16 border-b border-divider bg-background/70 backdrop-blur-md backdrop-saturate-150`; `max-w-7xl mx-auto px-4 sm:px-6`; logo 100×40; links `font-medium`, active `text-primary`; avatar dropdown; `sm:hidden` hamburger panel; auth buttons `rounded-full`
 - **Sidebar** ✅ (landlord, shadcn): `w-64` (256px), collapsible to `3rem` (18rem mobile); items `gap-3`, active `bg-primary/15 text-primary`, icons `w-5 h-5`; footer user block `hover:bg-grey-200`; content `bg-white min-h-screen w-full rounded-xl`
+- **Admin sidebar:** starts expanded at `w-64` with a collapse icon to the right of the linked logo. In the `w-16` collapsed rail, the APT mark becomes the expand control on hover or keyboard focus; icons stay centered with hover labels above the avatar menu. Save the preference locally; mobile retains its menu.
 - **Footer** ✅: full-width `bg-primary text-white`; desktop `md:flex justify-between gap-10`; mobile HeroUI `Accordion`; socials `ghost isIconOnly bg-white/20 hover:bg-white/30` size 26; links `text-white/80 hover:text-white`; `Separator h-0.5 bg-white`
 - No breadcrumb usage in production pages; no route transitions
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Modal } from "@heroui/react";
-import { FileText } from "lucide-react";
+import { IconFileText } from "@tabler/icons-react";
 
 const DESCRIPTION_PREVIEW_LENGTH = 500;
 
@@ -17,7 +17,7 @@ export default function ApartmentDescription({ description }: { description: str
   return (
     <section>
       <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-        <FileText size={20} aria-hidden="true" /> Description
+        <IconFileText size={20} aria-hidden="true" /> Description
       </h2>
       <p className="mt-2 whitespace-pre-line text-sm leading-6">{preview}</p>
       {isTruncated ? (
@@ -32,7 +32,7 @@ export default function ApartmentDescription({ description }: { description: str
                   <Modal.CloseTrigger aria-label="Close description" className="text-foreground" />
                   <Modal.Header className="pr-10">
                     <Modal.Heading className="flex items-center gap-2 font-nunito text-xl font-bold">
-                      <FileText size={20} className="text-primary" aria-hidden="true" /> Description
+                      <IconFileText size={20} className="text-primary" aria-hidden="true" /> Description
                     </Modal.Heading>
                   </Modal.Header>
                   <Modal.Body>

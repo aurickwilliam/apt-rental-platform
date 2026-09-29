@@ -28,13 +28,15 @@ export default async function AdminLayout({
         userName={userName}
         userRole="Administrator"
         showAccountLinks={false}
+        iconSet="tabler"
+        collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">
           {children}
         </main>
       </div>
-      <MobileSidebarNavigation navItems={[...ADMIN_NAV]} />
+      <MobileSidebarNavigation navItems={[...ADMIN_NAV]} iconSet="tabler" />
     </div>
   );
 }

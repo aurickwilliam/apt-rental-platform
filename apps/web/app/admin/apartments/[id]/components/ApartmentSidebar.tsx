@@ -2,17 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button, Separator, Tooltip } from "@heroui/react";
 import {
-  ArrowRight,
-  BadgeCheck,
-  Clock,
-  Eye,
-  EyeOff,
-  House,
-  Info,
-  ShieldCheck,
-  SlidersHorizontal,
-  UserRound,
-} from "lucide-react";
+  IconAdjustmentsHorizontal,
+  IconArrowRight,
+  IconClock,
+  IconEye,
+  IconEyeOff,
+  IconHome,
+  IconInfoCircle,
+  IconShieldCheck,
+  IconUser,
+} from "@tabler/icons-react";
 import OperationForm from "../../../OperationForm";
 import { setApartmentVisibility } from "../../../actions/operations";
 import type { Apartment, Landlord, Verification } from "../types";
@@ -39,7 +38,7 @@ export function ApartmentVerificationCard({
   return (
     <Section
       title="Verification"
-      icon={<ShieldCheck size={20} />}
+      icon={<IconShieldCheck size={20} />}
       className="order-2 xl:order-0"
     >
       {error ? (
@@ -105,16 +104,16 @@ export function ApartmentListingControls({
   return (
     <Section
       title="Listing controls"
-      icon={<SlidersHorizontal size={20} />}
+      icon={<IconAdjustmentsHorizontal size={20} />}
       headerExtra={
         <span className="flex items-center gap-1">
           <StatusChip
             status={hidden ? "hidden" : "visible"}
             icon={
               hidden ? (
-                <EyeOff size={14} aria-hidden="true" />
+                <IconEyeOff size={14} aria-hidden="true" />
               ) : (
-                <Eye size={14} aria-hidden="true" />
+                <IconEye size={14} aria-hidden="true" />
               )
             }
           />
@@ -126,7 +125,7 @@ export function ApartmentListingControls({
                 size="sm"
                 aria-label="About listing visibility and occupancy status"
               >
-                <Info size={16} aria-hidden="true" />
+                <IconInfoCircle size={16} aria-hidden="true" />
               </Button>
             </Tooltip.Trigger>
             <Tooltip.Content placement="bottom" className="max-w-64">
@@ -188,7 +187,7 @@ export function ApartmentLandlordCard({
   return (
     <Section
       title="Landlord"
-      icon={<UserRound size={20} />}
+      icon={<IconUser size={20} />}
       className="order-5 xl:order-0"
     >
       {error ? (
@@ -208,7 +207,7 @@ export function ApartmentLandlordCard({
                 />
               ) : (
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <UserRound size={22} aria-hidden="true" />
+                  <IconUser size={22} aria-hidden="true" />
                 </span>
               )}
               <div className="min-w-0">
@@ -230,7 +229,7 @@ export function ApartmentLandlordCard({
               status={landlord.account_status}
               icon={
                 landlord.account_status === "verified" ? (
-                  <ShieldCheck size={14} aria-hidden="true" />
+                  <IconShieldCheck size={14} aria-hidden="true" />
                 ) : undefined
               }
             />
@@ -242,7 +241,7 @@ export function ApartmentLandlordCard({
             </h3>
             <ul className="mt-2 space-y-2">
               <li className="flex min-w-0 items-center gap-2">
-                <House
+                <IconHome
                   size={16}
                   className="shrink-0 text-primary"
                   aria-hidden="true"
@@ -254,7 +253,7 @@ export function ApartmentLandlordCard({
                 </span>
               </li>
               <li className="flex min-w-0 items-center gap-2">
-                <BadgeCheck
+                <IconShieldCheck
                   size={16}
                   className="shrink-0 text-primary"
                   aria-hidden="true"
@@ -266,7 +265,7 @@ export function ApartmentLandlordCard({
                 </span>
               </li>
               <li className="flex min-w-0 items-center gap-2">
-                <Clock
+                <IconClock
                   size={16}
                   className="shrink-0 text-primary"
                   aria-hidden="true"
@@ -296,7 +295,7 @@ export function ApartmentLandlordCard({
               className="inline-flex items-center justify-center gap-1 rounded-full bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-2 focus-visible:outline-primary"
             >
               {count == null ? "View Properties" : `View ${count} Properties`}
-              <ArrowRight size={16} aria-hidden="true" />
+              <IconArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
         </div>

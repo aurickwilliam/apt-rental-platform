@@ -1,13 +1,13 @@
 import Link from "next/link";
 import {
-  Building2,
-  ChevronRight,
-  Clock3,
-  History,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+  IconBuilding,
+  IconChevronRight,
+  IconClockHour3,
+  IconHistory,
+  IconShieldCheck,
+  IconUsers,
+  type Icon,
+} from "@tabler/icons-react";
 import { requireAdmin } from "../_lib/require-admin";
 import DashboardTrends from "./components/DashboardTrends";
 import CurrentMonthCalendar from "./components/CurrentMonthCalendar";
@@ -67,7 +67,7 @@ function RecentSection({
                   className="flex items-center gap-3 rounded-3xl bg-muted/50 p-3 transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <History size={19} aria-hidden="true" />
+                    <IconHistory size={19} aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-nunito text-sm font-bold capitalize">
@@ -86,7 +86,7 @@ function RecentSection({
                       </time>
                     </span>
                   </span>
-                  <ChevronRight
+                  <IconChevronRight
                     size={16}
                     className="shrink-0 text-primary"
                     aria-hidden="true"
@@ -148,33 +148,33 @@ export default async function AdminDashboardPage({
     label: string;
     value: number | null;
     href: string;
-    icon: LucideIcon;
+    icon: Icon;
     primary?: boolean;
   }[] = [
     {
       label: "Total users",
       value: data.totals.users,
       href: "/admin/users",
-      icon: Users,
+      icon: IconUsers,
       primary: true,
     },
     {
       label: "Total apartments",
       value: data.totals.apartments,
       href: "/admin/apartments",
-      icon: Building2,
+      icon: IconBuilding,
     },
     {
       label: "Pending user reviews",
       value: data.totals.pendingUsers,
       href: "/admin/verification?tab=users",
-      icon: ShieldCheck,
+      icon: IconShieldCheck,
     },
     {
       label: "Pending apartment reviews",
       value: data.totals.pendingApartments,
       href: "/admin/verification?tab=apartments",
-      icon: Clock3,
+      icon: IconClockHour3,
     },
   ];
 
