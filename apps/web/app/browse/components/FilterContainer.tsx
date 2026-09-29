@@ -80,6 +80,7 @@ const INITIAL_FILTERS: Filters = {
 
 type Props = {
   resultCount: number;
+  basePath?: string;
 };
 
 const FILTER_DEBOUNCE_MS = 300;
@@ -170,7 +171,8 @@ function serializeFilters(f: Filters, search: string | null): string {
   return current.toString();
 }
 
-export default function FilterContainer({ resultCount }: Props) {
+export default function FilterContainer({ resultCount, basePath = "/browse" }: Props)
+{
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -201,7 +203,7 @@ export default function FilterContainer({ resultCount }: Props) {
     const query = serializeFilters(next, searchParamsRef.current.get("search"));
     lastPushedRef.current = query;
     startTransition(() => {
-      router.replace(query ? `/browse?${query}` : "/browse");
+      router.replace(query ? `${basePath}?${query}` : basePath);
     });
   };
 
@@ -246,7 +248,7 @@ export default function FilterContainer({ resultCount }: Props) {
     // Clear All also drops the text search so results are fully unfiltered.
     lastPushedRef.current = "";
     startTransition(() => {
-      router.replace("/browse");
+      router.replace(basePath);
     });
   };
 

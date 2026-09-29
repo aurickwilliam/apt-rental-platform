@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Avatar, Button, Card, Chip, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
 import { ArrowLeft, Hammer, MapPin, Phone } from "lucide-react";
-import { formatDate, getInitials } from "@repo/utils";
+import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import {
   getNextStatus,
@@ -100,11 +100,11 @@ export default function LandlordMaintenanceDetailPage() {
     }
   };
 
-  const handleResolveConfirm = async (notes: string) => {
-    const result = await resolveRequest(request.id, notes);
+  const handleResolveConfirm = async (notes: string, feeAmount?: number) => {
+    const result = await resolveRequest(request.id, notes, feeAmount);
     if (result.success) {
       resolveModal.setOpen(false);
-      toast.success("Request marked as Resolved");
+      toast.success(feeAmount !== undefined ? "Request resolved with maintenance fee" : "Request marked as Resolved");
     } else {
       toast.danger(result.error ?? "Could not resolve this request.");
     }
@@ -205,6 +205,20 @@ export default function LandlordMaintenanceDetailPage() {
               <p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">
                 {request.resolution_notes}
               </p>
+            </div>
+          </div>
+        )}
+
+        {request.fee_amount !== null && request.fee_amount > 0 && (
+          <div>
+            <SectionTitle>Maintenance Fee</SectionTitle>
+            <div className="mt-2 rounded-2xl bg-muted px-4 py-3 flex items-center justify-between gap-3">
+              <p className="text-[15px] font-nunito font-semibold text-primary">
+                {formatPesoDisplay(request.fee_amount)}
+              </p>
+              <Chip size="sm" variant="soft" color={request.fee_status === "paid" ? "success" : "warning"}>
+                {request.fee_status === "paid" ? "Paid" : "Added to next rent"}
+              </Chip>
             </div>
           </div>
         )}

@@ -10,6 +10,7 @@ import { Flag } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { formatPesoDisplay } from "@repo/utils";
+import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
 
 interface PriceCardProps {
   price: number;
@@ -66,6 +67,8 @@ export default function PriceCard({
         <Button fullWidth onPress={() => apartmentId && router.push(`/browse/${apartmentId}/apply`)}>
           Apply Now
         </Button>
+
+        {apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
         {/* Report Button */}
         <Button

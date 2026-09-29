@@ -28,6 +28,8 @@ export type LandlordMaintenanceRequest = {
   urgency: LandlordMaintenanceUrgency;
   photos: string[];
   resolution_notes: string | null;
+  fee_amount: number | null;
+  fee_status: "pending" | "paid" | null;
 };
 
 const DB_TO_DISPLAY_STATUS: Record<string, LandlordMaintenanceStatus> = {
@@ -64,6 +66,8 @@ type LandlordMaintenanceRow = {
   urgency: LandlordMaintenanceUrgency;
   image_urls: string[] | null;
   resolution_notes: string | null;
+  fee_amount: number | null;
+  fee_status: string | null;
   apartment: {
     name: string | null;
     street_address: string | null;
@@ -91,7 +95,7 @@ export async function fetchLandlordMaintenanceRequests(
   const { data, error } = await supabase
     .from("maintenance_request")
     .select(
-      `id, title, message, status, created_at, urgency, image_urls, resolution_notes,
+      `id, title, message, status, created_at, urgency, image_urls, resolution_notes, fee_amount, fee_status,
       apartment:apartments!maintenance_request_apartment_id_fkey(name, street_address, barangay, city, province),
       tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name, mobile_number, avatar_url)`,
     )
@@ -134,6 +138,8 @@ export async function fetchLandlordMaintenanceRequests(
       urgency: row.urgency,
       photos,
       resolution_notes: row.resolution_notes ?? null,
+      fee_amount: row.fee_amount ?? null,
+      fee_status: row.fee_status === "paid" ? "paid" : row.fee_status === "pending" ? "pending" : null,
     };
   });
 }
@@ -143,21 +149,31 @@ export async function updateLandlordMaintenanceStatus(
   landlordId: string,
   nextStatus: "In Progress" | "Resolved",
   resolutionNotes?: string,
+  feeAmount?: number,
 ): Promise<{ success: boolean; error?: string }> {
   if (nextStatus === "Resolved" && !resolutionNotes?.trim()) {
     return { success: false, error: "Resolution notes are required." };
+  }
+  if (feeAmount !== undefined && !(feeAmount > 0)) {
+    return { success: false, error: "Fee amount must be greater than ₱0." };
   }
 
   const updatePayload: {
     status: string;
     resolved_at?: string;
     resolution_notes?: string | null;
+    fee_amount?: number | null;
+    fee_status?: string | null;
   } =
     nextStatus === "Resolved"
       ? {
           status: DISPLAY_TO_DB_STATUS.Resolved,
           resolved_at: new Date().toISOString(),
           resolution_notes: resolutionNotes!.trim(),
+          // A fee is only ever written together with the resolve action.
+          ...(feeAmount !== undefined
+            ? { fee_amount: feeAmount, fee_status: "pending" }
+            : {}),
         }
       : { status: DISPLAY_TO_DB_STATUS["In Progress"] };
 

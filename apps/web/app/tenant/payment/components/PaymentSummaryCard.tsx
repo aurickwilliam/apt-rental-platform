@@ -8,6 +8,7 @@ interface PaymentSummaryCardProps {
   year: string;
   dueDate: string;
   monthlyRent: number;
+  fees?: { title: string; amount: number }[];
   className?: string;
 }
 
@@ -17,7 +18,9 @@ function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
 }
 
-export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, className = "" }: PaymentSummaryCardProps) {
+export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, fees = [], className = "" }: PaymentSummaryCardProps) {
+  const feesTotal = fees.reduce((sum, fee) => sum + fee.amount, 0);
+  const total = monthlyRent + feesTotal;
   return (
     <Card className={`rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col ${className}`}>
       <Card.Header className="px-4 pt-4 pb-0">
@@ -39,12 +42,21 @@ export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, 
           <span className="text-zinc-500 dark:text-zinc-400">Monthly Rent</span>
           <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{formatPesoDisplay(monthlyRent)}</span>
         </div>
+        {fees.slice(0, 3).map((fee) => (
+          <div key={fee.title} className="flex items-center justify-between text-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 truncate">Fee — {fee.title}</span>
+            <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100 shrink-0">+ {formatPesoDisplay(fee.amount)}</span>
+          </div>
+        ))}
+        {fees.length > 3 && (
+          <p className="text-xs text-zinc-400">+{fees.length - 3} more fees included</p>
+        )}
 
         <Separator className="my-2" />
 
         <div className="flex items-center justify-between mt-auto pt-2">
           <span className="text-sm font-nunito font-semibold text-primary">Total Payment</span>
-          <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(monthlyRent)}</span>
+          <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(total)}</span>
         </div>
       </Card.Content>
     </Card>
