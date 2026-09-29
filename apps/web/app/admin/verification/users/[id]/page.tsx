@@ -12,7 +12,7 @@ import UserActivityTimeline, {
 import type { AdminUserDetail } from "../../../users/lib/user-display";
 import { ReviewForm } from "../../ReviewForm";
 import VerificationDocuments from "./components/VerificationDocuments";
-import VerificationStatusCard from "./components/VerificationStatusCard";
+import VerificationStatusCard from "../../components/VerificationStatusCard";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -172,7 +172,8 @@ export default async function UserVerificationReviewPage({ params }: PageProps) 
         </div>
         <div className="min-w-0">
           <VerificationStatusCard
-            accountStatus={user.account_status}
+            subjectLabel="Account"
+            subjectStatus={user.account_status}
             status={verification.status}
             submittedAt={verification.submitted_at}
             reviewedAt={verification.reviewed_at}

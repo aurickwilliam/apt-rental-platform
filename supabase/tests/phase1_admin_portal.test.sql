@@ -1,6 +1,6 @@
 begin;
 
-select plan(11);
+select plan(12);
 
 select has_table('public', 'apartment_verifications', 'apartment verification table exists');
 select has_table('public', 'admin_audit_logs', 'admin audit table exists');
@@ -12,6 +12,7 @@ select ok(not has_column_privilege('authenticated', 'public.apartment_verificati
 select ok(not has_table_privilege('authenticated', 'public.admin_audit_logs', 'INSERT'), 'clients cannot forge audit rows');
 select ok(has_table_privilege('authenticated', 'public.admin_audit_logs', 'SELECT'), 'audit reads are RLS-scoped');
 select ok(exists (select 1 from pg_trigger where tgrelid = 'public.apartment_verifications'::regclass and tgname = 'sync_apartment_verification_review' and not tgisinternal), 'apartment review sync trigger is installed');
+select ok(exists (select 1 from pg_trigger where tgrelid = 'public.apartment_images'::regclass and tgname = 'enqueue_new_apartment_verification' and not tgisinternal), 'saving a listing cover queues apartment verification');
 select ok(
   (select with_check ~ 'a\\.landlord_id = apartment_verifications\\.landlord_id'
    from pg_policies

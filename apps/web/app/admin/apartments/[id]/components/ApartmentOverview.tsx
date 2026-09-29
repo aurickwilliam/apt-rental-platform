@@ -68,6 +68,7 @@ interface ApartmentOverviewProps {
   verification: Verification | null;
   images: ApartmentImage[];
   imagesError: boolean;
+  reviewMode?: boolean;
 }
 
 const AMENITY_LABELS: Record<string, string> = {
@@ -171,6 +172,7 @@ export function ApartmentOverview({
   verification,
   images,
   imagesError,
+  reviewMode = false,
 }: ApartmentOverviewProps) {
   const ordered = [...images].sort(
     (a, b) => Number(Boolean(b.is_cover)) - Number(Boolean(a.is_cover)),
@@ -191,12 +193,16 @@ export function ApartmentOverview({
           name={apartment.name}
           images={ordered}
           imagesError={imagesError}
+          backHref={reviewMode ? "/admin/verification?tab=apartments" : undefined}
+          backLabel={reviewMode ? "Back to verification" : undefined}
         />
 
         <div className="space-y-4 p-4">
           <ApartmentIdentity
             apartment={apartment}
             verification={verification}
+            showReviewAction={!reviewMode}
+            headingLevel={reviewMode ? "h2" : "h1"}
           />
           <Separator />
           <section aria-label="Property overview">

@@ -92,7 +92,7 @@ export function ReviewForm({
         >
           {sticky ? (
             <p className="font-nunito text-sm font-bold sm:text-base">
-              Do you want to approve this user?
+              Do you want to approve this {kind === "apartment" ? "apartment" : "user"}?
             </p>
           ) : null}
           {error ? (
@@ -166,8 +166,7 @@ export function ReviewForm({
                   {isRejecting ? (
                     <>
                       <p className="text-sm text-muted-foreground">
-                        Explain what the applicant or landlord needs to correct
-                        before resubmitting.
+                         Explain what the {kind === "apartment" ? "landlord" : "applicant"} needs to correct before resubmitting.
                       </p>
                       <Select
                         name="reasonCategory"
@@ -201,7 +200,7 @@ export function ReviewForm({
                           id="verification-rejection-details"
                           name="reason"
                           className="w-full h-30"
-                          placeholder="Add details for the applicant…"
+                           placeholder={kind === "apartment" ? "Add details for the landlord…" : "Add details for the applicant…"}
                         />
                       </div>
                     </>

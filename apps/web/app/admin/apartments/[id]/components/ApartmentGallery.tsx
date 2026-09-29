@@ -12,9 +12,11 @@ interface ApartmentGalleryProps {
   name: string;
   images: ApartmentImage[];
   imagesError: boolean;
+  backHref?: string;
+  backLabel?: string;
 }
 
-export default function ApartmentGallery({ name, images, imagesError }: ApartmentGalleryProps) {
+export default function ApartmentGallery({ name, images, imagesError, backHref = "/admin/apartments", backLabel = "Back to apartments" }: ApartmentGalleryProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -38,8 +40,8 @@ export default function ApartmentGallery({ name, images, imagesError }: Apartmen
             <span role={imagesError ? "alert" : undefined}>{imagesError ? "Property images could not be loaded." : "No property images available"}</span>
           </div>
         )}
-        <Button variant="tertiary" size="sm" className="absolute top-3 left-3 z-10 rounded-full bg-black/65 text-white hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-white" onPress={() => router.push("/admin/apartments")}>
-          <IconChevronLeft size={18} aria-hidden="true" /> Back to apartments
+        <Button variant="tertiary" size="sm" className="absolute top-3 left-3 z-10 rounded-full bg-black/65 text-white hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-white" onPress={() => router.push(backHref)}>
+          <IconChevronLeft size={18} aria-hidden="true" /> {backLabel}
         </Button>
         {cover && !imagesError ? (
           <Button variant="tertiary" size="sm" className="absolute right-3 bottom-3 z-10 rounded-full bg-black/65 text-white hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-white" onPress={() => openGallery(0)}>

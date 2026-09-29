@@ -20,11 +20,15 @@ import { dateOnly, StatusChip } from "./DetailPrimitives";
 interface ApartmentIdentityProps {
   apartment: Apartment;
   verification: Verification | null;
+  showReviewAction?: boolean;
+  headingLevel?: "h1" | "h2";
 }
 
 export default function ApartmentIdentity({
   apartment,
   verification,
+  showReviewAction = true,
+  headingLevel = "h1",
 }: ApartmentIdentityProps) {
   const router = useRouter();
   const address = [
@@ -45,13 +49,14 @@ export default function ApartmentIdentity({
           : "unverified";
   const occupancyStatus =
     apartment.status === "available" ? "vacant" : apartment.status;
+  const Heading = headingLevel;
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-primary font-nunito text-2xl font-bold wrap-break-word sm:text-3xl">
+          <Heading className="text-primary font-nunito text-2xl font-bold wrap-break-word sm:text-3xl">
             {apartment.name}
-          </h1>
+          </Heading>
           <p className="mt-1 text-sm text-muted-foreground">
             <IconMapPin
               size={16}
@@ -63,7 +68,7 @@ export default function ApartmentIdentity({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {verification?.status === "pending" ? (
+          {showReviewAction && verification?.status === "pending" ? (
             <Button
               variant="primary"
               onPress={() =>

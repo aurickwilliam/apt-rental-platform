@@ -1,11 +1,12 @@
 import { Card, Chip } from "@heroui/react";
 import { IconShieldCheck } from "@tabler/icons-react";
-import { verificationChipColor } from "../../../../users/lib/user-display";
-import { submittedFormatter } from "../../../lib/verification-display";
-import { InfoField } from "../../../../users/[id]/components/UserDetailPrimitives";
+import { verificationChipColor } from "../../users/lib/user-display";
+import { submittedFormatter } from "../lib/verification-display";
+import { InfoField } from "../../users/[id]/components/UserDetailPrimitives";
 
 interface VerificationStatusCardProps {
-  accountStatus: string;
+  subjectLabel: "Account" | "Apartment";
+  subjectStatus: string;
   status: string;
   submittedAt: string;
   reviewedAt: string | null;
@@ -14,7 +15,8 @@ interface VerificationStatusCardProps {
 }
 
 export default function VerificationStatusCard({
-  accountStatus,
+  subjectLabel,
+  subjectStatus,
   status,
   submittedAt,
   reviewedAt,
@@ -42,10 +44,10 @@ export default function VerificationStatusCard({
           <Chip
             size="md"
             variant="soft"
-            color={verificationChipColor(accountStatus)}
+            color={verificationChipColor(subjectStatus)}
             className="capitalize"
           >
-            Account: {accountStatus}
+            {subjectLabel}: {subjectStatus}
           </Chip>
         </div>
         <dl className="mt-4 grid gap-4">

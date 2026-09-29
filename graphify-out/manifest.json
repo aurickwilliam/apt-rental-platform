@@ -2410,8 +2410,8 @@
     "semantic_hash": ""
   },
   "apps/web/package.json": {
-    "mtime": 1790518210.0093389,
-    "ast_hash": "38411d4f7da596feaa98295e0a3b1f31",
+    "mtime": 1790668441.9311585,
+    "ast_hash": "0549f981f62890aa873a3cef7d452a75",
     "semantic_hash": ""
   },
   "apps/web/postcss.config.mjs": {
@@ -4545,13 +4545,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/ReviewForm.tsx": {
-    "mtime": 1790661119.5240424,
-    "ast_hash": "b8f4339cc60f076cdbcbc4d9fd2eceb5",
+    "mtime": 1790667477.43583,
+    "ast_hash": "773eae9848873f1a9a10d7e706f602d5",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/apartments/[id]/page.tsx": {
-    "mtime": 1790565473.9761434,
-    "ast_hash": "291cf9072adb9600cfd9c11df6302221",
+    "mtime": 1790669157.8876772,
+    "ast_hash": "e75edf712ce038b5d847aeee9ddfa08c",
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/page.tsx": {
@@ -4560,8 +4560,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/verification/users/[id]/page.tsx": {
-    "mtime": 1790660527.2096012,
-    "ast_hash": "8babb41212e22bc8bc1162fb332b8de1",
+    "mtime": 1790667477.4356575,
+    "ast_hash": "997f5099c1b4433a5ec439e4637ec385",
     "semantic_hash": ""
   },
   "apps/web/app/components/VerifiedBadge.tsx": {
@@ -4825,8 +4825,8 @@
     "semantic_hash": ""
   },
   "supabase/tests/phase1_admin_portal.test.sql": {
-    "mtime": 1790518210.0232167,
-    "ast_hash": "ae6dc12e2615b6bd58bf9b44237298ee",
+    "mtime": 1790665141.2116127,
+    "ast_hash": "4e6b1cd43f9786bddce02246fb9a2451",
     "semantic_hash": ""
   },
   "supabase/migrations/20260924100000_ensure_pg_net_for_notifications.sql": {
@@ -5440,8 +5440,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentOverview.tsx": {
-    "mtime": 1790661831.9128115,
-    "ast_hash": "db2b7f5c8ca2891a79dbb4bb0767d56e",
+    "mtime": 1790667477.434656,
+    "ast_hash": "cf2bdbfc8c39ce769d11b1abd62885dc",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentSidebar.tsx": {
@@ -5480,13 +5480,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentIdentity.tsx": {
-    "mtime": 1790605350.066933,
-    "ast_hash": "9a08b1856bd7ae0f1f1a90fe98f4a74f",
+    "mtime": 1790667477.4343402,
+    "ast_hash": "590fdadf6f900e3e8162381f4324bb01",
     "semantic_hash": ""
   },
   "apps/web/app/admin/apartments/[id]/components/ApartmentGallery.tsx": {
-    "mtime": 1790603220.5442688,
-    "ast_hash": "e2bf3dbf9a6a18697389b8c326e471b6",
+    "mtime": 1790667477.433913,
+    "ast_hash": "e0e77e5590249101f8229e3c694910e5",
     "semantic_hash": ""
   },
   "apps/web/app/components/display/PhotoGalleryModal.tsx": {
@@ -5504,9 +5504,34 @@
     "ast_hash": "aa87f23bc89cc244bf0b25c688149ddc",
     "semantic_hash": ""
   },
-  "apps/web/app/admin/verification/users/[id]/components/VerificationStatusCard.tsx": {
-    "mtime": 1790660565.0371845,
-    "ast_hash": "8eaec19cd23aef911d233c37b979059c",
+  "supabase/migrations/20260929070443_enqueue_new_apartment_verifications.sql": {
+    "mtime": 1790665141.2114213,
+    "ast_hash": "fb513c3cfa6e45a05385d2b52783ffc8",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/components/VerificationStatusCard.tsx": {
+    "mtime": 1790667477.4351633,
+    "ast_hash": "6e7db265f1196dc48ea27369e86fc9c4",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/apartments/[id]/lease/LeaseDocumentPreview.tsx": {
+    "mtime": 1790669631.5865915,
+    "ast_hash": "f99cf4ee3318f0b3d1a3ba489896751a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/apartments/[id]/lease/file/route.ts": {
+    "mtime": 1790669167.0223756,
+    "ast_hash": "d524eb4f2d591d9cb6926d8e47d40739",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/apartments/[id]/lease/page.tsx": {
+    "mtime": 1790669153.824363,
+    "ast_hash": "1e7091d16da34ba4f45ac6667c890bd5",
+    "semantic_hash": ""
+  },
+  "apps/web/app/admin/verification/apartments/[id]/lease/paginateDocx.ts": {
+    "mtime": 1790669564.413795,
+    "ast_hash": "61042e0b7b3559a6237aca161817fcf8",
     "semantic_hash": ""
   }
 }
