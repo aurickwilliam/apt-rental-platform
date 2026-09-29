@@ -2,8 +2,7 @@
 
 import { createClient } from "@repo/supabase/browser";
 
-export const APARTMENT_MAINTENANCE_HISTORY_PREVIEW_LIMIT = 5;
-export const APARTMENT_MAINTENANCE_HISTORY_PAGE_SIZE = 10;
+export const APARTMENT_MAINTENANCE_HISTORY_LIST_LIMIT = 50;
 
 export type ApartmentMaintenanceHistoryItem = {
   id: string;
@@ -33,7 +32,7 @@ type RpcRow = {
 
 export async function fetchApartmentMaintenanceHistory(
   apartmentId: string,
-  limit: number = APARTMENT_MAINTENANCE_HISTORY_PAGE_SIZE,
+  limit: number = APARTMENT_MAINTENANCE_HISTORY_LIST_LIMIT,
   offset = 0,
 ): Promise<ApartmentMaintenanceHistoryResult> {
   const supabase = createClient();
