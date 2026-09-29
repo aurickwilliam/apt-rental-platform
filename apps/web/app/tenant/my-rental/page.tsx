@@ -29,7 +29,7 @@ import type {
 import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
-import ApplicationsList from "./components/ApplicationsList";
+import TenancyEmptyState from "./components/TenancyEmptyState";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -125,7 +125,7 @@ function getInitials(name: string) {
 }
 
 export default function MyRental() {
-  const { tenancy, payments, currentPayment, loading, error } = useTenancy();
+  const { tenancy, payments, currentPayment, loading, error, refetch } = useTenancy();
   const {
     requests: maintenanceRequests,
     loading: maintenanceLoading,
@@ -172,15 +172,36 @@ export default function MyRental() {
     );
   }
 
-  if (!tenancy) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
+      <div className="min-h-screen bg-background">
         <div
-          className="flex-1 flex flex-col justify-start"
+          className="max-w-7xl mx-auto px-4 py-8 space-y-4 w-full flex-1 flex flex-col justify-center items-center"
           style={{ minHeight: "calc(100dvh - 4rem)" }}
         >
-          <div className="max-w-7xl mx-auto w-full px-4 py-8">
-            <ApplicationsList />
+          <DashboardCard className="max-w-xl w-full">
+            <div className="flex flex-col items-center gap-4 text-center px-6 py-10">
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">{error}</p>
+              <Button onPress={() => void refetch()}>
+                Try Again
+              </Button>
+            </div>
+          </DashboardCard>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tenancy) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <House size={20} className="text-primary" />
+              <h2 className="text-lg font-semibold text-card-foreground">My Rental</h2>
+            </div>
+            <TenancyEmptyState />
           </div>
         </div>
       </div>
