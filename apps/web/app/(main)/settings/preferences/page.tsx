@@ -1,7 +1,7 @@
 "use client";
 
 import { MapPin, Coins, Home, User, Bed, Users, ParkingCircle, PawPrint, Cigarette, Accessibility, Car, Truck, Bike } from "lucide-react";
-import { Button, Input, Label, TextField } from "@heroui/react";
+import { Button, Input, Label, Spinner, TextField } from "@heroui/react";
 import { toast } from "@heroui/react";
 import { useRentalPreferencesForm } from "../hooks/use-rental-preferences";
 import { CAMANAVA_FILTER_OPTIONS, PETS, VEHICLE_OPTIONS } from "@repo/constants";
@@ -112,7 +112,7 @@ export default function RentalPreferencesPage() {
     return (
       <SettingsShell title="Rental Preferences" showBack>
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
+          <Spinner color="accent" aria-label="Loading preferences" />
         </div>
       </SettingsShell>
     );

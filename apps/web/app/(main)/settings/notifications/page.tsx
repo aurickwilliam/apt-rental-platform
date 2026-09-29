@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageSquare, Home, Wrench, CreditCard, Settings } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 
 import SettingsShell from "../components/SettingsShell";
 import SettingsRow from "../components/SettingsRow";
@@ -26,7 +26,7 @@ export default function NotificationSettingsPage() {
     return (
       <SettingsShell title="Notifications" showBack>
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
+          <Spinner color="accent" aria-label="Loading notifications" />
         </div>
       </SettingsShell>
     );
@@ -36,7 +36,7 @@ export default function NotificationSettingsPage() {
     <SettingsShell title="Notifications" showBack>
       <div className="p-4 sm:p-5 divide-y divide-border">
         {/* General */}
-        <div className="pt-6">
+        <div>
           <div className="px-4 pb-3">
             <SectionTitle title="General" />
           </div>

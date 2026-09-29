@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { Button, Input, Popover, Checkbox } from "@heroui/react";
 
 interface MultiSelectPopoverProps {
@@ -65,11 +65,12 @@ export function MultiSelectPopover({
             <Input
               autoFocus
               placeholder="Search..."
+              aria-label="Search options"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent placeholder:text-muted-foreground pl-10 pr-4 py-3"
             />
-            <ChevronDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           </div>
 
           <div className="flex flex-col gap-1 max-h-60 overflow-y-auto overflow-x-hidden w-full pr-1">

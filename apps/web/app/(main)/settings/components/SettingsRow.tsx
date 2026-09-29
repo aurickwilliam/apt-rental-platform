@@ -10,6 +10,9 @@ interface SettingsRowProps {
   suffix?: React.ReactNode;
   onClick?: () => void;
   href?: string;
+  target?: string;
+  rel?: string;
+  hideChevron?: boolean;
   disabled?: boolean;
 }
 
@@ -20,10 +23,14 @@ export default function SettingsRow({
   suffix,
   onClick,
   href,
+  target,
+  rel,
+  hideChevron,
   disabled,
 }: SettingsRowProps) {
   const hasNavigation = Boolean(href || onClick);
   const isInteractive = hasNavigation && !disabled;
+  const showChevron = isInteractive && !hideChevron;
 
   const iconEl = (
     <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -45,7 +52,7 @@ export default function SettingsRow({
   const trailingEl = (
     <div className="flex items-center gap-2 justify-self-end min-w-0">
       {suffix}
-      {isInteractive && (
+      {showChevron && (
         <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
       )}
     </div>
@@ -64,6 +71,8 @@ export default function SettingsRow({
     return (
       <Link
         href={href}
+        target={target}
+        rel={rel}
         className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 hover:bg-muted/40 transition-colors"
       >
         {iconEl}

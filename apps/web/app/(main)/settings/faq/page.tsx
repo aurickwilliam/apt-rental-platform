@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { Accordion, AccordionBody, AccordionIndicator, AccordionItem, AccordionPanel, AccordionTrigger } from "@heroui/react";
 
 import SettingsShell from "../components/SettingsShell";
 
@@ -39,36 +38,26 @@ const faqs = [
 ];
 
 export default function FAQPage() {
-  const [openId, setOpenId] = useState<number | null>(null);
-
   return (
     <SettingsShell title="Frequently Asked Questions" subtitle="Find answers to common questions" showBack>
-      <div className="p-4 sm:p-5 space-y-4">
-        {faqs.map((faq) => (
-          <div key={faq.id} className="rounded-lg bg-muted/30">
-            <button
-              type="button"
-              onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
-              aria-expanded={openId === faq.id}
-              aria-controls={`faq-answer-${faq.id}`}
-              className="w-full flex items-center justify-between p-4 text-left"
-            >
-              <span className="font-nunito font-semibold text-base text-foreground pr-4">
-                {faq.question}
-              </span>
-              <ChevronDown
-                size={18}
-                className={`text-muted-foreground transition-transform flex-shrink-0 ${openId === faq.id ? "rotate-180" : ""}`}
-              />
-            </button>
-            {openId === faq.id && (
-              <div id={`faq-answer-${faq.id}`} className="px-4 pt-4 pb-4 border-t border-border">
-                <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
-              </div>
-            )}
-          </div>
-        ))}
-
+      <div className="p-4 sm:p-5">
+        <Accordion className="flex flex-col gap-3">
+          {faqs.map((faq) => (
+            <AccordionItem key={faq.id} id={String(faq.id)} className="rounded-lg bg-muted/30 px-2 overflow-hidden">
+              <AccordionTrigger className="w-full flex items-center justify-between p-4 text-left font-nunito font-semibold text-base text-foreground">
+                <span className="pr-4">
+                  {faq.question}
+                </span>
+                <AccordionIndicator className="text-muted-foreground flex-shrink-0" />
+              </AccordionTrigger>
+              <AccordionPanel>
+                <AccordionBody className="px-4 pb-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
+                </AccordionBody>
+              </AccordionPanel>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </SettingsShell>
   );

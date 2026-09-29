@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Github, Globe, Mail, Facebook, Instagram } from "lucide-react";
 
 import SettingsShell from "../components/SettingsShell";
 import SectionTitle from "../components/SectionTitle";
+import SettingsRow from "../components/SettingsRow";
 import { teamMembers } from "@/app/(main)/about/data/AboutData";
 
 const APP_VERSION = "1.0.0";
@@ -87,25 +87,18 @@ export default function AboutPage() {
           <div className="px-4 pb-3">
             <SectionTitle title="Meet the Team" />
           </div>
-          <div className="px-4 space-y-3">
+          <div className="divide-y divide-border">
             {teamMembers.map((dev) => (
-              <Link
+              <SettingsRow
                 key={dev.name}
-                href="#"
-                className="flex items-center gap-3 bg-muted/30 rounded-xl px-4 py-3 hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-nunito font-semibold text-sm">
+                icon={
+                  <span className="font-nunito font-semibold text-sm">
                     {dev.name.charAt(0)}
                   </span>
-                </div>
-                <div>
-                  <p className="text-sm font-nunito font-semibold text-foreground">
-                    {dev.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{dev.role}</p>
-                </div>
-              </Link>
+                }
+                title={dev.name}
+                description={dev.role}
+              />
             ))}
           </div>
         </div>
@@ -115,22 +108,19 @@ export default function AboutPage() {
           <div className="px-4 pb-3">
             <SectionTitle title="Connect with Us" />
           </div>
-          <div className="px-4 space-y-3">
+          <div className="divide-y divide-border">
             {socials.map((social) => {
               const Icon = social.icon;
               return (
-                <Link
+                <SettingsRow
                   key={social.id}
+                  icon={<Icon size={18} />}
+                  title={social.label}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-muted/30 rounded-xl px-4 py-3 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                    <Icon size={18} className="text-primary" />
-                  </div>
-                  <span className="text-sm text-foreground">{social.label}</span>
-                </Link>
+                  hideChevron
+                />
               );
             })}
           </div>

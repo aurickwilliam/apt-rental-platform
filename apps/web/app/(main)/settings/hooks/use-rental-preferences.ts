@@ -89,10 +89,13 @@ export function useRentalPreferencesForm() {
 
   // Initial prefs from profile.preferences — stable reference because useUser
   // recreates the profile object only when the DB row changes.
+  // Raw preferences value as the memo dep so the compiler sees the same
+  // dependency it infers (profile.preferences), not an optional chain.
+  const profilePreferences = profile?.preferences;
   const initialPrefs = useMemo<TenantPreferences>(() => {
-    if (!profile?.preferences) return DEFAULT_PREFS;
-    return parsePreferences(profile.preferences) ?? DEFAULT_PREFS;
-  }, [profile?.preferences]);
+    if (!profilePreferences) return DEFAULT_PREFS;
+    return parsePreferences(profilePreferences) ?? DEFAULT_PREFS;
+  }, [profilePreferences]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
 
@@ -282,10 +285,11 @@ export function useRentalPreferencesForm() {
 export function useUserPreferences() {
   const { profile } = useUser();
 
+  const profilePreferences = profile?.preferences;
   const parsedPrefs = useMemo<TenantPreferences | null>(() => {
-    if (!profile?.preferences) return null;
-    return parsePreferences(profile.preferences);
-  }, [profile?.preferences]);
+    if (!profilePreferences) return null;
+    return parsePreferences(profilePreferences);
+  }, [profilePreferences]);
 
   const isTenant = profile?.roles.includes("tenant") ?? false;
   const hasPrefs = isTenant && hasPersonalization(parsedPrefs);
