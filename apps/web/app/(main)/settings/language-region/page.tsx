@@ -22,7 +22,7 @@ const RegionSelect = ({ value, onChange, options, placeholder, className }: { va
       <Popover.Dialog className="p-2 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
         <ListBox selectionMode="single" selectedKeys={[value]} onSelectionChange={(keys) => onChange(Array.from(keys)[0] as string)}>
           {options.map((opt) => (
-            <ListBox.Item key={opt} value={opt}>
+            <ListBox.Item key={opt} id={opt} textValue={opt}>
               {opt}
             </ListBox.Item>
           ))}

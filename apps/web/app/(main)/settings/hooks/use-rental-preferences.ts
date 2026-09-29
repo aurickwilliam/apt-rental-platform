@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
+import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
 import { useUser } from "@/hooks/use-user";
 import { toast } from "@heroui/react";
 
@@ -40,6 +41,12 @@ const DEFAULT_PREFS: TenantPreferences = {
   hasDisability: false,
 };
 
+// Single source for the select options — shared by the form UI and the
+// parser below so a stored value outside these sets can never render.
+export const BEDROOM_OPTIONS = ["1-2 Bedrooms", "2-4 Bedrooms", "4+ Bedrooms"] as const;
+export const FAMILY_OPTIONS = ["Single", "Family of 2", "3 - 4 Persons", "5 - 6 Persons", "7+ Persons"] as const;
+export const PARKING_SPOT_OPTIONS = ["1", "2", "3", "4", "5"] as const;
+
 function isDefaultBudget(prefs: TenantPreferences): boolean {
   return prefs.budgetMin === DEFAULT_BUDGET_MIN && prefs.budgetMax === DEFAULT_BUDGET_MAX;
 }
@@ -57,22 +64,43 @@ export function hasPersonalization(prefs: TenantPreferences | null | undefined):
   return false;
 }
 
+function asFiniteNumber(val: unknown, fallback: number): number {
+  return typeof val === "number" && Number.isFinite(val) ? val : fallback;
+}
+
+function asKnownOption(val: unknown, options: readonly string[]): string | null {
+  return typeof val === "string" && options.includes(val) ? val : null;
+}
+
 export function parsePreferences(raw: unknown): TenantPreferences | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
   if (!Array.isArray(obj.selectedCities)) return null;
+  const budgetMin = asFiniteNumber(obj.budgetMin, DEFAULT_BUDGET_MIN);
+  const budgetMax = asFiniteNumber(obj.budgetMax, DEFAULT_BUDGET_MAX);
+  const parkingSpots = asFiniteNumber(obj.noOfParkingSpots, 1);
+  const petKind = typeof obj.kindOfPets === "string" ? obj.kindOfPets : "";
   return {
-    selectedCities: obj.selectedCities as string[],
-    budgetMin: typeof obj.budgetMin === "number" ? obj.budgetMin : DEFAULT_BUDGET_MIN,
-    budgetMax: typeof obj.budgetMax === "number" ? obj.budgetMax : DEFAULT_BUDGET_MAX,
-    bedroomCount: (obj.bedroomCount as string | null) ?? null,
-    householdSize: (obj.householdSize as string | null) ?? null,
+    selectedCities: (obj.selectedCities as unknown[]).filter(
+      (c): c is string => typeof c === "string",
+    ),
+    budgetMin: Math.min(budgetMin, budgetMax),
+    budgetMax: Math.max(budgetMin, budgetMax),
+    bedroomCount: asKnownOption(obj.bedroomCount, BEDROOM_OPTIONS),
+    householdSize: asKnownOption(obj.householdSize, FAMILY_OPTIONS),
     hasPets: Boolean(obj.hasPets),
-    kindOfPets: (obj.kindOfPets as string) ?? "",
-    nameOfPets: (obj.nameOfPets as string | null) ?? null,
+    kindOfPets: petKind === "" || PETS.includes(petKind) ? petKind : "",
+    nameOfPets: typeof obj.nameOfPets === "string" ? obj.nameOfPets : null,
     hasParking: Boolean(obj.hasParking),
-    noOfParkingSpots: typeof obj.noOfParkingSpots === "number" ? obj.noOfParkingSpots : 1,
-    listOfVehicles: Array.isArray(obj.listOfVehicles) ? (obj.listOfVehicles as string[]) : [],
+    noOfParkingSpots:
+      Number.isInteger(parkingSpots) && parkingSpots >= 1 && parkingSpots <= 5
+        ? parkingSpots
+        : 1,
+    listOfVehicles: Array.isArray(obj.listOfVehicles)
+      ? (obj.listOfVehicles as unknown[]).filter(
+          (v): v is string => typeof v === "string" && VEHICLE_OPTIONS.includes(v),
+        )
+      : [],
     hasSmoker: Boolean(obj.hasSmoker),
     hasDisability: Boolean(obj.hasDisability),
   };

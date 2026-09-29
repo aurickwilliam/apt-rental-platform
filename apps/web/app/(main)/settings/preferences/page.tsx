@@ -3,7 +3,7 @@
 import { MapPin, Coins, Home, User, Bed, Users, ParkingCircle, PawPrint, Cigarette, Accessibility, Car, Truck, Bike } from "lucide-react";
 import { Button, Input, Label, Spinner, TextField } from "@heroui/react";
 import { toast } from "@heroui/react";
-import { useRentalPreferencesForm } from "../hooks/use-rental-preferences";
+import { useRentalPreferencesForm, BEDROOM_OPTIONS, FAMILY_OPTIONS, PARKING_SPOT_OPTIONS } from "../hooks/use-rental-preferences";
 import { CAMANAVA_FILTER_OPTIONS, PETS, VEHICLE_OPTIONS } from "@repo/constants";
 import ToggleSwitch from "../components/ToggleSwitch";
 import SettingsShell from "../components/SettingsShell";
@@ -12,10 +12,6 @@ import { formatPesoDisplay } from "@repo/utils";
 import { MultiSelectPopover } from "../components/MultiSelectPopover";
 import { SingleSelectPopover } from "../components/SingleSelectPopover";
 import { RangeSlider } from "../components/RangeSlider";
-
-const BEDROOM_OPTIONS = ["1-2 Bedrooms", "2-4 Bedrooms", "4+ Bedrooms"] as const;
-const FAMILY_OPTIONS = ["Single", "Family of 2", "3 - 4 Persons", "5 - 6 Persons", "7+ Persons"] as const;
-const NO_PARKING_OPTIONS = ["1", "2", "3", "4", "5"] as const;
 
 const vehicleIconMap: Record<string, React.ReactNode> = {
   Car: <Car className="w-4 h-4" />,
@@ -243,8 +239,11 @@ export default function RentalPreferencesPage() {
                   </div>
                   <SingleSelectPopover
                     value={String(noOfParkingSpots)}
-                    onChange={(v) => setNoOfParkingSpots(Number(v))}
-                    options={[...NO_PARKING_OPTIONS]}
+                    onChange={(v) => {
+                      const next = Number(v);
+                      if (Number.isFinite(next)) setNoOfParkingSpots(next);
+                    }}
+                    options={[...PARKING_SPOT_OPTIONS]}
                     placeholder="Select spots"
                   />
                 </div>
