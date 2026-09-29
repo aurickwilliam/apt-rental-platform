@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@repo/supabase";
+import { createBrowserClient, type Database } from "@repo/supabase";
 
 type SupabaseClient = ReturnType<typeof createBrowserClient>;
 type UserResponse = Awaited<ReturnType<SupabaseClient["auth"]["getUser"]>>;
 type User = UserResponse["data"]["user"];
+type Preferences = Database["public"]["Tables"]["users"]["Row"]["preferences"];
 
 type Profile = {
   id: string | null;
@@ -13,6 +14,7 @@ type Profile = {
   avatar_url: string | null;
   mobile_number: string | null;
   roles: string[];
+  preferences: Preferences;
 };
 
 export function useUser() {
@@ -26,7 +28,7 @@ export function useUser() {
     const fetchUserAndProfile = async (userId: string, authUser: User) => {
       const { data: profileData } = await supabase
         .from('users')
-        .select('id, first_name, last_name, avatar_url, mobile_number, roles')
+        .select('id, first_name, last_name, avatar_url, mobile_number, preferences, roles')
         .eq('user_id', userId)
         .single();
       const data = profileData as unknown as Profile | null;
@@ -37,6 +39,7 @@ export function useUser() {
         last_name: data?.last_name ?? null,
         avatar_url: data?.avatar_url ?? authUser?.user_metadata?.avatar_url ?? null,
         mobile_number: data?.mobile_number ?? null,
+        preferences: data?.preferences ?? null,
         roles: data?.roles ?? [],
       });
     };
