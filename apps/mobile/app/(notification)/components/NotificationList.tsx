@@ -6,6 +6,8 @@ import { getRelativeTime } from '@repo/utils'
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
 import { buildNotificationDeepLink } from '@/utils/notificationDeepLink'
+import { authorizedPortal } from '@/service/auth/portalPreference'
+import { usePortalStore } from '@/stores/usePortalStore'
 import NotificationCard from '@/app/(notification)/components/NotificationCard';
 import NotificationCardSkeleton from '@/app/(notification)/components/NotificationCardSkeleton';
 
@@ -21,7 +23,10 @@ export default function NotificationList({ filter }: NotificationListProps) {
   const router = useRouter();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
-  const currentUserRole = currentUserQuery.data?.roles?.[0] ?? null;
+  const activePortal = usePortalStore((state) => state.portal);
+  const portalUserId = usePortalStore((state) => state.authUserId);
+  const currentUserRole = portalUserId === currentUserQuery.data?.user_id
+    ? authorizedPortal(currentUserQuery.data?.roles ?? [], activePortal) : null;
 
   const { notifications, loading, error } = useNotifications();
   const { markAsRead } = useNotificationActions(currentUserId);

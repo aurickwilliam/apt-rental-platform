@@ -43,7 +43,7 @@ const profileRecord = {
   avatar_url: null,
   account_status: "pending",
   background_url: null,
-  role: "tenant",
+  roles: ["tenant"],
   gender: null,
   birth_date: null,
   street_address: null,

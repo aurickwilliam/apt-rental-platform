@@ -5,6 +5,8 @@ import * as Notifications from "expo-notifications";
 import { useCurrentUser } from "@/hooks/auth";
 import { markNotificationRead } from "@/service/notifications/notificationService";
 import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
+import { authorizedPortal } from "@/service/auth/portalPreference";
+import { usePortalStore } from "@/stores/usePortalStore";
 
 /**
  * Handles taps on push notifications (foreground response listener + cold
@@ -18,8 +20,16 @@ export function useNotificationTapHandler() {
   const router = useRouter();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
-  const currentUserRole = currentUserQuery.data?.roles?.[0] ?? null;
+  const activePortal = usePortalStore((state) => state.portal);
+  const portalUserId = usePortalStore((state) => state.authUserId);
+  const currentUserRole = portalUserId === currentUserQuery.data?.user_id
+    ? authorizedPortal(currentUserQuery.data?.roles ?? [], activePortal) : null;
+  const roleRef = useRef(currentUserRole);
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
+
+  useEffect(() => {
+    roleRef.current = currentUserRole;
+  }, [currentUserRole]);
 
   useEffect(() => {
     function handleResponse(response: Notifications.NotificationResponse | null) {
@@ -27,7 +37,7 @@ export function useNotificationTapHandler() {
       const data = response.notification.request.content.data;
       if (!data?.screen) return;
 
-      if (!currentUserId) {
+      if (!currentUserId || !roleRef.current) {
         // Cold start: user profile may not be loaded yet; retry when it is.
         pendingResponseRef.current = response;
         return;
@@ -37,7 +47,7 @@ export function useNotificationTapHandler() {
       if (typeof data.notificationId === "string") {
         void markNotificationRead(data.notificationId);
       }
-      const href = buildNotificationDeepLink(data, currentUserId, currentUserRole);
+      const href = buildNotificationDeepLink(data, currentUserId, roleRef.current);
       if (href) router.push(href);
     }
 
@@ -50,7 +60,7 @@ export function useNotificationTapHandler() {
 
   useEffect(() => {
     const pending = pendingResponseRef.current;
-    if (pending && currentUserId) {
+    if (pending && currentUserId && currentUserRole) {
       pendingResponseRef.current = null;
       const data = pending.notification.request.content.data;
       if (typeof data?.notificationId === "string") {
@@ -59,5 +69,5 @@ export function useNotificationTapHandler() {
       const href = buildNotificationDeepLink(data, currentUserId, currentUserRole);
       if (href) router.push(href);
     }
-  }, [currentUserId, router]);
+  }, [currentUserId, currentUserRole, router]);
 }

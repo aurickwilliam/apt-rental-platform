@@ -1,7 +1,6 @@
 import { supabase, type Database } from '@repo/supabase';
 
 export type NotificationRow = Database['public']['Tables']['notifications']['Row'];
-type PushTokenRow = Database['public']['Tables']['push_tokens']['Row'];
 
 export type NotificationItem = Pick<
   NotificationRow,
@@ -111,19 +110,13 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function upsertPushToken(userId: string, token: string, platform: string): Promise<PushTokenRow | null> {
-  const { data, error } = await supabase
-    .from('push_tokens')
-    .upsert(
-      { user_id: userId, token, platform, updated_at: new Date().toISOString() },
-      { onConflict: 'token' },
-    )
-    .select('*')
-    .single();
+export async function registerPushToken(token: string, platform: 'ios' | 'android'): Promise<void> {
+  const { error } = await supabase.rpc('register_push_token', {
+    p_token: token,
+    p_platform: platform,
+  });
 
   if (error) throw error;
-
-  return data;
 }
 
 export async function deletePushToken(token: string): Promise<void> {
