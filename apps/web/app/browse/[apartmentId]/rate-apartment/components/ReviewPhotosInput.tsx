@@ -8,8 +8,11 @@ import { Label } from "@heroui/react";
 import { ImagePlus, Upload, X } from "lucide-react";
 
 export type ReviewPhoto = {
-  file: File;
+  // Null for photos already stored from a previous submission — they carry
+  // a storage path instead and are never re-uploaded.
+  file: File | null;
   url: string;
+  path?: string;
 };
 
 export const MAX_REVIEW_IMAGES = 5;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Modal, Button } from "@heroui/react";
 import { Expand, Navigation } from "lucide-react";
 
@@ -19,21 +19,6 @@ const MODES: {
   { id: "transit",    label: "Transit",    googleMode: "transit"   },
 ];
 
-interface LeafletContainer extends HTMLElement {
-  _leaflet_id?: number;
-}
-
-async function makeLeafletIcon() {
-  const L = (await import("leaflet")).default;
-  return L.icon({
-    iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize:  [25, 41],
-    iconAnchor:[12, 41],
-  });
-}
-
 interface MapLocationProps {
   latitude:  number | null;
   longitude: number | null;
@@ -44,93 +29,18 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   const [isDirectionsOpen, setIsDirectionsOpen] = useState<boolean>(false);
 
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const previewMapRef = useRef<import("leaflet").Map | null>(null);
-  const modalMapRef = useRef<import("leaflet").Map | null>(null);
 
-  // Default Preview Map
-  useEffect(() => {
-    if (!latitude || !longitude) return;
-    let cancelled = false;
-
-    (async () => {
-      const L = (await import("leaflet")).default;
-      await import("leaflet/dist/leaflet.css");
-      if (cancelled) return;
-
-      const container = L.DomUtil.get("map-preview") as LeafletContainer | null;
-      if (!container) return;
-      if (cancelled) return;
-
-      if (previewMapRef.current) {
-        previewMapRef.current.remove();
-        previewMapRef.current = null;
-      }
-
-      if (container._leaflet_id) {
-        delete container._leaflet_id;
-      }
-      if (cancelled) return;
-
-      const icon = await makeLeafletIcon();
-      const map = L.map("map-preview").setView([latitude, longitude], 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
-      L.marker([latitude, longitude], { icon }).addTo(map);
-      previewMapRef.current = map;
-    })();
-
-    return () => {
-      cancelled = true;
-      if (previewMapRef.current) {
-        previewMapRef.current.remove();
-        previewMapRef.current = null;
-      }
-    };
-  }, [latitude, longitude]);
-
-  // Expand Modal Map
-  useEffect(() => {
-    if (!isExpandOpen || !latitude || !longitude) return;
-    let cancelled = false;
-
-    const t = setTimeout(async () => {
-      const L = (await import("leaflet")).default;
-      await import("leaflet/dist/leaflet.css");
-      if (cancelled) return;
-
-      const container = L.DomUtil.get("map-modal") as LeafletContainer | null;
-      if (!container) return;
-      if (cancelled) return;
-
-      if (modalMapRef.current) {
-        modalMapRef.current.remove();
-        modalMapRef.current = null;
-      }
-
-      if (container._leaflet_id) {
-        delete container._leaflet_id;
-      }
-      if (cancelled) return;
-
-      const icon = await makeLeafletIcon();
-      const map = L.map("map-modal").setView([latitude, longitude], 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
-      L.marker([latitude, longitude], { icon }).addTo(map);
-      modalMapRef.current = map;
-    }, 100);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-      if (modalMapRef.current) {
-        modalMapRef.current.remove();
-        modalMapRef.current = null;
-      }
-    };
-  }, [isExpandOpen, latitude, longitude]);
+  const hasCoordinates =
+    latitude != null &&
+    longitude != null &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
+  const mapCoordinates = hasCoordinates
+    ? `${latitude},${longitude}`
+    : null;
+  const embedSrc = mapCoordinates
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(mapCoordinates)}&z=15&output=embed`
+    : null;
 
   const handleOpenDirections = () => {
     setIsDirectionsOpen(true);
@@ -155,9 +65,10 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
 
   // Open Google Maps with directions
   const openInGoogleMaps = (mode: typeof MODES[number]) => {
+    if (!mapCoordinates) return;
     const params = new URLSearchParams({
       api: "1",
-      destination: `${latitude},${longitude}`,
+      destination: mapCoordinates,
       travelmode: mode.googleMode,
     });
 
@@ -171,9 +82,9 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   };
 
   // Empty State of no coordinates of the apartment
-  if (!latitude || !longitude) {
+  if (!hasCoordinates || !embedSrc || !mapCoordinates) {
     return (
-      <div className="w-full h-80 bg-grey-200 flex items-center justify-center rounded-lg">
+      <div className="w-full h-80 bg-grey-200 flex items-center justify-center rounded-lg border border-grey-300">
         <p className="text-default-400 text-sm">No location available</p>
       </div>
     );
@@ -182,9 +93,15 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   return (
     <>
       {/* Preview map */}
-      <div className="relative w-full h-80">
-        <div id="map-preview" className="w-full h-full rounded-lg z-0" />
-        <div className="absolute bottom-3 right-3 z-1000 flex gap-2">
+      <div className="relative w-full h-80 overflow-hidden rounded-lg border border-grey-300">
+        <iframe
+          title={`Map of ${mapCoordinates}`}
+          src={embedSrc}
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="w-full h-full rounded-lg border-0"
+        />
+        <div className="absolute bottom-3 right-3 z-10 flex gap-2">
           <Button
             className="shadow-sm"
             size="sm"
@@ -225,7 +142,13 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
 
               <Modal.Body className="p-0 h-full flex items-center justify-center">
                 <div className="w-2/3 bg-white p-4 rounded-3xl overflow-hidden shadow-xl">
-                  <div id="map-modal" className="w-full h-[80vh] z-0 rounded-xl" />
+                  <iframe
+                    title={`Expanded map of ${mapCoordinates}`}
+                    src={embedSrc}
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    className="w-full h-[80vh] rounded-xl border-0"
+                  />
                 </div>
               </Modal.Body>
             </Modal.Dialog>

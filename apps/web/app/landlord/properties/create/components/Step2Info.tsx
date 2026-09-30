@@ -9,7 +9,7 @@ import type { ApartmentFormData, FormErrors } from "../page";
 
 import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
 
-const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
+const GoogleMapPicker = dynamic(() => import("../../components/GoogleMapPicker"), { ssr: false });
 
 interface Props {
   formData: ApartmentFormData;
@@ -378,7 +378,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
           </NumberField>
         </div>
 
-        <MapPicker
+        <GoogleMapPicker
           latitude={formData.latitude}
           longitude={formData.longitude}
           onPick={handlePick}

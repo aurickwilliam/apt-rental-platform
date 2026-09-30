@@ -50,6 +50,7 @@ export default function ApartmentCard({
             alt="Apartment Thumbnail"
             width={300}
             height={200}
+            unoptimized
             className="object-cover rounded-xl size-56"
           />
 

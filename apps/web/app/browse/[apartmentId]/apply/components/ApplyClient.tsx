@@ -271,6 +271,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               sizes="(max-width:768px) 100vw, 896px"
               priority
               quality={90}
+              unoptimized
               className="object-cover"
               style={{ borderRadius: "1.375rem" }}
             />

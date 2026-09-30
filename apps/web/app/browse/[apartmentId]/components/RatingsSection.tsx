@@ -1,24 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { Button } from "@heroui/react";
 
 import RatingBreakdown from "./RatingBreakdown";
-import { getApartmentReviews, type StoredReview } from "../lib/review-store";
-
-function starCounts(reviews: StoredReview[]): Record<number, number> {
-  const counts: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-
-  for (const review of reviews) {
-    const rating = Math.round(review.rating);
-    if (rating >= 1 && rating <= 5) counts[rating] += 1;
-  }
-
-  return counts;
-}
+import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface RatingSectionProps {
   apartmentId: string;
@@ -28,22 +15,11 @@ export default function RatingSection({
   apartmentId,
 }: RatingSectionProps) {
   const router = useRouter();
-  const [reviews, setReviews] = useState<StoredReview[]>([]);
+  const { overallRating, totalReviews, ratingsCount, loading, error } =
+    useApartmentReviews(apartmentId);
 
-  useEffect(() => {
-    setReviews(getApartmentReviews(apartmentId));
-  }, [apartmentId]);
-
-  const stats = useMemo(() => {
-    const counts = starCounts(reviews);
-    const total = reviews.length;
-    const average =
-      total > 0
-        ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / total) * 10) / 10
-        : 0;
-
-    return { total, average, counts };
-  }, [reviews]);
+  const countFor = (star: number) =>
+    ratingsCount.find((bucket) => bucket.rating === star)?.ratingCount ?? 0;
 
   return (
     <div>
@@ -60,15 +36,21 @@ export default function RatingSection({
         </Button>
       </div>
 
-      <RatingBreakdown
-        overallRate={stats.average}
-        totalReviews={stats.total}
-        no5Star={stats.counts[5]}
-        no4Star={stats.counts[4]}
-        no3Star={stats.counts[3]}
-        no2Star={stats.counts[2]}
-        no1Star={stats.counts[1]}
-      />
+      {loading ? (
+        <p className="text-sm text-default-500">Loading ratings…</p>
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
+      ) : (
+        <RatingBreakdown
+          overallRate={overallRating}
+          totalReviews={totalReviews}
+          no5Star={countFor(5)}
+          no4Star={countFor(4)}
+          no3Star={countFor(3)}
+          no2Star={countFor(2)}
+          no1Star={countFor(1)}
+        />
+      )}
     </div>
   );
 }
