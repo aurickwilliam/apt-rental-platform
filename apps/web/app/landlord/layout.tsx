@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { AppSidebar } from "../components/layout/AppSidebar";
 import { AppTopBar } from "../components/layout/AppTopBar";
+import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
 const LANDLORD_NAV = [
@@ -54,11 +56,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...LANDLORD_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="landlord" />
+      <AppSidebar navItems={[...LANDLORD_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="landlord" settingsQueryParam="open" />
       <div className="flex flex-1 flex-col min-w-0">
         <AppTopBar titleMap={LANDLORD_TITLES} />
         <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-card">{children}</main>
       </div>
+      <Suspense fallback={null}>
+        <SettingsOverlay />
+      </Suspense>
     </div>
   );
 }

@@ -55,7 +55,7 @@ import {
 
 import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
-import ToggleSwitch from "@/app/(main)/settings/components/ToggleSwitch";
+import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,

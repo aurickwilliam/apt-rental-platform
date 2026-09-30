@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { AppSidebar } from "../components/layout/AppSidebar";
 import { AppTopBar } from "../components/layout/AppTopBar";
+import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
@@ -54,11 +56,14 @@ export default async function TenantLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="tenant" />
+      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="tenant" settingsQueryParam="open" />
       <div className="flex flex-1 flex-col min-w-0">
         <AppTopBar titleMap={TENANT_TITLES} />
         <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-background">{children}</main>
       </div>
+      <Suspense fallback={null}>
+        <SettingsOverlay />
+      </Suspense>
     </div>
   );
 }

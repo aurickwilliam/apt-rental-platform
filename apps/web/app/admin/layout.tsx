@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "@/app/components/layout/AppSidebar";
-import AdminSettingsOverlay from "./AdminSettingsOverlay";
+import SettingsOverlay from "@/app/components/settings/SettingsOverlay";
 import { requireAdmin } from "./_lib/require-admin";
 
 const ADMIN_NAV = [
@@ -31,7 +31,7 @@ export default async function AdminLayout({
         userRole="Administrator"
         avatarUrl={profile.avatar_url}
         profileHref="/admin/profile"
-        settingsQueryParam="account"
+        settingsQueryParam="open"
         iconSet="tabler"
         collapsible
       />
@@ -45,7 +45,7 @@ export default async function AdminLayout({
         iconSet="tabler"
       />
       <Suspense fallback={null}>
-        <AdminSettingsOverlay />
+        <SettingsOverlay iconSet="tabler" />
       </Suspense>
     </div>
   );
