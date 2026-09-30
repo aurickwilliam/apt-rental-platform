@@ -51,6 +51,7 @@ export default async function DashboardLayout({
         userRoles={userRoles}
         activePortal="landlord"
         profileHref="/landlord/profile"
+        settingsHref="/settings"
         iconSet="tabler"
         collapsible
       />

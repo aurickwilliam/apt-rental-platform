@@ -51,6 +51,7 @@ export default async function TenantLayout({
         userRoles={userRoles}
         activePortal="tenant"
         profileHref="/tenant/profile"
+        settingsHref="/settings"
         iconSet="tabler"
         collapsible
       />
