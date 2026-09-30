@@ -64,7 +64,7 @@ import {
 import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import UserAvatar from "@/app/components/profile/UserAvatar";
-import ToggleSwitch from "@/app/(main)/settings/components/ToggleSwitch";
+import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -298,7 +298,7 @@ export function AppSidebar({
             className="group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Image
-              src="/logo/logo-white.svg"
+              src={isDark ? "/logo/logo.svg" : "/logo/logo-white.svg"}
               alt=""
               width={32}
               height={32}

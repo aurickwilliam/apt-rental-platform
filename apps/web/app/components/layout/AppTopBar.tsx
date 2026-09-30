@@ -1,5 +1,10 @@
 "use client";
 
+// NOTE: Orphaned by the PR #143 sidebar unification — tenant/landlord
+// layouts now use AppSidebar + MobileSidebarNavigation instead of this
+// top bar. Kept intentionally (working code, may be reused); remove if
+// no consumer returns.
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";

@@ -14,6 +14,8 @@ interface SettingsRowProps {
   rel?: string;
   hideChevron?: boolean;
   disabled?: boolean;
+  expanded?: boolean;
+  controlsId?: string;
 }
 
 export default function SettingsRow({
@@ -27,6 +29,8 @@ export default function SettingsRow({
   rel,
   hideChevron,
   disabled,
+  expanded,
+  controlsId,
 }: SettingsRowProps) {
   const hasNavigation = Boolean(href || onClick);
   const isInteractive = hasNavigation && !disabled;
@@ -90,6 +94,8 @@ export default function SettingsRow({
         disabled={disabled}
         className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 w-full text-left hover:bg-muted/40 transition-colors"
         aria-disabled={disabled}
+        aria-expanded={expanded}
+        aria-controls={controlsId}
       >
         {iconEl}
         {labelEl}

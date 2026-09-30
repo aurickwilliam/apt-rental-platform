@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
+import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
 const LANDLORD_NAV = [
@@ -51,7 +53,7 @@ export default async function DashboardLayout({
         userRoles={userRoles}
         activePortal="landlord"
         profileHref="/landlord/profile"
-        settingsHref="/settings"
+        settingsQueryParam="open"
         iconSet="tabler"
         collapsible
       />
@@ -65,6 +67,9 @@ export default async function DashboardLayout({
         menuLabel="Landlord pages"
         buttonLabel="Open landlord navigation"
       />
+      <Suspense fallback={null}>
+        <SettingsOverlay iconSet="tabler" />
+      </Suspense>
     </div>
   );
 }

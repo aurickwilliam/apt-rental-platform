@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { Dropdown, Button, Label } from "@heroui/react";
@@ -12,6 +12,7 @@ import ThemeToggle from "./ThemeToggle";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 const NAV_LINKS = [
@@ -31,7 +32,16 @@ export default function AppNavbar() {
   const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, profile, loading } = useUser();
+
+  const openSettings = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("settings", SETTINGS_QUERY_VALUE);
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  };
 
   const getDashboardHref = () => {
     if (profile?.roles.includes("admin")) return "/admin/dashboard";
@@ -131,7 +141,7 @@ export default function AppNavbar() {
                     onAction={(key) => {
                       if (key === "profile")   window.location.href = getProfileHref();
                       if (key === "dashboard") window.location.href = getDashboardHref();
-                      if (key === "settings")  window.location.href = "/settings";
+                      if (key === "settings")  openSettings();
                       if (key === "logout")    signOut();
                     }}
                   >
@@ -195,7 +205,13 @@ export default function AppNavbar() {
             <>
               <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
               <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-              <Link href="/settings"  className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Settings</Link>
+              <button
+                type="button"
+                className="text-foreground font-medium text-left"
+                onClick={() => { openSettings(); setIsMenuOpen(false); }}
+              >
+                Settings
+              </button>
               <button
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
                 className="text-danger font-medium text-left"

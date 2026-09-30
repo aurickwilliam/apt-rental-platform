@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Globe, MapPin } from "lucide-react";
+import { IconGlobe, IconMapPin } from "@tabler/icons-react";
 import { Popover, ListBox, Button } from "@heroui/react";
 
-import SettingsShell from "../components/SettingsShell";
-import SettingsRow from "../components/SettingsRow";
-import SectionTitle from "../components/SectionTitle";
+import SettingsRow from "../SettingsRow";
+import SectionTitle from "../SectionTitle";
 import { LANGUAGES, REGIONS } from "@repo/constants";
 
 const RegionSelect = ({ value, onChange, options, placeholder, className }: { value: string; onChange: (value: string) => void; options: string[]; placeholder?: string; className?: string }) => (
@@ -32,20 +32,32 @@ const RegionSelect = ({ value, onChange, options, placeholder, className }: { va
   </Popover>
 );
 
-export default function LanguageRegionPage() {
+export default function LanguageRegionTab({
+  iconSet = "lucide",
+}: {
+  iconSet?: "lucide" | "tabler";
+}) {
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].label);
   const [selectedRegion, setSelectedRegion] = useState(REGIONS[0]);
+  const GlobeIcon = iconSet === "tabler" ? IconGlobe : Globe;
+  const PinIcon = iconSet === "tabler" ? IconMapPin : MapPin;
 
   return (
-    <SettingsShell title="Language & Region" subtitle="Configure your language and region settings" showBack>
-      <div className="p-4 sm:p-5 divide-y divide-border">
+    <>
+      <h2 className="font-nunito text-lg font-bold text-primary">
+        Language &amp; Region
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Configure your language and region settings
+      </p>
+      <div className="mt-3 divide-y divide-border">
         <div className="pt-6">
           <div className="px-4 pb-3">
             <SectionTitle title="Language" />
           </div>
           <div className="divide-y divide-border">
             <SettingsRow
-              icon={<Globe size={18} />}
+              icon={<GlobeIcon size={18} />}
               title="Language"
               suffix={
                 <RegionSelect
@@ -66,7 +78,7 @@ export default function LanguageRegionPage() {
           </div>
           <div className="divide-y divide-border">
             <SettingsRow
-              icon={<MapPin size={18} />}
+              icon={<PinIcon size={18} />}
               title="Region"
               suffix={
                 <RegionSelect
@@ -88,6 +100,6 @@ export default function LanguageRegionPage() {
         </div>
 
       </div>
-    </SettingsShell>
+    </>
   );
 }

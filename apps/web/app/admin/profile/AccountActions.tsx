@@ -4,6 +4,7 @@ import { Button } from "@heroui/react";
 import { IconLogout, IconPencil, IconSettings } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
 export default function AccountActions() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function AccountActions() {
       <Button
         variant="outline"
         className="min-h-11 w-full justify-start gap-3"
-        onPress={() => router.push("/admin/profile?settings=account")}
+        onPress={() => router.push(`/admin/profile?settings=${SETTINGS_QUERY_VALUE}`)}
       >
         <IconSettings size={20} aria-hidden="true" /> Settings
       </Button>

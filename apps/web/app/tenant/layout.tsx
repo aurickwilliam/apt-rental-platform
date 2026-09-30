@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
+import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
@@ -50,7 +52,7 @@ export default async function TenantLayout({
         userRoles={userRoles}
         activePortal="tenant"
         profileHref="/tenant/profile"
-        settingsHref="/settings"
+        settingsQueryParam="open"
         iconSet="tabler"
         collapsible
       />
@@ -64,6 +66,9 @@ export default async function TenantLayout({
         menuLabel="Tenant pages"
         buttonLabel="Open tenant navigation"
       />
+      <Suspense fallback={null}>
+        <SettingsOverlay iconSet="tabler" />
+      </Suspense>
     </div>
   );
 }
