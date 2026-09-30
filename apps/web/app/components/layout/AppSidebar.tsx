@@ -22,10 +22,12 @@ import {
   IconMenu2,
   IconMessageCircle,
   IconMessages,
+  IconMoon,
   IconSearch,
   IconSettings,
   IconSelector,
   IconShieldCheck,
+  IconSun,
   IconTool,
   IconUsers,
   IconUser,
@@ -39,11 +41,13 @@ import {
   ChevronsUpDown,
   Search,
   Settings,
+  Sun,
   House,
   FileText,
   Heart,
   Wrench,
   MessageCircle,
+  Moon,
   LayoutDashboard,
   Building2,
   FileCheckCorner,
@@ -57,7 +61,9 @@ import {
   Menu,
 } from "lucide-react";
 
+import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import ToggleSwitch from "@/app/(main)/settings/components/ToggleSwitch";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -154,6 +160,12 @@ function getInitialSidebarState() {
   return false;
 }
 
+// Client-mount gate for theme-dependent UI (avoids hydration mismatch).
+// Mirrors the sidebar's collapsed-state store pattern so no effect is needed.
+function subscribeThemeMounted() {
+  return () => {};
+}
+
 type NavItem = {
   href: string;
   label: string;
@@ -221,6 +233,17 @@ export function AppSidebar({
     () => getStoredSidebarState(resolvedStorageKey),
     [resolvedStorageKey],
   );
+  const { resolvedTheme, setTheme } = useTheme();
+  const themeMounted = useSyncExternalStore(
+    subscribeThemeMounted,
+    () => true,
+    () => false,
+  );
+
+  const isDark = themeMounted && resolvedTheme === "dark";
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
   const savedCollapsed = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -419,6 +442,7 @@ export function AppSidebar({
                   }
                 }
                 if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
+                if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
             >
@@ -445,6 +469,30 @@ export function AppSidebar({
                     </Label>
                   </Dropdown.Item>
                 ) : null}
+                <Dropdown.Item id="theme" textValue="Dark Mode">
+                  <Label className="flex w-full items-center gap-2">
+                    {iconSet === "tabler" ? (
+                      isDark ? (
+                        <IconMoon size={18} aria-hidden="true" />
+                      ) : (
+                        <IconSun size={18} aria-hidden="true" />
+                      )
+                    ) : isDark ? (
+                      <Moon size={18} aria-hidden="true" />
+                    ) : (
+                      <Sun size={18} aria-hidden="true" />
+                    )}
+                    Dark Mode
+                    <span className="ml-auto pointer-events-none flex items-center">
+                      <ToggleSwitch
+                        isSelected={isDark}
+                        onValueChange={toggleTheme}
+                        disabled={!themeMounted}
+                        aria-label="Toggle dark mode"
+                      />
+                    </span>
+                  </Label>
+                </Dropdown.Item>
                 {settingsHref || settingsQueryParam || !accountProfileHref ? (
                   <Dropdown.Item id="settings" textValue="Settings">
                     <Label className="flex items-center gap-2">
