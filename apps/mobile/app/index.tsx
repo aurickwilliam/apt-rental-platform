@@ -6,6 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 import { useTheme } from "hooks/useTheme";
+import { usePortalStore } from "@/stores/usePortalStore";
+import { portalHome } from "@/service/auth/portalPreference";
 
 export default function Index() {
   const { isDark } = useTheme();
@@ -22,19 +24,16 @@ export default function Index() {
     };
 
     const redirectByRole = async (userId: string) => {
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error } = await supabase
         .from("users")
         .select("roles")
         .eq("user_id", userId)
         .single();
 
-      // Multi-role: boot into the primary role's portal (roles[0]).
-      const primaryRole = userProfile?.roles?.[0] ?? null;
-
-      if (primaryRole === "landlord") {
-        router.replace("/(tabs)/(landlord)/dashboard");
-      } else if (primaryRole === "tenant") {
-        router.replace("/(tabs)/(tenant)/rentals");
+      if (error || !userProfile) throw error ?? new Error("Profile not found.");
+      const portal = await usePortalStore.getState().restore(userId, userProfile.roles ?? []);
+      if (portal) {
+        router.replace(portalHome(portal));
       } else {
         await supabase.auth.signOut();
         router.replace("/sign-in");
@@ -57,6 +56,7 @@ export default function Index() {
           }
         } catch (error) {
           console.error("Error during app boot:", error);
+          usePortalStore.getState().reset();
           router.replace("/sign-in");
         } finally {
           subscription.unsubscribe();

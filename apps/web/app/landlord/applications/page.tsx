@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Avatar, Button, Chip, Dropdown, InputGroup, Separator, Spinner, Table } from "@heroui/react";
+import { Button, Chip, Dropdown, InputGroup, Separator, Spinner, Table } from "@heroui/react";
 import { Search, ListFilter, Calendar, Home } from "lucide-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import { useLandlordApplications, type DisplayStatus } from "@/hooks/use-landlord-applications";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { statusChipColor } from "./lib/application-status";
 
 export type { DisplayStatus };
@@ -167,13 +168,14 @@ export default function ApplicationsPage() {
                         <Table.Row key={app.id} id={app.id} className="cursor-pointer hover:bg-muted/50">
                           <Table.Cell>
                             <div className="flex items-center gap-2">
-                              <Avatar size="sm" className="shrink-0">
-                                {app.tenant_avatar_url ? (
-                                  <img src={app.tenant_avatar_url} alt={app.tenant_name} className="h-full w-full object-cover" />
-                                ) : (
-                                  <span className="text-xs font-semibold">{getInitials(app.tenant_name)}</span>
-                                )}
-                              </Avatar>
+                              <UserAvatar
+                                src={app.tenant_avatar_url}
+                                initials={getInitials(app.tenant_name)}
+                                alt={app.tenant_name}
+                                size="sm"
+                                className="shrink-0"
+                                fallbackClassName="text-xs font-semibold"
+                              />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-card-foreground truncate max-w-32">{app.tenant_name}</p>
                                 <p className="text-xs text-muted-foreground truncate max-w-32">{app.tenant_email ?? "—"}</p>
@@ -221,13 +223,14 @@ export default function ApplicationsPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <Avatar size="lg" className="shrink-0">
-                        {app.tenant_avatar_url ? (
-                          <img src={app.tenant_avatar_url} alt={app.tenant_name} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-sm font-semibold">{getInitials(app.tenant_name)}</span>
-                        )}
-                      </Avatar>
+                      <UserAvatar
+                        src={app.tenant_avatar_url}
+                        initials={getInitials(app.tenant_name)}
+                        alt={app.tenant_name}
+                        size="lg"
+                        className="shrink-0"
+                        fallbackClassName="text-sm font-semibold"
+                      />
                       <div className="min-w-0">
                         <p className="font-nunito font-semibold text-card-foreground truncate">{app.tenant_name}</p>
                         <p className="text-sm text-muted-foreground truncate flex items-center gap-1">

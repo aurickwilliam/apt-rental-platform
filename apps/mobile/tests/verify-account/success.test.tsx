@@ -3,6 +3,11 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import Success from '@/app/(auth)/verify-account/success';
 import { initialVerificationState, useVerificationStore } from '@/stores/useVerificationStore';
 
+let mockPortal: 'tenant' | 'landlord' | null = null;
+jest.mock('@/stores/usePortalStore', () => ({
+  usePortalStore: (selector: (state: { portal: typeof mockPortal }) => unknown) => selector({ portal: mockPortal }),
+}));
+
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
     colors: { textPrimary: '#333333', primary: '#376BF5', success: '#22C55E' },
@@ -56,6 +61,7 @@ describe('Success', () => {
     jest.clearAllMocks();
     latestBeforeRemoveHandler = null;
     mockProfile = { roles: ['tenant'] };
+    mockPortal = null;
     mockAddListener.mockImplementation((_event: string, handler: any) => {
       latestBeforeRemoveHandler = handler;
       return jest.fn();
@@ -109,5 +115,13 @@ describe('Success', () => {
     fireEvent.press(screen.getByText('Go to Profile'));
 
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/(landlord)/profile');
+  });
+
+  it('uses the active portal for a dual-role user', () => {
+    mockProfile = { roles: ['landlord', 'tenant'] };
+    mockPortal = 'tenant';
+    render(<Success />);
+    fireEvent.press(screen.getByText('Go to Profile'));
+    expect(mockReplace).toHaveBeenCalledWith('/(tabs)/(tenant)/profile');
   });
 });

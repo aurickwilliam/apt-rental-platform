@@ -7,7 +7,7 @@ export const BACKGROUND_BUCKET = "background_photos";
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 export const AVATAR_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-const AVATAR_MAX_LONG_EDGE = 800;
+const AVATAR_MAX_LONG_EDGE = 512;
 const AVATAR_JPEG_QUALITY = 0.8;
 const BACKGROUND_MAX_LONG_EDGE = 1600;
 const BACKGROUND_JPEG_QUALITY = 0.8;
@@ -135,4 +135,36 @@ export async function uploadBackground(
   if (updateError) throw new Error(updateError.message);
 
   return publicUrl;
+}
+
+export async function removeAvatar(
+  supabase: SupabaseClient<Database>,
+  authUserId: string
+): Promise<void> {
+  const path = `${authUserId}/${authUserId}.jpg`;
+
+  const { error: removeError } = await supabase.storage.from(AVATAR_BUCKET).remove([path]);
+  if (removeError) throw new Error(removeError.message);
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ avatar_url: null, updated_at: new Date().toISOString() })
+    .eq("user_id", authUserId);
+  if (updateError) throw new Error(updateError.message);
+}
+
+export async function removeBackground(
+  supabase: SupabaseClient<Database>,
+  authUserId: string
+): Promise<void> {
+  const path = `${authUserId}/${authUserId}.jpg`;
+
+  const { error: removeError } = await supabase.storage.from(BACKGROUND_BUCKET).remove([path]);
+  if (removeError) throw new Error(removeError.message);
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ background_url: null, updated_at: new Date().toISOString() })
+    .eq("user_id", authUserId);
+  if (updateError) throw new Error(updateError.message);
 }

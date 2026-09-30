@@ -9,6 +9,11 @@ describe("buildNotificationDeepLink", () => {
     expect(buildNotificationDeepLink({}, USER_ID, "tenant")).toBeNull();
   });
 
+  it("does not assume tenant routes without an authorized portal", () => {
+    expect(buildNotificationDeepLink({ screen: "maintenance", apartmentId: "apt-1" }, USER_ID, null)).toBeNull();
+    expect(buildNotificationDeepLink({ screen: "payments", paymentId: "payment-1" }, USER_ID, null)).toBeNull();
+  });
+
   it("routes apartment notifications to the apartment screen", () => {
     expect(buildNotificationDeepLink(
       { screen: "apartment", apartmentId: "apt-1" },
@@ -99,6 +104,9 @@ describe("buildNotificationDeepLink", () => {
   });
 
   describe("visitRequests", () => {
+    it("does not route unsupported roles to landlord requests", () => {
+      expect(buildNotificationDeepLink({ screen: "visitRequests" }, USER_ID, null)).toBeNull();
+    });
     it("routes tenants to their applications", () => {
       expect(buildNotificationDeepLink({ screen: "visitRequests" }, USER_ID, "tenant")).toBe(
         "/tenant/applications",

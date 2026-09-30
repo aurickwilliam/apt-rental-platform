@@ -23,6 +23,8 @@ import { supabase } from "@repo/supabase";
 import { Appearance, View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
+import { usePortalStore } from "@/stores/usePortalStore";
+import { clearQueryClient } from "@/utils/queryClient";
 import {
   useInAppNotificationBanner,
   usePushRegistration,
@@ -91,8 +93,12 @@ export default function RootLayout() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setPrivateMediaCacheUser(session?.user.id ?? null);
+      if (event === 'SIGNED_OUT' || (session && usePortalStore.getState().authUserId && usePortalStore.getState().authUserId !== session.user.id)) {
+        usePortalStore.getState().reset();
+        clearQueryClient();
+      }
     });
 
     return () => subscription.unsubscribe();

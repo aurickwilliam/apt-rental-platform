@@ -10,6 +10,7 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 import { supabase } from '@repo/supabase'
 
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
+import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
 
 import { getProfileSubmitError } from '@repo/utils'
@@ -104,10 +105,13 @@ export default function OTPVerification() {
 
       if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
 
+      const userSide = data.userSide
+      if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
+
       const { error: insertError } = await supabase.from('users').insert({
         user_id: authData.user.id,
         email: emailValue || data.email!,
-        roles: [data.userSide ?? 'tenant'],
+        roles: [userSide],
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,
@@ -124,7 +128,7 @@ export default function OTPVerification() {
 
       if (insertError) throw insertError
 
-      const userSide = data.userSide
+      await usePortalStore.getState().switchTo(authData.user.id, [userSide], userSide)
       reset()
 
       router.dismissAll()

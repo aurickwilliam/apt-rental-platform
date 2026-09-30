@@ -11,9 +11,6 @@ export interface NotificationData {
   verificationId?: string;
 }
 
-// Primary-role string (roles[0]); callers pass the active portal's role.
-type Role = string | null;
-
 function parseConversationKey(key: string): { userIdA: string; userIdB: string; apartmentId: string | null } | null {
   const parts = key.split(":");
   // Format: chat:{apartmentId or 'none'}:{uuidA}:{uuidB}
@@ -32,7 +29,7 @@ function parseConversationKey(key: string): { userIdA: string; userIdB: string; 
 export function buildNotificationDeepLink(
   data: unknown,
   currentUserId: string | null,
-  role: Role | null,
+  role: string | null,
 ): Href | null {
   if (!data || typeof data !== "object") return null;
 
@@ -68,6 +65,7 @@ export function buildNotificationDeepLink(
       return `/apartment/${payload.apartmentId}` as unknown as Href;
     case "maintenance":
       if (role === "landlord") return "/landlord/maintenance-requests" as Href;
+      if (role !== "tenant") return null;
       if (!payload.apartmentId) return null;
       return {
         pathname: "/tenant/maintenance-history",
@@ -75,7 +73,8 @@ export function buildNotificationDeepLink(
       } as unknown as Href;
     case "visitRequests":
       if (role === "tenant") return "/tenant/applications" as Href;
-      return "/landlord/visit-requests" as Href;
+      if (role === "landlord") return "/landlord/visit-requests" as Href;
+      return null;
     case "verification":
       // Verification has no apartment context; land on the role-aware
       // profile screen where VerificationStatus shows the live state.
@@ -89,6 +88,7 @@ export function buildNotificationDeepLink(
         if (!payload.apartmentId) return null;
         return `/landlord/manage-apartment/${payload.apartmentId}/payment-history` as unknown as Href;
       }
+      if (role !== "tenant") return null;
       if (payload.paymentId) {
         return {
           pathname: "/tenant/payment/history/[paymentId]",

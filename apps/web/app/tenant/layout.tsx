@@ -17,7 +17,7 @@ export default async function TenantLayout({
   let userName = "Tenant";
   const userRole = "Tenant";
   let userRoles: string[] = ["tenant"];
-  let avatarUrl: string | null = null;
+  let userAvatarUrl: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -27,14 +27,14 @@ export default async function TenantLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, avatar_url, roles")
+        .select("first_name, last_name, roles, avatar_url")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
       else if (user.email) userName = user.email;
-      avatarUrl = profile?.avatar_url ?? user.user_metadata.avatar_url ?? null;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
+      userAvatarUrl = profile?.avatar_url ?? null;
     }
   } catch {
     // fallback to defaults — layout remains server-renderable
@@ -46,7 +46,7 @@ export default async function TenantLayout({
         navItems={[...TENANT_NAV]}
         userName={userName}
         userRole={userRole}
-        avatarUrl={avatarUrl}
+        userAvatarUrl={userAvatarUrl}
         userRoles={userRoles}
         activePortal="tenant"
         profileHref="/tenant/profile"

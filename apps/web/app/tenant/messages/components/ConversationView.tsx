@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Avatar, ScrollShadow, Spinner } from "@heroui/react";
+import { ScrollShadow, Spinner } from "@heroui/react";
 
 import MessageInput from "./MessageInput";
 import { Contact, Message } from "./types";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { createClient } from "@repo/supabase/browser";
 import { MessageSquare } from "lucide-react";
@@ -245,20 +246,17 @@ export default function ConversationView({
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
       {/* Header */}
       <div className="p-3 border-b border-border flex items-center gap-4 bg-card shadow-sm z-10">
-        <Avatar size="lg">
-          <Avatar.Image
-            src={activeContact.avatar}
-            alt={activeContact.name}
-          />
-          <Avatar.Fallback>
-            {activeContact.name
-              .split(" ")
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((part) => part[0]?.toUpperCase() ?? "")
-              .join("")}
-          </Avatar.Fallback>
-        </Avatar>
+        <UserAvatar
+          src={activeContact.avatar}
+          initials={activeContact.name
+            .split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0]?.toUpperCase() ?? "")
+            .join("")}
+          alt={activeContact.name}
+          size="lg"
+        />
 
         <div>
           <h2 className="text-base font-bold text-foreground leading-tight">

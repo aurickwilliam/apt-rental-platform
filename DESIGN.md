@@ -267,6 +267,8 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
   - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-nunitoSemiBold`, sub `text-xs /70`
   - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
 - Tabs — tenant: Rentals / Search / Chat / Profile; landlord: Dashboard / Units / Chat / Profile
+- Mobile sign-in is role-neutral (no Tenant/Landlord tabs). Role tabs remain on sign-up; Google users signing in with an incomplete profile choose their account type on the profile-completion screen instead.
+- Dual-role mobile profiles offer a quiet outlined button to switch between authorized Tenant and Landlord portals; single-role profiles do not show a switch.
 
 ---
 

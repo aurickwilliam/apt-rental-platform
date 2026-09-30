@@ -4,9 +4,10 @@ import { useState } from "react";
 
 import Image from "next/image";
 
-import { Card, Avatar } from "@heroui/react";
+import { Card } from "@heroui/react";
 
 import StarRating from "@/app/components/display/StarRating";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 const REVIEW_CHAR_LIMIT = 150;
 const MAX_VISIBLE_THUMBNAILS = 4;
@@ -46,15 +47,15 @@ export default function ReviewCard({
   return (
     <Card className={["gap-0 shadow-none border border-default-200", className].filter(Boolean).join(" ")}>
       <Card.Header className="flex flex-row items-center gap-3">
-        <Avatar size="md">
-          {reviewerAvatar && <Avatar.Image src={reviewerAvatar} alt={reviewerName} />}
-          <Avatar.Fallback>
-            {reviewerName
-              .split(" ")
-              .map((part) => part[0]?.toUpperCase())
-              .join("")}
-          </Avatar.Fallback>
-        </Avatar>
+        <UserAvatar
+          src={reviewerAvatar}
+          initials={reviewerName
+            .split(" ")
+            .map((part) => part[0]?.toUpperCase())
+            .join("")}
+          alt={reviewerName}
+          size="md"
+        />
 
         <div className="flex flex-1 flex-col">
           <h3 className="text-base font-medium">

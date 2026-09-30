@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -18,6 +17,8 @@ import {
 } from "@heroui/react";
 import { ArrowLeft, Mail, MapPin, Phone, FileText, Eye, Check, X } from "lucide-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
+
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { useLandlordApplications } from "@/hooks/use-landlord-applications";
 import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-actions";
@@ -202,9 +203,14 @@ export default function LandlordApplicationDetailPage() {
             {actionButtons}
           </div>
           <div className="rounded-2xl bg-card p-3 flex items-start gap-3">
-            <Avatar size="lg" className="shrink-0">
-              {app.tenant_avatar_url ? <img src={app.tenant_avatar_url} alt={app.tenant_name} className="h-full w-full object-cover" /> : <span className="text-sm font-nunito font-semibold">{getInitials(app.tenant_name)}</span>}
-            </Avatar>
+            <UserAvatar
+              src={app.tenant_avatar_url}
+              initials={getInitials(app.tenant_name)}
+              alt={app.tenant_name}
+              size="lg"
+              className="shrink-0"
+              fallbackClassName="text-sm font-nunito font-semibold"
+            />
             <div className="min-w-0 flex-1">
               <p className="font-nunito font-semibold text-card-foreground text-base">{app.tenant_name}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" />{app.tenant_email ?? "—"}</p>
@@ -240,9 +246,14 @@ export default function LandlordApplicationDetailPage() {
           </div>
 
           <div className="rounded-2xl bg-card px-4 py-3 flex items-start gap-3 shrink-0">
-            <Avatar size="lg" className="shrink-0">
-              {app.tenant_avatar_url ? <img src={app.tenant_avatar_url} alt={app.tenant_name} className="h-full w-full object-cover" /> : <span className="text-sm font-nunito font-semibold">{getInitials(app.tenant_name)}</span>}
-            </Avatar>
+            <UserAvatar
+              src={app.tenant_avatar_url}
+              initials={getInitials(app.tenant_name)}
+              alt={app.tenant_name}
+              size="lg"
+              className="shrink-0"
+              fallbackClassName="text-sm font-nunito font-semibold"
+            />
             <div className="min-w-0 flex-1">
               <p className="font-nunito font-semibold text-card-foreground text-base">{app.tenant_name}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" />{app.tenant_email ?? "—"}</p>

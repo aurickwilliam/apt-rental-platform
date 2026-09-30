@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   let userName = "Landlord";
   const userRole = "Landlord";
   let userRoles: string[] = ["landlord"];
-  let avatarUrl: string | null = null;
+  let userAvatarUrl: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -28,14 +28,14 @@ export default async function DashboardLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, avatar_url, roles")
+        .select("first_name, last_name, roles, avatar_url")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
       else if (user.email) userName = user.email;
-      avatarUrl = profile?.avatar_url ?? user.user_metadata.avatar_url ?? null;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
+      userAvatarUrl = profile?.avatar_url ?? null;
     }
   } catch {
     // fallback to defaults
@@ -47,7 +47,7 @@ export default async function DashboardLayout({
         navItems={[...LANDLORD_NAV]}
         userName={userName}
         userRole={userRole}
-        avatarUrl={avatarUrl}
+        userAvatarUrl={userAvatarUrl}
         userRoles={userRoles}
         activePortal="landlord"
         profileHref="/landlord/profile"
