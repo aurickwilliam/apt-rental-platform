@@ -2,7 +2,6 @@
 
 import {
   Card,
-  Avatar,
   Button,
   Tooltip,
 } from "@heroui/react";
@@ -10,6 +9,8 @@ import {
 import {
   MessageSquare
 } from "lucide-react";
+
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface LandlordCardProps {
   name: string;
@@ -47,10 +48,12 @@ export default function LandlordCard({
   return (
     <Card className="border border-grey-300 shadow-none">
       <Card.Content className="flex flex-row items-center justify-between gap-4">
-        <Avatar size="lg">
-          <Avatar.Image src={avatarSrc} alt={displayName} />
-          <Avatar.Fallback>{getInitials(displayName)}</Avatar.Fallback>
-        </Avatar>
+        <UserAvatar
+          src={avatarSrc}
+          initials={getInitials(displayName)}
+          alt={displayName}
+          size="lg"
+        />
 
         <div className="flex-1">
           <Card.Title>

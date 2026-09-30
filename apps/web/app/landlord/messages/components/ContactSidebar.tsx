@@ -1,7 +1,8 @@
 "use client";
 
-import { Tabs, Avatar, ScrollShadow, Badge } from "@heroui/react";
+import { Tabs, ScrollShadow, Badge } from "@heroui/react";
 import { Contact, TabKey } from "./types";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface ContactSidebarProps {
   contacts: Contact[];
@@ -71,17 +72,17 @@ export default function ContactSidebar({
               >
                 {/* Badge.Anchor handles positioning — no more manual relative/absolute */}
                 <Badge.Anchor>
-                  <Avatar size="md">
-                    <Avatar.Image src={contact.avatar} alt={contact.name} />
-                    <Avatar.Fallback>
-                      {contact.name
-                        .split(" ")
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .map((part) => part[0]?.toUpperCase() ?? "")
-                        .join("")}
-                    </Avatar.Fallback>
-                  </Avatar>
+                  <UserAvatar
+                    src={contact.avatar}
+                    initials={contact.name
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((part) => part[0]?.toUpperCase() ?? "")
+                      .join("")}
+                    alt={contact.name}
+                    size="md"
+                  />
                   {showUnreadBadge && (
                     <Badge
                       color="danger"

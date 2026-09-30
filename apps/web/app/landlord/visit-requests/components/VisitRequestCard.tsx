@@ -1,8 +1,10 @@
 "use client";
 
-import { Avatar, Card, Chip } from "@heroui/react";
+import { Card, Chip } from "@heroui/react";
 import { Calendar, Clock } from "lucide-react";
 import { formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
+
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import type { LandlordVisitRequest } from "@/service/landlordVisitRequestsService";
 import { getVisitStatusChipColor, getVisitStatusLabel } from "../lib/visit-status-styles";
@@ -25,13 +27,14 @@ export default function VisitRequestCard({ request, onPress, useResolvedSchedule
       <Card className="border border-border bg-card text-card-foreground shadow-none rounded-2xl hover:border-primary/30 transition-colors">
         <Card.Content className="p-4 flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <Avatar size="md" className="shrink-0">
-              {request.tenant.avatar_url ? (
-                <img src={request.tenant.avatar_url} alt={tenantName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-xs font-semibold">{getInitials(tenantName)}</span>
-              )}
-            </Avatar>
+            <UserAvatar
+              src={request.tenant.avatar_url}
+              initials={getInitials(tenantName)}
+              alt={tenantName}
+              size="md"
+              className="shrink-0"
+              fallbackClassName="text-xs font-semibold"
+            />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-card-foreground truncate">{tenantName}</p>
               <p className="text-xs text-muted-foreground truncate">{request.apartment.name}</p>

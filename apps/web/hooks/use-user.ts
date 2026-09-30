@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createBrowserClient } from "@repo/supabase";
+
+import { PROFILE_PHOTO_UPDATED_EVENT } from "@/app/components/profile/use-profile-photo";
 
 type SupabaseClient = ReturnType<typeof createBrowserClient>;
 type UserResponse = Awaited<ReturnType<SupabaseClient["auth"]["getUser"]>>;
@@ -20,26 +22,27 @@ export function useUser() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserAndProfile = useCallback(async (userId: string, authUser: User) => {
+    const supabase = createBrowserClient();
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, avatar_url, mobile_number, roles')
+      .eq('user_id', userId)
+      .single();
+    const data = profileData as unknown as Profile | null;
+
+    setProfile({
+      id: data?.id ?? null,
+      first_name: data?.first_name ?? null,
+      last_name: data?.last_name ?? null,
+      avatar_url: data?.avatar_url ?? authUser?.user_metadata?.avatar_url ?? null,
+      mobile_number: data?.mobile_number ?? null,
+      roles: data?.roles ?? [],
+    });
+  }, []);
+
   useEffect(() => {
     const supabase = createBrowserClient();
-
-    const fetchUserAndProfile = async (userId: string, authUser: User) => {
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, avatar_url, mobile_number, roles')
-        .eq('user_id', userId)
-        .single();
-      const data = profileData as unknown as Profile | null;
-
-      setProfile({
-        id: data?.id ?? null,
-        first_name: data?.first_name ?? null,
-        last_name: data?.last_name ?? null,
-        avatar_url: data?.avatar_url ?? authUser?.user_metadata?.avatar_url ?? null,
-        mobile_number: data?.mobile_number ?? null,
-        roles: data?.roles ?? [],
-      });
-    };
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
@@ -55,7 +58,19 @@ export function useUser() {
     });
 
     return () => { subscription.unsubscribe(); };
-  }, []);
+  }, [fetchUserAndProfile]);
+
+  // Refresh client profile (e.g. navbar avatar) right after a photo
+  // upload/remove without waiting for a navigation or reload.
+  useEffect(() => {
+    const onPhotoUpdated = () => {
+      createBrowserClient().auth.getUser().then(({ data: { user: current } }) => {
+        if (current) fetchUserAndProfile(current.id, current);
+      });
+    };
+    window.addEventListener(PROFILE_PHOTO_UPDATED_EVENT, onPhotoUpdated);
+    return () => window.removeEventListener(PROFILE_PHOTO_UPDATED_EVENT, onPhotoUpdated);
+  }, [fetchUserAndProfile]);
 
   return { user, profile, loading };
 }

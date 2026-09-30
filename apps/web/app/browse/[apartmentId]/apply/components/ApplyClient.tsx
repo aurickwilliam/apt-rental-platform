@@ -45,6 +45,7 @@ import {
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import ApplicationHeader from "./ApplicationHeader";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
 import { formatPesoDisplay, handlePesoChange, isValidEmail } from "@repo/utils";
 import {
@@ -317,11 +318,13 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
               </div>
               {apartment.landlordName && (
                 <div className="flex items-center gap-2 ml-auto text-sm">
-                  {apartment.landlordAvatarUrl ? (
-                    <img src={apartment.landlordAvatarUrl} alt="Owner" width={24} height={24} className="rounded-full object-cover w-6 h-6" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-muted" />
-                  )}
+                  <UserAvatar
+                    src={apartment.landlordAvatarUrl}
+                    initials={(apartment.landlordName.trim()[0] ?? "U").toUpperCase()}
+                    alt="Owner"
+                    className="size-6"
+                    fallbackClassName="text-[10px]"
+                  />
                   <span className="font-medium text-card-foreground">{apartment.landlordName}</span>
                   <span className="text-muted-foreground text-xs">Rental Owner</span>
                 </div>

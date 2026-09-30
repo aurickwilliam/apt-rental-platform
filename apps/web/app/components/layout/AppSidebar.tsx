@@ -22,7 +22,7 @@ import {
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import {
   LogOut,
   ChevronsUpDown,
@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -120,6 +121,7 @@ type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
   userRole: string;
+  userAvatarUrl?: string | null;
   showAccountLinks?: boolean;
   // Multi-role switching: all roles the account holds + which portal
   // this sidebar belongs to. The switch item only appears when the
@@ -151,6 +153,7 @@ export function AppSidebar({
   navItems,
   userName,
   userRole,
+  userAvatarUrl = null,
   showAccountLinks = true,
   profileHref: accountProfileHref,
   iconSet = "lucide",
@@ -294,11 +297,14 @@ export function AppSidebar({
             aria-label={collapsed ? `${displayName} account menu` : undefined}
             className={`w-full flex items-center h-auto hover:bg-sidebar-accent text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
-            <Avatar size="sm" className="shrink-0 bg-primary text-white">
-              <Avatar.Fallback className="bg-primary text-white">
-                {getInitials(displayName)}
-              </Avatar.Fallback>
-            </Avatar>
+            <UserAvatar
+              src={userAvatarUrl}
+              initials={getInitials(displayName)}
+              alt={`${displayName}'s profile photo`}
+              size="sm"
+              className="shrink-0 bg-primary text-white"
+              fallbackClassName="bg-primary text-white"
+            />
             {!collapsed ? (
               <span className="flex flex-col text-left flex-1 min-w-0">
                 <span className="text-sm font-medium leading-none truncate text-sidebar-foreground">

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Avatar, Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
 import { Banknote, CalendarDays, House, MapPin, User, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
@@ -13,6 +13,7 @@ import { createCardPayment, createCheckoutSession, PaymongoError } from "@/servi
 import { usePayments } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useUser } from "@/hooks/use-user";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentFooter from "./components/PaymentFooter";
@@ -343,12 +344,14 @@ function PaymentContent() {
                       <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
                       <p className="text-sm text-zinc-500 truncate">{landlord?.email ?? "—"}</p>
                     </div>
-                    <Avatar size="sm" className="ml-auto hidden sm:flex">
-                      <Avatar.Fallback className="bg-primary text-white text-xs">
-                        {(landlord?.first_name?.[0] ?? "—")}
-                        {(landlord?.last_name?.[0] ?? "")}
-                      </Avatar.Fallback>
-                    </Avatar>
+                    <UserAvatar
+                      src={landlord?.avatar_url}
+                      initials={`${landlord?.first_name?.[0] ?? "—"}${landlord?.last_name?.[0] ?? ""}`}
+                      alt={landlordName}
+                      size="sm"
+                      className="ml-auto hidden sm:flex"
+                      fallbackClassName="bg-primary text-white text-xs"
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">

@@ -1,7 +1,8 @@
 "use client";
 
-import { Avatar, ScrollShadow } from "@heroui/react";
+import { ScrollShadow } from "@heroui/react";
 import { Contact } from "./types";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface ContactSidebarProps {
   myLandlord: Contact[];
@@ -43,17 +44,17 @@ export default function ContactSidebar({
       >
         <div className="relative">
           {/* User Avatar */}
-          <Avatar size="md">
-            <Avatar.Image src={contact.avatar} alt={contact.name} />
-            <Avatar.Fallback>
-              {contact.name
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part) => part[0]?.toUpperCase() ?? "")
-                .join("")}
-            </Avatar.Fallback>
-          </Avatar>
+          <UserAvatar
+            src={contact.avatar}
+            initials={contact.name
+              .split(" ")
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0]?.toUpperCase() ?? "")
+              .join("")}
+            alt={contact.name}
+            size="md"
+          />
           
           {showUnreadBadge && (
             <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-card bg-destructive text-destructive-foreground text-[10px] font-semibold leading-none flex items-center justify-center">

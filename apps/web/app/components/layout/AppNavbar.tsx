@@ -5,10 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { Avatar, Dropdown, Button, Label } from "@heroui/react";
+import { Dropdown, Button, Label } from "@heroui/react";
 import { Menu, X } from "lucide-react";
 
 import ThemeToggle from "./ThemeToggle";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
@@ -57,7 +58,9 @@ export default function AppNavbar() {
   const firstName = user?.user_metadata?.first_name ?? "";
   const lastName  = user?.user_metadata?.last_name  ?? "";
   const displayName = firstName ? `${firstName} ${lastName}`.trim() : (user?.email ?? "");
-  const avatarSrc = user?.user_metadata?.avatar_url?.trim() || undefined;
+  // Prefer the canonical users.avatar_url (synced on upload) over the
+  // stale auth-metadata copy.
+  const avatarSrc = profile?.avatar_url?.trim() || user?.user_metadata?.avatar_url?.trim() || undefined;
 
   return (
     <div className="sticky top-0 z-40 w-full border-b border-divider bg-surface/70 backdrop-blur-md backdrop-saturate-150">
@@ -112,12 +115,14 @@ export default function AppNavbar() {
                   variant="ghost"
                   className="flex items-center gap-2 h-auto px-2 py-1"
                 >
-                  <Avatar size="sm" className="shrink-0">
-                    {avatarSrc && <Avatar.Image src={avatarSrc} alt={displayName} />}
-                    <Avatar.Fallback className="bg-primary text-white font-medium">
-                      {getInitials(displayName)}
-                    </Avatar.Fallback>
-                  </Avatar>
+                  <UserAvatar
+                    src={avatarSrc}
+                    initials={getInitials(displayName)}
+                    alt={displayName}
+                    size="sm"
+                    className="shrink-0"
+                    fallbackClassName="bg-primary text-white font-medium"
+                  />
                   <span className="text-sm font-medium">{displayName}</span>
                 </Button>
 

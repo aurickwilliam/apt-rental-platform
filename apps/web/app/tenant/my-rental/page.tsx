@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
+import { Button, Link, Spinner, Table } from "@heroui/react";
 import {
   CreditCard,
   FileText,
@@ -17,6 +17,7 @@ import {
 import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
 import { CATEGORIES } from "../maintenance/data/maintenance-data";
@@ -551,14 +552,13 @@ export default function MyRental() {
               Landlord
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <Avatar size="lg">
-                {landlord?.avatar_url && (
-                  <Avatar.Image src={landlord.avatar_url} alt={landlordName} />
-                )}
-                <Avatar.Fallback className="bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                  {getInitials(landlordName)}
-                </Avatar.Fallback>
-              </Avatar>
+              <UserAvatar
+                src={landlord?.avatar_url}
+                initials={getInitials(landlordName)}
+                alt={landlordName}
+                size="lg"
+                fallbackClassName="bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+              />
               <div>
                 <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {landlordName}

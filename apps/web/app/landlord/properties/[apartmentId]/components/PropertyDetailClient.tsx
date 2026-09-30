@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -31,6 +30,7 @@ import {
 } from "lucide-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import {
   formatLeaseDate,
   methodLabel,
@@ -350,11 +350,14 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                     Tenant Information
                   </p>
                   <div className="flex items-center gap-3">
-                    <Avatar size="md" className="shrink-0">
-                      <Avatar.Fallback className="bg-primary text-white">
-                        {getInitials(detail.tenant.fullName)}
-                      </Avatar.Fallback>
-                    </Avatar>
+                    <UserAvatar
+                      src={detail.tenant.avatarUrl}
+                      initials={getInitials(detail.tenant.fullName)}
+                      alt={detail.tenant.fullName}
+                      size="md"
+                      className="shrink-0 bg-primary text-white"
+                      fallbackClassName="bg-primary text-white"
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-nunito font-semibold text-card-foreground truncate">
                         {detail.tenant.fullName}

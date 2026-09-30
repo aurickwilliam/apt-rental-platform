@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Button, Separator, Tooltip } from "@heroui/react";
 import {
@@ -13,6 +12,7 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import OperationForm from "../../../OperationForm";
+import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 import { setApartmentVisibility } from "../../../actions/operations";
 import type { Apartment, Landlord, Verification } from "../types";
 import {
@@ -197,13 +197,16 @@ export function ApartmentLandlordCard({
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               {landlord.avatar_url ? (
-                <Image
+                <SharedUserAvatar
                   src={landlord.avatar_url}
-                  alt=""
-                  unoptimized
-                  width={48}
-                  height={48}
-                  className="size-12 shrink-0 rounded-full object-cover"
+                  initials={(fullName(landlord) || "Landlord")
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase())
+                    .join("")}
+                  alt={fullName(landlord) || "Landlord"}
+                  className="size-12 shrink-0 rounded-full bg-primary/10 text-primary"
+                  fallbackClassName="rounded-full bg-primary/10 text-primary"
                 />
               ) : (
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
