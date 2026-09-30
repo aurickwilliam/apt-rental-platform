@@ -11,6 +11,8 @@ import { IMAGES } from 'constants/images'
 
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { useProfile } from 'hooks/auth'
+import { usePortalStore } from '@/stores/usePortalStore'
+import { choosePortal } from '@/service/auth/portalPreference'
 
 export default function Success() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function Success() {
 
   const reset = useVerificationStore((state) => state.reset);
   const { profile, loading } = useProfile();
+  const activePortal = usePortalStore((state) => state.portal);
 
   useEffect(() => {
     reset();
@@ -41,9 +44,11 @@ export default function Success() {
   }, [navigation]);
 
   const handleGoToProfile = () => {
+    const portal = choosePortal(profile?.roles ?? [], activePortal);
+    if (!portal) return;
     canLeaveRef.current = true;
     router.replace(
-      profile?.roles?.[0] === 'landlord'
+      portal === 'landlord'
         ? '/(tabs)/(landlord)/profile'
         : '/(tabs)/(tenant)/profile',
     );
@@ -73,7 +78,7 @@ export default function Success() {
         </View>
       </View>
 
-      <Button isDisabled={loading} onPress={handleGoToProfile}>
+      <Button isDisabled={loading || !choosePortal(profile?.roles ?? [], activePortal)} onPress={handleGoToProfile}>
         <Button.Label>Go to Profile</Button.Label>
       </Button>
     </ScreenWrapper>

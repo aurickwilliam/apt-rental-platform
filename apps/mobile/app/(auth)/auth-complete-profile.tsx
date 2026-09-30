@@ -25,6 +25,7 @@ import {
 } from '@repo/hooks';
 
 import { supabase } from "@repo/supabase";
+import { usePortalStore } from "@/stores/usePortalStore";
 
 import { useColors } from "hooks/useTheme";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
@@ -215,10 +216,16 @@ export default function AuthCompleteProfile() {
       if (selectedRole !== 'tenant' && selectedRole !== 'landlord') {
         throw new Error('Invalid account type.');
       }
-      const { error: roleError } = await supabase.rpc('set_onboarding_role', {
-        requested_role: selectedRole,
-      });
-      if (roleError) throw roleError;
+      const { data: currentProfile, error: profileError } = await supabase
+        .from('users').select('roles').eq('user_id', user.id).single();
+      if (profileError || !currentProfile) throw profileError ?? new Error('Profile not found.');
+      if (currentProfile.roles.includes('admin')) throw new Error('Admin accounts are available on the web portal only.');
+      if (!currentProfile.roles.includes(selectedRole)) {
+        const { error: roleError } = await supabase.rpc('set_onboarding_role', {
+          requested_role: selectedRole,
+        });
+        if (roleError) throw roleError;
+      }
 
       // Write profile data to users table
       const { error: profileUpdateError } = await supabase
@@ -240,6 +247,8 @@ export default function AuthCompleteProfile() {
         .eq('user_id', user.id);
 
       if (profileUpdateError) throw profileUpdateError;
+
+      await usePortalStore.getState().switchTo(user.id, [selectedRole], selectedRole);
 
       setData({
         ...profileForm,

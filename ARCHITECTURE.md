@@ -227,6 +227,8 @@ Key files: `apps/web/app/(auth)/actions/{send-otp,sign-up,sign-in,sign-out,compl
 
 ### 4.4 Mobile flow
 
+**Portal selection (2026-09-30).** A mobile profile's `users.roles` array supplies tenant/landlord membership. `service/auth/portalPreference.ts` stores only a per-auth-user portal choice in AsyncStorage; `stores/usePortalStore.ts` keeps its in-memory active value. On sign-in, the last authorized choice wins over the sign-in tab; on sign-out, in-memory state and sensitive query data clear but the account-scoped choice remains. Bootstrap revalidates the saved choice against current roles, and the `(tabs)` guard redirects only when the current tab group differs from the active authorized portal. Both profile screens show a switch for dual-role users. Admin profiles have no mobile consumer access. Notification taps use the active authorized portal, not `roles[0]`.
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -551,7 +553,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 
 - Root `Stack` (headerless) registers index, `(tabs)`, `(auth)`, `chat/[conversationId]`, `tenant`, `apartment/[apartmentId]`, `(notification)`, `settings`, `document-id`, `edit-profile`, dev screens.
 - Tabs are **platform-split**: iOS uses `NativeTabs` (SF Symbols); Android uses classic `Tabs` with a floating `CustomTabBar` (pill) whose height/bottom-offset constants are consumed by list screens for padding.
-- Role tabs: `(tabs)/(tenant)` (rentals, search, chat, profile) vs `(tabs)/(landlord)` (dashboard, units, chat, profile); the `(tabs)` layout redirects to the correct group by `users.role`.
+- Role tabs: `(tabs)/(tenant)` (rentals, search, chat, profile) vs `(tabs)/(landlord)` (dashboard, units, chat, profile); the `(tabs)` layout redirects to the selected portal after checking membership in `users.roles`.
 - `app.json` experiments: `typedRoutes: true`, `reactCompiler: true`; scheme is `mobile` (no custom deep-link list).
 - **Deep linking**: OS-level links are only for auth — `Linking.createURL("auth/callback")` for the Google PKCE exchange. **In-app** notification taps and banner actions navigate via role-aware hrefs from `buildNotificationDeepLink` (`apps/mobile/utils/notificationDeepLink.ts`) — router pushes, not OS-level links.
 - Known stale registrations: `tenant/_layout.tsx` lists `current-lease` (no file exists) and `edit-profile` (actually at root) — debt D12.

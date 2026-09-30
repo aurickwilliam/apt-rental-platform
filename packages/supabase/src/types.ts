@@ -39,41 +39,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      apartment_images: {
-        Row: {
-          apartment_id: string | null
-          created_at: string | null
-          id: string
-          is_cover: boolean | null
-          url: string
-          url_thumb: string | null
-        }
-        Insert: {
-          apartment_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_cover?: boolean | null
-          url: string
-          url_thumb?: string | null
-        }
-        Update: {
-          apartment_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_cover?: boolean | null
-          url?: string
-          url_thumb?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "apartment_images_apartment_id_fkey"
-            columns: ["apartment_id"]
-            isOneToOne: false
-            referencedRelation: "apartments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -108,6 +73,41 @@ export type Database = {
             columns: ["admin_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apartment_images: {
+        Row: {
+          apartment_id: string | null
+          created_at: string | null
+          id: string
+          is_cover: boolean | null
+          url: string
+          url_thumb: string | null
+        }
+        Insert: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url: string
+          url_thumb?: string | null
+        }
+        Update: {
+          apartment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_cover?: boolean | null
+          url?: string
+          url_thumb?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apartment_images_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
             referencedColumns: ["id"]
           },
         ]
@@ -472,6 +472,8 @@ export type Database = {
           cancelled_at: string | null
           category: string
           created_at: string
+          fee_amount: number | null
+          fee_status: string | null
           id: string
           image_urls: string[] | null
           landlord_id: string | null
@@ -483,14 +485,14 @@ export type Database = {
           title: string
           updated_at: string | null
           urgency: string
-          fee_amount: number | null
-          fee_status: string | null
         }
         Insert: {
           apartment_id: string
           cancelled_at?: string | null
           category: string
           created_at?: string
+          fee_amount?: number | null
+          fee_status?: string | null
           id?: string
           image_urls?: string[] | null
           landlord_id?: string | null
@@ -502,14 +504,14 @@ export type Database = {
           title: string
           updated_at?: string | null
           urgency: string
-          fee_amount?: number | null
-          fee_status?: string | null
         }
         Update: {
           apartment_id?: string
           cancelled_at?: string | null
           category?: string
           created_at?: string
+          fee_amount?: number | null
+          fee_status?: string | null
           id?: string
           image_urls?: string[] | null
           landlord_id?: string | null
@@ -521,8 +523,6 @@ export type Database = {
           title?: string
           updated_at?: string | null
           urgency?: string
-          fee_amount?: number | null
-          fee_status?: string | null
         }
         Relationships: [
           {
@@ -1031,101 +1031,6 @@ export type Database = {
           },
         ]
       }
-      users: {
-        Row: {
-          account_status: string
-          avatar_url: string | null
-          background_url: string | null
-          barangay: string | null
-          birth_date: string | null
-          city: string | null
-          created_at: string
-          email: string | null
-          first_name: string | null
-          gender: string | null
-          id: string
-          is_suspended: boolean
-          last_name: string | null
-          middle_name: string | null
-          mobile_number: string | null
-          postal_code: number | null
-          preferences: Json | null
-          province: string | null
-          roles: string[]
-          street_address: string | null
-          suffix: string | null
-          suspended_at: string | null
-          suspended_by: string | null
-          suspension_reason: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          account_status?: string
-          avatar_url?: string | null
-          background_url?: string | null
-          barangay?: string | null
-          birth_date?: string | null
-          city?: string | null
-          created_at?: string
-          email?: string | null
-          first_name?: string | null
-          gender?: string | null
-          id?: string
-          is_suspended?: boolean
-          last_name?: string | null
-          middle_name?: string | null
-          mobile_number?: string | null
-          postal_code?: number | null
-          preferences?: Json | null
-          province?: string | null
-          roles?: string[]
-          street_address?: string | null
-          suffix?: string | null
-          suspended_at?: string | null
-          suspended_by?: string | null
-          suspension_reason?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Update: {
-          account_status?: string
-          avatar_url?: string | null
-          background_url?: string | null
-          barangay?: string | null
-          birth_date?: string | null
-          city?: string | null
-          created_at?: string
-          email?: string | null
-          first_name?: string | null
-          gender?: string | null
-          id?: string
-          is_suspended?: boolean
-          last_name?: string | null
-          middle_name?: string | null
-          mobile_number?: string | null
-          postal_code?: number | null
-          preferences?: Json | null
-          province?: string | null
-          roles?: string[]
-          street_address?: string | null
-          suffix?: string | null
-          suspended_at?: string | null
-          suspended_by?: string | null
-          suspension_reason?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "users_suspended_by_fkey"
-            columns: ["suspended_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_verifications: {
         Row: {
           created_at: string
@@ -1188,6 +1093,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      users: {
+        Row: {
+          account_status: string
+          avatar_url: string | null
+          background_url: string | null
+          barangay: string | null
+          birth_date: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          gender: string | null
+          id: string
+          last_name: string | null
+          middle_name: string | null
+          mobile_number: string | null
+          postal_code: number | null
+          preferences: Json | null
+          province: string | null
+          roles: string[]
+          street_address: string | null
+          suffix: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_status?: string
+          avatar_url?: string | null
+          background_url?: string | null
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          middle_name?: string | null
+          mobile_number?: string | null
+          postal_code?: number | null
+          preferences?: Json | null
+          province?: string | null
+          roles?: string[]
+          street_address?: string | null
+          suffix?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          account_status?: string
+          avatar_url?: string | null
+          background_url?: string | null
+          barangay?: string | null
+          birth_date?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          middle_name?: string | null
+          mobile_number?: string | null
+          postal_code?: number | null
+          preferences?: Json | null
+          province?: string | null
+          roles?: string[]
+          street_address?: string | null
+          suffix?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       visit_request: {
         Row: {
@@ -1283,14 +1263,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_set_apartment_visibility: {
-        Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
-        Returns: undefined
-      }
-      admin_set_user_access: {
-        Args: { p_actor_auth_id: string; p_target_id: string; p_suspend: boolean; p_reason: string }
-        Returns: string
-      }
       create_notification: {
         Args: {
           p_data?: Json
@@ -1300,6 +1272,82 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      get_admin_analytics: {
+        Args: { date_from: string; date_to: string }
+        Returns: Json
+      }
+      get_admin_analytics_start_date: { Args: never; Returns: string }
+      get_admin_analytics_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          apartments: number
+          bucket_end: string
+          bucket_start: string
+          landlords: number
+          tenants: number
+          users: number
+        }[]
+      }
+      get_admin_application_status: {
+        Args: never
+        Returns: {
+          approved: number
+          cancelled: number
+          closed: number
+          pending: number
+          rejected: number
+          total: number
+        }[]
+      }
+      get_admin_dashboard_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          apartments: number
+          label: string
+          reviews: number
+          users: number
+        }[]
+      }
+      get_admin_listing_status: {
+        Args: never
+        Returns: {
+          available: number
+          hidden: number
+          occupied: number
+          other: number
+          pending_verification: number
+          total: number
+        }[]
+      }
+      get_admin_listings_by_city: {
+        Args: never
+        Returns: {
+          city: string
+          listing_count: number
+        }[]
+      }
+      get_admin_rental_payment_trends: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          bucket_end: string
+          bucket_start: string
+          payment_count: number
+          payment_total: number
+        }[]
+      }
+      get_apartment_maintenance_history: {
+        Args: { p_apartment_id: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          category: string
+          created_at: string
+          id: string
+          resolution_notes: string
+          resolved_at: string
+          title: string
+          total_count: number
+          urgency: string
+        }[]
       }
       get_conversations: {
         Args: { p_user_id: string }
@@ -1335,81 +1383,7 @@ export type Database = {
           unread_count: number
         }[]
       }
-      get_admin_analytics: { Args: { date_from: string; date_to: string }; Returns: Json }
-      get_apartment_maintenance_history: {
-        Args: { p_apartment_id: string; p_limit?: number; p_offset?: number }
-        Returns: {
-          category: string
-          created_at: string
-          id: string
-          resolution_notes: string | null
-          resolved_at: string | null
-          title: string
-          total_count: number
-          urgency: string
-        }[]
-      }
-      get_admin_analytics_start_date: { Args: never; Returns: string }
-      get_admin_analytics_trends: {
-        Args: { p_from: string; p_to: string }
-        Returns: {
-          bucket_start: string
-          bucket_end: string
-          users: number
-          apartments: number
-          tenants: number
-          landlords: number
-        }[]
-      }
-      get_admin_rental_payment_trends: {
-        Args: { p_from: string; p_to: string }
-        Returns: {
-          bucket_start: string
-          bucket_end: string
-          payment_total: number
-          payment_count: number
-        }[]
-      }
-      get_admin_listing_status: {
-        Args: never
-        Returns: {
-          total: number
-          available: number
-          occupied: number
-          hidden: number
-          pending_verification: number
-          other: number
-        }[]
-      }
-      get_admin_listings_by_city: {
-        Args: never
-        Returns: {
-          city: string
-          listing_count: number
-        }[]
-      }
-      get_admin_application_status: {
-        Args: never
-        Returns: {
-          total: number
-          pending: number
-          approved: number
-          rejected: number
-          cancelled: number
-          closed: number
-        }[]
-      }
-      get_admin_dashboard_trends: {
-        Args: { p_from: string; p_to: string }
-        Returns: {
-          apartments: number
-          label: string
-          reviews: number
-          users: number
-        }[]
-      }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
-      grant_user_role: { Args: { new_role: string }; Returns: string[] }
       get_search_sections: {
         Args: {
           p_city?: string
@@ -1419,6 +1393,7 @@ export type Database = {
         }
         Returns: Json
       }
+      grant_user_role: { Args: { new_role: string }; Returns: string[] }
       notify_rent_due_status: { Args: never; Returns: undefined }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
     }

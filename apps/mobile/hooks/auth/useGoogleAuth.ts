@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { supabase } from "@repo/supabase";
+import { usePortalStore } from "@/stores/usePortalStore";
+import { portalHome } from "@/service/auth/portalPreference";
 
 export function useGoogleAuth() {
   const router = useRouter();
@@ -59,12 +61,11 @@ export function useGoogleAuth() {
         return;
       }
 
-      // Set role (primary)
-      let role = profile.roles?.[0] ?? "tenant";
+      let role: "tenant" | "landlord" = userSide;
 
       // Check if this is a new user
       // Only incomplete Google profiles may choose a tenant/landlord role.
-      if (!profile.mobile_number && !(profile.roles ?? []).includes("admin")) {
+      if (!profile.mobile_number && !(profile.roles ?? []).includes(userSide)) {
         const { error: roleError } = await supabase.rpc("set_onboarding_role", {
           requested_role: userSide,
         });
@@ -95,19 +96,17 @@ export function useGoogleAuth() {
         return;
       }
 
-      // Multi-role: honor the selected portal tab when the account holds
-      // it; otherwise fall back to the onboarding role (single-role parity).
       const heldRoles: string[] = profile.roles ?? [];
-      const landingSide = heldRoles.includes(userSide) ? userSide : role;
-
-      // Route the user based on their role
-      router.replace(
-        landingSide === "landlord"
-          ? "../(tabs)/(landlord)/dashboard"
-          : "../(tabs)/(tenant)/rentals",
-      );
+      const portal = await usePortalStore.getState().restore(userId, heldRoles, userSide);
+      if (!portal) {
+        await supabase.auth.signOut();
+        setError("No supported mobile role found.");
+        return;
+      }
+      router.replace(portalHome(portal));
 
     } catch (err) {
+      await supabase.auth.signOut();
       setError("Unexpected error occurred.");
       setLoading(false);
 

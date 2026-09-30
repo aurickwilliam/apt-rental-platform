@@ -9,6 +9,8 @@ import { useNotificationPreferences } from "@/hooks/notifications/useNotificatio
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
 import { markNotificationRead } from "@/service/notifications/notificationService";
 import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
+import { authorizedPortal } from "@/service/auth/portalPreference";
+import { usePortalStore } from "@/stores/usePortalStore";
 
 import type { NotificationRow } from "@/service/notifications/notificationService";
 import type { NotificationPreferenceType } from "@/service/notifications/notificationService";
@@ -29,7 +31,10 @@ export function useInAppNotificationBanner() {
   const pathname = usePathname();
   const currentUserQuery = useCurrentUser();
   const userId = currentUserQuery.data?.id ?? null;
-  const role = currentUserQuery.data?.roles?.[0] ?? null;
+  const activePortal = usePortalStore((state) => state.portal);
+  const portalUserId = usePortalStore((state) => state.authUserId);
+  const role = portalUserId === currentUserQuery.data?.user_id
+    ? authorizedPortal(currentUserQuery.data?.roles ?? [], activePortal) : null;
 
   const { preferences, loading: preferencesLoading } = useNotificationPreferences();
 
@@ -60,7 +65,7 @@ export function useInAppNotificationBanner() {
 
   // Subscribe only once preferences are loaded; per-type gating is still
   // enforced inside the handler for pref changes while subscribed.
-  const subscribedUserId = preferencesLoading ? null : userId;
+  const subscribedUserId = preferencesLoading || !role ? null : userId;
 
   useNotificationRealtime(subscribedUserId, {
     onInsert: (row) => {

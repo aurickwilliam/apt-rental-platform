@@ -33,6 +33,8 @@ import { supabase } from "@repo/supabase";
 import { useGoogleAuth } from "hooks/auth";
 import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
+import { usePortalStore } from "@/stores/usePortalStore";
+import { portalHome } from "@/service/auth/portalPreference";
 
 import { isValidEmail } from "@repo/utils";
 
@@ -140,28 +142,27 @@ export default function SignIn() {
 
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");
+        await supabase.auth.signOut();
         return;
       }
 
-      // Multi-role: the account may enter through any portal it holds.
       const heldRoles: string[] = userProfile.roles ?? [];
-      if (!heldRoles.includes(userSide)) {
-        setError(
-          userSide === "landlord"
-            ? "No landlord account found. Try signing in as a tenant instead."
-            : "No tenant account found. Try signing in as a landlord instead.",
-        );
+      if (heldRoles.includes("admin")) {
+        setError("Admin accounts are available on the web portal only.");
         await supabase.auth.signOut(); // clear the session since we're blocking access
         return;
       }
 
-      // Route based on the requested portal (membership already verified)
-      router.replace(
-        userSide === "landlord"
-          ? "../(tabs)/(landlord)/dashboard"
-          : "../(tabs)/(tenant)/rentals",
-      );
+      // Restore this account's last portal; the tab is only a fallback if held.
+      const portal = await usePortalStore.getState().restore(authData.user!.id, heldRoles, userSide);
+      if (!portal) {
+        setError("No tenant or landlord account found for this profile.");
+        await supabase.auth.signOut();
+        return;
+      }
+      router.replace(portalHome(portal));
     } catch (err) {
+      await supabase.auth.signOut();
       setError(
         "An unexpected error occurred. Please check your connection and try again.",
       );
