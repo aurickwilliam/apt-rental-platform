@@ -736,9 +736,10 @@ export default function MyRental() {
               <Modal.Dialog>
                 <Modal.Header>
                   <Modal.Heading>Application History</Modal.Heading>
+                  <Modal.CloseTrigger />
                 </Modal.Header>
                 <Modal.Body>
-                  <ApplicationsList />
+                  <ApplicationsList showHeader={false} />
                 </Modal.Body>
               </Modal.Dialog>
             </Modal.Container>
