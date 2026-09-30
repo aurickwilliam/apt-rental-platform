@@ -28,7 +28,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
     : "Log in to continue your apartment journey.";
 
   return (
-    <div className="flex-1 min-w-0 bg-white flex flex-col md:px-16 md:py-5 overflow-y-auto h-full">
+    <div className="flex-1 min-w-0 bg-card flex flex-col md:px-16 md:py-5 overflow-y-auto h-full">
       <div className="w-full max-w-lg mx-auto px-10 py-5 flex flex-col flex-1 min-h-full">
         <div className="flex items-center justify-between">
           {/* Back Button: anchor outside the button so every click
@@ -46,10 +46,10 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
         </div>
 
         <div className="mt-5">
-          <h1 className="text-4xl font-nunito font-semibold">
+          <h1 className="text-4xl font-nunito font-semibold text-foreground">
             {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
           </h1>
-          <h3 className="text-base text-black mt-3">
+          <h3 className="text-base text-foreground mt-3">
             {description}
           </h3>
         </div>
@@ -85,7 +85,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
             <Tabs.ListContainer>
               <Tabs.List
                 aria-label="Select role"
-                className="*:text-black"
+                className="*:text-foreground"
               >
                 {/* Tenant Tab */}
                 <Tabs.Tab id="tenant" className="data-[selected=true]:text-primary">
@@ -97,7 +97,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
                 </Tabs.Tab>
 
                 {/* Landlord Tab */}
-                <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary">
+                <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary dark:data-[selected=true]:text-[#FFA500]">
                   <Tabs.Separator />
                   <span className="flex items-center gap-1.5">
                     <Building size={15} />

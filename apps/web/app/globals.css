@@ -35,6 +35,31 @@
     @apply bg-blue-500 text-white border-blue-500;
   }
 
+  /* Keep HeroUI switches on the app's primary color in every screen. */
+  .switch {
+    --switch-control-bg-checked: var(--primary);
+    --switch-control-bg-checked-hover: color-mix(in oklab, var(--primary), black 12%);
+  }
+
+  .switch[data-selected="true"] .switch__thumb,
+  .switch[aria-checked="true"] .switch__thumb {
+    background-color: var(--primary-foreground);
+  }
+
+  /* Keep notification switches legible while a save temporarily disables input. */
+  .settings-switch--saving[data-disabled="true"] {
+    opacity: 1;
+  }
+
+  .settings-switch--saving[data-disabled="true"] .switch__thumb {
+    background-color: var(--primary-foreground);
+    opacity: 1;
+  }
+
+  .settings-switch--saving[data-disabled="true"][data-selected="true"] .switch__thumb {
+    opacity: 1;
+  }
+
   .select__trigger {
     @apply rounded-xl border border-gray-300 bg-white transition-all;
   }
@@ -218,4 +243,12 @@ body[data-scroll-locked] [role="option"] {
   body {
     @apply bg-background text-foreground;
   }
+}
+html.apt-reduce-motion *,
+html.apt-reduce-motion *::before,
+html.apt-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
 }

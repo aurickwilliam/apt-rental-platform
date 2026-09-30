@@ -16,7 +16,7 @@ export default async function SignUpFormPage({
 
   return (
     <AuthProviderWrapper initialRole={initialRole} initialEmail={initialEmail}>
-      <div className="bg-white min-h-screen">
+      <div className="bg-card min-h-screen">
         <main className="max-w-4xl min-h-screen mx-auto px-4 pt-4 flex flex-col">
           <section className="flex flex-col">
             {/* Logo */}
@@ -36,11 +36,11 @@ export default async function SignUpFormPage({
 
             {/* Title Description */}
             <div className="mt-10">
-              <h1 className="text-3xl font-medium font-noto-serif">
+              <h1 className="text-3xl font-medium font-noto-serif text-foreground">
                 Complete the{" "}
                 {initialRole === "landlord" ? "Landlord" : "Tenant"} Form
               </h1>
-              <p className="mt-2">
+              <p className="mt-2 text-foreground">
                 Join us and start your apartment rental journey today!
               </p>
             </div>

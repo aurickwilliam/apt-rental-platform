@@ -3,9 +3,10 @@
 import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
+  IconArrowsExchange,
   IconBuilding,
   IconChartBar,
   IconHistory,
@@ -14,9 +15,12 @@ import {
   IconLayoutSidebarLeftExpand,
   IconLogout,
   IconMenu2,
+  IconMoon,
   IconSearch,
+  IconSettings,
   IconSelector,
   IconShieldCheck,
+  IconSun,
   IconUsers,
   IconUser,
   type Icon as TablerIcon,
@@ -24,28 +28,35 @@ import {
 
 import { Button, Dropdown, Label } from "@heroui/react";
 import {
+  ArrowLeftRight,
   LogOut,
   ChevronsUpDown,
   Search,
+  Settings,
+  Sun,
   House,
   FileText,
   Heart,
   Wrench,
   MessageCircle,
+  Moon,
   LayoutDashboard,
   Building2,
   FileCheckCorner,
   Banknote,
   MessagesSquare,
   Users,
+  UserRound,
   ShieldCheck,
   History,
   ChartBar,
   Menu,
 } from "lucide-react";
 
+import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import ToggleSwitch from "@/app/(main)/settings/components/ToggleSwitch";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -111,6 +122,12 @@ function getInitialSidebarState() {
   return false;
 }
 
+// Client-mount gate for theme-dependent UI (avoids hydration mismatch).
+// Mirrors the sidebar's collapsed-state store pattern so no effect is needed.
+function subscribeThemeMounted() {
+  return () => {};
+}
+
 type NavItem = {
   href: string;
   label: string;
@@ -129,6 +146,8 @@ type AppSidebarProps = {
   userRoles?: string[];
   activePortal?: "tenant" | "landlord";
   profileHref?: string;
+  settingsHref?: string;
+  settingsQueryParam?: string;
   iconSet?: "lucide" | "tabler";
   collapsible?: boolean;
 };
@@ -156,12 +175,26 @@ export function AppSidebar({
   userAvatarUrl = null,
   showAccountLinks = true,
   profileHref: accountProfileHref,
+  settingsHref,
+  settingsQueryParam,
   iconSet = "lucide",
   collapsible = false,
   userRoles = [],
   activePortal,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
+  const themeMounted = useSyncExternalStore(
+    subscribeThemeMounted,
+    () => true,
+    () => false,
+  );
+
+  const isDark = themeMounted && resolvedTheme === "dark";
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
   const savedCollapsed = useSyncExternalStore(
     subscribeToSidebarState,
     getStoredSidebarState,
@@ -337,32 +370,86 @@ export function AppSidebar({
             <Dropdown.Menu
               onAction={(key) => {
                 if (key === "profile") window.location.href = profileHref;
-                if (key === "settings") window.location.href = "/settings";
+                if (key === "settings") {
+                  if (settingsQueryParam) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("settings", settingsQueryParam);
+                    router.push(`${url.pathname}${url.search}${url.hash}`);
+                  } else {
+                    window.location.href = settingsHref ?? "/settings";
+                  }
+                }
                 if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
+                if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
             >
-              {showAccountLinks ? (<>
+                {showAccountLinks ? (<>
                 <Dropdown.Item id="profile" textValue="Profile">
-                  <Label>Profile</Label>
+                  <Label className="flex items-center gap-2">
+                    {iconSet === "tabler" ? (
+                      <IconUser size={18} aria-hidden="true" />
+                    ) : (
+                      <UserRound size={18} aria-hidden="true" />
+                    )}
+                    Profile
+                  </Label>
                 </Dropdown.Item>
                 {switchTarget ? (
                   <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
-                    <Label>{switchTarget.label}</Label>
+                    <Label className="flex items-center gap-2">
+                      {iconSet === "tabler" ? (
+                        <IconArrowsExchange size={18} aria-hidden="true" />
+                      ) : (
+                        <ArrowLeftRight size={18} aria-hidden="true" />
+                      )}
+                      {switchTarget.label}
+                    </Label>
                   </Dropdown.Item>
                 ) : null}
-                {!accountProfileHref ? (
+                <Dropdown.Item id="theme" textValue="Dark Mode">
+                  <Label className="flex w-full items-center gap-2">
+                    {iconSet === "tabler" ? (
+                      isDark ? (
+                        <IconMoon size={18} aria-hidden="true" />
+                      ) : (
+                        <IconSun size={18} aria-hidden="true" />
+                      )
+                    ) : isDark ? (
+                      <Moon size={18} aria-hidden="true" />
+                    ) : (
+                      <Sun size={18} aria-hidden="true" />
+                    )}
+                    Dark Mode
+                    <span className="ml-auto pointer-events-none flex items-center">
+                      <ToggleSwitch
+                        isSelected={isDark}
+                        onValueChange={toggleTheme}
+                        disabled={!themeMounted}
+                        aria-label="Toggle dark mode"
+                      />
+                    </span>
+                  </Label>
+                </Dropdown.Item>
+                {settingsHref || settingsQueryParam || !accountProfileHref ? (
                   <Dropdown.Item id="settings" textValue="Settings">
-                    <Label>Settings</Label>
+                    <Label className="flex items-center gap-2">
+                      {iconSet === "tabler" ? (
+                        <IconSettings size={18} aria-hidden="true" />
+                      ) : (
+                        <Settings size={18} aria-hidden="true" />
+                      )}
+                      Settings
+                    </Label>
                   </Dropdown.Item>
                 ) : null}
               </>) : null}
               <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
                 <Label className="flex items-center gap-2">
                   {iconSet === "tabler" ? (
-                    <IconLogout size={14} />
+                    <IconLogout size={18} aria-hidden="true" />
                   ) : (
-                    <LogOut size={14} />
+                    <LogOut size={18} aria-hidden="true" />
                   )}{" "}
                   Log Out
                 </Label>

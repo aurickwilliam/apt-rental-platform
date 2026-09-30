@@ -93,7 +93,7 @@ export default function AuthForm() {
         >
           <Label>Email</Label>
 
-          <Input placeholder="Enter your email"/>
+          <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
 
           <FieldError>
             {({ validationDetails }) => {
@@ -123,7 +123,7 @@ export default function AuthForm() {
 
               <Link
                 href="/forgot-password"
-                className="text-sm text-right text-secondary underline"
+                className="text-sm text-right text-secondary dark:text-[#FFA500] underline"
               >
                 Forgot Password?
               </Link>

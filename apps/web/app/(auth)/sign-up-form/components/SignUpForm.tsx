@@ -110,7 +110,7 @@ export default function SignUpForm() {
     <>
       <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
         {/* Personal Information */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3">
+        <h2 className="text-2xl font-medium font-noto-serif mb-3 text-foreground">
           Personal Information
         </h2>
 
@@ -124,7 +124,7 @@ export default function SignUpForm() {
             onChange={handleChange("email")}
           >
             <Label>Email</Label>
-            <Input placeholder="Enter your email" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your email" />
           </TextField>
 
           <TextField
@@ -136,7 +136,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>First Name</Label>
-            <Input placeholder="Enter your first name" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your first name" />
           </TextField>
 
           <TextField
@@ -148,7 +148,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Last Name</Label>
-            <Input placeholder="Enter your last name" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your last name" />
           </TextField>
 
           <TextField
@@ -159,7 +159,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Middle Name</Label>
-            <Input placeholder="Enter your middle name (optional)" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
           </TextField>
 
           <Select
@@ -171,7 +171,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Gender</Label>
-            <Select.Trigger>
+            <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -203,7 +203,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Mobile Number</Label>
-            <Input placeholder="Enter your mobile number" inputMode="numeric" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your mobile number" inputMode="numeric" />
           </TextField>
 
           <DatePicker
@@ -276,7 +276,7 @@ export default function SignUpForm() {
         </div>
 
         {/* Address Information */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10">
+        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10 text-foreground">
           Address Information
         </h2>
 
@@ -290,7 +290,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Street Address</Label>
-            <Input placeholder="Enter your street address" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your street address" />
           </TextField>
 
           <TextField
@@ -302,7 +302,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>Barangay</Label>
-            <Input placeholder="Enter your barangay" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your barangay" />
           </TextField>
 
           <TextField
@@ -314,7 +314,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>City</Label>
-            <Input placeholder="Enter your city" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your city" />
           </TextField>
 
           <Select
@@ -329,7 +329,7 @@ export default function SignUpForm() {
             isDisabled={loading}
           >
             <Label>State/Province</Label>
-            <Select.Trigger>
+            <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -372,6 +372,7 @@ export default function SignUpForm() {
           >
             <Label>Postal Code</Label>
             <Input
+              className="bg-card! text-foreground!"
               placeholder="Enter your postal code"
               inputMode="numeric"
             />
@@ -380,7 +381,7 @@ export default function SignUpForm() {
         </div>
 
         {/* Password */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10">
+        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10 text-foreground">
           Set Your Password
         </h2>
 

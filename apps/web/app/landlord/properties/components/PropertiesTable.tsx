@@ -77,7 +77,7 @@ export default function PropertiesTable({
               >
                 <Table.Cell>
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
-                    <Image src={property.thumbnail} alt={property.name} fill className="object-cover" />
+                    <Image src={property.thumbnail} alt={property.name} fill unoptimized className="object-cover" />
                   </div>
                 </Table.Cell>
 

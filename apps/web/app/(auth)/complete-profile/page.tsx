@@ -60,7 +60,7 @@ export default async function CompleteProfilePage({
   const effectiveRole = role ?? profileRole;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-card">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex flex-col gap-4 mb-8">

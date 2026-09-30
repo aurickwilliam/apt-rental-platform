@@ -105,6 +105,7 @@ export default function ReviewCard({
                     alt={`Review photo ${index + 1}`}
                     width={64}
                     height={64}
+                    unoptimized
                     className="size-full object-cover"
                   />
                   {showOverlay && (

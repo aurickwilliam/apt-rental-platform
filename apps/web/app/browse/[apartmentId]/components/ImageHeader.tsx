@@ -26,13 +26,13 @@ export default function ImageHeader({ imageUrl, name }: ImageHeaderProps) {
     <>
       <div className="relative flex h-128 w-full gap-5">
         <button type="button" className={`relative h-full overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary ${photos.length > 1 ? "w-2/3" : "w-full"}`} onClick={() => openGallery(0)} aria-label={`View photos of ${name}`}>
-          <Image src={photos[0].url} alt={`${name} cover`} fill className="object-cover transition hover:brightness-90" />
+          <Image src={photos[0].url} alt={`${name} cover`} fill unoptimized className="object-cover transition hover:brightness-90" />
         </button>
         {photos.length > 1 ? (
           <div className="flex w-1/3 flex-col gap-5">
             {photos.slice(1, 3).map((photo, offset) => (
               <button key={`${photo.url}-${offset}`} type="button" onClick={() => openGallery(offset + 1)} className="relative min-h-0 flex-1 overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary" aria-label={`View photo ${offset + 2} of ${name}`}>
-                <Image src={photo.url} alt={`${name} photo ${offset + 2}`} fill className="object-cover transition hover:brightness-90" />
+                <Image src={photo.url} alt={`${name} photo ${offset + 2}`} fill unoptimized className="object-cover transition hover:brightness-90" />
               </button>
             ))}
           </div>

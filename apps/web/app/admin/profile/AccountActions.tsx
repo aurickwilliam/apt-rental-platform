@@ -20,11 +20,9 @@ export default function AccountActions() {
       <Button
         variant="outline"
         className="min-h-11 w-full justify-start gap-3"
-        isDisabled
-        aria-label="Settings, coming soon"
+        onPress={() => router.push("/admin/profile?settings=account")}
       >
         <IconSettings size={20} aria-hidden="true" /> Settings
-        <span className="ml-auto text-xs">Coming soon</span>
       </Button>
       <form action={signOut}>
         <Button

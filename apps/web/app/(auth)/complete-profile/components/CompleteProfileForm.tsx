@@ -53,34 +53,34 @@ export default function CompleteProfileForm({
 
       {/* Personal Information */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium font-noto-serif">
+        <h2 className="text-lg font-medium font-noto-serif text-foreground">
           Personal Information
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <TextField name="email" isReadOnly defaultValue={email} fullWidth>
             <Label>Email</Label>
-            <Input />
+            <Input className="bg-card! text-foreground!" />
           </TextField>
 
           <TextField name="first_name" isRequired defaultValue={firstName} fullWidth>
             <Label>First Name</Label>
-            <Input placeholder="Enter your first name" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your first name" />
           </TextField>
 
           <TextField name="last_name" isRequired defaultValue={lastName} fullWidth>
             <Label>Last Name</Label>
-            <Input placeholder="Enter your last name" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your last name" />
           </TextField>
 
           <TextField name="middle_name" fullWidth>
             <Label>Middle Name</Label>
-            <Input placeholder="Enter your middle name (optional)" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
           </TextField>
 
           <Select name="gender" isRequired fullWidth placeholder="Select your gender">
             <Label>Gender</Label>
-            <Select.Trigger>
+            <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -103,7 +103,7 @@ export default function CompleteProfileForm({
             onChange={(val) => setMobileNumber(val.replace(/\D/g, "").slice(0, 11))}
           >
             <Label>Mobile Number</Label>
-            <Input inputMode="numeric" placeholder="Enter your mobile number" />
+            <Input inputMode="numeric" className="bg-card! text-foreground!" placeholder="Enter your mobile number" />
           </TextField>
 
           <DatePicker name="birth_date" isRequired>
@@ -169,29 +169,29 @@ export default function CompleteProfileForm({
 
       {/* Address Information */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium font-noto-serif">
+        <h2 className="text-lg font-medium font-noto-serif text-foreground">
           Address Information
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <TextField name="street_address" isRequired fullWidth>
             <Label>Street Address</Label>
-            <Input placeholder="Enter your street address" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your street address" />
           </TextField>
 
           <TextField name="barangay" isRequired fullWidth>
             <Label>Barangay</Label>
-            <Input placeholder="Enter your barangay" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your barangay" />
           </TextField>
 
           <TextField name="city" isRequired fullWidth>
             <Label>City</Label>
-            <Input placeholder="Enter your city" />
+            <Input className="bg-card! text-foreground!" placeholder="Enter your city" />
           </TextField>
 
           <Select name="province" isRequired fullWidth placeholder="Select your province">
             <Label>Province</Label>
-            <Select.Trigger>
+            <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -215,6 +215,7 @@ export default function CompleteProfileForm({
           >
             <Label>Postal Code</Label>
             <Input
+              className="bg-card! text-foreground!"
               placeholder="Enter your postal code"
               inputMode="numeric"
               maxLength={4}
