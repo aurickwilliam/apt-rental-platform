@@ -4,7 +4,6 @@ import { createClient } from "@repo/supabase/server";
 const TENANT_NAV = [
   { href: "/tenant/browse", label: "Browse", icon: "Search" },
   { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
-  { href: "/tenant/applications", label: "Applications", icon: "FileText" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
   { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },

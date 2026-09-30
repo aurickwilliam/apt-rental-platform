@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Avatar, Button, Link, Spinner, Table } from "@heroui/react";
+import { Avatar, Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
 import {
   CreditCard,
   FileText,
+  History,
   MessageCircle,
   Receipt,
   Wrench,
@@ -17,6 +18,7 @@ import {
 import { formatPesoDisplay } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
+import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
 import { CATEGORIES } from "../maintenance/data/maintenance-data";
@@ -30,6 +32,7 @@ import DashboardCard from "./components/DashboardCard";
 import StatusChip from "./components/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import TenancyEmptyState from "./components/TenancyEmptyState";
+import ApplicationsList from "./components/ApplicationsList";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -127,6 +130,12 @@ function getInitials(name: string) {
 export default function MyRental() {
   const { tenancy, payments, currentPayment, loading, error, refetch } = useTenancy();
   const {
+    applications,
+    loading: applicationsLoading,
+  } = useTenantApplications();
+  const historyDialog = useOverlayState();
+  const hasApplications = !applicationsLoading && applications.length > 0;
+  const {
     requests: maintenanceRequests,
     loading: maintenanceLoading,
     error: maintenanceError,
@@ -203,6 +212,7 @@ export default function MyRental() {
             </div>
             <TenancyEmptyState />
           </div>
+          {hasApplications && <ApplicationsList />}
         </div>
       </div>
     );
@@ -327,7 +337,15 @@ export default function MyRental() {
                 {formatAddress(apartment)}
               </p>
             </div>
-            <StatusChip variant="success">Active lease</StatusChip>
+            <div className="flex flex-wrap items-center gap-2">
+              {hasApplications && (
+                <Button variant="outline" size="sm" onPress={() => historyDialog.setOpen(true)}>
+                  <History size={16} />
+                  Application History
+                </Button>
+              )}
+              <StatusChip variant="success">Active lease</StatusChip>
+            </div>
           </div>
         </div>
 
@@ -711,6 +729,21 @@ export default function MyRental() {
             </Table.ScrollContainer>
           </Table>
         </DashboardCard>
+
+        <Modal isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen}>
+          <Modal.Backdrop>
+            <Modal.Container size="lg" scroll="inside">
+              <Modal.Dialog>
+                <Modal.Header>
+                  <Modal.Heading>Application History</Modal.Heading>
+                </Modal.Header>
+                <Modal.Body>
+                  <ApplicationsList />
+                </Modal.Body>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
 
       </div>
     </div>
