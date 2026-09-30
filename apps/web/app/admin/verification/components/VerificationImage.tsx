@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { IconBuilding } from "@tabler/icons-react";
-import { Avatar } from "@heroui/react";
+
+import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 
 interface VerificationImageProps {
   kind: "users" | "apartments";
@@ -38,11 +39,13 @@ export default function VerificationImage({
     );
   }
   return (
-    <Avatar size="sm" className="shrink-0 bg-primary/10 text-primary">
-      {image ? <Avatar.Image src={image} alt="" /> : null}
-      <Avatar.Fallback className="bg-primary/10 text-primary">
-        {initials(name)}
-      </Avatar.Fallback>
-    </Avatar>
+    <SharedUserAvatar
+      src={image}
+      initials={initials(name)}
+      alt={name}
+      size="sm"
+      className="shrink-0 bg-primary/10 text-primary"
+      fallbackClassName="bg-primary/10 text-primary"
+    />
   );
 }

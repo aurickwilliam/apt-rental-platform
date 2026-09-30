@@ -29,7 +29,7 @@ export default async function AdminLayout({
         navItems={[...ADMIN_NAV]}
         userName={userName}
         userRole="Administrator"
-        avatarUrl={profile.avatar_url}
+        userAvatarUrl={profile.avatar_url}
         profileHref="/admin/profile"
         settingsQueryParam="open"
         iconSet="tabler"

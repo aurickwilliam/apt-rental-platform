@@ -4,9 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Avatar, Chip, Table, Tabs } from "@heroui/react";
+import { Chip, Table, Tabs } from "@heroui/react";
 import { IconBuilding, IconChevronRight } from "@tabler/icons-react";
 import type { VerificationRequest } from "../lib/get-dashboard-data";
+import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 
 interface VerificationQueueProps {
   requests: VerificationRequest[];
@@ -30,16 +31,18 @@ function RequestImage({ request }: { request: VerificationRequest }) {
     );
   }
   return (
-    <Avatar size="sm" className="shrink-0 bg-primary/10 text-primary">
-      {request.image ? <Avatar.Image src={request.image} alt="" /> : null}
-      <Avatar.Fallback className="bg-primary/10 text-primary">
-        {request.name
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((part) => part[0]?.toUpperCase())
-          .join("")}
-      </Avatar.Fallback>
-    </Avatar>
+    <SharedUserAvatar
+      src={request.image}
+      initials={request.name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("")}
+      alt={request.name}
+      size="sm"
+      className="shrink-0 bg-primary/10 text-primary"
+      fallbackClassName="bg-primary/10 text-primary"
+    />
   );
 }
 

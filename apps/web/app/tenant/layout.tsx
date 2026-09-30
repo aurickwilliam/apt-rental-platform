@@ -31,7 +31,7 @@ export default async function TenantLayout({
   let userName = "Tenant";
   const userRole = "Tenant";
   let userRoles: string[] = ["tenant"];
-  let avatarUrl: string | null = null;
+  let userAvatarUrl: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -41,14 +41,14 @@ export default async function TenantLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, avatar_url, roles")
+        .select("first_name, last_name, roles, avatar_url")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
       else if (user.email) userName = user.email;
-      avatarUrl = profile?.avatar_url ?? user.user_metadata.avatar_url ?? null;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
+      userAvatarUrl = profile?.avatar_url ?? null;
     }
   } catch {
     // fallback to defaults — layout remains server-renderable
@@ -56,7 +56,7 @@ export default async function TenantLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="tenant" settingsQueryParam="open" />
+      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} userRoles={userRoles} userAvatarUrl={userAvatarUrl} activePortal="tenant" settingsQueryParam="open" />
       <div className="flex flex-1 flex-col min-w-0">
         <AppTopBar titleMap={TENANT_TITLES} />
         <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-background">{children}</main>

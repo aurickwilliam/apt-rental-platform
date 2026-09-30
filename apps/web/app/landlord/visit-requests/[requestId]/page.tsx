@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -21,6 +20,8 @@ import {
 import { ArrowLeft, Image as ImageIcon, MapPin } from "lucide-react";
 import { toast } from "@heroui/react";
 import { formatAddress, formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
+
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { useLandlordVisitRequests } from "@/hooks/use-landlord-visit-requests";
 import { useLandlordVisitRequestActions } from "@/hooks/use-landlord-visit-request-actions";
@@ -205,13 +206,14 @@ export default function LandlordVisitRequestDetailPage() {
         <aside className="lg:sticky lg:top-4">
           <Card className="border border-border bg-card text-card-foreground p-5 rounded-2xl flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <Avatar size="md" className="shrink-0">
-                {request.tenant.avatar_url ? (
-                  <img src={request.tenant.avatar_url} alt={tenantName} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-xs font-semibold">{getInitials(tenantName)}</span>
-                )}
-              </Avatar>
+              <UserAvatar
+                src={request.tenant.avatar_url}
+                initials={getInitials(tenantName)}
+                alt={tenantName}
+                size="md"
+                className="shrink-0"
+                fallbackClassName="text-xs font-semibold"
+              />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-card-foreground truncate">{tenantName}</p>
                 <p className="text-xs text-muted-foreground">{request.tenant.mobile_number ?? "No contact number"}</p>

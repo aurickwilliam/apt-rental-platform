@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Avatar, Button, Chip, Dropdown, InputGroup, Separator, Table } from "@heroui/react";
+import { Button, Chip, Dropdown, InputGroup, Separator, Table } from "@heroui/react";
 import { Search, ListFilter, Hammer, Calendar } from "lucide-react";
 import { formatDate, getInitials } from "@repo/utils";
 
 import { useLandlordMaintenanceRequests } from "@/hooks/use-landlord-maintenance-requests";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useLandlordActionBadges } from "@/hooks/use-landlord-action-badges";
 import {
   MAINTENANCE_URGENCY_STYLE,
@@ -242,11 +243,14 @@ export default function MaintenanceRequestsPage() {
                           </Table.Cell>
                           <Table.Cell>
                             <div className="flex items-center gap-2">
-                              <Avatar size="sm" className="shrink-0">
-                                <span className="text-xs font-semibold">
-                                  {getInitials(request.tenant_name)}
-                                </span>
-                              </Avatar>
+                              <UserAvatar
+                                src={request.tenant_avatar_url}
+                                initials={getInitials(request.tenant_name)}
+                                alt={request.tenant_name}
+                                size="sm"
+                                className="shrink-0"
+                                fallbackClassName="text-xs font-semibold"
+                              />
                               <p className="text-sm text-card-foreground truncate max-w-32">
                                 {request.tenant_name}
                               </p>
