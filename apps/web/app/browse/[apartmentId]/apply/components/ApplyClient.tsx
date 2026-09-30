@@ -239,7 +239,7 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
   const wizardStep = Math.min(Math.max(step - 1, 1), 4);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 pb-12">
+    <div className="max-w-7xl mx-auto w-full p-4 md:p-6 pb-12">
       <div className="flex items-center gap-2 mb-4">
         <Button variant="outline" size="sm" onPress={() => (step > 1 ? setStep((s) => s - 1) : router.back())}>
           <ArrowLeft size={16} />
@@ -262,102 +262,112 @@ export default function ApplyClient({ apartment }: { apartment: ApartmentContext
       )}
 
       {step === 1 && (
-        <div className="border border-border bg-card text-card-foreground rounded-3xl overflow-hidden shadow-sm ring-1 ring-border isolate">
-          <div className="relative h-80 md:h-[560px] rounded-3xl overflow-hidden isolate">
-            <NextImage
-              src={apartment.cover}
-              alt={apartment.name ?? "Apartment"}
-              fill
-              sizes="(max-width:768px) 100vw, 896px"
-              priority
-              quality={90}
-              unoptimized
-              className="object-cover"
-              style={{ borderRadius: "1.375rem" }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 h-[58%] bg-gradient-to-t from-black via-black/80 to-transparent" style={{ borderRadius: "1.375rem" }} />
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-              <h1 className="text-white text-2xl md:text-[28px] font-bold leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.9)]">{apartment.name}</h1>
-              <p className="text-white text-sm font-semibold flex items-center gap-1.5 mt-2 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">
-                <MapPin size={14} className="shrink-0 text-white" /> {apartment.address}
-              </p>
+        <div className="w-full flex flex-col md:flex-row gap-5">
+          <div className="w-full md:w-2/3 flex flex-col gap-5">
+            <div className="border border-border bg-card text-card-foreground rounded-3xl overflow-hidden shadow-sm ring-1 ring-border isolate">
+              <div className="relative h-80 md:h-[440px] overflow-hidden isolate">
+                <NextImage
+                  src={apartment.cover}
+                  alt={apartment.name ?? "Apartment"}
+                  fill
+                  sizes="(max-width:768px) 100vw, 800px"
+                  priority
+                  quality={90}
+                  unoptimized
+                  className="object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-[58%] bg-gradient-to-t from-black via-black/80 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                  <h1 className="text-white text-2xl md:text-[28px] font-bold leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.9)]">{apartment.name}</h1>
+                  <p className="text-white text-sm font-semibold flex items-center gap-1.5 mt-2 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">
+                    <MapPin size={14} className="shrink-0 text-white" /> {apartment.address}
+                  </p>
+                </div>
+              </div>
+              <div className="p-5 md:p-6 flex flex-col gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <House size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.type ?? "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <BedDouble size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBedrooms ?? "—"} Bedrooms</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Bath size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBathrooms ?? "—"} Bathrooms</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Expand size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.areaSqm ?? "—"} sqm</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building2 size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.floorLevel ?? "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.maxOccupants ?? "—"} Occupants</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CalendarIcon size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.leaseDuration ?? "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Armchair size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.furnishedType ?? "—"}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="p-5 md:p-6 flex flex-col gap-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2 text-sm">
-                <House size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.type ?? "—"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <BedDouble size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBedrooms ?? "—"} Bedrooms</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Bath size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.noBathrooms ?? "—"} Bathrooms</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Expand size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.areaSqm ?? "—"} sqm</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Building2 size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.floorLevel ?? "—"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Users size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.maxOccupants ?? "—"} Occupants</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <CalendarIcon size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.leaseDuration ?? "—"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Armchair size={18} className="text-muted-foreground" /> <span className="font-medium text-card-foreground">{apartment.furnishedType ?? "—"}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 text-sm">
-                <Star size={16} className="text-amber-500 fill-amber-500" />
-                <span className="font-semibold text-card-foreground">{apartment.averageRating?.toFixed(1) ?? "—"}</span>
-                <span className="text-muted-foreground">rating</span>
-              </div>
-              {apartment.landlordName && (
-                <div className="flex items-center gap-2 ml-auto text-sm">
-                  {apartment.landlordAvatarUrl ? (
-                    <img src={apartment.landlordAvatarUrl} alt="Owner" width={24} height={24} className="rounded-full object-cover w-6 h-6" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-muted" />
+
+          <div className="w-full md:w-1/3">
+            <div className="md:sticky md:top-4 flex flex-col gap-5">
+              <div className="border border-border bg-card text-card-foreground rounded-3xl shadow-sm ring-1 ring-border p-5 md:p-6 flex flex-col gap-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star size={16} className="text-amber-500 fill-amber-500" />
+                    <span className="font-semibold text-card-foreground">{apartment.averageRating?.toFixed(1) ?? "—"}</span>
+                    <span className="text-muted-foreground">rating</span>
+                  </div>
+                  {apartment.landlordName && (
+                    <div className="flex items-center gap-2 ml-auto text-sm">
+                      {apartment.landlordAvatarUrl ? (
+                        <img src={apartment.landlordAvatarUrl} alt="Owner" width={24} height={24} className="rounded-full object-cover w-6 h-6" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-muted" />
+                      )}
+                      <span className="font-medium text-card-foreground">{apartment.landlordName}</span>
+                      <span className="text-muted-foreground text-xs">Rental Owner</span>
+                    </div>
                   )}
-                  <span className="font-medium text-card-foreground">{apartment.landlordName}</span>
-                  <span className="text-muted-foreground text-xs">Rental Owner</span>
                 </div>
-              )}
-            </div>
-            <Separator />
-            <div className="flex flex-col gap-3 bg-muted p-4 rounded-xl border border-border">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Monthly Rent</span>
-                <span className="font-semibold text-card-foreground">{formatPesoDisplay(apartment.monthlyRent)}</span>
+                <Separator />
+                <div className="flex flex-col gap-3 bg-muted p-4 rounded-xl border border-border">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Monthly Rent</span>
+                    <span className="font-semibold text-card-foreground">{formatPesoDisplay(apartment.monthlyRent)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Security Deposit</span>
+                    <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.securityDeposit)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Advance Rent</span>
+                    <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.advanceRent)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-sm">
+                    <span className="font-semibold text-card-foreground">Total Move-in Cost</span>
+                    <span className="font-bold text-primary">{formatPesoDisplay(totalMoveIn)}</span>
+                  </div>
+                  {apartment.maxOccupants !== null && (
+                    <p className="text-xs text-muted-foreground">This unit allows a maximum of {apartment.maxOccupants} occupant(s).</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Button className="w-full" onPress={() => setStep(2)}>
+                    Continue Application
+                  </Button>
+                  <Button variant="outline" className="w-full" onPress={() => discardModal.open()}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Security Deposit</span>
-                <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.securityDeposit)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Advance Rent</span>
-                <span className="font-medium text-card-foreground">{formatPesoDisplay(apartment.advanceRent)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold text-card-foreground">Total Move-in Cost</span>
-                <span className="font-bold text-primary">{formatPesoDisplay(totalMoveIn)}</span>
-              </div>
-              {apartment.maxOccupants !== null && (
-                <p className="text-xs text-muted-foreground">This unit allows a maximum of {apartment.maxOccupants} occupant(s).</p>
-              )}
-            </div>
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" className="flex-1" onPress={() => discardModal.open()}>
-                Cancel
-              </Button>
-              <Button className="flex-1" onPress={() => setStep(2)}>
-                Continue Application
-              </Button>
             </div>
           </div>
         </div>
