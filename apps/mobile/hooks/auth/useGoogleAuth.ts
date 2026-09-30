@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
-import { portalHome } from "@/service/auth/portalPreference";
+import { isPortal, portalHome, type Portal } from "@/service/auth/portalPreference";
 
 export function useGoogleAuth() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export function useGoogleAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleUrl = async (url: string, userSide: "tenant" | "landlord") => {
+  const handleUrl = async (url: string, requestedRole?: Portal) => {
     try {
       // Google returns a one-time code in the redirect URL
       const parsedUrl = new URL(url);
@@ -61,23 +61,6 @@ export function useGoogleAuth() {
         return;
       }
 
-      let role: "tenant" | "landlord" = userSide;
-
-      // Check if this is a new user
-      // Only incomplete Google profiles may choose a tenant/landlord role.
-      if (!profile.mobile_number && !(profile.roles ?? []).includes(userSide)) {
-        const { error: roleError } = await supabase.rpc("set_onboarding_role", {
-          requested_role: userSide,
-        });
-        if (roleError) {
-          await supabase.auth.signOut();
-          setError("Could not select your account type. Please try again.");
-          setLoading(false);
-          return;
-        }
-        role = userSide;
-      }
-
       setLoading(false);
 
       // If the profile is incomplete, redirect to complete profile page first
@@ -88,7 +71,8 @@ export function useGoogleAuth() {
           pathname: "../(auth)/auth-complete-profile",
           params: {
             email: data.session.user.email ?? "",
-            userSide: role,
+            ...(requestedRole ? { userSide: requestedRole } : {}),
+            suggestedRole: isPortal(profile.roles?.[0]) ? profile.roles[0] : "tenant",
             firstName: data.session.user.user_metadata?.full_name?.split(" ")[0] ?? "",
             lastName: data.session.user.user_metadata?.full_name?.split(" ")[1] ?? "",
           },
@@ -97,7 +81,7 @@ export function useGoogleAuth() {
       }
 
       const heldRoles: string[] = profile.roles ?? [];
-      const portal = await usePortalStore.getState().restore(userId, heldRoles, userSide);
+      const portal = await usePortalStore.getState().restore(userId, heldRoles);
       if (!portal) {
         await supabase.auth.signOut();
         setError("No supported mobile role found.");
@@ -114,7 +98,7 @@ export function useGoogleAuth() {
     }
   };
 
-  const signInWithGoogle = async (userSide: "tenant" | "landlord") => {
+  const signInWithGoogle = async (requestedRole?: Portal) => {
     setLoading(true);
     setError("");
 
@@ -131,7 +115,7 @@ export function useGoogleAuth() {
 
         handled = true;
         subscription.remove();
-        handleUrl(url, userSide);
+        void handleUrl(url, requestedRole);
       });
 
       // Start the OAuth flow by getting the URL to open from Supabase
@@ -165,7 +149,7 @@ export function useGoogleAuth() {
         if (!handled) {
           handled = true;
           subscription.remove();
-          await handleUrl(result.url, userSide);
+          await handleUrl(result.url, requestedRole);
         }
 
       } else if (result.type === "cancel" || result.type === "dismiss") {

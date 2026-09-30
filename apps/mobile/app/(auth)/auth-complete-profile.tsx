@@ -18,6 +18,7 @@ import ScreenWrapper from 'components/layout/ScreenWrapper';
 import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
 import ErrorDialog from '@/components/display/ErrorDialog';
+import RoleTab from './components/RoleTab';
 
 import {
   usePHMobileValidation,
@@ -26,6 +27,7 @@ import {
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { isPortal, type Portal } from '@/service/auth/portalPreference';
 
 import { useColors } from "hooks/useTheme";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
@@ -75,7 +77,13 @@ export default function AuthCompleteProfile() {
 
   const [canLeave, setCanLeave] = useState(false);
 
-  const { email, userSide, firstName, lastName } = useLocalSearchParams();
+  const { email, userSide, suggestedRole, firstName, lastName } = useLocalSearchParams();
+
+  const requestedRole = Array.isArray(userSide) ? userSide[0] : userSide;
+  const suggestedPortal = Array.isArray(suggestedRole) ? suggestedRole[0] : suggestedRole;
+  const [selectedRole, setSelectedRole] = useState<Portal>(
+    isPortal(requestedRole) ? requestedRole : isPortal(suggestedPortal) ? suggestedPortal : 'tenant',
+  );
 
   const emailValue = Array.isArray(email) ? email[0] : email;
   const firstNameValue = Array.isArray(firstName) ? firstName[0] : (firstName ?? "");
@@ -201,6 +209,10 @@ export default function AuthCompleteProfile() {
     setLoading(true);
 
     try {
+      if (requestedRole !== undefined && !isPortal(requestedRole)) {
+        throw new Error('Invalid account type.');
+      }
+
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error('No authenticated user found.');
@@ -212,15 +224,12 @@ export default function AuthCompleteProfile() {
       });
       if (updateError) throw updateError;
 
-      const selectedRole = Array.isArray(userSide) ? userSide[0] : userSide;
-      if (selectedRole !== 'tenant' && selectedRole !== 'landlord') {
-        throw new Error('Invalid account type.');
-      }
       const { data: currentProfile, error: profileError } = await supabase
         .from('users').select('roles').eq('user_id', user.id).single();
       if (profileError || !currentProfile) throw profileError ?? new Error('Profile not found.');
       if (currentProfile.roles.includes('admin')) throw new Error('Admin accounts are available on the web portal only.');
       if (!currentProfile.roles.includes(selectedRole)) {
+        if (currentProfile.roles.length !== 1) throw new Error('Cannot change the role of this account during onboarding.');
         const { error: roleError } = await supabase.rpc('set_onboarding_role', {
           requested_role: selectedRole,
         });
@@ -254,12 +263,12 @@ export default function AuthCompleteProfile() {
         ...profileForm,
         postalCode,
         mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
-        userSide: userSide as 'tenant' | 'landlord',
+        userSide: selectedRole,
       });
 
       setCanLeave(true);
       router.replace(
-        userSide === "landlord"
+        selectedRole === "landlord"
           ? "../(tabs)/(landlord)/dashboard"
           : "/personalization/step-one",
       );
@@ -298,8 +307,17 @@ export default function AuthCompleteProfile() {
     <ScreenWrapper scrollable ref={scrollRef} className="p-5">
       {/* Title */}
       <Text className="text-2xl text-foreground font-nunitoBold my-5">
-        Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
+        Complete Your {selectedRole === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
+
+      {requestedRole === undefined && (
+        <View className="mb-5">
+          <Text className="text-base text-foreground font-nunitoSemiBold">Choose your account type</Text>
+          <RoleTab userSide={selectedRole} onValueChange={(value) => {
+            if (isPortal(value)) setSelectedRole(value);
+          }} />
+        </View>
+      )}
 
       <View className="flex gap-4">
         {/* Email Address Field */}

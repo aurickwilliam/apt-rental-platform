@@ -7,7 +7,6 @@ import { IMAGES } from "constants/images";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
-import RoleTab from "./components/RoleTab";
 import AuthButton from "./components/AuthButton";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
@@ -47,8 +46,6 @@ export default function SignIn() {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [userSide, setUserSide] = useState<"tenant" | "landlord">("tenant");
-
   const [loading, setLoading] = useState<boolean>(false);
 
   const [emailError, setEmailError] = useState<string>("");
@@ -66,7 +63,7 @@ export default function SignIn() {
     clearQueryClient();
     if (error) setError("");
     if (googleError) resetGoogleError();
-    void signInWithGoogle(userSide);
+    void signInWithGoogle();
   };
 
   const handleEmailTextChange = (text: string) => {
@@ -153,8 +150,8 @@ export default function SignIn() {
         return;
       }
 
-      // Restore this account's last portal; the tab is only a fallback if held.
-      const portal = await usePortalStore.getState().restore(authData.user!.id, heldRoles, userSide);
+      // A returning account resumes its last authorized portal.
+      const portal = await usePortalStore.getState().restore(authData.user!.id, heldRoles);
       if (!portal) {
         setError("No tenant or landlord account found for this profile.");
         await supabase.auth.signOut();
@@ -190,20 +187,9 @@ export default function SignIn() {
         </Text>
 
         <Text className="text-base text-muted font-nunitoSemiBold">
-          {userSide === "tenant"
-            ? "Log in to continue your apartment journey."
-            : "Access your listings and manage your tenants easily."}
+          Log in to continue your apartment journey.
         </Text>
       </View>
-
-      {/* Tab Group User Side */}
-      <RoleTab
-        userSide={userSide}
-        onValueChange={(val) => {
-          setUserSide(val as "tenant" | "landlord");
-          if (error) setError("");
-        }}
-      />
 
       {/* Form inputs */}
       <View className="mt-8 flex gap-4">

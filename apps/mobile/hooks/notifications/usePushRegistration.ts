@@ -8,7 +8,7 @@ import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
-import { deletePushToken, upsertPushToken } from "@/service/notifications/notificationService";
+import { deletePushToken, registerPushToken } from "@/service/notifications/notificationService";
 
 // Foreground presentation: in-app toasts handle the visible banner while the
 // app is open, so the OS banner/list are suppressed here. Sound is kept for an
@@ -79,7 +79,6 @@ export function usePushRegistration() {
 
     if (Platform.OS === "ios" && !Device.isDevice) return;
 
-    const currentUserId = userId;
     let cancelled = false;
 
     async function register() {
@@ -106,8 +105,13 @@ export function usePushRegistration() {
         const token = await Notifications.getExpoPushTokenAsync({ projectId });
         if (cancelled || !token.data) return;
 
+        await registerPushToken(token.data, Platform.OS === "ios" ? "ios" : "android");
+        if (cancelled) {
+          // The signed-in account may have changed while the request was in flight.
+          // The next account registration will claim the token if it is still enabled.
+          return;
+        }
         registeredTokenRef.current = token.data;
-        await upsertPushToken(currentUserId, token.data, Platform.OS === "ios" ? "ios" : "android");
       } catch (error) {
         console.error("Push token registration failed:", error);
       }

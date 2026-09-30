@@ -1395,6 +1395,10 @@ export type Database = {
       }
       grant_user_role: { Args: { new_role: string }; Returns: string[] }
       notify_rent_due_status: { Args: never; Returns: undefined }
+      register_push_token: {
+        Args: { p_platform: string; p_token: string }
+        Returns: undefined
+      }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
     }
     Enums: {
