@@ -11,6 +11,57 @@ export function monthLabel(monthKey: string): string {
   return MONTH_LABELS[index] ?? monthKey;
 }
 
+/** "YYYY-MM" key for the given date (defaults to today). */
+export function currentMonthKey(today: Date = new Date()): string {
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Paid revenue recorded for a single "YYYY-MM" bucket (0 when absent). */
+export function monthRevenueTotal(
+  monthlyRevenue: readonly MonthlyRevenuePoint[],
+  month: string,
+): number {
+  return monthlyRevenue.find((point) => point.month === month)?.amount ?? 0;
+}
+
+export interface TopProperty {
+  apartmentId: string;
+  apartmentName: string;
+  total: number;
+}
+
+/** Properties ranked by total paid revenue over the window, highest first. */
+export function topPropertiesByRevenue(
+  revenueByProperty: readonly PropertyRevenue[],
+  limit = 3,
+): TopProperty[] {
+  return revenueByProperty
+    .map((property) => ({
+      apartmentId: property.apartmentId,
+      apartmentName: property.apartmentName,
+      total: property.months.reduce((sum, month) => sum + month.amount, 0),
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+}
+
+export interface RentDueSummary {
+  pendingTotal: number;
+  overdueTotal: number;
+  totalDue: number;
+}
+
+/** Splits unpaid dues with a due date into pending vs overdue peso totals. */
+export function summarizeRentDues(rentDues: readonly RentDue[]): RentDueSummary {
+  let pendingTotal = 0;
+  let overdueTotal = 0;
+  for (const due of rentDues) {
+    if (due.isOverdue) overdueTotal += due.amount;
+    else pendingTotal += due.amount;
+  }
+  return { pendingTotal, overdueTotal, totalDue: pendingTotal + overdueTotal };
+}
+
 export interface DashboardStats {
   totalProperties: number;
   unitsOccupied: number;

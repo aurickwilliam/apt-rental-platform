@@ -57,19 +57,7 @@ export async function setApartmentVisibility(formData: FormData): Promise<Operat
   const decision = formData.get("decision");
   if (decision !== "hide" && decision !== "restore") return { error: "Invalid decision." };
 
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("admin_set_apartment_visibility", {
-    p_apartment_id: parsed.id, p_hide: decision === "hide", p_reason: parsed.reason,
-  });
-  if (error) {
-    console.error("Admin listing visibility failed", error);
-    return { error: "Listing visibility could not be updated. Refresh and try again." };
-  }
-  revalidatePath(`/admin/apartments/${parsed.id}`);
-  revalidatePath("/admin/apartments");
-  revalidatePath("/admin/activity");
-  revalidatePath("/admin/analytics");
-  revalidatePath("/browse");
-  revalidatePath(`/browse/${parsed.id}`);
-  return {};
+  // Production does not have admin_set_apartment_visibility. Do not bypass its
+  // audited authorization/audit-log boundary with a direct table update.
+  return { error: "Listing visibility is unavailable until the admin operation is implemented and deployed." };
 }

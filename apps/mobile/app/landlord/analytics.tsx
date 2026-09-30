@@ -1,68 +1,108 @@
+import { useEffect } from "react";
 import { View, Text, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
 
 import {
-  IconTrendingUp,
   IconCurrencyDollar,
   IconHome,
-  IconUsers,
+  IconClock,
+  IconTool,
+  IconChartBar,
 } from "@tabler/icons-react-native";
+
+import { formatPesoDisplay } from "@repo/utils";
 
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import EmptyState from "@/components/display/EmptyState";
+import DashboardSkeleton from "@/app/(tabs)/components/dashboard/DashboardSkeleton";
+import EmptyProperties from "@/app/(tabs)/components/units/EmptyProperties";
 
+import { useDashboardData } from "@/hooks/dashboard";
+import {
+  currentMonthKey,
+  monthLabel,
+  monthRevenueTotal,
+  summarizeRentDues,
+  topPropertiesByRevenue,
+} from "@/service/dashboard/dashboardService";
 import { useColors } from "@/hooks/useTheme";
 
-const stats = [
-  {
-    id: 1,
-    label: "Total Revenue",
-    value: "₱ 120,000",
-    sub: "This month",
-    icon: IconCurrencyDollar,
-  },
-  {
-    id: 2,
-    label: "Active Units",
-    value: "8",
-    sub: "Out of 10 listed",
-    icon: IconHome,
-  },
-  {
-    id: 3,
-    label: "Active Tenants",
-    value: "8",
-    sub: "Currently renting",
-    icon: IconUsers,
-  },
-  {
-    id: 4,
-    label: "Growth",
-    value: "+12%",
-    sub: "vs last month",
-    icon: IconTrendingUp,
-  },
-];
-
-const monthlyData = [
-  { month: "Jan", amount: 80000 },
-  { month: "Feb", amount: 95000 },
-  { month: "Mar", amount: 88000 },
-  { month: "Apr", amount: 102000 },
-  { month: "May", amount: 110000 },
-  { month: "Jun", amount: 120000 },
-];
-
-const MAX_AMOUNT = Math.max(...monthlyData.map((d) => d.amount));
-
 export default function AnalyticsScreen() {
-  const {colors} = useColors();
+  const router = useRouter();
+  const { colors } = useColors();
+  const { data, isLoading, error } = useDashboardData();
+  const { stats, monthlyRevenue, revenueByProperty, rentDues } = data;
+
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching analytics data:", error);
+    }
+  }, [error]);
+
+  if (isLoading) {
+    return (
+      <ScreenWrapper header={<StandardHeader title="Analytics" />} scrollable>
+        <DashboardSkeleton />
+      </ScreenWrapper>
+    );
+  }
+
+  if (stats.totalProperties === 0) {
+    return (
+      <ScreenWrapper header={<StandardHeader title="Analytics" />} scrollable>
+        <EmptyProperties
+          onAdd={() => router.push("/landlord/manage-apartment/add-apartment/")}
+        />
+      </ScreenWrapper>
+    );
+  }
+
+  const monthKey = currentMonthKey();
+  const revenueThisMonth = monthRevenueTotal(monthlyRevenue, monthKey);
+  const recentRevenue = monthlyRevenue.slice(-6);
+  const maxAmount = Math.max(1, ...recentRevenue.map((d) => d.amount));
+  const hasAnyRevenue = monthlyRevenue.some((point) => point.amount > 0);
+  const { pendingTotal, overdueTotal } = summarizeRentDues(rentDues);
+  const topUnits = topPropertiesByRevenue(revenueByProperty, 3);
+
+  const statsCards = [
+    {
+      id: 1,
+      label: "Total Revenue",
+      value: formatPesoDisplay(revenueThisMonth),
+      sub: "This month",
+      icon: IconCurrencyDollar,
+    },
+    {
+      id: 2,
+      label: "Active Units",
+      value: `${stats.unitsOccupied}`,
+      sub: `Out of ${stats.totalProperties} listed`,
+      icon: IconHome,
+    },
+    {
+      id: 3,
+      label: "Pending Payments",
+      value: `${stats.pendingPayments}`,
+      sub: "Awaiting collection",
+      icon: IconClock,
+    },
+    {
+      id: 4,
+      label: "Maintenance Requests",
+      value: `${stats.maintenanceRequests}`,
+      sub: "Open requests",
+      icon: IconTool,
+    },
+  ];
 
   return (
     <ScreenWrapper
       header={<StandardHeader title="Analytics" />}
       scrollable
     >
-      
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -70,7 +110,7 @@ export default function AnalyticsScreen() {
       >
         {/* Stat Cards */}
         <View className="flex-row flex-wrap gap-3">
-          {stats.map((stat) => {
+          {statsCards.map((stat) => {
             const Icon = stat.icon;
             return (
               <View
@@ -103,26 +143,33 @@ export default function AnalyticsScreen() {
             Last 6 months overview
           </Text>
 
-          {/* Simple Bar Chart */}
-          <View className="flex-row items-end justify-between gap-2 h-32">
-            {monthlyData.map((item) => {
-              const heightPercent = (item.amount / MAX_AMOUNT) * 100;
-              return (
-                <View key={item.month} className="flex-1 items-center gap-1">
-                  <View
-                    style={{
-                      height: `${heightPercent}%`,
-                      backgroundColor: colors.primary,
-                      borderRadius: 6,
-                      width: "100%",
-                      opacity: item.month === "Jun" ? 1 : 0.4,
-                    }}
-                  />
-                  <Text className="text-xs text-muted">{item.month}</Text>
-                </View>
-              );
-            })}
-          </View>
+          {!hasAnyRevenue ? (
+            <EmptyState
+              icon={<IconChartBar size={36} color={colors.gray500} />}
+              title="No earnings yet"
+              description="Once tenants start paying rent, your earnings will show up here."
+            />
+          ) : (
+            <View className="flex-row items-end justify-between gap-2 h-32">
+              {recentRevenue.map((item) => {
+                const heightPercent = (item.amount / maxAmount) * 100;
+                return (
+                  <View key={item.month} className="flex-1 items-center gap-1">
+                    <View
+                      style={{
+                        height: `${heightPercent}%`,
+                        backgroundColor: colors.primary,
+                        borderRadius: 6,
+                        width: "100%",
+                        opacity: item.month === monthKey ? 1 : 0.4,
+                      }}
+                    />
+                    <Text className="text-xs text-muted">{monthLabel(item.month)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         {/* Payment Summary */}
@@ -131,9 +178,9 @@ export default function AnalyticsScreen() {
             Payment Summary
           </Text>
           {[
-            { label: "Collected", value: "₱ 96,000", color: colors.success },
-            { label: "Pending", value: "₱ 20,000", color: colors.warning },
-            { label: "Overdue", value: "₱ 4,000", color: colors.danger },
+            { label: "Collected", value: formatPesoDisplay(revenueThisMonth), color: colors.success },
+            { label: "Pending", value: formatPesoDisplay(pendingTotal), color: colors.warning },
+            { label: "Overdue", value: formatPesoDisplay(overdueTotal), color: colors.danger },
           ].map((item) => (
             <View key={item.label} className="flex-row justify-between items-center">
               <View className="flex-row items-center gap-2">
@@ -159,26 +206,28 @@ export default function AnalyticsScreen() {
           <Text className="text-sm font-nunitoSemiBold text-foreground">
             Top Performing Units
           </Text>
-          {[
-            { unit: "Unit 3A - Quezon City", revenue: "₱ 18,000" },
-            { unit: "Unit 1B - Caloocan", revenue: "₱ 15,000" },
-            { unit: "Unit 2C - Marikina", revenue: "₱ 12,000" },
-          ].map((item, index) => (
-            <View
-              key={item.unit}
-              className="flex-row justify-between items-center"
-            >
-              <View className="flex-row items-center gap-3">
-                <Text className="text-xs font-nunitoBold text-muted w-4">
-                  {index + 1}
+          {topUnits.length === 0 ? (
+            <Text className="text-sm text-muted">
+              No revenue recorded yet.
+            </Text>
+          ) : (
+            topUnits.map((item, index) => (
+              <View
+                key={item.apartmentId}
+                className="flex-row justify-between items-center"
+              >
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-xs font-nunitoBold text-muted w-4">
+                    {index + 1}
+                  </Text>
+                  <Text className="text-sm text-foreground">{item.apartmentName}</Text>
+                </View>
+                <Text className="text-sm font-nunitoSemiBold text-primary">
+                  {formatPesoDisplay(item.total)}
                 </Text>
-                <Text className="text-sm text-foreground">{item.unit}</Text>
               </View>
-              <Text className="text-sm font-nunitoSemiBold text-primary">
-                {item.revenue}
-              </Text>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </ScreenWrapper>

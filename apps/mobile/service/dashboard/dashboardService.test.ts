@@ -1,4 +1,11 @@
-import { fetchDashboardData, monthLabel } from "./dashboardService";
+import {
+  currentMonthKey,
+  fetchDashboardData,
+  monthLabel,
+  monthRevenueTotal,
+  summarizeRentDues,
+  topPropertiesByRevenue,
+} from "./dashboardService";
 
 const LANDLORD_ID = "landlord-1";
 const mockRpc = jest.fn();
@@ -80,5 +87,52 @@ describe("monthLabel", () => {
 
   it("passes through an unrecognized key", () => {
     expect(monthLabel("garbage")).toBe("garbage");
+  });
+});
+
+describe("dashboard derivations", () => {
+  it("reads the current month bucket and defaults to zero when absent", () => {
+    expect(currentMonthKey(new Date(2026, 7, 15))).toBe("2026-08");
+    expect(monthRevenueTotal(PAYLOAD.monthlyRevenue, "2026-08")).toBe(15000);
+    expect(monthRevenueTotal(PAYLOAD.monthlyRevenue, "2026-07")).toBe(0);
+    expect(monthRevenueTotal([], "2026-08")).toBe(0);
+  });
+
+  it("ranks properties by total paid revenue, highest first", () => {
+    const ranked = topPropertiesByRevenue([
+      ...PAYLOAD.revenueByProperty,
+      {
+        apartmentId: "apartment-2",
+        apartmentName: "Blue House",
+        months: [
+          { month: "2026-07", amount: 10000 },
+          { month: "2026-08", amount: 12000 },
+        ],
+      },
+      { apartmentId: "apartment-3", apartmentName: "Empty Lot", months: [] },
+    ]);
+
+    expect(ranked.map((p) => p.apartmentName)).toEqual([
+      "Blue House",
+      "Sunrise Tower",
+      "Empty Lot",
+    ]);
+    expect(ranked[0].total).toBe(22000);
+    expect(topPropertiesByRevenue([], 3)).toEqual([]);
+  });
+
+  it("splits dues into pending vs overdue totals", () => {
+    expect(summarizeRentDues(PAYLOAD.rentDues)).toEqual({
+      pendingTotal: 0,
+      overdueTotal: 12000,
+      totalDue: 12000,
+    });
+    expect(
+      summarizeRentDues([
+        PAYLOAD.rentDues[0],
+        { ...PAYLOAD.rentDues[0], id: "due-2", amount: 8000, isOverdue: false },
+      ]),
+    ).toEqual({ pendingTotal: 8000, overdueTotal: 12000, totalDue: 20000 });
+    expect(summarizeRentDues([])).toEqual({ pendingTotal: 0, overdueTotal: 0, totalDue: 0 });
   });
 });

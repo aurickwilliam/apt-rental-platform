@@ -26,6 +26,7 @@ import { formatDate } from '@repo/utils';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
+import PortalSwitcher from '../components/profile/PortalSwitcher';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '../components/CustomTabBar';
 
 export default function Profile() {
@@ -113,13 +114,15 @@ export default function Profile() {
         email={profile?.email}
         avatarInitials={avatarInitials}
         loading={loading}
-        role={profile?.roles?.[0] ?? null}
+        role="tenant"
       />
+
+      <PortalSwitcher authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="tenant" />
 
       {!profile?.mobile_number && (
         <CompleteProfileCard
           email={profile?.email ?? ''}
-          role={profile?.roles?.[0] ?? ''}
+          role="tenant"
           firstName={profile?.first_name ?? ''}
           lastName={profile?.last_name ?? ''}
         />
