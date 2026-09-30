@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { choosePortal, resolvePortal, selectPortal } from "./portalPreference";
+import { authorizedPortal, choosePortal, resolvePortal, selectPortal } from "./portalPreference";
 import { usePortalStore } from "@/stores/usePortalStore";
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -11,6 +11,7 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 
 const getItem = AsyncStorage.getItem as jest.Mock;
 const setItem = AsyncStorage.setItem as jest.Mock;
+const removeItem = AsyncStorage.removeItem as jest.Mock;
 
 describe("account-scoped portal preference", () => {
   beforeEach(() => {
@@ -75,5 +76,31 @@ describe("account-scoped portal preference", () => {
     expect(setItem).not.toHaveBeenCalled();
     expect(choosePortal(["admin"], "landlord")).toBeNull();
     expect(choosePortal(["admin", "tenant"], "tenant")).toBeNull();
+  });
+
+  it("authorizes only a held non-admin portal", () => {
+    expect(authorizedPortal(["tenant", "landlord"], "landlord")).toBe("landlord");
+    expect(authorizedPortal(["tenant"], "landlord")).toBeNull();
+    expect(authorizedPortal(["tenant"], "owner")).toBeNull();
+    expect(authorizedPortal([], "tenant")).toBeNull();
+    expect(authorizedPortal(["admin", "tenant"], "tenant")).toBeNull();
+  });
+
+  it("returns null when no supported portal is held", () => {
+    expect(choosePortal([], null)).toBeNull();
+    expect(choosePortal([], "tenant")).toBeNull();
+    expect(choosePortal(["admin"], null)).toBeNull();
+  });
+
+  it("ignores a saved value that is not a portal", async () => {
+    getItem.mockResolvedValue("owner");
+    expect(await resolvePortal("account-a", ["tenant", "landlord"])).toBe("tenant");
+    expect(setItem).toHaveBeenCalledWith("apt-portal:account-a", "tenant");
+  });
+
+  it("clears a stale saved preference when no portal is available", async () => {
+    getItem.mockResolvedValue("tenant");
+    expect(await resolvePortal("account-a", ["admin"])).toBeNull();
+    expect(removeItem).toHaveBeenCalledWith("apt-portal:account-a");
   });
 });

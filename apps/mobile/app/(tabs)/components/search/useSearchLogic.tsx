@@ -10,6 +10,7 @@ import {
 import { supabase } from "@repo/supabase";
 
 import { useFavorites } from "@/hooks/favorites";
+import { loadSearchPreference, saveSearchPreference } from "@/service/search/searchPreference";
 
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
@@ -47,6 +48,7 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
   const [resultCount, setResultCount] = useState<number | undefined>(undefined);
   const [committedSearch, setCommittedSearch] = useState("");
   const [isGridView, setIsGridView] = useState<boolean>(true);
+  const [hydrated, setHydrated] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const pageRef = useRef(0);
@@ -308,12 +310,32 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
     }
   }, [loadingMore, hasMore, selectedCity, filters, committedSearch]);
 
+  // Restore the account's last browse inputs once on mount. The initial
+  // fetch is gated on hydration so defaults never flash a throwaway query.
   useEffect(() => {
+    let cancelled = false;
+    void loadSearchPreference().then((saved) => {
+      if (cancelled) return;
+      if (saved) {
+        setSelectedCity(saved.city);
+        setCommittedSearch(saved.committedSearch);
+        setFilters(saved.filters);
+        setIsGridView(saved.isGridView);
+      }
+      setHydrated(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     const load = async () => {
       await fetchApartments();
     };
     void load();
-  }, [fetchApartments, committedSearch]);
+  }, [fetchApartments, committedSearch, hydrated]);
 
   const handleApplyFilters = useCallback(
     (newFilters: FilterState) => {
@@ -327,6 +349,18 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
     setFilters(null);
     fetchApartments(false, null);
   }, [fetchApartments]);
+
+  // Persist only browse inputs (never results), scoped to the current
+  // account. Draft keystrokes are excluded — only committed state saves.
+  useEffect(() => {
+    if (!hydrated) return;
+    void saveSearchPreference({
+      city: selectedCity,
+      committedSearch,
+      filters,
+      isGridView,
+    });
+  }, [hydrated, selectedCity, committedSearch, filters, isGridView]);
 
   const activeFilterCount = useMemo(() => {
     if (!filters) return 0;

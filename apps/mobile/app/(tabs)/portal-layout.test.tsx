@@ -43,6 +43,15 @@ describe("mobile portal tab guard", () => {
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard"));
   });
 
+  it("allows a single-role tenant in the tenant tab group", () => {
+    mockRoles = ["tenant"];
+    mockGroup = "(tenant)";
+    usePortalStore.setState({ authUserId: "account-a", portal: "tenant", loading: false });
+    render(<TabsLayout />);
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockSignOut).not.toHaveBeenCalled();
+  });
+
   it("rejects admin-only mobile sessions", async () => {
     mockRoles = ["admin"];
     render(<TabsLayout />);

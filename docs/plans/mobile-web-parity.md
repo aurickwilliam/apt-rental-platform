@@ -51,3 +51,24 @@ Other tenant and landlord route families—including applications, visits, payme
 ## Verification notes
 
 The audit was source-based; no application code was changed and no test suite was run. Re-check the relevant routes/services before implementation because this plan is a snapshot, not a substitute for current code or live database policy verification.
+
+Implementation record (branch `refactor/align-web`, plan in `.opencode/plan/mobile-web-parity*.md`):
+- Phase 1 (auth): verify-only plus minor hardening — Google `suggestedRole`
+  is now deterministic via `choosePortal`; portal/tab-guard/notification
+  routing confirmed membership-checked with per-account preferences.
+- Phase 2 (browse): mobile search restores per-account inputs (city, committed
+  query, filters, sort, view) via `service/search/searchPreference.ts`; web
+  stays URL-backed by design.
+- Phase 3 (dashboard): metric contract agreed (canonical payment statuses
+  `pending|paid|partial|unpaid`; occupancy = active-tenancy coverage).
+  `supabase/migrations/20260930140000_fix_landlord_dashboard_status.sql` fixes
+  the RPC counting legacy `'not paid'` (always 0) and row-based occupancy;
+  requires production deployment. Mobile `landlord/analytics.tsx` was dummy
+  data and is now wired to `useDashboardData()`. Web `OccupancyChart` keeps
+  its explicit empty state (`null` is intentional — no history source).
+- Phase 4 (review-only): no mobile work. The reviews gap closed itself on
+  `main` (real `reviewsService` + tenancy eligibility); chat/notifications
+  web additions and mobile admin remain out of scope.
+- Regression: mobile `tsc` clean, jest 394/394, `expo lint` clean; web `tsc`
+  clean, dashboard `node:test` 3/3, `next build` passes (web `eslint` failures
+  pre-date this work in untouched files).

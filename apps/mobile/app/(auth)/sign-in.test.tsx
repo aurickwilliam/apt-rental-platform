@@ -83,4 +83,17 @@ describe("role-neutral mobile sign-in", () => {
     await waitFor(() => expect(mockRestore).toHaveBeenCalledWith("account-a", ["landlord", "tenant"]));
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
   });
+
+  it("signs out admin-only accounts without routing to a portal", async () => {
+    mockSingle.mockResolvedValue({ data: { roles: ["admin"] }, error: null });
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
+    expect(mockRestore).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
 });

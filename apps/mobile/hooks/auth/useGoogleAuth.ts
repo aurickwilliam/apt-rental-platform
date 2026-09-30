@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
-import { isPortal, portalHome, type Portal } from "@/service/auth/portalPreference";
+import { choosePortal, portalHome, type Portal } from "@/service/auth/portalPreference";
 
 export function useGoogleAuth() {
   const router = useRouter();
@@ -72,7 +72,7 @@ export function useGoogleAuth() {
           params: {
             email: data.session.user.email ?? "",
             ...(requestedRole ? { userSide: requestedRole } : {}),
-            suggestedRole: isPortal(profile.roles?.[0]) ? profile.roles[0] : "tenant",
+            suggestedRole: choosePortal(profile.roles ?? [], null) ?? "tenant",
             firstName: data.session.user.user_metadata?.full_name?.split(" ")[0] ?? "",
             lastName: data.session.user.user_metadata?.full_name?.split(" ")[1] ?? "",
           },
