@@ -187,7 +187,7 @@ export default function ApartmentImagesModal({
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   {localImages.map((image) => (
                     <div key={image.id} className="relative group rounded-xl overflow-hidden aspect-video">
-                      <Image src={image.url} alt="Apartment" fill className="object-cover" />
+                      <Image src={image.url} alt="Apartment" fill unoptimized className="object-cover" />
 
                       {/* Cover badge */}
                       {image.is_cover && (

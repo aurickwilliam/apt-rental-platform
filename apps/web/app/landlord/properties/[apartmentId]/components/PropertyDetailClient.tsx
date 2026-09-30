@@ -260,6 +260,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 src={property.thumbnail}
                 alt={apartment.name}
                 fill
+                unoptimized
                 className="object-cover"
               />
             </div>
@@ -268,7 +269,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 <div className="grid grid-cols-4 gap-2">
                   {extraImages.slice(0, 4).map((img) => (
                     <div key={img.id} className="relative h-20 rounded-xl overflow-hidden">
-                      <Image src={img.url_thumb || img.url} alt={apartment.name} fill className="object-cover" />
+                      <Image src={img.url_thumb || img.url} alt={apartment.name} fill unoptimized className="object-cover" />
                     </div>
                   ))}
                 </div>

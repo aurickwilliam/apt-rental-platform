@@ -317,6 +317,7 @@ function RateApartmentForm() {
           alt={header.name}
           width={800}
           height={208}
+          unoptimized
           className="size-full object-cover"
         />
       </div>
