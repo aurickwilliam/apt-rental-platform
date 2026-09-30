@@ -1,4 +1,7 @@
+"use client";
+
 import { useState } from "react";
+import dynamic from "next/dynamic";
 
 import {
   Button, 
@@ -27,6 +30,8 @@ import {
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
+
+const GoogleMapPicker = dynamic(() => import("../GoogleMapPicker"), { ssr: false });
 
 function SectionTitle({ children }: { children: string }) {
   return <p className="text-xs font-medium text-primary uppercase">{children}</p>;
@@ -411,6 +416,13 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           onChange={(e) => updateForm("longitude", toNullableNumber(e.target.value))} 
                         />
                       </TextField>
+                      <GoogleMapPicker
+                        latitude={form.latitude ?? null}
+                        longitude={form.longitude ?? null}
+                        onPick={(lat, lng) =>
+                          setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+                        }
+                      />
                     </div>
                   </section>
 
