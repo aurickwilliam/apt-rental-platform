@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Avatar } from "@heroui/react";
 import { IconChevronRight } from "@tabler/icons-react";
 import type { RecentItem } from "../lib/get-dashboard-data";
+import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 
 interface RecentUserCardProps {
   user: RecentItem;
@@ -24,12 +24,14 @@ export default function RecentUserCard({ user }: RecentUserCardProps) {
       href={user.href}
       className="flex items-center gap-3 rounded-3xl bg-muted/50 p-3 transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
-      <Avatar size="sm" className="shrink-0 bg-primary/10 text-primary">
-        {user.image ? <Avatar.Image src={user.image} alt="" /> : null}
-        <Avatar.Fallback className="bg-primary/10 text-primary">
-          {initials}
-        </Avatar.Fallback>
-      </Avatar>
+      <SharedUserAvatar
+        src={user.image}
+        initials={initials}
+        alt={user.name}
+        size="sm"
+        className="shrink-0 bg-primary/10 text-primary"
+        fallbackClassName="bg-primary/10 text-primary"
+      />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-nunito text-sm font-bold">
           {user.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -9,10 +9,13 @@ import {
   Input,
   Label,
   ListBox,
+  Modal,
   Select,
   Separator,
   Spinner,
   TextField,
+  toast,
+  useOverlayState,
 } from "@heroui/react";
 
 import { Lock } from "lucide-react";
@@ -62,9 +65,9 @@ function formatMissingList(items: string[]) {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex min-w-0 flex-col gap-1">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm">{value?.trim() ? value : "—"}</p>
+      <p className="min-w-0 text-sm break-words">{value?.trim() ? value : "—"}</p>
     </div>
   );
 }
@@ -86,6 +89,63 @@ function getInitials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "U";
+}
+
+type FieldKey =
+  | "gender"
+  | "mobile_number"
+  | "street_address"
+  | "barangay"
+  | "city"
+  | "province"
+  | "postal_code";
+
+type EditableBaseline = Record<FieldKey, string>;
+
+const FIELD_KEYS: FieldKey[] = [
+  "gender",
+  "mobile_number",
+  "street_address",
+  "barangay",
+  "city",
+  "province",
+  "postal_code",
+];
+
+function snapshotOf(source: ProfileInitial): EditableBaseline {
+  return {
+    gender: source.gender ?? "",
+    mobile_number: source.mobile_number ?? "",
+    street_address: source.street_address ?? "",
+    barangay: source.barangay ?? "",
+    city: source.city ?? "",
+    province: source.province ?? "",
+    postal_code:
+      source.postal_code != null ? String(source.postal_code) : "",
+  };
+}
+
+// Accept 09XXXXXXXXX or +639XXXXXXXXX; normalize to the 09 form the
+// backend validates so no server rule change is needed.
+function normalizeMobileNumber(value: string): string {
+  const trimmed = value.trim();
+  if (/^\+63\d{10}$/.test(trimmed)) return `0${trimmed.slice(3)}`;
+  return trimmed;
+}
+
+// Map a backend error string to the field it belongs to, if any.
+// The update-profile action returns a single message (no field key),
+// so match on the known message shapes; unknown errors stay generic.
+function fieldForBackendError(message: string): FieldKey | null {
+  const msg = message.toLowerCase();
+  if (msg.includes("mobile")) return "mobile_number";
+  if (msg.includes("postal")) return "postal_code";
+  if (msg.includes("gender")) return "gender";
+  if (msg.includes("street")) return "street_address";
+  if (msg.includes("barangay")) return "barangay";
+  if (msg.includes("province")) return "province";
+  if (msg.includes("city")) return "city";
+  return null;
 }
 
 export default function ProfileForm({
@@ -131,13 +191,32 @@ export default function ProfileForm({
   const [barangay, setBarangay] = useState(initial.barangay ?? "");
   const [city, setCity] = useState(initial.city ?? "");
   const [mode, setMode] = useState<"view" | "edit">(initialMode);
-  const [justSaved, setJustSaved] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Last saved values: dirty-check and Cancel reset compare against this,
+  // not the (potentially stale) initial prop. Resynced on every save.
+  const [baseline, setBaseline] = useState<EditableBaseline>(() =>
+    snapshotOf(initial),
+  );
+  const submitAttemptedRef = useRef(false);
+  const discardModal = useOverlayState();
+  const mobileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const fieldsDirty =
+    mobileNumber !== baseline.mobile_number ||
+    gender !== baseline.gender ||
+    streetAddress !== baseline.street_address ||
+    barangay !== baseline.barangay ||
+    city !== baseline.city ||
+    province !== baseline.province ||
+    postalCode !== baseline.postal_code;
+  const isPristine =
+    !fieldsDirty && stagedAvatar === null && stagedBackground === null;
 
   // Return to view mode after a successful save. Render-phase adjustment on the
   // new state object identity (one per completed submission), so repeat saves
   // with an identical message still transition. When a redirect target is set,
-  // show the success modal instead — closing it routes away.
+  // show the success modal instead — closing it routes away. Toast feedback
+  // lives in the effect below (side effects don't belong in render).
   const [lastState, setLastState] = useState(state);
   if (state !== lastState) {
     setLastState(state);
@@ -145,11 +224,59 @@ export default function ProfileForm({
       if (successRedirectHref) {
         setShowSuccessModal(true);
       } else {
+        // Resync the baseline so Cancel/dirty-checks never revert to
+        // pre-save data, and store the normalized mobile that was saved.
+        const savedMobile = normalizeMobileNumber(mobileNumber);
+        setMobileNumber(savedMobile);
+        setBaseline({
+          gender,
+          mobile_number: savedMobile,
+          street_address: streetAddress,
+          barangay,
+          city,
+          province,
+          postal_code: postalCode,
+        });
         setMode("view");
-        setJustSaved(true);
+      }
+    } else if (state?.error) {
+      const field = fieldForBackendError(state.error);
+      if (field) {
+        setErrors((prev) =>
+          prev[field] ? prev : { ...prev, [field]: state.error as string },
+        );
       }
     }
   }
+
+  // Exactly one success feedback per save: dialog for the redirect flow,
+  // toast otherwise. Generic backend errors get a sticky toast; field-mapped
+  // ones render inline via the transition above.
+  useEffect(() => {
+    if (state?.success && !successRedirectHref) {
+      toast.success(state.success, { timeout: 3500 });
+    } else if (state?.error && !fieldForBackendError(state.error)) {
+      toast.danger(state.error, { timeout: 0 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  // Move focus to the first editable field when entering edit mode.
+  useEffect(() => {
+    if (mode === "edit") mobileInputRef.current?.focus();
+  }, [mode]);
+
+  // Browser-level unsaved-changes guard (tab close/refresh). In-app route
+  // changes can't be intercepted in App Router, so Cancel/Escape go through
+  // the confirm modal instead.
+  useEffect(() => {
+    if (mode !== "edit" || isPristine) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [mode, isPristine]);
 
   const handleSuccessClose = () => {
     if (successRedirectHref) router.push(successRedirectHref);
@@ -157,8 +284,54 @@ export default function ProfileForm({
 
   const handleEdit = () => {
     setErrors({});
-    setJustSaved(false);
+    submitAttemptedRef.current = false;
     setMode("edit");
+  };
+
+  const resetToBaseline = () => {
+    setMobileNumber(baseline.mobile_number);
+    setPostalCode(baseline.postal_code);
+    setGender(baseline.gender);
+    setProvince(baseline.province);
+    setStreetAddress(baseline.street_address);
+    setBarangay(baseline.barangay);
+    setCity(baseline.city);
+    setStagedAvatar(null);
+    setStagedBackground(null);
+    photosCommittedRef.current = false;
+    setErrors({});
+    submitAttemptedRef.current = false;
+    setPhotoError(null);
+  };
+
+  const doCancel = () => {
+    discardModal.setOpen(false);
+    resetToBaseline();
+    setMode("view");
+  };
+
+  const handleCancelRequest = () => {
+    if (isPending || isUploadingPhotos) return;
+    if (isPristine) {
+      resetToBaseline();
+      setMode("view");
+    } else {
+      discardModal.open();
+    }
+  };
+
+  // Escape behaves like Cancel. Overlays (Select popovers, modals) handle
+  // Escape themselves and mark the event handled, so ignore those presses.
+  // They also render in portals outside the form element, so a DOM
+  // containment check keeps their key presses out even though React events
+  // bubble through the component tree. Attached to the form so it works
+  // from anywhere inside the edit card.
+  const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Escape" || e.defaultPrevented) return;
+    const target = e.target as HTMLElement | null;
+    if (!target || !formRef.current?.contains(target)) return;
+    e.preventDefault();
+    handleCancelRequest();
   };
 
   const handleAvatarSelect = (file: File | null) => {
@@ -171,24 +344,97 @@ export default function ProfileForm({
     photosCommittedRef.current = false;
   };
 
-  const clearError = (key: string) =>
-    setErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
+  const valueForKey = (key: FieldKey, override?: string): string => {
+    switch (key) {
+      case "gender":
+        return override ?? gender;
+      case "mobile_number":
+        return override ?? mobileNumber;
+      case "street_address":
+        return override ?? streetAddress;
+      case "barangay":
+        return override ?? barangay;
+      case "city":
+        return override ?? city;
+      case "province":
+        return override ?? province;
+      case "postal_code":
+        return override ?? postalCode;
+    }
+  };
+
+  // Mirrors the update-profile action rules (including the postal 1000–9999
+  // range and gender whitelist the old client check was missing), plus the
+  // +639 mobile form normalized before submit.
+  const validateField = (key: FieldKey, override?: string): string => {
+    const value = valueForKey(key, override).trim();
+    switch (key) {
+      case "gender":
+        if (!value) return "Gender is required.";
+        if (!GENDERS.includes(value)) return "Invalid gender.";
+        return "";
+      case "mobile_number": {
+        if (!value) return "Mobile number is required.";
+        if (!/^09\d{9}$/.test(normalizeMobileNumber(value)))
+          return "Enter a valid PH mobile number (09XXXXXXXXX or +639XXXXXXXXX).";
+        return "";
+      }
+      case "street_address":
+        return value ? "" : "Street address is required.";
+      case "barangay":
+        return value ? "" : "Barangay is required.";
+      case "city":
+        return value ? "" : "City is required.";
+      case "province":
+        return value ? "" : "Province is required.";
+      case "postal_code": {
+        if (!value) return "Postal code is required.";
+        if (!/^\d{4}$/.test(value)) return "Must be 4 digits.";
+        const numeric = Number(value);
+        if (numeric < 1000 || numeric > 9999)
+          return "Postal code must be between 1000 and 9999.";
+        return "";
+      }
+    }
+  };
+
+  const setFieldError = (key: FieldKey, message: string) =>
+    setErrors((prev) => {
+      if (!message) {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return prev[key] === message ? prev : { ...prev, [key]: message };
+    });
+
+  // Re-validate a field as the user types, but only once its error is
+  // already visible (blur or a blocked submit) — no premature red text.
+  const revalidateIfShown = (key: FieldKey, value: string) => {
+    setErrors((prev) => {
+      if (!prev[key] && !submitAttemptedRef.current) return prev;
+      const message = validateField(key, value);
+      if (!message) {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return prev[key] === message ? prev : { ...prev, [key]: message };
+    });
+  };
+
+  const handleBlur = (key: FieldKey) => setFieldError(key, validateField(key));
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     const next: Record<string, string> = {};
-    if (!gender.trim()) next.gender = "Gender is required.";
-    if (!mobileNumber.trim()) next.mobile_number = "Mobile number is required.";
-    else if (!/^09\d{9}$/.test(mobileNumber.trim()))
-      next.mobile_number = "Must be 11 digits starting with 09.";
-    if (!streetAddress.trim())
-      next.street_address = "Street address is required.";
-    if (!barangay.trim()) next.barangay = "Barangay is required.";
-    if (!city.trim()) next.city = "City is required.";
-    if (!province.trim()) next.province = "Province is required.";
-    if (!postalCode.trim()) next.postal_code = "Postal code is required.";
-    else if (!/^\d{4}$/.test(postalCode.trim()))
-      next.postal_code = "Must be 4 digits.";
+    for (const key of FIELD_KEYS) {
+      const message = validateField(key);
+      if (message) next[key] = message;
+    }
     setErrors(next);
+    submitAttemptedRef.current = true;
     if (Object.values(next).some(Boolean)) {
       e.preventDefault();
       return;
@@ -253,24 +499,12 @@ export default function ProfileForm({
   if (!province.trim()) missingLabels.push("province");
   if (!postalCode.trim()) missingLabels.push("postal code");
 
-  const fieldsDirty =
-    mobileNumber !== (initial.mobile_number ?? "") ||
-    gender !== (initial.gender ?? "") ||
-    streetAddress !== (initial.street_address ?? "") ||
-    barangay !== (initial.barangay ?? "") ||
-    city !== (initial.city ?? "") ||
-    province !== (initial.province ?? "") ||
-    postalCode !==
-      (initial.postal_code != null ? String(initial.postal_code) : "");
-  const isPristine =
-    !fieldsDirty && stagedAvatar === null && stagedBackground === null;
-
   const displayName =
     fullName || initial.email || "User";
 
   if (mode === "view") {
     return (
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
             <IconUser
@@ -289,12 +523,6 @@ export default function ProfileForm({
             Edit
           </Button>
         </div>
-
-        {justSaved && state?.success ? (
-          <div className="rounded-lg border border-success-200 bg-success-50 p-3">
-            <p className="text-center text-sm text-success">{state.success}</p>
-          </div>
-        ) : null}
 
         {showMissingPrompt && missingLabels.length > 0 ? (
           <div className="rounded-lg border border-warning-200 bg-warning-50 p-3">
@@ -315,8 +543,8 @@ export default function ProfileForm({
           </div>
         ) : null}
 
-        <div className="grid gap-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
-          <section className="flex flex-col gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
+          <section className="flex min-w-0 flex-col gap-4">
             <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
               <IconId
                 size={20}
@@ -325,20 +553,17 @@ export default function ProfileForm({
               />
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="flex flex-col gap-4">
               <SummaryRow label="Full Name" value={fullName} />
-              <SummaryRow label="Email" value={initial.email ?? ""} />
               <SummaryRow
                 label="Birth Date"
                 value={formatBirthDate(initial.birth_date)}
               />
+              <SummaryRow label="Gender" value={gender} />
             </div>
           </section>
 
-          <Separator orientation="vertical" className="hidden lg:block" />
-          <Separator className="my-2 lg:hidden" />
-
-          <section className="flex flex-col gap-6">
+          <section className="flex min-w-0 flex-col gap-4">
             <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
               <IconPhone
                 size={20}
@@ -347,13 +572,13 @@ export default function ProfileForm({
               />
               Contact
             </h3>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="flex flex-col gap-4">
+              <SummaryRow label="Email Address" value={initial.email ?? ""} />
               <SummaryRow label="Mobile Number" value={mobileNumber} />
-              <SummaryRow label="Gender" value={gender} />
             </div>
           </section>
 
-          <section className="flex flex-col gap-6">
+          <section className="flex min-w-0 flex-col gap-4 border-t border-border pt-6 md:col-span-2">
             <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
               <IconMapPin
                 size={20}
@@ -362,8 +587,10 @@ export default function ProfileForm({
               />
               Address
             </h3>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <SummaryRow label="Street Address" value={streetAddress} />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="min-w-0 md:col-span-2">
+                <SummaryRow label="Street Address" value={streetAddress} />
+              </div>
               <SummaryRow label="Barangay" value={barangay} />
               <SummaryRow label="City" value={city} />
               <SummaryRow label="Province" value={province} />
@@ -380,6 +607,7 @@ export default function ProfileForm({
       ref={formRef}
       action={action}
       onSubmit={handleSubmit}
+      onKeyDown={handleCardKeyDown}
       className={
         align === "left"
           ? "flex flex-col gap-5 w-full"
@@ -526,19 +754,31 @@ export default function ProfileForm({
         </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <TextField
+          <input
+            type="hidden"
             name="mobile_number"
+            value={normalizeMobileNumber(mobileNumber)}
+          />
+          <TextField
             isRequired
             fullWidth
             value={mobileNumber}
             onChange={(val: string) => {
-              setMobileNumber(val.replace(/\D/g, "").slice(0, 11));
-              clearError("mobile_number");
+              const cleaned = val.startsWith("+")
+                ? `+${val.slice(1).replace(/\D/g, "").slice(0, 12)}`
+                : val.replace(/\D/g, "").slice(0, 11);
+              setMobileNumber(cleaned);
+              revalidateIfShown("mobile_number", cleaned);
             }}
+            onBlur={() => handleBlur("mobile_number")}
             isInvalid={!!errors.mobile_number}
           >
             <Label>Mobile Number</Label>
-            <Input inputMode="numeric" placeholder="09XXXXXXXXX" />
+            <Input
+              ref={mobileInputRef}
+              inputMode="tel"
+              placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+            />
             <FieldError>{errors.mobile_number}</FieldError>
           </TextField>
 
@@ -550,9 +790,11 @@ export default function ProfileForm({
               placeholder="Select your gender"
               value={gender || null}
               onChange={(key) => {
-                setGender(key ? String(key) : "");
-                clearError("gender");
+                const next = key ? String(key) : "";
+                setGender(next);
+                revalidateIfShown("gender", next);
               }}
+              onBlur={() => handleBlur("gender")}
               isInvalid={!!errors.gender}
             >
               <Label>Gender</Label>
@@ -598,8 +840,9 @@ export default function ProfileForm({
             value={streetAddress}
             onChange={(val: string) => {
               setStreetAddress(val);
-              clearError("street_address");
+              revalidateIfShown("street_address", val);
             }}
+            onBlur={() => handleBlur("street_address")}
             isInvalid={!!errors.street_address}
           >
             <Label>Street Address</Label>
@@ -614,8 +857,9 @@ export default function ProfileForm({
             value={barangay}
             onChange={(val: string) => {
               setBarangay(val);
-              clearError("barangay");
+              revalidateIfShown("barangay", val);
             }}
+            onBlur={() => handleBlur("barangay")}
             isInvalid={!!errors.barangay}
           >
             <Label>Barangay</Label>
@@ -630,8 +874,9 @@ export default function ProfileForm({
             value={city}
             onChange={(val: string) => {
               setCity(val);
-              clearError("city");
+              revalidateIfShown("city", val);
             }}
+            onBlur={() => handleBlur("city")}
             isInvalid={!!errors.city}
           >
             <Label>City</Label>
@@ -647,9 +892,11 @@ export default function ProfileForm({
               placeholder="Select your province"
               value={province || null}
               onChange={(key) => {
-                setProvince(key ? String(key) : "");
-                clearError("province");
+                const next = key ? String(key) : "";
+                setProvince(next);
+                revalidateIfShown("province", next);
               }}
+              onBlur={() => handleBlur("province")}
               isInvalid={!!errors.province}
             >
               <Label>Province</Label>
@@ -678,9 +925,11 @@ export default function ProfileForm({
             fullWidth
             value={postalCode}
             onChange={(val: string) => {
-              setPostalCode(val.replace(/\D/g, "").slice(0, 4));
-              clearError("postal_code");
+              const cleaned = val.replace(/\D/g, "").slice(0, 4);
+              setPostalCode(cleaned);
+              revalidateIfShown("postal_code", cleaned);
             }}
+            onBlur={() => handleBlur("postal_code")}
             isInvalid={!!errors.postal_code}
           >
             <Label>Postal Code</Label>
@@ -694,28 +943,69 @@ export default function ProfileForm({
         </div>
       </section>
 
-      {state?.error ? (
-        <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
-          <p className="text-center text-sm text-danger">{state.error}</p>
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full sm:w-auto font-semibold"
+          onPress={handleCancelRequest}
+          isDisabled={isPending || isUploadingPhotos}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          className="w-full sm:w-auto font-semibold"
+          isDisabled={isPending || isUploadingPhotos || isPristine}
+        >
+          {isPending || isUploadingPhotos ? (
+            <>
+              <Spinner size="sm" />
+              {isUploadingPhotos ? "Uploading photos..." : "Saving..."}
+            </>
+          ) : (
+            "Save Changes"
+          )}
+        </Button>
+      </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        className="w-full font-semibold"
-        isDisabled={isPending || isUploadingPhotos || isPristine}
-      >
-        {isPending || isUploadingPhotos ? (
-          <>
-            <Spinner size="sm" />
-            {isUploadingPhotos ? "Uploading photos..." : "Saving..."}
-          </>
-        ) : (
-          "Save Changes"
-        )}
-      </Button>
+      <Modal isOpen={discardModal.isOpen} onOpenChange={discardModal.setOpen}>
+        <Modal.Backdrop>
+          <Modal.Container size="sm">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Discard changes?</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <p className="text-sm text-muted-foreground">
+                  Your unsaved changes will be lost if you leave now. Are you
+                  sure you want to cancel?
+                </p>
+              </Modal.Body>
+              <Modal.Footer className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() => discardModal.setOpen(false)}
+                >
+                  Keep Editing
+                </Button>
+                <Button
+                  variant="tertiary"
+                  size="sm"
+                  className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                  onPress={doCancel}
+                >
+                  Discard
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </form>
   );
 }
