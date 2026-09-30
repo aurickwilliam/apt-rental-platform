@@ -47,6 +47,7 @@ export default async function ApartmentDetailView({
     `)
     .eq('id', apartmentId)
     .eq('is_hidden_by_admin', false)
+    .is('deleted_at', null)
     .single();
 
   // Fetch Lease Agreement URL if it exists

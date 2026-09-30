@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@repo/supabase/server";
 
-import { RateApartmentForm } from "@/app/browse/[apartmentId]/rate-apartment/page";
+import { RateApartmentForm } from "@/app/browse/[apartmentId]/components/RateApartmentForm";
 
 export default async function TenantRateApartmentPage() {
   const supabase = await createClient();
