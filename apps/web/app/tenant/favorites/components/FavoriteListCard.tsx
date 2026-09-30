@@ -44,6 +44,7 @@ export default function FavoriteListCard({
               src={thumbnailUrl}
               alt={apartment.name}
               fill
+              unoptimized
               className="object-cover"
             />
           </div>

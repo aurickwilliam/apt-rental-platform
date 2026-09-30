@@ -234,6 +234,7 @@ export default function PropertyDetailsSheet({
                         src={selected.thumbnail}
                         alt={selected.name}
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />

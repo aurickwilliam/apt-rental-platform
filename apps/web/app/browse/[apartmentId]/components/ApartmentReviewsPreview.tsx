@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { Button, Card } from "@heroui/react";
 import { MessageSquareText } from "lucide-react";
 
 import ReviewCard from "./ReviewCard";
-import { getApartmentReviews, type StoredReview } from "../lib/review-store";
+import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface ApartmentReviewsPreviewProps {
   apartmentId: string;
@@ -43,24 +41,15 @@ function EmptyReviewsState() {
 
 export default function ApartmentReviewsPreview({ apartmentId }: ApartmentReviewsPreviewProps) {
   const router = useRouter();
-  const [reviews, setReviews] = useState<StoredReview[]>([]);
+  const { reviews, loading, error } = useApartmentReviews(apartmentId);
 
-  useEffect(() => {
-    setReviews(getApartmentReviews(apartmentId));
-  }, [apartmentId]);
-
-  const sorted = useMemo(() => {
-    return [...reviews].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [reviews]);
-
-  if (sorted.length === 0) {
+  if (loading) return null;
+  if (error || reviews.length === 0) {
     return <EmptyReviewsState />;
   }
 
-  const preview = sorted.slice(0, 3);
-  const remaining = sorted.length - preview.length;
+  const preview = reviews.slice(0, 3);
+  const remaining = reviews.length - preview.length;
 
   return (
     <div>
@@ -68,11 +57,13 @@ export default function ApartmentReviewsPreview({ apartmentId }: ApartmentReview
         {preview.map((review) => (
           <ReviewCard
             key={review.id}
-            reviewerName="Anonymous Tenant"
-            reviewDate={formatReviewDate(review.createdAt)}
-            reviewText={review.reviewText}
+            reviewerName={review.name}
+            reviewerAvatar={review.profilePictureUrl}
+            reviewDate={formatReviewDate(review.date)}
+            reviewText={review.review}
             stayPeriod={review.stayPeriod}
             rating={review.rating}
+            images={review.images}
           />
         ))}
       </div>
