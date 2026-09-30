@@ -24,7 +24,7 @@ export default function TenancyEmptyState({ description }: TenancyEmptyStateProp
         </p>
       </div>
 
-      <Link href="/browse">
+      <Link href="/tenant/browse">
         <Button>Browse Listings</Button>
       </Link>
     </div>
