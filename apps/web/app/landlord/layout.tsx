@@ -1,25 +1,14 @@
-import { AppSidebar } from "../components/layout/AppSidebar";
-import { AppTopBar } from "../components/layout/AppTopBar";
+import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import { createClient } from "@repo/supabase/server";
 
 const LANDLORD_NAV = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building2" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheckCorner" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Wrench" },
-  { href: "/landlord/payments", label: "Payments", icon: "Banknote" },
-  { href: "/landlord/messages", label: "Messages", icon: "MessagesSquare" },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building" },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
+  { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ] as const;
-
-const LANDLORD_TITLES: Record<string, string> = {
-  "/landlord/dashboard": "Dashboard",
-  "/landlord/properties": "My Properties",
-  "/landlord/applications": "Applications",
-  "/landlord/maintenance-requests": "Maintenance",
-  "/landlord/payments": "Payments",
-  "/landlord/messages": "Messages",
-  "/landlord/profile": "Profile",
-};
 
 export default async function DashboardLayout({
   children,
@@ -53,12 +42,28 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...LANDLORD_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="landlord" />
-      <div className="flex flex-1 flex-col min-w-0">
-        <AppTopBar titleMap={LANDLORD_TITLES} />
-        <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-card">{children}</main>
+    <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
+      <AppSidebar
+        navItems={[...LANDLORD_NAV]}
+        userName={userName}
+        userRole={userRole}
+        avatarUrl={avatarUrl}
+        userRoles={userRoles}
+        activePortal="landlord"
+        profileHref="/landlord/profile"
+        iconSet="tabler"
+        collapsible
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
+      <MobileSidebarNavigation
+        navItems={[...LANDLORD_NAV, { href: "/landlord/profile", label: "Profile", icon: "User" }]}
+        iconSet="tabler"
+        navLabel="Landlord navigation"
+        menuLabel="Landlord pages"
+        buttonLabel="Open landlord navigation"
+      />
     </div>
   );
 }

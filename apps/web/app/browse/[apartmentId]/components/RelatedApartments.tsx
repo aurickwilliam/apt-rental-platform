@@ -19,9 +19,10 @@ type Props = {
     average_rating: number;
     image: string;
   }[];
+  basePath?: string;
 };
 
-export default function RelatedApartments({apartments} : Props) {
+export default function RelatedApartments({apartments, basePath = "/browse"} : Props) {
   const [api, setApi] = useState<CarouselApi>();
 
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function RelatedApartments({apartments} : Props) {
               price={apt.monthly_rent}
               rating={apt.average_rating ?? 0}
               thumbnailUrl={apt.image}
-              onPress={() => router.push(`/browse/${apt.id}`)}
+              onPress={() => router.push(`${basePath}/${apt.id}`)}
             />
           </CarouselItem>
         ))}

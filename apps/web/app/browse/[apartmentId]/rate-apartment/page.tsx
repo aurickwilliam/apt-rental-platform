@@ -52,7 +52,7 @@ function isBlobPhoto(photo: ReviewPhoto): boolean {
   return photo.file !== null;
 }
 
-function RateApartmentForm() {
+export function RateApartmentForm() {
   const router = useRouter();
   const { apartmentId } = useParams<{ apartmentId: string }>();
   const searchParams = useSearchParams();
