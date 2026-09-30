@@ -298,7 +298,7 @@ export function AppSidebar({
             className="group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Image
-              src="/logo/logo-white.svg"
+              src={isDark ? "/logo/logo.svg" : "/logo/logo-white.svg"}
               alt=""
               width={32}
               height={32}
