@@ -1169,6 +1169,50 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          status: string
+          token_hash: string
+          updated_at: string | null
+          user_id: string
+          verification_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          status?: string
+          token_hash: string
+          updated_at?: string | null
+          user_id: string
+          verification_id?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          status?: string
+          token_hash?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_request: {
         Row: {
           apartment_id: string
@@ -1263,6 +1307,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_verification_session: {
+        Args: { p_token_hash: string }
+        Returns: string
+      }
+      expire_own_verification_sessions: {
+        Args: { p_include_active?: boolean }
+        Returns: number
+      }
       create_notification: {
         Args: {
           p_data?: Json

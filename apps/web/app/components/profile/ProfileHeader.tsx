@@ -1,6 +1,8 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { useRouter } from "next/navigation";
+
+import { Button, Card } from "@heroui/react";
 
 import EditableAvatar from "./EditableAvatar";
 import EditableCover from "./EditableCover";
@@ -31,6 +33,9 @@ export default function ProfileHeader({
   avatarUrl,
   backgroundUrl,
 }: ProfileHeaderProps) {
+  const router = useRouter();
+  const needsVerification = accountStatus !== "verified" && accountStatus !== "pending";
+
   return (
     <Card className="overflow-hidden border border-border bg-card text-card-foreground rounded-2xl">
       <Card.Content className="p-0">
@@ -53,6 +58,20 @@ export default function ProfileHeader({
               </div>
               {email ? (
                 <p className="text-sm text-muted-foreground truncate max-w-full">{email}</p>
+              ) : null}
+              {accountStatus === "pending" ? (
+                <p className="text-sm text-muted-foreground">Pending Verification</p>
+              ) : null}
+              {needsVerification ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="primary"
+                  onPress={() => router.push("/verify")}
+                  className="mt-1"
+                >
+                  {accountStatus === "rejected" ? "Verification Rejected — submit again" : "Verify Account"}
+                </Button>
               ) : null}
             </div>
           </div>
