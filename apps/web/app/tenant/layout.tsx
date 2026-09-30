@@ -1,25 +1,13 @@
-import { AppSidebar } from "../components/layout/AppSidebar";
-import { AppTopBar } from "../components/layout/AppTopBar";
+import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
   { href: "/tenant/browse", label: "Browse", icon: "Search" },
-  { href: "/tenant/my-rental", label: "My Rental", icon: "House" },
-  { href: "/tenant/applications", label: "Applications", icon: "FileText" },
+  { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
-  { href: "/tenant/maintenance", label: "Maintenance", icon: "Wrench" },
+  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
 ] as const;
-
-const TENANT_TITLES: Record<string, string> = {
-  "/tenant/browse": "Browse",
-  "/tenant/my-rental": "My Rental",
-  "/tenant/applications": "Applications",
-  "/tenant/favorites": "Favorites",
-  "/tenant/maintenance": "Maintenance",
-  "/tenant/messages": "Messages",
-  "/tenant/profile": "Profile",
-};
 
 export default async function TenantLayout({
   children,
@@ -53,12 +41,29 @@ export default async function TenantLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} userRoles={userRoles} userAvatarUrl={userAvatarUrl} activePortal="tenant" />
-      <div className="flex flex-1 flex-col min-w-0">
-        <AppTopBar titleMap={TENANT_TITLES} />
-        <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-background">{children}</main>
+    <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
+      <AppSidebar
+        navItems={[...TENANT_NAV]}
+        userName={userName}
+        userRole={userRole}
+        userAvatarUrl={userAvatarUrl}
+        userRoles={userRoles}
+        activePortal="tenant"
+        profileHref="/tenant/profile"
+        settingsHref="/settings"
+        iconSet="tabler"
+        collapsible
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
+      <MobileSidebarNavigation
+        navItems={[...TENANT_NAV, { href: "/tenant/profile", label: "Profile", icon: "User" }]}
+        iconSet="tabler"
+        navLabel="Tenant navigation"
+        menuLabel="Tenant pages"
+        buttonLabel="Open tenant navigation"
+      />
     </div>
   );
 }

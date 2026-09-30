@@ -10,6 +10,7 @@ import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface ApartmentReviewsPreviewProps {
   apartmentId: string;
+  basePath?: string;
 }
 
 function formatReviewDate(iso: string): string {
@@ -39,7 +40,7 @@ function EmptyReviewsState() {
   );
 }
 
-export default function ApartmentReviewsPreview({ apartmentId }: ApartmentReviewsPreviewProps) {
+export default function ApartmentReviewsPreview({ apartmentId, basePath = "/browse" }: ApartmentReviewsPreviewProps) {
   const router = useRouter();
   const { reviews, loading, error } = useApartmentReviews(apartmentId);
 
@@ -74,7 +75,7 @@ export default function ApartmentReviewsPreview({ apartmentId }: ApartmentReview
             and {remaining} more review{remaining > 1 ? "s" : ""}
           </p>
 
-          <Button size="sm" variant="ghost" onPress={() => router.push(`/browse/${apartmentId}/ratings`)}>
+          <Button size="sm" variant="ghost" onPress={() => router.push(`${basePath}/${apartmentId}/ratings`)}>
             See all reviews
           </Button>
         </Card>
