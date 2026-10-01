@@ -9,6 +9,12 @@ type PageProps = {
   searchParams: Promise<Record<string, string>>;
 };
 
+// This route is inherently per-request: `searchParams` drives filtering,
+// sorting, and paging, so it can never be statically generated. Declaring it
+// keeps the route out of the build-time prerender list, where rendering it
+// could otherwise fail the whole production build.
+export const dynamic = "force-dynamic";
+
 export default async function BrowsePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const supabase = await createClient();

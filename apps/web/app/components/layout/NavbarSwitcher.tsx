@@ -1,7 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import AppNavbar from "./AppNavbar";
 
 export default function NavbarSwitcher() {
-  return <AppNavbar />;
+  return (
+    <Suspense fallback={null}>
+      <AppNavbar />
+    </Suspense>
+  );
 }
