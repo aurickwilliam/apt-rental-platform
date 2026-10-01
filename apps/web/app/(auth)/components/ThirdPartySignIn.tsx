@@ -17,10 +17,17 @@ export default function ThirdPartySignIn() {
     // Same-tab OAuth: the callback route owns all post-login routing.
     // Sign-in sends no explicit role (role-agnostic); sign-up sends the
     // chosen tab role so onboarding/grant can run for that portal.
-    const redirectTo =
-      type === "sign-in"
-        ? `${window.location.origin}/auth/callback`
-        : `${window.location.origin}/auth/callback?role=${role}`;
+    // window.location.origin keeps localhost in dev and the Vercel domain
+    // in production with no hardcoded URL. Preserve ?next= so the callback
+    // can return the user to their intended destination.
+    const callbackParams = new URLSearchParams();
+    if (type !== "sign-in") callbackParams.set("role", role);
+    const requestedNext = new URLSearchParams(window.location.search).get("next");
+    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+      callbackParams.set("next", requestedNext);
+    }
+    const callbackQuery = callbackParams.toString();
+    const redirectTo = `${window.location.origin}/auth/callback${callbackQuery ? `?${callbackQuery}` : ""}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
