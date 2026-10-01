@@ -1,26 +1,35 @@
-import { View, Text } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { View, Text } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 
-import { Accordion, Button, Checkbox, ControlField, Label, Spinner } from 'heroui-native'
+import {
+  Accordion,
+  Button,
+  Checkbox,
+  ControlField,
+  Label,
+  Spinner,
+} from "heroui-native";
 
-import { IconFileInfo } from '@tabler/icons-react-native'
+import { IconFileInfo } from "@tabler/icons-react-native";
 
-import { PASSPORT_GOV_ID_DOC_TYPES } from '@repo/constants'
+import { PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
+import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import StandardHeader from "@/components/layout/StandardHeader";
 import UploadDocumentField, {
   type UploadedDocument,
-} from '@/components/inputs/UploadDocumentField'
-import ErrorDialog from '@/components/display/ErrorDialog'
+} from "@/components/inputs/UploadDocumentField";
+import ErrorDialog from "@/components/display/ErrorDialog";
 
-import { useColors } from '@/hooks/useTheme'
-import { useUploadPassportDocument } from '@/hooks/passport'
+import { useColors } from "@/hooks/useTheme";
+import { useUploadPassportDocument } from "@/hooks/passport";
 
 export default function Upload() {
   const { docType } = useLocalSearchParams<{ docType?: string | string[] }>();
-  const resolvedDocType = Array.isArray(docType) ? docType[0] ?? 'Document' : docType ?? 'Document';
+  const resolvedDocType = Array.isArray(docType)
+    ? (docType[0] ?? "Document")
+    : (docType ?? "Document");
   const { colors } = useColors();
   const router = useRouter();
 
@@ -34,16 +43,16 @@ export default function Upload() {
     if (!document || !isVerified) return;
 
     const asset =
-      document.kind === 'image'
+      document.kind === "image"
         ? {
             uri: document.asset.uri,
-            fileName: document.asset.fileName ?? 'document.jpg',
-            mimeType: document.asset.mimeType ?? 'image/jpeg',
+            fileName: document.asset.fileName ?? "document.jpg",
+            mimeType: document.asset.mimeType ?? "image/jpeg",
           }
         : {
             uri: document.asset.uri,
             fileName: document.asset.name,
-            mimeType: document.asset.mimeType ?? 'application/octet-stream',
+            mimeType: document.asset.mimeType ?? "application/octet-stream",
           };
 
     upload(
@@ -55,38 +64,36 @@ export default function Upload() {
           : null,
       },
       {
-        onSuccess: () => router.replace('/document-id'),
+        onSuccess: () => router.replace("/document-id"),
         onError: () => setShowError(true),
-      }
+      },
     );
-  }
+  };
 
   return (
     <ScreenWrapper
       scrollable
-      header={
-        <StandardHeader title='Upload Document' />
-      }
-      className='p-5'
+      header={<StandardHeader title="Upload Document" />}
+      className="p-5"
     >
-      <View className='flex gap-1.5'>
+      <View className="flex gap-1.5">
         {/* Name of Document */}
-        <Text className='text-accent text-2xl font-nunitoBold'>
+        <Text className="text-accent text-2xl font-nunitoBold">
           {resolvedDocType}
         </Text>
 
-        <View className='flex-row items-center gap-1.5'>
+        <View className="flex-row items-center gap-1.5">
           <IconFileInfo size={16} color={colors.gray400} />
-          <Text className='text-gray-500 text-sm font-inter'>
+          <Text className="text-gray-500 text-sm font-inter">
             Accepted formats: JPG, PNG, or PDF (max 5MB each)
           </Text>
         </View>
       </View>
 
       {/* Upload field */}
-      <View className='mt-6'>
+      <View className="mt-6">
         <UploadDocumentField
-          label='Document'
+          label="Document"
           required
           value={document}
           onChange={setDocument}
@@ -94,38 +101,46 @@ export default function Upload() {
       </View>
 
       {/* Verification */}
-      <View className='mt-8 flex gap-4'>
+      <View className="mt-8 flex gap-4">
         <ControlField
           isSelected={isVerified}
           onSelectedChange={() => setIsVerified(!isVerified)}
         >
           <ControlField.Indicator>
-            <Checkbox className='size-5 border border-border shadow-none' />
+            <Checkbox className="size-5 border border-border shadow-none" />
           </ControlField.Indicator>
 
           <Label>
-            <Label.Text className='text-sm text-foreground font-nunitoSemiBold leading-snug'>
-              I confirm that the information provided is true and the ID belongs to me.
+            <Label.Text className="text-sm text-foreground font-nunitoSemiBold leading-snug">
+              I confirm that the information provided is true and the ID belongs
+              to me.
             </Label.Text>
           </Label>
         </ControlField>
 
-        <View className='flex'>
-          <Text className='text-sm text-gray-500 font-inter leading-relaxed'>
-            <Text className='text-danger'>*</Text> By uploading, you confirm this document is valid and belongs to you. Fraudulent documents may lead to account suspension.
+        <View className="flex">
+          <Text className="text-sm text-gray-500 font-inter leading-relaxed">
+            <Text className="text-danger">*</Text> By uploading, you confirm
+            this document is valid and belongs to you. Fraudulent documents may
+            lead to account suspension.
           </Text>
 
           <Accordion>
-            <Accordion.Item value='legal-notice'>
-              <Accordion.Trigger className='self-start'>
+            <Accordion.Item value="legal-notice">
+              <Accordion.Trigger className="self-start">
                 <Accordion.Indicator />
-                <Text className='text-sm text-gray-500 font-inter underline'>
+                <Text className="text-sm text-gray-500 font-inter underline">
                   Legal notice
                 </Text>
               </Accordion.Trigger>
               <Accordion.Content>
-                <Text className='text-sm text-gray-500 font-inter leading-relaxed'>
-                  By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).
+                <Text className="text-sm text-gray-500 font-inter leading-relaxed">
+                  By uploading your documents, you certify that all information
+                  is true and valid. Any fraudulent or falsified documents may
+                  result in account suspension and legal action in accordance
+                  with applicable Philippine laws on fraud and identity theft,
+                  including the Cybercrime Prevention Act (Republic Act No.
+                  10175).
                 </Text>
               </Accordion.Content>
             </Accordion.Item>
@@ -133,17 +148,17 @@ export default function Upload() {
         </View>
       </View>
 
-      <View className='flex-1' />
+      <View className="flex-1" />
 
       <Button
-        className='mt-8'
+        className="mt-8"
         isDisabled={!isVerified || !document || isPending}
         onPress={handleAddDocument}
       >
         {isPending ? (
           <Spinner size="sm" color="#FFFFFF" />
         ) : (
-          <Button.Label className='text-white font-nunitoSemiBold'>
+          <Button.Label className="text-white font-nunitoSemiBold">
             Add Document
           </Button.Label>
         )}
@@ -152,8 +167,10 @@ export default function Upload() {
       <ErrorDialog
         isOpen={showError}
         onClose={() => setShowError(false)}
-        message={error?.message ?? 'Could not save your document. Please try again.'}
+        message={
+          error?.message ?? "Could not save your document. Please try again."
+        }
       />
     </ScreenWrapper>
-  )
+  );
 }

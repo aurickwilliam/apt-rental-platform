@@ -1,8 +1,8 @@
-import { useEffect } from "react"
-import { Stack, useRouter } from "expo-router"
+import { useEffect } from "react";
+import { Stack, useRouter } from "expo-router";
 
-import { useProfile } from "hooks/auth"
-import { usePortalStore } from "@/stores/usePortalStore"
+import { useProfile } from "hooks/auth";
+import { usePortalStore } from "@/stores/usePortalStore";
 
 /**
  * APT Passport is available to verified accounts only. Non-verified users
@@ -17,14 +17,16 @@ function usePassportGuard() {
 
   useEffect(() => {
     if (loading || !profile) return;
-    if (profile.account_status === 'verified') return;
+    if (profile.account_status === "verified") return;
 
-    if (profile.account_status === 'pending') {
+    if (profile.account_status === "pending") {
       router.replace(
-        portal === 'landlord' ? '/(tabs)/(landlord)/profile' : '/(tabs)/(tenant)/profile'
+        portal === "landlord"
+          ? "/(tabs)/(landlord)/profile"
+          : "/(tabs)/(tenant)/profile",
       );
     } else {
-      router.replace('/(auth)/verify-account');
+      router.replace("/(auth)/verify-account");
     }
   }, [loading, profile, portal, router]);
 }
@@ -38,10 +40,10 @@ export default function DocumentIdLayout() {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="index"/>
-      <Stack.Screen name="select-document"/>
-      <Stack.Screen name="upload"/>
-      <Stack.Screen name="[documentId]"/>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="select-document" />
+      <Stack.Screen name="upload" />
+      <Stack.Screen name="[documentId]" />
     </Stack>
-  )
+  );
 }

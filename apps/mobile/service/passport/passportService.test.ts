@@ -1,6 +1,7 @@
 import {
   deletePassportDocument,
   fetchPassportDocuments,
+  fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
   passportDocsForSlot,
@@ -122,6 +123,57 @@ describe('uploadPassportDocument', () => {
       })
     ).rejects.toThrow('db down');
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('fetchPassportDocumentsWithVerification', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('links the approved verification before reading the wallet', async () => {
+    const verification = {
+      id: 'verification-1',
+      id_type: 'Passport',
+      id_front_path: 'user-1/verification-1/id-front.jpg',
+      id_back_path: 'user-1/verification-1/id-back.jpg',
+    };
+    const primary = {
+      ...baseRow,
+      doc_type: 'Passport',
+      storage_path: verification.id_front_path,
+      storage_path_back: verification.id_back_path,
+      id_type: 'Passport',
+      verification_id: 'verification-1',
+      is_verified: true,
+      is_primary: true,
+    };
+    const walletQuery = chainable({
+      order: jest.fn().mockResolvedValue({ data: [primary], error: null }),
+    });
+
+    mockFrom
+      .mockReturnValueOnce(
+        chainable({ maybeSingle: jest.fn().mockResolvedValue({ data: verification, error: null }) })
+      )
+      .mockReturnValueOnce(
+        chainable({ maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }) })
+      )
+      .mockReturnValueOnce(
+        chainable({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: primary, error: null }),
+          }),
+        })
+      )
+      .mockReturnValueOnce(walletQuery);
+
+    const docs = await fetchPassportDocumentsWithVerification('user-1');
+
+    expect(mockFrom).toHaveBeenNthCalledWith(1, 'user_verifications');
+    expect(mockFrom).toHaveBeenLastCalledWith('passport_documents');
+    expect(docs).toHaveLength(1);
+    expect(docs[0]?.is_primary).toBe(true);
   });
 });
 

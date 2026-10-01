@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   resolvePrivateMediaUrls,
@@ -12,6 +12,10 @@ export function useDocumentUrls(docs: DocEntry[], bucket: PrivateMediaBucket = '
   const [resolved, setResolved] = useState<ResolvedDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Ref, not state: read inside the effect to decide whether this pass is the
+  // initial one. Later passes re-resolve URLs without flipping `loading`, so
+  // callers rendering a placeholder don't flash it on every entry change.
+  const hasResolvedOnce = useRef(false);
 
   const documentKey =
     docs.map((doc) => `${doc.label}\u0000${doc.path ?? ''}`).join('\u0001') +
@@ -38,10 +42,11 @@ export function useDocumentUrls(docs: DocEntry[], bucket: PrivateMediaBucket = '
         if (cancelled) return;
         setResolved([]);
         setLoading(false);
+        hasResolvedOnce.current = true;
         return;
       }
 
-      setLoading(true);
+      setLoading(!hasResolvedOnce.current);
       const { urls, error } = await resolvePrivateMediaUrls(
         bucket,
         entries.map((entry) => entry.path)
@@ -58,6 +63,7 @@ export function useDocumentUrls(docs: DocEntry[], bucket: PrivateMediaBucket = '
       );
       setError(error);
       setLoading(false);
+      hasResolvedOnce.current = true;
     }
 
     fetchUrls().catch(() => {
@@ -65,6 +71,7 @@ export function useDocumentUrls(docs: DocEntry[], bucket: PrivateMediaBucket = '
       setResolved(entries.map((entry) => ({ ...entry, signedUrl: null })));
       setError('Unable to access private documents.');
       setLoading(false);
+      hasResolvedOnce.current = true;
     });
 
     return () => {

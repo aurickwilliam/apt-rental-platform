@@ -109,6 +109,19 @@ export async function uploadPassportDocument({
 }
 
 /**
+ * Wallet read for the passport screen. The approved verification ID is linked
+ * as the primary row first (idempotent server-side), then the wallet is read,
+ * so the caller gets authoritative data in a single await — no intermediate
+ * "empty" result that would flash the empty state before the linked ID lands.
+ */
+export async function fetchPassportDocumentsWithVerification(
+  userId: string
+): Promise<PassportDocumentRow[]> {
+  await linkApprovedVerification(userId)
+  return fetchPassportDocuments(userId)
+}
+
+/**
  * Links the user's latest approved ID verification into the passport as the
  * primary (main) ID row, holding both the front and back captures.
  * Idempotent: upgrades the existing link when one already points at the

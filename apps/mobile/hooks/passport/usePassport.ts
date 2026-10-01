@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentUserId } from 'hooks/auth'
 import {
   deletePassportDocument,
-  fetchPassportDocuments,
+  fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
   uploadPassportDocument,
@@ -25,7 +25,10 @@ export function usePassportDocuments() {
 
   const query = useQuery({
     queryKey: getPassportDocumentsQueryKey(userId),
-    queryFn: () => (userId ? fetchPassportDocuments(userId) : Promise.resolve([])),
+    // Links the approved verification ID as the primary row inside the same
+    // read, so `loading` stays true until the wallet is authoritative.
+    queryFn: () =>
+      userId ? fetchPassportDocumentsWithVerification(userId) : Promise.resolve([]),
     enabled: userId !== null,
   })
 
