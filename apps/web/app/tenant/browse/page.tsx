@@ -12,6 +12,10 @@ type PageProps = {
   searchParams: Promise<Record<string, string>>;
 };
 
+// Per-request by nature: `searchParams` drives filtering, sorting, and paging.
+// See the note in app/browse/page.tsx.
+export const dynamic = "force-dynamic";
+
 export default async function TenantBrowsePage({ searchParams }: PageProps) {
   const supabase = await createClient();
 
