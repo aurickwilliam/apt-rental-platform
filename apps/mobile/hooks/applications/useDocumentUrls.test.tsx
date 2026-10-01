@@ -45,4 +45,14 @@ describe('useDocumentUrls', () => {
     ]));
     expect(mockResolvePrivateMediaUrls).toHaveBeenCalledTimes(1);
   });
+
+  it('resolves through the requested private bucket', async () => {
+    const documents = [{ label: 'Selfie', path: 'user-1/verification-1/selfie.jpg' }];
+    const { result } = renderHook(() => useDocumentUrls(documents, 'user-verification'));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith('user-verification', [
+      'user-1/verification-1/selfie.jpg',
+    ]);
+  });
 });

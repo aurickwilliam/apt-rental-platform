@@ -2,30 +2,63 @@ import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 
-import { Accordion, Button, Checkbox, ControlField, Label } from 'heroui-native'
+import { Accordion, Button, Checkbox, ControlField, Label, Spinner } from 'heroui-native'
 
 import { IconFileInfo } from '@tabler/icons-react-native'
+
+import { PASSPORT_GOV_ID_DOC_TYPES } from '@repo/constants'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import UploadDocumentField, {
   type UploadedDocument,
 } from '@/components/inputs/UploadDocumentField'
+import ErrorDialog from '@/components/display/ErrorDialog'
 
 import { useColors } from '@/hooks/useTheme'
+import { useUploadPassportDocument } from '@/hooks/passport'
 
 export default function Upload() {
-  const { docType } = useLocalSearchParams();
+  const { docType } = useLocalSearchParams<{ docType?: string | string[] }>();
+  const resolvedDocType = Array.isArray(docType) ? docType[0] ?? 'Document' : docType ?? 'Document';
   const { colors } = useColors();
   const router = useRouter();
 
   const [isVerified, setIsVerified] = useState(false);
   const [document, setDocument] = useState<UploadedDocument | null>(null);
 
+  const { mutate: upload, isPending, error } = useUploadPassportDocument();
+  const [showError, setShowError] = useState(false);
+
   const handleAddDocument = () => {
-    // TODO: Persist the uploaded document to Supabase Storage and store its
-    // storage path in the database, then refresh the documents list.
-    router.replace('/document-id');
+    if (!document || !isVerified) return;
+
+    const asset =
+      document.kind === 'image'
+        ? {
+            uri: document.asset.uri,
+            fileName: document.asset.fileName ?? 'document.jpg',
+            mimeType: document.asset.mimeType ?? 'image/jpeg',
+          }
+        : {
+            uri: document.asset.uri,
+            fileName: document.asset.name,
+            mimeType: document.asset.mimeType ?? 'application/octet-stream',
+          };
+
+    upload(
+      {
+        docType: resolvedDocType,
+        asset,
+        idType: PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType)
+          ? resolvedDocType
+          : null,
+      },
+      {
+        onSuccess: () => router.replace('/document-id'),
+        onError: () => setShowError(true),
+      }
+    );
   }
 
   return (
@@ -39,7 +72,7 @@ export default function Upload() {
       <View className='flex gap-1.5'>
         {/* Name of Document */}
         <Text className='text-accent text-2xl font-nunitoBold'>
-          {docType}
+          {resolvedDocType}
         </Text>
 
         <View className='flex-row items-center gap-1.5'>
@@ -104,13 +137,23 @@ export default function Upload() {
 
       <Button
         className='mt-8'
-        isDisabled={!isVerified}
+        isDisabled={!isVerified || !document || isPending}
         onPress={handleAddDocument}
       >
-        <Button.Label className='text-white font-nunitoSemiBold'>
-          Add Document
-        </Button.Label>
+        {isPending ? (
+          <Spinner size="sm" color="#FFFFFF" />
+        ) : (
+          <Button.Label className='text-white font-nunitoSemiBold'>
+            Add Document
+          </Button.Label>
+        )}
       </Button>
+
+      <ErrorDialog
+        isOpen={showError}
+        onClose={() => setShowError(false)}
+        message={error?.message ?? 'Could not save your document. Please try again.'}
+      />
     </ScreenWrapper>
   )
 }

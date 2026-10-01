@@ -639,6 +639,69 @@ export type Database = {
           },
         ]
       }
+      passport_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          expires_at: string | null
+          id: string
+          id_type: string | null
+          is_primary: boolean
+          is_verified: boolean
+          mime_type: string | null
+          storage_path: string
+          storage_path_back: string | null
+          updated_at: string | null
+          user_id: string
+          verification_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          expires_at?: string | null
+          id?: string
+          id_type?: string | null
+          is_primary?: boolean
+          is_verified?: boolean
+          mime_type?: string | null
+          storage_path: string
+          storage_path_back?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          expires_at?: string | null
+          id?: string
+          id_type?: string | null
+          is_primary?: boolean
+          is_verified?: boolean
+          mime_type?: string | null
+          storage_path?: string
+          storage_path_back?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_documents_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "user_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment: {
         Row: {
           amount: number | null

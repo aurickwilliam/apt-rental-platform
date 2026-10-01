@@ -1,81 +1,74 @@
-import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
+import { View, Text } from "react-native";
+import { useRouter } from "expo-router";
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ScreenWrapper from "components/layout/ScreenWrapper";
 
-import { Button, CloseButton } from 'heroui-native'
+import { Button, CloseButton } from "heroui-native";
 
 import {
   IconMail,
   IconChevronLeft,
   IconMessageCircle,
-} from '@tabler/icons-react-native'
+} from "@tabler/icons-react-native";
 
-import { useColors } from 'hooks/useTheme';
+import { useColors } from "hooks/useTheme";
 
 export default function Index() {
   const router = useRouter();
   const { colors } = useColors();
 
   // Handle Forgot Password Logic
-  const handleForgotPassword = (method: 'sms' | 'email') => {
-    if (method === 'sms') {
+  const handleForgotPassword = (method: "sms" | "email") => {
+    if (method === "sms") {
       router.push(`/forgot-password/otp-verification?method=sms`);
     } else {
       router.push(`/forgot-password/otp-verification?method=email`);
     }
-  }
+  };
 
   return (
-    <ScreenWrapper
-      className='px-5'
-    >
+    <ScreenWrapper className="px-5">
       <View>
-        <CloseButton
-          onPress={() => router.back()}
-          className='my-5'
-        >
+        <CloseButton onPress={() => router.back()} className="my-5">
           <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
       </View>
 
-      <View className='flex gap-3'>
-        <Text className='text-secondary text-3xl font-nunitoBold'>
+      <View className="flex gap-3">
+        <Text className="text-secondary text-3xl font-nunitoBold">
           Forgot Password
         </Text>
 
-        <Text className='text-foreground text-base font-inter'>
-          Don’t worry, it happens! We’ll help you reset your password in a few steps.
+        <Text className="text-foreground text-base font-inter">
+          Don’t worry, it happens! We’ll help you reset your password in a few
+          steps.
         </Text>
 
-        <Text className='text-foreground text-base font-inter'>
+        <Text className="text-foreground text-base font-inter">
           For your security, please select a verified recovery method.
         </Text>
 
-        <View className='flex gap-3 mt-5'>
+        <View className="flex gap-3 mt-5">
           {/* Send via SMS */}
-          <Button
-            variant='outline'
-            onPress={() => handleForgotPassword('sms')}
-          >
+          <Button variant="outline" onPress={() => handleForgotPassword("sms")}>
             <IconMessageCircle size={20} color={colors.textPrimary} />
-            <Button.Label className='font-nunitoSemiBold'>
+            <Button.Label className="font-nunitoSemiBold">
               Send via SMS
             </Button.Label>
           </Button>
 
           {/* Send via Email */}
           <Button
-            variant='outline'
-            onPress={() => handleForgotPassword('email')}
+            variant="outline"
+            onPress={() => handleForgotPassword("email")}
           >
             <IconMail size={20} color={colors.textPrimary} />
-            <Button.Label className='font-nunitoSemiBold text-foreground'>
+            <Button.Label className="font-nunitoSemiBold text-foreground">
               Send via Email
             </Button.Label>
           </Button>
         </View>
       </View>
     </ScreenWrapper>
-  )
+  );
 }

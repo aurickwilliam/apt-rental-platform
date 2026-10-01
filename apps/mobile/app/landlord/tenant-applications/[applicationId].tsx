@@ -24,6 +24,7 @@ import {
   useDocumentUrls,
   useApplicationActions
 } from '@/hooks/applications';
+import { usePassportVerifiedPaths } from '@/hooks/passport';
 
 
 function getStatusStyle(
@@ -68,6 +69,10 @@ export default function TenantApplicationDetails() {
   ] : [];
 
   const { resolved: resolvedDocs, loading: docsLoading } = useDocumentUrls(docEntries);
+  const { data: verifiedPaths } = usePassportVerifiedPaths(
+    application?.tenant_id ?? null,
+    docEntries.map((entry) => entry.path).filter((path): path is string => !!path)
+  );
   const {
     localStatus,
     actionLoading,
@@ -289,6 +294,7 @@ export default function TenantApplicationDetails() {
                   path={doc.path}
                   signedUrl={doc.signedUrl}
                   onPressImage={setViewerUri}
+                  verified={verifiedPaths?.has(doc.path) ?? false}
                 />
               ))
             )}

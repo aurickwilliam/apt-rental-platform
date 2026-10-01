@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Linking } from "react-native";
 import { Image } from "expo-image";
 
-import { IconFileText, IconExternalLink } from "@tabler/icons-react-native";
+import { IconFileText, IconExternalLink, IconShieldCheck } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -10,6 +10,7 @@ type DocumentRowProps = {
   path: string;
   signedUrl: string | null;
   onPressImage?: (uri: string) => void;
+  verified?: boolean;
 };
 
 const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "heic"];
@@ -23,10 +24,25 @@ export default function DocumentRow({
   path,
   signedUrl,
   onPressImage,
+  verified = false,
 }: DocumentRowProps) {
   const { colors } = useColors();
   const ext = getExtension(path);
   const isImage = IMAGE_EXTENSIONS.includes(ext);
+
+  const labelRow = (
+    <View className="flex-row items-center gap-1.5">
+      <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
+      {verified ? (
+        <View className="flex-row items-center gap-0.5">
+          <IconShieldCheck size={14} color={colors.success} />
+          <Text className="text-xs font-nunitoSemiBold" style={{ color: colors.success }}>
+            Verified
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
 
   if (!signedUrl) {
     return (
@@ -57,7 +73,7 @@ export default function DocumentRow({
           cachePolicy="disk"
         />
         <View className="flex-1">
-          <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
+          {labelRow}
           <Text className="text-muted text-sm">Tap to view</Text>
         </View>
       </TouchableOpacity>
@@ -74,7 +90,7 @@ export default function DocumentRow({
         <IconFileText size={22} color={colors.gray400} />
       </View>
       <View className="flex-1">
-        <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
+        {labelRow}
         <Text className="text-muted text-sm">
           Tap to open · {ext.toUpperCase()}
         </Text>

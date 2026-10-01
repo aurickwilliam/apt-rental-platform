@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@repo/supabase';
 
-import { IconUserEdit, IconFileText, IconSettings, IconLogout } from '@tabler/icons-react-native';
+import { IconUserEdit, IconFileText, IconSettings, IconLogout, IconLock } from '@tabler/icons-react-native';
 
-import { Button, ListGroup, Separator } from 'heroui-native';
+import { Button, ListGroup, Separator, useToast } from 'heroui-native';
 
 import { useProfile } from 'hooks/auth';
 import { useLatestVerification } from 'hooks/verification';
@@ -33,6 +33,14 @@ export default function Profile() {
   const backgroundPhotoUri = profile?.background_url ?? null;
 
   const accountStatus = (profile?.account_status ?? 'unverified') as 'verified' | 'pending' | 'rejected' | 'unverified';
+  const { toast } = useToast();
+  const isPassportLocked = accountStatus !== 'verified';
+  const passportLockDescription =
+    accountStatus === 'pending'
+      ? 'Available once verification is approved'
+      : accountStatus === 'rejected'
+        ? 'Re-verify to restore access'
+        : 'Verify your account to unlock';
   const { data: latestVerification } = useLatestVerification();
   const rejectedReason = latestVerification?.rejection_reason ?? undefined;
   const dateVerified = latestVerification?.reviewed_at
@@ -49,6 +57,16 @@ export default function Profile() {
     title: string;
     icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
     onPress: () => void;
+    locked?: boolean;
+    description?: string;
+  };
+
+  const handleLockedPassportPress = () => {
+    toast.show({
+      variant: 'warning',
+      label: 'APT Passport locked',
+      description: passportLockDescription,
+    });
   };
 
   const listItems: ListItem[] = [
@@ -58,9 +76,11 @@ export default function Profile() {
       onPress: () => router.push('/edit-profile'),
     },
     {
-      title: 'Document & IDs',
+      title: 'APT Passport',
       icon: IconFileText,
-      onPress: () => router.push('/document-id'),
+      onPress: () => isPassportLocked ? handleLockedPassportPress() : router.push('/document-id'),
+      locked: isPassportLocked,
+      description: isPassportLocked ? passportLockDescription : undefined,
     },
     {
       title: 'Settings',
@@ -115,7 +135,7 @@ export default function Profile() {
         <ListGroup className="shadow-none border border-border">
           {listItems.map((item, index) => (
             <View key={index}>
-              <ListGroup.Item onPress={item.onPress}>
+              <ListGroup.Item onPress={item.onPress} className={item.locked ? 'opacity-50' : undefined}>
                 <ListGroup.ItemPrefix>
                   <item.icon size={22} color={colors.textPrimary} />
                 </ListGroup.ItemPrefix>
@@ -124,9 +144,20 @@ export default function Profile() {
                   <ListGroup.ItemTitle className='font-nunitoSemiBold'>
                     {item.title}
                   </ListGroup.ItemTitle>
+                  {item.description ? (
+                    <ListGroup.ItemDescription className='text-muted text-xs font-inter'>
+                      {item.description}
+                    </ListGroup.ItemDescription>
+                  ) : null}
                 </ListGroup.ItemContent>
 
-                <ListGroup.ItemSuffix />
+                {item.locked ? (
+                  <ListGroup.ItemSuffix>
+                    <IconLock size={18} color={colors.gray400} />
+                  </ListGroup.ItemSuffix>
+                ) : (
+                  <ListGroup.ItemSuffix />
+                )}
               </ListGroup.Item>
 
               {index < listItems.length - 1 && (
