@@ -52,13 +52,33 @@ function isBlobPhoto(photo: ReviewPhoto): boolean {
   return photo.file !== null;
 }
 
-export function RateApartmentForm() {
+export interface RateApartmentFormProps {
+  apartmentIdOverride?: string;
+  tenancyIdOverride?: string | null;
+  reviewIdOverride?: string | null;
+  hideBackButton?: boolean;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export function RateApartmentForm({
+  apartmentIdOverride,
+  tenancyIdOverride,
+  reviewIdOverride,
+  hideBackButton = false,
+  onSuccess,
+  onCancel,
+}: RateApartmentFormProps = {}) {
   const router = useRouter();
-  const { apartmentId } = useParams<{ apartmentId: string }>();
+  const { apartmentId: routeApartmentId } = useParams<{ apartmentId: string }>();
   const searchParams = useSearchParams();
-  const tenancyId = searchParams.get("tenancyId");
-  const reviewId = searchParams.get("reviewId");
+  const apartmentId = apartmentIdOverride ?? routeApartmentId;
+  const tenancyId = tenancyIdOverride !== undefined ? tenancyIdOverride : searchParams.get("tenancyId");
+  const reviewId = reviewIdOverride !== undefined ? reviewIdOverride : searchParams.get("reviewId");
   const isEditMode = reviewId !== null;
+
+  const handleClose = onSuccess ?? (() => router.back());
+  const handleCancel = onCancel ?? (() => router.back());
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -247,7 +267,7 @@ export function RateApartmentForm() {
 
       if (result.success) {
         toast("Review updated!");
-        router.back();
+        handleClose();
         return;
       }
 
@@ -266,7 +286,7 @@ export function RateApartmentForm() {
 
     if (result.success) {
       toast("Review submitted!");
-      router.back();
+      handleClose();
       return;
     }
 
@@ -275,8 +295,8 @@ export function RateApartmentForm() {
 
   if (pageLoading) {
     return (
-      <div className="mx-auto max-w-3xl p-4">
-        <BackBtn />
+      <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
+        {!hideBackButton && <BackBtn />}
         <p className="mt-6 text-sm text-default-500">Loading review details…</p>
       </div>
     );
@@ -284,12 +304,12 @@ export function RateApartmentForm() {
 
   if (pageError || !header) {
     return (
-      <div className="mx-auto max-w-3xl p-4">
-        <BackBtn />
+      <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
+        {!hideBackButton && <BackBtn />}
         <p className="mt-6 text-sm text-red-600">
           {pageError ?? "We couldn't load this apartment's details."}
         </p>
-        <Button className="mt-4" variant="outline" onPress={() => router.back()}>
+        <Button className="mt-4" variant="outline" onPress={handleCancel}>
           Go Back
         </Button>
       </div>
@@ -300,126 +320,142 @@ export function RateApartmentForm() {
     .filter(Boolean)
     .join(", ");
 
+  const isModalLayout = hideBackButton;
+
   return (
-    <div className="mx-auto max-w-3xl p-4">
-      <BackBtn />
+    <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
+      {!hideBackButton && <BackBtn />}
 
-      <div className="mt-4">
-        <h1 className="text-2xl font-medium md:text-3xl">
-          {isEditMode ? "Edit Review" : "Rate Apartment"}
-        </h1>
-      </div>
-
-      {/* Apartment Cover */}
-      <div className="mt-4 h-52 w-full overflow-hidden rounded-3xl">
-        <Image
-          src={header.coverImage ?? "/default/default-thumbnail.jpeg"}
-          alt={header.name}
-          width={800}
-          height={208}
-          unoptimized
-          className="size-full object-cover"
-        />
-      </div>
-
-      {/* Apartment Name and Address */}
-      <div className="mt-4 flex flex-col gap-1">
-        <h1 className="text-2xl font-medium text-primary">
-          {header.name}
-        </h1>
-        <p className="text-base text-foreground">
-          {address}
-        </p>
-      </div>
-
-      {/* Apartment Details */}
-      <div className="mt-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium text-grey-700">Landlord</Label>
-          <span className="text-base">
-            {header.landlordName}
-          </span>
+      {!hideBackButton && (
+        <div className="mt-4">
+          <h1 className="text-2xl font-medium md:text-3xl">
+            {isEditMode ? "Edit Review" : "Rate Apartment"}
+          </h1>
         </div>
+      )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <Label className="text-sm font-medium text-grey-700">Apartment Type</Label>
-            <span className="text-base">
-              {header.type ?? "—"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Star size={22} className="text-secondary" fill="currentColor" />
-            <span className="text-base font-medium">
-              {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
-            </span>
-          </div>
-        </div>
-
-        {/* Duration of Stay — read-only, sourced from the tenancy record */}
+      <div className={isModalLayout ? "grid grid-cols-1 gap-x-8 md:grid-cols-2" : undefined}>
         <div>
-          <Label className="text-sm font-medium text-grey-700">Duration of Stay</Label>
-          <div className="mt-2 flex items-center justify-between rounded-2xl bg-gray-100 px-4 py-3">
-            <span className="text-base">
-              {tenancy ? formatStayLabel(tenancy) : "—"}
-            </span>
-            {tenancy && !tenancy.lease_end && (
-              <span className="text-xs text-grey-700">Ongoing</span>
+          {/* Apartment Cover */}
+          <div
+            className={
+              isModalLayout
+                ? "mt-4 h-52 w-full overflow-hidden rounded-3xl md:h-64"
+                : "mt-4 h-52 w-full overflow-hidden rounded-3xl"
+            }
+          >
+            <Image
+              src={header.coverImage ?? "/default/default-thumbnail.jpeg"}
+              alt={header.name}
+              width={800}
+              height={208}
+              unoptimized
+              className="size-full object-cover"
+            />
+          </div>
+
+          {/* Apartment Name and Address */}
+          <div className="mt-4 flex flex-col gap-1">
+            <h1 className="text-2xl font-medium text-primary">
+              {header.name}
+            </h1>
+            <p className="text-base text-foreground">
+              {address}
+            </p>
+          </div>
+
+          {/* Apartment Details */}
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-grey-700">Landlord</Label>
+              <span className="text-base">
+                {header.landlordName}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <Label className="text-sm font-medium text-grey-700">Apartment Type</Label>
+                <span className="text-base">
+                  {header.type ?? "—"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Star size={22} className="text-secondary" fill="currentColor" />
+                <span className="text-base font-medium">
+                  {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
+                </span>
+              </div>
+            </div>
+
+            {/* Duration of Stay — read-only, sourced from the tenancy record */}
+            <div>
+              <Label className="text-sm font-medium text-grey-700">Duration of Stay</Label>
+              <div className="mt-2 flex items-center justify-between rounded-2xl bg-gray-100 px-4 py-3">
+                <span className="text-base">
+                  {tenancy ? formatStayLabel(tenancy) : "—"}
+                </span>
+                {tenancy && !tenancy.lease_end && (
+                  <span className="text-xs text-grey-700">Ongoing</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Separator className={isModalLayout ? "my-6 md:hidden" : "my-6"} />
+
+        <div className={isModalLayout ? undefined : "contents"}>
+          {/* Rating Input */}
+          <div className="flex flex-col items-center">
+            <Label className="text-lg font-medium">Overall Rating</Label>
+
+            <p className="mt-2 text-5xl font-medium leading-tight text-secondary font-dm-serif">
+              {rating.toFixed(1)}
+            </p>
+
+            <div className="my-5">
+              <StarRatingInput value={rating} onChange={handleStarChange} />
+            </div>
+
+            <div className="flex items-center gap-5">
+              <span className="text-sm text-grey-700">1 - Poor</span>
+              <span className="text-sm text-grey-700">5 - Excellent</span>
+            </div>
+
+            {errors.rating && (
+              <p className="mt-1 text-xs text-red-600">{errors.rating}</p>
             )}
           </div>
+
+          {/* Tenant Review */}
+          <div className="mt-6">
+            <TextField
+              isRequired
+              isInvalid={!!errors.reviewText}
+              value={reviewText}
+              onChange={handleReviewTextChange}
+            >
+              <Label>Tenant Review:</Label>
+              <TextArea
+                rows={5}
+                placeholder="Type your experience and review about the apartment.."
+                className="resize-none"
+              />
+              <FieldError>{errors.reviewText}</FieldError>
+            </TextField>
+          </div>
+
+          {/* Photos (optional) */}
+          <div className="mt-6">
+            <ReviewPhotosInput
+              images={reviewImages}
+              onAdd={handleAddImages}
+              onRemove={handleRemoveImage}
+            />
+          </div>
         </div>
-      </div>
-
-      <Separator className="my-6" />
-
-      {/* Rating Input */}
-      <div className="flex flex-col items-center">
-        <Label className="text-lg font-medium">Overall Rating</Label>
-
-        <p className="mt-2 text-5xl font-medium leading-tight text-secondary font-dm-serif">
-          {rating.toFixed(1)}
-        </p>
-
-        <div className="my-5">
-          <StarRatingInput value={rating} onChange={handleStarChange} />
-        </div>
-
-        <div className="flex items-center gap-5">
-          <span className="text-sm text-grey-700">1 - Poor</span>
-          <span className="text-sm text-grey-700">5 - Excellent</span>
-        </div>
-
-        {errors.rating && (
-          <p className="mt-1 text-xs text-red-600">{errors.rating}</p>
-        )}
-      </div>
-
-      {/* Tenant Review */}
-      <div className="mt-6">
-        <TextField
-          isRequired
-          isInvalid={!!errors.reviewText}
-          value={reviewText}
-          onChange={handleReviewTextChange}
-        >
-          <Label>Tenant Review:</Label>
-          <TextArea
-            rows={5}
-            placeholder="Type your experience and review about the apartment.."
-            className="resize-none"
-          />
-          <FieldError>{errors.reviewText}</FieldError>
-        </TextField>
-      </div>
-
-      {/* Photos (optional) */}
-      <div className="mt-6">
-        <ReviewPhotosInput
-          images={reviewImages}
-          onAdd={handleAddImages}
-          onRemove={handleRemoveImage}
-        />
       </div>
 
       {submitError && (

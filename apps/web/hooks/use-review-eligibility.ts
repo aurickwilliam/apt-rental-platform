@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getTenantContext } from "@/service/favoritesService";
 import {
@@ -14,6 +14,12 @@ export function useReviewEligibility(apartmentId?: string) {
   const [reviewableTenancyId, setReviewableTenancyId] = useState<string | null>(null);
   const [existingReview, setExistingReview] = useState<TenantApartmentReview | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshEligibility = useCallback(() => {
+    setCheckingEligibility(true);
+    setRefreshKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
     if (!apartmentId) return;
@@ -56,7 +62,7 @@ export function useReviewEligibility(apartmentId?: string) {
     return () => {
       cancelled = true;
     };
-  }, [apartmentId]);
+  }, [apartmentId, refreshKey]);
 
   return {
     tenantId,
@@ -67,5 +73,6 @@ export function useReviewEligibility(apartmentId?: string) {
     checkingEligibility,
     reviewableTenancyId,
     existingReview,
+    refreshEligibility,
   };
 }

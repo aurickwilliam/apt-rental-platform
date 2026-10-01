@@ -1,0 +1,69 @@
+"use client";
+
+import { Suspense } from "react";
+
+import { Modal } from "@heroui/react";
+import { X } from "lucide-react";
+
+import { RateApartmentForm } from "./RateApartmentForm";
+
+interface RateApartmentModalProps {
+  apartmentId: string;
+  tenancyId?: string | null;
+  reviewId?: string | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+export default function RateApartmentModal({
+  apartmentId,
+  tenancyId,
+  reviewId,
+  isOpen,
+  onOpenChange,
+  onSuccess,
+}: RateApartmentModalProps) {
+  const isEditMode = reviewId != null;
+
+  const handleClose = () => onOpenChange(false);
+
+  const handleSuccess = () => {
+    handleClose();
+    onSuccess?.();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container size="lg" scroll="inside" className="w-full max-w-4xl">
+          <Modal.Dialog className="w-full md:max-w-4xl">
+            <Modal.Header>
+              <Modal.Heading>{isEditMode ? "Edit Review" : "Rate Apartment"}</Modal.Heading>
+              <Modal.CloseTrigger
+                aria-label="Close"
+                className="rounded-full border border-default-200 bg-default-100 p-1.5 text-foreground hover:bg-default-200"
+              >
+                <X size={18} strokeWidth={2.5} />
+              </Modal.CloseTrigger>
+            </Modal.Header>
+            <Modal.Body>
+              <Suspense fallback={<p className="text-sm text-default-500">Loading review details…</p>}>
+                {isOpen && (
+                  <RateApartmentForm
+                    apartmentIdOverride={apartmentId}
+                    tenancyIdOverride={tenancyId ?? null}
+                    reviewIdOverride={reviewId ?? null}
+                    hideBackButton
+                    onSuccess={handleSuccess}
+                    onCancel={handleClose}
+                  />
+                )}
+              </Suspense>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
+  );
+}

@@ -1,11 +1,14 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button, Card, Dropdown, Label } from "@heroui/react";
+import { useParams } from "next/navigation";
+
+import { Button, Card, Dropdown, Label, useOverlayState } from "@heroui/react";
 import { ChevronDown, MessageSquareText } from "lucide-react";
 
 import BackBtn from "./BackBtn";
+import RateApartmentModal from "./RateApartmentModal";
 import RatingBreakdown from "./RatingBreakdown";
 import ReviewCard from "./ReviewCard";
 import {
@@ -28,8 +31,10 @@ function formatReviewDate(iso: string): string {
 }
 
 export default function ApartmentRatingsView({ basePath = "/browse" }: { basePath?: string }) {
-  const router = useRouter();
+  void basePath;
   const { apartmentId } = useParams<{ apartmentId: string }>();
+  const reviewModal = useOverlayState();
+  const [modalMode, setModalMode] = useState<{ tenancyId?: string | null; reviewId?: string | null }>({});
 
   const {
     loading,
@@ -45,6 +50,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
     checkingEligibility,
     reviewableTenancyId,
     existingReview,
+    refresh,
   } = useApartmentReviews(apartmentId);
 
   const countFor = (star: number) =>
@@ -53,15 +59,19 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
   const showReviewButton = !checkingEligibility && canReview;
   const showEditButton = !checkingEligibility && canEdit;
 
-  const handleWriteReview = () =>
-    router.push(`${basePath}/${apartmentId}/rate-apartment?tenancyId=${reviewableTenancyId}`);
+  const handleWriteReview = () => {
+    setModalMode({ tenancyId: reviewableTenancyId, reviewId: null });
+    reviewModal.setOpen(true);
+  };
 
-  const handleEditReview = () =>
-    router.push(`${basePath}/${apartmentId}/rate-apartment?reviewId=${existingReview?.id}`);
+  const handleEditReview = () => {
+    setModalMode({ tenancyId: null, reviewId: existingReview?.id ?? null });
+    reviewModal.setOpen(true);
+  };
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-4">
+      <div className="w-full px-3 py-4 sm:px-4">
         <BackBtn />
         <div className="mt-4">
           <h1 className="text-2xl font-medium md:text-3xl">Ratings & Reviews</h1>
@@ -72,7 +82,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-4">
+    <div className="w-full px-3 py-4 sm:px-4">
       <BackBtn />
 
       <div className="mt-4">
@@ -167,6 +177,15 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
           ))}
         </div>
       )}
+
+      <RateApartmentModal
+        apartmentId={apartmentId}
+        tenancyId={modalMode.tenancyId}
+        reviewId={modalMode.reviewId}
+        isOpen={reviewModal.isOpen}
+        onOpenChange={reviewModal.setOpen}
+        onSuccess={refresh}
+      />
     </div>
   );
 }

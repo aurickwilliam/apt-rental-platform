@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   fetchApartmentReviews,
@@ -25,9 +25,16 @@ export function useApartmentReviews(apartmentId?: string) {
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const { canReview, canEdit, checkingEligibility, reviewableTenancyId, existingReview } =
+  const { canReview, canEdit, checkingEligibility, reviewableTenancyId, existingReview, refreshEligibility } =
     useReviewEligibility(apartmentId);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    setRefreshKey((key) => key + 1);
+    refreshEligibility();
+  }, [refreshEligibility]);
 
   useEffect(() => {
     if (!apartmentId) return;
@@ -52,7 +59,7 @@ export function useApartmentReviews(apartmentId?: string) {
     return () => {
       cancelled = true;
     };
-  }, [apartmentId]);
+  }, [apartmentId, refreshKey]);
 
   const reviews = useMemo<ApartmentReview[]>(() => {
     const mapped = rows.map(mapReviewRow);
@@ -116,5 +123,6 @@ export function useApartmentReviews(apartmentId?: string) {
     checkingEligibility,
     reviewableTenancyId,
     existingReview,
+    refresh,
   };
 }
