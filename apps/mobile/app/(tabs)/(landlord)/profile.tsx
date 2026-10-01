@@ -1,6 +1,7 @@
 import { View, ScrollView, Platform } from 'react-native'
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import type React from 'react';
+import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@repo/supabase';
@@ -25,7 +26,7 @@ import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '../comp
 export default function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { profile, loading } = useProfile();
+  const { profile, loading, refetch: refetchProfile } = useProfile();
   const { colors } = useColors();
 
   const avatarInitials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`.toUpperCase();
@@ -41,7 +42,7 @@ export default function Profile() {
       : accountStatus === 'rejected'
         ? 'Re-verify to restore access'
         : 'Verify your account to unlock';
-  const { data: latestVerification } = useLatestVerification();
+  const { data: latestVerification, refetch: refetchVerification } = useLatestVerification();
   const rejectedReason = latestVerification?.rejection_reason ?? undefined;
   const dateVerified = latestVerification?.reviewed_at
     ? formatDate(latestVerification.reviewed_at, 'long')
@@ -52,6 +53,13 @@ export default function Profile() {
     await supabase.auth.signOut();
     router.replace('/(auth)/sign-in');
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetchProfile();
+      void refetchVerification();
+    }, [refetchProfile, refetchVerification]),
+  );
 
   type ListItem = {
     title: string;

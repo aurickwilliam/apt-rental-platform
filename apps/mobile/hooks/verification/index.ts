@@ -9,6 +9,7 @@ export {
   getUserVerificationHistoryQueryKey,
   buildVerificationInput,
 } from './useVerification';
+export { useVerificationReviewRealtime } from './useVerificationReviewRealtime';
 export type {
   SubmitVerificationInput,
   UserVerificationRow,

@@ -30,6 +30,7 @@ import {
   usePushRegistration,
   useNotificationTapHandler,
 } from "@/hooks/notifications";
+import { useVerificationReviewRealtime } from "@/hooks/verification";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
 import DevBadge from '../components/dev/DevBadge';
@@ -38,6 +39,7 @@ function NotificationManager() {
   usePushRegistration();
   useNotificationTapHandler();
   useInAppNotificationBanner();
+  useVerificationReviewRealtime();
 
   return null;
 }
