@@ -12,13 +12,16 @@ const STATS = [
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full h-[calc(100svh-80px)] flex flex-row items-center rounded-2xl mb-20 overflow-hidden">
+    // min-h (not h-) + min-w-0: the hero grows when the headline wraps to
+    // more lines at narrow widths instead of clipping via overflow-hidden.
+    <section className="relative flex min-h-[calc(100svh-80px)] w-full min-w-0 flex-row items-center overflow-hidden rounded-2xl mb-20">
       <div className="absolute inset-0 w-1/2 pointer-events-none z-0" />
 
-      {/* Text Side */}
-      <div className="relative h-full flex flex-col justify-center gap-6 p-8 z-10 w-full md:w-1/2">
+      {/* Text Side — fluid padding on both axes so short/wide viewports
+          don't over-pad and narrow ones don't under-pad. */}
+      <div className="relative z-10 flex h-full w-full min-w-0 flex-col justify-center gap-[clamp(1rem,3vh,1.5rem)] p-[clamp(1.25rem,4vw,2rem)] md:w-1/2">
         <div className="flex flex-col gap-3">
-          <h1 className="text-4xl md:text-5xl font-inter font-semibold text-primary leading-tight">
+          <h1 className="font-inter font-semibold text-primary leading-tight text-[clamp(1.75rem,5vw,3rem)]">
             Find, Rent, and Manage.{" "}
             <span className="text-foreground">All in one place.</span>
           </h1>
@@ -31,11 +34,13 @@ export default function HeroSection() {
 
         <StartBrowsingBtn />
 
-        {/* Stats row */}
-        <div className="flex flex-row gap-6 pt-2 border-t border-divider mt-2">
+        {/* Stats row — wraps instead of overflowing. Each stat is allowed
+            to shrink to its content width; the nowrap label stays intact
+            because the row itself reflows. */}
+        <div className="mt-2 flex flex-wrap items-start gap-x-[clamp(1rem,3vw,1.5rem)] gap-y-3 border-t border-divider pt-2">
           {STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col gap-0.5">
-              <span className="text-xl font-inter font-semibold text-primary">
+            <div key={stat.label} className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-inter font-semibold text-primary text-[clamp(1.125rem,3vw,1.25rem)]">
                 {stat.value}
               </span>
               <span className="text-xs text-default-400 font-medium whitespace-nowrap">
@@ -47,7 +52,7 @@ export default function HeroSection() {
       </div>
 
       {/* Image Side */}
-      <div className="relative self-stretch hidden md:flex w-1/2">
+      <div className="relative self-stretch hidden md:flex w-1/2 min-w-0">
         <div className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none" />
 
         <NextImage
@@ -59,13 +64,13 @@ export default function HeroSection() {
         />
 
         {/* Floating verification badge */}
-        <div className="absolute bottom-10 left-8 z-20 bg-background/80 backdrop-blur-md border border-divider rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
-          <div className="w-9 h-9 rounded-full bg-success/10 flex items-center justify-center text-success">
+        <div className="absolute bottom-10 left-8 z-20 flex items-center gap-3 rounded-xl border border-divider bg-background/80 px-4 py-3 shadow-lg backdrop-blur-md">
+          <div className="flex size-9 items-center justify-center rounded-full bg-success/10 text-success">
             <IconShieldCheck size={18} />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-foreground">Verified Property</span>
-            <span className="text-xs text-default-400">Background-checked landlord</span>
+            <span className="font-semibold text-foreground text-sm">Verified Property</span>
+            <span className="text-default-400 text-xs">Background-checked landlord</span>
           </div>
         </div>
       </div>
