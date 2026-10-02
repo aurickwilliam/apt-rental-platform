@@ -47,35 +47,35 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
   }
 
   return (
-    <main className="flex w-screen h-screen overflow-hidden">
-      {/* Left Panel */}
-      <div className="w-1/2">
-        <AuthWrapper
-          type="sign-up"
-          initialRole={initialRole}
-          showWelcomeNotice={showWelcomeNotice}
-          rolePickerMode={rolePickerMode}
-          portalError={portalError}
-        />
-      </div>
-      
-      {/* Right Panel */}
-      <div
-        className="w-1/2 bg-primary relative hidden md:flex"
-        style={{backgroundImage: "url('/building-bg2.jpg')"}}
+    // Mirrors sign-in: min-h-screen so the page grows instead of clipping
+    // at short aspect ratios; fluid clamp() padding on both axes.
+    <main className="flex min-h-screen w-full bg-surface">
+      <section className="flex w-full min-w-0 flex-1 flex-col lg:w-1/2 lg:flex-none">
+        <div className="mx-auto flex w-full min-w-0 max-w-xl flex-1 flex-col justify-center px-[clamp(1.25rem,4vw,4rem)] py-[clamp(1rem,4vh,2.5rem)] lg:max-w-none">
+          <AuthWrapper
+            type="sign-up"
+            initialRole={initialRole}
+            showWelcomeNotice={showWelcomeNotice}
+            rolePickerMode={rolePickerMode}
+            portalError={portalError}
+          />
+        </div>
+      </section>
+
+      <aside
+        aria-hidden="true"
+        className="relative hidden w-1/2 shrink-0 overflow-hidden bg-primary bg-cover bg-center lg:block lg:min-h-screen"
+        style={{ backgroundImage: "url('/building-bg2.jpg')" }}
       >
-        {/* Content */}
-        <div className="relative z-10 p-5 h-full flex flex-col justify-between items-end">
+        <div className="relative z-10 flex h-full w-full flex-col items-end justify-between p-5">
           <Image
             src="/logo/logo-name.svg"
-            alt="Logo"
+            alt="APT Logo"
             width={150}
             height={100}
           />
-
-          {/* Can add Information or Testimonials here */}
         </div>
-      </div>
+      </aside>
     </main>
   );
 }
