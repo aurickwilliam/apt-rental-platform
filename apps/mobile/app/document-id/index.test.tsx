@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react-native";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import Index from "./index";
 
@@ -23,9 +23,10 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("expo-image", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
   const { View } =
     jest.requireActual<typeof import("react-native")>("react-native");
-  return { Image: () => View };
+  return { Image: () => React.createElement(View) };
 });
 
 jest.mock("react-native-image-viewing", () => () => null);
@@ -78,7 +79,7 @@ jest.mock("@/hooks/applications", () => ({
 
 jest.mock("heroui-native", () => {
   const React = jest.requireActual<typeof import("react")>("react");
-  const { View } =
+  const { View, Text } =
     jest.requireActual<typeof import("react-native")>("react-native");
 
   const Passthrough = ({ children }: { children?: React.ReactNode }) =>
@@ -86,7 +87,9 @@ jest.mock("heroui-native", () => {
 
   const ButtonMock = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
-  ButtonMock.Label = Passthrough;
+  const ButtonLabelMock = ({ children }: { children?: React.ReactNode }) =>
+    React.createElement(Text, null, children);
+  ButtonMock.Label = ButtonLabelMock;
 
   const ChipMock = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
@@ -203,6 +206,85 @@ describe("APT Passport wallet screen", () => {
     expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
     expect(screen.queryByText("No documents yet")).toBeNull();
     expect(screen.queryByTestId("passport-skeleton")).toBeNull();
+  });
+
+  it("shows the section empty state when only the verified ID exists", () => {
+    mockPassportState.documents = [primaryDoc];
+    mockDocumentUrlsState.resolved = [
+      {
+        label: "Driver’s License",
+        path: "user-1/passport/licence-1.jpg",
+        signedUrl: "https://signed.test/front.jpg",
+      },
+    ];
+
+    render(<Index />);
+
+    expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
+    expect(screen.getByText("No supporting documents yet")).toBeTruthy();
+    expect(screen.getByText("Add a Document")).toBeTruthy();
+    expect(screen.queryByText("No documents yet")).toBeNull();
+    expect(screen.queryByText("Need help?")).toBeNull();
+    expect(screen.queryByText("Contact Support")).toBeNull();
+  });
+
+  it("never renders the help footer", () => {
+    render(<Index />);
+
+    expect(screen.queryByText("Need help?")).toBeNull();
+    expect(screen.queryByText("Contact Support")).toBeNull();
+  });
+});
+
+describe("Valid ID flip control", () => {
+  const primaryWithBack = {
+    ...primaryDoc,
+    id: "doc-back",
+    storage_path_back: "user-1/passport/licence-1-back.jpg",
+  };
+
+  beforeEach(() => {
+    mockPassportState.documents = [primaryWithBack];
+    mockDocumentUrlsState.resolved = [
+      {
+        label: "Driver’s License",
+        path: "user-1/passport/licence-1.jpg",
+        signedUrl: "https://signed.test/front.jpg",
+      },
+      {
+        label: "Driver’s License (back)",
+        path: "user-1/passport/licence-1-back.jpg",
+        signedUrl: "https://signed.test/back.jpg",
+      },
+    ];
+  });
+
+  it("hides the flip button when the ID has no back side", () => {
+    mockPassportState.documents = [primaryDoc];
+    mockDocumentUrlsState.resolved = [
+      {
+        label: "Driver’s License",
+        path: "user-1/passport/licence-1.jpg",
+        signedUrl: "https://signed.test/front.jpg",
+      },
+    ];
+
+    render(<Index />);
+
+    expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
+    expect(screen.queryByLabelText("Show back of ID")).toBeNull();
+    expect(screen.queryByLabelText("Show front of ID")).toBeNull();
+  });
+
+  it("flips between front and back when the button is tapped", () => {
+    render(<Index />);
+
+    expect(screen.getByLabelText("Show back of ID")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText("Show back of ID"));
+
+    expect(screen.getByLabelText("Show front of ID")).toBeTruthy();
+    expect(screen.queryByLabelText("Show back of ID")).toBeNull();
   });
 });
 

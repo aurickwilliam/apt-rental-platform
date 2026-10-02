@@ -1,21 +1,18 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import { Image } from "expo-image";
 import ImageViewing from "react-native-image-viewing";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
-import { Button, Chip, Separator, Spinner } from "heroui-native";
+import { Button, Separator } from "heroui-native";
 
-import {
-  IconFileUpload,
-  IconPlus,
-  IconShieldCheck,
-} from "@tabler/icons-react-native";
+import { IconFileUpload, IconPlus } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DocumentCard from "./components/DocumentCard";
+import EmptySupportingDocs from "./components/EmptySupportingDocs";
 import PassportSkeleton from "./components/PassportSkeleton";
+import ValidIdCard from "./components/ValidIdCard";
 
 import { useColors } from "@/hooks/useTheme";
 import { useDocumentUrls } from "@/hooks/applications";
@@ -32,6 +29,7 @@ export default function Index() {
     usePassportDocuments();
 
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
   const verifiedDoc = useMemo(
     () =>
@@ -76,6 +74,7 @@ export default function Index() {
         : "application-documents",
     );
   const verifiedSignedUrl = resolvedVerified[0]?.signedUrl ?? null;
+  const verifiedBackSignedUrl = resolvedVerified[1]?.signedUrl ?? null;
   const verifiedViewerImages = useMemo(
     () =>
       resolvedVerified
@@ -88,6 +87,13 @@ export default function Index() {
     () => new Map(resolvedDocs.map((doc) => [doc.path, doc.signedUrl])),
     [resolvedDocs],
   );
+
+  const handleOpenViewer = (index: number) => {
+    setViewerIndex(
+      Math.min(index, Math.max(verifiedViewerImages.length - 1, 0)),
+    );
+    setIsIdVisible(true);
+  };
 
   const hasDocuments = documents.length > 0;
 
@@ -121,49 +127,14 @@ export default function Index() {
       {/* Verified ID linked from account verification */}
       {verifiedDoc && !showSkeleton ? (
         <>
-          <View className="gap-3">
-            <View className="flex-row items-center justify-between gap-3">
-              <View className="flex-1 gap-0.5">
-                <Text className="text-foreground text-lg font-nunitoSemiBold">
-                  Valid ID / Government ID
-                </Text>
-                <Text className="text-muted text-sm font-inter">
-                  {verifiedDoc.id_type ?? verifiedDoc.doc_type}
-                </Text>
-              </View>
-
-              <Chip variant="secondary" color="success" size="sm">
-                <IconShieldCheck size={14} color={colors.success} />
-                <Chip.Label className="text-success font-nunitoSemiBold">
-                  Verified
-                </Chip.Label>
-              </Chip>
-            </View>
-
-            <TouchableOpacity
-              className="bg-surface border border-border rounded-3xl shadow-none overflow-hidden"
-              activeOpacity={0.7}
-              onPress={() => verifiedSignedUrl && setIsIdVisible(true)}
-            >
-              <View className="w-full bg-gray-100 min-h-40 items-center justify-center">
-                {verifiedSignedUrl ? (
-                  <Image
-                    source={{ uri: verifiedSignedUrl }}
-                    style={{ width: "100%", aspectRatio: 16 / 9 }}
-                    contentFit="contain"
-                    cachePolicy="disk"
-                    transition={150}
-                  />
-                ) : verifiedLoading ? (
-                  <Spinner size="sm" color={colors.primary} />
-                ) : (
-                  <Text className="text-muted text-sm font-inter">
-                    Preview unavailable
-                  </Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          </View>
+          <ValidIdCard
+            key={verifiedDoc.id}
+            idType={verifiedDoc.id_type ?? verifiedDoc.doc_type}
+            frontUrl={verifiedSignedUrl}
+            backUrl={verifiedBackSignedUrl}
+            loading={verifiedLoading}
+            onOpenViewer={handleOpenViewer}
+          />
 
           <Separator className="my-3" />
         </>
@@ -232,43 +203,32 @@ export default function Index() {
             Uploaded Documents
           </Text>
 
-          <View className="flex-row flex-wrap gap-x-4 gap-y-5">
-            {supportingDocs.map((doc) => {
-              const signedUrl = signedByPath.get(doc.storage_path) ?? null;
-              return (
-                <DocumentCard
-                  key={doc.id}
-                  filePath={signedUrl ?? doc.storage_path}
-                  label={doc.doc_type}
-                  verified={doc.is_verified}
-                  onPress={() => router.push(`/document-id/${doc.id}`)}
-                />
-              );
-            })}
-          </View>
+          {supportingDocs.length === 0 ? (
+            <EmptySupportingDocs
+              onAddDocument={() => router.push("/document-id/select-document")}
+            />
+          ) : (
+            <View className="flex-row flex-wrap gap-x-4 gap-y-5">
+              {supportingDocs.map((doc) => {
+                const signedUrl = signedByPath.get(doc.storage_path) ?? null;
+                return (
+                  <DocumentCard
+                    key={doc.id}
+                    filePath={signedUrl ?? doc.storage_path}
+                    label={doc.doc_type}
+                    verified={doc.is_verified}
+                    onPress={() => router.push(`/document-id/${doc.id}`)}
+                  />
+                );
+              })}
+            </View>
+          )}
         </>
       )}
 
-      {/* Need help */}
-      {!showSkeleton ? (
-        <View className="w-full items-center justify-center py-10">
-          <Text className="text-foreground text-base font-nunitoSemiBold">
-            Need help?
-          </Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-center mt-1"
-            activeOpacity={0.7}
-          >
-            <Text className="text-accent text-base font-nunitoSemiBold">
-              Contact Support
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
       <ImageViewing
         images={verifiedViewerImages}
-        imageIndex={0}
+        imageIndex={viewerIndex}
         visible={isIdVisible}
         onRequestClose={() => setIsIdVisible(false)}
         presentationStyle="overFullScreen"

@@ -17,7 +17,7 @@ export default function PassportSkeleton() {
           {[...Array(4)].map((_, index) => (
             // Width lives on a plain View: the item renders an Animated.View
             // that ignores the arbitrary percentage.
-            <View key={index} className="w-[47.5%]">
+            <View key={index} className="w-[48%]">
               <SkeletonGroup.Item className="h-56 w-full rounded-3xl" />
             </View>
           ))}
