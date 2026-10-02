@@ -297,7 +297,7 @@ export function RateApartmentForm({
     return (
       <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
         {!hideBackButton && <BackBtn />}
-        <p className="mt-6 text-sm text-default-500">Loading review details…</p>
+        <p className="mt-6 text-sm text-muted-foreground">Loading review details…</p>
       </div>
     );
   }
@@ -356,10 +356,10 @@ export function RateApartmentForm({
 
           {/* Apartment Name and Address */}
           <div className="mt-4 flex flex-col gap-1">
-            <h1 className="text-2xl font-medium text-primary">
+            <h1 className="font-nunito text-2xl font-semibold text-card-foreground">
               {header.name}
             </h1>
-            <p className="text-base text-foreground">
+            <p className="text-base text-muted-foreground">
               {address}
             </p>
           </div>
@@ -367,16 +367,16 @@ export function RateApartmentForm({
           {/* Apartment Details */}
           <div className="mt-4 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-grey-700">Landlord</Label>
-              <span className="text-base">
+              <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
+              <span className="text-base font-medium text-card-foreground">
                 {header.landlordName}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <Label className="text-sm font-medium text-grey-700">Apartment Type</Label>
-                <span className="text-base">
+                <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
+                <span className="text-base font-medium text-card-foreground">
                   {header.type ?? "—"}
                 </span>
               </div>
@@ -391,13 +391,13 @@ export function RateApartmentForm({
 
             {/* Duration of Stay — read-only, sourced from the tenancy record */}
             <div>
-              <Label className="text-sm font-medium text-grey-700">Duration of Stay</Label>
-              <div className="mt-2 flex items-center justify-between rounded-2xl bg-gray-100 px-4 py-3">
-                <span className="text-base">
+              <Label className="text-sm font-medium text-muted-foreground">Duration of Stay</Label>
+              <div className="mt-2 flex items-center justify-between rounded-2xl border border-border bg-muted px-4 py-3">
+                <span className="text-base font-medium text-card-foreground">
                   {tenancy ? formatStayLabel(tenancy) : "—"}
                 </span>
                 {tenancy && !tenancy.lease_end && (
-                  <span className="text-xs text-grey-700">Ongoing</span>
+                  <span className="text-xs text-muted-foreground">Ongoing</span>
                 )}
               </div>
             </div>
@@ -409,9 +409,9 @@ export function RateApartmentForm({
         <div className={isModalLayout ? undefined : "contents"}>
           {/* Rating Input */}
           <div className="flex flex-col items-center">
-            <Label className="text-lg font-medium">Overall Rating</Label>
+            <Label className="font-nunito text-lg font-semibold">Overall Rating</Label>
 
-            <p className="mt-2 text-5xl font-medium leading-tight text-secondary font-dm-serif">
+            <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-secondary">
               {rating.toFixed(1)}
             </p>
 
@@ -420,8 +420,8 @@ export function RateApartmentForm({
             </div>
 
             <div className="flex items-center gap-5">
-              <span className="text-sm text-grey-700">1 - Poor</span>
-              <span className="text-sm text-grey-700">5 - Excellent</span>
+              <span className="text-sm text-muted-foreground">1 - Poor</span>
+              <span className="text-sm text-muted-foreground">5 - Excellent</span>
             </div>
 
             {errors.rating && (

@@ -74,9 +74,9 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
       <div className="w-full px-3 py-4 sm:px-4">
         <BackBtn />
         <div className="mt-4">
-          <h1 className="text-2xl font-medium md:text-3xl">Ratings & Reviews</h1>
+          <h1 className="font-nunito text-2xl font-bold md:text-3xl">Ratings & Reviews</h1>
         </div>
-        <p className="mt-6 text-sm text-default-500">Loading reviews…</p>
+        <p className="mt-6 text-sm text-muted-foreground">Loading reviews…</p>
       </div>
     );
   }
@@ -86,13 +86,13 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
       <BackBtn />
 
       <div className="mt-4">
-        <h1 className="text-2xl font-medium md:text-3xl">Ratings & Reviews</h1>
+        <h1 className="font-nunito text-2xl font-bold md:text-3xl">Ratings & Reviews</h1>
       </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {totalReviews > 0 && (
-        <Card className="mt-6 p-6 md:p-8 shadow-none border border-default-200">
+        <Card className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
           <RatingBreakdown
             overallRate={overallRating}
             totalReviews={totalReviews}
@@ -106,7 +106,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
       )}
 
       <div className="mt-10 flex items-center justify-between gap-4">
-        <h2 className="text-lg font-medium">Tenant Reviews</h2>
+        <h2 className="font-nunito text-lg font-semibold">Tenant Reviews</h2>
 
         <div className="flex items-center gap-3">
           {showReviewButton && (
@@ -148,17 +148,23 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
       </div>
 
       {totalReviews === 0 ? (
-        <Card className="mt-5 flex flex-col items-center gap-3 p-10 text-center shadow-none border border-default-200">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <MessageSquareText size={26} className="text-primary" />
-          </div>
+        <Card className="mt-5 rounded-3xl border border-border bg-card shadow-none">
+          <Card.Content className="flex flex-col items-center gap-4 p-10 text-center">
+            <span className="rounded-full bg-muted p-5">
+              <MessageSquareText size={36} className="text-muted-foreground" />
+            </span>
+            <div className="space-y-1">
+              <p className="font-nunito text-lg font-bold">
+                No reviews yet. Be the first to share your experience!
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Your review helps other tenants find their place to thrive.
+              </p>
+            </div>
 
-          <p className="text-base font-medium">
-            No reviews yet. Be the first to share your experience!
-          </p>
-
-          {showReviewButton && <Button onPress={handleWriteReview}>Write a Review</Button>}
-          {showEditButton && <Button onPress={handleEditReview}>Edit Review</Button>}
+            {showReviewButton && <Button onPress={handleWriteReview}>Write a Review</Button>}
+            {showEditButton && <Button onPress={handleEditReview}>Edit Review</Button>}
+          </Card.Content>
         </Card>
       ) : (
         <div className="mt-5 columns-1 gap-3 md:columns-2">

@@ -39,16 +39,16 @@ export default function RateApartmentModal({
         <Modal.Container size="lg" scroll="inside" className="w-full max-w-4xl">
           <Modal.Dialog className="w-full md:max-w-4xl">
             <Modal.Header>
-              <Modal.Heading>{isEditMode ? "Edit Review" : "Rate Apartment"}</Modal.Heading>
+              <Modal.Heading className="font-nunito font-bold">{isEditMode ? "Edit Review" : "Rate Apartment"}</Modal.Heading>
               <Modal.CloseTrigger
                 aria-label="Close"
-                className="rounded-full border border-default-200 bg-default-100 p-1.5 text-foreground hover:bg-default-200"
+                className="rounded-full border border-border bg-muted p-1.5 text-foreground hover:bg-muted"
               >
                 <X size={18} strokeWidth={2.5} />
               </Modal.CloseTrigger>
             </Modal.Header>
             <Modal.Body>
-              <Suspense fallback={<p className="text-sm text-default-500">Loading review details…</p>}>
+              <Suspense fallback={<p className="text-sm text-muted-foreground">Loading review details…</p>}>
                 {isOpen && (
                   <RateApartmentForm
                     apartmentIdOverride={apartmentId}
