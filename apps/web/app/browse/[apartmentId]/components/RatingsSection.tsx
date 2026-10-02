@@ -9,10 +9,12 @@ import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface RatingSectionProps {
   apartmentId: string;
+  basePath?: string;
 }
 
 export default function RatingSection({
   apartmentId,
+  basePath = "/browse",
 }: RatingSectionProps) {
   const router = useRouter();
   const { overallRating, totalReviews, ratingsCount, loading, error } =
@@ -29,7 +31,7 @@ export default function RatingSection({
         <Button
           size="sm"
           variant="ghost"
-          onPress={() => router.push(`/browse/${apartmentId}/ratings`)}
+          onPress={() => router.push(`${basePath}/${apartmentId}/ratings`)}
           className="-mr-3 text-secondary"
         >
           See all reviews

@@ -17,6 +17,7 @@ interface PriceCardProps {
   securityDeposit: number | undefined;
   advancePayment: number | undefined;
   apartmentId?: string;
+  basePath?: string;
 }
 
 export default function PriceCard({
@@ -24,6 +25,7 @@ export default function PriceCard({
   securityDeposit = 0,
   advancePayment = 0,
   apartmentId,
+  basePath = "/browse",
 }: PriceCardProps) {
   const router = useRouter();
 
@@ -64,7 +66,7 @@ export default function PriceCard({
       </Card.Content>
 
       <Card.Footer className="flex flex-col gap-2">
-        <Button fullWidth onPress={() => apartmentId && router.push(`/browse/${apartmentId}/apply`)}>
+        <Button fullWidth onPress={() => apartmentId && router.push(`${basePath}/${apartmentId}/apply`)}>
           Apply Now
         </Button>
 

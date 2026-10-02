@@ -8,7 +8,6 @@ import { Star, Heart } from "lucide-react";
 import { IconShieldCheckFilled } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
-import { VerifiedBadge } from "../VerifiedBadge";
 
 interface ApartmentCardProps {
   name: string;
@@ -55,7 +54,7 @@ export default function ApartmentCard({
           />
 
           <div className="p-2">
-            <div className="flex items-center gap-2"><h3 className="text-[15px] font-semibold truncate">{name}</h3>{isVerified ? <VerifiedBadge /> : null}</div>
+            <h3 className="text-[15px] font-semibold truncate">{name}</h3>
 
             <div className="flex items-center gap-1">
               <p className="bg-surface-variant text-xs">

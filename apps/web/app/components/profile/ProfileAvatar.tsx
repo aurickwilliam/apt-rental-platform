@@ -90,7 +90,11 @@ export default function ProfileAvatar({
           className={`size-36 border-4 border-background bg-primary text-white ${circular ? "rounded-full" : ""}`}
         >
           {avatarUrl ? (
-            <Avatar.Image src={avatarUrl} alt={`${displayName}'s profile photo`} />
+            <Avatar.Image
+              src={avatarUrl}
+              alt={`${displayName}'s profile photo`}
+              className="object-cover"
+            />
           ) : null}
           <Avatar.Fallback
             className={`bg-primary text-white font-semibold text-4xl ${circular ? "rounded-full" : ""}`}

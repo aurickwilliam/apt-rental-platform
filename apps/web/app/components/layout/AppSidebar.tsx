@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,25 +8,33 @@ import type { LucideIcon } from "lucide-react";
 import {
   IconArrowsExchange,
   IconBuilding,
+  IconCashBanknote,
   IconChartBar,
+  IconFileCheck,
+  IconFileText,
+  IconHeart,
   IconHistory,
+  IconHome,
   IconLayoutDashboard,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconLogout,
   IconMenu2,
+  IconMessageCircle,
+  IconMessages,
   IconMoon,
   IconSearch,
   IconSettings,
   IconSelector,
   IconShieldCheck,
   IconSun,
+  IconTool,
   IconUsers,
   IconUser,
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import {
   ArrowLeftRight,
   LogOut,
@@ -55,7 +63,8 @@ import {
 
 import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
-import ToggleSwitch from "@/app/(main)/settings/components/ToggleSwitch";
+import UserAvatar from "@/app/components/profile/UserAvatar";
+import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -79,39 +88,70 @@ const ADMIN_ICON_MAP: Record<string, TablerIcon> = {
   LayoutDashboard: IconLayoutDashboard,
   Users: IconUsers,
   User: IconUser,
+  Building: IconBuilding,
   Building2: IconBuilding,
   ShieldCheck: IconShieldCheck,
   History: IconHistory,
   ChartBar: IconChartBar,
+  Search: IconSearch,
+  Home: IconHome,
+  FileText: IconFileText,
+  FileCheck: IconFileCheck,
+  Heart: IconHeart,
+  Tool: IconTool,
+  MessageCircle: IconMessageCircle,
+  Messages: IconMessages,
+  CashBanknote: IconCashBanknote,
 };
 
-const ADMIN_SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
-const ADMIN_SIDEBAR_CHANGE_EVENT = "admin-sidebar-change";
+const SIDEBAR_STORAGE_KEYS = {
+  admin: "admin-sidebar-collapsed",
+  tenant: "tenant-sidebar-collapsed",
+  landlord: "landlord-sidebar-collapsed",
+} as const;
 
-function subscribeToSidebarState(onChange: () => void) {
+export type SidebarPortal = keyof typeof SIDEBAR_STORAGE_KEYS;
+
+function resolveStorageKey(
+  storageKey: string | undefined,
+  activePortal: SidebarPortal | undefined,
+): string {
+  if (storageKey) return storageKey;
+  if (activePortal && activePortal in SIDEBAR_STORAGE_KEYS) {
+    return SIDEBAR_STORAGE_KEYS[activePortal];
+  }
+  return SIDEBAR_STORAGE_KEYS.admin;
+}
+
+function changeEventFor(storageKey: string) {
+  return `${storageKey}-change`;
+}
+
+function subscribeToSidebarState(storageKey: string, onChange: () => void) {
+  const changeEvent = changeEventFor(storageKey);
   const onStorage = (event: StorageEvent) => {
-    if (event.key === ADMIN_SIDEBAR_STORAGE_KEY) onChange();
+    if (event.key === storageKey) onChange();
   };
   window.addEventListener("storage", onStorage);
-  window.addEventListener(ADMIN_SIDEBAR_CHANGE_EVENT, onChange);
+  window.addEventListener(changeEvent, onChange);
   return () => {
     window.removeEventListener("storage", onStorage);
-    window.removeEventListener(ADMIN_SIDEBAR_CHANGE_EVENT, onChange);
+    window.removeEventListener(changeEvent, onChange);
   };
 }
 
-function getStoredSidebarState() {
+function getStoredSidebarState(storageKey: string) {
   try {
-    return window.localStorage.getItem(ADMIN_SIDEBAR_STORAGE_KEY) === "true";
+    return window.localStorage.getItem(storageKey) === "true";
   } catch {
     return false;
   }
 }
 
-function toggleStoredSidebarState(collapsed: boolean) {
+function toggleStoredSidebarState(storageKey: string, collapsed: boolean) {
   try {
-    window.localStorage.setItem(ADMIN_SIDEBAR_STORAGE_KEY, String(!collapsed));
-    window.dispatchEvent(new Event(ADMIN_SIDEBAR_CHANGE_EVENT));
+    window.localStorage.setItem(storageKey, String(!collapsed));
+    window.dispatchEvent(new Event(changeEventFor(storageKey)));
   } catch {
     // Storage may be unavailable; keep the expanded sidebar usable.
   }
@@ -137,7 +177,7 @@ type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
   userRole: string;
-  avatarUrl?: string | null;
+  userAvatarUrl?: string | null;
   showAccountLinks?: boolean;
   // Multi-role switching: all roles the account holds + which portal
   // this sidebar belongs to. The switch item only appears when the
@@ -149,6 +189,7 @@ type AppSidebarProps = {
   settingsQueryParam?: string;
   iconSet?: "lucide" | "tabler";
   collapsible?: boolean;
+  storageKey?: string;
 };
 
 function isActive(pathname: string, href: string) {
@@ -171,7 +212,7 @@ export function AppSidebar({
   navItems,
   userName,
   userRole,
-  avatarUrl,
+  userAvatarUrl = null,
   showAccountLinks = true,
   profileHref: accountProfileHref,
   settingsHref,
@@ -180,9 +221,19 @@ export function AppSidebar({
   collapsible = false,
   userRoles = [],
   activePortal,
+  storageKey,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const resolvedStorageKey = resolveStorageKey(storageKey, activePortal);
+  const subscribe = useCallback(
+    (onChange: () => void) => subscribeToSidebarState(resolvedStorageKey, onChange),
+    [resolvedStorageKey],
+  );
+  const getSnapshot = useCallback(
+    () => getStoredSidebarState(resolvedStorageKey),
+    [resolvedStorageKey],
+  );
   const { resolvedTheme, setTheme } = useTheme();
   const themeMounted = useSyncExternalStore(
     subscribeThemeMounted,
@@ -195,15 +246,26 @@ export function AppSidebar({
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
   const savedCollapsed = useSyncExternalStore(
-    subscribeToSidebarState,
-    getStoredSidebarState,
+    subscribe,
+    getSnapshot,
     getInitialSidebarState,
   );
   const collapsed = collapsible && savedCollapsed;
+  const toggleCollapsed = useCallback(
+    () => toggleStoredSidebarState(resolvedStorageKey, collapsed),
+    [resolvedStorageKey, collapsed],
+  );
+  const sidebarLabel =
+    activePortal === "tenant"
+      ? "Tenant sidebar"
+      : activePortal === "landlord"
+        ? "Landlord sidebar"
+        : collapsible
+          ? "Admin sidebar"
+          : "Portal sidebar";
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
-  const avatarSrc = avatarUrl?.trim() || undefined;
   const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
     ? "/landlord/profile"
     : "/tenant/profile");
@@ -220,10 +282,10 @@ export function AppSidebar({
 
   return (
     <aside
-      aria-label={collapsible ? "Admin sidebar" : "Portal sidebar"}
+      aria-label={sidebarLabel}
       className={`hidden md:flex shrink-0 flex-col bg-sidebar border-r border-sidebar-border min-h-screen sticky top-0 h-screen shadow-sm text-sidebar-foreground ${collapsible ? "font-nunito" : ""} ${collapsed ? "w-16" : "w-64"}`}
     >
-      {/* In the collapsed admin rail, the logo doubles as the expand control. */}
+      {/* In the collapsed rail, the logo doubles as the expand control. */}
       <div
         className={`flex border-b border-sidebar-border bg-sidebar ${collapsed ? "justify-center px-2 py-3" : "items-center justify-between gap-2 px-5 py-5"}`}
       >
@@ -232,11 +294,11 @@ export function AppSidebar({
             type="button"
             aria-label="Expand sidebar"
             aria-expanded={false}
-            onClick={() => toggleStoredSidebarState(collapsed)}
+            onClick={toggleCollapsed}
             className="group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Image
-              src="/logo/logo-white.svg"
+              src={isDark ? "/logo/logo.svg" : "/logo/logo-white.svg"}
               alt=""
               width={32}
               height={32}
@@ -274,7 +336,7 @@ export function AppSidebar({
             aria-label="Collapse sidebar"
             aria-expanded={true}
             className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-            onClick={() => toggleStoredSidebarState(collapsed)}
+            onClick={toggleCollapsed}
           >
             <IconLayoutSidebarLeftCollapse
               size={28}
@@ -330,14 +392,14 @@ export function AppSidebar({
             aria-label={collapsed ? `${displayName} account menu` : undefined}
             className={`w-full flex items-center h-auto hover:bg-sidebar-accent text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
-            <Avatar size="sm" className="shrink-0 bg-primary text-white">
-              {avatarSrc ? (
-                <Avatar.Image src={avatarSrc} alt={`${displayName}'s profile photo`} />
-              ) : null}
-              <Avatar.Fallback className="bg-primary text-white">
-                {getInitials(displayName)}
-              </Avatar.Fallback>
-            </Avatar>
+            <UserAvatar
+              src={userAvatarUrl}
+              initials={getInitials(displayName)}
+              alt={`${displayName}'s profile photo`}
+              size="sm"
+              className="shrink-0 bg-primary text-white"
+              fallbackClassName="bg-primary text-white"
+            />
             {!collapsed ? (
               <span className="flex flex-col text-left flex-1 min-w-0">
                 <span className="text-sm font-medium leading-none truncate text-sidebar-foreground">
@@ -465,22 +527,28 @@ export function AppSidebar({
 export function MobileSidebarNavigation({
   navItems,
   iconSet = "lucide",
+  navLabel = "Admin navigation",
+  menuLabel = "Admin pages",
+  buttonLabel = "Open admin navigation",
 }: {
   navItems: NavItem[];
   iconSet?: "lucide" | "tabler";
+  navLabel?: string;
+  menuLabel?: string;
+  buttonLabel?: string;
 }) {
   const pathname = usePathname();
 
   return (
     <nav
-      aria-label="Admin navigation"
+      aria-label={navLabel}
       className="fixed bottom-4 left-4 z-40 md:hidden"
     >
       <Dropdown>
         <Button
           variant="primary"
           className="rounded-full shadow-sm"
-          aria-label="Open admin navigation"
+          aria-label={buttonLabel}
         >
           {iconSet === "tabler" ? (
             <IconMenu2 size={18} aria-hidden="true" />
@@ -490,7 +558,7 @@ export function MobileSidebarNavigation({
           Menu
         </Button>
         <Dropdown.Popover placement="top start">
-          <Dropdown.Menu aria-label="Admin pages">
+          <Dropdown.Menu aria-label={menuLabel}>
             {navItems.map(({ href, label, icon }) => {
               const Icon =
                 iconSet === "tabler"

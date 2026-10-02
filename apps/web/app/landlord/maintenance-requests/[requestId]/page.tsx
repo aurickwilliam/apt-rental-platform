@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Avatar, Button, Card, Chip, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
 import { ArrowLeft, Hammer, MapPin, Phone } from "lucide-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
@@ -10,6 +10,7 @@ import {
   getNextStatus,
   useLandlordMaintenanceRequests,
 } from "@/hooks/use-landlord-maintenance-requests";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import {
   MAINTENANCE_URGENCY_STYLE,
   maintenanceStatusChipColor,
@@ -150,11 +151,14 @@ export default function LandlordMaintenanceDetailPage() {
         <div>
           <SectionTitle>Property & Tenant</SectionTitle>
           <div className="mt-2 flex items-start gap-3">
-            <Avatar size="lg" className="shrink-0">
-              <span className="text-sm font-nunito font-semibold">
-                {getInitials(request.tenant_name)}
-              </span>
-            </Avatar>
+            <UserAvatar
+              src={request.tenant_avatar_url}
+              initials={getInitials(request.tenant_name)}
+              alt={request.tenant_name}
+              size="lg"
+              className="shrink-0"
+              fallbackClassName="text-sm font-nunito font-semibold"
+            />
             <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
               <DetailField label="Apartment" value={request.apartment_name} />
               <DetailField label="Tenant" value={request.tenant_name} />

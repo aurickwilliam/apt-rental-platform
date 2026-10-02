@@ -1,13 +1,19 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import AdminSettingsModal from "./profile/AdminSettingsModal";
+import SettingsModal from "./SettingsModal";
 
-export default function AdminSettingsOverlay() {
+export const SETTINGS_QUERY_VALUE = "open";
+
+export default function SettingsOverlay({
+  iconSet = "lucide",
+}: {
+  iconSet?: "lucide" | "tabler";
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const open = searchParams.get("settings") === "account";
+  const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
 
   if (!open) return null;
 
@@ -20,5 +26,5 @@ export default function AdminSettingsOverlay() {
     );
   };
 
-  return <AdminSettingsModal open onClose={close} />;
+  return <SettingsModal open onClose={close} iconSet={iconSet} />;
 }

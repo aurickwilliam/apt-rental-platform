@@ -1,4 +1,4 @@
-import { Avatar } from "@heroui/react";
+import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 import { getInitials, type AdminUser } from "../lib/user-display";
 
 interface UserAvatarProps {
@@ -8,11 +8,13 @@ interface UserAvatarProps {
 
 export default function UserAvatar({ user, name }: UserAvatarProps) {
   return (
-    <Avatar size="sm" className="shrink-0 bg-primary/10 text-primary">
-      {user.avatar_url ? <Avatar.Image src={user.avatar_url} alt="" /> : null}
-      <Avatar.Fallback className="bg-primary/10 text-primary">
-        {getInitials(name)}
-      </Avatar.Fallback>
-    </Avatar>
+    <SharedUserAvatar
+      src={user.avatar_url}
+      initials={getInitials(name)}
+      alt={name}
+      size="sm"
+      className="shrink-0 bg-primary/10 text-primary"
+      fallbackClassName="bg-primary/10 text-primary"
+    />
   );
 }

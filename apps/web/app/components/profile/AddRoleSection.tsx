@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button, Spinner } from "@heroui/react";
+import { IconKey } from "@tabler/icons-react";
 
 import { addRole } from "@/app/(auth)/actions/add-role";
 
@@ -24,7 +25,10 @@ export default function AddRoleSection({ currentRoles, targetRole }: Props) {
       <input type="hidden" name="role" value={targetRole} />
 
       <div>
-        <h2 className="text-lg font-semibold">Account roles</h2>
+        <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <IconKey size={20} className="shrink-0 text-primary" aria-hidden="true" />
+          Account roles
+        </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Your account currently has{" "}
           {currentRoles.length > 0 ? currentRoles.join(" and ") : "no"} access.
@@ -45,6 +49,7 @@ export default function AddRoleSection({ currentRoles, targetRole }: Props) {
           type="submit"
           variant="primary"
           isDisabled={isPending}
+          className="w-full sm:w-auto"
         >
           {isPending ? (
             <>

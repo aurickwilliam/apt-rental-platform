@@ -1,25 +1,15 @@
-import { AppSidebar } from "../components/layout/AppSidebar";
-import { AppTopBar } from "../components/layout/AppTopBar";
+import { Suspense } from "react";
+import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
+import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
   { href: "/tenant/browse", label: "Browse", icon: "Search" },
-  { href: "/tenant/my-rental", label: "My Rental", icon: "House" },
-  { href: "/tenant/applications", label: "Applications", icon: "FileText" },
+  { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
-  { href: "/tenant/maintenance", label: "Maintenance", icon: "Wrench" },
+  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
 ] as const;
-
-const TENANT_TITLES: Record<string, string> = {
-  "/tenant/browse": "Browse",
-  "/tenant/my-rental": "My Rental",
-  "/tenant/applications": "Applications",
-  "/tenant/favorites": "Favorites",
-  "/tenant/maintenance": "Maintenance",
-  "/tenant/messages": "Messages",
-  "/tenant/profile": "Profile",
-};
 
 export default async function TenantLayout({
   children,
@@ -29,7 +19,7 @@ export default async function TenantLayout({
   let userName = "Tenant";
   const userRole = "Tenant";
   let userRoles: string[] = ["tenant"];
-  let avatarUrl: string | null = null;
+  let userAvatarUrl: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -39,26 +29,46 @@ export default async function TenantLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, avatar_url, roles")
+        .select("first_name, last_name, roles, avatar_url")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
       else if (user.email) userName = user.email;
-      avatarUrl = profile?.avatar_url ?? user.user_metadata.avatar_url ?? null;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
+      userAvatarUrl = profile?.avatar_url ?? null;
     }
   } catch {
     // fallback to defaults — layout remains server-renderable
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar navItems={[...TENANT_NAV]} userName={userName} userRole={userRole} avatarUrl={avatarUrl} userRoles={userRoles} activePortal="tenant" />
-      <div className="flex flex-1 flex-col min-w-0">
-        <AppTopBar titleMap={TENANT_TITLES} />
-        <main className="flex flex-1 min-h-0 flex-col w-full overflow-hidden bg-background">{children}</main>
+    <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
+      <AppSidebar
+        navItems={[...TENANT_NAV]}
+        userName={userName}
+        userRole={userRole}
+        userAvatarUrl={userAvatarUrl}
+        userRoles={userRoles}
+        activePortal="tenant"
+        profileHref="/tenant/profile"
+        settingsQueryParam="open"
+        iconSet="tabler"
+        collapsible
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
+      <MobileSidebarNavigation
+        navItems={[...TENANT_NAV, { href: "/tenant/profile", label: "Profile", icon: "User" }]}
+        iconSet="tabler"
+        navLabel="Tenant navigation"
+        menuLabel="Tenant pages"
+        buttonLabel="Open tenant navigation"
+      />
+      <Suspense fallback={null}>
+        <SettingsOverlay iconSet="tabler" />
+      </Suspense>
     </div>
   );
 }

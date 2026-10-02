@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react";
 
 import { createClient } from "@repo/supabase/server";
 
-import ProfileAvatar from "@/app/components/profile/ProfileAvatar";
 import ProfileForm from "@/app/components/profile/ProfileForm";
 import type { ProfileInitial } from "@/app/components/profile/ProfileForm";
 import AddRoleSection from "@/app/components/profile/AddRoleSection";
+import ProfileHeader from "@/app/components/profile/ProfileHeader";
 
 function getInitials(firstName: string | null, lastName: string | null, email: string | null) {
   const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
@@ -33,7 +33,7 @@ export default async function LandlordProfilePage() {
   const { data: profileData, error } = await supabase
     .from("users")
     .select(
-      "email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url"
+      "email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url, background_url"
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -41,11 +41,12 @@ export default async function LandlordProfilePage() {
     roles: string[];
     account_status: string;
     avatar_url: string | null;
+    background_url: string | null;
   }) | null;
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
+      <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-4">
         <Card className="border border-danger-200 bg-card text-card-foreground p-6 rounded-2xl">
           <h1 className="text-xl font-bold">Profile</h1>
           <p className="text-sm text-danger mt-2">
@@ -64,33 +65,28 @@ export default async function LandlordProfilePage() {
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Landlord";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-4">
+      <ProfileHeader
+        authUserId={user.id}
+        displayName={displayName}
+        initials={getInitials(profile.first_name, profile.last_name, profile.email)}
+        email={profile.email}
+        role="landlord"
+        accountStatus={profile.account_status}
+        avatarUrl={profile.avatar_url}
+        backgroundUrl={profile.background_url}
+      />
+
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-        <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-          <ProfileAvatar
-            authUserId={user.id}
-            initialUrl={profile.avatar_url}
-            initials={getInitials(profile.first_name, profile.last_name, profile.email)}
-            displayName={displayName}
-          />
-          <div className="flex flex-col items-center gap-1.5 min-w-0 sm:items-start">
-            <h1 className="text-2xl font-bold">{displayName}</h1>
-            <Chip size="sm" variant="soft">
-              Landlord
-            </Chip>
-            {profile.email ? (
-              <p className="text-sm text-muted-foreground truncate max-w-full">{profile.email}</p>
-            ) : null}
-          </div>
-        </div>
+        <Card.Content className="p-0">
+          <ProfileForm initial={profile} />
+        </Card.Content>
       </Card>
 
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-        <ProfileForm initial={profile} />
-      </Card>
-
-      <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-        <AddRoleSection currentRoles={profile.roles ?? []} targetRole="tenant" />
+        <Card.Content className="p-0">
+          <AddRoleSection currentRoles={profile.roles ?? []} targetRole="tenant" />
+        </Card.Content>
       </Card>
     </div>
   );

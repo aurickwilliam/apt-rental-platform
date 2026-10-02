@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { Avatar, Dropdown, Button, Label } from "@heroui/react";
+import { Dropdown, Button, Label } from "@heroui/react";
 import { Menu, X } from "lucide-react";
 
 import ThemeToggle from "./ThemeToggle";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 const NAV_LINKS = [
@@ -30,7 +32,16 @@ export default function AppNavbar() {
   const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, profile, loading } = useUser();
+
+  const openSettings = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("settings", SETTINGS_QUERY_VALUE);
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  };
 
   const getDashboardHref = () => {
     if (profile?.roles.includes("admin")) return "/admin/dashboard";
@@ -57,7 +68,9 @@ export default function AppNavbar() {
   const firstName = user?.user_metadata?.first_name ?? "";
   const lastName  = user?.user_metadata?.last_name  ?? "";
   const displayName = firstName ? `${firstName} ${lastName}`.trim() : (user?.email ?? "");
-  const avatarSrc = user?.user_metadata?.avatar_url?.trim() || undefined;
+  // Prefer the canonical users.avatar_url (synced on upload) over the
+  // stale auth-metadata copy.
+  const avatarSrc = profile?.avatar_url?.trim() || user?.user_metadata?.avatar_url?.trim() || undefined;
 
   return (
     <div className="sticky top-0 z-40 w-full border-b border-divider bg-surface/70 backdrop-blur-md backdrop-saturate-150">
@@ -112,12 +125,14 @@ export default function AppNavbar() {
                   variant="ghost"
                   className="flex items-center gap-2 h-auto px-2 py-1"
                 >
-                  <Avatar size="sm" className="shrink-0">
-                    {avatarSrc && <Avatar.Image src={avatarSrc} alt={displayName} />}
-                    <Avatar.Fallback className="bg-primary text-white font-medium">
-                      {getInitials(displayName)}
-                    </Avatar.Fallback>
-                  </Avatar>
+                  <UserAvatar
+                    src={avatarSrc}
+                    initials={getInitials(displayName)}
+                    alt={displayName}
+                    size="sm"
+                    className="shrink-0"
+                    fallbackClassName="bg-primary text-white font-medium"
+                  />
                   <span className="text-sm font-medium">{displayName}</span>
                 </Button>
 
@@ -126,7 +141,7 @@ export default function AppNavbar() {
                     onAction={(key) => {
                       if (key === "profile")   window.location.href = getProfileHref();
                       if (key === "dashboard") window.location.href = getDashboardHref();
-                      if (key === "settings")  window.location.href = "/settings";
+                      if (key === "settings")  openSettings();
                       if (key === "logout")    signOut();
                     }}
                   >
@@ -190,7 +205,13 @@ export default function AppNavbar() {
             <>
               <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
               <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-              <Link href="/settings"  className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Settings</Link>
+              <button
+                type="button"
+                className="text-foreground font-medium text-left"
+                onClick={() => { openSettings(); setIsMenuOpen(false); }}
+              >
+                Settings
+              </button>
               <button
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
                 className="text-danger font-medium text-left"

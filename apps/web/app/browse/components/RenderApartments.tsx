@@ -97,7 +97,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
               onFavoritePress={() => {
                 void handleFavoriteToggle(apt.id);
               }}
-              onPress={() => router.push(`/browse/${apt.id}`)}
+              onPress={() => router.push(`${basePath}/${apt.id}`)}
             />
           ))}
         </div>
