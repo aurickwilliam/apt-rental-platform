@@ -180,10 +180,11 @@ type AppSidebarProps = {
   userAvatarUrl?: string | null;
   showAccountLinks?: boolean;
   // Multi-role switching: all roles the account holds + which portal
-  // this sidebar belongs to. The switch item only appears when the
-  // account holds the other portal's role.
+  // this sidebar belongs to. Switch entries only appear for portals whose
+  // role the account actually holds — the held role is what lets the
+  // middleware admit that portal, so no extra grant is needed.
   userRoles?: string[];
-  activePortal?: "tenant" | "landlord";
+  activePortal?: "tenant" | "landlord" | "admin";
   profileHref?: string;
   settingsHref?: string;
   settingsQueryParam?: string;
@@ -270,15 +271,39 @@ export function AppSidebar({
     ? "/landlord/profile"
     : "/tenant/profile");
 
-  // One-click role switch: offered only when the account holds the other
-  // portal's role. Navigating cross-portal is the context switch — no
-  // re-authentication needed.
-  const switchTarget =
-    activePortal === "tenant" && userRoles.includes("landlord")
-      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
-      : activePortal === "landlord" && userRoles.includes("tenant")
+  // One-click portal switch: offered only for portals whose role the
+  // account actually holds. Navigating cross-portal is the context switch —
+  // no re-authentication and no new role grant, since the held role already
+  // satisfies the route guards. Dual-role tenant/landlord accounts get one
+  // entry for the other portal; admins (who may hold either consumer role,
+  // both, or neither) get an entry per held consumer portal, and any
+  // consumer portal gets a way back to /admin.
+  const switchTargets: { href: string; label: string }[] = (() => {
+    if (!activePortal) return [];
+
+    if (activePortal === "admin") {
+      return [
+        userRoles.includes("landlord")
+          ? { href: "/landlord/dashboard", label: "View as Landlord" }
+          : null,
+        userRoles.includes("tenant")
+          ? { href: "/tenant/my-rental", label: "View as Tenant" }
+          : null,
+      ].filter((item): item is { href: string; label: string } => item !== null);
+    }
+
+    return [
+      userRoles.includes("admin")
+        ? { href: "/admin/dashboard", label: "Back to Admin view" }
+        : null,
+      activePortal === "tenant" && userRoles.includes("landlord")
+        ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
+        : null,
+      activePortal === "landlord" && userRoles.includes("tenant")
         ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
-        : null;
+        : null,
+    ].filter((item): item is { href: string; label: string } => item !== null);
+  })();
 
   return (
     <aside
@@ -441,7 +466,8 @@ export function AppSidebar({
                     window.location.href = settingsHref ?? "/settings";
                   }
                 }
-                if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
+                const target = switchTargets.find((item) => `switch:${item.href}` === key);
+                if (target) window.location.href = target.href;
                 if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
@@ -457,18 +483,22 @@ export function AppSidebar({
                     Profile
                   </Label>
                 </Dropdown.Item>
-                {switchTarget ? (
-                  <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
+                {switchTargets.map((target) => (
+                  <Dropdown.Item
+                    key={target.href}
+                    id={`switch:${target.href}`}
+                    textValue={target.label}
+                  >
                     <Label className="flex items-center gap-2">
                       {iconSet === "tabler" ? (
                         <IconArrowsExchange size={18} aria-hidden="true" />
                       ) : (
                         <ArrowLeftRight size={18} aria-hidden="true" />
                       )}
-                      {switchTarget.label}
+                      {target.label}
                     </Label>
                   </Dropdown.Item>
-                ) : null}
+                ))}
                 <Dropdown.Item id="theme" textValue="Dark Mode">
                   <Label className="flex w-full items-center gap-2">
                     {iconSet === "tabler" ? (

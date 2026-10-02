@@ -30,6 +30,8 @@ export default async function AdminLayout({
         userName={userName}
         userRole="Administrator"
         userAvatarUrl={profile.avatar_url}
+        userRoles={profile.roles}
+        activePortal="admin"
         profileHref="/admin/profile"
         settingsQueryParam="open"
         iconSet="tabler"
