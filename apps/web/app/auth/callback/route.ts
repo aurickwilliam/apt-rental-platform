@@ -9,7 +9,6 @@ interface UserRolesProfile {
   account_status: string;
 }
 
-<<<<<<< HEAD
 function getAppOrigin(request: Request): string {
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   if (forwardedHost) {
@@ -34,20 +33,13 @@ function getSafeNext(searchParams: URLSearchParams): string {
   // Internal paths only: never protocol-relative or absolute URLs.
   if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) return "/";
   return raw;
-=======
-function safeNextPath(value: string | null): string {
-  if (!value) return "/";
-  // Internal paths only: never protocol-relative or absolute URLs.
-  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) return "/";
-  return value;
->>>>>>> 26e2d3817619d9715fd28e81325ccc9156fb28fa
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const appOrigin = getAppOrigin(request);
   const code = searchParams.get("code");
-  const next = safeNextPath(searchParams.get("next"));
+  const next = getSafeNext(searchParams);
   const requestedRole = searchParams.get("role");
 
   const role =
