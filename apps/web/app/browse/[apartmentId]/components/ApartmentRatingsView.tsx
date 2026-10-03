@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
-import { Button, Card, Chip, Dropdown, Label, Separator, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, Dropdown, Label, Separator, toast, useOverlayState } from "@heroui/react";
 import { IconCalendar, IconChevronDown, IconHome, IconMapPin, IconMessage, IconUser } from "@tabler/icons-react";
 
 import BackBtn from "./BackBtn";
@@ -61,6 +61,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
     stayLocked,
     checkingEligibility,
     reviewableTenancyId,
+    lockedTenancyId,
     existingReview,
     refresh,
   } = useApartmentReviews(apartmentId);
@@ -92,7 +93,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
 
   const [stay, setStay] = useState<{ id: string; label: string } | null>(null);
 
-  const viewerTenancyId = reviewableTenancyId ?? existingReview?.tenancyId ?? null;
+  const viewerTenancyId = reviewableTenancyId ?? existingReview?.tenancyId ?? lockedTenancyId ?? null;
 
   useEffect(() => {
     if (!viewerTenancyId) return;
@@ -121,6 +122,21 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
   }, [viewerTenancyId]);
 
   const stayLabel = stay && stay.id === viewerTenancyId ? stay.label : null;
+
+  // Once-only unlock notice: fires the first time a tenant lands here eligible
+  // to review (3-month stay reached or tenancy ended). Keyed by tenancy so it
+  // never repeats and never leaks across accounts on a shared device.
+  useEffect(() => {
+    if (checkingEligibility || !canReview || !reviewableTenancyId) return;
+    const key = `review-unlock-seen:${reviewableTenancyId}`;
+    try {
+      if (localStorage.getItem(key)) return;
+      toast("You can now review this apartment — share your experience!");
+      localStorage.setItem(key, "1");
+    } catch {
+      // Storage unavailable — stay silent rather than nag on every visit.
+    }
+  }, [checkingEligibility, canReview, reviewableTenancyId]);
 
   const aptStatusStyle = statusChipStyle(aptHeader?.status ?? "");
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { getTenantContext } from "@/service/favoritesService";
 import {
-  fetchHasUnreviewedTenancy,
+  fetchUnreviewedTenancyId,
   fetchReviewEligibility,
   fetchTenantApartmentReview,
   type TenantApartmentReview,
@@ -14,7 +14,7 @@ export function useReviewEligibility(apartmentId?: string) {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [reviewableTenancyId, setReviewableTenancyId] = useState<string | null>(null);
   const [existingReview, setExistingReview] = useState<TenantApartmentReview | null>(null);
-  const [hasUnreviewedTenancy, setHasUnreviewedTenancy] = useState(false);
+  const [lockedTenancyId, setLockedTenancyId] = useState<string | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -37,25 +37,26 @@ export function useReviewEligibility(apartmentId?: string) {
         if (!context.tenantId) {
           setReviewableTenancyId(null);
           setExistingReview(null);
-          setHasUnreviewedTenancy(false);
+          setLockedTenancyId(null);
           return;
         }
 
-        const [tenancyId, review, unreviewed] = await Promise.all([
+        const [tenancyId, review, unreviewedId] = await Promise.all([
           fetchReviewEligibility(apartmentId, context.tenantId),
           fetchTenantApartmentReview(apartmentId, context.tenantId),
-          fetchHasUnreviewedTenancy(apartmentId, context.tenantId),
+          fetchUnreviewedTenancyId(apartmentId, context.tenantId),
         ]);
         if (cancelled) return;
 
         setReviewableTenancyId(tenancyId);
         setExistingReview(review);
-        setHasUnreviewedTenancy(unreviewed);
+        setLockedTenancyId(unreviewedId);
       } catch (err) {
         console.error("useReviewEligibility:", err);
         if (!cancelled) {
           setReviewableTenancyId(null);
           setExistingReview(null);
+          setLockedTenancyId(null);
         }
       } finally {
         if (!cancelled) setCheckingEligibility(false);
@@ -76,9 +77,10 @@ export function useReviewEligibility(apartmentId?: string) {
     canReview: existingReview === null && reviewableTenancyId !== null,
     canEdit: existingReview !== null,
     // Tenant has an unreviewed tenancy but hasn't stayed long enough yet.
-    stayLocked: existingReview === null && reviewableTenancyId === null && hasUnreviewedTenancy,
+    stayLocked: existingReview === null && reviewableTenancyId === null && lockedTenancyId !== null,
     checkingEligibility,
     reviewableTenancyId,
+    lockedTenancyId,
     existingReview,
     refreshEligibility,
   };

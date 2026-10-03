@@ -179,10 +179,10 @@ export async function fetchReviewEligibility(
   return unreviewed?.id ?? null;
 }
 
-export async function fetchHasUnreviewedTenancy(
+export async function fetchUnreviewedTenancyId(
   apartmentId: string,
   tenantId: string,
-): Promise<boolean> {
+): Promise<string | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("tenancies")
@@ -193,9 +193,11 @@ export async function fetchHasUnreviewedTenancy(
 
   if (error) throw error;
 
-  return ((data ?? []) as unknown as { reviews: unknown }[]).some(
+  const unreviewed = ((data ?? []) as unknown as { id: string; reviews: unknown }[]).find(
     (tenancy) => !tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0),
   );
+
+  return unreviewed?.id ?? null;
 }
 
 export async function fetchReviewTenancy(tenancyId: string): Promise<TenancyLease> {
