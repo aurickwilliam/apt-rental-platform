@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { Card } from "@heroui/react";
 
+import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import StarRating from "@/app/components/display/StarRating";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
@@ -34,6 +35,7 @@ export default function ReviewCard({
   className,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
   const isLongReview = reviewText.length > REVIEW_CHAR_LIMIT;
   const displayedReview =
@@ -43,8 +45,13 @@ export default function ReviewCard({
 
   const visibleThumbnails = images?.slice(0, MAX_VISIBLE_THUMBNAILS) ?? [];
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0;
+  const galleryPhotos = (images ?? []).map((url) => ({ url }));
+
+  const openGalleryAt = (index: number) => setGalleryIndex(index);
+  const closeGallery = () => setGalleryIndex(null);
 
   return (
+    <>
     <Card className={["gap-0 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
       <Card.Header className="flex flex-row items-center gap-3">
         <UserAvatar
@@ -96,9 +103,14 @@ export default function ReviewCard({
               const showOverlay = isLastVisible && remainingCount > 0;
 
               return (
-                <div
+                <button
                   key={src + index}
-                  className="relative size-16 overflow-hidden rounded-xl"
+                  type="button"
+                  onClick={() =>
+                    openGalleryAt(showOverlay ? MAX_VISIBLE_THUMBNAILS : index)
+                  }
+                  aria-label={`View review photo ${showOverlay ? MAX_VISIBLE_THUMBNAILS + 1 : index + 1}`}
+                  className="relative size-16 cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <Image
                     src={src}
@@ -115,7 +127,7 @@ export default function ReviewCard({
                       </span>
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -130,5 +142,19 @@ export default function ReviewCard({
         </Card.Footer>
       )}
     </Card>
+
+      {galleryPhotos.length > 0 && (
+        <PhotoGalleryModal
+          name={reviewerName}
+          photos={galleryPhotos}
+          isOpen={galleryIndex !== null}
+          onOpenChange={(open) => {
+            if (!open) closeGallery();
+          }}
+          activeIndex={galleryIndex ?? 0}
+          onActiveIndexChange={setGalleryIndex}
+        />
+      )}
+    </>
   );
 }
