@@ -392,7 +392,7 @@ export function RateApartmentForm({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Star size={22} className="text-secondary" fill="currentColor" />
+                    <Star size={22} className="text-rating" fill="currentColor" />
                     <span className="text-base font-medium">
                       {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
                     </span>
@@ -426,7 +426,7 @@ export function RateApartmentForm({
           <div className="flex flex-col items-center">
             <Label className="font-nunito text-lg font-semibold">Overall Rating</Label>
 
-            <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-secondary">
+            <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-rating">
               {rating.toFixed(1)}
             </p>
 

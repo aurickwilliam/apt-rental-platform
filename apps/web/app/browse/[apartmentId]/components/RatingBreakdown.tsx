@@ -26,7 +26,7 @@ export default function RatingBreakdown({
   return (
     <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3">
       <div className="w-full flex flex-col items-center justify-center sm:w-1/3">
-        <h3 className="font-nunito text-5xl font-bold text-secondary sm:text-6xl">
+        <h3 className="font-nunito text-5xl font-bold text-rating sm:text-6xl">
           {overallRate}
         </h3>
 
@@ -38,13 +38,13 @@ export default function RatingBreakdown({
             return (
               <span key={i} className="relative inline-flex">
                 {/* Empty star (base) */}
-                <Star size={22} className="text-secondary" fill="transparent" />
+                <Star size={22} className="text-rating" fill="transparent" />
                 {/* Filled overlay — full or half */}
                 {(filled || half) && (
                   <span
                     className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
                   >
-                    <Star size={22} className="text-secondary" fill="currentColor" />
+                    <Star size={22} className="text-rating" fill="currentColor" />
                   </span>
                 )}
               </span>
@@ -74,7 +74,7 @@ export default function RatingBreakdown({
           <div key={label} className="flex gap-2 items-center">
             <div className="flex items-center gap-1 w-8 shrink-0">
               <span className="text-sm font-medium text-card-foreground">{label}</span>
-              <Star size={14} className="text-secondary" fill="currentColor" />
+              <Star size={14} className="text-rating" fill="currentColor" />
             </div>
 
             <Meter
@@ -84,7 +84,7 @@ export default function RatingBreakdown({
               color="accent"
             >
               <Meter.Track>
-                <Meter.Fill style={{ backgroundColor: "var(--secondary)" }} />
+                <Meter.Fill style={{ backgroundColor: "var(--color-rating)" }} />
               </Meter.Track>
             </Meter>
 

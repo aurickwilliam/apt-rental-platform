@@ -35,7 +35,7 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
               <span
                 className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
               >
-                <Star size={STAR_SIZE} className="text-secondary" fill="currentColor" strokeWidth={1.25} />
+                <Star size={STAR_SIZE} className="text-rating" fill="currentColor" strokeWidth={1.25} />
               </span>
             )}
           </button>
