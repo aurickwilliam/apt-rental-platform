@@ -47,6 +47,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
     setSortBy,
     canReview,
     canEdit,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId,
     existingReview,
@@ -58,6 +59,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
 
   const showReviewButton = !checkingEligibility && canReview;
   const showEditButton = !checkingEligibility && canEdit;
+  const showLockedHint = !checkingEligibility && stayLocked;
 
   const handleWriteReview = () => {
     setModalMode({ tenancyId: reviewableTenancyId, reviewId: null });
@@ -119,6 +121,12 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
             <Button size="sm" onPress={handleEditReview}>
               Edit Review
             </Button>
+          )}
+
+          {showLockedHint && (
+            <p className="text-xs text-muted-foreground">
+              Reviews unlock after 3 months of stay.
+            </p>
           )}
 
           {totalReviews > 0 && (

@@ -27,7 +27,7 @@ export function useApartmentReviews(apartmentId?: string) {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { canReview, canEdit, checkingEligibility, reviewableTenancyId, existingReview, refreshEligibility } =
+  const { canReview, canEdit, stayLocked, checkingEligibility, reviewableTenancyId, existingReview, refreshEligibility } =
     useReviewEligibility(apartmentId);
 
   const refresh = useCallback(() => {
@@ -120,6 +120,7 @@ export function useApartmentReviews(apartmentId?: string) {
     setSortBy,
     canReview,
     canEdit,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId,
     existingReview,

@@ -150,18 +150,51 @@ export async function fetchReviewEligibility(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("tenancies")
-    .select("id, lease_end, reviews(id)")
+    .select("id, lease_start, lease_end, reviews(id)")
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
     .order("lease_end", { ascending: false, nullsFirst: false });
 
   if (error) throw error;
 
-  const unreviewed = (data ?? []).find(
-    (tenancy) => !tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0),
-  );
+  // Stay rule (mirrors the enforce_review_stay_eligibility trigger): eligible
+  // only after 3 months of stay or once the tenancy has ended.
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const unreviewed = (data ?? []).find((tenancy) => {
+    const hasReview = !!tenancy.reviews && !(Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0);
+    if (hasReview) return false;
+    const leaseStart = (tenancy.lease_start as string | null) ?? null;
+    const leaseEnd = (tenancy.lease_end as string | null) ?? null;
+    if (!leaseStart) return false;
+    const stayedLongEnough = leaseStart.slice(0, 10) <= cutoff;
+    const ended = leaseEnd !== null && leaseEnd.slice(0, 10) <= today;
+    return stayedLongEnough || ended;
+  });
 
   return unreviewed?.id ?? null;
+}
+
+export async function fetchHasUnreviewedTenancy(
+  apartmentId: string,
+  tenantId: string,
+): Promise<boolean> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("tenancies")
+    .select("id, reviews(id)")
+    .eq("apartment_id", apartmentId)
+    .eq("tenant_id", tenantId)
+    .limit(10);
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as { reviews: unknown }[]).some(
+    (tenancy) => !tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0),
+  );
 }
 
 export async function fetchReviewTenancy(tenancyId: string): Promise<TenancyLease> {

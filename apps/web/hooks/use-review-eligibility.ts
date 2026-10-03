@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { getTenantContext } from "@/service/favoritesService";
 import {
+  fetchHasUnreviewedTenancy,
   fetchReviewEligibility,
   fetchTenantApartmentReview,
   type TenantApartmentReview,
@@ -13,6 +14,7 @@ export function useReviewEligibility(apartmentId?: string) {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [reviewableTenancyId, setReviewableTenancyId] = useState<string | null>(null);
   const [existingReview, setExistingReview] = useState<TenantApartmentReview | null>(null);
+  const [hasUnreviewedTenancy, setHasUnreviewedTenancy] = useState(false);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -35,17 +37,20 @@ export function useReviewEligibility(apartmentId?: string) {
         if (!context.tenantId) {
           setReviewableTenancyId(null);
           setExistingReview(null);
+          setHasUnreviewedTenancy(false);
           return;
         }
 
-        const [tenancyId, review] = await Promise.all([
+        const [tenancyId, review, unreviewed] = await Promise.all([
           fetchReviewEligibility(apartmentId, context.tenantId),
           fetchTenantApartmentReview(apartmentId, context.tenantId),
+          fetchHasUnreviewedTenancy(apartmentId, context.tenantId),
         ]);
         if (cancelled) return;
 
         setReviewableTenancyId(tenancyId);
         setExistingReview(review);
+        setHasUnreviewedTenancy(unreviewed);
       } catch (err) {
         console.error("useReviewEligibility:", err);
         if (!cancelled) {
@@ -70,6 +75,8 @@ export function useReviewEligibility(apartmentId?: string) {
     // when the tenant hasn't reviewed this apartment yet.
     canReview: existingReview === null && reviewableTenancyId !== null,
     canEdit: existingReview !== null,
+    // Tenant has an unreviewed tenancy but hasn't stayed long enough yet.
+    stayLocked: existingReview === null && reviewableTenancyId === null && hasUnreviewedTenancy,
     checkingEligibility,
     reviewableTenancyId,
     existingReview,
