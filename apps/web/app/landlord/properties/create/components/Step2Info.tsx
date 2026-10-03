@@ -100,16 +100,16 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
           >
             <Label>No. of Bedrooms</Label>
 
-            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+            <NumberField.Group className="flex items-center border border-border rounded-lg overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
               
-              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
+              <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11" />
               
-              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
               
-              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+              <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
               
             </NumberField.Group>
-            <FieldError className="text-xs text-red-500 mt-1">{errors.no_bedrooms}</FieldError>
+            <FieldError className="text-xs text-danger mt-1">{errors.no_bedrooms}</FieldError>
           </NumberField>
 
           <NumberField
@@ -120,12 +120,12 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             isRequired
           >
             <Label>No. of Bathrooms</Label>
-            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
-              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
-              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            <NumberField.Group className="flex items-center border border-border rounded-lg overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
+              <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
-            <FieldError className="text-xs text-red-500 mt-1">{errors.no_bathrooms}</FieldError>
+            <FieldError className="text-xs text-danger mt-1">{errors.no_bathrooms}</FieldError>
           </NumberField>
 
           <NumberField
@@ -136,12 +136,12 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             isRequired
           >
             <Label>Floor Area (sqm)</Label>
-            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
-              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
-              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            <NumberField.Group className="flex items-center border border-border rounded-lg overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
+              <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
-            <FieldError className="text-xs text-red-500 mt-1">{errors.area_sqm}</FieldError>
+            <FieldError className="text-xs text-danger mt-1">{errors.area_sqm}</FieldError>
           </NumberField>
 
           <NumberField
@@ -152,12 +152,12 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             isRequired
           >
             <Label>Max Occupants</Label>
-            <NumberField.Group className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-              <NumberField.DecrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-r border-gray-100 flex items-center justify-center min-w-11" />
-              <NumberField.Input className="w-full text-center bg-transparent py-3 text-gray-900 focus:outline-none" />
-              <NumberField.IncrementButton className="px-4 py-3 text-gray-500 hover:bg-gray-50 active:bg-gray-100 border-l border-gray-100 flex items-center justify-center min-w-11" />
+            <NumberField.Group className="flex items-center border border-border rounded-lg overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
+              <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11" />
+              <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
+              <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
-            <FieldError className="text-xs text-red-500 mt-1">{errors.max_occupants}</FieldError>
+            <FieldError className="text-xs text-danger mt-1">{errors.max_occupants}</FieldError>
           </NumberField>
 
           <Select
@@ -348,11 +348,11 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             className="flex flex-col gap-1.5 w-full"
           >
-            <Label className="text-sm font-medium text-default-700">Latitude</Label>
-            <NumberField.Group className="flex items-center w-full bg-white rounded-xl border border-grey-300 transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+            <Label className="text-sm font-medium text-foreground">Latitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 14.5995"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-default-900 outline-none placeholder:text-default-400" 
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
@@ -367,11 +367,11 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             }}
             className="flex flex-col gap-1.5 w-full"
           >
-            <Label className="text-sm font-medium text-default-700">Longitude</Label>
-            <NumberField.Group className="flex items-center w-full bg-white rounded-xl border border-grey-300 transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+            <Label className="text-sm font-medium text-foreground">Longitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 120.9842"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-default-900 outline-none placeholder:text-default-400" 
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>

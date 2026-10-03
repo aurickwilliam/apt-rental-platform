@@ -60,19 +60,21 @@ export default async function CompleteProfilePage({
   const effectiveRole = role ?? profileRole;
 
   return (
-    <div className="min-h-screen bg-card">
-      <div className="max-w-4xl mx-auto px-6 py-8">
+    // min-h-screen + fluid padding: the page grows rather than clipping
+    // when the viewport gets short (4:3, 1:1) or wide (21:9).
+    <div className="min-h-screen w-full bg-card">
+      <div className="mx-auto w-full max-w-4xl px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,4vh,2rem)]">
         {/* Header */}
-        <div className="flex flex-col gap-4 mb-8">
+        <div className="mb-[clamp(1.5rem,4vh,2rem)] flex flex-col gap-4">
           <Image src="/logo/logo.svg" alt="APT Logo" width={75} height={75} />
         </div>
 
         {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold font-noto-serif text-default-900">
+        <div className="mb-[clamp(1.5rem,4vh,2rem)]">
+          <h1 className="text-[clamp(1.5rem,4vw,1.875rem)] font-semibold font-noto-serif text-default-900">
             Complete the {effectiveRole === "landlord" ? "Landlord" : "Tenant"} Form
           </h1>
-          <p className="text-default-500 mt-1">
+          <p className="mt-1 text-default-500">
             Join us and start your apartment rental journey today!
           </p>
         </div>
