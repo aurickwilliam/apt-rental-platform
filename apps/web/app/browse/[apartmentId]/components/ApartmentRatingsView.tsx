@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 
 import { Button, Card, Chip, Dropdown, Label, Separator, useOverlayState } from "@heroui/react";
-import { CalendarDays, ChevronDown, Home, MapPin, MessageSquareText, User } from "lucide-react";
+import { IconCalendar, IconChevronDown, IconHome, IconMapPin, IconMessage, IconUser } from "@tabler/icons-react";
 
 import BackBtn from "./BackBtn";
 import RateApartmentModal from "./RateApartmentModal";
@@ -198,7 +198,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
                 {aptHeader.name}
               </h2>
               <p className="mt-1 flex items-center gap-1.5 text-base text-muted-foreground">
-                <MapPin size={16} className="shrink-0" />
+                <IconMapPin size={16} className="shrink-0" />
                 {aptAddress}
               </p>
 
@@ -206,7 +206,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
 
               <div className="flex flex-col gap-3 lg:flex-row lg:gap-0 lg:divide-x lg:divide-border">
                 <div className="flex items-start gap-2 lg:flex-1 lg:pr-4">
-                  <User size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
+                  <IconUser size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
                   <div className="flex flex-col">
                     <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
                     <span className="text-base font-medium text-card-foreground">
@@ -216,7 +216,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
                 </div>
 
                 <div className="flex items-start gap-2 lg:flex-1 lg:px-4">
-                  <Home size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
+                  <IconHome size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
                   <div className="flex flex-col">
                     <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
                     <span className="text-base font-medium text-card-foreground">
@@ -226,7 +226,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
                 </div>
 
                 <div className="flex items-start gap-2 lg:flex-1 lg:pl-4">
-                  <CalendarDays size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
+                  <IconCalendar size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
                   <div className="flex flex-col">
                     <Label className="text-sm font-medium text-muted-foreground">Duration of Stay</Label>
                     <span className="text-base font-medium text-card-foreground">
@@ -286,7 +286,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
             <Dropdown>
               <Button variant="outline" size="sm" className="h-9 rounded-full">
                 {sortBy}
-                <ChevronDown size={16} />
+                <IconChevronDown size={16} />
               </Button>
 
               <Dropdown.Popover>
@@ -312,7 +312,7 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
         <Card className="mt-5 rounded-3xl border border-border bg-card shadow-none">
           <Card.Content className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
             <span className="rounded-full bg-muted p-5">
-              <MessageSquareText size={36} className="text-muted-foreground" />
+              <IconMessage size={36} className="text-muted-foreground" />
             </span>
             <div className="space-y-1">
               <p className="font-nunito text-lg font-bold">

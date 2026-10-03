@@ -2,7 +2,7 @@
 
 import { Meter } from "@heroui/react";
 
-import { Star } from "lucide-react";
+import { IconStar, IconStarFilled } from "@tabler/icons-react";
 
 interface RatingBreakdownProps {
   overallRate: number;
@@ -38,13 +38,13 @@ export default function RatingBreakdown({
             return (
               <span key={i} className="relative inline-flex">
                 {/* Empty star (base) */}
-                <Star size={22} className="text-rating" fill="transparent" />
+                <IconStar size={22} className="text-rating" />
                 {/* Filled overlay — full or half */}
                 {(filled || half) && (
                   <span
                     className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
                   >
-                    <Star size={22} className="text-rating" fill="currentColor" />
+                    <IconStarFilled size={22} className="text-rating" />
                   </span>
                 )}
               </span>
@@ -74,7 +74,7 @@ export default function RatingBreakdown({
           <div key={label} className="flex gap-2 items-center">
             <div className="flex items-center gap-1 w-8 shrink-0">
               <span className="text-sm font-medium text-card-foreground">{label}</span>
-              <Star size={14} className="text-rating" fill="currentColor" />
+              <IconStarFilled size={14} className="text-rating" />
             </div>
 
             <Meter

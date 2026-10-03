@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 
 import { Modal } from "@heroui/react";
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 
 import { RateApartmentForm } from "./RateApartmentForm";
 
@@ -44,7 +44,7 @@ export default function RateApartmentModal({
                 aria-label="Close"
                 className="rounded-full border border-border bg-muted p-1.5 text-foreground hover:bg-muted"
               >
-                <X size={18} strokeWidth={2.5} />
+                <IconX size={18} strokeWidth={2.5} />
               </Modal.CloseTrigger>
             </Modal.Header>
             <Modal.Body>

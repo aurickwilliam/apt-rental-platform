@@ -14,7 +14,7 @@ import {
   TextField,
   toast,
 } from "@heroui/react";
-import { Star } from "lucide-react";
+import { IconStarFilled } from "@tabler/icons-react";
 
 import BackBtn from "./BackBtn";
 import ReviewPhotosInput, {
@@ -392,7 +392,7 @@ export function RateApartmentForm({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Star size={22} className="text-rating" fill="currentColor" />
+                    <IconStarFilled size={22} className="text-rating" />
                     <span className="text-base font-medium">
                       {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
                     </span>

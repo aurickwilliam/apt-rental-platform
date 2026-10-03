@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { IconStar, IconStarFilled } from "@tabler/icons-react";
 
 interface StarRatingProps {
   rating: number;
@@ -30,12 +30,12 @@ export default function StarRating({
 
         return (
           <span key={star} className="relative inline-flex">
-            <Star size={size} className="text-rating" fill="transparent" />
+            <IconStar size={size} className="text-rating" />
             {(filled || half) && (
               <span
                 className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
               >
-                <Star size={size} className="text-rating" fill="currentColor" />
+                <IconStarFilled size={size} className="text-rating" />
               </span>
             )}
           </span>
