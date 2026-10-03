@@ -1,6 +1,12 @@
+import type { Viewport } from "next";
 import { Card } from "@heroui/react";
 
 import MobileVerifyClient from "./components/MobileVerifyClient";
+
+// Phone-friendly viewport: honor the iPhone notch/Dynamic Island safe area.
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 type MobileVerifyPageProps = {
   searchParams: Promise<{ token?: string }>;
@@ -14,7 +20,7 @@ export default async function MobileVerifyPage({ searchParams }: MobileVerifyPag
 
   if (!token) {
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-8">
+      <div className="mx-auto w-full max-w-xl px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
         <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
           <Card.Content className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-nunito text-xl font-bold">Invalid verification link</h1>
@@ -29,7 +35,7 @@ export default async function MobileVerifyPage({ searchParams }: MobileVerifyPag
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl px-4 py-8">
+    <div className="mx-auto w-full max-w-xl px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
       <MobileVerifyClient token={token} />
     </div>
   );

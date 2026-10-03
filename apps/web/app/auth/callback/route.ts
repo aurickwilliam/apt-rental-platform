@@ -30,7 +30,8 @@ function getAppOrigin(request: Request): string {
 
 function getSafeNext(searchParams: URLSearchParams): string {
   const raw = searchParams.get("next") ?? "/";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  // Internal paths only: never protocol-relative or absolute URLs.
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) return "/";
   return raw;
 }
 
