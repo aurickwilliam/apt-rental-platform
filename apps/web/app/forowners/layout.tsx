@@ -1,15 +1,14 @@
 import NavbarSwitcher from "../components/layout/NavbarSwitcher";
 import Footer from "../components/layout/Footer";
-import AppNavbar from "../components/layout/AppNavbar";
 
-export default function BrowseLayout({
+export default function ForOwnersLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <AppNavbar />
+      <NavbarSwitcher />
 
       <main className=" min-h-screen">
         {children}

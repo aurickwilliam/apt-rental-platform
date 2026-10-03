@@ -17,7 +17,8 @@ function safeNextPath(value: string | null): string {
 }
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const appOrigin = getAppOrigin(request);
   const code = searchParams.get("code");
   const next = safeNextPath(searchParams.get("next"));
   const requestedRole = searchParams.get("role");
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
         if (profileError || !profile) {
           console.error("Could not load OAuth profile", profileError);
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+          return NextResponse.redirect(`${appOrigin}/sign-in?error=auth_callback_error`);
         }
         const isAdmin = profile.roles.includes("admin");
         profileRole = isAdmin ? "admin" : null;
@@ -60,14 +61,14 @@ export async function GET(request: Request) {
         // and send them to the role picker on sign-up (welcome banner).
         // set_onboarding_role runs only after they pick a role there.
         if (isInitialGoogleOnboarding && !role) {
-          return NextResponse.redirect(`${origin}/sign-up?from=google-new`);
+          return NextResponse.redirect(`${appOrigin}/sign-up?from=google-new`);
         }
 
         // Explicit role requested on an admin account: block. Roles are
         // never granted to admins.
         if (role && isAdmin) {
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${origin}/sign-up?error=role_mismatch`);
+          return NextResponse.redirect(`${appOrigin}/sign-up?error=role_mismatch`);
         }
 
         // "Add role": authenticated Google session, explicit role requested
@@ -79,16 +80,16 @@ export async function GET(request: Request) {
           if (grantError) {
             console.error("Could not grant OAuth role", grantError);
             await supabase.auth.signOut();
-            return NextResponse.redirect(`${origin}/sign-up?error=grant_failed`);
+            return NextResponse.redirect(`${appOrigin}/sign-up?error=grant_failed`);
           }
           // Defensive: the RPC requires a completed profile, so mobile is
           // present on success. Route an incomplete profile to onboarding.
           if (!profile.mobile_number) {
-            return NextResponse.redirect(`${origin}/complete-profile?role=${role}`);
+            return NextResponse.redirect(`${appOrigin}/complete-profile?role=${role}`);
           }
           selectedPortal = role;
           const granted = NextResponse.redirect(
-            `${origin}${role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental"}`,
+            `${appOrigin}${role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental"}`,
           );
           granted.cookies.set(PORTAL_COOKIE, selectedPortal, {
             path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production",
@@ -103,7 +104,7 @@ export async function GET(request: Request) {
             console.error("Could not set OAuth onboarding role", roleError);
             await supabase.auth.signOut();
             return NextResponse.redirect(
-              `${origin}/sign-in?error=auth_callback_error`,
+              `${appOrigin}/sign-in?error=auth_callback_error`,
             );
           }
           profileRole = role;
@@ -115,21 +116,16 @@ export async function GET(request: Request) {
 
         if (isInitialGoogleOnboarding) {
           return NextResponse.redirect(
-            `${origin}/complete-profile${profileRole ? `?role=${profileRole}` : ""}`,
+            `${appOrigin}/complete-profile${profileRole ? `?role=${profileRole}` : ""}`,
           );
         }
       }
 
       if (profileRole === "admin") {
-        return NextResponse.redirect(`${origin}/admin/dashboard`);
+        return NextResponse.redirect(`${appOrigin}/admin/dashboard`);
       }
 
-      const forwardedHost = request.headers.get("x-forwarded-host");
-      const isLocalEnv = process.env.NODE_ENV === "development";
-
-      const destination = isLocalEnv || !forwardedHost
-        ? `${origin}${next}`
-        : `https://${forwardedHost}${next}`;
+      const destination = `${appOrigin}${next}`;
       const response = NextResponse.redirect(destination);
       if (selectedPortal) {
         response.cookies.set(PORTAL_COOKIE, selectedPortal, {
@@ -141,5 +137,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_error`);
+  return NextResponse.redirect(`${appOrigin}/sign-in?error=auth_callback_error`);
 }
