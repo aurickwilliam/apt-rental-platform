@@ -10,25 +10,33 @@ import {
 } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
-import { isImageUri } from "../utils/fileType";
+import { isPdfDocument, isPreviewable } from "../utils/fileType";
+import PdfThumbnail from "@/components/display/PdfThumbnail";
 
 interface DocumentCardProps {
-  filePath: string;
+  filePath: string | null;
+  storagePath?: string;
   label: string;
   onPress: () => void;
   verified?: boolean;
   subtitle?: string;
+  mimeType?: string | null;
 }
 
 export default function DocumentCard({
   filePath,
+  storagePath,
   label,
   onPress,
   verified = false,
   subtitle,
+  mimeType,
 }: DocumentCardProps) {
   const { colors } = useColors();
-  const isImage = isImageUri(filePath);
+  const isImage =
+    !!filePath && isPreviewable(mimeType, storagePath ?? filePath);
+  const isPdf =
+    !!filePath && !isImage && isPdfDocument(mimeType, storagePath ?? filePath);
 
   return (
     <PressableFeedback
@@ -48,6 +56,11 @@ export default function DocumentCard({
               contentFit="cover"
               cachePolicy="disk"
               transition={150}
+            />
+          ) : isPdf ? (
+            <PdfThumbnail
+              uri={filePath}
+              style={{ width: "100%", height: "100%" }}
             />
           ) : (
             <IconFileText size={40} color={colors.gray400} />

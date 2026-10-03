@@ -31,6 +31,16 @@ jest.mock("expo-image", () => {
 
 jest.mock("react-native-image-viewing", () => () => null);
 
+jest.mock("react-native-pdf", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
+  const { View } =
+    jest.requireActual<typeof import("react-native")>("react-native");
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: "pdf-thumbnail" }),
+  };
+});
+
 jest.mock("react-native-safe-area-context", () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   return {
@@ -74,19 +84,31 @@ jest.mock("@/hooks/passport", () => ({
 }));
 
 jest.mock("@/hooks/applications", () => ({
-  useDocumentUrls: () => mockDocumentUrlsState,
+  // Resolves per requested entries like the real hook: each call site only
+  // ever sees signed URLs for the paths it asked about.
+  useDocumentUrls: (docs: { label: string; path: string | null }[]) => ({
+    resolved: mockDocumentUrlsState.resolved.filter((r) =>
+      docs.some((d) => d.path === r.path),
+    ),
+    loading: mockDocumentUrlsState.loading,
+    error: null,
+  }),
 }));
 
 jest.mock("heroui-native", () => {
   const React = jest.requireActual<typeof import("react")>("react");
-  const { View, Text } =
+  const { View, Text, TouchableOpacity } =
     jest.requireActual<typeof import("react-native")>("react-native");
 
   const Passthrough = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
 
-  const ButtonMock = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
+  const ButtonMock = (
+    props: { children?: React.ReactNode } & Pick<
+      React.ComponentProps<typeof TouchableOpacity>,
+      "accessibilityLabel" | "accessibilityRole" | "onPress" | "testID"
+    >,
+  ) => React.createElement(TouchableOpacity, props);
   const ButtonLabelMock = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(Text, null, children);
   ButtonMock.Label = ButtonLabelMock;
@@ -101,9 +123,40 @@ jest.mock("heroui-native", () => {
     React.createElement(View, { testID: "skeleton-item" });
   SkeletonGroupMock.Item = SkeletonItemMock;
 
+  const ListGroupMock = ({ children }: { children?: React.ReactNode }) =>
+    React.createElement(View, null, children);
+
+  const CardMock = ({ children }: { children?: React.ReactNode }) =>
+    React.createElement(View, null, children);
+  CardMock.Body = Passthrough;
+  function CardTitleMock({ children }: { children?: React.ReactNode }) {
+    return React.createElement(Text, null, children);
+  }
+  CardMock.Title = CardTitleMock;
+
+  const PressableFeedbackMock = ({
+    children,
+    onPress,
+  }: {
+    children?: React.ReactNode;
+    onPress?: () => void;
+  }) =>
+    React.createElement(
+      TouchableOpacity,
+      { onPress, testID: "pressable-card" },
+      children,
+    );
+  function PressableHighlightMock() {
+    return null;
+  }
+  PressableFeedbackMock.Highlight = PressableHighlightMock;
+
   return {
     Button: ButtonMock,
+    Card: CardMock,
     Chip: ChipMock,
+    ListGroup: ListGroupMock,
+    PressableFeedback: PressableFeedbackMock,
     Separator: () => null,
     Spinner: () => null,
     SkeletonGroup: SkeletonGroupMock,
@@ -135,6 +188,47 @@ const primaryDoc = {
   expires_at: null,
   created_at: "2026-10-01T00:00:00.000Z",
   updated_at: null,
+};
+
+const payslipDoc = {
+  ...primaryDoc,
+  id: "doc-2",
+  doc_type: "Payslip",
+  storage_path: "user-1/passport/payslip-1.jpg",
+  id_type: null,
+  verification_id: null,
+  is_verified: false,
+  is_primary: false,
+};
+
+const payslipResolved = {
+  label: "Payslip",
+  path: "user-1/passport/payslip-1.jpg",
+  signedUrl: "https://signed.test/payslip.jpg",
+};
+
+const pdfDoc = {
+  ...primaryDoc,
+  id: "doc-3",
+  doc_type: "Proof of Income",
+  storage_path: "user-1/passport/income-1.pdf",
+  mime_type: "application/pdf",
+  id_type: null,
+  verification_id: null,
+  is_verified: false,
+  is_primary: false,
+};
+
+const pdfResolved = {
+  label: "Proof of Income",
+  path: "user-1/passport/income-1.pdf",
+  signedUrl: "https://signed.test/income.pdf",
+};
+
+const frontResolved = {
+  label: "Driver’s License",
+  path: "user-1/passport/licence-1.jpg",
+  signedUrl: "https://signed.test/front.jpg",
 };
 
 beforeEach(() => {
@@ -233,6 +327,103 @@ describe("APT Passport wallet screen", () => {
 
     expect(screen.queryByText("Need help?")).toBeNull();
     expect(screen.queryByText("Contact Support")).toBeNull();
+  });
+});
+
+describe("Supporting documents view toggle", () => {
+  beforeEach(() => {
+    mockPassportState.documents = [primaryDoc, payslipDoc];
+    mockDocumentUrlsState.resolved = [
+      {
+        label: "Driver’s License",
+        path: "user-1/passport/licence-1.jpg",
+        signedUrl: "https://signed.test/front.jpg",
+      },
+      payslipResolved,
+    ];
+  });
+
+  it("defaults to the grid view", () => {
+    render(<Index />);
+
+    expect(screen.getByLabelText("Toggle view")).toBeTruthy();
+    // Grid cards use "Tap to View"; list rows use "Tap to view".
+    expect(screen.getByText("Tap to View")).toBeTruthy();
+    expect(screen.queryByText("Tap to view")).toBeNull();
+  });
+
+  it("switches to the vertical list view", () => {
+    render(<Index />);
+
+    fireEvent.press(screen.getByLabelText("Toggle view"));
+
+    expect(screen.getByText("Tap to view")).toBeTruthy();
+    expect(screen.queryByText("Tap to View")).toBeNull();
+  });
+
+  it("insets the list row content inside its card", () => {
+    render(<Index />);
+    fireEvent.press(screen.getByLabelText("Toggle view"));
+
+    const RNView =
+      jest.requireActual<typeof import("react-native")>("react-native").View;
+    expect(
+      screen.UNSAFE_getAllByType(RNView).some(
+        (node) => node.props.className === "px-4",
+      ),
+    ).toBe(true);
+  });
+
+  it("routes to the detail screen from a list row", () => {
+    render(<Index />);
+
+    fireEvent.press(screen.getByLabelText("Toggle view"));
+    fireEvent.press(screen.getByText("Payslip"));
+
+    expect(mockRouter.push).toHaveBeenCalledWith("/document-id/doc-2");
+  });
+
+  it("renders a PDF thumbnail for PDF documents", () => {
+    mockPassportState.documents = [primaryDoc, pdfDoc];
+    mockDocumentUrlsState.resolved = [frontResolved, pdfResolved];
+
+    render(<Index />);
+
+    expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
+  });
+
+  it("does not try to render a private PDF without a signed URL", () => {
+    mockPassportState.documents = [primaryDoc, pdfDoc];
+    mockDocumentUrlsState.resolved = [
+      frontResolved,
+      { ...pdfResolved, signedUrl: null },
+    ];
+
+    render(<Index />);
+
+    expect(screen.getByText("Proof of Income")).toBeTruthy();
+    expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
+  });
+
+  it("renders a PDF thumbnail in the list view too", () => {
+    mockPassportState.documents = [primaryDoc, pdfDoc];
+    mockDocumentUrlsState.resolved = [frontResolved, pdfResolved];
+
+    render(<Index />);
+
+    fireEvent.press(screen.getByLabelText("Toggle view"));
+
+    expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
+  });
+
+  it("keeps image previews for image documents", () => {
+    mockPassportState.documents = [primaryDoc, payslipDoc];
+    mockDocumentUrlsState.resolved = [frontResolved, payslipResolved];
+
+    render(<Index />);
+
+    expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
+    expect(screen.getByText("Payslip")).toBeTruthy();
   });
 });
 

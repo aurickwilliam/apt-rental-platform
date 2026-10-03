@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 
-import { Chip, Spinner } from "heroui-native";
+import { Chip, Button, Spinner } from "heroui-native";
 
 import { IconRefresh, IconShieldCheck } from "@tabler/icons-react-native";
 
@@ -45,7 +45,7 @@ export default function ValidIdCard({
           <Text className="text-muted text-sm font-inter">{idType}</Text>
         </View>
 
-        <Chip variant="secondary" color="success" size="sm">
+        <Chip variant="secondary" color="success" size="md">
           <IconShieldCheck size={14} color={colors.success} />
           <Chip.Label className="text-success font-nunitoSemiBold">
             Verified
@@ -80,15 +80,19 @@ export default function ValidIdCard({
         </TouchableOpacity>
 
         {backUrl ? (
-          <TouchableOpacity
-            className="absolute bottom-3 right-3 size-11 rounded-full bg-surface border border-border items-center justify-center"
-            activeOpacity={0.7}
+          <Button
+            variant="secondary"
+            size="sm"
+            isIconOnly
+            className="absolute bottom-3 right-3"
             accessibilityRole="button"
-            accessibilityLabel={showBack ? "Show front of ID" : "Show back of ID"}
+            accessibilityLabel={
+              showBack ? "Show front of ID" : "Show back of ID"
+            }
             onPress={() => setShowBack((prev) => !prev)}
           >
             <IconRefresh size={20} color={colors.primary} />
-          </TouchableOpacity>
+          </Button>
         ) : null}
       </View>
     </View>

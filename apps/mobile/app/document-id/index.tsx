@@ -1,15 +1,21 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
-import { Button, Separator } from "heroui-native";
+import { Button, ListGroup, Separator } from "heroui-native";
 
-import { IconFileUpload, IconPlus } from "@tabler/icons-react-native";
+import {
+  IconFileUpload,
+  IconLayoutGrid,
+  IconLayoutRows,
+  IconPlus,
+} from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DocumentCard from "./components/DocumentCard";
+import DocumentRow from "@/components/display/DocumentRow";
 import EmptySupportingDocs from "./components/EmptySupportingDocs";
 import PassportSkeleton from "./components/PassportSkeleton";
 import ValidIdCard from "./components/ValidIdCard";
@@ -30,6 +36,7 @@ export default function Index() {
 
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [isGridView, setIsGridView] = useState(true);
 
   const verifiedDoc = useMemo(
     () =>
@@ -88,6 +95,23 @@ export default function Index() {
     [resolvedDocs],
   );
 
+  const listRows = useMemo(
+    () =>
+      resolvedDocs.map((doc) => {
+        const row = supportingDocs.find((d) => d.storage_path === doc.path);
+        return {
+          key: row?.id ?? doc.path,
+          label: doc.label,
+          path: doc.path,
+          signedUrl: doc.signedUrl,
+          verified: row?.is_verified ?? false,
+          mimeType: row?.mime_type ?? null,
+          id: row?.id ?? null,
+        };
+      }),
+    [resolvedDocs, supportingDocs],
+  );
+
   const handleOpenViewer = (index: number) => {
     setViewerIndex(
       Math.min(index, Math.max(verifiedViewerImages.length - 1, 0)),
@@ -109,12 +133,15 @@ export default function Index() {
           title="APT Passport"
           onBackPress={() => router.replace("/(tabs)/(tenant)/profile")}
           rightComponent={
-            <TouchableOpacity
-              activeOpacity={0.7}
+            <Button
+              variant="ghost"
+              isIconOnly
               onPress={() => router.push("/document-id/select-document")}
+              accessibilityLabel="Add a document"
+              accessibilityRole="button"
             >
               <IconPlus size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+            </Button>
           }
         />
       }
@@ -199,29 +226,67 @@ export default function Index() {
         </View>
       ) : (
         <>
-          <Text className="text-foreground text-lg font-nunitoSemiBold mb-3">
-            Uploaded Documents
-          </Text>
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
+              Uploaded Documents
+            </Text>
+
+            {supportingDocs.length > 0 ? (
+              <Button
+                variant="ghost"
+                isIconOnly
+                accessibilityLabel="Toggle view"
+                accessibilityRole="button"
+                onPress={() => setIsGridView((prev) => !prev)}
+              >
+                {isGridView ? (
+                  <IconLayoutGrid size={22} color={colors.gray500} />
+                ) : (
+                  <IconLayoutRows size={22} color={colors.gray500} />
+                )}
+              </Button>
+            ) : null}
+          </View>
 
           {supportingDocs.length === 0 ? (
             <EmptySupportingDocs
               onAddDocument={() => router.push("/document-id/select-document")}
             />
-          ) : (
+          ) : isGridView ? (
             <View className="flex-row flex-wrap gap-x-4 gap-y-5">
               {supportingDocs.map((doc) => {
                 const signedUrl = signedByPath.get(doc.storage_path) ?? null;
                 return (
                   <DocumentCard
                     key={doc.id}
-                    filePath={signedUrl ?? doc.storage_path}
+                    filePath={signedUrl}
+                    storagePath={doc.storage_path}
                     label={doc.doc_type}
                     verified={doc.is_verified}
+                    mimeType={doc.mime_type}
                     onPress={() => router.push(`/document-id/${doc.id}`)}
                   />
                 );
               })}
             </View>
+          ) : (
+            <ListGroup className="shadow-none border border-border rounded-3xl">
+              {listRows.map((doc, index) => (
+                <View key={doc.key} className="px-4">
+                  {index > 0 && <Separator />}
+                  <DocumentRow
+                    label={doc.label}
+                    path={doc.path}
+                    signedUrl={doc.signedUrl}
+                    verified={doc.verified}
+                    mimeType={doc.mimeType}
+                    onPress={() => {
+                      if (doc.id) router.push(`/document-id/${doc.id}`);
+                    }}
+                  />
+                </View>
+              ))}
+            </ListGroup>
           )}
         </>
       )}

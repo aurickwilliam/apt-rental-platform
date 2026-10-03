@@ -22,3 +22,26 @@ export function isImageUri(uri: string): boolean {
   // Bundled assets (resolveAssetSource) may lose extensions — default to image
   return true;
 }
+
+/**
+ * Whether a document can render an inline image preview. The stored MIME type
+ * (recorded at upload) wins over URL sniffing: signed URLs don't always carry
+ * a usable extension, so an image saved as e.g. `image/jpeg` previews even
+ * when its URL has no image extension.
+ */
+export function isPreviewable(
+  mimeType: string | null | undefined,
+  uri: string,
+): boolean {
+  if (mimeType) return mimeType.toLowerCase().startsWith("image/");
+  return isImageUri(uri);
+}
+
+/** Whether a document is a PDF (thumbnail via a PDF renderer). */
+export function isPdfDocument(
+  mimeType: string | null | undefined,
+  uri: string,
+): boolean {
+  if (mimeType) return mimeType.toLowerCase() === "application/pdf";
+  return getExtension(uri) === "pdf";
+}

@@ -1,9 +1,16 @@
-import { View, Text, TouchableOpacity, Linking } from "react-native";
+import { View, Text, Linking } from "react-native";
 import { Image } from "expo-image";
 
-import { IconFileText, IconExternalLink, IconShieldCheck } from "@tabler/icons-react-native";
+import { PressableFeedback } from "heroui-native";
+
+import {
+  IconFileText,
+  IconExternalLink,
+  IconShieldCheck,
+} from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
+import PdfThumbnail from "./PdfThumbnail";
 
 type DocumentRowProps = {
   label: string;
@@ -11,6 +18,10 @@ type DocumentRowProps = {
   signedUrl: string | null;
   onPressImage?: (uri: string) => void;
   verified?: boolean;
+  mimeType?: string | null;
+  /** Overrides both default handlers (viewer for images, external link for
+   * files) — e.g. to route to a detail screen instead. */
+  onPress?: () => void;
 };
 
 const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "heic"];
@@ -25,10 +36,17 @@ export default function DocumentRow({
   signedUrl,
   onPressImage,
   verified = false,
+  mimeType,
+  onPress,
 }: DocumentRowProps) {
   const { colors } = useColors();
   const ext = getExtension(path);
-  const isImage = IMAGE_EXTENSIONS.includes(ext);
+  const isImage = mimeType
+    ? mimeType.toLowerCase().startsWith("image/")
+    : IMAGE_EXTENSIONS.includes(ext);
+  const isPdf =
+    !isImage &&
+    (mimeType ? mimeType.toLowerCase() === "application/pdf" : ext === "pdf");
 
   const labelRow = (
     <View className="flex-row items-center gap-1.5">
@@ -36,7 +54,10 @@ export default function DocumentRow({
       {verified ? (
         <View className="flex-row items-center gap-0.5">
           <IconShieldCheck size={14} color={colors.success} />
-          <Text className="text-xs font-nunitoSemiBold" style={{ color: colors.success }}>
+          <Text
+            className="text-xs font-nunitoSemiBold"
+            style={{ color: colors.success }}
+          >
             Verified
           </Text>
         </View>
@@ -53,39 +74,46 @@ export default function DocumentRow({
     );
   }
 
-  if (isImage) {
+  if (isImage || isPdf) {
     return (
-      <TouchableOpacity
+      <PressableFeedback
         className="flex-row items-center gap-3 py-2"
-        activeOpacity={0.7}
-        onPress={() => onPressImage?.(signedUrl)}
+        onPress={() => onPress?.() ?? onPressImage?.(signedUrl)}
       >
-        <Image
-          source={{ uri: signedUrl }}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: colors.gray200,
-          }}
-          contentFit="cover"
-          cachePolicy="disk"
-        />
+        <PressableFeedback.Highlight />
+        <View
+          className="border border-border items-center justify-center overflow-hidden"
+          style={{ width: 56, height: 56, borderRadius: 12 }}
+        >
+          {isImage ? (
+            <Image
+              source={{ uri: signedUrl }}
+              style={{ width: 56, height: 56 }}
+              contentFit="cover"
+              cachePolicy="disk"
+            />
+          ) : (
+            <PdfThumbnail
+              uri={signedUrl}
+              style={{ width: 56, height: 56 }}
+              iconSize={22}
+            />
+          )}
+        </View>
         <View className="flex-1">
           {labelRow}
           <Text className="text-muted text-sm">Tap to view</Text>
         </View>
-      </TouchableOpacity>
+      </PressableFeedback>
     );
   }
 
   return (
-    <TouchableOpacity
+    <PressableFeedback
       className="flex-row items-center gap-3 py-2"
-      activeOpacity={0.7}
-      onPress={() => Linking.openURL(signedUrl)}
+      onPress={() => onPress?.() ?? Linking.openURL(signedUrl)}
     >
+      <PressableFeedback.Highlight />
       <View className="w-14 h-14 rounded-xl border border-border items-center justify-center">
         <IconFileText size={22} color={colors.gray400} />
       </View>
@@ -97,6 +125,6 @@ export default function DocumentRow({
       </View>
 
       <IconExternalLink size={18} color={colors.gray400} />
-    </TouchableOpacity>
+    </PressableFeedback>
   );
 }
