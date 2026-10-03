@@ -649,6 +649,11 @@ export type Database = {
           is_primary: boolean
           is_verified: boolean
           mime_type: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           storage_path: string
           storage_path_back: string | null
           updated_at: string | null
@@ -664,6 +669,11 @@ export type Database = {
           is_primary?: boolean
           is_verified?: boolean
           mime_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           storage_path: string
           storage_path_back?: string | null
           updated_at?: string | null
@@ -679,6 +689,11 @@ export type Database = {
           is_primary?: boolean
           is_verified?: boolean
           mime_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           storage_path?: string
           storage_path_back?: string | null
           updated_at?: string | null

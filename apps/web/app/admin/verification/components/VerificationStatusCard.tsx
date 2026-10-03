@@ -5,7 +5,7 @@ import { submittedFormatter } from "../lib/verification-display";
 import { InfoField } from "../../users/[id]/components/UserDetailPrimitives";
 
 interface VerificationStatusCardProps {
-  subjectLabel: "Account" | "Apartment";
+  subjectLabel: "Account" | "Apartment" | "Document";
   subjectStatus: string;
   status: string;
   submittedAt: string;
@@ -35,7 +35,9 @@ export default function VerificationStatusCard({
             size="md"
             variant="soft"
             color={
-              status === "approved" ? "success" : verificationChipColor(status)
+              status === "approved" || status === "verified"
+                ? "success"
+                : verificationChipColor(status)
             }
             className="capitalize"
           >

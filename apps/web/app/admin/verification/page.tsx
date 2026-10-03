@@ -14,10 +14,11 @@ export default async function VerificationPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   await requireAdmin();
+  const tab = (await searchParams).tab;
   const selected =
-    (await searchParams).tab === "apartments" ? "apartments" : "users";
+    tab === "apartments" ? "apartments" : tab === "documents" ? "documents" : "users";
   const supabase = await createClient();
-  const [userQueue, apartmentQueue, userCount, apartmentCount] =
+  const [userQueue, apartmentQueue, documentQueue, userCount, apartmentCount, documentCount] =
     await Promise.all([
       supabase
         .from("user_verifications")
@@ -32,6 +33,12 @@ export default async function VerificationPage({
         .order("submitted_at", { ascending: true })
         .limit(50),
       supabase
+        .from("passport_documents")
+        .select("id, user_id, doc_type, requested_at")
+        .eq("review_status", "pending")
+        .order("requested_at", { ascending: true })
+        .limit(50),
+      supabase
         .from("user_verifications")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending"),
@@ -39,8 +46,12 @@ export default async function VerificationPage({
         .from("apartment_verifications")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending"),
+      supabase
+        .from("passport_documents")
+        .select("id", { count: "exact", head: true })
+        .eq("review_status", "pending"),
     ]);
-  const [profiles, apartments] = await Promise.all([
+  const [profiles, apartments, docOwners] = await Promise.all([
     userQueue.data?.length
       ? supabase
           .from("users")
@@ -59,7 +70,19 @@ export default async function VerificationPage({
             apartmentQueue.data.map((item) => item.apartment_id),
           )
       : Promise.resolve({ data: [] }),
+    documentQueue.data?.length
+      ? supabase
+          .from("users")
+          .select("id, first_name, last_name, email")
+          .in(
+            "id",
+            [...new Set(documentQueue.data.map((item) => item.user_id))],
+          )
+      : Promise.resolve({ data: [] }),
   ]);
+  const docOwnerById = new Map(
+    ((docOwners.data ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null }>).map((profile) => [profile.id, profile]),
+  );
   const profileById = new Map(
     (profiles.data ?? []).map((profile) => [profile.id, profile]),
   );
@@ -103,7 +126,22 @@ export default async function VerificationPage({
             image: profile?.avatar_url ?? null,
           };
         })
-      : (apartmentQueue.data ?? []).map((item) => {
+      : selected === "documents"
+        ? (documentQueue.data ?? []).map((item) => {
+            const owner = docOwnerById.get(item.user_id);
+            const label =
+              `${owner?.first_name ?? ""} ${owner?.last_name ?? ""}`.trim() ||
+              owner?.email ||
+              "Unknown tenant";
+            return {
+              id: item.id,
+              label,
+              detail: `Document: ${item.doc_type}`,
+              submittedAt: item.requested_at ?? new Date().toISOString(),
+              image: null,
+            };
+          })
+        : (apartmentQueue.data ?? []).map((item) => {
           const apartment = apartmentById.get(item.apartment_id);
           return {
             id: item.id,
@@ -113,7 +151,7 @@ export default async function VerificationPage({
             image: coverByApartmentId.get(item.apartment_id) ?? null,
           };
         });
-  const hasError = [userQueue, apartmentQueue, userCount, apartmentCount].some(
+  const hasError = [userQueue, apartmentQueue, documentQueue, userCount, apartmentCount, documentCount].some(
     (result) => Boolean(result.error),
   );
   return (
@@ -138,6 +176,7 @@ export default async function VerificationPage({
         selected={selected}
         userCount={userCount.count ?? 0}
         apartmentCount={apartmentCount.count ?? 0}
+        documentCount={documentCount.count ?? 0}
       />
       {rows.length ? (
         <VerificationResults

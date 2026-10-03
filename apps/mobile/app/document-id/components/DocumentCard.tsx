@@ -6,6 +6,7 @@ import { Card, Chip, PressableFeedback } from "heroui-native";
 import {
   IconChevronRight,
   IconFileText,
+  IconHourglass,
   IconShieldCheck,
 } from "@tabler/icons-react-native";
 
@@ -19,6 +20,7 @@ interface DocumentCardProps {
   label: string;
   onPress: () => void;
   verified?: boolean;
+  pending?: boolean;
   subtitle?: string;
   mimeType?: string | null;
 }
@@ -29,6 +31,7 @@ export default function DocumentCard({
   label,
   onPress,
   verified = false,
+  pending = false,
   subtitle,
   mimeType,
 }: DocumentCardProps) {
@@ -85,6 +88,18 @@ export default function DocumentCard({
               <IconShieldCheck size={12} color={colors.success} />
               <Chip.Label className="text-success font-nunitoSemiBold">
                 Verified
+              </Chip.Label>
+            </Chip>
+          ) : pending ? (
+            <Chip
+              variant="soft"
+              color="warning"
+              size="sm"
+              className="self-start"
+            >
+              <IconHourglass size={12} color={colors.warning} />
+              <Chip.Label className="font-nunitoSemiBold" style={{ color: colors.warning }}>
+                Under review
               </Chip.Label>
             </Chip>
           ) : null}

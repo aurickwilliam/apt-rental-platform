@@ -263,6 +263,7 @@ export default function Index() {
                     storagePath={doc.storage_path}
                     label={doc.doc_type}
                     verified={doc.is_verified}
+                    pending={doc.review_status === "pending"}
                     mimeType={doc.mime_type}
                     onPress={() => router.push(`/document-id/${doc.id}`)}
                   />

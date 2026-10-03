@@ -3,6 +3,7 @@ import { File } from 'expo-file-system'
 import { supabase, type Database } from '@repo/supabase'
 import {
   PASSPORT_SLOT_DOC_TYPES,
+  isReviewEligibleDocType,
   type ApplicationDocumentSlot,
 } from '@repo/constants'
 
@@ -189,12 +190,74 @@ export async function linkApprovedVerification(
       verification_id: verification.id,
       is_verified: true,
       is_primary: true,
+      review_status: 'verified',
     })
     .select()
     .single()
 
   if (insertError || !data) {
     throw new Error(insertError?.message ?? 'Could not link your verified ID. Please try again.')
+  }
+
+  return data as PassportDocumentRow
+}
+
+/**
+ * Tenant-requested admin review for an eligible supporting document
+ * (proof of income, NBI clearance). Moves unverified|rejected -> pending;
+ * the DB trigger stamps requested_at and notifies admins. Identity docs are
+ * verified via the account-verification flow instead.
+ */
+export async function requestPassportDocumentReview(input: {
+  id: string
+  userId: string
+}): Promise<PassportDocumentRow> {
+  const { data: row, error: rowError } = await supabase
+    .from('passport_documents')
+    .select('id, user_id, doc_type, review_status, is_primary, verification_id, expires_at')
+    .eq('id', input.id)
+    .eq('user_id', input.userId)
+    .limit(1)
+    .maybeSingle()
+
+  if (rowError) throw rowError
+  if (!row) throw new Error('Document not found.')
+
+  if (row.is_primary || row.verification_id) {
+    throw new Error(
+      'Identity documents are verified through account verification instead.'
+    )
+  }
+
+  if (!isReviewEligibleDocType(row.doc_type)) {
+    throw new Error('This document type is not eligible for admin review yet.')
+  }
+
+  if (row.review_status === 'pending') {
+    throw new Error('This document is already under review.')
+  }
+
+  if (row.review_status === 'verified') {
+    throw new Error('This document is already verified.')
+  }
+
+  if (row.expires_at) {
+    const expiry = new Date(row.expires_at)
+    if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
+      throw new Error('This document is expired. Upload a current copy first.')
+    }
+  }
+
+  const { data, error: updateError } = await supabase
+    .from('passport_documents')
+    .update({ review_status: 'pending' })
+    .eq('id', input.id)
+    .eq('user_id', input.userId)
+    .select()
+    .single()
+
+  if (updateError || !data) {
+    throw new Error(updateError?.message ?? 'Could not request review. Please try again.')
   }
 
   return data as PassportDocumentRow
@@ -207,6 +270,7 @@ const ACTIVE_APPLICATION_STATUSES = ['pending', 'approved']
  * automatically and can never be deleted. Deletion is also blocked while an
  * active rental application references the same storage path, so landlords
  * never lose application evidence after auto-attach by reference.
+ * Documents under admin review cannot be deleted until the review resolves.
  */
 export async function deletePassportDocument(input: {
   id: string
@@ -215,7 +279,7 @@ export async function deletePassportDocument(input: {
 }): Promise<void> {
   const { data: row, error: rowError } = await supabase
     .from('passport_documents')
-    .select('is_primary, verification_id')
+    .select('is_primary, verification_id, review_status')
     .eq('id', input.id)
     .eq('user_id', input.userId)
     .limit(1)
@@ -225,6 +289,11 @@ export async function deletePassportDocument(input: {
   if (row && (row.is_primary || row.verification_id)) {
     throw new Error(
       'Your primary verification ID is managed automatically and cannot be deleted.'
+    )
+  }
+  if (row && row.review_status === 'pending') {
+    throw new Error(
+      'This document is under admin review and cannot be deleted yet.'
     )
   }  const { data: applications, error: applicationsError } = await supabase
     .from('rental_application')

@@ -5,7 +5,7 @@ import { Button, Label, ListBox, Modal, Select, TextArea } from "@heroui/react";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import type { ReviewResult } from "../actions/verification";
 
-type ReviewKind = "user" | "apartment";
+type ReviewKind = "user" | "apartment" | "document";
 
 interface ReviewFormProps {
   verificationId: string;
@@ -29,6 +29,14 @@ const REJECTION_REASONS: Record<ReviewKind, string[]> = {
     "Duplicate listing",
     "Insufficient images",
     "Location unclear",
+    "Other",
+  ],
+  document: [
+    "Unclear document",
+    "Expired document",
+    "Name mismatch",
+    "Unsupported document",
+    "Incomplete",
     "Other",
   ],
 };
@@ -92,7 +100,7 @@ export function ReviewForm({
         >
           {sticky ? (
             <p className="font-nunito text-sm font-bold sm:text-base">
-              Do you want to approve this {kind === "apartment" ? "apartment" : "user"}?
+              Do you want to approve this {kind === "apartment" ? "apartment" : kind === "document" ? "document" : "user"}?
             </p>
           ) : null}
           {error ? (
@@ -166,7 +174,7 @@ export function ReviewForm({
                   {isRejecting ? (
                     <>
                       <p className="text-sm text-muted-foreground">
-                         Explain what the {kind === "apartment" ? "landlord" : "applicant"} needs to correct before resubmitting.
+                         Explain what the {kind === "apartment" ? "landlord" : kind === "document" ? "tenant" : "applicant"} needs to correct before resubmitting.
                       </p>
                       <Select
                         name="reasonCategory"
@@ -200,7 +208,7 @@ export function ReviewForm({
                           id="verification-rejection-details"
                           name="reason"
                           className="w-full h-30"
-                           placeholder={kind === "apartment" ? "Add details for the landlord…" : "Add details for the applicant…"}
+                           placeholder={kind === "document" ? "Add details for the tenant…" : kind === "apartment" ? "Add details for the landlord…" : "Add details for the applicant…"}
                         />
                       </div>
                     </>

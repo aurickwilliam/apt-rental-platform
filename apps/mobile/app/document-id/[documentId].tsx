@@ -8,11 +8,13 @@ import { Button, Chip, Separator, Spinner } from "heroui-native";
 
 import {
   IconFileText,
+  IconHourglass,
   IconShieldCheck,
   IconTrash,
 } from "@tabler/icons-react-native";
 
 import { formatDate } from "@repo/utils";
+import { isReviewEligibleDocType } from "@repo/constants";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -25,6 +27,7 @@ import { useDocumentUrls } from "@/hooks/applications";
 import {
   useDeletePassportDocument,
   usePassportDocuments,
+  useRequestPassportDocumentReview,
 } from "@/hooks/passport";
 
 import { isImageUri } from "./utils/fileType";
@@ -64,9 +67,22 @@ export default function PassportDocumentDetail() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { mutate: remove, isPending: isDeleting } = useDeletePassportDocument();
+  const {
+    mutate: requestReview,
+    isPending: isRequesting,
+    error: requestError,
+    reset: resetRequestError,
+  } = useRequestPassportDocumentReview();
 
   const isLinkedVerification =
     !!document?.verification_id || !!document?.is_primary;
+  const reviewStatus = document?.review_status ?? "unverified";
+  const canRequestReview =
+    !!document &&
+    !isLinkedVerification &&
+    isReviewEligibleDocType(document.doc_type) &&
+    (reviewStatus === "unverified" || reviewStatus === "rejected");
+  const isUnderReview = reviewStatus === "pending";
   const showAsImage = signedUrl
     ? isImageUri(signedUrl)
     : isImageUri(document?.storage_path ?? "");
@@ -78,6 +94,12 @@ export default function PassportDocumentDetail() {
     } else {
       void Linking.openURL(signedUrl);
     }
+  };
+
+  const handleRequestReview = () => {
+    if (!document) return;
+    resetRequestError();
+    requestReview({ id: document.id });
   };
 
   const handleDelete = () => {
@@ -146,8 +168,26 @@ export default function PassportDocumentDetail() {
                 Verified
               </Chip.Label>
             </Chip>
+          ) : isUnderReview ? (
+            <Chip variant="secondary" color="warning" size="sm">
+              <IconHourglass size={14} color={colors.warning} />
+              <Chip.Label className="text-warning font-nunitoSemiBold">
+                Under review
+              </Chip.Label>
+            </Chip>
           ) : null}
         </View>
+
+        {reviewStatus === "rejected" && document.rejection_reason ? (
+          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
+            <Text className="text-danger text-sm font-nunitoSemiBold">
+              Not verified
+            </Text>
+            <Text className="text-muted text-sm font-inter mt-0.5">
+              {document.rejection_reason}
+            </Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity
           className="bg-surface border border-border rounded-3xl shadow-none overflow-hidden"
@@ -242,18 +282,48 @@ export default function PassportDocumentDetail() {
             managed automatically.
           </Text>
         ) : (
-          <Button
-            variant="danger-soft"
-            onPress={() => {
-              setDeleteError(null);
-              setConfirmOpen(true);
-            }}
-          >
-            <IconTrash size={18} color={colors.danger} />
-            <Button.Label className="font-nunitoSemiBold">
-              Delete Document
-            </Button.Label>
-          </Button>
+          <>
+            {isUnderReview ? (
+              <Text className="text-muted text-sm font-inter leading-relaxed">
+                Under admin review. You can delete it once the review resolves.
+              </Text>
+            ) : (
+              <Button
+                variant="danger-soft"
+                onPress={() => {
+                  setDeleteError(null);
+                  setConfirmOpen(true);
+                }}
+              >
+                <IconTrash size={18} color={colors.danger} />
+                <Button.Label className="font-nunitoSemiBold">
+                  Delete Document
+                </Button.Label>
+              </Button>
+            )}
+            {canRequestReview ? (
+              <>
+                <Button
+                  onPress={handleRequestReview}
+                  isDisabled={isRequesting}
+                >
+                  <IconShieldCheck size={18} color="#fff" />
+                  <Button.Label className="font-nunitoSemiBold">
+                    {isRequesting
+                      ? "Requesting…"
+                      : reviewStatus === "rejected"
+                        ? "Request Review Again"
+                        : "Request Verification"}
+                  </Button.Label>
+                </Button>
+                {requestError ? (
+                  <Text className="text-danger text-sm font-inter">
+                    {requestError.message}
+                  </Text>
+                ) : null}
+              </>
+            ) : null}
+          </>
         )}
       </View>
 

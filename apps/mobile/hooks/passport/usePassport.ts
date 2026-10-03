@@ -6,6 +6,7 @@ import {
   fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
+  requestPassportDocumentReview,
   uploadPassportDocument,
   type PassportDocumentRow,
   type UploadPassportDocumentInput,
@@ -67,6 +68,28 @@ export function useDeletePassportDocument() {
     mutationFn: (input: { id: string; storagePath: string }) => {
       if (!userId) throw new Error('You must be signed in to delete a document.')
       return deletePassportDocument({ ...input, userId })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: getPassportDocumentsQueryKey(userId),
+        exact: true,
+      })
+    },
+  })
+}
+
+/**
+ * Tenant-requested admin review for an eligible supporting document.
+ * Settles with exact-key invalidation; realtime/polling is out of scope v1.
+ */
+export function useRequestPassportDocumentReview() {
+  const queryClient = useQueryClient()
+  const userId = useCurrentUserId()
+
+  return useMutation({
+    mutationFn: (input: { id: string }) => {
+      if (!userId) throw new Error('You must be signed in to request a review.')
+      return requestPassportDocumentReview({ ...input, userId })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

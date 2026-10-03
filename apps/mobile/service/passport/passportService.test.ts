@@ -5,6 +5,7 @@ import {
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
   passportDocsForSlot,
+  requestPassportDocumentReview,
   uploadPassportDocument,
   type PassportDocumentRow,
 } from './passportService';
@@ -48,6 +49,11 @@ const baseRow: PassportDocumentRow = {
   expires_at: null,
   created_at: '2026-09-01T00:00:00.000Z',
   updated_at: null,
+  review_status: 'unverified',
+  requested_at: null,
+  reviewed_at: null,
+  reviewed_by: null,
+  rejection_reason: null,
 };
 
 describe('fetchPassportDocuments', () => {
@@ -370,6 +376,127 @@ describe('deletePassportDocument', () => {
 
     expect(mockRemove).toHaveBeenCalledWith(['user-1/passport/old.jpg']);
     expect(mockFrom).toHaveBeenCalledWith('passport_documents');
+  });
+
+  it('blocks deletion while the document is under admin review', async () => {
+    mockFrom.mockReturnValue(
+      chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: { is_primary: false, verification_id: null, review_status: 'pending' },
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      deletePassportDocument({ id: 'doc-1', userId: 'user-1', storagePath: 'user-1/passport/payslip-1.jpg' })
+    ).rejects.toThrow('under admin review');
+    expect(mockRemove).not.toHaveBeenCalled();
+  });
+});
+
+describe('requestPassportDocumentReview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function mockReviewRow(overrides: Record<string, unknown> = {}) {
+    return {
+      id: 'doc-1',
+      user_id: 'user-1',
+      doc_type: 'Payslip',
+      review_status: 'unverified',
+      is_primary: false,
+      verification_id: null,
+      expires_at: null,
+      ...overrides,
+    };
+  }
+
+  function mockUpdateSuccess(updated: Record<string, unknown>) {
+    return chainable({
+      eq: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: updated, error: null }),
+          }),
+        }),
+      }),
+    });
+  }
+
+  it('moves an eligible document to pending', async () => {
+    const updated = { ...baseRow, review_status: 'pending' };
+    mockFrom
+      .mockReturnValueOnce(
+        chainable({ maybeSingle: jest.fn().mockResolvedValue({ data: mockReviewRow(), error: null }) })
+      )
+      .mockReturnValueOnce(mockUpdateSuccess(updated));
+
+    const row = await requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' });
+
+    expect(row.review_status).toBe('pending');
+    expect(mockFrom).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects identity documents linked to account verification', async () => {
+    mockFrom.mockReturnValue(
+      chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: mockReviewRow({ is_primary: true, verification_id: 'verification-1' }),
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
+    ).rejects.toThrow('account verification');
+  });
+
+  it('rejects ineligible document types', async () => {
+    mockFrom.mockReturnValue(
+      chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: mockReviewRow({ doc_type: 'Proof of Billing' }),
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
+    ).rejects.toThrow('not eligible');
+  });
+
+  it('rejects documents already under review or verified', async () => {
+    mockFrom.mockReturnValue(
+      chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: mockReviewRow({ review_status: 'pending' }),
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
+    ).rejects.toThrow('already under review');
+  });
+
+  it('rejects expired documents', async () => {
+    mockFrom.mockReturnValue(
+      chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: mockReviewRow({ doc_type: 'NBI Clearance', expires_at: '2020-01-01' }),
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
+    ).rejects.toThrow('expired');
   });
 });
 

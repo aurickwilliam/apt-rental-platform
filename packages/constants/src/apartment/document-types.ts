@@ -43,3 +43,23 @@ export const PASSPORT_SLOT_DOC_TYPES: Record<ApplicationDocumentSlot, string[]> 
   proofOfBilling: ['Proof of Residency', 'Proof of Billing'],
   nbiClearance: ['NBI Clearance'],
 }
+
+/**
+ * Passport doc_types eligible for tenant-requested admin review (v1).
+ * Identity docs are verified via the account-verification flow instead;
+ * billing/residency proof stays tenant-attested.
+ */
+export const PASSPORT_REVIEWABLE_DOC_TYPES: string[] = [
+  ...PASSPORT_SLOT_DOC_TYPES.proofOfIncome,
+  ...PASSPORT_SLOT_DOC_TYPES.nbiClearance,
+]
+
+export function isReviewEligibleDocType(docType: string): boolean {
+  return PASSPORT_REVIEWABLE_DOC_TYPES.includes(docType)
+}
+
+export type PassportReviewStatus =
+  | 'unverified'
+  | 'pending'
+  | 'verified'
+  | 'rejected'
