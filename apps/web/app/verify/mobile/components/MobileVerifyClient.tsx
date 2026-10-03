@@ -206,19 +206,24 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   }
 
   if (claim.state === "needsAuth") {
+    // Same-account sign-in: `next` carries the opaque token only (no PII),
+    // so a successful login returns to this exact page. Signing in never
+    // consumes the session -- claim/submit stay read-only until final submit.
+    const resumePath = `/verify/mobile?token=${token}`;
     return (
       <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
         <Card.Content className="flex flex-col items-center gap-3 text-center">
           <h1 className="font-nunito text-xl font-bold">Sign in on this phone</h1>
           <p className="text-sm text-muted-foreground">
-            Open your account on this phone first, then return here to continue
-            verification. Your code stays valid for 10 minutes.
+            Sign in with the same account you used on your computer, and
+            you&apos;ll return here automatically. Your code stays valid for
+            10 minutes, and nothing is submitted by signing in.
           </p>
           <Button
             type="button"
             variant="primary"
             onPress={() => {
-              window.location.href = "/sign-in";
+              window.location.href = `/sign-in?next=${encodeURIComponent(resumePath)}`;
             }}
           >
             Go to sign in
@@ -273,9 +278,24 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   return (
     <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
       <Card.Content className="flex flex-col gap-4">
-        <p className="text-xs text-muted-foreground text-center" aria-live="polite">
-          Step {stepNumber} of {steps.length}
-        </p>
+        <div aria-live="polite">
+          <p className="text-xs text-muted-foreground text-center">
+            Step {stepNumber} of {steps.length}
+          </p>
+          <div
+            className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-valuenow={stepNumber}
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-label="Verification progress"
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{ width: `${(stepNumber / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
 
         {step === "requirements" && (
           <div className="flex flex-col gap-3">
@@ -283,7 +303,7 @@ export default function MobileVerifyClient({ token }: { token: string }) {
             <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm text-muted-foreground">
               <li>A valid Philippine government ID.</li>
               <li>Capture the ID front clearly (plus the back, except for Passport).</li>
-              <li>Take a selfie showing your full face.</li>
+              <li>Hold your ID beside your face with your full face visible.</li>
               <li>Find good lighting and avoid glare.</li>
             </ul>
             <Button type="button" variant="primary" onPress={() => setStep("idType")}>
@@ -360,7 +380,7 @@ export default function MobileVerifyClient({ token }: { token: string }) {
         {step === "selfie" && (
           <CameraCapture
             facing="user"
-            guide="Hold the phone steady and look at the camera."
+            guide="Hold your ID beside your face with your full face visible."
             onCapture={(file) => setCapture("selfie", file)}
             onCancel={() => setStep(needsBack ? "back" : "front")}
           />
@@ -378,7 +398,7 @@ export default function MobileVerifyClient({ token }: { token: string }) {
               <PreviewRow label="ID back" capture={back} onRetake={() => setStep("back")} />
             )}
             <PreviewRow
-              label="Selfie"
+              label="Selfie holding ID"
               capture={selfie}
               onRetake={() => setStep("selfie")}
             />

@@ -101,10 +101,18 @@ export async function updateSession(request: NextRequest) {
   );
 
   // If the user is not signed in and trying to access a non-public route,
-  // redirect them to the sign-in page
+  // redirect them to the sign-in page. Verification handoff pages preserve
+  // the opaque session token via `next` so the phone returns to
+  // /verify/mobile?token=... after login; other routes keep prior behavior.
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/sign-in";
+    if (pathname === "/verify" || pathname.startsWith("/verify/")) {
+      const returnTo = `${pathname}${request.nextUrl.search}`;
+      url.pathname = "/sign-in";
+      url.search = `?next=${encodeURIComponent(returnTo)}`;
+    } else {
+      url.pathname = "/sign-in";
+    }
     return NextResponse.redirect(url);
   }
 

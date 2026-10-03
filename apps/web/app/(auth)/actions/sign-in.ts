@@ -11,12 +11,23 @@ export interface SignInFormState {
 
 interface UserRolesProfile { roles: string[] }
 
+// Only the verification handoff may resume after login. Re-validated here
+// (never trust the client): exact /verify or /verify/mobile?token=<opaque>.
+// Session claim/submit still enforce same-account ownership server-side.
+function safeVerifyNext(value: unknown): string | null {
+  if (typeof value !== "string" || value.length === 0) return null;
+  if (value === "/verify") return value;
+  if (/^\/verify\/mobile\?token=[A-Za-z0-9_-]{43}$/.test(value)) return value;
+  return null;
+}
+
 export async function signIn(
   _prevState: SignInFormState,
   formData: FormData
 ): Promise<SignInFormState> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const resumeTo = safeVerifyNext(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Email and password are required." };
@@ -81,6 +92,13 @@ export async function signIn(
   }
 
   (await cookies()).set(PORTAL_COOKIE, portal, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
+
+  // Phone verification handoff: return to the exact mobile page (with its
+  // opaque token) instead of the portal dashboard. Claim/submit still verify
+  // same-account ownership, and the session is NOT consumed by signing in.
+  if (resumeTo) {
+    redirect(resumeTo);
+  }
 
   // Redirect based on resolved portal
   if (portal === "landlord") {
