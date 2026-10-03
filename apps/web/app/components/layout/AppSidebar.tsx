@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -161,6 +161,26 @@ function getInitialSidebarState() {
   return false;
 }
 
+/**
+ * Closes an overlay when the window crosses `query` in the direction that
+ * hides its anchor.
+ *
+ * The account dropdown lives in a floating layer, so hiding the sidebar
+ * (`hidden md:flex`) does not hide an already-open menu — it stays
+ * anchored to nothing and floats over the page. Closing on the crossing
+ * keeps it tied to a visible anchor in both directions.
+ */
+function useCloseOverlayAt(query: string, shouldClose: boolean, close: () => void) {
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const handleChange = () => {
+      if (shouldClose) close();
+    };
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [query, shouldClose, close]);
+}
+
 // Client-mount gate for theme-dependent UI (avoids hydration mismatch).
 // Mirrors the sidebar's collapsed-state store pattern so no effect is needed.
 function subscribeThemeMounted() {
@@ -263,6 +283,12 @@ export function AppSidebar({
         : collapsible
           ? "Admin sidebar"
           : "Portal sidebar";
+
+  // The sidebar is `hidden md:flex`, so an open account menu would be
+  // orphaned over the page once the window drops below md.
+  const [isAccountMenuOpen, setAccountMenuOpen] = useState(false);
+  const closeAccountMenu = useCallback(() => setAccountMenuOpen(false), []);
+  useCloseOverlayAt("(max-width: 767.98px)", true, closeAccountMenu);
 
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
@@ -386,7 +412,7 @@ export function AppSidebar({
       <div
         className={`border-t border-sidebar-border bg-sidebar ${collapsed ? "p-2" : "p-3"}`}
       >
-        <Dropdown>
+        <Dropdown isOpen={isAccountMenuOpen} onOpenChange={setAccountMenuOpen}>
           <Button
             variant="ghost"
             aria-label={collapsed ? `${displayName} account menu` : undefined}
@@ -539,12 +565,18 @@ export function MobileSidebarNavigation({
 }) {
   const pathname = usePathname();
 
+  // This FAB is `md:hidden`, so an open menu would be orphaned once the
+  // window reaches md and the sidebar takes over.
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+
   return (
     <nav
       aria-label={navLabel}
       className="fixed bottom-4 left-4 z-40 md:hidden"
     >
-      <Dropdown>
+      <Dropdown isOpen={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <Button
           variant="primary"
           className="rounded-full shadow-sm"
