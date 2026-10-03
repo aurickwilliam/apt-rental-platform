@@ -64,6 +64,7 @@ export type RateApartmentHeader = {
   id: string;
   name: string;
   type: string | null;
+  status: string | null;
   street_address: string | null;
   barangay: string | null;
   city: string | null;
@@ -214,6 +215,7 @@ type HeaderRow = {
   id: string;
   name: string;
   type: string | null;
+  status: string | null;
   street_address: string | null;
   barangay: string | null;
   city: string | null;
@@ -232,6 +234,7 @@ export async function fetchRateApartmentHeader(apartmentId: string): Promise<Rat
         id,
         name,
         type,
+        status,
         street_address,
         barangay,
         city,
@@ -255,6 +258,7 @@ export async function fetchRateApartmentHeader(apartmentId: string): Promise<Rat
     id: row.id,
     name: row.name,
     type: row.type,
+    status: row.status,
     street_address: row.street_address,
     barangay: row.barangay,
     city: row.city,

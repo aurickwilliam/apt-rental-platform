@@ -90,7 +90,7 @@ export default function ReviewCard({
         )}
 
         {visibleThumbnails.length > 0 && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {visibleThumbnails.map((src, index) => {
               const isLastVisible = index === MAX_VISIBLE_THUMBNAILS - 1;
               const showOverlay = isLastVisible && remainingCount > 0;

@@ -24,13 +24,13 @@ export default function RatingBreakdown({
   no1Star,
 }: RatingBreakdownProps) {
   return (
-    <div className="w-full flex gap-3">
-      <div className="w-1/3 flex flex-col items-center justify-center">
-        <h3 className="font-nunito text-6xl font-bold text-secondary">
+    <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3">
+      <div className="w-full flex flex-col items-center justify-center sm:w-1/3">
+        <h3 className="font-nunito text-5xl font-bold text-secondary sm:text-6xl">
           {overallRate}
         </h3>
 
-        <div className="flex gap-2 mt-2">
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
           {[1, 2, 3, 4, 5].map((i) => {
             const filled = overallRate >= i;
             const half = !filled && overallRate >= i - 0.5;
@@ -63,7 +63,7 @@ export default function RatingBreakdown({
         </div>
       </div>
 
-      <div className="w-2/3 flex flex-col justify-center gap-2">
+      <div className="flex w-full flex-col justify-center gap-2 sm:w-2/3">
         {[
           { label: 5, count: no5Star },
           { label: 4, count: no4Star },
@@ -88,7 +88,7 @@ export default function RatingBreakdown({
               </Meter.Track>
             </Meter>
 
-            <p className="text-sm w-20 shrink-0 text-right text-muted-foreground">
+            <p className="w-16 shrink-0 text-right text-sm text-muted-foreground sm:w-20">
               {count} reviews
             </p>
           </div>

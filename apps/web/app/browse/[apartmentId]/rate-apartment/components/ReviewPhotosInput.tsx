@@ -80,7 +80,7 @@ export default function ReviewPhotosInput({
       />
 
       {images.length > 0 && (
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {images.map((photo) => (
             <div key={photo.url} className="group relative h-32 overflow-hidden rounded-xl">
               <Image
@@ -94,7 +94,7 @@ export default function ReviewPhotosInput({
                 type="button"
                 aria-label="Remove photo"
                 onClick={() => onRemove(photo.url)}
-                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100"
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
               >
                 <X size={12} />
               </button>

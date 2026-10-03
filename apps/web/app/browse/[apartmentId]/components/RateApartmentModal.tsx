@@ -55,6 +55,7 @@ export default function RateApartmentModal({
                     tenancyIdOverride={tenancyId ?? null}
                     reviewIdOverride={reviewId ?? null}
                     hideBackButton
+                    showApartmentInfo={false}
                     onSuccess={handleSuccess}
                     onCancel={handleClose}
                   />

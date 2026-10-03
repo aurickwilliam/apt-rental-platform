@@ -57,6 +57,7 @@ export interface RateApartmentFormProps {
   tenancyIdOverride?: string | null;
   reviewIdOverride?: string | null;
   hideBackButton?: boolean;
+  showApartmentInfo?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -66,6 +67,7 @@ export function RateApartmentForm({
   tenancyIdOverride,
   reviewIdOverride,
   hideBackButton = false,
+  showApartmentInfo = true,
   onSuccess,
   onCancel,
 }: RateApartmentFormProps = {}) {
@@ -121,7 +123,9 @@ export function RateApartmentForm({
           );
         }
 
-        const apartmentHeader = await fetchRateApartmentHeader(apartmentId);
+        const apartmentHeader = showApartmentInfo
+          ? await fetchRateApartmentHeader(apartmentId)
+          : null;
 
         if (isEditMode) {
           const review = await fetchReviewById(reviewId);
@@ -141,8 +145,7 @@ export function RateApartmentForm({
             setTenantId(context.tenantId);
             setTenancy(lease);
             setHeader(apartmentHeader);
-            setRating(review.rating);
-            setReviewText(review.comment);
+            setRating(review.rating);            setReviewText(review.comment);
             setOriginalPaths(review.imagePaths);
             const kept = (getReviewImageUrls(review.imagePaths) ?? []).map((url, index) => ({
               file: null,
@@ -182,7 +185,7 @@ export function RateApartmentForm({
     return () => {
       isMounted = false;
     };
-  }, [apartmentId, tenancyId, reviewId, isEditMode]);
+  }, [apartmentId, tenancyId, reviewId, isEditMode, showApartmentInfo]);
 
   const handleAddImages = (files: File[]) => {
     const urls: string[] = [];
@@ -302,7 +305,7 @@ export function RateApartmentForm({
     );
   }
 
-  if (pageError || !header) {
+  if (pageError || (showApartmentInfo && !header)) {
     return (
       <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
         {!hideBackButton && <BackBtn />}
@@ -316,9 +319,9 @@ export function RateApartmentForm({
     );
   }
 
-  const address = [header.street_address, header.barangay, header.city]
-    .filter(Boolean)
-    .join(", ");
+  const address = header
+    ? [header.street_address, header.barangay, header.city].filter(Boolean).join(", ")
+    : "";
 
   const isModalLayout = hideBackButton;
 
@@ -334,60 +337,69 @@ export function RateApartmentForm({
         </div>
       )}
 
-      <div className={isModalLayout ? "grid grid-cols-1 gap-x-8 md:grid-cols-2" : undefined}>
+      <div className={showApartmentInfo ? (isModalLayout ? "grid grid-cols-1 gap-x-8 md:grid-cols-2" : undefined) : "flex flex-col"}>
+        {showApartmentInfo && (
         <div>
-          {/* Apartment Cover */}
-          <div
-            className={
-              isModalLayout
-                ? "mt-4 h-52 w-full overflow-hidden rounded-3xl md:h-64"
-                : "mt-4 h-52 w-full overflow-hidden rounded-3xl"
-            }
-          >
-            <Image
-              src={header.coverImage ?? "/default/default-thumbnail.jpeg"}
-              alt={header.name}
-              width={800}
-              height={208}
-              unoptimized
-              className="size-full object-cover"
-            />
-          </div>
+          {header && (
+            <>
+              {/* Apartment Cover */}
+              <div
+                className={
+                  isModalLayout
+                    ? "mt-4 h-52 w-full overflow-hidden rounded-3xl md:h-64"
+                    : "mt-4 h-52 w-full overflow-hidden rounded-3xl"
+                }
+              >
+                <Image
+                  src={header.coverImage ?? "/default/default-thumbnail.jpeg"}
+                  alt={header.name}
+                  width={800}
+                  height={208}
+                  unoptimized
+                  className="size-full object-cover"
+                />
+              </div>
 
-          {/* Apartment Name and Address */}
-          <div className="mt-4 flex flex-col gap-1">
-            <h1 className="font-nunito text-2xl font-semibold text-card-foreground">
-              {header.name}
-            </h1>
-            <p className="text-base text-muted-foreground">
-              {address}
-            </p>
-          </div>
+              {/* Apartment Name and Address */}
+              <div className="mt-4 flex flex-col gap-1">
+                <h1 className="font-nunito text-2xl font-semibold text-card-foreground">
+                  {header.name}
+                </h1>
+                <p className="text-base text-muted-foreground">
+                  {address}
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Apartment Details */}
           <div className="mt-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
-              <span className="text-base font-medium text-card-foreground">
-                {header.landlordName}
-              </span>
-            </div>
+            {header && (
+              <>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
+                  <span className="text-base font-medium text-card-foreground">
+                    {header.landlordName}
+                  </span>
+                </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
-                <span className="text-base font-medium text-card-foreground">
-                  {header.type ?? "—"}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
+                    <span className="text-base font-medium text-card-foreground">
+                      {header.type ?? "—"}
+                    </span>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <Star size={22} className="text-secondary" fill="currentColor" />
-                <span className="text-base font-medium">
-                  {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
-                </span>
-              </div>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <Star size={22} className="text-secondary" fill="currentColor" />
+                    <span className="text-base font-medium">
+                      {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Duration of Stay — read-only, sourced from the tenancy record */}
             <div>
@@ -403,10 +415,13 @@ export function RateApartmentForm({
             </div>
           </div>
         </div>
+        )}
 
-        <Separator className={isModalLayout ? "my-6 md:hidden" : "my-6"} />
+        {showApartmentInfo && (
+          <Separator className={isModalLayout ? "my-6 md:hidden" : "my-6"} />
+        )}
 
-        <div className={isModalLayout ? undefined : "contents"}>
+        <div className={showApartmentInfo && !isModalLayout ? "contents" : undefined}>
           {/* Rating Input */}
           <div className="flex flex-col items-center">
             <Label className="font-nunito text-lg font-semibold">Overall Rating</Label>
