@@ -26,7 +26,7 @@ export default function RatingBreakdown({
   return (
     <div className="w-full flex gap-3">
       <div className="w-1/3 flex flex-col items-center justify-center">
-        <h3 className="text-6xl font-medium font-dm-serif text-secondary">
+        <h3 className="font-nunito text-6xl font-bold text-secondary">
           {overallRate}
         </h3>
 
@@ -53,11 +53,11 @@ export default function RatingBreakdown({
         </div>
 
         <div className="mt-2 text-center">
-          <p className="font-medium">
+          <p className="font-nunito text-base font-semibold text-card-foreground">
             Overall Rating
           </p>
 
-          <p className="text-sm">
+          <p className="text-sm text-muted-foreground">
             Based on {totalReviews} reviews
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function RatingBreakdown({
         ].map(({ label, count }) => (
           <div key={label} className="flex gap-2 items-center">
             <div className="flex items-center gap-1 w-8 shrink-0">
-              <span className="text-sm font-medium">{label}</span>
+              <span className="text-sm font-medium text-card-foreground">{label}</span>
               <Star size={14} className="text-secondary" fill="currentColor" />
             </div>
 
@@ -88,7 +88,7 @@ export default function RatingBreakdown({
               </Meter.Track>
             </Meter>
 
-            <p className="text-sm w-20 shrink-0 text-right text-grey-700">
+            <p className="text-sm w-20 shrink-0 text-right text-muted-foreground">
               {count} reviews
             </p>
           </div>

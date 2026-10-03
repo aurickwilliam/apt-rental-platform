@@ -45,7 +45,7 @@ export default function ReviewCard({
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0;
 
   return (
-    <Card className={["gap-0 shadow-none border border-default-200", className].filter(Boolean).join(" ")}>
+    <Card className={["gap-0 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
       <Card.Header className="flex flex-row items-center gap-3">
         <UserAvatar
           src={reviewerAvatar}
@@ -58,10 +58,10 @@ export default function ReviewCard({
         />
 
         <div className="flex flex-1 flex-col">
-          <h3 className="text-base font-medium">
+          <h3 className="font-nunito text-base font-semibold text-card-foreground">
             {reviewerName}
           </h3>
-          <p className="text-sm text-grey-500">
+          <p className="text-sm text-muted-foreground">
             {reviewDate}
           </p>
         </div>
@@ -69,13 +69,13 @@ export default function ReviewCard({
         {rating !== undefined && (
           <div className="flex items-center gap-1">
             <StarRating rating={rating} size={14} />
-            <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+            <span className="text-sm font-medium text-card-foreground">{rating.toFixed(1)}</span>
           </div>
         )}
       </Card.Header>
 
       <Card.Content>
-        <p className="text-sm">
+        <p className="text-sm text-card-foreground">
           {displayedReview}
         </p>
 
@@ -124,7 +124,7 @@ export default function ReviewCard({
 
       {stayPeriod && (
         <Card.Footer>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             {stayPeriod}
           </span>
         </Card.Footer>
