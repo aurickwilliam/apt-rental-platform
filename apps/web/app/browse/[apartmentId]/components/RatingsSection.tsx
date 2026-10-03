@@ -32,7 +32,7 @@ export default function RatingSection({
           size="sm"
           variant="ghost"
           onPress={() => router.push(`${basePath}/${apartmentId}/ratings`)}
-          className="-mr-3 text-secondary"
+          className="-mr-3 text-rating"
         >
           See all reviews
         </Button>

@@ -457,6 +457,11 @@ export function RateApartmentForm({
                 rows={5}
                 placeholder="Type your experience and review about the apartment.."
                 className="resize-none"
+                style={{
+                  backgroundColor: "var(--muted)",
+                  color: "var(--card-foreground)",
+                  borderColor: "var(--border)",
+                }}
               />
               <FieldError>{errors.reviewText}</FieldError>
             </TextField>
