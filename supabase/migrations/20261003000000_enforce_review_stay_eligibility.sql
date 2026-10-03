@@ -2,9 +2,13 @@
 -- 3 months of stay or once the tenancy has ended.
 --
 -- Additive and idempotent: INSERT-only trigger, no existing rows touched.
--- Resolves the stay through NEW.tenancy_id (same key the sync trigger uses)
--- and sanity-matches tenant + apartment. Mobile gets enforcement for free
--- since this fires for every insert regardless of client.
+-- The stay is resolved through NEW.tenancy_id alone. The client inserts only
+-- tenancy_id; tenant_id / apartment_id are backfilled by the
+-- sync_review_tenancy_fields trigger, which may not have run yet when this
+-- trigger fires (same-event triggers fire alphabetically). Matching on all
+-- three columns here would see NULLs and reject every insert.
+-- Mobile gets enforcement for free since this fires for every insert
+-- regardless of client.
 
 create or replace function public.enforce_review_stay_eligibility()
  returns trigger
@@ -18,9 +22,7 @@ declare
 begin
   select t.lease_start, t.lease_end into v_lease_start, v_lease_end
   from public.tenancies t
-  where t.id = new.tenancy_id
-    and t.tenant_id = new.tenant_id
-    and t.apartment_id = new.apartment_id;
+  where t.id = new.tenancy_id;
 
   if not found then
     raise exception 'Review does not match a tenancy for this apartment.' using errcode = '23514';
