@@ -12,15 +12,18 @@ type CameraCaptureProps = {
   onCancel: () => void;
 };
 
-// Browser camera capture: requests permission only when mounted (i.e. only
-// on a capture step), prefers the requested lens, stops all tracks on
-// unmount and right after capture. Falls back to a file picker when the
-// camera is unavailable or permission is denied.
+// Browser camera capture (web-only, no native app): permission is requested
+// only after the user taps "Enable camera" on a capture step -- never
+// before -- prefers the requested lens (rear for IDs, front for selfies),
+// and stops all tracks on unmount, on cancel, and right after capture.
+// Falls back to a file picker (which opens the native camera sheet on
+// iPhone Safari via the capture attribute) when the camera is unavailable
+// or permission is denied.
 export default function CameraCapture({ facing, guide, onCapture, onCancel }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState<"starting" | "live" | "unavailable">("starting");
+  const [status, setStatus] = useState<"idle" | "starting" | "live" | "unavailable">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
 
@@ -30,51 +33,51 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel }: Ca
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Stop camera tracks when leaving the camera step. Each wizard step
+  // mounts a fresh CameraCapture, so no facing-change reset is needed.
+  useEffect(() => stopStream, [stopStream]);
 
-    const start = async () => {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setErrorMessage("This browser can't access the camera. You can upload a photo instead.");
-        setStatus("unavailable");
-        return;
+  const startCamera = useCallback(async () => {
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      setErrorMessage(
+        "The camera needs a secure (HTTPS) page. You can upload a photo instead.",
+      );
+      setStatus("unavailable");
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorMessage("This browser can't access the camera. You can upload a photo instead.");
+      setStatus("unavailable");
+      return;
+    }
+    setStatus("starting");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
       }
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: facing },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-          audio: false,
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((track) => track.stop());
-          return;
-        }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-        setStatus("live");
-      } catch (error) {
-        const name = error instanceof DOMException ? error.name : "";
-        setErrorMessage(
-          name === "NotAllowedError"
-            ? "Camera permission was denied. Allow access in your browser settings, or upload a photo instead."
+      setStatus("live");
+    } catch (error) {
+      const name = error instanceof DOMException ? error.name : "";
+      setErrorMessage(
+        name === "NotAllowedError"
+          ? "Camera permission was denied. Allow access in Safari (aA → Website Settings → Camera), or upload a photo instead."
+          : name === "NotFoundError" || name === "OverconstrainedError"
+            ? "No suitable camera was found on this device. You can upload a photo instead."
             : "Couldn't start the camera. You can upload a photo instead.",
-        );
-        setStatus("unavailable");
-      }
-    };
-
-    void start();
-    return () => {
-      cancelled = true;
-      stopStream();
-    };
-  }, [facing, stopStream]);
+      );
+      setStatus("unavailable");
+    }
+  }, [facing]);
 
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
@@ -111,39 +114,54 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel }: Ca
     <div className="flex flex-col gap-3">
       <p className="text-sm text-muted-foreground text-center">{guide}</p>
 
-      {status === "starting" && (
-        <div className="flex items-center justify-center gap-2 rounded-2xl bg-muted py-16">
-          <Spinner size="sm" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Starting camera...</p>
+      {status === "idle" && (
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-muted px-4 py-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            Your camera stays off until you enable it for this step.
+          </p>
+          <Button type="button" variant="primary" onPress={() => void startCamera()}>
+            Enable camera
+          </Button>
         </div>
       )}
 
-      {status === "live" && (
+      {/* The video element mounts before the stream arrives so the ref
+          exists when getUserMedia resolves; controls appear once live. */}
+      {(status === "starting" || status === "live") && (
         <>
-          <div className="overflow-hidden rounded-2xl bg-black">
+          <div className="relative overflow-hidden rounded-2xl bg-black">
             <video
               ref={videoRef}
               playsInline
+              autoPlay
               muted
               className="aspect-[4/3] w-full object-cover"
               aria-label="Camera preview"
             />
+            {status === "starting" && (
+              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60">
+                <Spinner size="sm" aria-hidden="true" />
+                <p className="text-sm text-white">Starting camera...</p>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
-              Back
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onPress={handleCapture}
-              isDisabled={isCapturing}
-              isPending={isCapturing}
-              className="flex-1"
-            >
-              Capture
-            </Button>
-          </div>
+          {status === "live" && (
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
+                Back
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onPress={handleCapture}
+                isDisabled={isCapturing}
+                isPending={isCapturing}
+                className="flex-1"
+              >
+                Capture
+              </Button>
+            </div>
+          )}
         </>
       )}
 

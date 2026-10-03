@@ -9,10 +9,17 @@ interface UserRolesProfile {
   account_status: string;
 }
 
+function safeNextPath(value: string | null): string {
+  if (!value) return "/";
+  // Internal paths only: never protocol-relative or absolute URLs.
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) return "/";
+  return value;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = safeNextPath(searchParams.get("next"));
   const requestedRole = searchParams.get("role");
 
   const role =

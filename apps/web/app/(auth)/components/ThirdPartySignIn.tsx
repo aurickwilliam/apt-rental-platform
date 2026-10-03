@@ -5,7 +5,7 @@ import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
 
-export default function ThirdPartySignIn() {
+export default function ThirdPartySignIn({ next }: { next?: string }) {
   const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,10 +17,13 @@ export default function ThirdPartySignIn() {
     // Same-tab OAuth: the callback route owns all post-login routing.
     // Sign-in sends no explicit role (role-agnostic); sign-up sends the
     // chosen tab role so onboarding/grant can run for that portal.
-    const redirectTo =
-      type === "sign-in"
-        ? `${window.location.origin}/auth/callback`
-        : `${window.location.origin}/auth/callback?role=${role}`;
+    // A verification handoff (`next`) is threaded through the callback so
+    // Google sign-in on the phone also returns to /verify/mobile?token=...
+    const params = new URLSearchParams();
+    if (type === "sign-up") params.set("role", role);
+    if (type === "sign-in" && next) params.set("next", next);
+    const query = params.toString();
+    const redirectTo = `${window.location.origin}/auth/callback${query ? `?${query}` : ""}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
