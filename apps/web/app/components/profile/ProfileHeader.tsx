@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Button, Card } from "@heroui/react";
 
+import VerifyDialog from "@/app/verify/components/VerifyDialog";
 import EditableAvatar from "./EditableAvatar";
 import EditableCover from "./EditableCover";
 import RoleBadge from "./RoleBadge";
@@ -33,11 +34,12 @@ export default function ProfileHeader({
   avatarUrl,
   backgroundUrl,
 }: ProfileHeaderProps) {
-  const router = useRouter();
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const needsVerification = accountStatus !== "verified" && accountStatus !== "pending";
 
   return (
-    <Card className="overflow-hidden border border-border bg-card text-card-foreground rounded-2xl">
+    <>
+      <Card className="overflow-hidden border border-border bg-card text-card-foreground rounded-2xl">
       <Card.Content className="p-0">
         <EditableCover authUserId={authUserId} initialUrl={backgroundUrl} />
         <div className="px-6 pb-6">
@@ -67,7 +69,7 @@ export default function ProfileHeader({
                   type="button"
                   size="sm"
                   variant="primary"
-                  onPress={() => router.push("/verify")}
+                  onPress={() => setVerifyOpen(true)}
                   className="mt-1"
                 >
                   {accountStatus === "rejected" ? "Verification Rejected — submit again" : "Verify Account"}
@@ -77,6 +79,8 @@ export default function ProfileHeader({
           </div>
         </div>
       </Card.Content>
-    </Card>
+      </Card>
+      <VerifyDialog open={verifyOpen} onClose={() => setVerifyOpen(false)} />
+    </>
   );
 }

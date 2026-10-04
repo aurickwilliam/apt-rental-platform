@@ -18,9 +18,12 @@ interface AuthWrapperProps {
   portalError?: string | null;
   showWelcomeNotice?: boolean;
   rolePickerMode?: boolean;
+  // Verification handoff only: where to resume after login
+  // (/verify or /verify/mobile?token=...). Never an external URL.
+  next?: string;
 }
 
-function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean }) {
+function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean; next?: string }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -130,7 +133,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
               </div>
             )}
 
-            <AuthForm />
+            <AuthForm next={type === "sign-in" ? next : undefined} />
 
             {/* Divider */}
             <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex items-center gap-3">
@@ -139,7 +142,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
               <Separator className="flex-1" />
             </div>
 
-            <ThirdPartySignIn />
+            <ThirdPartySignIn next={type === "sign-in" ? next : undefined} />
 
             <div className="mt-auto flex flex-col items-center gap-[clamp(0.75rem,2vh,1.25rem)] pt-[clamp(1.5rem,4vh,2rem)]">
               <BottomLinks />
@@ -155,10 +158,10 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
   );
 }
 
-export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode, next }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} />
+      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} next={next} />
     </AuthProvider>
   );
 }
