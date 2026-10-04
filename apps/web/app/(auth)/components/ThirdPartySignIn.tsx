@@ -5,7 +5,7 @@ import { useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
 
-export default function ThirdPartySignIn() {
+export default function ThirdPartySignIn({ next }: { next?: string }) {
   const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,11 +19,19 @@ export default function ThirdPartySignIn() {
     // chosen tab role so onboarding/grant can run for that portal.
     // window.location.origin keeps localhost in dev and the Vercel domain
     // in production with no hardcoded URL. Preserve ?next= so the callback
-    // can return the user to their intended destination.
+    // can return the user to their intended destination (e.g. the phone's
+    // /verify/mobile?token=... page after Google sign-in). Prefer the
+    // server-validated `next` prop, falling back to the sign-in URL.
     const callbackParams = new URLSearchParams();
     if (type !== "sign-in") callbackParams.set("role", role);
-    const requestedNext = new URLSearchParams(window.location.search).get("next");
-    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+    const requestedNext =
+      next ?? new URLSearchParams(window.location.search).get("next");
+    if (
+      requestedNext &&
+      requestedNext.startsWith("/") &&
+      !requestedNext.startsWith("//") &&
+      !requestedNext.includes("://")
+    ) {
       callbackParams.set("next", requestedNext);
     }
     const callbackQuery = callbackParams.toString();
