@@ -1,8 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Button, Spinner } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { Spinner } from "@heroui/react";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
@@ -10,7 +8,6 @@ import { useTenancy } from "@/hooks/use-tenancy";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
 export default function MaintenanceRequestPage() {
-  const router = useRouter();
   const { tenancy, loading: tenancyLoading } = useTenancy();
   const apartmentId = tenancy?.apartment.id ?? null;
   const {
@@ -38,20 +35,14 @@ export default function MaintenanceRequestPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Header */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="w-fit shrink-0" onPress={() => router.back()}>
-              <ArrowLeft size={16} />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold font-nunito text-card-foreground">
-                Request Maintenance
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Let your landlord know about an issue with your unit. We&apos;ll
-                notify them right away and keep you posted on the status.
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold font-nunito text-card-foreground">
+              Request Maintenance
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Let your landlord know about an issue with your unit. We&apos;ll
+              notify them right away and keep you posted on the status.
+            </p>
           </div>
 
           {tenancyLoading ? (

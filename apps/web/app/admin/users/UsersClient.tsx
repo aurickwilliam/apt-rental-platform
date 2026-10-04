@@ -159,7 +159,7 @@ export default function UsersClient({
             placeholder="All roles"
           >
             <Label>Role</Label>
-            <Select.Trigger className="focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
+            <Select.Trigger className="bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
               <Select.Value className="min-w-0 truncate" />
               <Select.Indicator />
             </Select.Trigger>
@@ -186,7 +186,7 @@ export default function UsersClient({
             placeholder="Select a status"
           >
             <Label>Verification status</Label>
-            <Select.Trigger className="focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
+            <Select.Trigger className="bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>

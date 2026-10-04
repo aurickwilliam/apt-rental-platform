@@ -48,7 +48,7 @@ export default function CompleteProfileForm({
   };
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-[clamp(1.5rem,4vh,2rem)]">
       <input type="hidden" name="role" value={role} />
 
       {/* Personal Information */}

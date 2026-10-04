@@ -26,7 +26,7 @@ export default function RatingBreakdown({
   return (
     <div className="w-full flex gap-3">
       <div className="w-1/3 flex flex-col items-center justify-center">
-        <h3 className="text-6xl font-medium font-dm-serif text-secondary">
+        <h3 className="text-6xl font-medium font-dm-serif text-secondary dark:text-[#FFA500]">
           {overallRate}
         </h3>
 
@@ -38,13 +38,13 @@ export default function RatingBreakdown({
             return (
               <span key={i} className="relative inline-flex">
                 {/* Empty star (base) */}
-                <Star size={22} className="text-secondary" fill="transparent" />
+                <Star size={22} className="text-secondary dark:text-[#FFA500]" fill="transparent" />
                 {/* Filled overlay — full or half */}
                 {(filled || half) && (
                   <span
                     className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
                   >
-                    <Star size={22} className="text-secondary" fill="currentColor" />
+                    <Star size={22} className="text-secondary dark:text-[#FFA500]" fill="currentColor" />
                   </span>
                 )}
               </span>
@@ -74,7 +74,7 @@ export default function RatingBreakdown({
           <div key={label} className="flex gap-2 items-center">
             <div className="flex items-center gap-1 w-8 shrink-0">
               <span className="text-sm font-medium">{label}</span>
-              <Star size={14} className="text-secondary" fill="currentColor" />
+              <Star size={14} className="text-secondary dark:text-[#FFA500]" fill="currentColor" />
             </div>
 
             <Meter

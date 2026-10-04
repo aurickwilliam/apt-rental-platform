@@ -53,7 +53,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 text-sm font-medium wrap-break-word">{value}</p>
+      <p className="mt-1 text-sm font-medium text-foreground wrap-break-word">{value}</p>
     </div>
   );
 }
@@ -187,7 +187,7 @@ export default function UserSettingsModal({
                     {activeTab === "account" ? (
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-nunito text-lg font-bold">Account</h2>
+                          <h2 className="font-nunito text-lg font-bold text-foreground">Account</h2>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Identity and role details are read-only for administrators.
                           </p>
@@ -209,7 +209,7 @@ export default function UserSettingsModal({
                     {activeTab === "security" ? (
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-nunito text-lg font-bold">Security &amp; verification</h2>
+                          <h2 className="font-nunito text-lg font-bold text-foreground">Security &amp; verification</h2>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Passwords and sign-in credentials are never exposed to administrators.
                           </p>
@@ -217,7 +217,7 @@ export default function UserSettingsModal({
                         <div className="rounded-2xl border border-border p-4">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                              <p className="font-semibold">Identity verification</p>
+                              <p className="font-semibold text-foreground">Identity verification</p>
                               <p className="mt-1 text-sm text-muted-foreground">
                                 {latestVerification
                                   ? `${latestVerification.id_type} · submitted ${joinedFormatter.format(new Date(latestVerification.submitted_at))}`
@@ -243,7 +243,7 @@ export default function UserSettingsModal({
                           ) : null}
                         </div>
                         <div className="rounded-2xl border border-border p-4">
-                          <p className="font-semibold">Account access</p>
+                          <p className="font-semibold text-foreground">Account access</p>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {user.is_suspended
                               ? `Suspended${user.suspension_reason ? ` — ${user.suspension_reason}` : ""}`
@@ -256,13 +256,13 @@ export default function UserSettingsModal({
                     {activeTab === "notifications" ? (
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-nunito text-lg font-bold">Notifications</h2>
+                          <h2 className="font-nunito text-lg font-bold text-foreground">Notifications</h2>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Notification delivery is controlled by the account holder.
                           </p>
                         </div>
                         <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm">
-                          <p className="font-semibold">Private account preference</p>
+                          <p className="font-semibold text-foreground">Private account preference</p>
                           <p className="mt-1 text-muted-foreground">
                             Current access policies do not allow administrators to view or change this user&apos;s notification preferences.
                           </p>
@@ -273,7 +273,7 @@ export default function UserSettingsModal({
                     {activeTab === "actions" ? (
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-nunito text-lg font-bold">Account actions</h2>
+                          <h2 className="font-nunito text-lg font-bold text-foreground">Account actions</h2>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Access changes require a reason and are recorded in the admin audit log.
                           </p>
@@ -288,7 +288,7 @@ export default function UserSettingsModal({
                                 <IconLock size={20} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
                               )}
                               <div>
-                                <p className="font-semibold">{actionLabel}</p>
+                                <p className="font-semibold text-foreground">{actionLabel}</p>
                                 <p className="mt-1 text-sm text-muted-foreground">
                                   {user.is_suspended
                                     ? "Allow this user to sign in and access protected data again."
@@ -311,7 +311,7 @@ export default function UserSettingsModal({
                                 minLength={3}
                                 maxLength={500}
                                 required
-                                className="mt-2 w-full"
+                                className="mt-2 w-full bg-card! text-foreground!"
                               />
                             </div>
                             {isConfirming ? (

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
 import type { LucideIcon } from "lucide-react";
 import {
   IconArrowsExchange,
@@ -61,10 +62,10 @@ import {
   Menu,
 } from "lucide-react";
 
-import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
+import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -161,6 +162,26 @@ function getInitialSidebarState() {
   return false;
 }
 
+/**
+ * Closes an overlay when the window crosses `query` in the direction that
+ * hides its anchor.
+ *
+ * The account dropdown lives in a floating layer, so hiding the sidebar
+ * (`hidden md:flex`) does not hide an already-open menu — it stays
+ * anchored to nothing and floats over the page. Closing on the crossing
+ * keeps it tied to a visible anchor in both directions.
+ */
+function useCloseOverlayAt(query: string, shouldClose: boolean, close: () => void) {
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const handleChange = () => {
+      if (shouldClose) close();
+    };
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [query, shouldClose, close]);
+}
+
 // Client-mount gate for theme-dependent UI (avoids hydration mismatch).
 // Mirrors the sidebar's collapsed-state store pattern so no effect is needed.
 function subscribeThemeMounted() {
@@ -173,6 +194,50 @@ type NavItem = {
   icon: string;
 };
 
+export type SwitchTarget = { href: string; label: string };
+
+/**
+ * One-click portal switch entries, offered only for portals whose role the
+ * account actually holds. Navigating cross-portal is the context switch —
+ * no re-authentication and no new role grant, since the held role already
+ * satisfies the route guards. Dual-role tenant/landlord accounts get one
+ * entry for the other portal; admins (who may hold either consumer role,
+ * both, or neither) get an entry per held consumer portal, and any consumer
+ * portal gets a way back to /admin.
+ *
+ * Shared by the desktop sidebar dropdown and the mobile FAB menu so the two
+ * cannot drift apart.
+ */
+export function getSwitchTargets(
+  activePortal: "tenant" | "landlord" | "admin" | undefined,
+  userRoles: string[],
+): SwitchTarget[] {
+  if (!activePortal) return [];
+
+  if (activePortal === "admin") {
+    return [
+      userRoles.includes("landlord")
+        ? { href: "/landlord/dashboard", label: "View as Landlord" }
+        : null,
+      userRoles.includes("tenant")
+        ? { href: "/tenant/my-rental", label: "View as Tenant" }
+        : null,
+    ].filter((item): item is SwitchTarget => item !== null);
+  }
+
+  return [
+    userRoles.includes("admin")
+      ? { href: "/admin/dashboard", label: "Back to Admin view" }
+      : null,
+    activePortal === "tenant" && userRoles.includes("landlord")
+      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
+      : null,
+    activePortal === "landlord" && userRoles.includes("tenant")
+      ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
+      : null,
+  ].filter((item): item is SwitchTarget => item !== null);
+}
+
 type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
@@ -180,10 +245,11 @@ type AppSidebarProps = {
   userAvatarUrl?: string | null;
   showAccountLinks?: boolean;
   // Multi-role switching: all roles the account holds + which portal
-  // this sidebar belongs to. The switch item only appears when the
-  // account holds the other portal's role.
+  // this sidebar belongs to. Switch entries only appear for portals whose
+  // role the account actually holds — the held role is what lets the
+  // middleware admit that portal, so no extra grant is needed.
   userRoles?: string[];
-  activePortal?: "tenant" | "landlord";
+  activePortal?: "tenant" | "landlord" | "admin";
   profileHref?: string;
   settingsHref?: string;
   settingsQueryParam?: string;
@@ -264,21 +330,19 @@ export function AppSidebar({
           ? "Admin sidebar"
           : "Portal sidebar";
 
+  // The sidebar is `hidden md:flex`, so an open account menu would be
+  // orphaned over the page once the window drops below md.
+  const [isAccountMenuOpen, setAccountMenuOpen] = useState(false);
+  const closeAccountMenu = useCallback(() => setAccountMenuOpen(false), []);
+  useCloseOverlayAt("(max-width: 767.98px)", true, closeAccountMenu);
+
   const displayName = userName?.trim() || "User";
   const roleLabel = userRole?.trim() || "";
   const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
     ? "/landlord/profile"
     : "/tenant/profile");
 
-  // One-click role switch: offered only when the account holds the other
-  // portal's role. Navigating cross-portal is the context switch — no
-  // re-authentication needed.
-  const switchTarget =
-    activePortal === "tenant" && userRoles.includes("landlord")
-      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
-      : activePortal === "landlord" && userRoles.includes("tenant")
-        ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
-        : null;
+  const switchTargets = getSwitchTargets(activePortal, userRoles);
 
   return (
     <aside
@@ -386,7 +450,7 @@ export function AppSidebar({
       <div
         className={`border-t border-sidebar-border bg-sidebar ${collapsed ? "p-2" : "p-3"}`}
       >
-        <Dropdown>
+        <Dropdown isOpen={isAccountMenuOpen} onOpenChange={setAccountMenuOpen}>
           <Button
             variant="ghost"
             aria-label={collapsed ? `${displayName} account menu` : undefined}
@@ -441,7 +505,8 @@ export function AppSidebar({
                     window.location.href = settingsHref ?? "/settings";
                   }
                 }
-                if (key === "switch-role" && switchTarget) window.location.href = switchTarget.href;
+                const target = switchTargets.find((item) => `switch:${item.href}` === key);
+                if (target) window.location.href = target.href;
                 if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
@@ -457,18 +522,22 @@ export function AppSidebar({
                     Profile
                   </Label>
                 </Dropdown.Item>
-                {switchTarget ? (
-                  <Dropdown.Item id="switch-role" textValue={switchTarget.label}>
+                {switchTargets.map((target) => (
+                  <Dropdown.Item
+                    key={target.href}
+                    id={`switch:${target.href}`}
+                    textValue={target.label}
+                  >
                     <Label className="flex items-center gap-2">
                       {iconSet === "tabler" ? (
                         <IconArrowsExchange size={18} aria-hidden="true" />
                       ) : (
                         <ArrowLeftRight size={18} aria-hidden="true" />
                       )}
-                      {switchTarget.label}
+                      {target.label}
                     </Label>
                   </Dropdown.Item>
-                ) : null}
+                ))}
                 <Dropdown.Item id="theme" textValue="Dark Mode">
                   <Label className="flex w-full items-center gap-2">
                     {iconSet === "tabler" ? (
@@ -524,27 +593,72 @@ export function AppSidebar({
   );
 }
 
-export function MobileSidebarNavigation({
-  navItems,
-  iconSet = "lucide",
-  navLabel = "Admin navigation",
-  menuLabel = "Admin pages",
-  buttonLabel = "Open admin navigation",
-}: {
+type MobileSidebarNavigationProps = {
   navItems: NavItem[];
   iconSet?: "lucide" | "tabler";
   navLabel?: string;
   menuLabel?: string;
   buttonLabel?: string;
-}) {
+  // Same multi-role switching inputs as AppSidebar, so this menu offers the
+  // same entries instead of being role-blind on phones.
+  userRoles?: string[];
+  activePortal?: "tenant" | "landlord" | "admin";
+};
+
+// `useSearchParams` (for the Settings row) opts a subtree into client-side
+// rendering, so it must sit behind a Suspense boundary or prerendering any
+// portal page fails with "useSearchParams() should be wrapped in a suspense
+// boundary". Callers render this wrapper; the work happens in the inner
+// component.
+function MobileSidebarMenu({
+  navItems,
+  iconSet,
+  navLabel,
+  menuLabel,
+  buttonLabel,
+  userRoles,
+  activePortal,
+}: MobileSidebarNavigationProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { resolvedTheme, setTheme } = useTheme();
+
+  // Mirrors the sidebar footer so the theme icon matches in both menus.
+  const themeMounted = useSyncExternalStore(
+    subscribeThemeMounted,
+    () => true,
+    () => false,
+  );
+  const isDark = themeMounted && resolvedTheme === "dark";
+  const toggleTheme = useCallback(() => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }, [resolvedTheme, setTheme]);
+
+  // This FAB is `md:hidden`, so an open menu would be orphaned once the
+  // window reaches md and the sidebar takes over.
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+
+  // Settings and theme were only reachable from the desktop sidebar, so
+  // they are offered here too — this menu is the sole navigation on phones.
+  const openSettings = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("settings", SETTINGS_QUERY_VALUE);
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  };
+
+  // Same helper the sidebar dropdown uses, so both menus stay in step.
+  const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
   return (
     <nav
       aria-label={navLabel}
       className="fixed bottom-4 left-4 z-40 md:hidden"
     >
-      <Dropdown>
+      <Dropdown isOpen={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <Button
           variant="primary"
           className="rounded-full shadow-sm"
@@ -558,7 +672,17 @@ export function MobileSidebarNavigation({
           Menu
         </Button>
         <Dropdown.Popover placement="top start">
-          <Dropdown.Menu aria-label={menuLabel}>
+          <Dropdown.Menu
+            aria-label={menuLabel}
+            onAction={(key) => {
+              if (key === "settings") openSettings();
+              // The switch is pointer-events-none, so the row tap is what
+              // actually toggles the theme (mirrors the sidebar footer).
+              if (key === "theme") toggleTheme();
+              const target = switchTargets.find((item) => `switch:${item.href}` === key);
+              if (target) window.location.href = target.href;
+            }}
+          >
             {navItems.map(({ href, label, icon }) => {
               const Icon =
                 iconSet === "tabler"
@@ -579,10 +703,71 @@ export function MobileSidebarNavigation({
                 </Dropdown.Item>
               );
             })}
+
+            {switchTargets.map((target) => (
+              <Dropdown.Item
+                key={target.href}
+                id={`switch:${target.href}`}
+                textValue={target.label}
+              >
+                <Label className="flex items-center gap-2">
+                  {iconSet === "tabler" ? (
+                    <IconArrowsExchange size={18} aria-hidden="true" />
+                  ) : (
+                    <ArrowLeftRight size={18} aria-hidden="true" />
+                  )}
+                  {target.label}
+                </Label>
+              </Dropdown.Item>
+            ))}
+
+            <Dropdown.Item id="settings" textValue="Settings">
+              <Label className="flex items-center gap-2">
+                {iconSet === "tabler" ? (
+                  <IconSettings size={18} aria-hidden="true" />
+                ) : (
+                  <Settings size={18} aria-hidden="true" />
+                )}
+                Settings
+              </Label>
+            </Dropdown.Item>
+
+            <Dropdown.Item id="theme" textValue="Dark Mode">
+              <Label className="flex w-full items-center gap-2">
+                {iconSet === "tabler" ? (
+                  isDark ? (
+                    <IconMoon size={18} aria-hidden="true" />
+                  ) : (
+                    <IconSun size={18} aria-hidden="true" />
+                  )
+                ) : isDark ? (
+                  <Moon size={18} aria-hidden="true" />
+                ) : (
+                  <Sun size={18} aria-hidden="true" />
+                )}
+                Dark Mode
+                <span className="ml-auto pointer-events-none flex items-center">
+                  <ToggleSwitch
+                    isSelected={isDark}
+                    onValueChange={toggleTheme}
+                    disabled={!themeMounted}
+                    aria-label="Toggle dark mode"
+                  />
+                </span>
+              </Label>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>
     </nav>
+  );
+}
+
+export function MobileSidebarNavigation(props: MobileSidebarNavigationProps) {
+  return (
+    <Suspense fallback={null}>
+      <MobileSidebarMenu {...props} />
+    </Suspense>
   );
 }
 

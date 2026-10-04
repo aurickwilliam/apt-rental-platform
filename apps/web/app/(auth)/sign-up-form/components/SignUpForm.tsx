@@ -108,7 +108,7 @@ export default function SignUpForm() {
 
   return (
     <>
-      <Form onSubmit={handleSubmit} className="flex flex-col gap-5 my-10">
+      <Form onSubmit={handleSubmit} className="flex flex-col gap-[clamp(1.25rem,3vh,1.25rem)] my-[clamp(2rem,5vh,2.5rem)]">
         {/* Personal Information */}
         <h2 className="text-2xl font-medium font-noto-serif mb-3 text-foreground">
           Personal Information
@@ -276,7 +276,7 @@ export default function SignUpForm() {
         </div>
 
         {/* Address Information */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10 text-foreground">
+        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
           Address Information
         </h2>
 
@@ -381,7 +381,7 @@ export default function SignUpForm() {
         </div>
 
         {/* Password */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-10 text-foreground">
+        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
           Set Your Password
         </h2>
 
@@ -412,7 +412,7 @@ export default function SignUpForm() {
 
         <Button
           variant="primary"
-          className="w-full mt-5 md:max-w-[300px] md:self-end rounded-full"
+          className="w-full mt-[clamp(1.25rem,3vh,1.5rem)] md:max-w-[300px] md:self-end rounded-full"
           size="lg"
           type="submit"
           isPending={loading}

@@ -8,13 +8,17 @@ import { Contact, Message } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { createClient } from "@repo/supabase/browser";
-import { MessageSquare } from "lucide-react";
+import { ChevronLeft, MessageSquare } from "lucide-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
   currentUserId: string;
   onConversationRead?: (contactId: string) => void;
   apartmentId?: string | null;
+  /** Shows the back-to-contacts control in the header (mobile only). */
+  onBack?: () => void;
+  /** Layout overrides, used for the mobile master-detail swap. */
+  className?: string;
 }
 
 function TypingIndicator() {
@@ -40,6 +44,8 @@ export default function ConversationView({
   currentUserId,
   onConversationRead,
   apartmentId,
+  onBack,
+  className = "",
 }: ConversationViewProps) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -223,7 +229,7 @@ export default function ConversationView({
   // Empty State
   if (!activeContact) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16 bg-card">
+      <div className={`min-w-0 flex-1 flex-col items-center justify-center text-center px-8 py-16 bg-card ${className}`}>
         {/* Icon cluster */}
         <div className="relative mb-8">
           <div className="w-18 h-18 rounded-full bg-primary/10 border border-border flex items-center justify-center">
@@ -243,9 +249,20 @@ export default function ConversationView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
+    <div className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card ${className}`}>
       {/* Header */}
-      <div className="p-3 border-b border-border flex items-center gap-4 bg-card shadow-sm z-10">
+      <div className="p-3 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
+        {/* Mobile master-detail: return to the contact list. */}
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Back to conversations"
+            className="-ml-1 shrink-0 rounded-lg p-2 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
+          >
+            <ChevronLeft size={20} aria-hidden="true" />
+          </button>
+        )}
         <UserAvatar
           src={activeContact.avatar}
           initials={activeContact.name
