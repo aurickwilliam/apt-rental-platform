@@ -45,6 +45,8 @@ export default async function AdminLayout({
       <MobileSidebarNavigation
         navItems={[...ADMIN_NAV, { href: "/admin/profile", label: "Profile", icon: "User" }]}
         iconSet="tabler"
+        userRoles={profile.roles}
+        activePortal="admin"
       />
       <Suspense fallback={null}>
         <SettingsOverlay iconSet="tabler" />

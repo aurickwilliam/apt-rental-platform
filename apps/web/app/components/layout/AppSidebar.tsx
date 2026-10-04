@@ -194,6 +194,50 @@ type NavItem = {
   icon: string;
 };
 
+export type SwitchTarget = { href: string; label: string };
+
+/**
+ * One-click portal switch entries, offered only for portals whose role the
+ * account actually holds. Navigating cross-portal is the context switch —
+ * no re-authentication and no new role grant, since the held role already
+ * satisfies the route guards. Dual-role tenant/landlord accounts get one
+ * entry for the other portal; admins (who may hold either consumer role,
+ * both, or neither) get an entry per held consumer portal, and any consumer
+ * portal gets a way back to /admin.
+ *
+ * Shared by the desktop sidebar dropdown and the mobile FAB menu so the two
+ * cannot drift apart.
+ */
+export function getSwitchTargets(
+  activePortal: "tenant" | "landlord" | "admin" | undefined,
+  userRoles: string[],
+): SwitchTarget[] {
+  if (!activePortal) return [];
+
+  if (activePortal === "admin") {
+    return [
+      userRoles.includes("landlord")
+        ? { href: "/landlord/dashboard", label: "View as Landlord" }
+        : null,
+      userRoles.includes("tenant")
+        ? { href: "/tenant/my-rental", label: "View as Tenant" }
+        : null,
+    ].filter((item): item is SwitchTarget => item !== null);
+  }
+
+  return [
+    userRoles.includes("admin")
+      ? { href: "/admin/dashboard", label: "Back to Admin view" }
+      : null,
+    activePortal === "tenant" && userRoles.includes("landlord")
+      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
+      : null,
+    activePortal === "landlord" && userRoles.includes("tenant")
+      ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
+      : null,
+  ].filter((item): item is SwitchTarget => item !== null);
+}
+
 type AppSidebarProps = {
   navItems: NavItem[];
   userName: string;
@@ -298,39 +342,7 @@ export function AppSidebar({
     ? "/landlord/profile"
     : "/tenant/profile");
 
-  // One-click portal switch: offered only for portals whose role the
-  // account actually holds. Navigating cross-portal is the context switch —
-  // no re-authentication and no new role grant, since the held role already
-  // satisfies the route guards. Dual-role tenant/landlord accounts get one
-  // entry for the other portal; admins (who may hold either consumer role,
-  // both, or neither) get an entry per held consumer portal, and any
-  // consumer portal gets a way back to /admin.
-  const switchTargets: { href: string; label: string }[] = (() => {
-    if (!activePortal) return [];
-
-    if (activePortal === "admin") {
-      return [
-        userRoles.includes("landlord")
-          ? { href: "/landlord/dashboard", label: "View as Landlord" }
-          : null,
-        userRoles.includes("tenant")
-          ? { href: "/tenant/my-rental", label: "View as Tenant" }
-          : null,
-      ].filter((item): item is { href: string; label: string } => item !== null);
-    }
-
-    return [
-      userRoles.includes("admin")
-        ? { href: "/admin/dashboard", label: "Back to Admin view" }
-        : null,
-      activePortal === "tenant" && userRoles.includes("landlord")
-        ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
-        : null,
-      activePortal === "landlord" && userRoles.includes("tenant")
-        ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
-        : null,
-    ].filter((item): item is { href: string; label: string } => item !== null);
-  })();
+  const switchTargets = getSwitchTargets(activePortal, userRoles);
 
   return (
     <aside
@@ -587,12 +599,18 @@ export function MobileSidebarNavigation({
   navLabel = "Admin navigation",
   menuLabel = "Admin pages",
   buttonLabel = "Open admin navigation",
+  userRoles = [],
+  activePortal,
 }: {
   navItems: NavItem[];
   iconSet?: "lucide" | "tabler";
   navLabel?: string;
   menuLabel?: string;
   buttonLabel?: string;
+  // Same multi-role switching inputs as AppSidebar, so this menu offers the
+  // same entries instead of being role-blind on phones.
+  userRoles?: string[];
+  activePortal?: "tenant" | "landlord" | "admin";
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -625,6 +643,9 @@ export function MobileSidebarNavigation({
     router.push(`${pathname}${query ? `?${query}` : ""}`);
   };
 
+  // Same helper the sidebar dropdown uses, so both menus stay in step.
+  const switchTargets = getSwitchTargets(activePortal, userRoles);
+
   return (
     <nav
       aria-label={navLabel}
@@ -651,6 +672,8 @@ export function MobileSidebarNavigation({
               // The switch is pointer-events-none, so the row tap is what
               // actually toggles the theme (mirrors the sidebar footer).
               if (key === "theme") toggleTheme();
+              const target = switchTargets.find((item) => `switch:${item.href}` === key);
+              if (target) window.location.href = target.href;
             }}
           >
             {navItems.map(({ href, label, icon }) => {
@@ -673,6 +696,23 @@ export function MobileSidebarNavigation({
                 </Dropdown.Item>
               );
             })}
+
+            {switchTargets.map((target) => (
+              <Dropdown.Item
+                key={target.href}
+                id={`switch:${target.href}`}
+                textValue={target.label}
+              >
+                <Label className="flex items-center gap-2">
+                  {iconSet === "tabler" ? (
+                    <IconArrowsExchange size={18} aria-hidden="true" />
+                  ) : (
+                    <ArrowLeftRight size={18} aria-hidden="true" />
+                  )}
+                  {target.label}
+                </Label>
+              </Dropdown.Item>
+            ))}
 
             <Dropdown.Item id="settings" textValue="Settings">
               <Label className="flex items-center gap-2">
