@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
 import type { LucideIcon } from "lucide-react";
 import {
   IconArrowsExchange,
@@ -61,10 +62,10 @@ import {
   Menu,
 } from "lucide-react";
 
-import { useTheme } from "next-themes";
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
+import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Search,
@@ -564,12 +565,35 @@ export function MobileSidebarNavigation({
   buttonLabel?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { resolvedTheme, setTheme } = useTheme();
+
+  // Mirrors the sidebar footer so the theme icon matches in both menus.
+  const themeMounted = useSyncExternalStore(
+    subscribeThemeMounted,
+    () => true,
+    () => false,
+  );
+  const isDark = themeMounted && resolvedTheme === "dark";
+  const toggleTheme = useCallback(() => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }, [resolvedTheme, setTheme]);
 
   // This FAB is `md:hidden`, so an open menu would be orphaned once the
   // window reaches md and the sidebar takes over.
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+
+  // Settings and theme were only reachable from the desktop sidebar, so
+  // they are offered here too — this menu is the sole navigation on phones.
+  const openSettings = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("settings", SETTINGS_QUERY_VALUE);
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  };
 
   return (
     <nav
@@ -590,7 +614,15 @@ export function MobileSidebarNavigation({
           Menu
         </Button>
         <Dropdown.Popover placement="top start">
-          <Dropdown.Menu aria-label={menuLabel}>
+          <Dropdown.Menu
+            aria-label={menuLabel}
+            onAction={(key) => {
+              if (key === "settings") openSettings();
+              // The switch is pointer-events-none, so the row tap is what
+              // actually toggles the theme (mirrors the sidebar footer).
+              if (key === "theme") toggleTheme();
+            }}
+          >
             {navItems.map(({ href, label, icon }) => {
               const Icon =
                 iconSet === "tabler"
@@ -611,6 +643,42 @@ export function MobileSidebarNavigation({
                 </Dropdown.Item>
               );
             })}
+
+            <Dropdown.Item id="settings" textValue="Settings">
+              <Label className="flex items-center gap-2">
+                {iconSet === "tabler" ? (
+                  <IconSettings size={18} aria-hidden="true" />
+                ) : (
+                  <Settings size={18} aria-hidden="true" />
+                )}
+                Settings
+              </Label>
+            </Dropdown.Item>
+
+            <Dropdown.Item id="theme" textValue="Dark Mode">
+              <Label className="flex w-full items-center gap-2">
+                {iconSet === "tabler" ? (
+                  isDark ? (
+                    <IconMoon size={18} aria-hidden="true" />
+                  ) : (
+                    <IconSun size={18} aria-hidden="true" />
+                  )
+                ) : isDark ? (
+                  <Moon size={18} aria-hidden="true" />
+                ) : (
+                  <Sun size={18} aria-hidden="true" />
+                )}
+                Dark Mode
+                <span className="ml-auto pointer-events-none flex items-center">
+                  <ToggleSwitch
+                    isSelected={isDark}
+                    onValueChange={toggleTheme}
+                    disabled={!themeMounted}
+                    aria-label="Toggle dark mode"
+                  />
+                </span>
+              </Label>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>

@@ -10,6 +10,8 @@ interface ContactSidebarProps {
   activeContact: Contact | null;
   onTabChange: (key: TabKey) => void;
   onSelectContact: (contact: Contact) => void;
+  /** Layout overrides, used for the mobile master-detail swap. */
+  className?: string;
 }
 
 export default function ContactSidebar({
@@ -18,9 +20,12 @@ export default function ContactSidebar({
   activeContact,
   onTabChange,
   onSelectContact,
+  className = "",
 }: ContactSidebarProps) {
   return (
-    <div className="flex w-1/3 min-h-0 min-w-[300px] max-w-[400px] flex-col border-r border-border bg-card">
+    // The 300px floor that suited a split pane starves the thread on
+    // narrow screens, so the list only takes a fixed share from md up.
+    <div className={`w-full min-h-0 flex-col border-r border-border bg-card md:flex md:w-1/3 md:min-w-[300px] md:max-w-[400px] md:shrink-0 ${className}`}>
       <div className="p-4 border-b border-border">
         <Tabs
           selectedKey={activeTab}
