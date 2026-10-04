@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
-import { Button, Card, Chip, Dropdown, Label, Separator, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, Dropdown, Label, Separator, useOverlayState } from "@heroui/react";
 import { IconCalendar, IconChevronDown, IconHome, IconMapPin, IconMessage, IconUser } from "@tabler/icons-react";
 
 import BackBtn from "./BackBtn";
@@ -122,21 +122,6 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
   }, [viewerTenancyId]);
 
   const stayLabel = stay && stay.id === viewerTenancyId ? stay.label : null;
-
-  // Once-only unlock notice: fires the first time a tenant lands here eligible
-  // to review (3-month stay reached or tenancy ended). Keyed by tenancy so it
-  // never repeats and never leaks across accounts on a shared device.
-  useEffect(() => {
-    if (checkingEligibility || !canReview || !reviewableTenancyId) return;
-    const key = `review-unlock-seen:${reviewableTenancyId}`;
-    try {
-      if (localStorage.getItem(key)) return;
-      toast("You can now review this apartment — share your experience!");
-      localStorage.setItem(key, "1");
-    } catch {
-      // Storage unavailable — stay silent rather than nag on every visit.
-    }
-  }, [checkingEligibility, canReview, reviewableTenancyId]);
 
   const aptStatusStyle = statusChipStyle(aptHeader?.status ?? "");
 

@@ -144,6 +144,21 @@ export async function fetchApartmentReviews(apartmentId: string): Promise<Apartm
   return (data ?? []) as unknown as ApartmentReviewRow[];
 }
 
+export function isReviewStayEligible(
+  leaseStart: string | null,
+  leaseEnd: string | null,
+  now: Date = new Date(),
+): boolean {
+  if (!leaseStart) return false;
+  const threeMonthsAgo = new Date(now);
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
+  const today = now.toISOString().slice(0, 10);
+  const stayedLongEnough = leaseStart.slice(0, 10) <= cutoff;
+  const ended = leaseEnd !== null && leaseEnd.slice(0, 10) <= today;
+  return stayedLongEnough || ended;
+}
+
 export async function fetchReviewEligibility(
   apartmentId: string,
   tenantId: string,
@@ -160,20 +175,12 @@ export async function fetchReviewEligibility(
 
   // Stay rule (mirrors the enforce_review_stay_eligibility trigger): eligible
   // only after 3 months of stay or once the tenancy has ended.
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
-  const today = new Date().toISOString().slice(0, 10);
-
   const unreviewed = (data ?? []).find((tenancy) => {
     const hasReview = !!tenancy.reviews && !(Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0);
     if (hasReview) return false;
     const leaseStart = (tenancy.lease_start as string | null) ?? null;
     const leaseEnd = (tenancy.lease_end as string | null) ?? null;
-    if (!leaseStart) return false;
-    const stayedLongEnough = leaseStart.slice(0, 10) <= cutoff;
-    const ended = leaseEnd !== null && leaseEnd.slice(0, 10) <= today;
-    return stayedLongEnough || ended;
+    return isReviewStayEligible(leaseStart, leaseEnd);
   });
 
   return unreviewed?.id ?? null;
