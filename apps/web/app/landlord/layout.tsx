@@ -66,6 +66,8 @@ export default async function DashboardLayout({
         navLabel="Landlord navigation"
         menuLabel="Landlord pages"
         buttonLabel="Open landlord navigation"
+        userRoles={userRoles}
+        activePortal="landlord"
       />
       <Suspense fallback={null}>
         <SettingsOverlay iconSet="tabler" />

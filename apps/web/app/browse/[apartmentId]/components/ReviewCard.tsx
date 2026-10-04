@@ -90,7 +90,7 @@ export default function ReviewCard({
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="mt-1 text-sm font-medium text-secondary"
+            className="mt-1 text-sm font-medium text-secondary dark:text-[#FFA500]"
           >
             {isExpanded ? "Show less" : "Read more"}
           </button>

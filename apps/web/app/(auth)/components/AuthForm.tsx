@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from 'react';
+import { useActionState, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
@@ -22,8 +22,23 @@ export default function AuthForm({ next }: { next?: string }) {
 
   const [state, formAction, isPending] = useActionState(signIn, initialState);
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (type === 'sign-up') {
+  const clearSignUpError = useCallback(() => {
+    setSignUpError((current) => (current === null ? current : null));
+  }, []);
+
+  const handleEmailChange = useCallback(
+    (value: string) => {
+      setEmail(value);
+      clearSignUpError();
+    },
+    [setEmail, clearSignUpError],
+  );
+
+  const onSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      // Sign-in posts through the server action; only sign-up is intercepted.
+      if (type !== 'sign-up') return;
+
       e.preventDefault();
       setSignUpError(null);
 
@@ -55,22 +70,25 @@ export default function AuthForm({ next }: { next?: string }) {
 
       const emailValue = encodeURIComponent(rawEmail);
       router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
-      return;
-    }
-  };
+    },
+    [type, role, router],
+  );
+
+  const busy = isPending || checkingEmail;
+  const visibleError = state.error ?? signUpError;
 
   return (
     <div>
       {/* Error Message */}
-      {(state.error || signUpError) && (
+      {visibleError && (
         <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
-          <p className="text-sm text-red-600">{state.error ?? signUpError}</p>
+          <p className="text-sm text-red-600">{visibleError}</p>
         </div>
       )}
 
       {/* Form */}
       <Form
-        className={`${state.error || signUpError ? 'mt-4' : 'mt-8'} flex flex-col gap-4`}
+        className={`${visibleError ? 'mt-4' : 'mt-[clamp(1.5rem,4vh,2rem)]'} flex flex-col gap-[clamp(0.75rem,2vh,1rem)]`}
         action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
@@ -86,14 +104,8 @@ export default function AuthForm({ next }: { next?: string }) {
           type="email"
           isRequired
           value={email}
-          onChange={(value) => {
-            setEmail(value);
-
-            if (signUpError) {
-              setSignUpError(null);
-            }
-          }}
-          isDisabled={isPending || checkingEmail}
+          onChange={handleEmailChange}
+          isDisabled={busy}
         >
           <Label>Email</Label>
 
@@ -136,13 +148,13 @@ export default function AuthForm({ next }: { next?: string }) {
         }
 
         <Button
-          className='w-full mt-5'
+          className='w-full mt-[clamp(0.75rem,2vh,1.25rem)]'
           size='lg'
           type='submit'
-          isPending={isPending || checkingEmail}
-          isDisabled={isPending || checkingEmail}
+          isPending={busy}
+          isDisabled={busy}
         >
-          {isPending || checkingEmail
+          {busy
             ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
             : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
           }

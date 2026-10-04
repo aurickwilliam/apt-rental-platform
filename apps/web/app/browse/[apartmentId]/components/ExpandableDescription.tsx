@@ -29,7 +29,7 @@ export default function ExpandableDescription({ text, maxLength = 300 }: Props) 
         <Button
           onPress={() => setIsExpanded(!isExpanded)}
           variant="ghost"
-          className="mt-2 text-secondary font-medium text-sm transform -translate-x-4"
+          className="mt-2 text-secondary dark:text-[#FFA500] font-medium text-sm transform -translate-x-4"
         >
           {isExpanded ? "View less" : "View more"}
         </Button>

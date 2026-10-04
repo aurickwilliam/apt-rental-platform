@@ -61,8 +61,27 @@ export default function AppNavbar() {
       : "/tenant/profile";
   };
 
-   useEffect(() => {                                 
+   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // The mobile panel is hidden by `sm:hidden`, so a window widened past the
+  // breakpoint would otherwise leave it "open" in state and re-shown on the
+  // next shrink. Close it when the media query stops matching.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 640px)");
+    
+    // Close menu if already above breakpoint on mount to prevent hydration
+    // mismatches or transient "menu flash" at desktop widths.
+    if (desktop.matches) {
+      setIsMenuOpen(false);
+    }
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setIsMenuOpen(false);
+    };
+    desktop.addEventListener("change", handleChange);
+    return () => desktop.removeEventListener("change", handleChange);
   }, []);
 
   const firstName = user?.user_metadata?.first_name ?? "";
@@ -73,27 +92,29 @@ export default function AppNavbar() {
   const avatarSrc = profile?.avatar_url?.trim() || user?.user_metadata?.avatar_url?.trim() || undefined;
 
   return (
-    <div className="sticky top-0 z-40 w-full border-b border-divider bg-surface/70 backdrop-blur-md backdrop-saturate-150">
+    <div className="sticky top-0 z-40 w-full min-w-0 border-b border-divider bg-surface/70 backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between">
+        {/* min-h-16 (not h-16) so a tall logo or wrapping brand never
+            clips the bar at very narrow widths. */}
+        <div className="flex min-h-16 items-center justify-between gap-3">
 
           {/* Left: hamburger + logo */}
-          <div className="flex flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
-              className="sm:hidden p-2 rounded-md text-foreground"
+              className="sm:hidden shrink-0 p-2 rounded-md text-foreground"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            <Link href="/">
+            <Link href="/" className="min-w-0 shrink">
               <Image
                 src="/logo/logo-name-transparent.svg"
                 alt="APT Logo"
                 width={100}
                 height={40}
-                className="object-contain"
+                className="max-w-[45vw] object-contain sm:max-w-none"
               />
             </Link>
           </div>
@@ -202,7 +223,7 @@ export default function AppNavbar() {
           <div className="h-px bg-divider" />
 
           {!loading && user ? (
-            <>
+            <div className="flex flex-col gap-4">
               <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
               <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
               <button
@@ -218,19 +239,32 @@ export default function AppNavbar() {
               >
                 Log Out
               </button>
-            </>
+            </div>
           ) : !loading ? (
             <>
-              <Link href="/sign-in">
-                <Button variant="ghost" className="rounded-full">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button variant="primary" className="rounded-full">
-                  Sign Up
-                </Button>
-              </Link>
+              {/* Full-width rows: the previous auto-width buttons left a
+                  short, left-aligned target with dead space beside them,
+                  which reads as broken at narrow widths. */}
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/sign-in"
+                  className="w-full"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Button variant="outline" className="w-full rounded-full">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="w-full"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Button variant="primary" className="w-full rounded-full">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
             </>
           ) : null}
 

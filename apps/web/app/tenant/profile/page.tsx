@@ -83,11 +83,16 @@ export default async function TenantProfilePage() {
         </Card.Content>
       </Card>
 
-      <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-        <Card.Content className="p-0">
-          <AddRoleSection currentRoles={profile.roles ?? []} targetRole="landlord" />
-        </Card.Content>
-      </Card>
+      {/* AddRoleSection renders nothing when the account already holds the
+          target role, so the wrapper must be gated too — otherwise a
+          dual-role account gets an empty bordered card. */}
+      {!profile.roles.includes("landlord") && (
+        <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
+          <Card.Content className="p-0">
+            <AddRoleSection currentRoles={profile.roles ?? []} targetRole="landlord" />
+          </Card.Content>
+        </Card>
+      )}
     </div>
   );
 }

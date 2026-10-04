@@ -52,8 +52,11 @@ const VISIBILITY_OPTIONS = [
   { id: "hidden", label: "Hidden" },
 ];
 
+// `bg-card!` / `text-foreground!` are needed because @heroui/styles ships
+// unlayered CSS that otherwise beats layered Tailwind utilities, leaving
+// the trigger white-on-white in dark mode.
 const TRIGGER_FOCUS_CLASSES =
-  "focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15";
+  "bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15";
 
 export default function ApartmentsClient({
   filters,

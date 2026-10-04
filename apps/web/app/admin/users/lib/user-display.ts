@@ -135,7 +135,13 @@ export function roleChipStyle(role: string): {
     case "tenant":
       return { color: "default", className: "bg-primary/10 text-primary" };
     case "landlord":
-      return { color: "default", className: "bg-secondary/10 text-secondary" };
+      // `dark:` pin is required: --secondary flips to a dark grey in dark
+      // mode (globals.css), which renders the chip invisible on the dark
+      // card. The accent stays orange in both themes.
+      return {
+        color: "default",
+        className: "bg-secondary/10 text-secondary dark:bg-[#FFA500]/10 dark:text-[#FFA500]",
+      };
     case "admin":
       return { color: "default", className: "bg-primary/10 text-primary" };
     default:

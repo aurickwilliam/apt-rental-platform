@@ -778,6 +778,7 @@ export default function ProfileForm({
               ref={mobileInputRef}
               inputMode="tel"
               placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+              className="bg-card! text-foreground!"
             />
             <FieldError>{errors.mobile_number}</FieldError>
           </TextField>
@@ -798,7 +799,7 @@ export default function ProfileForm({
               isInvalid={!!errors.gender}
             >
               <Label>Gender</Label>
-              <Select.Trigger>
+              <Select.Trigger className="bg-card! text-foreground!">
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
@@ -846,7 +847,7 @@ export default function ProfileForm({
             isInvalid={!!errors.street_address}
           >
             <Label>Street Address</Label>
-            <Input placeholder="Enter your street address" />
+            <Input placeholder="Enter your street address" className="bg-card! text-foreground!" />
             <FieldError>{errors.street_address}</FieldError>
           </TextField>
 
@@ -863,7 +864,7 @@ export default function ProfileForm({
             isInvalid={!!errors.barangay}
           >
             <Label>Barangay</Label>
-            <Input placeholder="Enter your barangay" />
+            <Input placeholder="Enter your barangay" className="bg-card! text-foreground!" />
             <FieldError>{errors.barangay}</FieldError>
           </TextField>
 
@@ -880,7 +881,7 @@ export default function ProfileForm({
             isInvalid={!!errors.city}
           >
             <Label>City</Label>
-            <Input placeholder="Enter your city" />
+            <Input placeholder="Enter your city" className="bg-card! text-foreground!" />
             <FieldError>{errors.city}</FieldError>
           </TextField>
 
@@ -900,7 +901,7 @@ export default function ProfileForm({
               isInvalid={!!errors.province}
             >
               <Label>Province</Label>
-              <Select.Trigger>
+              <Select.Trigger className="bg-card! text-foreground!">
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
@@ -937,6 +938,7 @@ export default function ProfileForm({
               placeholder="Enter your postal code"
               inputMode="numeric"
               maxLength={4}
+              className="bg-card! text-foreground!"
             />
             <FieldError>{errors.postal_code}</FieldError>
           </TextField>

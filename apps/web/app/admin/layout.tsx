@@ -30,6 +30,8 @@ export default async function AdminLayout({
         userName={userName}
         userRole="Administrator"
         userAvatarUrl={profile.avatar_url}
+        userRoles={profile.roles}
+        activePortal="admin"
         profileHref="/admin/profile"
         settingsQueryParam="open"
         iconSet="tabler"
@@ -43,6 +45,8 @@ export default async function AdminLayout({
       <MobileSidebarNavigation
         navItems={[...ADMIN_NAV, { href: "/admin/profile", label: "Profile", icon: "User" }]}
         iconSet="tabler"
+        userRoles={profile.roles}
+        activePortal="admin"
       />
       <Suspense fallback={null}>
         <SettingsOverlay iconSet="tabler" />

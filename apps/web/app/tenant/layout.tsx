@@ -66,6 +66,8 @@ export default async function TenantLayout({
         navLabel="Tenant navigation"
         menuLabel="Tenant pages"
         buttonLabel="Open tenant navigation"
+        userRoles={userRoles}
+        activePortal="tenant"
       />
       <Suspense fallback={null}>
         <SettingsOverlay iconSet="tabler" />
