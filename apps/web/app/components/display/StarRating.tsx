@@ -30,12 +30,12 @@ export default function StarRating({
 
         return (
           <span key={star} className="relative inline-flex">
-            <Star size={size} className="text-secondary" fill="transparent" />
+            <Star size={size} className="text-secondary dark:text-[#FFA500]" fill="transparent" />
             {(filled || half) && (
               <span
                 className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
               >
-                <Star size={size} className="text-secondary" fill="currentColor" />
+                <Star size={size} className="text-secondary dark:text-[#FFA500]" fill="currentColor" />
               </span>
             )}
           </span>

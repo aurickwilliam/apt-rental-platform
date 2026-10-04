@@ -17,7 +17,9 @@ const ROLE_STYLES = {
   landlord: {
     label: "Landlord",
     Icon: IconBuildingSkyscraper,
-    className: "bg-secondary/10 text-secondary",
+    // `dark:` pin is required: --secondary flips to a dark grey in dark
+    // mode, which renders the badge invisible. The accent stays orange.
+    className: "bg-secondary/10 text-secondary dark:bg-[#FFA500]/10 dark:text-[#FFA500]",
   },
 } as const;
 

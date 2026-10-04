@@ -101,7 +101,7 @@ export default async function Properties() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-5xl text-secondary font-bold font-noto-serif">
+        <h1 className="text-5xl text-secondary dark:text-[#FFA500] font-bold font-noto-serif">
           My Properties
         </h1>
       </div>

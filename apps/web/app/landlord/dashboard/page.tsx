@@ -18,7 +18,7 @@ export default async function Dashboard() {
     if (message === "Not authenticated.") return <div>Not authenticated.</div>;
     return (
       <div className="p-4">
-        <h1 className="text-5xl text-secondary font-bold font-noto-serif mb-1">
+        <h1 className="text-5xl text-secondary dark:text-[#FFA500] font-bold font-noto-serif mb-1">
           Dashboard
         </h1>
         <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg text-sm text-red-600">
@@ -37,7 +37,7 @@ export default async function Dashboard() {
 
   return (
     <div className="p-4">
-      <h1 className="text-5xl text-secondary font-bold font-noto-serif mb-1">
+      <h1 className="text-5xl text-secondary dark:text-[#FFA500] font-bold font-noto-serif mb-1">
         Dashboard
       </h1>
       <p className="text-muted-foreground text-sm mb-6">

@@ -350,7 +350,7 @@ export function RateApartmentForm() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Star size={22} className="text-secondary" fill="currentColor" />
+            <Star size={22} className="text-secondary dark:text-[#FFA500]" fill="currentColor" />
             <span className="text-base font-medium">
               {(header.average_rating ?? 0).toFixed(1)} ({header.no_ratings ?? 0})
             </span>
@@ -377,7 +377,7 @@ export function RateApartmentForm() {
       <div className="flex flex-col items-center">
         <Label className="text-lg font-medium">Overall Rating</Label>
 
-        <p className="mt-2 text-5xl font-medium leading-tight text-secondary font-dm-serif">
+        <p className="mt-2 text-5xl font-medium leading-tight text-secondary dark:text-[#FFA500] font-dm-serif">
           {rating.toFixed(1)}
         </p>
 
