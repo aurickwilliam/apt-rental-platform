@@ -189,6 +189,7 @@ export async function fetchUnreviewedTenancyId(
     .select("id, reviews(id)")
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
+    .order("lease_start", { ascending: false })
     .limit(10);
 
   if (error) throw error;
@@ -369,7 +370,7 @@ export async function insertReview(input: InsertReviewInput): Promise<string> {
 
   if (error || !data) {
     if (error?.code === "23505") {
-      throw new Error("You have already reviewed this stay.");
+      throw new Error("You have already reviewed this apartment.");
     }
     throw new Error(error?.message ?? "Failed to submit review.");
   }
