@@ -37,7 +37,7 @@ export default function ReviewUnlockGate() {
     <Modal isOpen={isOpen} onOpenChange={(open) => {
       if (!open) dismiss();
     }}>
-      <Modal.Backdrop>
+      <Modal.Backdrop isDismissable>
         <Modal.Container scroll="inside" className="w-full max-w-3xl">
           <Modal.Dialog className="w-full max-w-3xl">
             <Modal.Header>
