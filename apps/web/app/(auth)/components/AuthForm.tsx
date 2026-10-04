@@ -14,7 +14,7 @@ const initialState: SignInFormState = {
   error: null,
 };
 
-export default function AuthForm() {
+export default function AuthForm({ next }: { next?: string }) {
   const { type, role, email, setEmail } = useAuth();
   const router = useRouter();
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -94,6 +94,10 @@ export default function AuthForm() {
       >
         {/* Hidden field to pass the role to the server action */}
         <input type="hidden" name="role" value={role} />
+        {/* Verification handoff: resume target re-validated server-side. */}
+        {type === "sign-in" && next ? (
+          <input type="hidden" name="next" value={next} />
+        ) : null}
 
         <TextField
           name="email"

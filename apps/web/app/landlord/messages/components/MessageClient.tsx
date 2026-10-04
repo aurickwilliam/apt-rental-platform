@@ -19,6 +19,11 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
   const [activeTab, setActiveTab] = useState<TabKey>("current");
   const [activeContact, setActiveContact] = useState<Contact | null>(currentTenants[0] ?? null);
 
+  // Mobile master-detail: the contact list and the thread each need the
+  // full width, so only one is shown below md. Desktop shows both and
+  // ignores this state.
+  const [isThreadOpen, setIsThreadOpen] = useState(false);
+
   useEffect(() => {
     setCurrentTenantContacts(currentTenants);
   }, [currentTenants]);
@@ -119,13 +124,19 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
         onSelectContact={(contact) => {
           setActiveContact(contact);
           markContactAsRead(contact.conversationKey);
+          setIsThreadOpen(true);
         }}
+        // Below md the list yields the full width to the open thread.
+        className={isThreadOpen ? "hidden md:flex" : "flex"}
       />
       <ConversationView
         activeContact={activeContact}
         currentUserId={currentUserId}
         apartmentId={activeContact?.apartmentId}
         onConversationRead={markContactAsRead}
+        onBack={() => setIsThreadOpen(false)}
+        // The empty state only makes sense alongside the list on mobile.
+        className={isThreadOpen ? "flex" : "hidden md:flex"}
       />
     </div>
   );

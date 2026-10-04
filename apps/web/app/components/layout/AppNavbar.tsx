@@ -70,6 +70,13 @@ export default function AppNavbar() {
   // next shrink. Close it when the media query stops matching.
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 640px)");
+    
+    // Close menu if already above breakpoint on mount to prevent hydration
+    // mismatches or transient "menu flash" at desktop widths.
+    if (desktop.matches) {
+      setIsMenuOpen(false);
+    }
+    
     const handleChange = (e: MediaQueryListEvent) => {
       if (e.matches) setIsMenuOpen(false);
     };
