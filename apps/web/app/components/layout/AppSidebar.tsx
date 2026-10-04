@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -593,15 +593,7 @@ export function AppSidebar({
   );
 }
 
-export function MobileSidebarNavigation({
-  navItems,
-  iconSet = "lucide",
-  navLabel = "Admin navigation",
-  menuLabel = "Admin pages",
-  buttonLabel = "Open admin navigation",
-  userRoles = [],
-  activePortal,
-}: {
+type MobileSidebarNavigationProps = {
   navItems: NavItem[];
   iconSet?: "lucide" | "tabler";
   navLabel?: string;
@@ -611,7 +603,22 @@ export function MobileSidebarNavigation({
   // same entries instead of being role-blind on phones.
   userRoles?: string[];
   activePortal?: "tenant" | "landlord" | "admin";
-}) {
+};
+
+// `useSearchParams` (for the Settings row) opts a subtree into client-side
+// rendering, so it must sit behind a Suspense boundary or prerendering any
+// portal page fails with "useSearchParams() should be wrapped in a suspense
+// boundary". Callers render this wrapper; the work happens in the inner
+// component.
+function MobileSidebarMenu({
+  navItems,
+  iconSet,
+  navLabel,
+  menuLabel,
+  buttonLabel,
+  userRoles,
+  activePortal,
+}: MobileSidebarNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -644,7 +651,7 @@ export function MobileSidebarNavigation({
   };
 
   // Same helper the sidebar dropdown uses, so both menus stay in step.
-  const switchTargets = getSwitchTargets(activePortal, userRoles);
+  const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
   return (
     <nav
@@ -753,6 +760,14 @@ export function MobileSidebarNavigation({
         </Dropdown.Popover>
       </Dropdown>
     </nav>
+  );
+}
+
+export function MobileSidebarNavigation(props: MobileSidebarNavigationProps) {
+  return (
+    <Suspense fallback={null}>
+      <MobileSidebarMenu {...props} />
+    </Suspense>
   );
 }
 
