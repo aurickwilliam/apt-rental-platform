@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   fetchApartmentReviews,
@@ -25,9 +25,16 @@ export function useApartmentReviews(apartmentId?: string) {
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const { canReview, canEdit, checkingEligibility, reviewableTenancyId, existingReview } =
+  const { canReview, canEdit, stayLocked, checkingEligibility, reviewableTenancyId, lockedTenancyId, existingReview, refreshEligibility } =
     useReviewEligibility(apartmentId);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    setRefreshKey((key) => key + 1);
+    refreshEligibility();
+  }, [refreshEligibility]);
 
   useEffect(() => {
     if (!apartmentId) return;
@@ -52,7 +59,7 @@ export function useApartmentReviews(apartmentId?: string) {
     return () => {
       cancelled = true;
     };
-  }, [apartmentId]);
+  }, [apartmentId, refreshKey]);
 
   const reviews = useMemo<ApartmentReview[]>(() => {
     const mapped = rows.map(mapReviewRow);
@@ -94,7 +101,9 @@ export function useApartmentReviews(apartmentId?: string) {
     }));
 
     rows.forEach((row) => {
-      const bucketRating = Math.min(5, Math.max(1, Math.round(Number(row.rating))));
+      // Bucket by whole stars, rounding down: a 4.5-star review counts toward
+      // 4 stars, never 5 — the labels must stay honest.
+      const bucketRating = Math.min(5, Math.max(1, Math.floor(Number(row.rating))));
       const bucket = buckets.find((b) => b.rating === bucketRating);
       if (bucket) bucket.ratingCount += 1;
     });
@@ -113,8 +122,11 @@ export function useApartmentReviews(apartmentId?: string) {
     setSortBy,
     canReview,
     canEdit,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId,
+    lockedTenancyId,
     existingReview,
+    refresh,
   };
 }

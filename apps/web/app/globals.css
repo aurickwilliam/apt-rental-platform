@@ -104,6 +104,7 @@ body[data-scroll-locked] [role="option"] {
   --color-primary: #376BF5;
   --color-light-blue: #EFF6FF;
   --color-secondary: #FFA500;
+  --color-rating: #FFA500;
   --color-darker-white: #F8F9FA;
   --color-black: #333333;
   --color-grey-700: #6C757D;

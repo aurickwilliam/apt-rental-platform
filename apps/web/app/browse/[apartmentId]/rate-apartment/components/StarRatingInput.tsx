@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { IconStarFilled } from "@tabler/icons-react";
 
 const STAR_SIZE = 40;
 
@@ -29,13 +29,13 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
             }}
             className="relative inline-flex cursor-pointer p-0"
           >
-            <Star size={STAR_SIZE} className="text-grey-300" fill="currentColor" strokeWidth={1.25} />
+            <IconStarFilled size={STAR_SIZE} className="text-grey-300" />
 
             {(filled || half) && (
               <span
                 className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
               >
-                <Star size={STAR_SIZE} className="text-secondary dark:text-[#FFA500]" fill="currentColor" strokeWidth={1.25} />
+                <IconStarFilled size={STAR_SIZE} className="text-rating" />
               </span>
             )}
           </button>

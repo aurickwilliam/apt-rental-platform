@@ -64,6 +64,7 @@ export type RateApartmentHeader = {
   id: string;
   name: string;
   type: string | null;
+  status: string | null;
   street_address: string | null;
   barangay: string | null;
   city: string | null;
@@ -143,6 +144,21 @@ export async function fetchApartmentReviews(apartmentId: string): Promise<Apartm
   return (data ?? []) as unknown as ApartmentReviewRow[];
 }
 
+export function isReviewStayEligible(
+  leaseStart: string | null,
+  leaseEnd: string | null,
+  now: Date = new Date(),
+): boolean {
+  if (!leaseStart) return false;
+  const threeMonthsAgo = new Date(now);
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
+  const today = now.toISOString().slice(0, 10);
+  const stayedLongEnough = leaseStart.slice(0, 10) <= cutoff;
+  const ended = leaseEnd !== null && leaseEnd.slice(0, 10) <= today;
+  return stayedLongEnough || ended;
+}
+
 export async function fetchReviewEligibility(
   apartmentId: string,
   tenantId: string,
@@ -150,14 +166,42 @@ export async function fetchReviewEligibility(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("tenancies")
-    .select("id, lease_end, reviews(id)")
+    .select("id, lease_start, lease_end, reviews(id)")
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
     .order("lease_end", { ascending: false, nullsFirst: false });
 
   if (error) throw error;
 
-  const unreviewed = (data ?? []).find(
+  // Stay rule (mirrors the enforce_review_stay_eligibility trigger): eligible
+  // only after 3 months of stay or once the tenancy has ended.
+  const unreviewed = (data ?? []).find((tenancy) => {
+    const hasReview = !!tenancy.reviews && !(Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0);
+    if (hasReview) return false;
+    const leaseStart = (tenancy.lease_start as string | null) ?? null;
+    const leaseEnd = (tenancy.lease_end as string | null) ?? null;
+    return isReviewStayEligible(leaseStart, leaseEnd);
+  });
+
+  return unreviewed?.id ?? null;
+}
+
+export async function fetchUnreviewedTenancyId(
+  apartmentId: string,
+  tenantId: string,
+): Promise<string | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("tenancies")
+    .select("id, reviews(id)")
+    .eq("apartment_id", apartmentId)
+    .eq("tenant_id", tenantId)
+    .order("lease_start", { ascending: false })
+    .limit(10);
+
+  if (error) throw error;
+
+  const unreviewed = ((data ?? []) as unknown as { id: string; reviews: unknown }[]).find(
     (tenancy) => !tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0),
   );
 
@@ -181,6 +225,7 @@ type HeaderRow = {
   id: string;
   name: string;
   type: string | null;
+  status: string | null;
   street_address: string | null;
   barangay: string | null;
   city: string | null;
@@ -199,6 +244,7 @@ export async function fetchRateApartmentHeader(apartmentId: string): Promise<Rat
         id,
         name,
         type,
+        status,
         street_address,
         barangay,
         city,
@@ -222,6 +268,7 @@ export async function fetchRateApartmentHeader(apartmentId: string): Promise<Rat
     id: row.id,
     name: row.name,
     type: row.type,
+    status: row.status,
     street_address: row.street_address,
     barangay: row.barangay,
     city: row.city,
@@ -330,7 +377,7 @@ export async function insertReview(input: InsertReviewInput): Promise<string> {
 
   if (error || !data) {
     if (error?.code === "23505") {
-      throw new Error("You have already reviewed this stay.");
+      throw new Error("You have already reviewed this apartment.");
     }
     throw new Error(error?.message ?? "Failed to submit review.");
   }
