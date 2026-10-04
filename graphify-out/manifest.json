@@ -605,8 +605,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1791154966.4157608,
-    "ast_hash": "9e6d0157c09df1f8181803613271f7e9",
+    "mtime": 1791156382.6756208,
+    "ast_hash": "e41721d3801a962845b98c8fe7ef6ecb",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -2490,8 +2490,8 @@
     "semantic_hash": "88796aebd96f1edd98afb72d3f7d6a33"
   },
   "packages/constants/src/apartment/document-types.ts": {
-    "mtime": 1791039212.2923458,
-    "ast_hash": "b9c59c902abd4135e396de31dbbe91fa",
+    "mtime": 1791156267.5950313,
+    "ast_hash": "546445384ca280b04712bbb412fd6a4f",
     "semantic_hash": ""
   },
   "packages/constants/src/apartment/employment.ts": {
@@ -6000,13 +6000,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.test.ts": {
-    "mtime": 1791041454.7165558,
-    "ast_hash": "2c22d3fb92139b63d93ba93abea0dcea",
+    "mtime": 1791156310.1843095,
+    "ast_hash": "437870fbd2bb20fd2b18cd9dfd3a56ed",
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.ts": {
-    "mtime": 1791040921.6393418,
-    "ast_hash": "79a64685ad65599ea45d3b3f69c9fab9",
+    "mtime": 1791156382.67591,
+    "ast_hash": "4838bd36726ee7b93460f73bd6b07ade",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-passport-verified-paths.ts": {
@@ -6055,8 +6055,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.test.tsx": {
-    "mtime": 1791154980.957449,
-    "ast_hash": "3aa5b5cd83d0f07ccf59b511d141a027",
+    "mtime": 1791156310.1840975,
+    "ast_hash": "8778a3f4e2b99ec9eee47da8e041c74e",
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/expiry.test.ts": {
@@ -6075,8 +6075,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/utils/documentTypeIcons.ts": {
-    "mtime": 1791154563.801394,
-    "ast_hash": "424afaac3c7a38a81721ef13f94d0aa5",
+    "mtime": 1791156267.595645,
+    "ast_hash": "24603077ae81bc6be45ce3c4f58b9351",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/document-id/utils/documentTypeDescriptions.ts": {
+    "mtime": 1791156267.5959423,
+    "ast_hash": "ce4b10dd2b5656bae7eb6ca1e4a0fe5c",
     "semantic_hash": ""
   }
 }

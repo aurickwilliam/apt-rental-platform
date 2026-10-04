@@ -91,6 +91,20 @@ describe('uploadPassportDocument', () => {
     mockRemove.mockResolvedValue({ error: null });
   });
 
+  it.each(['National ID', 'National ID (PhilSys/PhilID)', 'Business Permit'])(
+    'blocks manual uploads of %s before writing storage',
+    async (docType) => {
+      await expect(uploadPassportDocument({
+        userId: 'user-1',
+        docType,
+        asset: { uri: 'file:///doc.jpg', fileName: 'doc.jpg', mimeType: 'image/jpeg' },
+      })).rejects.toThrow('not available for Passport uploads');
+
+      expect(mockUpload).not.toHaveBeenCalled();
+      expect(mockFrom).not.toHaveBeenCalled();
+    },
+  );
+
   it('uploads under the passport prefix and inserts a wallet row', async () => {
     mockFrom.mockReturnValue(
       chainable({

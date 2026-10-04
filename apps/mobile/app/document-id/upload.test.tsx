@@ -5,6 +5,16 @@ import { IconBriefcase2, IconFileCertificate } from '@tabler/icons-react-native'
 import Upload from './upload'
 import { getDocumentTypeIcon } from './utils/documentTypeIcons'
 
+const expectedDescriptions: Record<string, string> = {
+  'Proof of Income': 'Show your earnings as proof of income for rental applications.',
+  'Proof of Residency': 'Confirm your address when an application asks for proof of billing or residency.',
+  'Birth Certificate': 'Keep an additional identity record in your APT Passport.',
+  'NBI Clearance': 'Keep a current clearance ready when a rental application requests one.',
+  'Certificate of Employment': 'Confirm your employment as proof of income for rental applications.',
+  Payslip: 'Show recent salary payments as proof of income for rental applications.',
+  'Income Tax Return (ITR)': 'Show your declared annual income as proof of income for rental applications.',
+}
+
 const mockUpload = jest.fn()
 const mockRouter = { replace: jest.fn() }
 let mockDocType = 'Payslip'
@@ -117,10 +127,12 @@ jest.mock('heroui-native', () => {
 
 beforeEach(() => {
   mockUpload.mockClear()
+  mockRouter.replace.mockClear()
   mockDocType = 'Payslip'
 })
 
 it('uses the same icon next to the title as the document selection for every type', () => {
+  expect([...DOCUMENT_TYPES].sort()).toEqual(Object.keys(expectedDescriptions).sort())
   expect(getDocumentTypeIcon('Proof of Income')).toBe(IconBriefcase2)
   expect(getDocumentTypeIcon('Payslip')).toBe(IconFileCertificate)
   expect(getDocumentTypeIcon('Income Tax Return (ITR)')).toBe(IconFileCertificate)
@@ -128,10 +140,34 @@ it('uses the same icon next to the title as the document selection for every typ
     mockDocType = docType
     const { unmount } = render(<Upload />)
     expect(screen.getByText(docType)).toBeTruthy()
+    expect(screen.getByText(expectedDescriptions[docType])).toBeTruthy()
     const icon = screen.getByTestId('document-type-icon')
     expect(icon.parent?.children[0]).toBe(icon)
     unmount()
   }
+})
+
+it('sends National IDs to canonical ID verification instead of offering file upload', () => {
+  mockDocType = 'National ID'
+  render(<Upload />)
+
+  expect(screen.getByText(/live ID capture and a selfie/)).toBeTruthy()
+  expect(screen.queryByLabelText('Select test document')).toBeNull()
+  fireEvent.press(screen.getByText('Go to ID verification'))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/verify-account')
+  expect(mockUpload).not.toHaveBeenCalled()
+})
+
+it('does not offer Business Permit, including via a direct upload link', () => {
+  expect(DOCUMENT_TYPES).not.toContain('Business Permit')
+  expect(DOCUMENT_TYPES).not.toContain('National ID')
+  mockDocType = 'Business Permit'
+  render(<Upload />)
+
+  expect(screen.queryByLabelText('Select test document')).toBeNull()
+  fireEvent.press(screen.getByText('Choose document type'))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/document-id/select-document')
+  expect(mockUpload).not.toHaveBeenCalled()
 })
 
 it('opens the legal notice from a link and dismisses it with the modal close control', () => {

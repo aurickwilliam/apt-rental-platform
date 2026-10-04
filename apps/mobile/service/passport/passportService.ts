@@ -3,6 +3,7 @@ import { isExpiredDate } from './expiry'
 
 import { supabase, type Database } from '@repo/supabase'
 import {
+  DOCUMENT_TYPES,
   PASSPORT_SLOT_DOC_TYPES,
   isReviewEligibleDocType,
   type ApplicationDocumentSlot,
@@ -78,6 +79,10 @@ export async function uploadPassportDocument({
   idType = null,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
+  if (!DOCUMENT_TYPES.includes(docType)) {
+    throw new Error('This document type is not available for Passport uploads. Choose a supported document or verify your ID through live capture and a selfie.')
+  }
+
   const path = passportPath(userId, docType, asset.fileName)
   const bytes = await new File(asset.uri).bytes()
 

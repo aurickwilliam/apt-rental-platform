@@ -13,7 +13,7 @@ import {
 
 import { IconAlertTriangle, IconFileInfo } from "@tabler/icons-react-native";
 
-import { PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
+import { DOCUMENT_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -24,6 +24,7 @@ import DateField from "@/components/inputs/DateField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import AppDialog from "@/components/display/AppDialog";
 import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { getDocumentTypeDescription } from "./utils/documentTypeDescriptions";
 
 import { useColors } from "@/hooks/useTheme";
 import { useUploadPassportDocument } from "@/hooks/passport";
@@ -48,9 +49,16 @@ export default function Upload() {
   const { mutate: upload, isPending, error } = useUploadPassportDocument();
   const [showError, setShowError] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
+  const isUploadableDocType = DOCUMENT_TYPES.includes(resolvedDocType);
+  const isIdentityDoc = PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType);
 
   const handleAddDocument = () => {
-    if (!document || !isVerified || validateExpiryDate(expiryDate)) return;
+    if (
+      !isUploadableDocType ||
+      !document ||
+      !isVerified ||
+      validateExpiryDate(expiryDate)
+    ) return;
 
     const asset =
       document.kind === "image"
@@ -69,9 +77,6 @@ export default function Upload() {
       {
         docType: resolvedDocType,
         asset,
-        idType: PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType)
-          ? resolvedDocType
-          : null,
         expiresAt: expiryDate ? toExpiryDateString(expiryDate) : null,
       },
       {
@@ -80,6 +85,39 @@ export default function Upload() {
       },
     );
   };
+
+  if (!isUploadableDocType) {
+    return (
+      <ScreenWrapper
+        header={<StandardHeader title="Upload Document" />}
+        className="p-5"
+      >
+        <View className="flex-1 justify-center gap-4">
+          <Text className="text-foreground text-xl font-nunitoBold">
+            {isIdentityDoc ? "Verify your ID" : "Choose a document type"}
+          </Text>
+          <Text className="text-muted text-base font-inter leading-relaxed">
+            {isIdentityDoc
+              ? "Identity documents use live ID capture and a selfie in Verify Account. Once approved, your ID is added to your APT Passport automatically."
+              : "This document type is not available for Passport uploads. Choose a type from the list instead."}
+          </Text>
+          <Button
+            onPress={() =>
+              router.replace(
+                isIdentityDoc
+                  ? "/(auth)/verify-account"
+                  : "/document-id/select-document",
+              )
+            }
+          >
+            <Button.Label>
+              {isIdentityDoc ? "Go to ID verification" : "Choose document type"}
+            </Button.Label>
+          </Button>
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper
@@ -103,6 +141,10 @@ export default function Upload() {
             {resolvedDocType}
           </Text>
         </View>
+
+        <Text className="text-muted text-sm font-inter leading-relaxed">
+          {getDocumentTypeDescription(resolvedDocType)}
+        </Text>
 
         <View className="flex-row items-center gap-1.5">
           <IconFileInfo size={16} color={colors.gray400} />
