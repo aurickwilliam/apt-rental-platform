@@ -23,5 +23,5 @@ export default async function TenantRatingsPage() {
     redirect("/browse");
   }
 
-  return <ApartmentRatingsView basePath="/tenant/browse" />;
+  return <ApartmentRatingsView />;
 }

@@ -27,6 +27,7 @@ import {
   fetchRateApartmentHeader,
   fetchReviewById,
   fetchReviewTenancy,
+  formatStayPeriod,
   getReviewImageUrls,
   type RateApartmentHeader,
   type TenancyLease,
@@ -38,15 +39,6 @@ type FormErrors = {
   rating?: string;
   reviewText?: string;
 };
-
-function formatStayLabel(tenancy: TenancyLease): string {
-  const fmt = (iso: string) =>
-    new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-  return `${fmt(tenancy.lease_start)} - ${tenancy.lease_end ? fmt(tenancy.lease_end) : "Present"}`;
-}
 
 function isBlobPhoto(photo: ReviewPhoto): boolean {
   return photo.file !== null;
@@ -406,7 +398,9 @@ export function RateApartmentForm({
               <Label className="text-sm font-medium text-muted-foreground">Duration of Stay</Label>
               <div className="mt-2 flex items-center justify-between rounded-2xl border border-border bg-muted px-4 py-3">
                 <span className="text-base font-medium text-card-foreground">
-                  {tenancy ? formatStayLabel(tenancy) : "—"}
+                  {tenancy
+                    ? (formatStayPeriod(tenancy.lease_start, tenancy.lease_end) ?? "—")
+                    : "—"}
                 </span>
                 {tenancy && !tenancy.lease_end && (
                   <span className="text-xs text-muted-foreground">Ongoing</span>

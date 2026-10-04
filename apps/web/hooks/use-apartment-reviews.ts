@@ -101,7 +101,9 @@ export function useApartmentReviews(apartmentId?: string) {
     }));
 
     rows.forEach((row) => {
-      const bucketRating = Math.min(5, Math.max(1, Math.round(Number(row.rating))));
+      // Bucket by whole stars, rounding down: a 4.5-star review counts toward
+      // 4 stars, never 5 — the labels must stay honest.
+      const bucketRating = Math.min(5, Math.max(1, Math.floor(Number(row.rating))));
       const bucket = buckets.find((b) => b.rating === bucketRating);
       if (bucket) bucket.ratingCount += 1;
     });

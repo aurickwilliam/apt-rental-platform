@@ -19,6 +19,7 @@ import {
 import {
   fetchRateApartmentHeader,
   fetchReviewTenancy,
+  formatStayPeriod,
   type RateApartmentHeader,
 } from "@/service/reviewsService";
 import { statusChipStyle } from "@/app/admin/apartments/lib/apartment-display";
@@ -41,8 +42,7 @@ function formatApartmentStatus(status: string | null): string {
   return (status ?? "unknown").replace(/_/g, " ");
 }
 
-export default function ApartmentRatingsView({ basePath = "/browse" }: { basePath?: string }) {
-  void basePath;
+export default function ApartmentRatingsView() {
   const { apartmentId } = useParams<{ apartmentId: string }>();
   const reviewModal = useOverlayState();
   const [modalMode, setModalMode] = useState<{ tenancyId?: string | null; reviewId?: string | null }>({});
@@ -102,15 +102,8 @@ export default function ApartmentRatingsView({ basePath = "/browse" }: { basePat
       try {
         const lease = await fetchReviewTenancy(viewerTenancyId);
         if (cancelled) return;
-        const fmt = (iso: string) =>
-          new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          });
-        setStay({
-          id: viewerTenancyId,
-          label: `${fmt(lease.lease_start)} - ${lease.lease_end ? fmt(lease.lease_end) : "Present"}`,
-        });
+        const label = formatStayPeriod(lease.lease_start, lease.lease_end);
+        setStay(label ? { id: viewerTenancyId, label } : null);
       } catch {
         if (!cancelled) setStay(null);
       }
