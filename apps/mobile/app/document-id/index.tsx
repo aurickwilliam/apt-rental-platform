@@ -23,6 +23,7 @@ import ValidIdCard from "./components/ValidIdCard";
 import { useColors } from "@/hooks/useTheme";
 import { useDocumentUrls } from "@/hooks/applications";
 import { usePassportDocuments } from "@/hooks/passport";
+import { isExpiredDate } from "@/service/passport/expiry";
 
 export default function Index() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function Index() {
   const verifiedDoc = useMemo(
     () =>
       documents.find((doc) => doc.is_primary) ??
-      documents.find((doc) => doc.is_verified) ??
+      documents.find((doc) => !!doc.verification_id && doc.is_verified) ??
       null,
     [documents],
   );
@@ -105,6 +106,7 @@ export default function Index() {
           path: doc.path,
           signedUrl: doc.signedUrl,
           verified: row?.is_verified ?? false,
+          expired: isExpiredDate(row?.expires_at ?? null),
           mimeType: row?.mime_type ?? null,
           id: row?.id ?? null,
         };
@@ -263,6 +265,7 @@ export default function Index() {
                     storagePath={doc.storage_path}
                     label={doc.doc_type}
                     verified={doc.is_verified}
+                    expired={isExpiredDate(doc.expires_at)}
                     pending={doc.review_status === "pending"}
                     mimeType={doc.mime_type}
                     onPress={() => router.push(`/document-id/${doc.id}`)}
@@ -280,6 +283,7 @@ export default function Index() {
                     path={doc.path}
                     signedUrl={doc.signedUrl}
                     verified={doc.verified}
+                    expired={doc.expired}
                     mimeType={doc.mimeType}
                     onPress={() => {
                       if (doc.id) router.push(`/document-id/${doc.id}`);

@@ -590,23 +590,23 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/DocumentCard.tsx": {
-    "mtime": 1791039316.6040764,
-    "ast_hash": "90835f46b76e1bdee073026e633d105a",
+    "mtime": 1791040967.2496374,
+    "ast_hash": "17284377b5913285dc2828ab68b93fd3",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.tsx": {
-    "mtime": 1791039321.6576288,
-    "ast_hash": "147bdc2d61615095565fafe438f09284",
+    "mtime": 1791040947.2736382,
+    "ast_hash": "7b4d7e65acd3aa605599fff4a9d2110a",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/select-document.tsx": {
-    "mtime": 1790870320.3495412,
-    "ast_hash": "9cfe837ce9e9af188337e2546db81af7",
+    "mtime": 1791154688.894674,
+    "ast_hash": "62badf6c99a7ad960c8025d70caa6470",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/upload.tsx": {
-    "mtime": 1790870322.0263433,
-    "ast_hash": "8232120ade11aacad23c3eb6a720498b",
+    "mtime": 1791154966.4157608,
+    "ast_hash": "9e6d0157c09df1f8181803613271f7e9",
     "semantic_hash": ""
   },
   "apps/mobile/app/edit-profile.tsx": {
@@ -1140,9 +1140,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/ConfirmDialog.tsx": {
-    "mtime": 1787060341.904549,
-    "ast_hash": "5ae9ccb5a974e21c2ce078ebdd1b40e9",
-    "semantic_hash": "5ae9ccb5a974e21c2ce078ebdd1b40e9"
+    "mtime": 1791117279.687872,
+    "ast_hash": "27e8ef89c5addcdfc91f126d5f00b5ee",
+    "semantic_hash": ""
   },
   "apps/mobile/components/display/DetailField.tsx": {
     "mtime": 1787912037.150946,
@@ -1155,8 +1155,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/DocumentRow.tsx": {
-    "mtime": 1791026843.4729087,
-    "ast_hash": "43c9a04f544a9f16c472c18237880cbd",
+    "mtime": 1791040947.2738428,
+    "ast_hash": "8fadef21674554aca0437c983ec5b242",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/ErrorDialog.tsx": {
@@ -1205,8 +1205,8 @@
     "semantic_hash": "6407d7e60f94b58ac10841584ea526c9"
   },
   "apps/mobile/components/inputs/DateField.tsx": {
-    "mtime": 1788952892.2368054,
-    "ast_hash": "5c5fc259f825708cb2101a3207fb8331",
+    "mtime": 1791042665.525052,
+    "ast_hash": "1d0cf90f40b15d56f6f73de4567b5802",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DropdownField.tsx": {
@@ -4190,8 +4190,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/AppDialog.tsx": {
-    "mtime": 1788952892.2357779,
-    "ast_hash": "4d0929f6b4f4edba0a28c11cb54bf2d2",
+    "mtime": 1791154773.4769423,
+    "ast_hash": "4c69a4a521aba2f2e3d87bff96806c12",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/MoveInCostBreakdown.tsx": {
@@ -5955,8 +5955,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/[documentId].tsx": {
-    "mtime": 1791039272.6658337,
-    "ast_hash": "93693388041bb4d3cc0ad824ce2c9abf",
+    "mtime": 1791041516.859901,
+    "ast_hash": "1db5ba725368f89bbbf04063fb475a2a",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/EmptySupportingDocs.tsx": {
@@ -5975,8 +5975,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.test.tsx": {
-    "mtime": 1791026368.426488,
-    "ast_hash": "fb5994fb8f4f641eac1c166644440f52",
+    "mtime": 1791040989.430982,
+    "ast_hash": "06ac9104d4a5ef2d21f5fc9ec894e137",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/passport/index.ts": {
@@ -6000,13 +6000,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.test.ts": {
-    "mtime": 1791039542.880218,
-    "ast_hash": "558d75e03550c5aaa930c06283f8b5c3",
+    "mtime": 1791041454.7165558,
+    "ast_hash": "2c22d3fb92139b63d93ba93abea0dcea",
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.ts": {
-    "mtime": 1791039227.945215,
-    "ast_hash": "e23bc0277ccaabbfe6fc0324dbe00088",
+    "mtime": 1791040921.6393418,
+    "ast_hash": "79a64685ad65599ea45d3b3f69c9fab9",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-passport-verified-paths.ts": {
@@ -6052,6 +6052,31 @@
   "supabase/migrations/20261003000000_passport_documents_review.sql": {
     "mtime": 1791039201.9336267,
     "ast_hash": "2c6c2c8deaf21409427a9d81245b3822",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/document-id/upload.test.tsx": {
+    "mtime": 1791154980.957449,
+    "ast_hash": "3aa5b5cd83d0f07ccf59b511d141a027",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/passport/expiry.test.ts": {
+    "mtime": 1791040921.6391873,
+    "ast_hash": "53532e1eec836ba2f8f9ed450a095b90",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/passport/expiry.ts": {
+    "mtime": 1791040921.638942,
+    "ast_hash": "3c07ff1990eccee72941855c8197bc78",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/inputs/DateField.test.tsx": {
+    "mtime": 1791042680.593894,
+    "ast_hash": "21eb7071f034e894c667baf48b1a2afa",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/document-id/utils/documentTypeIcons.ts": {
+    "mtime": 1791154563.801394,
+    "ast_hash": "424afaac3c7a38a81721ef13f94d0aa5",
     "semantic_hash": ""
   }
 }

@@ -20,6 +20,7 @@ interface DocumentCardProps {
   label: string;
   onPress: () => void;
   verified?: boolean;
+  expired?: boolean;
   pending?: boolean;
   subtitle?: string;
   mimeType?: string | null;
@@ -31,6 +32,7 @@ export default function DocumentCard({
   label,
   onPress,
   verified = false,
+  expired = false,
   pending = false,
   subtitle,
   mimeType,
@@ -49,7 +51,7 @@ export default function DocumentCard({
       <PressableFeedback.Highlight />
       <Card className="border border-border rounded-3xl p-0 shadow-none overflow-hidden">
         <View
-          className="w-full bg-gray-200 items-center justify-center"
+          className="w-full bg-gray-200 items-center justify-center relative"
           style={{ aspectRatio: 1 }}
         >
           {isImage ? (
@@ -68,6 +70,24 @@ export default function DocumentCard({
           ) : (
             <IconFileText size={40} color={colors.gray400} />
           )}
+          {verified ? (
+            <View
+              testID="verified-badge"
+              accessibilityLabel="Verified"
+              className="absolute top-2 left-2 rounded-full bg-surface p-1.5"
+            >
+              <IconShieldCheck size={20} color={colors.success} />
+            </View>
+          ) : null}
+          {expired ? (
+            <View
+              testID="expired-badge"
+              accessibilityLabel="Expired"
+              className="absolute top-2 right-2 size-7 rounded-full bg-danger items-center justify-center"
+            >
+              <Text className="text-white font-nunitoBold text-sm">!</Text>
+            </View>
+          ) : null}
         </View>
 
         <Card.Body className="p-3 gap-0.5">
@@ -78,19 +98,7 @@ export default function DocumentCard({
             {label}
           </Card.Title>
 
-          {verified ? (
-            <Chip
-              variant="soft"
-              color="success"
-              size="sm"
-              className="self-start"
-            >
-              <IconShieldCheck size={12} color={colors.success} />
-              <Chip.Label className="text-success font-nunitoSemiBold">
-                Verified
-              </Chip.Label>
-            </Chip>
-          ) : pending ? (
+          {pending && !verified ? (
             <Chip
               variant="soft"
               color="warning"

@@ -9,6 +9,7 @@ import {
   uploadPassportDocument,
   type PassportDocumentRow,
 } from './passportService';
+import { toExpiryDateString } from './expiry';
 
 const mockUpload = jest.fn();
 const mockRemove = jest.fn();
@@ -110,6 +111,24 @@ describe('uploadPassportDocument', () => {
     expect(path.startsWith('user-1/passport/payslip-')).toBe(true);
     expect(mockFrom).toHaveBeenCalledWith('passport_documents');
     expect(row.doc_type).toBe('Payslip');
+  });
+
+  it('persists an optional expiry date with the document', async () => {
+    const insert = jest.fn().mockReturnValue({
+      select: () => ({
+        single: () => Promise.resolve({ data: { ...baseRow, expires_at: '2027-10-03' }, error: null }),
+      }),
+    });
+    mockFrom.mockReturnValue({ insert });
+
+    await uploadPassportDocument({
+      userId: 'user-1',
+      docType: 'Payslip',
+      asset: { uri: 'file:///payslip.jpg', fileName: 'payslip.jpg', mimeType: 'image/jpeg' },
+      expiresAt: '2027-10-03',
+    });
+
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ expires_at: '2027-10-03' }));
   });
 
   it('cleans up storage when the insert fails', async () => {
@@ -497,6 +516,21 @@ describe('requestPassportDocumentReview', () => {
     await expect(
       requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
     ).rejects.toThrow('expired');
+  });
+
+  it('allows requesting review on the expiry date itself', async () => {
+    mockFrom
+      .mockReturnValueOnce(chainable({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: mockReviewRow({ expires_at: toExpiryDateString(new Date()) }),
+          error: null,
+        }),
+      }))
+      .mockReturnValueOnce(mockUpdateSuccess({ ...baseRow, review_status: 'pending' }));
+
+    await expect(
+      requestPassportDocumentReview({ id: 'doc-1', userId: 'user-1' })
+    ).resolves.toMatchObject({ review_status: 'pending' });
   });
 });
 

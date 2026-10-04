@@ -1,4 +1,5 @@
 import { File } from 'expo-file-system'
+import { isExpiredDate } from './expiry'
 
 import { supabase, type Database } from '@repo/supabase'
 import {
@@ -241,11 +242,8 @@ export async function requestPassportDocumentReview(input: {
     throw new Error('This document is already verified.')
   }
 
-  if (row.expires_at) {
-    const expiry = new Date(row.expires_at)
-    if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
-      throw new Error('This document is expired. Upload a current copy first.')
-    }
+  if (isExpiredDate(row.expires_at)) {
+    throw new Error('This document is expired. Upload a current copy first.')
   }
 
   const { data, error: updateError } = await supabase

@@ -425,6 +425,30 @@ describe("Supporting documents view toggle", () => {
     expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
     expect(screen.getByText("Payslip")).toBeTruthy();
   });
+
+  it("shows the shield in the card corner for verified supporting documents", () => {
+    mockPassportState.documents = [primaryDoc, { ...payslipDoc, is_verified: true }];
+    render(<Index />);
+
+    expect(screen.getByTestId("verified-badge")).toBeTruthy();
+    expect(screen.queryByTestId("expired-badge")).toBeNull();
+  });
+
+  it("marks expired cards and list rows even if the document is verified", () => {
+    mockPassportState.documents = [
+      primaryDoc,
+      { ...payslipDoc, is_verified: true, expires_at: "2020-01-01" },
+    ];
+    mockDocumentUrlsState.resolved = [frontResolved, payslipResolved];
+    render(<Index />);
+
+    expect(screen.getByTestId("verified-badge")).toBeTruthy();
+    expect(screen.getByTestId("expired-badge")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText("Toggle view"));
+    expect(screen.getByText("Expired")).toBeTruthy();
+    expect(screen.getByText("Verified")).toBeTruthy();
+  });
 });
 
 describe("Valid ID flip control", () => {

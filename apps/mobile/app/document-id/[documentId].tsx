@@ -31,6 +31,7 @@ import {
 } from "@/hooks/passport";
 
 import { isImageUri } from "./utils/fileType";
+import { isExpiredDate } from "@/service/passport/expiry";
 
 export default function PassportDocumentDetail() {
   const { documentId } = useLocalSearchParams<{
@@ -155,6 +156,50 @@ export default function PassportDocumentDetail() {
       scrollable
       header={<StandardHeader title={document.doc_type} />}
       className="p-5"
+      footer={
+        !isLinkedVerification ? (
+          <View className="gap-3 px-5">
+            {requestError ? (
+              <Text className="text-danger text-sm font-inter">
+                {requestError.message}
+              </Text>
+            ) : null}
+            {isUnderReview ? (
+              <Text className="text-muted text-sm font-inter leading-relaxed">
+                Under admin review. You can delete it once the review resolves.
+              </Text>
+            ) : (
+              <Button
+                variant="danger-soft"
+                onPress={() => {
+                  setDeleteError(null);
+                  setConfirmOpen(true);
+                }}
+              >
+                <IconTrash size={18} color={colors.danger} />
+                <Button.Label className="font-nunitoSemiBold">
+                  Delete Document
+                </Button.Label>
+              </Button>
+            )}
+            {canRequestReview ? (
+              <Button
+                onPress={handleRequestReview}
+                isDisabled={isRequesting}
+              >
+                <IconShieldCheck size={18} color="#fff" />
+                <Button.Label className="font-nunitoSemiBold">
+                  {isRequesting
+                    ? "Requesting…"
+                    : reviewStatus === "rejected"
+                      ? "Request Review Again"
+                      : "Request Verification"}
+                </Button.Label>
+              </Button>
+            ) : null}
+          </View>
+        ) : undefined
+      }
     >
       <View className="gap-4">
         <View className="flex-row items-center justify-between gap-3">
@@ -270,61 +315,29 @@ export default function PassportDocumentDetail() {
             label="Expires"
             value={
               document.expires_at
-                ? formatDate(document.expires_at, "medium")
+                ? formatDate(`${document.expires_at}T00:00:00`, "medium")
                 : "No expiry"
             }
           />
         </View>
+
+        {isExpiredDate(document.expires_at) ? (
+          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
+            <Text className="text-danger text-sm font-nunitoSemiBold">
+              Expired document
+            </Text>
+            <Text className="text-muted text-sm font-inter mt-0.5">
+              Upload a current copy before requesting verification.
+            </Text>
+          </View>
+        ) : null}
 
         {isLinkedVerification ? (
           <Text className="text-muted text-sm font-inter leading-relaxed">
             This ID is linked to your approved account verification and is
             managed automatically.
           </Text>
-        ) : (
-          <>
-            {isUnderReview ? (
-              <Text className="text-muted text-sm font-inter leading-relaxed">
-                Under admin review. You can delete it once the review resolves.
-              </Text>
-            ) : (
-              <Button
-                variant="danger-soft"
-                onPress={() => {
-                  setDeleteError(null);
-                  setConfirmOpen(true);
-                }}
-              >
-                <IconTrash size={18} color={colors.danger} />
-                <Button.Label className="font-nunitoSemiBold">
-                  Delete Document
-                </Button.Label>
-              </Button>
-            )}
-            {canRequestReview ? (
-              <>
-                <Button
-                  onPress={handleRequestReview}
-                  isDisabled={isRequesting}
-                >
-                  <IconShieldCheck size={18} color="#fff" />
-                  <Button.Label className="font-nunitoSemiBold">
-                    {isRequesting
-                      ? "Requesting…"
-                      : reviewStatus === "rejected"
-                        ? "Request Review Again"
-                        : "Request Verification"}
-                  </Button.Label>
-                </Button>
-                {requestError ? (
-                  <Text className="text-danger text-sm font-inter">
-                    {requestError.message}
-                  </Text>
-                ) : null}
-              </>
-            ) : null}
-          </>
-        )}
+        ) : null}
       </View>
 
       <ConfirmDialog

@@ -1,17 +1,17 @@
 import { View, Text } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { createElement, useState } from "react";
 
 import {
-  Accordion,
   Button,
   Checkbox,
   ControlField,
   Label,
+  LinkButton,
   Spinner,
 } from "heroui-native";
 
-import { IconFileInfo } from "@tabler/icons-react-native";
+import { IconAlertTriangle, IconFileInfo } from "@tabler/icons-react-native";
 
 import { PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
 
@@ -20,10 +20,17 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import UploadDocumentField, {
   type UploadedDocument,
 } from "@/components/inputs/UploadDocumentField";
+import DateField from "@/components/inputs/DateField";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import AppDialog from "@/components/display/AppDialog";
+import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
 
 import { useColors } from "@/hooks/useTheme";
 import { useUploadPassportDocument } from "@/hooks/passport";
+import {
+  toExpiryDateString,
+  validateExpiryDate,
+} from "@/service/passport/expiry";
 
 export default function Upload() {
   const { docType } = useLocalSearchParams<{ docType?: string | string[] }>();
@@ -35,12 +42,15 @@ export default function Upload() {
 
   const [isVerified, setIsVerified] = useState(false);
   const [document, setDocument] = useState<UploadedDocument | null>(null);
+  const [expiryDate, setExpiryDate] = useState<Date | null>(null);
+  const expiryError = validateExpiryDate(expiryDate);
 
   const { mutate: upload, isPending, error } = useUploadPassportDocument();
   const [showError, setShowError] = useState(false);
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
 
   const handleAddDocument = () => {
-    if (!document || !isVerified) return;
+    if (!document || !isVerified || validateExpiryDate(expiryDate)) return;
 
     const asset =
       document.kind === "image"
@@ -62,6 +72,7 @@ export default function Upload() {
         idType: PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType)
           ? resolvedDocType
           : null,
+        expiresAt: expiryDate ? toExpiryDateString(expiryDate) : null,
       },
       {
         onSuccess: () => router.replace("/document-id"),
@@ -78,9 +89,20 @@ export default function Upload() {
     >
       <View className="flex gap-1.5">
         {/* Name of Document */}
-        <Text className="text-accent text-2xl font-nunitoBold">
-          {resolvedDocType}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <View
+            testID="document-type-icon"
+            className="size-10 rounded-xl bg-primary-light items-center justify-center"
+          >
+            {createElement(getDocumentTypeIcon(resolvedDocType), {
+              size: 20,
+              color: colors.primary,
+            })}
+          </View>
+          <Text className="text-accent text-2xl font-nunitoBold shrink">
+            {resolvedDocType}
+          </Text>
+        </View>
 
         <View className="flex-row items-center gap-1.5">
           <IconFileInfo size={16} color={colors.gray400} />
@@ -97,6 +119,17 @@ export default function Upload() {
           required
           value={document}
           onChange={setDocument}
+        />
+      </View>
+
+      <View className="mt-6">
+        <DateField
+          label="Expiry date (optional)"
+          placeholder="No expiry"
+          value={expiryDate}
+          onChange={setExpiryDate}
+          onClear={() => setExpiryDate(null)}
+          error={expiryError ?? undefined}
         />
       </View>
 
@@ -125,26 +158,14 @@ export default function Upload() {
             lead to account suspension.
           </Text>
 
-          <Accordion>
-            <Accordion.Item value="legal-notice">
-              <Accordion.Trigger className="self-start">
-                <Accordion.Indicator />
-                <Text className="text-sm text-gray-500 font-inter underline">
-                  Legal notice
-                </Text>
-              </Accordion.Trigger>
-              <Accordion.Content>
-                <Text className="text-sm text-gray-500 font-inter leading-relaxed">
-                  By uploading your documents, you certify that all information
-                  is true and valid. Any fraudulent or falsified documents may
-                  result in account suspension and legal action in accordance
-                  with applicable Philippine laws on fraud and identity theft,
-                  including the Cybercrime Prevention Act (Republic Act No.
-                  10175).
-                </Text>
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
+          <LinkButton
+            className="self-start"
+            onPress={() => setIsLegalOpen(true)}
+          >
+            <LinkButton.Label className="text-sm font-interMedium text-accent underline">
+              Legal notice
+            </LinkButton.Label>
+          </LinkButton>
         </View>
       </View>
 
@@ -152,7 +173,7 @@ export default function Upload() {
 
       <Button
         className="mt-8"
-        isDisabled={!isVerified || !document || isPending}
+        isDisabled={!isVerified || !document || !!expiryError || isPending}
         onPress={handleAddDocument}
       >
         {isPending ? (
@@ -171,6 +192,20 @@ export default function Upload() {
           error?.message ?? "Could not save your document. Please try again."
         }
       />
+      <AppDialog
+        isOpen={isLegalOpen}
+        onOpenChange={setIsLegalOpen}
+        title="Legal notice"
+        titleIcon={<IconAlertTriangle size={20} color={colors.warning} />}
+      >
+        <Text className="text-muted text-sm font-inter leading-relaxed">
+          By uploading your documents, you certify that all information is true
+          and valid. Any fraudulent or falsified documents may result in account
+          suspension and legal action in accordance with applicable Philippine
+          laws on fraud and identity theft, including the Cybercrime Prevention
+          Act (Republic Act No. 10175).
+        </Text>
+      </AppDialog>
     </ScreenWrapper>
   );
 }

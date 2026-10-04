@@ -18,6 +18,7 @@ type DocumentRowProps = {
   signedUrl: string | null;
   onPressImage?: (uri: string) => void;
   verified?: boolean;
+  expired?: boolean;
   mimeType?: string | null;
   /** Overrides both default handlers (viewer for images, external link for
    * files) — e.g. to route to a detail screen instead. */
@@ -36,6 +37,7 @@ export default function DocumentRow({
   signedUrl,
   onPressImage,
   verified = false,
+  expired = false,
   mimeType,
   onPress,
 }: DocumentRowProps) {
@@ -62,13 +64,16 @@ export default function DocumentRow({
           </Text>
         </View>
       ) : null}
+      {expired ? (
+        <Text className="text-danger text-xs font-nunitoSemiBold">Expired</Text>
+      ) : null}
     </View>
   );
 
   if (!signedUrl) {
     return (
       <View className="flex-row items-center justify-between py-2">
-        <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
+        <View className="flex-1">{labelRow}</View>
         <Text className="text-muted text-sm">Unavailable</Text>
       </View>
     );
