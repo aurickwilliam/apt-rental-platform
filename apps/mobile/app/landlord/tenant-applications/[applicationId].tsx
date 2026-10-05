@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { getLandlordApplicationStatusStyle } from "@/hooks/applications/useApplicationStatusStyles";
 import { Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
@@ -20,31 +22,15 @@ import { formatPesoDisplay, formatDate, getInitials } from '@repo/utils';
 import { useColors } from '@/hooks/useTheme';
 import {
   useLandlordApplications,
-  type DisplayStatus,
   useDocumentUrls,
   useApplicationActions
 } from '@/hooks/applications';
 import { usePassportVerifiedPaths } from '@/hooks/passport';
 
 
-function getStatusStyle(
-  status: DisplayStatus,
-  colors: ReturnType<typeof useColors>['colors'],
-): { backgroundColor: string; textColor: string } {
-  switch (status) {
-    case 'Applied':
-      return { backgroundColor: colors.warningLight, textColor: colors.warning };
-    case 'Approved':
-      return { backgroundColor: colors.successLight, textColor: colors.success };
-    case 'Rejected':
-      return { backgroundColor: colors.dangerLight, textColor: colors.danger };
-    case 'Cancelled':
-      return { backgroundColor: colors.gray100, textColor: colors.gray500 };
-  }
-}
-
 export default function TenantApplicationDetails() {
   const { colors } = useColors();
+  const palette = useStatusChipStyles();
 
   const { applicationId } = useLocalSearchParams<{ applicationId?: string | string[] }>();
   const resolvedId = useMemo(
@@ -105,7 +91,7 @@ export default function TenantApplicationDetails() {
   }
 
   const displayStatus = localStatus ?? application?.status;
-  const statusStyle = getStatusStyle(displayStatus!, colors);
+  const statusStyle = getLandlordApplicationStatusStyle(displayStatus!, palette);
   const isPending = displayStatus === 'Applied';
   const isUnitOccupied = application.apartment_status === 'occupied';
 
@@ -168,7 +154,7 @@ export default function TenantApplicationDetails() {
               <Chip
                 size="sm"
                 variant="soft"
-                style={{ backgroundColor: statusStyle.backgroundColor }}
+                style={statusChipSurface(statusStyle)}
               >
                 <Chip.Label
                   className="font-nunitoSemiBold"

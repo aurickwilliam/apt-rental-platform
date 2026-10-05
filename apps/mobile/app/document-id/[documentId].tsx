@@ -24,6 +24,7 @@ import ConfirmDialog from "@/components/display/ConfirmDialog";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { useDocumentUrls } from "@/hooks/applications";
 import {
   useDeletePassportDocument,
@@ -43,6 +44,7 @@ export default function PassportDocumentDetail() {
   const resolvedId = Array.isArray(documentId) ? documentId[0] : documentId;
   const router = useRouter();
   const { colors } = useColors();
+  const { success, warning } = useStatusChipStyles();
 
   const { documents, loading } = usePassportDocuments();
   const document = documents.find((doc) => doc.id === resolvedId) ?? null;
@@ -168,8 +170,8 @@ export default function PassportDocumentDetail() {
               </Text>
             ) : null}
             {isUnderReview ? (
-              <Text className="text-muted text-sm font-inter leading-relaxed">
-                Under admin review. You can delete it once the review resolves.
+              <Text className="text-muted text-sm font-inter text-center">
+                Under admin review.
               </Text>
             ) : (
               <Button
@@ -186,10 +188,7 @@ export default function PassportDocumentDetail() {
               </Button>
             )}
             {canRequestReview ? (
-              <Button
-                onPress={handleRequestReview}
-                isDisabled={isRequesting}
-              >
+              <Button onPress={handleRequestReview} isDisabled={isRequesting}>
                 <IconShieldCheck size={18} color="#fff" />
                 <Button.Label className="font-nunitoSemiBold">
                   {isRequesting
@@ -225,16 +224,16 @@ export default function PassportDocumentDetail() {
             </Text>
           </View>
           {document.is_verified ? (
-            <Chip variant="secondary" color="success" size="sm">
-              <IconShieldCheck size={14} color={colors.success} />
-              <Chip.Label className="text-success font-nunitoSemiBold">
+            <Chip variant="soft" color="success" size="md" style={statusChipSurface(success)}>
+              <IconShieldCheck size={14} color={success.textColor} />
+              <Chip.Label className="font-nunitoSemiBold" style={{ color: success.textColor }}>
                 Verified
               </Chip.Label>
             </Chip>
           ) : isUnderReview ? (
-            <Chip variant="secondary" color="warning" size="sm">
-              <IconHourglass size={14} color={colors.warning} />
-              <Chip.Label className="text-warning font-nunitoSemiBold">
+            <Chip variant="soft" color="warning" size="md" style={statusChipSurface(warning)}>
+              <IconHourglass size={14} color={warning.textColor} />
+              <Chip.Label className="font-nunitoSemiBold" style={{ color: warning.textColor }}>
                 Under review
               </Chip.Label>
             </Chip>
@@ -355,7 +354,6 @@ export default function PassportDocumentDetail() {
             </Text>
           </View>
         ) : null}
-
       </View>
 
       <ConfirmDialog

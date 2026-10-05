@@ -1,30 +1,18 @@
 import type { MaintenanceRequestStatus, MaintenanceRequestUrgency } from "./useMaintenanceRequests";
-import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles } from "@/hooks/useStatusChipStyles";
 
-type StatusStyle = { backgroundColor: string; textColor: string };
+type StatusStyle = ReturnType<typeof useStatusChipStyles>["success"];
 
 export function useMaintenanceRequestStatusStyles(): Record<
   MaintenanceRequestStatus,
   StatusStyle
 > {
-  const { colors } = useColors();
+  const status = useStatusChipStyles();
   return {
-    Pending: {
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
-    },
-    "In Progress": {
-      backgroundColor: colors.primaryLight,
-      textColor: colors.primary,
-    },
-    Resolved: {
-      backgroundColor: colors.successLight,
-      textColor: colors.success,
-    },
-    Cancelled: {
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500
-    },
+    Pending: status.warning,
+    "In Progress": status.warning,
+    Resolved: status.success,
+    Cancelled: status.danger,
   };
 }
 
@@ -32,19 +20,10 @@ export function useMaintenanceRequestUrgencyStyles(): Record<
   MaintenanceRequestUrgency,
   StatusStyle
 > {
-  const { colors } = useColors();
+  const status = useStatusChipStyles();
   return {
-    high: {
-      backgroundColor: colors.dangerLight,
-      textColor: colors.danger,
-    },
-    medium: {
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
-    },
-    low: {
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500,
-    },
+    high: status.danger,
+    medium: status.warning,
+    low: status.neutral,
   };
 }

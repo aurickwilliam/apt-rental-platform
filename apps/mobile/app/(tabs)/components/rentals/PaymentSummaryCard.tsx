@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 
 import { useColors } from "hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { formatPesoDisplay } from "@repo/utils";
 
 import { Button, Chip } from "heroui-native";
@@ -31,8 +32,10 @@ export default function PaymentSummaryCard({
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
   const { colors } = useColors();
+  const palette = useStatusChipStyles();
 
   const isPending = status === "Pending";
+  const statusStyle = isPending ? palette.warning : palette.success;
 
   return (
     <View className="bg-accent rounded-3xl p-4 border border-white/10">
@@ -45,15 +48,11 @@ export default function PaymentSummaryCard({
         <Chip
           size="sm"
           variant="soft"
-          style={{
-            backgroundColor: isPending
-              ? colors.warningLight
-              : colors.successLight,
-          }}
+          style={statusChipSurface(statusStyle)}
         >
           <Chip.Label
             className="font-nunitoSemiBold text-sm"
-            style={{ color: isPending ? colors.warning : colors.success }}
+            style={{ color: statusStyle.textColor }}
           >
             {status}
           </Chip.Label>

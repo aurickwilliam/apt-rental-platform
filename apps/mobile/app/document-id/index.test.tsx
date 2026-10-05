@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react-native";
+import { IconHourglass } from "@tabler/icons-react-native";
 
 import Index from "./index";
 
@@ -113,9 +114,21 @@ jest.mock("heroui-native", () => {
     React.createElement(Text, null, children);
   ButtonMock.Label = ButtonLabelMock;
 
-  const ChipMock = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
-  ChipMock.Label = Passthrough;
+  const ChipMock = ({ children, testID, className, style, variant, color, size }: {
+    children?: React.ReactNode;
+    testID?: string;
+    className?: string;
+    style?: React.ComponentProps<typeof View>["style"];
+    variant?: string;
+    color?: string;
+    size?: string;
+  }) => React.createElement(View, { testID: testID ?? `chip-${variant}-${color}-${size}`, className, style }, children);
+  ChipMock.Label = function ChipLabelMock({ children, style }: {
+    children?: React.ReactNode;
+    style?: React.ComponentProps<typeof View>["style"];
+  }) {
+    return React.createElement(View, { style }, children);
+  };
 
   const SkeletonGroupMock = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, { testID: "skeleton-group" }, children);
@@ -434,6 +447,30 @@ describe("Supporting documents view toggle", () => {
     expect(screen.queryByTestId("expired-badge")).toBeNull();
   });
 
+  it("overlays the under-review chip at the top left of the document thumbnail", () => {
+    mockPassportState.documents = [
+      primaryDoc,
+      { ...payslipDoc, review_status: "pending" },
+    ];
+    render(<Index />);
+
+    const badge = screen.getByTestId("pending-badge");
+    expect(badge.props.className).toContain("absolute top-2 left-2");
+    expect(badge.props.style).toMatchObject({
+      backgroundColor: "#FEF3C7",
+      borderColor: "#FCD34D",
+      borderWidth: 1,
+    });
+    expect(badge.findByType(IconHourglass).props.color).toBe("#92400E");
+    expect(
+      badge.findAll(
+        (node) => node.children.includes("Under review") && node.props.style?.color === "#92400E",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("Payslip")).toBeTruthy();
+    expect(screen.queryByTestId("verified-badge")).toBeNull();
+  });
+
   it("marks expired cards and list rows even if the document is verified", () => {
     mockPassportState.documents = [
       primaryDoc,
@@ -489,6 +526,7 @@ describe("Valid ID flip control", () => {
     expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
     expect(screen.queryByLabelText("Show back of ID")).toBeNull();
     expect(screen.queryByLabelText("Show front of ID")).toBeNull();
+    expect(screen.getByTestId("chip-soft-success-md")).toBeTruthy();
   });
 
   it("flips between front and back when the button is tapped", () => {

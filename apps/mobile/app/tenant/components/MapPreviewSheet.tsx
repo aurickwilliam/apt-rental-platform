@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react-native';
 import { formatPesoDisplay } from '@repo/utils';
 import { useColors } from '@/hooks/useTheme';
+import { useStatusChipStyles, statusChipSurface } from '@/hooks/useStatusChipStyles';
 import type { MapApartment } from '@/service/apartments/mapSearchService';
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 
 export default function MapPreviewSheet({ apartment, onClose, onPress }: Props) {
   const { colors } = useColors();
+  const { success } = useStatusChipStyles();
   const isOpen = apartment != null;
 
   const thumbnail = apartment?.coverThumbUrl
@@ -66,11 +68,11 @@ export default function MapPreviewSheet({ apartment, onClose, onPress }: Props) 
 
                 {apartment.is_verified && (
                   <View
-                    className="bg-success-light p-1 absolute top-1.5 right-1.5 rounded-full flex-row items-center gap-1"
-                    style={{ paddingHorizontal: 8, elevation: 3 }}
+                    className="p-1 absolute top-1.5 right-1.5 rounded-full flex-row items-center gap-1"
+                    style={{ ...statusChipSurface(success), paddingHorizontal: 8, elevation: 3 }}
                   >
-                    <IconShieldCheckFilled size={14} color={colors.success} />
-                    <Text className="text-success font-nunitoSemiBold text-xs">Verified</Text>
+                    <IconShieldCheckFilled size={14} color={success.textColor} />
+                    <Text className="font-nunitoSemiBold text-xs" style={{ color: success.textColor }}>Verified</Text>
                   </View>
                 )}
               </View>

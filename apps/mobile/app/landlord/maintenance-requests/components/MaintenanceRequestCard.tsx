@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { Card, Chip, PressableFeedback } from "heroui-native";
 
 import { IconHammer } from "@tabler/icons-react-native";
@@ -60,7 +61,7 @@ export default function MaintenanceRequestCard({
               <Chip
                 size="sm"
                 variant="soft"
-                style={{ backgroundColor: statusStyle.backgroundColor }}
+                style={statusChipSurface(statusStyle)}
               >
                 <Chip.Label
                   className="font-nunitoSemiBold"

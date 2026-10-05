@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 
 import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
 
@@ -80,7 +81,7 @@ export default function VisitRequestCard({
                   <Chip
                     size="sm"
                     variant="soft"
-                    style={{ backgroundColor: statusStyle.backgroundColor }}
+                    style={statusChipSurface(statusStyle)}
                   >
                     <Chip.Label
                       className="font-nunitoSemiBold"

@@ -5,6 +5,7 @@ import { IconHammer, IconTool } from "@tabler/icons-react-native";
 import { Button, Card, Chip } from "heroui-native";
 
 import { useColors } from "hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 
 interface MaintenanceRequestCardProps {
   issueName: string;
@@ -18,6 +19,7 @@ export default function MaintenanceRequestCard({
   onUpdatePress,
 }: MaintenanceRequestCardProps) {
   const { colors } = useColors();
+  const { warning } = useStatusChipStyles();
 
   return (
     <Card className="border border-border shadow-none rounded-3xl">
@@ -37,10 +39,10 @@ export default function MaintenanceRequestCard({
             variant="soft"
             size="md"
             animation="disable-all"
-            style={{ backgroundColor: colors.warningLight }}
+            style={statusChipSurface(warning)}
           >
             <Chip.Label
-              style={{ color: colors.warning }}
+              style={{ color: warning.textColor }}
               className="text-xs font-nunitoSemiBold"
             >
               Pending

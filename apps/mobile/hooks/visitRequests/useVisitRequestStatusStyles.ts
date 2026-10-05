@@ -1,4 +1,4 @@
-import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, type StatusChipStyle } from "@/hooks/useStatusChipStyles";
 
 export type VisitRequestStatus =
   | "pending"
@@ -7,51 +7,41 @@ export type VisitRequestStatus =
   | "cancelled"
   | "rescheduled";
 
-export type StatusStyle = {
-  label: string;
-  backgroundColor: string;
-  textColor: string;
-};
+export type StatusStyle = StatusChipStyle & { label: string };
 
-const FALLBACK_STYLE = (colors: ReturnType<typeof useColors>["colors"]): StatusStyle => ({
+const FALLBACK_STYLE = (status: ReturnType<typeof useStatusChipStyles>): StatusStyle => ({
   label: "Unknown",
-  backgroundColor: colors.gray100,
-  textColor: colors.gray500,
+  ...status.neutral,
 });
 
 export function useVisitRequestStatusStyles() {
-  const { colors } = useColors();
+  const palette = useStatusChipStyles();
 
   const STATUS_STYLES: Record<VisitRequestStatus, StatusStyle> = {
     pending: {
       label: "Pending",
-      backgroundColor: colors.warningLight,
-      textColor: colors.warning,
+      ...palette.warning,
     },
     approved: {
       label: "Approved",
-      backgroundColor: colors.successLight,
-      textColor: colors.success,
+      ...palette.success,
     },
     rejected: {
       label: "Rejected",
-      backgroundColor: colors.dangerLight,
-      textColor: colors.danger,
+      ...palette.danger,
     },
     rescheduled: {
       label: "Rescheduled",
-      backgroundColor: colors.primaryLight,
-      textColor: colors.primary,
+      ...palette.warning,
     },
     cancelled: {
       label: "Cancelled",
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500,
+      ...palette.danger,
     },
   };
 
   const getStatusStyle = (status: VisitRequestStatus): StatusStyle =>
-    STATUS_STYLES[status] ?? FALLBACK_STYLE(colors);
+    STATUS_STYLES[status] ?? FALLBACK_STYLE(palette);
 
   return { STATUS_STYLES, getStatusStyle };
 }

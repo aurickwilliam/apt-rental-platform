@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -123,7 +124,7 @@ export default function MaintenanceDetails() {
               variant="soft"
               size="md"
               animation="disable-all"
-              style={{ backgroundColor: urgency.backgroundColor }}
+              style={statusChipSurface(urgency)}
             >
               <Chip.Label
                 style={{ color: urgency.textColor }}
@@ -143,7 +144,7 @@ export default function MaintenanceDetails() {
               variant="soft"
               size="md"
               animation="disable-all"
-              style={{ backgroundColor: status.backgroundColor }}
+              style={statusChipSurface(status)}
             >
               <Chip.Label
                 style={{ color: status.textColor }}

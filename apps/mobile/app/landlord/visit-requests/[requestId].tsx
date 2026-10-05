@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { Alert, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -165,7 +166,7 @@ export default function VisitRequestDetails() {
             <Chip
               size="md"
               variant="soft"
-              style={{ backgroundColor: statusStyle.backgroundColor }}
+              style={statusChipSurface(statusStyle)}
             >
               <Chip.Label
                 className="font-nunitoSemiBold"

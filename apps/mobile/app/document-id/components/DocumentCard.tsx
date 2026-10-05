@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { isPdfDocument, isPreviewable } from "../utils/fileType";
 import PdfThumbnail from "@/components/display/PdfThumbnail";
 
@@ -38,6 +39,7 @@ export default function DocumentCard({
   mimeType,
 }: DocumentCardProps) {
   const { colors } = useColors();
+  const { success, warning, danger } = useStatusChipStyles();
   const isImage =
     !!filePath && isPreviewable(mimeType, storagePath ?? filePath);
   const isPdf =
@@ -74,18 +76,38 @@ export default function DocumentCard({
             <View
               testID="verified-badge"
               accessibilityLabel="Verified"
-              className="absolute top-2 left-2 rounded-full bg-surface p-1.5"
+              className="absolute top-2 left-2 rounded-full p-1.5"
+              style={statusChipSurface(success)}
             >
-              <IconShieldCheck size={20} color={colors.success} />
+              <IconShieldCheck size={20} color={success.textColor} />
             </View>
+          ) : null}
+          {pending && !verified ? (
+            <Chip
+              testID="pending-badge"
+              variant="soft"
+              color="warning"
+              size="sm"
+              className="absolute top-2 left-2"
+              style={statusChipSurface(warning)}
+            >
+              <IconHourglass size={12} color={warning.textColor} />
+              <Chip.Label
+                className="font-nunitoSemiBold"
+                style={{ color: warning.textColor }}
+              >
+                Under review
+              </Chip.Label>
+            </Chip>
           ) : null}
           {expired ? (
             <View
               testID="expired-badge"
               accessibilityLabel="Expired"
-              className="absolute top-2 right-2 size-7 rounded-full bg-danger items-center justify-center"
+              className="absolute top-2 right-2 size-7 rounded-full items-center justify-center"
+              style={statusChipSurface(danger)}
             >
-              <Text className="text-white font-nunitoBold text-sm">!</Text>
+              <Text className="font-nunitoBold text-sm" style={{ color: danger.textColor }}>!</Text>
             </View>
           ) : null}
         </View>
@@ -97,20 +119,6 @@ export default function DocumentCard({
           >
             {label}
           </Card.Title>
-
-          {pending && !verified ? (
-            <Chip
-              variant="soft"
-              color="warning"
-              size="sm"
-              className="self-start"
-            >
-              <IconHourglass size={12} color={colors.warning} />
-              <Chip.Label className="font-nunitoSemiBold" style={{ color: colors.warning }}>
-                Under review
-              </Chip.Label>
-            </Chip>
-          ) : null}
 
           <View className="flex-row items-center gap-0.5">
             <Text className="text-xs text-muted">

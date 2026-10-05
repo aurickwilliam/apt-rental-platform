@@ -14,6 +14,7 @@ import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 import {
   useTenantApplications,
   useApplicationStatusStyles,
@@ -37,6 +38,7 @@ import { IconBan, IconChevronLeft } from '@tabler/icons-react-native';
 
 export default function ApplicationApartment() {
   const { colors } = useColors();
+  const palette = useStatusChipStyles();
   const router = useRouter();
   const { applicationId, apartmentId } = useLocalSearchParams<{
     applicationId: string;
@@ -54,6 +56,13 @@ export default function ApplicationApartment() {
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
   const chipConfig = status ? getStatusStyle(status) : null;
+  const chipStatusStyle = chipConfig?.chipColor === "success"
+    ? palette.success
+    : chipConfig?.chipColor === "warning"
+      ? palette.warning
+      : chipConfig?.chipColor === "danger"
+        ? palette.danger
+        : palette.neutral;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -185,8 +194,8 @@ export default function ApplicationApartment() {
           </View>
         </View>
         {chipConfig && (
-          <Chip variant="soft" color={chipConfig.chipColor}>
-            <Chip.Label>{chipConfig.label}</Chip.Label>
+          <Chip variant="soft" color={chipConfig.chipColor} background={null} style={statusChipSurface(chipStatusStyle)}>
+            <Chip.Label style={{ color: chipStatusStyle.textColor }}>{chipConfig.label}</Chip.Label>
           </Chip>
         )}
       </View>

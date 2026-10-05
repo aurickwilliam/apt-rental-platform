@@ -7,6 +7,7 @@ import { Chip, Button, Spinner } from "heroui-native";
 import { IconRefresh, IconShieldCheck } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 
 interface ValidIdCardProps {
   idType: string;
@@ -31,6 +32,7 @@ export default function ValidIdCard({
   onOpenViewer,
 }: ValidIdCardProps) {
   const { colors } = useColors();
+  const { success } = useStatusChipStyles();
   const [showBack, setShowBack] = useState(false);
 
   const currentUrl = showBack ? (backUrl ?? frontUrl) : frontUrl;
@@ -45,9 +47,9 @@ export default function ValidIdCard({
           <Text className="text-muted text-sm font-inter">{idType}</Text>
         </View>
 
-        <Chip variant="secondary" color="success" size="md">
-          <IconShieldCheck size={14} color={colors.success} />
-          <Chip.Label className="text-success font-nunitoSemiBold">
+        <Chip variant="soft" color="success" size="md" style={statusChipSurface(success)}>
+          <IconShieldCheck size={14} color={success.textColor} />
+          <Chip.Label className="font-nunitoSemiBold" style={{ color: success.textColor }}>
             Verified
           </Chip.Label>
         </Chip>

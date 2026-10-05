@@ -1,24 +1,13 @@
-import { useColors } from "@/hooks/useTheme";
+import { useStatusChipStyles, type StatusChipStyle } from "@/hooks/useStatusChipStyles";
 import { PAYMENT_STATUS } from "@repo/constants";
 
 export type PaymentStatus = (typeof PAYMENT_STATUS)[number];
 
-type StatusStyle = { backgroundColor: string; textColor: string };
-
-export function usePaymentStatusStyles(): Record<PaymentStatus, StatusStyle> {
-  const { colors } = useColors();
+export function usePaymentStatusStyles(): Record<PaymentStatus, StatusChipStyle> {
+  const status = useStatusChipStyles();
   return {
-    Paid: {
-      backgroundColor: colors.successLight,
-      textColor: colors.success,
-    },
-    Pending: {
-      backgroundColor: colors.gray100,
-      textColor: colors.gray500,
-    },
-    Unpaid: {
-      backgroundColor: colors.dangerLight,
-      textColor: colors.danger,
-    },
+    Paid: status.success,
+    Pending: status.warning,
+    Unpaid: status.danger,
   };
 }

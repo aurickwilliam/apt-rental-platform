@@ -12,6 +12,7 @@ import {
 } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
+import { useStatusChipStyles, statusChipSurface } from '@/hooks/useStatusChipStyles';
 
 type ProfileHeaderProps = {
   backgroundPhotoUri?: string | null
@@ -37,6 +38,7 @@ export default function ProfileHeader({
   accountStatus,
 }: ProfileHeaderProps) {
   const { colors } = useColors();
+  const { success } = useStatusChipStyles();
   const insets = useSafeAreaInsets();
 
   const isVerified = accountStatus === 'verified';
@@ -148,15 +150,15 @@ export default function ProfileHeader({
 
               {isVerified && (
                 <Chip
-                  className="bg-success-light border border-success"
                   variant="soft"
+                  style={statusChipSurface(success)}
                 >
                   <IconShieldCheck
                     size={18}
-                    color={colors.success}
+                    color={success.textColor}
                     strokeWidth={2.5}
                   />
-                  <Chip.Label className="font-nunitoSemiBold text-success">
+                  <Chip.Label className="font-nunitoSemiBold" style={{ color: success.textColor }}>
                     Verified
                   </Chip.Label>
                 </Chip>

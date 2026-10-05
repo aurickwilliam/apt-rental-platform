@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native';
+import { statusChipSurface } from '@/hooks/useStatusChipStyles';
 
 import { Card, Chip, PressableFeedback } from 'heroui-native';
 
@@ -51,7 +52,7 @@ export default function MaintenanceRequestCard({
               size="sm"
               animation="disable-all"
               className="shrink-0 self-start"
-              style={{ backgroundColor: status.backgroundColor }}
+              style={statusChipSurface(status)}
             >
               <Chip.Label
                 style={{ color: status.textColor }}
@@ -78,7 +79,7 @@ export default function MaintenanceRequestCard({
               variant="soft"
               size="sm"
               animation="disable-all"
-              style={{ backgroundColor: urgency.backgroundColor }}
+              style={statusChipSurface(urgency)}
             >
               <Chip.Label
                 style={{ color: urgency.textColor }}

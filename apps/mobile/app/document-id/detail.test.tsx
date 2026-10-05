@@ -24,10 +24,16 @@ jest.mock("expo-router", () => ({
 jest.mock("expo-image", () => ({ Image: () => null }));
 jest.mock("react-native-image-viewing", () => () => null);
 
-jest.mock("@/components/layout/ScreenWrapper", () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock("@/components/layout/ScreenWrapper", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
+  const { View } =
+    jest.requireActual<typeof import("react-native")>("react-native");
+  return {
+    __esModule: true,
+    default: ({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) =>
+      React.createElement(View, null, children, footer),
+  };
+});
 jest.mock("@/components/layout/StandardHeader", () => ({
   __esModule: true,
   default: () => null,
@@ -66,13 +72,24 @@ jest.mock("heroui-native", () => {
     jest.requireActual<typeof import("react-native")>("react-native");
   const Passthrough = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
-  const Chip = Passthrough as typeof Passthrough & {
+  const Button = Passthrough as typeof Passthrough & {
+    Label: ({ children }: { children?: React.ReactNode }) => React.ReactNode;
+  };
+  Button.Label = function ButtonLabel({ children }: { children?: React.ReactNode }) {
+    return React.createElement(Text, null, children);
+  };
+  const Chip = (({ children, variant, color, size }: {
+    children?: React.ReactNode;
+    variant: string;
+    color: string;
+    size: string;
+  }) => React.createElement(View, { testID: `status-chip-${variant}-${color}-${size}` }, children)) as typeof Passthrough & {
     Label: ({ children }: { children?: React.ReactNode }) => React.ReactNode;
   };
   Chip.Label = function ChipLabel({ children }: { children?: React.ReactNode }) {
     return React.createElement(Text, null, children);
   };
-  return { Button: Passthrough, Chip, Separator: Passthrough, Spinner: Passthrough };
+  return { Button, Chip, Separator: Passthrough, Spinner: Passthrough };
 });
 
 it("shows the matching icon and purpose above a supporting document preview", () => {
@@ -98,6 +115,7 @@ it("explains auto-linked verified IDs without repeating the message", () => {
     render(<PassportDocumentDetail />);
 
     expect(screen.getByTestId("document-type-icon")).toBeTruthy();
+     expect(screen.getByTestId("status-chip-soft-success-md")).toBeTruthy();
     expect(
       screen.getAllByText(
         "This ID is linked to your approved account verification and is managed automatically.",
@@ -108,5 +126,20 @@ it("explains auto-linked verified IDs without repeating the message", () => {
     mockDocument.doc_type = "Proof of Residency";
     mockDocument.is_primary = false;
     mockDocument.is_verified = false;
+  }
+});
+
+it("uses a soft warning chip and a short centered footer during review", () => {
+  mockDocument.review_status = "pending";
+
+  try {
+    render(<PassportDocumentDetail />);
+
+    expect(screen.getByText("Under review")).toBeTruthy();
+    expect(screen.getByTestId("status-chip-soft-warning-md")).toBeTruthy();
+    expect(screen.getByText("Under admin review.").props.className).toContain("text-center");
+    expect(screen.queryByText(/You can delete it once/)).toBeNull();
+  } finally {
+    mockDocument.review_status = "unverified";
   }
 });
