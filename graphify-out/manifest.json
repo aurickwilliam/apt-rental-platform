@@ -1260,8 +1260,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ScreenWrapper.tsx": {
-    "mtime": 1787912037.1530502,
-    "ast_hash": "d887af7540aac8acf80994dc141c839e",
+    "mtime": 1791158710.0048544,
+    "ast_hash": "9e754f557c4afa8cc30ee18493480fd9",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/StandardHeader.tsx": {
@@ -3000,8 +3000,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1790931259.7153485,
-    "ast_hash": "92ac224df6156fddccbb9761b2d04fc4",
+    "mtime": 1791158710.005101,
+    "ast_hash": "ddb0a2c1e21abff0d70ca8776123424f",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -5955,8 +5955,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/[documentId].tsx": {
-    "mtime": 1791041516.859901,
-    "ast_hash": "1db5ba725368f89bbbf04063fb475a2a",
+    "mtime": 1791158125.1411216,
+    "ast_hash": "a0752e6377cd44688d42acfeaed3a46e",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/EmptySupportingDocs.tsx": {
@@ -6082,6 +6082,16 @@
   "apps/mobile/app/document-id/utils/documentTypeDescriptions.ts": {
     "mtime": 1791156267.5959423,
     "ast_hash": "ce4b10dd2b5656bae7eb6ca1e4a0fe5c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/document-id/detail.test.tsx": {
+    "mtime": 1791158182.9516227,
+    "ast_hash": "cac148a166ed4fe1404c40d200dd21af",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/layout/ScreenWrapper.test.tsx": {
+    "mtime": 1791158825.793847,
+    "ast_hash": "afea33ddcda3d68e929b1b3706529597",
     "semantic_hash": ""
   }
 }

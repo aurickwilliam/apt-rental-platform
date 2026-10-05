@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createElement, useState } from "react";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import ImageViewing from "react-native-image-viewing";
@@ -9,6 +9,7 @@ import { Button, Chip, Separator, Spinner } from "heroui-native";
 import {
   IconFileText,
   IconHourglass,
+  IconId,
   IconShieldCheck,
   IconTrash,
 } from "@tabler/icons-react-native";
@@ -31,6 +32,8 @@ import {
 } from "@/hooks/passport";
 
 import { isImageUri } from "./utils/fileType";
+import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { getDocumentTypeDescription } from "./utils/documentTypeDescriptions";
 import { isExpiredDate } from "@/service/passport/expiry";
 
 export default function PassportDocumentDetail() {
@@ -203,9 +206,24 @@ export default function PassportDocumentDetail() {
     >
       <View className="gap-4">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-accent text-2xl font-nunitoBold flex-1">
-            {document.doc_type}
-          </Text>
+          <View className="flex-1 flex-row items-center gap-2">
+            <View
+              testID="document-type-icon"
+              className="size-10 rounded-xl bg-primary-light items-center justify-center"
+            >
+              {isLinkedVerification ? (
+                <IconId size={20} color={colors.primary} />
+              ) : (
+                createElement(getDocumentTypeIcon(document.doc_type), {
+                  size: 20,
+                  color: colors.primary,
+                })
+              )}
+            </View>
+            <Text className="text-accent text-2xl font-nunitoBold shrink">
+              {document.doc_type}
+            </Text>
+          </View>
           {document.is_verified ? (
             <Chip variant="secondary" color="success" size="sm">
               <IconShieldCheck size={14} color={colors.success} />
@@ -222,6 +240,12 @@ export default function PassportDocumentDetail() {
             </Chip>
           ) : null}
         </View>
+
+        <Text className="text-muted text-sm font-inter leading-relaxed">
+          {isLinkedVerification
+            ? "This ID is linked to your approved account verification and is managed automatically."
+            : getDocumentTypeDescription(document.doc_type)}
+        </Text>
 
         {reviewStatus === "rejected" && document.rejection_reason ? (
           <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
@@ -332,12 +356,6 @@ export default function PassportDocumentDetail() {
           </View>
         ) : null}
 
-        {isLinkedVerification ? (
-          <Text className="text-muted text-sm font-inter leading-relaxed">
-            This ID is linked to your approved account verification and is
-            managed automatically.
-          </Text>
-        ) : null}
       </View>
 
       <ConfirmDialog
