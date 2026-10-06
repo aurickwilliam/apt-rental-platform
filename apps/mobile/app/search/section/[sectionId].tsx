@@ -93,7 +93,7 @@ export default function SectionDetail() {
     () =>
       isPersonalizedSection
         ? personalizedQuery.data ?? []
-        : pagedQuery.data?.pages.flat() ?? [],
+        : pagedQuery.data?.pages.flatMap((page) => page.apartments) ?? [],
     [isPersonalizedSection, personalizedQuery.data, pagedQuery.data],
   );
   const [isGridView, setIsGridView] = useState(true);

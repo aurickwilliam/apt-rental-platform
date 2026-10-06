@@ -1522,9 +1522,9 @@ export type Database = {
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
       get_search_section_page: {
         Args: {
+          p_after?: Json
           p_city?: string
           p_limit?: number
-          p_offset?: number
           p_search?: string
           p_section_id: string
         }

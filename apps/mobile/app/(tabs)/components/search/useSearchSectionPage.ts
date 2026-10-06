@@ -1,9 +1,15 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
+import type { Json } from "@repo/supabase";
 import type { ApartmentCardProps } from "components/cards/ApartmentCard";
 import { transformApartments } from "./useSearchSections";
 
 export const SECTION_PAGE_SIZE = 10;
+
+interface SectionPage {
+  apartments: ApartmentCardProps[];
+  nextCursor: Json | null;
+}
 
 interface UseSearchSectionPageParams {
   sectionId: string;
@@ -20,22 +26,25 @@ export function useSearchSectionPage({
 }: UseSearchSectionPageParams) {
   return useInfiniteQuery({
     queryKey: ["searchSectionPage", sectionId, selectedCity, committedSearch] as const,
-    initialPageParam: 0,
-    queryFn: async ({ pageParam, signal }): Promise<ApartmentCardProps[]> => {
+    initialPageParam: null as Json | null,
+    queryFn: async ({ pageParam, signal }): Promise<SectionPage> => {
       const { data, error } = await supabase
         .rpc("get_search_section_page", {
           p_section_id: sectionId,
           p_city: selectedCity,
           p_search: committedSearch || undefined,
-          p_offset: pageParam,
+          p_after: pageParam ?? undefined,
           p_limit: SECTION_PAGE_SIZE,
         })
         .abortSignal(signal);
       if (error) throw error;
-      return transformApartments((data as unknown as any[]) ?? []);
+      const result = data as unknown as { items: any[]; next_cursor: Json | null };
+      return {
+        apartments: transformApartments(result?.items ?? []),
+        nextCursor: result?.next_cursor ?? null,
+      };
     },
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < SECTION_PAGE_SIZE ? undefined : allPages.length * SECTION_PAGE_SIZE,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 30_000,
     enabled,
   });

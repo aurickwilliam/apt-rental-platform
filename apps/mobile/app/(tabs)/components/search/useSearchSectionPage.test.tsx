@@ -23,6 +23,8 @@ const rows = (count: number, start = 0) =>
     apartment_images: [],
   }));
 
+const rpcResult = (value: unknown) => ({ abortSignal: () => Promise.resolve(value) });
+
 function createWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: React.ReactNode }) {
@@ -36,13 +38,14 @@ describe("useSearchSectionPage", () => {
     mockRpc.mockReset();
   });
 
-  it("requests the next page using an offset and stops on a short page", async () => {
+  it("passes the server cursor to the next request and stops when it is null", async () => {
+    const cursor = { v: 8000, id: "a9" };
     mockRpc
-      .mockReturnValueOnce({ abortSignal: () => Promise.resolve({ data: rows(SECTION_PAGE_SIZE), error: null }) })
-      .mockReturnValueOnce({ abortSignal: () => Promise.resolve({ data: rows(3, SECTION_PAGE_SIZE), error: null }) });
+      .mockReturnValueOnce(rpcResult({ data: { items: rows(SECTION_PAGE_SIZE), next_cursor: cursor }, error: null }))
+      .mockReturnValueOnce(rpcResult({ data: { items: rows(3, SECTION_PAGE_SIZE), next_cursor: null }, error: null }));
 
     const { result } = renderHook(
-      () => useSearchSectionPage({ sectionId: "verified", selectedCity: "CAMANAVA", committedSearch: "" }),
+      () => useSearchSectionPage({ sectionId: "budget_low", selectedCity: "CAMANAVA", committedSearch: "" }),
       { wrapper: createWrapper() },
     );
 
@@ -50,7 +53,7 @@ describe("useSearchSectionPage", () => {
     expect(result.current.hasNextPage).toBe(true);
     expect(mockRpc).toHaveBeenLastCalledWith(
       "get_search_section_page",
-      expect.objectContaining({ p_section_id: "verified", p_offset: 0, p_limit: SECTION_PAGE_SIZE }),
+      expect.objectContaining({ p_section_id: "budget_low", p_after: undefined, p_limit: SECTION_PAGE_SIZE }),
     );
 
     await result.current.fetchNextPage();
@@ -58,10 +61,21 @@ describe("useSearchSectionPage", () => {
     await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
     expect(mockRpc).toHaveBeenLastCalledWith(
       "get_search_section_page",
-      expect.objectContaining({ p_offset: SECTION_PAGE_SIZE }),
+      expect.objectContaining({ p_after: cursor }),
     );
-    expect(result.current.data?.pages.flat()).toHaveLength(SECTION_PAGE_SIZE + 3);
+    expect(result.current.data?.pages.flatMap((page) => page.apartments)).toHaveLength(SECTION_PAGE_SIZE + 3);
     expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it("exposes the error when the RPC fails", async () => {
+    mockRpc.mockReturnValue(rpcResult({ data: null, error: new Error("rpc failed") }));
+
+    const { result } = renderHook(
+      () => useSearchSectionPage({ sectionId: "verified", selectedCity: "CAMANAVA", committedSearch: "" }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.error).toEqual(new Error("rpc failed")));
   });
 
   it("does not fetch when disabled", () => {
