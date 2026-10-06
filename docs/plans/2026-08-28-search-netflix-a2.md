@@ -3,6 +3,8 @@
 > **Tenant Search Tab** (`apps/mobile/app/(tabs)/(tenant)/search.tsx` + `components/search/ApartmentsList.tsx` / `useSearchLogic.tsx` (PAGE_SIZE 10, `buildQuery`, `FlatList` vertical grid/list) → **Netflix default search**: 6 horizontal sections, each 8 cards, lazy-loaded, batched RPC `get_search_sections`.
 
 Status: ✅ Approved A2 with constraints: 6 defs, 8 per section, always lazy, implement RPC now, egress-optimized.
+
+> Implementation status (verified 2026-10-06): 🚧 Nearly done — `get_search_sections` is now recorded in `20260924110000_record_get_search_sections_rpc.sql`; See All paginates via `get_search_section_page` (`20261006000000_add_search_section_page_rpc.sql`, applied to production APT 2026-10-06) and `useSearchSectionPage`; hook tests added. Types regenerated. Remaining: local `supabase db reset` replay check, keyset-vs-offset decision for See All.
 Related: `DESIGN.md §11` cards `bg-surface rounded-2xl border-border`, `§5` `p-5`, `§12` lists `FlatList` virtualization.
 
 ---
@@ -201,13 +203,13 @@ function SearchSection({ section, onPressApartment, isFavorite, onToggleFavorite
 
 ## 6. Implementation Steps (Ordered)
 
-1. **Migration:** `supabase_apply_migration` `get_search_sections` RPC (6 CTEs, limit 8, jsonb_agg). `grant execute`. Test via `supabase_execute_sql` `select get_search_sections('CAMANAVA', null, '{}', 8)`.
-2. **Hook:** `useSearchSections.ts` with `useQuery` + `SECTION_DEFS` (6 defs) + `onViewableChanged` lazy set + `staleTime 30s`.
-3. **Components:** `SearchSection.tsx` (horizontal), `SearchSectionsList.tsx` (vertical), `ApartmentCard` prop `isHorizontal`/`width` fix.
-4. **Refactor `search.tsx`:** swap `ApartmentsList` for `SearchSectionsList`, keep `SearchHeader`/`SearchFiltersBar`/`FilterBottomSheet`, wire `debouncedSearch`/`selectedCity`/`filters` into `useSearchSections`, preserve `refreshing` (now `refetchSections`), `loadMore` per section future.
-5. **Route `See All`:** `app/search/section/[sectionId].tsx` + `sectionFilterMap` reuse.
-6. **Polish:** Skeleton per section (`SearchSectionSkeleton.tsx` 3 cards `Skeleton`), empty state, pull-to-refresh header like `ApartmentsList.tsx:92`, dark mode check.
-7. **Advisors & Tests:** `supabase_get_advisors` security/performance, `pnpm --filter mobile lint`, `pnpm --filter mobile test` (mock `supabase.rpc` in `useSearchSections.test.tsx`).
+- [x] 1. **Migration:** `get_search_sections` RPC creation migration in `supabase/migrations/` (6 CTEs, limit 8, jsonb_agg). `grant execute`. Test via `select get_search_sections('CAMANAVA', null, '{}', 8)`. Status: done — recorded in `supabase/migrations/20260924110000_record_get_search_sections_rpc.sql` (dated before the phase2 patch that rewrites it); function already existed in prod. Local `supabase db reset` replay not yet run (Docker was down).
+- [x] 2. **Hook:** `useSearchSections.ts` with `useQuery` + `SECTION_DEFS` (6 defs) + `onViewableChanged` lazy set + `staleTime 30s`. Status: done — `apps/mobile/app/(tabs)/components/search/useSearchSections.ts:15-22,116-156`.
+- [x] 3. **Components:** `SearchSection.tsx` (horizontal), `SearchSectionsList.tsx` (vertical), `ApartmentCard` fixed-width fix. Status: done — `SearchSection.tsx`, `SearchSectionsList.tsx`, `ApartmentCard fixedWidth={CARD_WIDTH}`.
+- [x] 4. **Refactor `search.tsx`:** swap `ApartmentsList` for `SearchSectionsList`, keep `SearchHeader`/`SearchFiltersBar`/`FilterBottomSheet`, wire `debouncedSearch`/`selectedCity`/`filters` into `useSearchSections`, preserve `refreshing` (now `refetchSections`). Status: done — `apps/mobile/app/(tabs)/(tenant)/search.tsx:54-73,137-149` (Netflix mode + legacy list fallback retained).
+- [x] 5. **Route `See All`:** `app/search/section/[sectionId].tsx` + `sectionFilterMap` reuse. Status: done — route uses `useSearchSectionPage` (`useInfiniteQuery`, PAGE_SIZE 10) over `get_search_section_page` (`20261006000000_add_search_section_page_rpc.sql`, applied to prod). Offset-based paging (AGENTS.md prefers keyset). `for_you`/`in_city` keep the client-side scored pool.
+- [x] 6. **Polish:** Skeleton per section (`SearchSectionSkeleton.tsx` 3 cards `Skeleton`), empty state, pull-to-refresh header like `ApartmentsList.tsx:92`, dark mode check. Status: done — `SearchSectionSkeleton`/`SearchGridSkeleton`, `EmptyState`, `RefreshControl` + `Spinner` in `SearchSectionsList.tsx:37-81,109-126`.
+- [~] 7. **Advisors & Tests:** `supabase_get_advisors` security/performance, `pnpm --filter mobile lint`, `pnpm --filter mobile test` (mock `supabase.rpc` in `useSearchSections.test.tsx`). Status: partial — `useSearchSections.test.tsx` + `useSearchSectionPage.test.tsx` added; full mobile jest (69 suites/488 tests) and `expo lint` pass; security + performance advisors run. `apartment_images(apartment_id)` index applied to prod (`20261006010000_index_apartment_images_apartment_id.sql`). Open: keyset pagination decision.
 
 ---
 
