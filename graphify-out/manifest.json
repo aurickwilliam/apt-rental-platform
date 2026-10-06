@@ -2665,8 +2665,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1791285087.8350344,
-    "ast_hash": "25b7fc7a3fb4cdc3778c9977f5c5447d",
+    "mtime": 1791297529.9425898,
+    "ast_hash": "2e528f4f811ad387d5eb71818c1df63c",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -2995,8 +2995,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791285471.9553006,
-    "ast_hash": "754cdc418f1d2a8c5e57e4bec9bcc689",
+    "mtime": 1791298233.2357638,
+    "ast_hash": "a1e4fb2c4a5eddcd629bae685201bae8",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -4075,13 +4075,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
-    "mtime": 1791284138.5647001,
-    "ast_hash": "368526604f202c388b445a1c7b489f4b",
+    "mtime": 1791297506.779766,
+    "ast_hash": "1448696d01445037e4a6cc5fbe8a5cc6",
     "semantic_hash": ""
   },
   "docs/plans/2026-08-28-search-netflix-a2.md": {
-    "mtime": 1791285471.954908,
-    "ast_hash": "210a9f4a3be304d4d9c1f82bd39dec40",
+    "mtime": 1791298233.2353785,
+    "ast_hash": "7ecb19da8a989a9b224caa770364f9bb",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
@@ -6100,13 +6100,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSectionPage.test.tsx": {
-    "mtime": 1791284846.2505808,
-    "ast_hash": "bab6be357cbd4b9c2c6ef6c2809d03f3",
+    "mtime": 1791297539.8417027,
+    "ast_hash": "1876ff22f3755809ed5a3d5f64425365",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSectionPage.ts": {
-    "mtime": 1791285111.6656017,
-    "ast_hash": "38b337da717fd62a18d4e717abcab8fc",
+    "mtime": 1791297506.7653615,
+    "ast_hash": "d675e565a7ec3e017824a63e8d2148ee",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSections.test.tsx": {
@@ -6132,6 +6132,11 @@
   "supabase/migrations/20261006010000_index_apartment_images_apartment_id.sql": {
     "mtime": 1791285471.9180326,
     "ast_hash": "80016f31db7de3b763c223b062e90be4",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261006020000_keyset_search_section_page_rpc.sql": {
+    "mtime": 1791297506.760398,
+    "ast_hash": "97e306323e89fc471ef4c5418e07f46f",
     "semantic_hash": ""
   }
 }
