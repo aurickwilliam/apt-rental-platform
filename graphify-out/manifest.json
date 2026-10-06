@@ -2665,8 +2665,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1791039207.11306,
-    "ast_hash": "f78408433de407b1abdf7ec6443f1371",
+    "mtime": 1791285087.8350344,
+    "ast_hash": "25b7fc7a3fb4cdc3778c9977f5c5447d",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -2995,8 +2995,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1790780652.7308433,
-    "ast_hash": "80802b977b78557768bed1c9db0d3eac",
+    "mtime": 1791285471.9553006,
+    "ast_hash": "754cdc418f1d2a8c5e57e4bec9bcc689",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -4075,13 +4075,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
-    "mtime": 1789483034.6557107,
-    "ast_hash": "a1b8fe4bc3c098b25f01eea4f92c48f9",
+    "mtime": 1791284138.5647001,
+    "ast_hash": "368526604f202c388b445a1c7b489f4b",
     "semantic_hash": ""
   },
   "docs/plans/2026-08-28-search-netflix-a2.md": {
-    "mtime": 1788952892.2824817,
-    "ast_hash": "15fe2227adf543749119d21952877d1b",
+    "mtime": 1791285471.954908,
+    "ast_hash": "210a9f4a3be304d4d9c1f82bd39dec40",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
@@ -4465,8 +4465,8 @@
     "semantic_hash": ""
   },
   "docs/plans/admin-portal.md": {
-    "mtime": 1790518210.0096571,
-    "ast_hash": "3d13d85d975cd92c3143edd73e2e7d47",
+    "mtime": 1791283640.0557745,
+    "ast_hash": "20e45f917af57e9b2053753f435e7777",
     "semantic_hash": ""
   },
   "supabase/tests/phase0_user_authorization.test.sql": {
@@ -4995,8 +4995,8 @@
     "semantic_hash": ""
   },
   "docs/plans/phase-2-admin-portal.md": {
-    "mtime": 1790518210.0098817,
-    "ast_hash": "46d37dda470e3d2f24eb453707d1c168",
+    "mtime": 1791283674.2258937,
+    "ast_hash": "8e846cbe2c5cf22292264678ec37a0cb",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/loading.tsx": {
@@ -5092,11 +5092,6 @@
   "apps/mobile/hooks/visitRequests/useSubmitVisitRequest.test.tsx": {
     "mtime": 1790565473.9695508,
     "ast_hash": "5448f99fab0414da6a5beba6f44d9b37",
-    "semantic_hash": ""
-  },
-  "docs/plans/mobile-roles-and-supabase-types.md": {
-    "mtime": 1790780652.7483528,
-    "ast_hash": "36b0b45b6bac185d27c0386346160adc",
     "semantic_hash": ""
   },
   "supabase/migrations/20260928023106_prevent_self_transactions.sql": {
@@ -5684,11 +5679,6 @@
     "ast_hash": "8815c3b32562562f449891e7a495ef4e",
     "semantic_hash": ""
   },
-  "docs/plans/mobile-web-parity.md": {
-    "mtime": 1790780652.7484744,
-    "ast_hash": "c216e9d48aa3d4c2cbbcf8ca39554d23",
-    "semantic_hash": ""
-  },
   "apps/mobile/app/(auth)/sign-in.test.tsx": {
     "mtime": 1790780652.7317088,
     "ast_hash": "aa9b66a9a0ee0a672d57ae8370feb61f",
@@ -5955,8 +5945,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/[documentId].tsx": {
-    "mtime": 1791186939.6190755,
-    "ast_hash": "6de4576b862d54849a5532271caab9b0",
+    "mtime": 1791282419.5937495,
+    "ast_hash": "301e1eab76ddaec35cfabb9c20470a1c",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/EmptySupportingDocs.tsx": {
@@ -6085,8 +6075,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/detail.test.tsx": {
-    "mtime": 1791187322.702531,
-    "ast_hash": "f70837550d3f5e358f4d9cef867ff9f2",
+    "mtime": 1791282434.5520475,
+    "ast_hash": "539f7219ed3d59b29cac2a51dbbb4864",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ScreenWrapper.test.tsx": {
@@ -6102,6 +6092,46 @@
   "apps/mobile/hooks/useStatusChipStyles.ts": {
     "mtime": 1791187268.1193283,
     "ast_hash": "85414f6153af76d39422da7e5d264cc2",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/document-id/components/DocumentPreview.tsx": {
+    "mtime": 1791282293.8811967,
+    "ast_hash": "580bbf3c3ae538787fa6586088c30009",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/useSearchSectionPage.test.tsx": {
+    "mtime": 1791284846.2505808,
+    "ast_hash": "bab6be357cbd4b9c2c6ef6c2809d03f3",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/useSearchSectionPage.ts": {
+    "mtime": 1791285111.6656017,
+    "ast_hash": "38b337da717fd62a18d4e717abcab8fc",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/search/useSearchSections.test.tsx": {
+    "mtime": 1791284846.250372,
+    "ast_hash": "2775aa110ae68147c9efb2e861b35f2f",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260924110000_record_get_search_sections_rpc.sql": {
+    "mtime": 1791284052.1757383,
+    "ast_hash": "69b68bfb383a8f69e62f780f71abb873",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261006000000_add_search_section_page_rpc.sql": {
+    "mtime": 1791284119.7566335,
+    "ast_hash": "dd8291fe47e860edcbab673f9567f0ba",
+    "semantic_hash": ""
+  },
+  "docs/plan/apt-passport-document-detail-redesign.md": {
+    "mtime": 1791284895.779451,
+    "ast_hash": "3fb260204f54334fa076301a1e7ea7f7",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261006010000_index_apartment_images_apartment_id.sql": {
+    "mtime": 1791285471.9180326,
+    "ast_hash": "80016f31db7de3b763c223b062e90be4",
     "semantic_hash": ""
   }
 }

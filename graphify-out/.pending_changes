@@ -1,0 +1,10 @@
+apps/mobile/app/(tabs)/components/search/useSearchSectionPage.test.tsx
+apps/mobile/app/(tabs)/components/search/useSearchSectionPage.ts
+apps/mobile/app/(tabs)/components/search/useSearchSections.test.tsx
+apps/mobile/app/search/section/[sectionId].tsx
+packages/supabase/src/types.ts
+supabase/migrations/20260924110000_record_get_search_sections_rpc.sql
+supabase/migrations/20261006000000_add_search_section_page_rpc.sql
+supabase/migrations/20261006010000_index_apartment_images_apartment_id.sql
+ARCHITECTURE.md
+docs/plans/2026-08-28-search-netflix-a2.md
