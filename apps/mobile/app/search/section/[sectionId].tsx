@@ -1,7 +1,8 @@
 import { FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useSearchSectionPage } from "@/app/(tabs)/components/search/useSearchSectionPage";
+import { useMemo, useState } from "react";
 import { Button } from "heroui-native";
 import { IconSearchOff, IconLayoutGrid, IconLayoutRows } from "@tabler/icons-react-native";
 import { SearchGridSkeleton } from "@/app/(tabs)/components/search/SearchSection";
@@ -33,11 +34,13 @@ export default function SectionDetail() {
   const searchQuery = (search as string) ?? "";
   const { preferences } = useUserPreferences();
 
-  const query = useQuery({
+  const isPersonalizedSection = sectionId === "for_you" || sectionId === "in_city";
+
+  const personalizedQuery = useQuery({
+    enabled: isPersonalizedSection,
     queryKey: ["searchSectionDetail", sectionId, selectedCity, searchQuery, preferences ? JSON.stringify(preferences) : null],
     queryFn: async ({ signal }) => {
-      // For personalized sections (for_you, in_city), compute scored pool from same RPC; they don't exist server-side
-      const isPersonalizedSection = sectionId === "for_you" || sectionId === "in_city";
+      // Personalized sections (for_you, in_city) don't exist server-side: score a pooled result client-side.
       const { data, error } = await supabase
         .rpc("get_search_sections", {
           p_city: selectedCity,
@@ -48,44 +51,54 @@ export default function SectionDetail() {
         .abortSignal(signal as any);
       if (error) throw error;
       const sections = (data as any)?.sections ?? [];
-      if (isPersonalizedSection) {
-        // Pool all raw apartments from all sections, score by preferences if available
-        const seen = new Set<string>();
-        const pool: any[] = [];
-        for (const s of sections) {
-          for (const raw of s.apartments ?? []) {
-            if (!seen.has(raw.id)) {
-              seen.add(raw.id);
-              pool.push(raw);
-            }
+      // Pool all raw apartments from all sections, score by preferences if available
+      const seen = new Set<string>();
+      const pool: any[] = [];
+      for (const s of sections) {
+        for (const raw of s.apartments ?? []) {
+          if (!seen.has(raw.id)) {
+            seen.add(raw.id);
+            pool.push(raw);
           }
         }
-        if (preferences) {
-          const scored = pool
-            .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
-            .filter((s: any) => s.score > 0)
-            .sort((a: any, b: any) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
-          let rawList = scored.map((s: any) => s.raw);
-          if (sectionId === "in_city") {
-            rawList = rawList.filter((r: any) => r.city === selectedCity);
-          }
-          return transformApartments(rawList);
+      }
+      if (preferences) {
+        const scored = pool
+          .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
+          .filter((s: any) => s.score > 0)
+          .sort((a: any, b: any) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
+        let rawList = scored.map((s: any) => s.raw);
+        if (sectionId === "in_city") {
+          rawList = rawList.filter((r: any) => r.city === selectedCity);
         }
-        // No preferences: For you fallback to top rated pool
-        let rawList = pool;
-        if (sectionId === "in_city") rawList = rawList.filter((r: any) => r.city === selectedCity);
         return transformApartments(rawList);
       }
-      const section = sections.find((s: any) => s.id === sectionId);
-      return transformApartments(section?.apartments ?? []);
+      // No preferences: For you fallback to top rated pool
+      let rawList = pool;
+      if (sectionId === "in_city") rawList = rawList.filter((r: any) => r.city === selectedCity);
+      return transformApartments(rawList);
     },
     staleTime: 30_000,
   });
 
-  const apartments = query.data ?? [];
+  const pagedQuery = useSearchSectionPage({
+    sectionId: sectionId as string,
+    selectedCity,
+    committedSearch: searchQuery,
+    enabled: !isPersonalizedSection,
+  });
+
+  const isLoading = isPersonalizedSection ? personalizedQuery.isLoading : pagedQuery.isLoading;
+  const apartments = useMemo(
+    () =>
+      isPersonalizedSection
+        ? personalizedQuery.data ?? []
+        : pagedQuery.data?.pages.flat() ?? [],
+    [isPersonalizedSection, personalizedQuery.data, pagedQuery.data],
+  );
   const [isGridView, setIsGridView] = useState(true);
 
-  if (query.isLoading) {
+  if (isLoading) {
     return (
       <ScreenWrapper
         header={
@@ -144,6 +157,12 @@ export default function SectionDetail() {
       <FlatList
         key={isGridView ? "grid" : "list"}
         data={apartments}
+        onEndReached={() => {
+          if (!isPersonalizedSection && pagedQuery.hasNextPage && !pagedQuery.isFetchingNextPage) {
+            void pagedQuery.fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
         keyExtractor={(item) => item.id}
         numColumns={isGridView ? 2 : 1}
         columnWrapperStyle={isGridView ? { paddingHorizontal: 16, gap: 8 } : undefined}

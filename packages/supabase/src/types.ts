@@ -702,6 +702,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "passport_documents_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "passport_documents_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1389,10 +1396,6 @@ export type Database = {
         Args: { p_token_hash: string }
         Returns: string
       }
-      expire_own_verification_sessions: {
-        Args: { p_include_active?: boolean }
-        Returns: number
-      }
       create_notification: {
         Args: {
           p_data?: Json
@@ -1403,6 +1406,9 @@ export type Database = {
         }
         Returns: string
       }
+      expire_own_verification_sessions:
+        | { Args: never; Returns: number }
+        | { Args: { p_include_active?: boolean }; Returns: number }
       get_admin_analytics: {
         Args: { date_from: string; date_to: string }
         Returns: Json
@@ -1514,6 +1520,16 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_search_section_page: {
+        Args: {
+          p_city?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_section_id: string
+        }
+        Returns: Json
+      }
       get_search_sections: {
         Args: {
           p_city?: string
