@@ -18,9 +18,12 @@ interface AuthWrapperProps {
   portalError?: string | null;
   showWelcomeNotice?: boolean;
   rolePickerMode?: boolean;
+  // Verification handoff only: where to resume after login
+  // (/verify or /verify/mobile?token=...). Never an external URL.
+  next?: string;
 }
 
-function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean }) {
+function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean; next?: string }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -28,8 +31,11 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
     : "Log in to continue your apartment journey.";
 
   return (
-    <div className="flex-1 min-w-0 bg-card flex flex-col md:px-16 md:py-5 overflow-y-auto h-full">
-      <div className="w-full max-w-lg mx-auto px-10 py-5 flex flex-col flex-1 min-h-full">
+    // Outer: no horizontal padding (the page supplies fluid padding) and no
+    // fixed height — the page scrolls when the viewport gets short. Only the
+    // reading-width cap lives here.
+    <div className="flex min-w-0 flex-1 flex-col bg-card">
+      <div className="mx-auto flex w-full min-w-0 max-w-lg flex-1 flex-col py-[clamp(0.5rem,2vh,1.25rem)]">
         <div className="flex items-center justify-between">
           {/* Back Button: anchor outside the button so every click
               navigates (a link nested inside a button swallows clicks
@@ -45,11 +51,13 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
           </Link>
         </div>
 
-        <div className="mt-5">
-          <h1 className="text-4xl font-nunito font-semibold text-foreground">
+        {/* Headline scales with viewport width so it stays proportionate
+            from 320px phones to 4K desktops without a breakpoint ladder. */}
+        <div className="mt-[clamp(0.75rem,2vh,1.25rem)]">
+          <h1 className="font-nunito font-semibold text-[clamp(1.75rem,5vw,2.5rem)] leading-tight text-foreground">
             {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
           </h1>
-          <h3 className="text-base text-foreground mt-3">
+          <h3 className="mt-[clamp(0.5rem,1.5vh,0.75rem)] text-base text-foreground">
             {description}
           </h3>
         </div>
@@ -80,7 +88,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
           <Tabs
             selectedKey={role}
             onSelectionChange={(key) => setRole(key as 'tenant' | 'landlord')}
-            className="mt-5"
+            className="mt-[clamp(0.75rem,2vh,1.25rem)]"
           >
             <Tabs.ListContainer>
               <Tabs.List
@@ -125,18 +133,18 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
               </div>
             )}
 
-            <AuthForm />
+            <AuthForm next={type === "sign-in" ? next : undefined} />
 
             {/* Divider */}
-            <div className="flex items-center gap-3 mt-5">
+            <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex items-center gap-3">
               <Separator className="flex-1" />
               <p className="text-sm text-gray-400 whitespace-nowrap">or sign {type === "sign-in" ? "in" : "up"} with</p>
               <Separator className="flex-1" />
             </div>
 
-            <ThirdPartySignIn />
+            <ThirdPartySignIn next={type === "sign-in" ? next : undefined} />
 
-            <div className="mt-auto flex flex-col items-center gap-5 pt-8">
+            <div className="mt-auto flex flex-col items-center gap-[clamp(0.75rem,2vh,1.25rem)] pt-[clamp(1.5rem,4vh,2rem)]">
               <BottomLinks />
 
               <div className="text-center text-sm text-default-500">
@@ -150,10 +158,10 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode }: { porta
   );
 }
 
-export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode, next }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} />
+      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} next={next} />
     </AuthProvider>
   );
 }

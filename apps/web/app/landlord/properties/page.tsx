@@ -101,7 +101,7 @@ export default async function Properties() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-5xl text-secondary font-bold font-noto-serif">
+        <h1 className="text-5xl text-secondary dark:text-[#FFA500] font-bold font-noto-serif">
           My Properties
         </h1>
       </div>
@@ -115,18 +115,20 @@ export default async function Properties() {
           <div
             key={label}
             className={`p-4 flex flex-col gap-3 rounded-xl ${
-              primary ? "bg-primary text-white" : "bg-white border border-grey-300"
+              // Token surfaces instead of a fixed light-only bg-white, which
+              // rendered white-on-white in dark mode.
+              primary ? "bg-primary text-white" : "bg-card border border-border"
             }`}
           >
             <div className="flex gap-3 items-center">
-              <div className={`p-1.5 rounded-md ${primary ? "bg-white/20" : "bg-white border border-grey-300"}`}>
+              <div className={`p-1.5 rounded-md ${primary ? "bg-white/20" : "bg-primary/10 text-primary"}`}>
                 <Icon className={primary ? "text-white" : "text-primary"} size={18} />
               </div>
-              <h2 className={`text-base font-medium font-noto-serif ${primary ? "text-white" : ""}`}>
+              <h2 className={`text-base font-medium font-noto-serif ${primary ? "text-white" : "text-foreground"}`}>
                 {label}
               </h2>
             </div>
-            <p className={`text-3xl font-semibold ${primary ? "text-white" : ""}`}>
+            <p className={`text-3xl font-semibold ${primary ? "text-white" : "text-foreground"}`}>
               {value}
             </p>
           </div>

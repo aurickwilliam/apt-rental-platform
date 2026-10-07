@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { Card } from "@heroui/react";
 
+import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import StarRating from "@/app/components/display/StarRating";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
@@ -34,6 +35,7 @@ export default function ReviewCard({
   className,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
   const isLongReview = reviewText.length > REVIEW_CHAR_LIMIT;
   const displayedReview =
@@ -43,9 +45,14 @@ export default function ReviewCard({
 
   const visibleThumbnails = images?.slice(0, MAX_VISIBLE_THUMBNAILS) ?? [];
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0;
+  const galleryPhotos = (images ?? []).map((url) => ({ url }));
+
+  const openGalleryAt = (index: number) => setGalleryIndex(index);
+  const closeGallery = () => setGalleryIndex(null);
 
   return (
-    <Card className={["gap-0 shadow-none border border-default-200", className].filter(Boolean).join(" ")}>
+    <>
+    <Card className={["gap-0 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
       <Card.Header className="flex flex-row items-center gap-3">
         <UserAvatar
           src={reviewerAvatar}
@@ -58,10 +65,10 @@ export default function ReviewCard({
         />
 
         <div className="flex flex-1 flex-col">
-          <h3 className="text-base font-medium">
+          <h3 className="font-nunito text-base font-semibold text-card-foreground">
             {reviewerName}
           </h3>
-          <p className="text-sm text-grey-500">
+          <p className="text-sm text-muted-foreground">
             {reviewDate}
           </p>
         </div>
@@ -69,13 +76,13 @@ export default function ReviewCard({
         {rating !== undefined && (
           <div className="flex items-center gap-1">
             <StarRating rating={rating} size={14} />
-            <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+            <span className="text-sm font-medium text-card-foreground">{rating.toFixed(1)}</span>
           </div>
         )}
       </Card.Header>
 
       <Card.Content>
-        <p className="text-sm">
+        <p className="text-sm text-card-foreground">
           {displayedReview}
         </p>
 
@@ -83,22 +90,27 @@ export default function ReviewCard({
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="mt-1 text-sm font-medium text-secondary"
+            className="mt-1 text-sm font-medium text-secondary dark:text-[#FFA500]"
           >
             {isExpanded ? "Show less" : "Read more"}
           </button>
         )}
 
         {visibleThumbnails.length > 0 && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {visibleThumbnails.map((src, index) => {
               const isLastVisible = index === MAX_VISIBLE_THUMBNAILS - 1;
               const showOverlay = isLastVisible && remainingCount > 0;
 
               return (
-                <div
+                <button
                   key={src + index}
-                  className="relative size-16 overflow-hidden rounded-xl"
+                  type="button"
+                  onClick={() =>
+                    openGalleryAt(showOverlay ? MAX_VISIBLE_THUMBNAILS : index)
+                  }
+                  aria-label={`View review photo ${showOverlay ? MAX_VISIBLE_THUMBNAILS + 1 : index + 1}`}
+                  className="relative size-16 cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <Image
                     src={src}
@@ -115,7 +127,7 @@ export default function ReviewCard({
                       </span>
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -124,11 +136,25 @@ export default function ReviewCard({
 
       {stayPeriod && (
         <Card.Footer>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             {stayPeriod}
           </span>
         </Card.Footer>
       )}
     </Card>
+
+      {galleryPhotos.length > 0 && (
+        <PhotoGalleryModal
+          name={reviewerName}
+          photos={galleryPhotos}
+          isOpen={galleryIndex !== null}
+          onOpenChange={(open) => {
+            if (!open) closeGallery();
+          }}
+          activeIndex={galleryIndex ?? 0}
+          onActiveIndexChange={setGalleryIndex}
+        />
+      )}
+    </>
   );
 }

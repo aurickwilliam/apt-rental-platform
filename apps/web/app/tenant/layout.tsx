@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
+import ReviewUnlockGate from "./components/ReviewUnlockGate";
 import { createClient } from "@repo/supabase/server";
 
 const TENANT_NAV = [
@@ -65,10 +66,13 @@ export default async function TenantLayout({
         navLabel="Tenant navigation"
         menuLabel="Tenant pages"
         buttonLabel="Open tenant navigation"
+        userRoles={userRoles}
+        activePortal="tenant"
       />
       <Suspense fallback={null}>
         <SettingsOverlay iconSet="tabler" />
       </Suspense>
+      <ReviewUnlockGate />
     </div>
   );
 }

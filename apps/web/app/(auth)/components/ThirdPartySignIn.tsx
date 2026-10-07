@@ -1,15 +1,15 @@
 "use client";
 import { Button } from "@heroui/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
 
-export default function ThirdPartySignIn() {
+export default function ThirdPartySignIn({ next }: { next?: string }) {
   const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -19,11 +19,19 @@ export default function ThirdPartySignIn() {
     // chosen tab role so onboarding/grant can run for that portal.
     // window.location.origin keeps localhost in dev and the Vercel domain
     // in production with no hardcoded URL. Preserve ?next= so the callback
-    // can return the user to their intended destination.
+    // can return the user to their intended destination (e.g. the phone's
+    // /verify/mobile?token=... page after Google sign-in). Prefer the
+    // server-validated `next` prop, falling back to the sign-in URL.
     const callbackParams = new URLSearchParams();
     if (type !== "sign-in") callbackParams.set("role", role);
-    const requestedNext = new URLSearchParams(window.location.search).get("next");
-    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+    const requestedNext =
+      next ?? new URLSearchParams(window.location.search).get("next");
+    if (
+      requestedNext &&
+      requestedNext.startsWith("/") &&
+      !requestedNext.startsWith("//") &&
+      !requestedNext.includes("://")
+    ) {
       callbackParams.set("next", requestedNext);
     }
     const callbackQuery = callbackParams.toString();
@@ -42,10 +50,10 @@ export default function ThirdPartySignIn() {
     }
     // Otherwise the browser leaves for Google; the button stays in its
     // loading/disabled state while redirecting.
-  };
+  }, [role, type]);
 
   return (
-    <div className="flex flex-col items-center gap-3 mt-5">
+    <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex flex-col items-center gap-3">
       {error && (
         <div className="w-full p-3 bg-danger-50 border border-danger-200 rounded-lg">
           <p className="text-sm text-danger text-center">{error}</p>

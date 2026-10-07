@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 
 import { Label } from "@heroui/react";
-import { ImagePlus, Upload, X } from "lucide-react";
+import { IconPhotoPlus, IconUpload, IconX } from "@tabler/icons-react";
 
 export type ReviewPhoto = {
   // Null for photos already stored from a previous submission — they carry
@@ -80,7 +80,7 @@ export default function ReviewPhotosInput({
       />
 
       {images.length > 0 && (
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {images.map((photo) => (
             <div key={photo.url} className="group relative h-32 overflow-hidden rounded-xl">
               <Image
@@ -94,9 +94,9 @@ export default function ReviewPhotosInput({
                 type="button"
                 aria-label="Remove photo"
                 onClick={() => onRemove(photo.url)}
-                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100"
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
               >
-                <X size={12} />
+                <IconX size={12} />
               </button>
             </div>
           ))}
@@ -107,7 +107,7 @@ export default function ReviewPhotosInput({
               onClick={() => inputRef.current?.click()}
               className="flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-grey-300 transition hover:border-primary hover:bg-primary/5"
             >
-              <ImagePlus size={20} className="mb-1 text-grey-400" />
+              <IconPhotoPlus size={20} className="mb-1 text-grey-400" />
               <span className="text-xs text-grey-400">Add photo</span>
             </button>
           )}
@@ -121,7 +121,7 @@ export default function ReviewPhotosInput({
           className="mt-2 flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-grey-300 py-6 transition hover:border-primary hover:bg-primary/5"
         >
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-            <Upload size={22} className="text-primary" />
+            <IconUpload size={22} className="text-primary" />
           </div>
           <span className="text-sm font-medium text-grey-600">Add photos</span>
           <span className="text-xs text-grey-400">

@@ -91,12 +91,12 @@ export default function Step5Preview({ formData }: Props) {
         <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
           Preview
         </h2>
-        <p className="text-grey-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           This is exactly what tenants will see when browsing your listing.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-grey-200 p-6 flex flex-col gap-6 bg-white">
+      <div className="rounded-2xl border border-border p-6 flex flex-col gap-6 bg-card">
         {/* Image Header */}
         <PreviewImageHeader files={allFiles} />
 

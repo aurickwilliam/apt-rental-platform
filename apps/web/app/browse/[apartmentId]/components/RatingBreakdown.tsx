@@ -2,7 +2,7 @@
 
 import { Meter } from "@heroui/react";
 
-import { Star } from "lucide-react";
+import { IconStar, IconStarFilled } from "@tabler/icons-react";
 
 interface RatingBreakdownProps {
   overallRate: number;
@@ -24,13 +24,13 @@ export default function RatingBreakdown({
   no1Star,
 }: RatingBreakdownProps) {
   return (
-    <div className="w-full flex gap-3">
-      <div className="w-1/3 flex flex-col items-center justify-center">
-        <h3 className="text-6xl font-medium font-dm-serif text-secondary">
+    <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3">
+      <div className="w-full flex flex-col items-center justify-center sm:w-1/3">
+        <h3 className="font-nunito text-5xl font-bold text-rating sm:text-6xl">
           {overallRate}
         </h3>
 
-        <div className="flex gap-2 mt-2">
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
           {[1, 2, 3, 4, 5].map((i) => {
             const filled = overallRate >= i;
             const half = !filled && overallRate >= i - 0.5;
@@ -38,13 +38,13 @@ export default function RatingBreakdown({
             return (
               <span key={i} className="relative inline-flex">
                 {/* Empty star (base) */}
-                <Star size={22} className="text-secondary" fill="transparent" />
+                <IconStar size={22} className="text-rating" />
                 {/* Filled overlay — full or half */}
                 {(filled || half) && (
                   <span
                     className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
                   >
-                    <Star size={22} className="text-secondary" fill="currentColor" />
+                    <IconStarFilled size={22} className="text-rating" />
                   </span>
                 )}
               </span>
@@ -53,17 +53,17 @@ export default function RatingBreakdown({
         </div>
 
         <div className="mt-2 text-center">
-          <p className="font-medium">
+          <p className="font-nunito text-base font-semibold text-card-foreground">
             Overall Rating
           </p>
 
-          <p className="text-sm">
+          <p className="text-sm text-muted-foreground">
             Based on {totalReviews} reviews
           </p>
         </div>
       </div>
 
-      <div className="w-2/3 flex flex-col justify-center gap-2">
+      <div className="flex w-full flex-col justify-center gap-2 sm:w-2/3">
         {[
           { label: 5, count: no5Star },
           { label: 4, count: no4Star },
@@ -73,8 +73,8 @@ export default function RatingBreakdown({
         ].map(({ label, count }) => (
           <div key={label} className="flex gap-2 items-center">
             <div className="flex items-center gap-1 w-8 shrink-0">
-              <span className="text-sm font-medium">{label}</span>
-              <Star size={14} className="text-secondary" fill="currentColor" />
+              <span className="text-sm font-medium text-card-foreground">{label}</span>
+              <IconStarFilled size={14} className="text-rating" />
             </div>
 
             <Meter
@@ -84,11 +84,11 @@ export default function RatingBreakdown({
               color="accent"
             >
               <Meter.Track>
-                <Meter.Fill style={{ backgroundColor: "var(--secondary)" }} />
+                <Meter.Fill style={{ backgroundColor: "var(--color-rating)" }} />
               </Meter.Track>
             </Meter>
 
-            <p className="text-sm w-20 shrink-0 text-right text-grey-700">
+            <p className="w-16 shrink-0 text-right text-sm text-muted-foreground sm:w-20">
               {count} reviews
             </p>
           </div>

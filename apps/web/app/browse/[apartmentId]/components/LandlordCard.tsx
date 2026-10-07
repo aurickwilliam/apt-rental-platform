@@ -75,7 +75,7 @@ export default function LandlordCard({
                   isDisabled={isMessageDisabled}
                   onPress={onMessagePress}
                 >
-                  <MessageSquare size={20} className="text-secondary" />
+                  <MessageSquare size={20} className="text-secondary dark:text-[#FFA500]" />
                 </Button>
               </span>
             </Tooltip.Trigger>
