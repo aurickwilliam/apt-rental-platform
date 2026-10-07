@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-07)
 
 ## Corpus Check
-- 1179 files · ~963,367 words
+- 1179 files · ~963,368 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4d54ed1d`
+- Built from commit: `6b7d420c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1252,7 +1252,7 @@ Cohesion: 0.29
 Nodes (6): 1. Current state (verified), 2. Target layout, 3. Implementation steps, 4. Files to touch (mobile only), 5. Acceptance criteria, APT Passport — Document Detail Redesign Plan
 
 ## Knowledge Gaps
-- **1750 isolated node(s):** `mockReplace`, `mockSignInWithPassword`, `mockSignOut`, `mockSingle`, `mockRestore` (+1745 more)
+- **1750 isolated node(s):** `mockReplace`, `mockGetSession`, `mockSignOut`, `mockGetStatus`, `mockClearQueryClient` (+1745 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **118 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1265,7 +1265,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Why does `createClient()` connect `createClient` to `analytics/page.tsx`, `landlord/messages/components/ConversationView.tsx`, `ActivityClient.tsx`, `FilterContainer.tsx`, `ApartmentDetailView.tsx`, `createClient`, `landlordUnitDetailService.ts`, `ProfileForm.tsx`, `profile/UserAvatar.tsx`, `SignUpForm.tsx`, `(main)/page.tsx`, `AuthWrapper.tsx`, `admin/dashboard/page.tsx`, `admin/users/[id]/page.tsx`, `landlord/dashboard/lib/get-dashboard-data.ts`, `operations.ts`, `actions.ts`, `admin/apartments/[id]/page.tsx`, `supabase/src/index.ts`, `UsersClient.tsx`, `service/reviewsService.ts`, `verification/page.tsx`, `AppSidebar.tsx`, `landlord/profile/page.tsx`, `user-display.ts`?**
   _High betweenness centrality (0.033) - this node is a cross-community bridge._
-- **What connects `mockReplace`, `mockSignInWithPassword`, `mockSignOut` to the rest of the system?**
+- **What connects `mockReplace`, `mockGetSession`, `mockSignOut` to the rest of the system?**
   _1750 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `service/maintenanceService.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07729468599033816 - nodes in this community are weakly interconnected._
