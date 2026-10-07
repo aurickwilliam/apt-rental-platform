@@ -4070,8 +4070,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/useSearchSections.ts": {
-    "mtime": 1791366656.2690287,
-    "ast_hash": "7228f3842dc9c1395fb752316b0094c8",
+    "mtime": 1791367594.7168283,
+    "ast_hash": "f198ab90a6b8ce7e18f6898757221ed7",
     "semantic_hash": ""
   },
   "apps/mobile/app/search/section/[sectionId].tsx": {
@@ -4080,8 +4080,8 @@
     "semantic_hash": ""
   },
   "docs/plans/2026-08-28-search-netflix-a2.md": {
-    "mtime": 1791367085.9632413,
-    "ast_hash": "a783c63ff1b6e06e6232ff7bdef3ce2c",
+    "mtime": 1791367934.7283435,
+    "ast_hash": "055c021c57eef786f02c7301f2aa043e",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/preferences/useUserPreferences.ts": {
-    "mtime": 1790690386.1527965,
-    "ast_hash": "fb496efd1747111b6f4bb0ac520619b1",
+    "mtime": 1791367594.7171125,
+    "ast_hash": "ebedbdb259570dc282c3525f0eb7d15b",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/preferences/useRentalPreferencesForm.ts": {
@@ -4980,13 +4980,13 @@
     "semantic_hash": ""
   },
   "supabase/functions/admin-user-access/index.ts": {
-    "mtime": 1790518210.0225859,
-    "ast_hash": "e61227d2c2fe50ec20345845a05de689",
+    "mtime": 1791371756.271316,
+    "ast_hash": "fd0d70c4f7a9b729eb27323a6f0a4d06",
     "semantic_hash": ""
   },
   "supabase/migrations/20260926143751_phase2_admin_operations.sql": {
-    "mtime": 1790518210.0230892,
-    "ast_hash": "789582fdb6d4ee5ca4df1fa8b7e07394",
+    "mtime": 1791371541.5136158,
+    "ast_hash": "5ad20c999a537a5bd813b790bd114dd4",
     "semantic_hash": ""
   },
   "supabase/tests/phase2_admin_operations.test.sql": {
@@ -4995,8 +4995,8 @@
     "semantic_hash": ""
   },
   "docs/plans/phase-2-admin-portal.md": {
-    "mtime": 1791283674.2258937,
-    "ast_hash": "8e846cbe2c5cf22292264678ec37a0cb",
+    "mtime": 1791371765.81166,
+    "ast_hash": "32e9f385a713f371ff94ec5a5c46407e",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/loading.tsx": {
@@ -6140,8 +6140,13 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20261007000000_search_sections_top_rated_and_fallback.sql": {
-    "mtime": 1791366616.3739293,
-    "ast_hash": "ddb8efe47db130c53e0bf88f9508d970",
+    "mtime": 1791368078.6087446,
+    "ast_hash": "eee6bc931c1c629e92d5071bbb32a741",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261007000100_phase2_multirole_access_functions.sql": {
+    "mtime": 1791371756.233265,
+    "ast_hash": "755fdf9357c662a333464b205a8804de",
     "semantic_hash": ""
   }
 }
