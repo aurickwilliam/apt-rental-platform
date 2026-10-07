@@ -6215,8 +6215,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20261007000400_app_level_suspension.sql": {
-    "mtime": 1791379253.3250103,
-    "ast_hash": "0ecdbfba5066a96b0669861bfba5002d",
+    "mtime": 1791381143.0205762,
+    "ast_hash": "adb720353e1eb349deac8f1f2470f3dd",
     "semantic_hash": ""
   }
 }

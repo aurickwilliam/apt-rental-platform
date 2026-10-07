@@ -1,3 +1,4 @@
+import { AppState } from "react-native";
 import { renderHook, waitFor } from "@testing-library/react-native";
 
 import { useSuspensionStore } from "@/stores/useSuspensionStore";
@@ -11,14 +12,6 @@ const mockClearQueryClient = jest.fn();
 let appStateListener: ((state: string) => void) | undefined;
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace }) }));
-jest.mock("react-native", () => ({
-  AppState: {
-    addEventListener: (_event: string, listener: (state: string) => void) => {
-      appStateListener = listener;
-      return { remove: jest.fn() };
-    },
-  },
-}));
 jest.mock("@repo/supabase", () => ({
   supabase: {
     auth: {
@@ -35,6 +28,10 @@ jest.mock("@/utils/queryClient", () => ({ clearQueryClient: () => mockClearQuery
 describe("useSuspensionGuard", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(AppState, "addEventListener").mockImplementation((_event, listener) => {
+      appStateListener = listener as (state: string) => void;
+      return { remove: jest.fn() };
+    });
     useSuspensionStore.getState().reset();
     mockGetSession.mockResolvedValue({ data: { session: { user: { id: "a" } } } });
     mockSignOut.mockResolvedValue({ error: null });
