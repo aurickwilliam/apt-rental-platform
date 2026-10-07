@@ -9,7 +9,7 @@ import {
 
 interface VerificationCardListProps {
   rows: VerificationRow[];
-  selected: "users" | "apartments";
+  selected: "users" | "apartments" | "documents";
 }
 
 export default function VerificationCardList({

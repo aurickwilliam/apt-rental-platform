@@ -60,6 +60,13 @@ export async function signIn(
     return { error: "Could not verify your account. Please try again." };
   }
 
+  // Suspended accounts can authenticate but cannot read their own profile
+  // (RLS); keep the session and explain why on /suspended.
+  const { data: suspension } = await supabase.rpc("get_my_suspension_status");
+  if ((suspension as { suspended?: boolean } | null)?.suspended) {
+    redirect("/suspended");
+  }
+
   const { data: profileData, error: profileError } = await supabase
     .from("users")
     .select("roles")

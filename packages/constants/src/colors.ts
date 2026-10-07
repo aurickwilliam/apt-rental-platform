@@ -62,3 +62,19 @@ export const COLORS = {
     dangerLight: '#2D1515',
   },
 }
+
+// Status surfaces are separate so the base COLORS palette stays string-only.
+export const STATUS_COLORS = {
+  light: {
+    success: { backgroundColor: '#DCFCE7', textColor: '#166534', borderColor: '#86EFAC' },
+    warning: { backgroundColor: '#FEF3C7', textColor: '#92400E', borderColor: '#FCD34D' },
+    danger: { backgroundColor: '#FEE2E2', textColor: '#991B1B', borderColor: '#FCA5A5' },
+    neutral: { backgroundColor: '#F1F5F9', textColor: '#334155', borderColor: '#CBD5E1' },
+  },
+  dark: {
+    success: { backgroundColor: '#14532D', textColor: '#BBF7D0', borderColor: '#22C55E' },
+    warning: { backgroundColor: '#78350F', textColor: '#FDE68A', borderColor: '#F59E0B' },
+    danger: { backgroundColor: '#7F1D1D', textColor: '#FECACA', borderColor: '#EF4444' },
+    neutral: { backgroundColor: '#1E293B', textColor: '#E2E8F0', borderColor: '#475569' },
+  },
+};

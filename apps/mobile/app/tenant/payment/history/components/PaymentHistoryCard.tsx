@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native'
+import { statusChipSurface } from '@/hooks/useStatusChipStyles'
 import { useRouter } from 'expo-router'
 import { Card, Chip, PressableFeedback } from 'heroui-native'
 
@@ -74,7 +75,7 @@ export default function PaymentHistoryCard({ payment }: PaymentHistoryCardProps)
               variant='soft'
               size='sm'
               animation='disable-all'
-              style={{ backgroundColor: statusStyle.backgroundColor }}
+              style={statusChipSurface(statusStyle)}
             >
               <Chip.Label
                 style={{ color: statusStyle.textColor }}

@@ -72,18 +72,6 @@ export function toFilterState(prefs: TenantPreferences) {
   return { budget, bedrooms, amenities, bedroomCount: prefs.bedroomCount };
 }
 
-export function toRpcFilters(prefs: TenantPreferences) {
-  const { budget, amenities, bedrooms, bedroomCount } = toFilterState(prefs);
-  return {
-    budgetMin: budget[0],
-    budgetMax: budget[1],
-    bedrooms,
-    bedroomCount,
-    amenities,
-    cities: prefs.selectedCities,
-  };
-}
-
 export function useUserPreferences() {
   const { data: profile, isLoading, error } = useCurrentUser();
 

@@ -49,3 +49,26 @@ export async function reviewUserVerification(formData: FormData): Promise<Review
 export async function reviewApartmentVerification(formData: FormData): Promise<ReviewResult> {
   return review("apartment_verifications", formData);
 }
+
+export async function reviewPassportDocument(formData: FormData): Promise<ReviewResult> {
+  await requireAdmin();
+  const input = getReviewInput(formData);
+  if (!("id" in input)) return input;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("passport_documents")
+    .update({
+      review_status: input.status === "approved" ? "verified" : "rejected",
+      rejection_reason: input.reason,
+    })
+    .eq("id", input.id);
+
+  if (error) {
+    console.error("Admin passport_documents review failed", error);
+    return { error: "The review could not be saved. Refresh and try again." };
+  }
+
+  revalidatePath("/admin");
+  return {};
+}

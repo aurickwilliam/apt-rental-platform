@@ -15,7 +15,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
-import { ArrowLeft, Mail, MapPin, Phone, FileText, Eye, Check, X } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, Phone, FileText, Eye, Check, X, ShieldCheck } from "lucide-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -23,6 +23,7 @@ import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useLandlordApplications } from "@/hooks/use-landlord-applications";
 import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-actions";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
+import { usePassportVerifiedPaths } from "@/hooks/use-passport-verified-paths";
 import { statusChipColor } from "../lib/application-status";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
@@ -38,7 +39,7 @@ function SectionTitle({ children }: { children: string }) {
   return <p className="text-sm font-nunito font-bold text-primary uppercase tracking-wide">{children}</p>;
 }
 
-function DocumentRow({ label, path, signedUrl }: { label: string; path: string | null; signedUrl: string | null }) {
+function DocumentRow({ label, path, signedUrl, verified = false }: { label: string; path: string | null; signedUrl: string | null; verified?: boolean }) {
   return (
     <div className="flex items-center justify-between rounded-xl bg-muted px-3 py-2.5">
       <div className="flex items-center gap-2 min-w-0">
@@ -46,7 +47,15 @@ function DocumentRow({ label, path, signedUrl }: { label: string; path: string |
           <FileText size={16} className="text-muted-foreground" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-nunito font-medium text-card-foreground">{label}</p>
+          <p className="text-sm font-nunito font-medium text-card-foreground flex items-center gap-1.5">
+            {label}
+            {verified ? (
+              <Chip size="sm" variant="soft" color="success" className="font-nunito">
+                <ShieldCheck size={12} />
+                Verified
+              </Chip>
+            ) : null}
+          </p>
           <p className="text-xs font-nunito text-muted-foreground truncate">{path ? "Tap View to open" : "Not submitted"}</p>
         </div>
       </div>
@@ -99,6 +108,15 @@ export default function LandlordApplicationDetailPage() {
   );
   const { resolved: resolvedDocs } = useApplicationDocumentUrls(docEntries);
   const signedByLabel = useMemo(() => new Map(resolvedDocs.map((d) => [d.label, d.signedUrl])), [resolvedDocs]);
+  const docPaths = useMemo(
+    () => docEntries.map((d) => d.path).filter((p): p is string => !!p),
+    [docEntries],
+  );
+  const verifiedPaths = usePassportVerifiedPaths(app?.tenant_id ?? null, docPaths);
+  const isVerifiedLabel = (label: string) => {
+    const entry = docEntries.find((d) => d.label === label);
+    return !!entry?.path && verifiedPaths.has(entry.path);
+  };
 
   if (loading) {
     return (
@@ -227,7 +245,7 @@ export default function LandlordApplicationDetailPage() {
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Preferences</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} /><DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} /><DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} /></div></div>
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Previous Landlord</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Name" value={app.prev_landlord_name ?? "Not provided"} /><DetailField label="Contact" value={app.prev_landlord_contact ?? "Not provided"} /></div></div>
           <Separator className="bg-border" />
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Documents</SectionTitle><div className="flex flex-col gap-1.5"><DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} /><DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} /><DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} /><DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} /></div></div>
+          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Documents</SectionTitle><div className="flex flex-col gap-1.5"><DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} verified={isVerifiedLabel("Government ID")} /><DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} verified={isVerifiedLabel("Proof of Income")} /><DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} verified={isVerifiedLabel("Proof of Billing")} /><DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} verified={isVerifiedLabel("NBI Clearance")} /></div></div>
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Message</SectionTitle><p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">{app.message ?? "No message provided."}</p></div>
         </div>
 
@@ -309,10 +327,10 @@ export default function LandlordApplicationDetailPage() {
             <div className="rounded-2xl bg-card p-3 flex flex-col gap-2 overflow-hidden">
               <SectionTitle>Documents</SectionTitle>
               <div className="flex flex-col gap-1.5 overflow-hidden flex-1 justify-between">
-                <DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} />
-                <DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} />
-                <DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} />
-                <DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} />
+                <DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} verified={isVerifiedLabel("Government ID")} />
+                <DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} verified={isVerifiedLabel("Proof of Income")} />
+                <DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} verified={isVerifiedLabel("Proof of Billing")} />
+                <DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} verified={isVerifiedLabel("NBI Clearance")} />
               </div>
             </div>
             <div className="rounded-2xl bg-card p-3 flex flex-col gap-2 overflow-hidden">

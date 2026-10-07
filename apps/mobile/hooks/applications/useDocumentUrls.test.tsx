@@ -45,4 +45,37 @@ describe('useDocumentUrls', () => {
     ]));
     expect(mockResolvePrivateMediaUrls).toHaveBeenCalledTimes(1);
   });
+
+  it('does not flip loading again once the first pass has resolved', async () => {
+    const documents = [{ label: 'Government ID', path: 'tenant/government-id.jpg' }];
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useDocumentUrls>,
+      DocumentEntriesProps
+    >(
+      ({ entries }) => useDocumentUrls(entries),
+      { initialProps: { entries: documents } },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    rerender({
+      entries: [
+        { label: 'Government ID', path: 'tenant/government-id.jpg' },
+        { label: 'NBI Clearance', path: 'tenant/nbi.jpg' },
+      ],
+    });
+
+    // Second pass must not blank the already-rendered content.
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('resolves through the requested private bucket', async () => {
+    const documents = [{ label: 'Selfie', path: 'user-1/verification-1/selfie.jpg' }];
+    const { result } = renderHook(() => useDocumentUrls(documents, 'user-verification'));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith('user-verification', [
+      'user-1/verification-1/selfie.jpg',
+    ]);
+  });
 });

@@ -1,4 +1,5 @@
 import {
+  consolidateMonthlyRevenue,
   currentMonthKey,
   fetchDashboardData,
   monthLabel,
@@ -134,5 +135,37 @@ describe("dashboard derivations", () => {
       ]),
     ).toEqual({ pendingTotal: 8000, overdueTotal: 12000, totalDue: 20000 });
     expect(summarizeRentDues([])).toEqual({ pendingTotal: 0, overdueTotal: 0, totalDue: 0 });
+  });
+
+  it("sums duplicate month keys while preserving chronological order", () => {
+    expect(
+      consolidateMonthlyRevenue([
+        { month: "2026-08", amount: 15000 },
+        { month: "2026-09", amount: 15000 },
+        { month: "2026-09", amount: 45000 },
+      ]),
+    ).toEqual([
+      { month: "2026-08", amount: 15000 },
+      { month: "2026-09", amount: 60000 },
+    ]);
+    expect(monthRevenueTotal(
+      consolidateMonthlyRevenue([
+        { month: "2026-09", amount: 15000 },
+        { month: "2026-09", amount: 45000 },
+      ]),
+      "2026-09",
+    )).toBe(60000);
+  });
+
+  it("passes through unique months and skips malformed rows", () => {
+    expect(consolidateMonthlyRevenue(PAYLOAD.monthlyRevenue)).toHaveLength(12);
+    expect(consolidateMonthlyRevenue([])).toEqual([]);
+    expect(
+      consolidateMonthlyRevenue([
+        { month: "2026-09", amount: 10000 },
+        { month: null, amount: 5000 } as unknown as { month: string; amount: number },
+        { month: "2026-10", amount: Number.NaN } as unknown as { month: string; amount: number },
+      ]),
+    ).toEqual([{ month: "2026-09", amount: 10000 }]);
   });
 });

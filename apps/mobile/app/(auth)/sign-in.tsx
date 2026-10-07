@@ -33,7 +33,13 @@ import { useGoogleAuth } from "hooks/auth";
 import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { useSuspensionStore } from "@/stores/useSuspensionStore";
 import { portalHome } from "@/service/auth/portalPreference";
+import {
+  buildSuspendedMessage,
+  getMySuspensionStatus,
+  SUSPENDED_TITLE,
+} from "@/service/auth/suspensionService";
 
 import { isValidEmail } from "@repo/utils";
 
@@ -51,11 +57,16 @@ export default function SignIn() {
   const [emailError, setEmailError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+
+  // Set by the suspension guard when a signed-in device was signed out.
+  const suspensionNotice = useSuspensionStore((state) => state.notice);
 
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    errorTitle: googleErrorTitle,
     resetError: resetGoogleError,
   } = useGoogleAuth();
 
@@ -83,6 +94,7 @@ export default function SignIn() {
     setEmailError("");
     setPasswordError("");
     setError("");
+    setErrorTitle(undefined);
 
     // Check the inputs and show errors if invalid
     let isValid = true;
@@ -126,6 +138,16 @@ export default function SignIn() {
         } else {
           setError(signInError.message);
         }
+        return;
+      }
+
+      // A suspended account authenticates but cannot read its own profile (RLS),
+      // so check suspension first and show the reason.
+      const suspension = await getMySuspensionStatus();
+      if (suspension.suspended) {
+        await supabase.auth.signOut();
+        setErrorTitle(SUSPENDED_TITLE);
+        setError(buildSuspendedMessage(suspension.reason));
         return;
       }
 
@@ -315,12 +337,19 @@ export default function SignIn() {
 
       {/* Error Dialog */}
       <ErrorDialog
-        isOpen={!!(error || googleError)}
+        isOpen={!!(error || googleError || suspensionNotice)}
         onClose={() => {
           setError("");
+          setErrorTitle(undefined);
           resetGoogleError();
+          useSuspensionStore.getState().clear();
         }}
-        message={googleError || error}
+        title={
+          suspensionNotice ? SUSPENDED_TITLE : googleError ? googleErrorTitle : errorTitle
+        }
+        message={
+          suspensionNotice ? buildSuspendedMessage(suspensionNotice.reason) : googleError || error
+        }
       />
     </ScreenWrapper>
   );

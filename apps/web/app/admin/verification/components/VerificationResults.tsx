@@ -10,7 +10,7 @@ const PAGE_SIZE = 10;
 
 interface VerificationResultsProps {
   rows: VerificationRow[];
-  selected: "users" | "apartments";
+  selected: "users" | "apartments" | "documents";
 }
 
 export default function VerificationResults({

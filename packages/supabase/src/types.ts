@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_audit_logs: {
@@ -639,6 +614,91 @@ export type Database = {
           },
         ]
       }
+      passport_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          expires_at: string | null
+          id: string
+          id_type: string | null
+          is_primary: boolean
+          is_verified: boolean
+          mime_type: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          storage_path: string
+          storage_path_back: string | null
+          updated_at: string | null
+          user_id: string
+          verification_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          expires_at?: string | null
+          id?: string
+          id_type?: string | null
+          is_primary?: boolean
+          is_verified?: boolean
+          mime_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          storage_path: string
+          storage_path_back?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          expires_at?: string | null
+          id?: string
+          id_type?: string | null
+          is_primary?: boolean
+          is_verified?: boolean
+          mime_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          storage_path?: string
+          storage_path_back?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_documents_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_documents_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "user_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment: {
         Row: {
           amount: number | null
@@ -1107,6 +1167,7 @@ export type Database = {
           first_name: string | null
           gender: string | null
           id: string
+          is_suspended: boolean
           last_name: string | null
           middle_name: string | null
           mobile_number: string | null
@@ -1116,6 +1177,9 @@ export type Database = {
           roles: string[]
           street_address: string | null
           suffix: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1131,6 +1195,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1140,6 +1205,9 @@ export type Database = {
           roles?: string[]
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1155,6 +1223,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1164,10 +1233,21 @@ export type Database = {
           roles?: string[]
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_sessions: {
         Row: {
@@ -1307,13 +1387,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_apartment_visibility: {
+        Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
+        Returns: undefined
+      }
+      admin_set_user_access: {
+        Args: { p_reason: string; p_suspend: boolean; p_target_id: string }
+        Returns: undefined
+      }
       consume_verification_session: {
         Args: { p_token_hash: string }
         Returns: string
-      }
-      expire_own_verification_sessions: {
-        Args: { p_include_active?: boolean }
-        Returns: number
       }
       create_notification: {
         Args: {
@@ -1325,6 +1409,9 @@ export type Database = {
         }
         Returns: string
       }
+      expire_own_verification_sessions:
+        | { Args: never; Returns: number }
+        | { Args: { p_include_active?: boolean }; Returns: number }
       get_admin_analytics: {
         Args: { date_from: string; date_to: string }
         Returns: Json
@@ -1436,6 +1523,17 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_my_suspension_status: { Args: never; Returns: Json }
+      get_search_section_page: {
+        Args: {
+          p_after?: Json
+          p_city?: string
+          p_limit?: number
+          p_search?: string
+          p_section_id: string
+        }
+        Returns: Json
+      }
       get_search_sections: {
         Args: {
           p_city?: string
@@ -1580,9 +1678,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

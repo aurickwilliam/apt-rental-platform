@@ -95,3 +95,28 @@ export async function resolveApplicationDocumentUrls(
     error: hasMissing ? "Some private documents could not be accessed." : null,
   };
 }
+
+/**
+ * Returns the subset of the given storage paths that are verified passport
+ * documents for a tenant. RLS scopes rows to the landlord's own applicants.
+ */
+export async function fetchPassportVerifiedPaths(
+  tenantId: string,
+  paths: readonly string[],
+): Promise<Set<string>> {
+  const unique = [...new Set(paths.filter(Boolean))];
+  if (!tenantId || unique.length === 0) return new Set();
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("passport_documents")
+    .select("storage_path")
+    .eq("user_id", tenantId)
+    .in("storage_path", unique)
+    .eq("is_verified", true);
+
+  if (error) return new Set();
+  return new Set(
+    ((data ?? []) as { storage_path: string }[]).map((row) => row.storage_path),
+  );
+}

@@ -1,5 +1,5 @@
-import { View } from 'react-native'
-import { useRef, useState } from 'react'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
 import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
@@ -13,7 +13,12 @@ import {
   Separator,
 } from 'heroui-native';
 
-import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+import { IconCircleCheckFilled, IconShieldCheck } from '@tabler/icons-react-native';
+
+import { useApplicationFormStore, type PassportSelections } from '@/stores/useApplicationFormStore'
+import { usePassportDocuments } from '@/hooks/passport';
+import { passportDocsForSlot, type PassportDocumentRow } from '@/service/passport/passportService';
+import { useColors } from '@/hooks/useTheme';
 
 import { requiresProofOfIncome } from '@repo/constants'
 
@@ -23,16 +28,99 @@ type FormErrors = {
   proofOfBilling?: string
 }
 
+type Slot = keyof PassportSelections;
+
+const APPLY_SLOTS: Slot[] = ['govId', 'proofOfIncome', 'proofOfBilling', 'nbiClearance'];
+
+function PassportSlotPicker({
+  slot,
+  docs,
+  selectedPath,
+  onSelect,
+}: {
+  slot: Slot;
+  docs: PassportDocumentRow[];
+  selectedPath: string | null;
+  onSelect: (path: string | null) => void;
+}) {
+  const { colors } = useColors();
+  const matches = passportDocsForSlot(docs, slot);
+
+  if (matches.length === 0) return null;
+
+  return (
+    <View className="gap-2 mt-3">
+      <Text className="text-sm font-nunitoSemiBold text-muted">
+        Use from passport
+      </Text>
+      {matches.slice(0, 3).map((doc) => {
+        const selected = selectedPath === doc.storage_path;
+        return (
+          <TouchableOpacity
+            key={doc.id}
+            activeOpacity={0.7}
+            onPress={() => onSelect(selected ? null : doc.storage_path)}
+            className={`flex-row items-center gap-3 rounded-2xl border p-3 ${
+              selected ? 'border-primary bg-primary-light' : 'border-border bg-surface'
+            }`}
+          >
+            <IconCircleCheckFilled
+              size={22}
+              color={selected ? colors.primary : colors.gray300}
+            />
+            <View className="flex-1 gap-0.5">
+              <Text className="text-foreground text-sm font-nunitoSemiBold" numberOfLines={1}>
+                {doc.doc_type}
+              </Text>
+              {doc.is_verified ? (
+                <View className="flex-row items-center gap-1">
+                  <IconShieldCheck size={12} color={colors.success} />
+                  <Text className="text-success text-xs font-nunitoSemiBold">
+                    Verified
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function ThirdProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
+  const { colors } = useColors();
 
   const {
     tenantInformation,
     documents,
+    passportSelections,
     updateImageDocument,
     updateFileDocument,
+    setPassportSelection,
   } = useApplicationFormStore();
+
+  const { documents: passportDocs, loading: passportLoading } = usePassportDocuments();
+  const didPrefill = useRef(false);
+
+  // Auto-attach: pre-select the best passport match for empty slots once
+  // the wallet loads. Fresh uploads always take precedence at submit.
+  useEffect(() => {
+    if (passportLoading || didPrefill.current) return;
+    didPrefill.current = true;
+    APPLY_SLOTS.forEach((slot) => {
+      const hasFresh =
+        slot === 'govId' || slot === 'proofOfBilling'
+          ? documents[slot].length > 0
+          : documents[slot] !== null;
+      if (hasFresh || passportSelections[slot]) return;
+      const best = passportDocsForSlot(passportDocs, slot)[0];
+      if (best) setPassportSelection(slot, best.storage_path);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passportLoading]);
 
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -47,18 +135,19 @@ export default function ThirdProcess() {
   const validate = (): boolean => {
     const newErrors: FormErrors = {}
 
-    if (documents.govId.length === 0)
+    if (documents.govId.length === 0 && !passportSelections.govId)
       newErrors.govId = 'Please upload a valid government-issued ID.'
 
     if (
       requiresProofOfIncome(tenantInformation.employmentType) &&
-      !documents.proofOfIncome
+      !documents.proofOfIncome &&
+      !passportSelections.proofOfIncome
     ) {
       newErrors.proofOfIncome =
         "Please upload proof of income.";
     }
 
-    if (documents.proofOfBilling.length === 0)
+    if (documents.proofOfBilling.length === 0 && !passportSelections.proofOfBilling)
       newErrors.proofOfBilling = 'Please upload proof of billing.'
 
     setErrors(newErrors)
@@ -116,6 +205,7 @@ export default function ThirdProcess() {
                   "govId",
                   Array.isArray(asset) ? asset : [asset],
                 );
+                setPassportSelection("govId", null);
                 clearError("govId");
               }}
               onRemove={(uri) =>
@@ -128,6 +218,15 @@ export default function ThirdProcess() {
               single
               label="Valid Government-issued ID:"
               error={errors.govId}
+            />
+            <PassportSlotPicker
+              slot="govId"
+              docs={passportDocs}
+              selectedPath={passportSelections.govId}
+              onSelect={(path) => {
+                setPassportSelection("govId", path);
+                if (path) clearError("govId");
+              }}
             />
           </View>
 
@@ -145,10 +244,22 @@ export default function ThirdProcess() {
               value={documents.proofOfIncome}
               onChange={(asset) => {
                 updateFileDocument("proofOfIncome", asset);
-                if (asset) clearError("proofOfIncome");
+                if (asset) {
+                  setPassportSelection("proofOfIncome", null);
+                  clearError("proofOfIncome");
+                }
               }}
               required={requiresProofOfIncome(tenantInformation.employmentType)}
               error={errors.proofOfIncome}
+            />
+            <PassportSlotPicker
+              slot="proofOfIncome"
+              docs={passportDocs}
+              selectedPath={passportSelections.proofOfIncome}
+              onSelect={(path) => {
+                setPassportSelection("proofOfIncome", path);
+                if (path) clearError("proofOfIncome");
+              }}
             />
           </View>
 
@@ -167,6 +278,7 @@ export default function ThirdProcess() {
                   "proofOfBilling",
                   Array.isArray(asset) ? asset : [asset],
                 );
+                setPassportSelection("proofOfBilling", null);
                 clearError("proofOfBilling");
               }}
               onRemove={(uri) =>
@@ -180,6 +292,15 @@ export default function ThirdProcess() {
               label="Proof of Billing:"
               error={errors.proofOfBilling}
             />
+            <PassportSlotPicker
+              slot="proofOfBilling"
+              docs={passportDocs}
+              selectedPath={passportSelections.proofOfBilling}
+              onSelect={(path) => {
+                setPassportSelection("proofOfBilling", path);
+                if (path) clearError("proofOfBilling");
+              }}
+            />
           </View>
 
           <Separator className="my-4" />
@@ -188,8 +309,32 @@ export default function ThirdProcess() {
             label="NBI Clearance:"
             placeholder="Upload your NBI clearance"
             value={documents.nbiClearance}
-            onChange={(asset) => updateFileDocument("nbiClearance", asset)}
+            onChange={(asset) => {
+              updateFileDocument("nbiClearance", asset);
+              if (asset) setPassportSelection("nbiClearance", null);
+            }}
           />
+          <PassportSlotPicker
+            slot="nbiClearance"
+            docs={passportDocs}
+            selectedPath={passportSelections.nbiClearance}
+            onSelect={(path) => setPassportSelection("nbiClearance", path)}
+          />
+
+          {passportDocs.length === 0 && !passportLoading ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/document-id')}
+            >
+              <Text className="text-sm font-inter text-center" style={{ color: colors.gray500 }}>
+                Tip: save IDs, payslips, and clearances in your{' '}
+                <Text className="font-nunitoSemiBold" style={{ color: colors.primary }}>
+                  passport
+                </Text>{' '}
+                to attach them in one tap next time.
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Back or Next Button */}

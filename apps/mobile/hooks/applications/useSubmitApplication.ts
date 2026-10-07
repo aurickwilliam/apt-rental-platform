@@ -68,6 +68,7 @@ export function useSubmitApplication() {
     tenantInformation,
     rentalPreferences,
     documents,
+    passportSelections,
     setUploadedPath,
     setIsSubmitting,
     resetApplicationForm,
@@ -85,17 +86,17 @@ export function useSubmitApplication() {
         return { success: false, error: msg }
       }
 
-      if (documents.govId.length === 0) {
+      if (documents.govId.length === 0 && !passportSelections.govId) {
         const msg = 'Government-issued ID is required.'
         setError(msg)
         return { success: false, error: msg }
       }
-      if (requiresProofOfIncome(tenantInformation.employmentType) && !documents.proofOfIncome) {
+      if (requiresProofOfIncome(tenantInformation.employmentType) && !documents.proofOfIncome && !passportSelections.proofOfIncome) {
         const msg = 'Proof of income is required.'
         setError(msg)
         return { success: false, error: msg }
       }
-      if (documents.proofOfBilling.length === 0) {
+      if (documents.proofOfBilling.length === 0 && !passportSelections.proofOfBilling) {
         const msg = 'Proof of billing is required.'
         setError(msg)
         return { success: false, error: msg }
@@ -152,15 +153,21 @@ export function useSubmitApplication() {
         const proofOfIncomeAsset = documents.proofOfIncome
         const nbiAsset = documents.nbiClearance
 
-        const govIdPath = await uploadDoc(
-          govIdAsset.uri,
-          govIdAsset.fileName ?? 'gov-id.jpg',
-          tenantId,
-          applicationId,
-          'govId',
-        )
-        uploadedSoFar.push(govIdPath)
-        setUploadedPath('govId', govIdPath)
+        // Fresh uploads take precedence; otherwise reuse the passport path by
+        // reference (same private bucket, landlord-readable via RLS).
+        const govIdPath = govIdAsset
+          ? await uploadDoc(
+              govIdAsset.uri,
+              govIdAsset.fileName ?? 'gov-id.jpg',
+              tenantId,
+              applicationId,
+              'govId',
+            )
+          : passportSelections.govId!
+        if (govIdAsset) {
+          uploadedSoFar.push(govIdPath)
+          setUploadedPath('govId', govIdPath)
+        }
 
         let proofOfIncomePath: string | null = null
         if (proofOfIncomeAsset) {
@@ -173,17 +180,23 @@ export function useSubmitApplication() {
           )
           uploadedSoFar.push(proofOfIncomePath)
           setUploadedPath('proofOfIncome', proofOfIncomePath)
+        } else if (passportSelections.proofOfIncome) {
+          proofOfIncomePath = passportSelections.proofOfIncome
         }
 
-        const proofOfBillingPath = await uploadDoc(
-          proofOfBillingAsset.uri,
-          proofOfBillingAsset.fileName ?? 'proof-of-billing.jpg',
-          tenantId,
-          applicationId,
-          'proofOfBilling',
-        )
-        uploadedSoFar.push(proofOfBillingPath)
-        setUploadedPath('proofOfBilling', proofOfBillingPath)
+        const proofOfBillingPath = proofOfBillingAsset
+          ? await uploadDoc(
+              proofOfBillingAsset.uri,
+              proofOfBillingAsset.fileName ?? 'proof-of-billing.jpg',
+              tenantId,
+              applicationId,
+              'proofOfBilling',
+            )
+          : passportSelections.proofOfBilling!
+        if (proofOfBillingAsset) {
+          uploadedSoFar.push(proofOfBillingPath)
+          setUploadedPath('proofOfBilling', proofOfBillingPath)
+        }
 
         let nbiPath: string | null = null
         if (nbiAsset) {
@@ -196,6 +209,8 @@ export function useSubmitApplication() {
           )
           uploadedSoFar.push(nbiPath)
           setUploadedPath('nbiClearance', nbiPath)
+        } else if (passportSelections.nbiClearance) {
+          nbiPath = passportSelections.nbiClearance
         }
 
         const { error: insertError } = await supabase
@@ -255,6 +270,7 @@ export function useSubmitApplication() {
       tenantInformation,
       rentalPreferences,
       documents,
+      passportSelections,
       setUploadedPath,
       setIsSubmitting,
       resetApplicationForm,

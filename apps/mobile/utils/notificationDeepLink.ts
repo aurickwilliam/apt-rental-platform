@@ -9,6 +9,7 @@ export interface NotificationData {
   senderId?: string;
   senderAvatarUrl?: string;
   verificationId?: string;
+  documentId?: string;
 }
 
 function parseConversationKey(key: string): { userIdA: string; userIdB: string; apartmentId: string | null } | null {
@@ -83,6 +84,17 @@ export function buildNotificationDeepLink(
       if (role === "landlord") return "/(tabs)/(landlord)/profile" as Href;
       if (role === "tenant") return "/(tabs)/(tenant)/profile" as Href;
       return null;
+    case "passport":
+      // Tenant-requested document review resolution; land on the passport
+      // detail when a document id is present, else the passport list.
+      if (role !== "tenant") return null;
+      if (payload.documentId) {
+        return {
+          pathname: "/document-id/[documentId]",
+          params: { documentId: payload.documentId },
+        } as unknown as Href;
+      }
+      return "/document-id" as Href;
     case "payments":
       if (role === "landlord") {
         if (!payload.apartmentId) return null;

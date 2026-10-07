@@ -42,6 +42,18 @@ export type UploadedDocumentPaths = {
   nbiClearance: string | null
 }
 
+/**
+ * Passport storage paths selected for each slot. A fresh upload takes
+ * precedence; otherwise submit reuses the passport path by reference
+ * (no re-upload, no duplicate storage).
+ */
+export type PassportSelections = {
+  govId: string | null
+  proofOfIncome: string | null
+  proofOfBilling: string | null
+  nbiClearance: string | null
+}
+
 const initialTenantInformation: TenantInformation = {
   fullName: '',
   contactNumber: '',
@@ -74,6 +86,13 @@ const initialDocuments: RequiredDocuments = {
 }
 
 const initialUploadedPaths: UploadedDocumentPaths = {
+  govId: null,
+  proofOfIncome: null,
+  proofOfBilling: null,
+  nbiClearance: null,
+}
+
+const initialPassportSelections: PassportSelections = {
   govId: null,
   proofOfIncome: null,
   proofOfBilling: null,
@@ -117,6 +136,7 @@ type ApplicationFormState = {
   rentalPreferences: RentalPreferences
   documents: RequiredDocuments
   uploadedPaths: UploadedDocumentPaths
+  passportSelections: PassportSelections
 
   isSubmitting: boolean
 
@@ -136,6 +156,7 @@ type ApplicationFormState = {
   updateImageDocument: (field: 'govId' | 'proofOfBilling', assets: ImagePickerAsset[]) => void
   updateFileDocument: (field: 'proofOfIncome' | 'nbiClearance', asset: DocumentPickerAsset | null) => void
   setUploadedPath: (field: keyof UploadedDocumentPaths, path: string | null) => void
+  setPassportSelection: (field: keyof PassportSelections, path: string | null) => void
   setIsSubmitting: (isSubmitting: boolean) => void
 
   // Lifecycle
@@ -149,6 +170,7 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
   rentalPreferences: initialRentalPreferences,
   documents: initialDocuments,
   uploadedPaths: initialUploadedPaths,
+  passportSelections: initialPassportSelections,
 
   isSubmitting: false,
 
@@ -200,6 +222,14 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
       },
     })),
 
+  setPassportSelection: (field, path) =>
+    set((state) => ({
+      passportSelections: {
+        ...state.passportSelections,
+        [field]: path,
+      },
+    })),
+
   setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
 
   resetApplicationForm: () =>
@@ -209,6 +239,7 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
       rentalPreferences: initialRentalPreferences,
       documents: initialDocuments,
       uploadedPaths: initialUploadedPaths,
+      passportSelections: initialPassportSelections,
       isSubmitting: false,
     }),
 }))

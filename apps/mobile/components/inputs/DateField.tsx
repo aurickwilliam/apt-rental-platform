@@ -2,7 +2,7 @@ import { View, Text, Pressable, Platform, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 
-import { IconCalendar } from "@tabler/icons-react-native";
+import { IconCalendar, IconX } from "@tabler/icons-react-native";
 
 import { useColors } from "hooks/useTheme"
 
@@ -11,6 +11,7 @@ interface DateFieldProps {
   placeholder?: string;
   value?: Date | null;
   onChange?: (date: Date) => void;
+  onClear?: () => void;
   disabled?: boolean;
   error?: string;
   required?: boolean;
@@ -22,6 +23,7 @@ export default function DateField({
   placeholder = "Select date",
   value,
   onChange,
+  onClear,
   disabled = false,
   error,
   required = false,
@@ -83,11 +85,8 @@ export default function DateField({
         </Text>
       )}
 
-      <Pressable
-        onPress={openDatePicker}
-        disabled={disabled}
-        style={{ justifyContent: "space-between" }}
-        className={`rounded-2xl pl-3 pr-4 h-12 flex-row items-center justify-between
+      <View
+        className={`rounded-2xl pl-3 h-12 flex-row items-center
           ${disabled
             ? 'bg-surface-tertiary border border-field-border'
             : error
@@ -97,14 +96,31 @@ export default function DateField({
             : 'bg-surface border border-field-border'
           }`}
       >
-        <Text
-          className={`font-inter ${value ? "text-foreground" : "text-gray-500"}`}
+        <Pressable
+          onPress={openDatePicker}
+          disabled={disabled || readOnly}
+          className="flex-1 h-full flex-row items-center justify-between pr-4"
+          accessibilityRole="button"
+          accessibilityLabel={label ?? placeholder}
         >
-          {displayValue}
-        </Text>
-
-        {!readOnly && <IconCalendar size={20} color={colors.gray400} />}
-      </Pressable>
+          <Text
+            className={`font-inter flex-1 ${value ? "text-foreground" : "text-gray-500"}`}
+          >
+            {displayValue}
+          </Text>
+          {!readOnly && <IconCalendar size={20} color={colors.gray400} />}
+        </Pressable>
+        {value && onClear && !disabled && !readOnly ? (
+          <Pressable
+            onPress={onClear}
+            className="w-11 h-11 items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Clear expiry date"
+          >
+            <IconX size={20} color={colors.gray400} />
+          </Pressable>
+        ) : null}
+      </View>
 
       {error && <Text className="text-md text-danger font-inter">{error}</Text>}
 

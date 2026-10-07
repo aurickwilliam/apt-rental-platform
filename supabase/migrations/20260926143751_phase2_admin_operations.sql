@@ -323,7 +323,12 @@ begin
   if (length(v_definition) - length(replace(v_definition, 'where a.deleted_at is null', ''))) / length('where a.deleted_at is null') <> 6 then
     raise exception 'Search RPC has changed; audit its visibility predicates before migrating.';
   end if;
-  execute replace(v_definition, 'where a.deleted_at is null',
+  v_definition := replace(v_definition, 'where a.deleted_at is null',
     'where a.deleted_at is null and a.is_hidden_by_admin = false');
+  -- The all_results fallback (added by 20261007000000) spells its predicate with
+  -- parentheses; no-op when the definition predates it.
+  v_definition := replace(v_definition, 'where (a.deleted_at is null)',
+    'where (a.deleted_at is null) and a.is_hidden_by_admin = false');
+  execute v_definition;
 end;
 $$;

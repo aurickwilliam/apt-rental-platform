@@ -10,6 +10,9 @@ const CARD_WIDTH = 180;
 const CARD_GAP = 12;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 
+// The "All Results" fallback is a one-off preview; the See All RPC has no matching section.
+const SECTIONS_WITHOUT_SEE_ALL = ["all_results"];
+
 type Props = {
   section: SearchSectionType;
   isFavorite: (id: string) => boolean;
@@ -37,15 +40,17 @@ export default function SearchSection({ section, isFavorite, onToggleFavorite, o
           {section.title}
         </Text>
 
-        <Pressable
-          onPress={handleSeeAll}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`See all ${section.title}`}
-          className="p-1"
-        >
-          <IconChevronRight size={20} color={colors.primary} />
-        </Pressable>
+        {SECTIONS_WITHOUT_SEE_ALL.includes(section.id) ? null : (
+          <Pressable
+            onPress={handleSeeAll}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`See all ${section.title}`}
+            className="p-1"
+          >
+            <IconChevronRight size={20} color={colors.primary} />
+          </Pressable>
+        )}
       </View>
 
       <FlatList

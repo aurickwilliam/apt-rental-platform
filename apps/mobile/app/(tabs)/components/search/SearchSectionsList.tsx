@@ -13,7 +13,6 @@ type Props = {
   isFetching: boolean;
   error: string | null;
   onRefresh: () => void;
-  onViewableItemsChanged: (info: { viewableItems: { item: SearchSectionType }[] }) => void;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void | Promise<void>;
   onPressApartment: (id: string) => void;
@@ -26,7 +25,6 @@ export default function SearchSectionsList({
   isFetching,
   error,
   onRefresh,
-  onViewableItemsChanged,
   isFavorite,
   onToggleFavorite,
   onPressApartment,
@@ -98,8 +96,6 @@ export default function SearchSectionsList({
         gap: 16,
         paddingTop: 8,
       }}
-      onViewableItemsChanged={onViewableItemsChanged as any}
-      viewabilityConfig={{ itemVisiblePercentThreshold: 30 }}
       initialNumToRender={2}
       windowSize={5}
       maxToRenderPerBatch={2}

@@ -24,6 +24,30 @@ export function monthRevenueTotal(
   return monthlyRevenue.find((point) => point.month === month)?.amount ?? 0;
 }
 
+/**
+ * Collapses duplicate month keys by summing their amounts, preserving
+ * chronological (first-seen) order. The dashboard RPC emits one row per
+ * (month × apartment), so months with several paying apartments arrive
+ * repeated — charting and totaling that raw array double-plots months and
+ * under-reads `.find`-based lookups. Malformed rows are skipped.
+ */
+export function consolidateMonthlyRevenue(
+  monthlyRevenue: readonly MonthlyRevenuePoint[],
+): MonthlyRevenuePoint[] {
+  const totals = new Map<string, number>();
+  for (const point of monthlyRevenue) {
+    if (
+      typeof point?.month !== "string" ||
+      typeof point?.amount !== "number" ||
+      !Number.isFinite(point.amount)
+    ) {
+      continue;
+    }
+    totals.set(point.month, (totals.get(point.month) ?? 0) + point.amount);
+  }
+  return [...totals.entries()].map(([month, amount]) => ({ month, amount }));
+}
+
 export interface TopProperty {
   apartmentId: string;
   apartmentName: string;

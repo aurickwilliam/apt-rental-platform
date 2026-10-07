@@ -6,12 +6,19 @@ import { useState } from "react";
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { choosePortal, portalHome, type Portal } from "@/service/auth/portalPreference";
+import {
+  buildSuspendedMessage,
+  getMySuspensionStatus,
+  getOAuthRedirectError,
+  SUSPENDED_TITLE,
+} from "@/service/auth/suspensionService";
 
 export function useGoogleAuth() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
 
   const handleUrl = async (url: string, requestedRole?: Portal) => {
     try {
@@ -22,7 +29,8 @@ export function useGoogleAuth() {
       // Show error, if there is no code in the URL
       // This means the authentication failed or was cancelled before completion
       if (!code) {
-        setError("Authentication failed. No code returned.");
+        const { description } = getOAuthRedirectError(url);
+        setError(description ?? "Authentication failed. No code returned.");
         setLoading(false);
         return;
       }
@@ -34,6 +42,17 @@ export function useGoogleAuth() {
       // Show error if the code exchange fails for any reason
       if (exchangeError || !data.session) {
         setError("Failed to establish session.");
+        setLoading(false);
+        return;
+      }
+
+      // A suspended account authenticates but cannot read its own profile (RLS),
+      // so check suspension first and show the reason.
+      const suspension = await getMySuspensionStatus();
+      if (suspension.suspended) {
+        await supabase.auth.signOut();
+        setErrorTitle(SUSPENDED_TITLE);
+        setError(buildSuspendedMessage(suspension.reason));
         setLoading(false);
         return;
       }
@@ -101,6 +120,7 @@ export function useGoogleAuth() {
   const signInWithGoogle = async (requestedRole?: Portal) => {
     setLoading(true);
     setError("");
+    setErrorTitle(undefined);
 
     try {
       // This creates a deep link URL specific to the app
@@ -183,12 +203,16 @@ export function useGoogleAuth() {
     }
   };
 
-  const resetError = () => setError("");
+  const resetError = () => {
+    setError("");
+    setErrorTitle(undefined);
+  };
 
   return { 
     signInWithGoogle, 
     loading, 
     error,
+    errorTitle,
     resetError,
   };
 }

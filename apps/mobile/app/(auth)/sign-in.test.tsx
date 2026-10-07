@@ -1,12 +1,15 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import SignIn from "./sign-in";
+import { useSuspensionStore } from "@/stores/useSuspensionStore";
 
 const mockReplace = jest.fn();
 const mockSignInWithPassword = jest.fn();
 const mockSignOut = jest.fn();
 const mockSingle = jest.fn();
 const mockRestore = jest.fn();
+const mockGetStatus = jest.fn();
+const mockErrorDialog = jest.fn();
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, push: jest.fn() }) }));
 jest.mock("expo-image", () => ({ Image: () => null }));
@@ -17,9 +20,16 @@ jest.mock("components/layout/ScreenWrapper", () => {
 });
 jest.mock("./components/AuthDivider", () => () => null);
 jest.mock("./components/AuthButton", () => () => null);
-jest.mock("@/components/display/ErrorDialog", () => () => null);
+jest.mock("@/components/display/ErrorDialog", () => (props: unknown) => {
+  mockErrorDialog(props);
+  return null;
+});
+jest.mock("@/service/auth/suspensionService", () => ({
+  ...jest.requireActual("@/service/auth/suspensionService"),
+  getMySuspensionStatus: (...args: unknown[]) => mockGetStatus(...args),
+}));
 jest.mock("hooks/auth", () => ({
-  useGoogleAuth: () => ({ signInWithGoogle: jest.fn(), loading: false, error: "", resetError: jest.fn() }),
+  useGoogleAuth: () => ({ signInWithGoogle: jest.fn(), loading: false, error: "", errorTitle: undefined, resetError: jest.fn() }),
 }));
 jest.mock("hooks/useTheme", () => ({ useColors: () => ({ colors: { white: "#fff", gray400: "#999" } }) }));
 jest.mock("@/utils/queryClient", () => ({ clearQueryClient: jest.fn() }));
@@ -69,6 +79,7 @@ describe("role-neutral mobile sign-in", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["landlord", "tenant"] }, error: null });
     mockRestore.mockResolvedValue("tenant");
     mockSignOut.mockResolvedValue({ error: null });
+    mockGetStatus.mockResolvedValue({ suspended: false, reason: null });
   });
 
   it("does not show tenant and landlord tabs and restores the saved portal", async () => {
@@ -82,6 +93,43 @@ describe("role-neutral mobile sign-in", () => {
 
     await waitFor(() => expect(mockRestore).toHaveBeenCalledWith("account-a", ["landlord", "tenant"]));
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
+  });
+
+  it("signs out a suspended account and shows the reason", async () => {
+    mockGetStatus.mockResolvedValue({ suspended: true, reason: "Fake listings" });
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() =>
+      expect(mockErrorDialog).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isOpen: true,
+          title: "Account suspended",
+          message: expect.stringContaining("Reason: Fake listings"),
+        }),
+      ),
+    );
+    expect(mockSignOut).toHaveBeenCalled();
+    expect(mockSingle).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("shows the notice left by the suspension guard", async () => {
+    useSuspensionStore.getState().show("Fake listings");
+    render(<SignIn />);
+
+    await waitFor(() =>
+      expect(mockErrorDialog).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isOpen: true,
+          title: "Account suspended",
+          message: expect.stringContaining("Reason: Fake listings"),
+        }),
+      ),
+    );
   });
 
   it("signs out admin-only accounts without routing to a portal", async () => {

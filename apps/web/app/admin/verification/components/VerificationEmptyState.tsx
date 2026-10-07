@@ -1,17 +1,20 @@
-import { IconBuilding, IconUsers } from "@tabler/icons-react";
+import { IconBuilding, IconFileText, IconUsers } from "@tabler/icons-react";
 
 interface VerificationEmptyStateProps {
-  selected: "users" | "apartments";
+  selected: "users" | "apartments" | "documents";
 }
 
 export default function VerificationEmptyState({
   selected,
 }: VerificationEmptyStateProps) {
-  const Icon = selected === "users" ? IconUsers : IconBuilding;
+  const Icon =
+    selected === "users" ? IconUsers : selected === "documents" ? IconFileText : IconBuilding;
   const title =
     selected === "users"
       ? "No pending user requests"
-      : "No pending apartment requests";
+      : selected === "documents"
+        ? "No pending document requests"
+        : "No pending apartment requests";
   return (
     <div className="flex flex-col items-center gap-4 py-16 text-center">
       <span className="rounded-full bg-muted p-5">

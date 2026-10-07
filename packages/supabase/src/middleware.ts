@@ -78,6 +78,7 @@ export async function updateSession(request: NextRequest) {
     "/sign-up",
     "/sign-up-form",
     "/auth/callback",
+    "/suspended",
     "/about",
     "/community",
     "/company",
@@ -178,8 +179,15 @@ export async function updateSession(request: NextRequest) {
     const ownRoutes = role ? ROLE_ROUTES[role] : undefined;
 
     if (profileError || !ownRoutes) {
+      // A suspended account can authenticate but RLS hides its profile row.
+      const { data: suspension } = await supabase.rpc("get_my_suspension_status");
       const url = request.nextUrl.clone();
-      url.pathname = "/sign-in";
+      if ((suspension as { suspended?: boolean } | null)?.suspended) {
+        url.pathname = "/suspended";
+        url.search = "";
+      } else {
+        url.pathname = "/sign-in";
+      }
       return NextResponse.redirect(url);
     }
 

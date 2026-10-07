@@ -1,5 +1,7 @@
 # APT Admin Web Portal — Implementation Plan
 
+> Implementation status (verified 2026-10-06): 🚧 Partially implemented — admin routes, verification workflow, audit log, hardening, landlord submission, and review actions exist; shared `VerifiedBadge` is defined but not wired into tenant-facing pages. Scalar `role` language below is superseded by `users.roles[]` (`20260927000000_add_user_roles_array.sql` → `20260927000003_drop_legacy_role_column.sql`).
+
 ## 0. Decisions (locked)
 
 - **Security prerequisite:** repair `public.users` before enabling any admin route. A user must never be able to set their own `role` or `account_status`; admin provisioning is a controlled database/server operation only.
@@ -42,9 +44,9 @@ Route protection and invisibility:
 - Every admin layout/page performs a server-side `auth.getUser()` → `users.role = 'admin'` check before querying data. This is required because middleware is bypassed for Next Server Actions.
 - Every `admin/**/actions/*.ts` action repeats the same check before performing its mutation; RLS remains the final authority.
 
-## 3. Database changes
+## 3. Database changes — status: [x] done via `20260923091909_admin_portal_verification_and_audit.sql` + `20260923082922_harden_user_roles_and_onboarding.sql` (+ privilege hardening in `20260923163054_harden_admin_portal_privileges.sql`).
 
-### 3.1 `apartment_verifications` (new migration)
+### 3.1 `apartment_verifications` (new migration) — [x] done
 
 ```sql
 create table public.apartment_verifications (
@@ -83,7 +85,7 @@ All `SECURITY DEFINER` functions use `set search_path = public`, are only trigge
 
 No new storage bucket. Review reads existing `apartment_images.url/url_thumb` (public `apartment-images` bucket) + `lease_agreement_url` via existing signed-URL pattern.
 
-### 3.2 `admin_audit_logs` (new migration)
+### 3.2 `admin_audit_logs` (new migration) — [x] done
 
 ```sql
 create table public.admin_audit_logs (
@@ -103,7 +105,7 @@ create index admin_audit_logs_target_idx on public.admin_audit_logs (target_type
 
 Writes via SECURITY DEFINER function called from verification review triggers (never client INSERT). Explicitly grant `SELECT` to `authenticated`, enable RLS, and allow SELECT only where the current profile role is `admin`; do not grant INSERT/UPDATE/DELETE to client roles. No PII/image paths in rows.
 
-### 3.3 `public.users` authorization hardening (prerequisite migration)
+### 3.3 `public.users` authorization hardening (prerequisite migration) — [x] done
 
 - Inspect current table and column grants plus RLS policies in the linked Supabase project before writing the migration.
 - Revoke broad client UPDATE access, then grant only the profile columns the existing tenant/landlord flows actually edit. At minimum, clients must not update `role`, `account_status`, `user_id`, `id`, or system timestamps.
@@ -115,26 +117,26 @@ Writes via SECURITY DEFINER function called from verification review triggers (n
 - Regenerate `packages/supabase/src/types.ts`.
 - `graphify update .` per AGENTS.md.
 
-## 4. Server-side mutations
+## 4. Server-side mutations — status: [x] done (`apps/web/app/admin/actions/verification.ts`, landlord `submit-verification.ts`).
 
-- Use Server Actions (`admin/**/actions/*.ts`, `"use server"`) with `@repo/supabase/server` client. Each action authenticates with `auth.getUser()`, resolves the internal profile ID, requires `role='admin'`, validates input, and then relies on RLS as the final authority.
-- User review: `UPDATE user_verifications SET status, rejection_reason` — existing trigger stamps reviewer + syncs `users.account_status`.
-- Apartment review: `UPDATE apartment_verifications SET status, rejection_reason` — new trigger syncs `apartments.is_verified`.
-- Landlord submission: add a landlord-only mutation/UI at the appropriate property management screen that inserts one pending `apartment_verifications` row for that landlord-owned apartment. It must expose neither review fields nor an admin-only action.
+- [x] Use Server Actions (`admin/**/actions/*.ts`, `"use server"`) with `@repo/supabase/server` client. Each action authenticates with `auth.getUser()`, resolves the internal profile ID, requires `role='admin'`, validates input, and then relies on RLS as the final authority.
+- [x] User review: `UPDATE user_verifications SET status, rejection_reason` — existing trigger stamps reviewer + syncs `users.account_status`.
+- [x] Apartment review: `UPDATE apartment_verifications SET status, rejection_reason` — new trigger syncs `apartments.is_verified`.
+- [x] Landlord submission: add a landlord-only mutation/UI at the appropriate property management screen that inserts one pending `apartment_verifications` row for that landlord-owned apartment. It must expose neither review fields nor an admin-only action.
 - Never trust client-sent `reviewed_by/at`. Never expose service-role key. Verification images only via short-lived `createSignedUrl` in the review route.
 - Rejection reason catalogs (UI constants, not DB enums): users — unclear ID, inconsistent info, selfie mismatch, unsupported document, incomplete; apartments — incomplete info, needs clarification, duplicate, insufficient images, location unclear, other + free text. Persist combined string in `rejection_reason`.
 
 ## 5. UI build order
 
-1. `admin/layout.tsx` + nav constants + `AppTopBar` title map (extend `AppSidebar` ICON_MAP if needed; reuse `LayoutDashboard/Users/Building2/ShieldCheck/History` from lucide).
-2. Dashboard: parallel `count: exact` head queries (users by role/account_status, apartments by is_verified/status, pending queues) + 3 recent-lists (users, apartments, activity). Skeleton + error states.
-3. Users list + detail. Detail joins: `users`, latest `user_verifications` rows, `apartments` by `landlord_id`, relevant `admin_audit_logs`.
-4. User verification review: three signed-URL images (front/back/selfie, lazy-load only on this page), user info, history, Approve/Reject modal.
-5. Apartments list + detail: reuse browse display logic; landlord card links to `/admin/users/[id]`.
-6. Apartment verification review + verification center (accessible Users/Apartments tabs with counts). Add the landlord submission affordance and its pending/rejected/verified states in the existing property-management UI.
-7. Activity page (audit log table, server pagination).
-8. Shared `VerifiedBadge` (`apps/web/app/components/VerifiedBadge.tsx`, HeroUI `Chip soft` + shield, `success` token) wired into browse/search/cards/detail/map landlord pages. Render only when `is_verified=true`.
-9. Responsive: tables horizontal scroll, sticky first col + actions col, detail stacks info → images → status → actions. Because `AppSidebar` is hidden below `md`, add an accessible compact admin navigation control in the top bar for small screens.
+- [x] 1. `admin/layout.tsx` + nav constants + `AppTopBar` title map (extend `AppSidebar` ICON_MAP if needed; reuse `LayoutDashboard/Users/Building2/ShieldCheck/History` from lucide). Done — `apps/web/app/admin/layout.tsx` + `ADMIN_NAV` + `requireAdmin()` guard.
+- [x] 2. Dashboard: parallel `count: exact` head queries (users by role/account_status, apartments by is_verified/status, pending queues) + 3 recent-lists (users, apartments, activity). Skeleton + error states. Done — `apps/web/app/admin/dashboard/page.tsx` + `get-dashboard-data.ts`.
+- [x] 3. Users list + detail. Detail joins: `users`, latest `user_verifications` rows, `apartments` by `landlord_id`, relevant `admin_audit_logs`. Done — `apps/web/app/admin/users/page.tsx`, `apps/web/app/admin/users/[id]/page.tsx`.
+- [x] 4. User verification review: three signed-URL images (front/back/selfie, lazy-load only on this page), user info, history, Approve/Reject modal. Done — `apps/web/app/admin/verification/users/[id]/page.tsx` + `ReviewForm.tsx`.
+- [x] 5. Apartments list + detail: reuse browse display logic; landlord card links to `/admin/users/[id]`. Done — `apps/web/app/admin/apartments/page.tsx`, `apps/web/app/admin/apartments/[id]/page.tsx`.
+- [x] 6. Apartment verification review + verification center (accessible Users/Apartments tabs with counts). Add the landlord submission affordance and its pending/rejected/verified states in the existing property-management UI. Done — `apps/web/app/admin/verification/*`, `SubmitApartmentVerificationButton.tsx`, `PropertyDetailsSheet.tsx`.
+- [x] 7. Activity page (audit log table, server pagination). Done — `apps/web/app/admin/activity/page.tsx`.
+- [ ] 8. Shared `VerifiedBadge` (`apps/web/app/components/VerifiedBadge.tsx`, HeroUI `Chip soft` + shield, `success` token) wired into browse/search/cards/detail/map landlord pages. Render only when `is_verified=true`. Status: remaining — component exists but has no usages outside its own file.
+- [x] 9. Responsive: tables horizontal scroll, sticky first col + actions col, detail stacks info → images → status → actions. Because `AppSidebar` is hidden below `md`, add an accessible compact admin navigation control in the top bar for small screens. Done — `MobileSidebarNavigation` in `apps/web/app/admin/layout.tsx`.
 
 Design: tokens from `design-tokens.json` / `DESIGN.md` only (`primary #376BF5`, `background #F8F9FA`, `text #333333`, `success #22C55E`, `warning #FACC15`, `danger #E50914`); Inter body + Nunito headings; HeroUI/shadcn primitives; no new deps. Include labelled filters, keyboard-operable row actions, visible focus states, status text/icons in addition to color, dialog focus return, and explicit approve/reject confirmation copy.
 

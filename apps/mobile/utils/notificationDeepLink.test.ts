@@ -184,4 +184,38 @@ describe("buildNotificationDeepLink", () => {
       )).toBeNull();
     });
   });
+
+  describe("passport", () => {
+    it("routes tenants to the document detail when a documentId is present", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "passport", documentId: "doc-1" },
+        USER_ID,
+        "tenant",
+      )).toEqual({
+        pathname: "/document-id/[documentId]",
+        params: { documentId: "doc-1" },
+      });
+    });
+
+    it("routes tenants to the passport list without a documentId", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "passport" },
+        USER_ID,
+        "tenant",
+      )).toBe("/document-id");
+    });
+
+    it("returns null for non-tenant recipients", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "passport", documentId: "doc-1" },
+        USER_ID,
+        "landlord",
+      )).toBeNull();
+      expect(buildNotificationDeepLink(
+        { screen: "passport", documentId: "doc-1" },
+        USER_ID,
+        null,
+      )).toBeNull();
+    });
+  });
 });

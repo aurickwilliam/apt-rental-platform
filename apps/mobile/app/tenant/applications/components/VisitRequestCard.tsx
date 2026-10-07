@@ -14,6 +14,7 @@ import type { Icon } from '@tabler/icons-react-native';
 import { formatDate, formatTime } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 import {
   type VisitRequestStatus,
   useVisitRequestStatusStyles
@@ -177,9 +178,7 @@ export default function VisitRequestCard({
             </Text>
             <View
               className="rounded-full px-2.5 py-1"
-              style={{
-                backgroundColor: statusStyle.backgroundColor,
-              }}
+              style={statusChipSurface(statusStyle)}
             >
               <Text
                 style={{ color: statusStyle.textColor }}

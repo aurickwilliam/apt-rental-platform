@@ -10,7 +10,7 @@ import {
 
 interface VerificationTableProps {
   rows: VerificationRow[];
-  selected: "users" | "apartments";
+  selected: "users" | "apartments" | "documents";
 }
 
 export default function VerificationTable({

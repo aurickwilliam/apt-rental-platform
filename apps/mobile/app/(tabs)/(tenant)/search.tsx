@@ -53,7 +53,7 @@ export default function Search() {
 
   const isDefaultBrowse =
     committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === initialCity;
-  const showNetflix = isDefaultBrowse;
+  const isNetflixBrowse = isDefaultBrowse;
 
   const preferencesForSections = isDefaultBrowse && hasPrefs ? preferences : null;
   const isGateLoading = prefsLoading && !preferences && isDefaultBrowse;
@@ -64,13 +64,15 @@ export default function Search() {
     isFetching: sectionsFetching,
     error: sectionsError,
     refetch: refetchSections,
-    onViewableItemsChanged,
   } = useSearchSections({
     selectedCity,
     committedSearch,
     enabled: true,
     preferences: preferencesForSections,
   });
+
+  // Degrade to the bounded legacy list when the batched section RPC fails.
+  const showNetflix = isNetflixBrowse && !sectionsError;
 
   const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
 
@@ -94,11 +96,8 @@ export default function Search() {
   };
 
   const handleRefresh = () => {
-    if (showNetflix) {
-      void refetchSections();
-    } else {
-      void fetchApartments(true);
-    }
+    if (isNetflixBrowse) void refetchSections();
+    if (!showNetflix) void fetchApartments(true);
   };
 
   const isInitialLoading = isGateLoading || (showNetflix ? sectionsLoading : loading);
@@ -141,7 +140,6 @@ export default function Search() {
           isFetching={sectionsFetching}
           error={sectionsError}
           onRefresh={handleRefresh}
-          onViewableItemsChanged={onViewableItemsChanged}
           isFavorite={isFavorite}
           onToggleFavorite={handleFavoritePress}
           onPressApartment={handleApartmentPress}

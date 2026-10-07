@@ -79,9 +79,9 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  tintColor={colors.primary}
-                  colors={[colors.primary]}
-                  progressBackgroundColor={colors.surface}
+                  tintColor="transparent"
+                  colors={["transparent"]}
+                  progressBackgroundColor="transparent"
                 />
               ) : undefined
             }
@@ -96,7 +96,7 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
           >
             {refreshing && (
               <View className="items-center py-3">
-                <Spinner size="lg" color={colors.primary} />
+                <Spinner size="lg" color={colors.primary} accessibilityLabel="Refreshing" />
               </View>
             )}
             {dismissKeyboardOnTouch ? (

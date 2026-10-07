@@ -1,10 +1,10 @@
 import Image from "next/image";
-import { IconBuilding } from "@tabler/icons-react";
+import { IconBuilding, IconFileText } from "@tabler/icons-react";
 
 import SharedUserAvatar from "@/app/components/profile/UserAvatar";
 
 interface VerificationImageProps {
-  kind: "users" | "apartments";
+  kind: "users" | "apartments" | "documents";
   image: string | null;
   name: string;
 }
@@ -35,6 +35,13 @@ export default function VerificationImage({
     ) : (
       <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <IconBuilding size={20} aria-hidden="true" />
+      </span>
+    );
+  }
+  if (kind === "documents") {
+    return (
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <IconFileText size={20} aria-hidden="true" />
       </span>
     );
   }

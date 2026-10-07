@@ -2,19 +2,21 @@
 
 import { Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { IconBuilding, IconUsers } from "@tabler/icons-react";
+import { IconBuilding, IconFileText, IconUsers } from "@tabler/icons-react";
 import { Badge, Separator, Tabs } from "@heroui/react";
 
 interface VerificationTabsProps {
-  selected: "users" | "apartments";
+  selected: "users" | "apartments" | "documents";
   userCount: number;
   apartmentCount: number;
+  documentCount: number;
 }
 
 export default function VerificationTabs({
   selected,
   userCount,
   apartmentCount,
+  documentCount,
 }: VerificationTabsProps) {
   const router = useRouter();
   return (
@@ -34,6 +36,7 @@ export default function VerificationTabs({
             [
               ["users", "Users", userCount, IconUsers],
               ["apartments", "Apartments", apartmentCount, IconBuilding],
+              ["documents", "Documents", documentCount, IconFileText],
             ] as const
           ).map(([value, label, count, Icon], index) => (
             <Fragment key={value}>

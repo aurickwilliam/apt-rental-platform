@@ -2,6 +2,7 @@ import { View, Text } from "react-native";
 import { IconCalendar, IconClock } from '@tabler/icons-react-native';
 import { formatDate, formatTime } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
+import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 import {
   type VisitRequestStatus,
   useVisitRequestStatusStyles,
@@ -60,7 +61,7 @@ export default function VisitRequestHistoryItem({ visitRequest }: Props) {
         </View>
         <View
           className="rounded-full px-2.5 py-1"
-          style={{ backgroundColor: statusStyle.backgroundColor }}
+          style={statusChipSurface(statusStyle)}
         >
           <Text style={{ color: statusStyle.textColor }} className="text-xs font-nunitoSemiBold">
             {statusStyle.label}

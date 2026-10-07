@@ -24,6 +24,7 @@ import { calcMoveInCost, formatDate, formatPesoDisplay } from '@repo/utils'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 import { useSubmitApplication } from '@/hooks/applications'
+import { usePassportDocuments } from '@/hooks/passport'
 
 export default function ReviewInformation() {
   const router = useRouter();
@@ -34,8 +35,13 @@ export default function ReviewInformation() {
     apartmentContext,
     tenantInformation,
     rentalPreferences,
-    documents
+    documents,
+    passportSelections
   } = useApplicationFormStore();
+
+  const { documents: passportDocs } = usePassportDocuments();
+  const passportNameFor = (path: string | null) =>
+    path ? (passportDocs.find((doc) => doc.storage_path === path)?.doc_type ?? null) : null;
 
   const { submit, isSubmitting } = useSubmitApplication();
 
@@ -278,18 +284,22 @@ export default function ReviewInformation() {
                 <ReviewDocumentImage
                   label="Valid Government-issued ID"
                   uri={documents.govId[0]?.uri}
+                  passportName={passportNameFor(passportSelections.govId)}
                 />
                 <ReviewDocumentFile
                   label="Proof of Income"
                   fileName={documents.proofOfIncome?.name}
+                  passportName={passportNameFor(passportSelections.proofOfIncome)}
                 />
                 <ReviewDocumentImage
                   label="Proof of Billing"
                   uri={documents.proofOfBilling[0]?.uri}
+                  passportName={passportNameFor(passportSelections.proofOfBilling)}
                 />
                 <ReviewDocumentFile
                   label="NBI Clearance"
                   fileName={documents.nbiClearance?.name}
+                  passportName={passportNameFor(passportSelections.nbiClearance)}
                 />
               </ReviewAccordionItem>
             </Accordion>

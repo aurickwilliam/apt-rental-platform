@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Card, PressableFeedback } from 'heroui-native';
 
 import { useColors } from 'hooks/useTheme';
+import { useStatusChipStyles, statusChipSurface } from '@/hooks/useStatusChipStyles';
 
 import {
   IconPhoto,
@@ -54,6 +55,7 @@ export default function ApartmentCard({
 }: ApartmentCardProps) {
   const { width } = useWindowDimensions();
   const { colors } = useColors();
+  const { success } = useStatusChipStyles();
 
   const HORIZONTAL_PADDING = 16;
   const GRID_GAP = 8;
@@ -154,15 +156,17 @@ export default function ApartmentCard({
 
           {isVerified && (
             <View
-              className="bg-success-light p-1 absolute top-2 left-2 rounded-full flex-row items-center gap-1"
+              className="p-1 absolute top-2 left-2 rounded-full flex-row items-center gap-1"
               style={{
+                ...statusChipSurface(success),
                 paddingHorizontal: isGrid ? 6 : 8,
                 elevation: 3,
               }}
             >
-              <IconShieldCheckFilled size={isGrid ? 14 : 16} color={colors.success} />
+              <IconShieldCheckFilled size={isGrid ? 14 : 16} color={success.textColor} />
               <Text
-                className={`text-success font-nunitoSemiBold ${isGrid ? "text-xs" : "text-sm"}`}
+                className={`font-nunitoSemiBold ${isGrid ? "text-xs" : "text-sm"}`}
+                style={{ color: success.textColor }}
               >
                 Verified
               </Text>

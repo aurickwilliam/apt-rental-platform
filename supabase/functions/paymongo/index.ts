@@ -179,7 +179,8 @@ async function resolveTenantId(req: Request): Promise<string | null> {
   } = await dbClient.auth.getUser(jwt)
   if (error || !user) return null
 
-  const { data } = await dbClient.from('users').select('id').eq('user_id', user.id).maybeSingle()
+  // Suspended accounts authenticate but must not start payments (service role bypasses RLS).
+  const { data } = await dbClient.from('users').select('id').eq('user_id', user.id).eq('is_suspended', false).maybeSingle()
   return data?.id ?? null
 }
 

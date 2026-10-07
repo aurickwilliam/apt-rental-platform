@@ -1,8 +1,8 @@
 import { View, Text } from "react-native";
+import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { getLandlordApplicationStatusStyle } from "@/hooks/applications/useApplicationStatusStyles";
 
 import { Avatar, Card, Chip, PressableFeedback } from "heroui-native";
-
-import { COLORS } from "@repo/constants";
 
 type TenantApplicationStatus = "Applied" | "Approved" | "Rejected" | "Cancelled";
 
@@ -14,28 +14,6 @@ interface TenantApplicationCardProps {
   avatarUrl?: string;
   onPress?: () => void;
 }
-
-const STATUS_STYLES: Record<
-  TenantApplicationStatus,
-  { backgroundColor: string; textColor: string }
-> = {
-  Applied: {
-    backgroundColor: COLORS.light.warningLight,
-    textColor: COLORS.light.warning,
-  },
-  Approved: {
-    backgroundColor: COLORS.light.successLight,
-    textColor: COLORS.light.success,
-  },
-  Rejected: {
-    backgroundColor: COLORS.light.dangerLight,
-    textColor: COLORS.light.danger,
-  },
-  Cancelled: {
-    backgroundColor: COLORS.light.gray100,
-    textColor: COLORS.light.gray500,
-  },
-};
 
 const getInitials = (value: string) => {
   const trimmed = value.trim();
@@ -55,7 +33,8 @@ export default function TenantApplicationCard({
   avatarUrl,
   onPress,
 }: TenantApplicationCardProps) {
-  const statusStyle = STATUS_STYLES[status];
+  const palette = useStatusChipStyles();
+  const statusStyle = getLandlordApplicationStatusStyle(status, palette);
 
   return (
     <PressableFeedback
@@ -91,7 +70,7 @@ export default function TenantApplicationCard({
                 <Chip
                   size="sm"
                   variant="soft"
-                  style={{ backgroundColor: statusStyle.backgroundColor }}
+                  style={statusChipSurface(statusStyle)}
                 >
                   <Chip.Label
                     className="font-nunitoSemiBold"

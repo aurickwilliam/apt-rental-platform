@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
 import {
+  consolidateMonthlyRevenue,
   fetchDashboardData,
   type DashboardData,
 } from "@/service/dashboard/dashboardService";
@@ -46,7 +47,14 @@ export function useDashboardData() {
   });
 
   return {
-    data: dashboardQuery.data ?? EMPTY_DASHBOARD_DATA,
+    data: dashboardQuery.data
+      ? {
+          ...dashboardQuery.data,
+          monthlyRevenue: consolidateMonthlyRevenue(
+            dashboardQuery.data.monthlyRevenue,
+          ),
+        }
+      : EMPTY_DASHBOARD_DATA,
     isLoading: currentUserQuery.isLoading || dashboardQuery.isLoading,
     error: getErrorMessage(currentUserQuery.error ?? dashboardQuery.error),
     refetch: dashboardQuery.refetch,

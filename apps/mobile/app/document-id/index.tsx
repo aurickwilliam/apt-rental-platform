@@ -1,169 +1,226 @@
-import { View, Text, TouchableOpacity, Image as RNImage, Linking } from 'react-native'
-import { Image } from 'expo-image'
-import ImageViewing from 'react-native-image-viewing'
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { View, Text } from "react-native";
+import ImageViewing from "react-native-image-viewing";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
 
-import { Button, Chip, Separator } from 'heroui-native'
+import { Button, ListGroup, Separator } from "heroui-native";
 
 import {
   IconFileUpload,
+  IconLayoutGrid,
+  IconLayoutRows,
   IconPlus,
-  IconShieldCheck,
-} from '@tabler/icons-react-native'
+} from "@tabler/icons-react-native";
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import DocumentCard from './components/DocumentCard'
+import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import StandardHeader from "@/components/layout/StandardHeader";
+import DocumentCard from "./components/DocumentCard";
+import DocumentRow from "@/components/display/DocumentRow";
+import EmptySupportingDocs from "./components/EmptySupportingDocs";
+import PassportSkeleton from "./components/PassportSkeleton";
+import ValidIdCard from "./components/ValidIdCard";
 
-import { SAMPLE_IMAGES } from '@/constants/images'
-
-import { useColors } from '@/hooks/useTheme'
-
-import { isImageUri } from './utils/fileType'
-
-type UploadedDocument = {
-  id: number;
-  type: string;
-  filePath: string;
-}
+import { useColors } from "@/hooks/useTheme";
+import { useDocumentUrls } from "@/hooks/applications";
+import { usePassportDocuments } from "@/hooks/passport";
+import { isExpiredDate } from "@/service/passport/expiry";
 
 export default function Index() {
   const router = useRouter();
   const { colors } = useColors();
 
+  // The wallet query links the approved verification ID as its primary row
+  // before resolving, so a single `loading` signal covers both — the empty
+  // state can never render before the linked ID arrives.
+  const { documents, loading, refreshing, error, refetch } =
+    usePassportDocuments();
+
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
-  const [selectedDocUri, setSelectedDocUri] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [isGridView, setIsGridView] = useState(true);
 
-  // TODO: Fetch and display user's uploaded documents and IDs here. This may include government-issued IDs, proof of income, or any other relevant documents required for the rental application process. Each document can be displayed with its name, type, and upload date, along with options to view or delete the document.
+  const verifiedDoc = useMemo(
+    () =>
+      documents.find((doc) => doc.is_primary) ??
+      documents.find((doc) => !!doc.verification_id && doc.is_verified) ??
+      null,
+    [documents],
+  );
+  const supportingDocs = useMemo(
+    () => documents.filter((doc) => doc.id !== verifiedDoc?.id),
+    [documents, verifiedDoc],
+  );
 
-  // Dummy data for testing
-  const uploadedDocuments: UploadedDocument[] = [
-    {
-      id: 1,
-      type: 'Proof of Income',
-      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfIncome).uri,
-    },
-    {
-      id: 2,
-      type: 'Proof of Residency',
-      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleProofOfResidency).uri,
-    },
-    {
-      id: 3,
-      type: 'Birth Certificate',
-      filePath: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleBirthCertificate).uri,
-    }
-  ]
+  const passportEntries = useMemo(
+    () =>
+      supportingDocs.map((doc) => ({
+        label: doc.doc_type,
+        path: doc.storage_path,
+      })),
+    [supportingDocs],
+  );
+  const { resolved: resolvedDocs, loading: docsLoading } =
+    useDocumentUrls(passportEntries);
 
-  const mainValidId = {
-    id: 67,
-    type: 'National ID',
-    image: RNImage.resolveAssetSource(SAMPLE_IMAGES.sampleNationalID).uri,
-  }
+  const { resolved: resolvedVerified, loading: verifiedLoading } =
+    useDocumentUrls(
+      verifiedDoc
+        ? [
+            { label: verifiedDoc.doc_type, path: verifiedDoc.storage_path },
+            ...(verifiedDoc.storage_path_back
+              ? [
+                  {
+                    label: `${verifiedDoc.doc_type} (back)`,
+                    path: verifiedDoc.storage_path_back,
+                  },
+                ]
+              : []),
+          ]
+        : [],
+      verifiedDoc?.verification_id
+        ? "user-verification"
+        : "application-documents",
+    );
+  const verifiedSignedUrl = resolvedVerified[0]?.signedUrl ?? null;
+  const verifiedBackSignedUrl = resolvedVerified[1]?.signedUrl ?? null;
+  const verifiedViewerImages = useMemo(
+    () =>
+      resolvedVerified
+        .map((doc) => ({ uri: doc.signedUrl }))
+        .filter((img): img is { uri: string } => !!img.uri),
+    [resolvedVerified],
+  );
 
-  const hasDocuments = uploadedDocuments.length > 0
+  const signedByPath = useMemo(
+    () => new Map(resolvedDocs.map((doc) => [doc.path, doc.signedUrl])),
+    [resolvedDocs],
+  );
 
-  const handleDocumentPress = (filePath: string) => {
-    if (isImageUri(filePath)) {
-      setSelectedDocUri(filePath);
-    } else {
-      Linking.openURL(filePath);
-    }
+  const listRows = useMemo(
+    () =>
+      resolvedDocs.map((doc) => {
+        const row = supportingDocs.find((d) => d.storage_path === doc.path);
+        return {
+          key: row?.id ?? doc.path,
+          label: doc.label,
+          path: doc.path,
+          signedUrl: doc.signedUrl,
+          verified: row?.is_verified ?? false,
+          expired: isExpiredDate(row?.expires_at ?? null),
+          mimeType: row?.mime_type ?? null,
+          id: row?.id ?? null,
+        };
+      }),
+    [resolvedDocs, supportingDocs],
+  );
+
+  const handleOpenViewer = (index: number) => {
+    setViewerIndex(
+      Math.min(index, Math.max(verifiedViewerImages.length - 1, 0)),
+    );
+    setIsIdVisible(true);
   };
+
+  const hasDocuments = documents.length > 0;
+
+  // Signed URLs resolve after the rows arrive, so the skeleton covers both
+  // phases. Only the initial load shows it — pull-to-refresh keeps the
+  // settled content on screen.
+  const showSkeleton = !error && (loading || docsLoading);
 
   return (
     <ScreenWrapper
       header={
         <StandardHeader
-          title='Document & IDs'
-          onBackPress={() => router.replace('/(tabs)/(tenant)/profile')}
+          title="APT Passport"
+          onBackPress={() => router.replace("/(tabs)/(tenant)/profile")}
           rightComponent={
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push('/document-id/select-document')}
+            <Button
+              variant="ghost"
+              isIconOnly
+              onPress={() => router.push("/document-id/select-document")}
+              accessibilityLabel="Add a document"
+              accessibilityRole="button"
             >
-              <IconPlus size={24} color='#FFFFFF' />
-            </TouchableOpacity>
+              <IconPlus size={24} color="#FFFFFF" />
+            </Button>
           }
         />
       }
-      className='p-5'
+      className="p-5"
       scrollable
       noBottomPadding
+      refreshing={refreshing}
+      onRefresh={() => void refetch()}
     >
-      {/* User ID upon account validation */}
-      <View className='gap-3'>
-        <View className='flex-row items-center justify-between gap-3'>
-          <View className='flex-1 gap-0.5'>
-            <Text className='text-foreground text-lg font-nunitoSemiBold'>
-              Valid ID / Government ID
-            </Text>
-            <Text className='text-muted text-sm font-inter'>
-              {mainValidId.type}
-            </Text>
-          </View>
+      {/* Verified ID linked from account verification */}
+      {verifiedDoc && !showSkeleton ? (
+        <>
+          <ValidIdCard
+            key={verifiedDoc.id}
+            idType={verifiedDoc.id_type ?? verifiedDoc.doc_type}
+            frontUrl={verifiedSignedUrl}
+            backUrl={verifiedBackSignedUrl}
+            loading={verifiedLoading}
+            onOpenViewer={handleOpenViewer}
+          />
 
-          <Chip variant="secondary" color="success" size="sm">
-            <IconShieldCheck size={14} color={colors.success} />
-            <Chip.Label className='text-success font-nunitoSemiBold'>
-              Verified
-            </Chip.Label>
-          </Chip>
+          <Separator className="my-3" />
+        </>
+      ) : null}
+
+      {error ? (
+        <View className="flex-1 items-center gap-4 pt-16 px-4">
+          <Text className="text-foreground text-xl font-nunitoBold text-center">
+            Couldn&apos;t load your documents
+          </Text>
+          <Text className="text-gray-400 text-base font-inter text-center px-8 leading-relaxed">
+            {error}
+          </Text>
+          <Button size="lg" onPress={() => void refetch()}>
+            <Button.Label className="text-white font-nunitoSemiBold">
+              Try Again
+            </Button.Label>
+          </Button>
         </View>
-
-        <TouchableOpacity
-          className='bg-surface border border-border rounded-3xl shadow-none overflow-hidden'
-          activeOpacity={0.7}
-          onPress={() => setIsIdVisible(!isIdVisible)}
-        >
-          <View className='w-full bg-gray-100'>
-            <Image
-              source={{ uri: mainValidId.image }}
-              style={{ width: '100%', aspectRatio: 16 / 9 }}
-              contentFit='contain'
-              cachePolicy='disk'
-              transition={150}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <Separator className='my-3'/>
-
-      {!hasDocuments ? (
-        <View className='flex-1 items-center gap-4 pt-16 px-4'>
+      ) : showSkeleton ? (
+        <PassportSkeleton />
+      ) : !hasDocuments ? (
+        <View className="flex-1 items-center gap-4 pt-16 px-4">
           <IconFileUpload size={64} color={colors.primary} />
-          <Text className='text-foreground text-xl font-nunitoBold text-center'>
+          <Text className="text-foreground text-xl font-nunitoBold text-center">
             No documents yet
           </Text>
-          <Text className='text-gray-400 text-base font-inter text-center px-8 leading-relaxed'>
-            Add your IDs and supporting documents so they&apos;re ready when you apply for an apartment.
+          <Text className="text-gray-400 text-base font-inter text-center px-8 leading-relaxed">
+            Add your IDs and supporting documents so they&apos;re ready when you
+            apply for an apartment.
           </Text>
 
           <Button
-            size='lg'
-            onPress={() => router.push('/document-id/select-document')}
+            size="lg"
+            onPress={() => router.push("/document-id/select-document")}
           >
-            <IconPlus size={20} color='#FFFFFF' />
-            <Button.Label className='text-white font-nunitoSemiBold'>
+            <IconPlus size={20} color="#FFFFFF" />
+            <Button.Label className="text-white font-nunitoSemiBold">
               Add a Document
             </Button.Label>
           </Button>
 
           {/* Info card */}
-          <View className='mt-8 w-full bg-surface border border-border rounded-3xl p-4 gap-3'>
-            <View className='flex-row gap-3'>
-              <View className='size-11 rounded-2xl bg-primary-light items-center justify-center'>
+          <View className="mt-8 w-full bg-surface border border-border rounded-3xl p-4 gap-3">
+            <View className="flex-row gap-3">
+              <View className="size-11 rounded-2xl bg-primary-light items-center justify-center">
                 <IconFileUpload size={22} color={colors.primary} />
               </View>
 
-              <View className='flex-1 gap-1'>
-                <Text className='text-foreground text-base font-nunitoSemiBold leading-snug'>
-                  Uploading your documents early allows for faster and easier submission when applying for rentals.
+              <View className="flex-1 gap-1">
+                <Text className="text-foreground text-base font-nunitoSemiBold leading-snug">
+                  Uploading your documents early allows for faster and easier
+                  submission when applying for rentals.
                 </Text>
-                <Text className='text-muted text-sm font-inter leading-snug'>
-                  Note: Uploaded documents will be securely stored and only shared with landlords during the application process.
+                <Text className="text-muted text-sm font-inter leading-snug">
+                  Note: Uploaded documents will be securely stored and only
+                  shared with landlords during the application process.
                 </Text>
               </View>
             </View>
@@ -171,62 +228,82 @@ export default function Index() {
         </View>
       ) : (
         <>
-          <Text className='text-foreground text-lg font-nunitoSemiBold mb-3'>
-            Uploaded Documents
-          </Text>
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-foreground text-lg font-nunitoSemiBold">
+              Uploaded Documents
+            </Text>
 
-          <View className='flex-row flex-wrap gap-x-4 gap-y-5'>
-            {
-              uploadedDocuments.map(doc => (
-                <DocumentCard
-                  key={doc.id}
-                  filePath={doc.filePath}
-                  label={doc.type}
-                  onPress={() => handleDocumentPress(doc.filePath)}
-                />
-              ))
-            }
+            {supportingDocs.length > 0 ? (
+              <Button
+                variant="ghost"
+                isIconOnly
+                accessibilityLabel="Toggle view"
+                accessibilityRole="button"
+                onPress={() => setIsGridView((prev) => !prev)}
+              >
+                {isGridView ? (
+                  <IconLayoutGrid size={22} color={colors.gray500} />
+                ) : (
+                  <IconLayoutRows size={22} color={colors.gray500} />
+                )}
+              </Button>
+            ) : null}
           </View>
+
+          {supportingDocs.length === 0 ? (
+            <EmptySupportingDocs
+              onAddDocument={() => router.push("/document-id/select-document")}
+            />
+          ) : isGridView ? (
+            <View className="flex-row flex-wrap gap-x-4 gap-y-5">
+              {supportingDocs.map((doc) => {
+                const signedUrl = signedByPath.get(doc.storage_path) ?? null;
+                return (
+                  <DocumentCard
+                    key={doc.id}
+                    filePath={signedUrl}
+                    storagePath={doc.storage_path}
+                    label={doc.doc_type}
+                    verified={doc.is_verified}
+                    expired={isExpiredDate(doc.expires_at)}
+                    pending={doc.review_status === "pending"}
+                    mimeType={doc.mime_type}
+                    onPress={() => router.push(`/document-id/${doc.id}`)}
+                  />
+                );
+              })}
+            </View>
+          ) : (
+            <ListGroup className="shadow-none border border-border rounded-3xl">
+              {listRows.map((doc, index) => (
+                <View key={doc.key} className="px-4">
+                  {index > 0 && <Separator />}
+                  <DocumentRow
+                    label={doc.label}
+                    path={doc.path}
+                    signedUrl={doc.signedUrl}
+                    verified={doc.verified}
+                    expired={doc.expired}
+                    mimeType={doc.mimeType}
+                    onPress={() => {
+                      if (doc.id) router.push(`/document-id/${doc.id}`);
+                    }}
+                  />
+                </View>
+              ))}
+            </ListGroup>
+          )}
         </>
       )}
 
-      {/* Need help */}
-      <View className='w-full items-center justify-center py-10'>
-        <Text className='text-foreground text-base font-nunitoSemiBold'>
-          Need help?
-        </Text>
-        {
-          // TODO: Implement contact support functionality,
-          // such as opening a chat with customer support or
-          // redirecting to a help center page.
-        }
-        <TouchableOpacity
-          className='flex-row items-center justify-center mt-1'
-          activeOpacity={0.7}
-        >
-          <Text className='text-accent text-base font-nunitoSemiBold'>
-            Contact Support
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <ImageViewing
-        images={[{ uri: mainValidId.image }]}
-        imageIndex={0}
+        images={verifiedViewerImages}
+        imageIndex={viewerIndex}
         visible={isIdVisible}
         onRequestClose={() => setIsIdVisible(false)}
-        presentationStyle='overFullScreen'
-        backgroundColor='rgb(0, 0, 0, 0.8)'
-      />
-
-      <ImageViewing
-        images={selectedDocUri ? [{ uri: selectedDocUri }] : []}
-        imageIndex={0}
-        visible={!!selectedDocUri}
-        onRequestClose={() => setSelectedDocUri(null)}
-        presentationStyle='overFullScreen'
-        backgroundColor='rgb(0, 0, 0, 0.8)'
+        presentationStyle="overFullScreen"
+        backgroundColor="rgb(0, 0, 0, 0.8)"
       />
     </ScreenWrapper>
-  )
+  );
 }

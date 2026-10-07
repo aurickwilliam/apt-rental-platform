@@ -6,6 +6,7 @@ type AppDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  titleIcon?: ReactNode;
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -15,6 +16,7 @@ export default function AppDialog({
   isOpen,
   onOpenChange,
   title,
+  titleIcon,
   description,
   children,
   footer,
@@ -25,10 +27,13 @@ export default function AppDialog({
         <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
         <Dialog.Content className="w-full rounded-3xl bg-surface-secondary p-5">
           <Dialog.Close variant="ghost" className="absolute top-4 right-4 z-50" />
-          <View className="mb-5 gap-1">
-            <Dialog.Title className="text-foreground font-nunitoBold text-lg">
-              {title}
-            </Dialog.Title>
+          <View className={titleIcon ? "mb-5 gap-1 pr-10" : "mb-5 gap-1"}>
+            <View className="flex-row items-center gap-2">
+              {titleIcon}
+              <Dialog.Title className="text-foreground font-nunitoBold text-lg">
+                {title}
+              </Dialog.Title>
+            </View>
             {description ? (
               <Dialog.Description className="text-muted">
                 {description}
