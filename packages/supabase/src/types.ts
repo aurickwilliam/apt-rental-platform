@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_audit_logs: {
@@ -1192,6 +1167,7 @@ export type Database = {
           first_name: string | null
           gender: string | null
           id: string
+          is_suspended: boolean
           last_name: string | null
           middle_name: string | null
           mobile_number: string | null
@@ -1201,6 +1177,9 @@ export type Database = {
           roles: string[]
           street_address: string | null
           suffix: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1216,6 +1195,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1225,6 +1205,9 @@ export type Database = {
           roles?: string[]
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1240,6 +1223,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          is_suspended?: boolean
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1249,10 +1233,21 @@ export type Database = {
           roles?: string[]
           street_address?: string | null
           suffix?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_sessions: {
         Row: {
@@ -1392,6 +1387,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_apartment_visibility: {
+        Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
+        Returns: undefined
+      }
+      admin_set_user_access: {
+        Args: {
+          p_actor_auth_id: string
+          p_reason: string
+          p_suspend: boolean
+          p_target_id: string
+        }
+        Returns: string
+      }
       consume_verification_session: {
         Args: { p_token_hash: string }
         Returns: string
@@ -1674,9 +1682,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

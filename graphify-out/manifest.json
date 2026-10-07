@@ -4995,8 +4995,8 @@
     "semantic_hash": ""
   },
   "docs/plans/phase-2-admin-portal.md": {
-    "mtime": 1791371765.81166,
-    "ast_hash": "32e9f385a713f371ff94ec5a5c46407e",
+    "mtime": 1791372171.7965078,
+    "ast_hash": "c540cdf257bcc034ee234798cc11ad64",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/loading.tsx": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20261007000100_phase2_multirole_access_functions.sql": {
-    "mtime": 1791371756.233265,
-    "ast_hash": "755fdf9357c662a333464b205a8804de",
+    "mtime": 1791372096.729104,
+    "ast_hash": "4a6455e20b578e965737179fbbf33858",
     "semantic_hash": ""
   }
 }

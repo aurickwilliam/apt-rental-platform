@@ -1,6 +1,6 @@
 # Phase 2 — Admin Operations
 
-> Implementation status (verified 2026-10-07): 🚧 Source is multi-role-safe but NOT deployed to production APT. Prod already has the apartment hidden-* columns and audit constraints (`20260928050421`) but none of: suspension columns, the `Active accounts only`/hidden-listing RLS policies, `admin_set_user_access`, `admin_set_apartment_visibility`, or the moderation guard trigger; prod's search RPC cohorts and `all_results` fallback do not yet exclude `is_hidden_by_admin`. `20260926143751_phase2_admin_operations.sql` cannot be applied to prod as-is (it re-adds existing columns and would restore a scalar-`role` guard function). `20261007000100_phase2_multirole_access_functions.sql` is the idempotent, roles[]-based deployment migration. Remaining: dry-run it inside a rolled-back transaction, apply to prod, deploy the `admin-user-access` Edge Function, then enable `setApartmentVisibility` (`apps/web/app/admin/actions/operations.ts`).
+> Implementation status (verified 2026-10-07): ✅ Live in production APT. `20261007000100_phase2_multirole_access_functions.sql` was applied via the dashboard SQL editor (suspension columns, restrictive RLS, admin RPCs, moderation guard, search RPC hidden filter), `admin-user-access` is deployed (`verify_jwt: true`), and `setApartmentVisibility` calls `admin_set_apartment_visibility`. Remaining: manually test suspend/reactivate and hide/restore with throwaway data. If suspend fails with `Service role required.`, change the guard in `admin_set_user_access` to `auth.role()`.
 
 ## Goal
 
