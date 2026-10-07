@@ -276,7 +276,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 ### Web (HeroUI v3)
 
-- **Modal** ✅: `Modal.Backdrop` → `Container placement="center" size="sm"|"lg" scroll="inside"` → `Dialog` with `CloseTrigger`, `Header/Heading (font-medium text-2xl)`, `Body`, `Footer`; blur backdrop for OTP. Apartment photo lightbox uses shared `app/components/display/PhotoGalleryModal.tsx`: centered content-height container, `bg-black/80` backdrop, responsive `max-w-5xl rounded-3xl` card, contained rounded photo stage, Previous/Next buttons and selectable thumbnails.
+- **Modal** ✅: `Modal.Backdrop` → `Container placement="center" size="sm"|"lg" scroll="inside"` → `Dialog` with `CloseTrigger`, `Header/Heading (font-medium text-2xl)`, `Body`, `Footer`; blur backdrop for OTP. Tabbed settings modals (profile `SettingsModal`, admin `UserSettingsModal`) share one fixed size: `max-w-5xl`, `h-[calc(100dvh-2rem)] md:h-[85dvh]`, content scrolls inside the tab panel. Apartment photo lightbox uses shared `app/components/display/PhotoGalleryModal.tsx`: centered content-height container, `bg-black/80` backdrop, responsive `max-w-5xl rounded-3xl` card, contained rounded photo stage, Previous/Next buttons and selectable thumbnails.
 - **Drawer** ✅ (PropertyDetailsSheet): right `w-[500px] max-w-[90vw] z-60`; cover `h-56` w/ `bg-linear-to-t from-black/60`; section titles `text-xs font-medium text-primary uppercase`; ReadOnlyField (label `text-xs text-grey-500` / value `text-sm font-medium`)
 
 ### Mobile (HeroUI Native)

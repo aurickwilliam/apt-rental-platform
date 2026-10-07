@@ -195,7 +195,7 @@ create or replace function public.admin_set_user_access(
 ) returns uuid language plpgsql security definer set search_path = '' as $$
 declare v_admin_id uuid; v_target public.users%rowtype;
 begin
-  if current_setting('request.jwt.claim.role', true) is distinct from 'service_role' then
+  if auth.role() is distinct from 'service_role' then
     raise exception 'Service role required.';
   end if;
   if p_reason is null or length(btrim(p_reason)) < 3 or length(p_reason) > 500 then

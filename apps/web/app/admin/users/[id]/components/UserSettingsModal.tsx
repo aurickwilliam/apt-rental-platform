@@ -132,10 +132,10 @@ export default function UserSettingsModal({
 
       <Modal isOpen={isOpen} onOpenChange={(open) => (open ? setIsOpen(true) : close())}>
         <Modal.Backdrop>
-          <Modal.Container size="lg" scroll="inside" className="w-full max-w-4xl">
-            <Modal.Dialog className="overflow-hidden rounded-3xl bg-card p-0">
+          <Modal.Container placement="center" size="lg" scroll="inside" className="w-full max-w-5xl sm:w-full">
+            <Modal.Dialog className="h-[calc(100dvh-2rem)] w-full max-w-5xl! overflow-hidden rounded-3xl bg-card p-0 md:h-[85dvh]">
               <Modal.CloseTrigger aria-label="Close account settings" className="text-foreground" />
-              <Modal.Header className="border-b border-border px-5 py-4 pr-12">
+              <Modal.Header className="shrink-0 border-b border-border px-5 py-4 pr-12">
                 <div>
                   <Modal.Heading className="font-nunito text-xl font-bold">
                     Manage {getFullName(user)}
@@ -146,11 +146,11 @@ export default function UserSettingsModal({
                 </div>
               </Modal.Header>
 
-              <Modal.Body className="p-0">
-                <div className="flex min-h-[420px] flex-col md:flex-row">
+              <Modal.Body className="mt-0! min-h-0 overflow-hidden! p-0 text-foreground">
+                <div className="flex h-full min-h-0 flex-col md:flex-row">
                   <nav
                     aria-label="Account settings sections"
-                    className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-visible md:border-r md:border-b-0"
+                    className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-b-0"
                     role="tablist"
                     aria-orientation="vertical"
                   >
@@ -165,7 +165,7 @@ export default function UserSettingsModal({
                           aria-selected={selected}
                           aria-controls={`user-settings-panel-${id}`}
                           onClick={() => setActiveTab(id)}
-                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                          className={`flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                             selected
                               ? "bg-primary text-primary-foreground"
                               : "text-muted-foreground hover:bg-background hover:text-foreground"
@@ -182,7 +182,7 @@ export default function UserSettingsModal({
                     id={`user-settings-panel-${activeTab}`}
                     role="tabpanel"
                     aria-labelledby={`user-settings-tab-${activeTab}`}
-                    className="min-w-0 flex-1 p-5"
+                    className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                   >
                     {activeTab === "account" ? (
                       <div className="space-y-4">
