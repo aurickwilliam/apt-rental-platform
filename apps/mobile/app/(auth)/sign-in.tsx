@@ -34,6 +34,12 @@ import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { portalHome } from "@/service/auth/portalPreference";
+import {
+  buildSuspendedMessage,
+  getSuspensionReason,
+  isBannedAuthError,
+  SUSPENDED_TITLE,
+} from "@/service/auth/suspensionService";
 
 import { isValidEmail } from "@repo/utils";
 
@@ -51,11 +57,13 @@ export default function SignIn() {
   const [emailError, setEmailError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
 
   const {
     signInWithGoogle,
     loading: googleLoading,
     error: googleError,
+    errorTitle: googleErrorTitle,
     resetError: resetGoogleError,
   } = useGoogleAuth();
 
@@ -83,6 +91,7 @@ export default function SignIn() {
     setEmailError("");
     setPasswordError("");
     setError("");
+    setErrorTitle(undefined);
 
     // Check the inputs and show errors if invalid
     let isValid = true;
@@ -117,7 +126,11 @@ export default function SignIn() {
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
-        if (signInError.message === "Invalid login credentials") {
+        if (isBannedAuthError(signInError)) {
+          const reason = await getSuspensionReason(email.trim(), password).catch(() => null);
+          setErrorTitle(SUSPENDED_TITLE);
+          setError(buildSuspendedMessage(reason));
+        } else if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           setError("Please verify your email address before signing in.");
@@ -318,8 +331,10 @@ export default function SignIn() {
         isOpen={!!(error || googleError)}
         onClose={() => {
           setError("");
+          setErrorTitle(undefined);
           resetGoogleError();
         }}
+        title={googleError ? googleErrorTitle : errorTitle}
         message={googleError || error}
       />
     </ScreenWrapper>

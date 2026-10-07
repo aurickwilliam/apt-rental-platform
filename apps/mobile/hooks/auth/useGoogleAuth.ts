@@ -6,12 +6,14 @@ import { useState } from "react";
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { choosePortal, portalHome, type Portal } from "@/service/auth/portalPreference";
+import { getOAuthRedirectError, SUSPENDED_MESSAGE, SUSPENDED_TITLE } from "@/service/auth/suspensionService";
 
 export function useGoogleAuth() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
 
   const handleUrl = async (url: string, requestedRole?: Portal) => {
     try {
@@ -22,7 +24,13 @@ export function useGoogleAuth() {
       // Show error, if there is no code in the URL
       // This means the authentication failed or was cancelled before completion
       if (!code) {
-        setError("Authentication failed. No code returned.");
+        const { code: errorCode, description } = getOAuthRedirectError(url);
+        if (errorCode === "user_banned") {
+          setErrorTitle(SUSPENDED_TITLE);
+          setError(SUSPENDED_MESSAGE);
+        } else {
+          setError(description ?? "Authentication failed. No code returned.");
+        }
         setLoading(false);
         return;
       }
@@ -101,6 +109,7 @@ export function useGoogleAuth() {
   const signInWithGoogle = async (requestedRole?: Portal) => {
     setLoading(true);
     setError("");
+    setErrorTitle(undefined);
 
     try {
       // This creates a deep link URL specific to the app
@@ -183,12 +192,16 @@ export function useGoogleAuth() {
     }
   };
 
-  const resetError = () => setError("");
+  const resetError = () => {
+    setError("");
+    setErrorTitle(undefined);
+  };
 
   return { 
     signInWithGoogle, 
     loading, 
     error,
+    errorTitle,
     resetError,
   };
 }

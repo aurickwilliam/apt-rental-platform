@@ -42,6 +42,33 @@ describe("Google sign-in without a role tab", () => {
     mockSignOut.mockResolvedValue({ error: null });
   });
 
+  it("tells a suspended account it is suspended instead of 'No code returned'", async () => {
+    mockOpenAuthSessionAsync.mockResolvedValue({
+      type: "success",
+      url: "apt://auth/callback?error_code=user_banned&error_description=User+is+banned",
+    });
+
+    const { result } = renderHook(() => useGoogleAuth());
+    await act(async () => { await result.current.signInWithGoogle(); });
+
+    expect(result.current.errorTitle).toBe("Account suspended");
+    expect(result.current.error).toContain("suspended");
+    expect(mockExchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it("shows the redirect error description when Google sign-in fails", async () => {
+    mockOpenAuthSessionAsync.mockResolvedValue({
+      type: "success",
+      url: "apt://auth/callback?error_code=server_error&error_description=Something+broke",
+    });
+
+    const { result } = renderHook(() => useGoogleAuth());
+    await act(async () => { await result.current.signInWithGoogle(); });
+
+    expect(result.current.error).toBe("Something broke");
+    expect(result.current.errorTitle).toBeUndefined();
+  });
+
   it("restores the saved portal for a completed dual-role account", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["tenant", "landlord"], mobile_number: "09123456789" }, error: null });
     mockRestore.mockResolvedValue("landlord");

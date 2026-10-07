@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20261007000100_phase2_multirole_access_functions.sql": {
-    "mtime": 1791372096.729104,
-    "ast_hash": "4a6455e20b578e965737179fbbf33858",
+    "mtime": 1791376209.4936914,
+    "ast_hash": "2df5f8fdc8420d66d6d010d7229d7e12",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RateApartmentModal.tsx": {
@@ -6177,6 +6177,11 @@
   "supabase/migrations/20261004000000_unique_review_per_tenant_apartment.sql": {
     "mtime": 1791373900.7642255,
     "ast_hash": "213d627d17a472235341f109acc3681e",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261007000200_fix_admin_set_user_access_service_role_check.sql": {
+    "mtime": 1791376209.4979322,
+    "ast_hash": "4203f8987ffc83defca01cb647f29248",
     "semantic_hash": ""
   }
 }
