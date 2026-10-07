@@ -4,7 +4,7 @@
 
 Status: ✅ Approved A2 with constraints: 6 defs, 8 per section, always lazy, implement RPC now, egress-optimized.
 
-> Implementation status (verified 2026-10-07): ✅ Implemented — all steps in §6 are done. `get_search_sections` is recorded in `20260924110000_record_get_search_sections_rpc.sql`; See All pages with keyset cursors via `get_search_section_page` (`20261006020000_keyset_search_section_page_rpc.sql`) and `useSearchSectionPage`; `apartment_images(apartment_id)` index added; types regenerated; tests/lint/advisors run. All three DB migrations are applied to production APT. Known gap outside this plan: a fresh `supabase db reset` fails at the first migration because the base schema (users, apartments, tenancies) has no migration in the repo (ARCHITECTURE.md D17).
+> Implementation status (verified 2026-10-07): ✅ The MVP steps in §6 are implemented. `get_search_sections` is recorded in `20260924110000_record_get_search_sections_rpc.sql`; See All pages with keyset cursors via `get_search_section_page` (`20261006020000_keyset_search_section_page_rpc.sql`) and `useSearchSectionPage`; `apartment_images(apartment_id)` index added; types regenerated; tests/lint/advisors run. All three DB migrations are applied to production APT. Post-MVP and plan-alignment follow-ups remain in §10. Known gap outside this plan: a fresh `supabase db reset` fails at the first migration because the base schema (users, apartments, tenancies) has no migration in the repo (ARCHITECTURE.md D17).
 Related: `DESIGN.md §11` cards `bg-surface rounded-2xl border-border`, `§5` `p-5`, `§12` lists `FlatList` virtualization.
 
 ---
@@ -235,3 +235,18 @@ function SearchSection({ section, onPressApartment, isFavorite, onToggleFavorite
 ## 9. Deliverables
 
 * `.md` this file + `supabase` migration + `useSearchSections.ts` + `SearchSection*.tsx` + `search.tsx` refactor + `section/[sectionId].tsx` route + tests.
+
+---
+
+## 10. Remaining Follow-Ups (Post-MVP)
+
+The ordered MVP tasks in §6 are complete. The following items remain before the implementation fully matches every behavior proposed earlier in this plan:
+
+- [x] **True per-section lazy fetching (Phase 2):** `get_search_sections` currently returns all six cohorts in one batch. `useSearchSections` tracks viewed section IDs, but the RPC still executes all six server-side queries and returns all rows. Introduce a section-scoped RPC/query strategy only if production DB load or egress warrants the added request complexity. Keep the existing batched RPC as the baseline until then. Status: deferred by decision — batched RPC stays the baseline; revisit only if DB load/egress warrants.
+- [x] **Use visibility-gated sections for rendering:** The hook derives `visibleSections`, but `SearchSectionsList` currently receives the complete `sections` array. Either pass the visibility-gated result (with stable placeholders so later rows can become viewable) or remove the unused visibility state and document that outer `FlatList` virtualization is the chosen rendering strategy. Status: done — unused visibility state removed; outer `FlatList` virtualization is the rendering strategy.
+- [x] **Global newest fallback:** When all six cohorts are empty, return an `All Results`/newest section from `get_search_sections` rather than six empty arrays. Status: done — `20261007000000_search_sections_top_rated_and_fallback.sql` appends an `all_results` section when all cohorts are empty.
+- [x] **Correct the Top Rated predicate:** Align `get_search_sections` with the approved cohort definition by requiring `average_rating >= 4.5`. Status: done — same migration requires `average_rating >= 4.5` (no rating-count column used).
+- [x] **Legacy-list fallback on section-RPC failure:** On an unrecoverable `get_search_sections` error, fall back to the existing bounded `ApartmentsList` query. Status: done — `search.tsx` renders `ApartmentsList` while `get_search_sections` errors.
+- [x] **Netflix sections are restricted to default browse (decision):** Netflix mode shows only for CAMANAVA with no committed search and no active filters (`isDefaultBrowse` in `search.tsx`). City selection, search, sorting, and filters use the flat paginated `ApartmentsList`. `p_city`/`p_search` stay in the RPC signature but are not driven by the mobile UI from other modes.
+- [x] **No mobile search debounce (decision):** Mobile search commits only on submit, so no 400 ms debounce is added (supersedes the §1 debounce note for mobile). React Query signal cancellation is retained. The web keeps its URL-backed browse model and 300 ms live-search debounce; the Netflix layout is not ported to web.
+- [x] **`p_filters` handling (decision):** `p_filters` is reserved for explicit search filters and is not interpreted by `get_search_sections`; filtered search stays on the legacy list. Tenant personalization preferences are applied client-side (`For you` / `In city` mixing) and are no longer sent as `p_filters` or included in the section query key.

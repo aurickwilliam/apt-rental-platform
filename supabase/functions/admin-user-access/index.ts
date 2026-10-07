@@ -41,16 +41,17 @@ Deno.serve(async (request) => {
   }
 
   const { data: actor, error: actorError } = await adminClient.from('users')
-    .select('id, role, is_suspended').eq('user_id', user.id).single();
-  if (actorError || actor?.role !== 'admin' || actor.is_suspended) {
+    .select('id, roles, is_suspended').eq('user_id', user.id).single();
+  if (actorError || !actor?.roles?.includes('admin') || actor.is_suspended) {
     return respond('Forbidden.', 403);
   }
 
   const { data: target, error: targetError } = await adminClient.from('users')
-    .select('id, user_id, role, is_suspended').eq('id', input.targetId).single();
+    .select('id, user_id, roles, is_suspended').eq('id', input.targetId).single();
   if (
     targetError || !target || target.id === actor.id ||
-    !['tenant', 'landlord'].includes(target.role) || target.is_suspended === input.suspend
+    target.roles.includes('admin') ||
+    !target.roles.some((role: string) => ['tenant', 'landlord'].includes(role)) || target.is_suspended === input.suspend
   ) {
     return respond('Invalid account access transition.', 409);
   }

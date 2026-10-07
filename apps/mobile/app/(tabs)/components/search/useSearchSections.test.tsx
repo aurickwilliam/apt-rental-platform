@@ -1,5 +1,5 @@
 import React from "react";
-import { act, renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { SECTION_DEFS, useSearchSections } from "./useSearchSections";
@@ -64,27 +64,6 @@ describe("useSearchSections", () => {
       "get_search_sections",
       expect.objectContaining({ p_city: "CAMANAVA", p_limit: 8 }),
     );
-  });
-
-  it("renders only the first two sections until others become viewable", async () => {
-    const { result } = renderHook(
-      () => useSearchSections({ selectedCity: "CAMANAVA", committedSearch: "" }),
-      { wrapper: createWrapper() },
-    );
-
-    await waitFor(() => expect(result.current.sections).toHaveLength(6));
-    expect(result.current.visibleSections.map((s) => s.id)).toEqual([
-      SECTION_DEFS[0].id,
-      SECTION_DEFS[1].id,
-    ]);
-
-    act(() => {
-      result.current.onViewableItemsChanged({
-        viewableItems: [{ item: result.current.sections[3] }],
-      });
-    });
-
-    expect(result.current.visibleSections.map((s) => s.id)).toContain(SECTION_DEFS[3].id);
   });
 
   it("refetches when the city changes", async () => {

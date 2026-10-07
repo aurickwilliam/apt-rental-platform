@@ -129,7 +129,7 @@ it("explains auto-linked verified IDs without repeating the message", () => {
   }
 });
 
-it("uses a soft warning chip and a short centered footer during review", () => {
+it("uses a soft warning chip and an in-body banner during review", () => {
   mockDocument.review_status = "pending";
 
   try {
@@ -137,7 +137,8 @@ it("uses a soft warning chip and a short centered footer during review", () => {
 
     expect(screen.getByText("Under review")).toBeTruthy();
     expect(screen.getByTestId("status-chip-soft-warning-md")).toBeTruthy();
-    expect(screen.getByText("Under admin review.").props.className).toContain("text-center");
+    expect(screen.getByText("Under admin review")).toBeTruthy();
+    expect(screen.queryByText("Delete Document")).toBeNull();
     expect(screen.queryByText(/You can delete it once/)).toBeNull();
   } finally {
     mockDocument.review_status = "unverified";

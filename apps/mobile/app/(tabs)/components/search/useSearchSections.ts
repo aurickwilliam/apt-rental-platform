@@ -1,9 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 import type { ApartmentCardProps } from "components/cards/ApartmentCard";
 import type { TenantPreferences } from "@/hooks/preferences/useUserPreferences";
-import { toRpcFilters } from "@/hooks/preferences/useUserPreferences";
 
 export type SearchSection = {
   id: string;
@@ -114,28 +113,13 @@ export function scorePreferences(raw: any, prefs: TenantPreferences): number {
 }
 
 export function useSearchSections({ selectedCity, committedSearch, enabled = true, preferences = null }: UseSearchSectionsParams) {
-  const [visibleIds, setVisibleIds] = useState<Set<string>>(() => new Set([SECTION_DEFS[0].id, SECTION_DEFS[1].id]));
-
-  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: { item: SearchSection }[] }) => {
-    setVisibleIds((prev) => {
-      const next = new Set(prev);
-      for (const v of viewableItems) {
-        if (v.item?.id) next.add(v.item.id);
-      }
-      return next;
-    });
-  }, []);
-
-  const prefsHash = preferences ? JSON.stringify(preferences) : null;
-
+  // Tenant preferences personalize client-side (below); `p_filters` is reserved for explicit search filters.
   const query = useQuery({
-    queryKey: ["searchSections", selectedCity, committedSearch, prefsHash] as const,
+    queryKey: ["searchSections", selectedCity, committedSearch] as const,
     queryFn: async ({ signal }) => {
-      const rpcFilters = preferences ? toRpcFilters(preferences) : {};
       const { data, error } = await supabase.rpc("get_search_sections", {
         p_city: selectedCity,
         p_search: committedSearch || undefined,
-        p_filters: rpcFilters as any,
         p_limit: SECTION_LIMIT,
       }).abortSignal(signal as any);
       if (error) throw error;
@@ -154,14 +138,6 @@ export function useSearchSections({ selectedCity, committedSearch, enabled = tru
     refetchOnWindowFocus: false,
     enabled,
   });
-
-  // Always lazy: filter to visible for rendering; but data is batch-fetched. For true per-section lazy DB, would need per-section RPC.
-  const visibleSections = useMemo(() => {
-    const all = query.data ?? [];
-    // If always lazy, only render visible + 1 buffer; but keep all fetched for smooth scroll
-    // To truly save render, filter to visible + not yet viewed but keep placeholder
-    return all.filter((s) => visibleIds.has(s.id));
-  }, [query.data, visibleIds]);
 
   // Personalized mixing: scored For you + In city on top of all base sections (optimized: single dedup + score sort)
   const sections = useMemo(() => {
@@ -217,12 +193,9 @@ export function useSearchSections({ selectedCity, committedSearch, enabled = tru
 
   return {
     sections,
-    visibleSections,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: (query.error as Error)?.message ?? null,
     refetch: query.refetch,
-    onViewableItemsChanged,
-    visibleIds,
   };
 }

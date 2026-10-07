@@ -1,13 +1,11 @@
 import { createElement, useState } from "react";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
-import { Image } from "expo-image";
+import { Linking, Text, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { Button, Chip, Separator, Spinner } from "heroui-native";
+import { Button, Chip, Spinner } from "heroui-native";
 
 import {
-  IconFileText,
   IconHourglass,
   IconId,
   IconShieldCheck,
@@ -19,7 +17,6 @@ import { isReviewEligibleDocType } from "@repo/constants";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import DetailField from "@/components/display/DetailField";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
@@ -32,10 +29,32 @@ import {
   useRequestPassportDocumentReview,
 } from "@/hooks/passport";
 
+import DocumentPreview from "./components/DocumentPreview";
 import { isImageUri } from "./utils/fileType";
 import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
 import { getDocumentTypeDescription } from "./utils/documentTypeDescriptions";
 import { isExpiredDate } from "@/service/passport/expiry";
+
+function DetailRow({
+  label,
+  value,
+  isDanger = false,
+}: {
+  label: string;
+  value: string;
+  isDanger?: boolean;
+}) {
+  return (
+    <View className="flex-row items-center justify-between gap-3">
+      <Text className="text-muted text-sm font-inter">{label}</Text>
+      <Text
+        className={`text-base font-nunitoSemiBold ${isDanger ? "text-danger" : "text-foreground"}`}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
 
 export default function PassportDocumentDetail() {
   const { documentId } = useLocalSearchParams<{
@@ -69,6 +88,7 @@ export default function PassportDocumentDetail() {
   const backSignedUrl = resolved[1]?.signedUrl ?? null;
 
   const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -89,18 +109,23 @@ export default function PassportDocumentDetail() {
     isReviewEligibleDocType(document.doc_type) &&
     (reviewStatus === "unverified" || reviewStatus === "rejected");
   const isUnderReview = reviewStatus === "pending";
-  const showAsImage = signedUrl
-    ? isImageUri(signedUrl)
-    : isImageUri(document?.storage_path ?? "");
+  const viewerImages = [signedUrl, backSignedUrl].flatMap((uri) =>
+    uri && isImageUri(uri) ? [{ uri }] : [],
+  );
 
-  const handleOpen = () => {
-    if (!signedUrl) return;
-    if (showAsImage) {
+  const openFile = (uri: string | null, imageIndex: number) => {
+    if (!uri) return;
+    if (isImageUri(uri)) {
+      setViewerIndex(imageIndex);
       setViewerVisible(true);
     } else {
-      void Linking.openURL(signedUrl);
+      void Linking.openURL(uri);
     }
   };
+
+  const handleOpenFront = () => openFile(signedUrl, 0);
+  const handleOpenBack = () =>
+    openFile(backSignedUrl, signedUrl && isImageUri(signedUrl) ? 1 : 0);
 
   const handleRequestReview = () => {
     if (!document) return;
@@ -162,31 +187,13 @@ export default function PassportDocumentDetail() {
       header={<StandardHeader title={document.doc_type} />}
       className="p-5"
       footer={
-        !isLinkedVerification ? (
+        !isLinkedVerification && !isUnderReview ? (
           <View className="gap-3 px-5">
             {requestError ? (
               <Text className="text-danger text-sm font-inter">
                 {requestError.message}
               </Text>
             ) : null}
-            {isUnderReview ? (
-              <Text className="text-muted text-sm font-inter text-center">
-                Under admin review.
-              </Text>
-            ) : (
-              <Button
-                variant="danger-soft"
-                onPress={() => {
-                  setDeleteError(null);
-                  setConfirmOpen(true);
-                }}
-              >
-                <IconTrash size={18} color={colors.danger} />
-                <Button.Label className="font-nunitoSemiBold">
-                  Delete Document
-                </Button.Label>
-              </Button>
-            )}
             {canRequestReview ? (
               <Button onPress={handleRequestReview} isDisabled={isRequesting}>
                 <IconShieldCheck size={18} color="#fff" />
@@ -199,29 +206,36 @@ export default function PassportDocumentDetail() {
                 </Button.Label>
               </Button>
             ) : null}
+            <Button
+              variant="danger-soft"
+              onPress={() => {
+                setDeleteError(null);
+                setConfirmOpen(true);
+              }}
+            >
+              <IconTrash size={18} color={colors.danger} />
+              <Button.Label className="font-nunitoSemiBold">
+                Delete Document
+              </Button.Label>
+            </Button>
           </View>
         ) : undefined
       }
     >
       <View className="gap-4">
         <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-1 flex-row items-center gap-2">
-            <View
-              testID="document-type-icon"
-              className="size-10 rounded-xl bg-primary-light items-center justify-center"
-            >
-              {isLinkedVerification ? (
-                <IconId size={20} color={colors.primary} />
-              ) : (
-                createElement(getDocumentTypeIcon(document.doc_type), {
-                  size: 20,
-                  color: colors.primary,
-                })
-              )}
-            </View>
-            <Text className="text-accent text-2xl font-nunitoBold shrink">
-              {document.doc_type}
-            </Text>
+          <View
+            testID="document-type-icon"
+            className="size-12 rounded-2xl bg-primary-light items-center justify-center"
+          >
+            {isLinkedVerification ? (
+              <IconId size={24} color={colors.primary} />
+            ) : (
+              createElement(getDocumentTypeIcon(document.doc_type), {
+                size: 24,
+                color: colors.primary,
+              })
+            )}
           </View>
           {document.is_verified ? (
             <Chip variant="soft" color="success" size="md" style={statusChipSurface(success)}>
@@ -246,6 +260,23 @@ export default function PassportDocumentDetail() {
             : getDocumentTypeDescription(document.doc_type)}
         </Text>
 
+        {isUnderReview && !document.is_verified ? (
+          <View
+            className="rounded-2xl p-3"
+            style={statusChipSurface(warning)}
+          >
+            <Text
+              className="text-sm font-nunitoSemiBold"
+              style={{ color: warning.textColor }}
+            >
+              Under admin review
+            </Text>
+            <Text className="text-muted text-sm font-inter mt-0.5">
+              We&apos;ll notify you once an admin has checked this document.
+            </Text>
+          </View>
+        ) : null}
+
         {reviewStatus === "rejected" && document.rejection_reason ? (
           <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
             <Text className="text-danger text-sm font-nunitoSemiBold">
@@ -257,93 +288,6 @@ export default function PassportDocumentDetail() {
           </View>
         ) : null}
 
-        <TouchableOpacity
-          className="bg-surface border border-border rounded-3xl shadow-none overflow-hidden"
-          activeOpacity={0.7}
-          onPress={handleOpen}
-          disabled={!signedUrl}
-        >
-          <View className="w-full bg-gray-100 min-h-56 items-center justify-center">
-            {urlLoading || !signedUrl ? (
-              <Spinner size="sm" color={colors.primary} />
-            ) : showAsImage ? (
-              <Image
-                source={{ uri: signedUrl }}
-                style={{ width: "100%", aspectRatio: 4 / 3 }}
-                contentFit="contain"
-                cachePolicy="disk"
-                transition={150}
-              />
-            ) : (
-              <View className="items-center gap-2 py-10">
-                <IconFileText size={48} color={colors.gray400} />
-                <Text className="text-muted text-sm font-inter">
-                  Tap to open document
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {document.storage_path_back ? (
-          <>
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Back
-            </Text>
-            <TouchableOpacity
-              className="bg-surface border border-border rounded-3xl shadow-none overflow-hidden"
-              activeOpacity={0.7}
-              onPress={() => {
-                if (!backSignedUrl) return;
-                if (isImageUri(backSignedUrl)) {
-                  setViewerVisible(true);
-                } else {
-                  void Linking.openURL(backSignedUrl);
-                }
-              }}
-              disabled={!backSignedUrl}
-            >
-              <View className="w-full bg-gray-100 min-h-56 items-center justify-center">
-                {urlLoading || !backSignedUrl ? (
-                  <Spinner size="sm" color={colors.primary} />
-                ) : isImageUri(backSignedUrl) ? (
-                  <Image
-                    source={{ uri: backSignedUrl }}
-                    style={{ width: "100%", aspectRatio: 4 / 3 }}
-                    contentFit="contain"
-                    cachePolicy="disk"
-                    transition={150}
-                  />
-                ) : (
-                  <View className="items-center gap-2 py-10">
-                    <IconFileText size={48} color={colors.gray400} />
-                    <Text className="text-muted text-sm font-inter">
-                      Tap to open document
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          </>
-        ) : null}
-
-        <Separator className="my-1" />
-
-        <View className="flex-row">
-          <DetailField
-            label="Uploaded"
-            value={formatDate(document.created_at, "medium")}
-          />
-          <DetailField
-            label="Expires"
-            value={
-              document.expires_at
-                ? formatDate(`${document.expires_at}T00:00:00`, "medium")
-                : "No expiry"
-            }
-          />
-        </View>
-
         {isExpiredDate(document.expires_at) ? (
           <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
             <Text className="text-danger text-sm font-nunitoSemiBold">
@@ -354,6 +298,52 @@ export default function PassportDocumentDetail() {
             </Text>
           </View>
         ) : null}
+
+        <View className="gap-2">
+          {document.storage_path_back ? (
+            <Text className="text-foreground text-base font-nunitoSemiBold">
+              Front
+            </Text>
+          ) : null}
+          <DocumentPreview
+            docType={document.doc_type}
+            storagePath={document.storage_path}
+            signedUrl={signedUrl}
+            loading={urlLoading}
+            onPress={handleOpenFront}
+          />
+        </View>
+
+        {document.storage_path_back ? (
+          <View className="gap-2">
+            <Text className="text-foreground text-base font-nunitoSemiBold">
+              Back
+            </Text>
+            <DocumentPreview
+              docType={`${document.doc_type} (back)`}
+              storagePath={document.storage_path_back}
+              signedUrl={backSignedUrl}
+              loading={urlLoading}
+              onPress={handleOpenBack}
+            />
+          </View>
+        ) : null}
+
+        <View className="bg-surface border border-border rounded-2xl p-4 gap-3">
+          <DetailRow
+            label="Uploaded"
+            value={formatDate(document.created_at, "medium")}
+          />
+          <DetailRow
+            label="Expires"
+            value={
+              document.expires_at
+                ? formatDate(`${document.expires_at}T00:00:00`, "medium")
+                : "No expiry"
+            }
+            isDanger={isExpiredDate(document.expires_at)}
+          />
+        </View>
       </View>
 
       <ConfirmDialog
@@ -374,10 +364,8 @@ export default function PassportDocumentDetail() {
       />
 
       <ImageViewing
-        images={[signedUrl, backSignedUrl].flatMap((uri) =>
-          uri && isImageUri(uri) ? [{ uri }] : [],
-        )}
-        imageIndex={0}
+        images={viewerImages}
+        imageIndex={viewerIndex}
         visible={viewerVisible}
         onRequestClose={() => setViewerVisible(false)}
         presentationStyle="overFullScreen"

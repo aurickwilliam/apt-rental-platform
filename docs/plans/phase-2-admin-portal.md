@@ -1,5 +1,7 @@
 # Phase 2 — Admin Operations
 
+> Implementation status (verified 2026-10-07): 🚧 Source is multi-role-safe but NOT deployed to production APT. `20261007000100_phase2_multirole_access_functions.sql` moves `admin_set_user_access` and `can_view_hidden_apartment` to `roles[]`, and `admin-user-access` reads `roles`. The phase2 migration also patches the search RPC's `all_results` fallback. Remaining: apply migrations to prod, deploy the `admin-user-access` Edge Function, then enable `setApartmentVisibility` (`apps/web/app/admin/actions/operations.ts`) and verify on a Supabase branch.
+
 ## Goal
 
 Extend the Phase 1 verification portal into a safe operational console for account access, listing moderation, and aggregate operational reporting. Keep the existing landlord/tenant flows intact and preserve Phase 1's admin-only server-side authorization model.
@@ -27,9 +29,9 @@ Extend the Phase 1 verification portal into a safe operational console for accou
 - Every suspend/reactivate/hide/restore operation requires a reason, an explicit confirmation dialog, and one immutable audit row.
 - UI route guards and server actions are convenience/security layers; database RLS and server-side checks remain the final authority.
 
-## Data model and database work
+## Data model and database work — status: [x] source migrations exist (`20260926143751_phase2_admin_operations.sql` + analytics/visibility follow-ups); [ ] production deployment + multi-role-safe `role` → `roles[]` update remain.
 
-### 1. Extend admin auditing
+### 1. Extend admin auditing — [x] done in source
 
 Create a migration that extends the `admin_audit_logs.action` constraint with:
 
@@ -40,7 +42,7 @@ Create a migration that extends the `admin_audit_logs.action` constraint with:
 
 Add target types if needed: `user` and `apartment`. Reuse the existing table and its admin-only read policy; continue to deny client INSERT/UPDATE/DELETE.
 
-### 2. Account-access state
+### 2. Account-access state — [x] source migration + Edge Function exist; [ ] multi-role-safe update + deployment remain
 
 Add server-managed fields to `public.users`:
 
@@ -60,7 +62,7 @@ Update the Phase 0 authorization guard and grants so `authenticated` cannot writ
 
 Use a server-only Supabase Edge Function for the Auth Admin API `ban/unban` operation. It must authenticate the caller, re-check `public.users.role = 'admin'` and the DB suspension state, keep the service-role key only in Edge Function secrets, and never accept a target role or arbitrary audit payload from the client. The web Server Action invokes the function; it bans/unbans first, then calls the atomic DB transition, compensating the Auth change on DB failure. On suspension the DB transaction also removes refreshable sessions. Supabase-issued access JWTs cannot be revoked before expiry, so RLS and route guards must reject suspended users during the interim. Log and surface a failed compensation for operator reconciliation.
 
-### 3. Listing-moderation state
+### 3. Listing-moderation state — [x] source migration + UI exist; [ ] `setApartmentVisibility` is stubbed unavailable until deployment
 
 Add server-managed moderation fields to `public.apartments` rather than repurposing `deleted_at`:
 
@@ -73,7 +75,7 @@ Add a security-definer admin function that requires an admin, refuses invalid tr
 
 Audit every tenant/public-facing apartment read (browse, search RPCs, map, homepage carousels, related/recommended lists, direct apartment detail) and add `is_hidden_by_admin = false`. Landlord-owned management reads and admin reads retain access. Do not alter `status`, `is_verified`, or `deleted_at` as a moderation side effect.
 
-### 4. Analytics RPC
+### 4. Analytics RPC — [x] done (`get_admin_analytics` + trends RPCs + `/admin/analytics` page)
 
 Create one admin-only `get_admin_analytics(date_from date, date_to date)` RPC returning bounded aggregates only:
 
@@ -87,15 +89,15 @@ The function must validate the date range (maximum 366 days), resolve the caller
 
 Regenerate `packages/supabase/src/types.ts` after the migration.
 
-## Web implementation
+## Web implementation — status: account-access UI [x] done; listing-visibility action [ ] stubbed; analytics page [x] done.
 
-### 1. Shared admin actions
+### 1. Shared admin actions — [x] done in source (`apps/web/app/admin/actions/operations.ts`); visibility action intentionally returns unavailable until deployment
 
 - Add focused Server Actions under `apps/web/app/admin/actions/` for account access and apartment moderation.
 - Match the Phase 1 pattern: `requireAdmin()`, UUID validation, typed result, friendly error, server log for unexpected failures, then `revalidatePath` for exact affected routes.
 - Do not use a browser Supabase client for any Phase 2 admin mutation.
 
-### 2. User-detail access panel
+### 2. User-detail access panel — [x] done (`UserSettingsModal.tsx` suspend/reactivate form with reason + confirmation; `suspensionSupported` gates on migration columns)
 
 Extend `apps/web/app/admin/users/[id]/page.tsx` with an **Account access** panel for tenant/landlord profiles only:
 
@@ -107,7 +109,7 @@ Extend `apps/web/app/admin/users/[id]/page.tsx` with an **Account access** panel
 
 Add related activity to the existing detail history and expose new audit events in `/admin/activity`.
 
-### 3. Apartment-detail moderation panel
+### 3. Apartment-detail moderation panel — [x] UI done (`ApartmentSidebar.tsx` + `Visibility` filter/chip); [ ] server action stubbed unavailable
 
 Extend `apps/web/app/admin/apartments/[id]/page.tsx` with a **Listing visibility** panel:
 
@@ -118,7 +120,7 @@ Extend `apps/web/app/admin/apartments/[id]/page.tsx` with a **Listing visibility
 
 Add a `Visibility` filter to the admin apartment list and show an icon/text chip in table and detail views. Hidden listings must remain visible to admins and their landlord owner, but never tenant/public discovery UI.
 
-### 4. Analytics destination
+### 4. Analytics destination — [x] done (`apps/web/app/admin/analytics/page.tsx` + panels, date presets, loading/error/empty states)
 
 Add `/admin/analytics` and a sidebar entry after Activity. Build a server-rendered, date-range-filtered dashboard using existing HeroUI/shadcn primitives and canonical design tokens:
 
@@ -146,19 +148,19 @@ Do not add a new chart or export dependency in Phase 2.
 - Confirm existing verification, applications, tenancies, payments, maintenance, and landlord property-management flows still work.
 - Validate analytics data against read-only production queries and enforce range limits.
 
-## Rollout order
+## Rollout order — status: source steps 1-4 [x] done; steps 5-7 [ ] remain (production migration + Edge Function deploy + type regen + controlled-account acceptance).
 
-1. Inventory existing apartment-read paths and Auth session behavior; document all query/RPC locations to update.
-2. Write and test the migration/RLS/RPC changes locally or in `apt-test`; inspect the generated schema/types.
-3. Implement access controls and moderation UI/actions; add targeted web tests where the repository pattern supports them.
-4. Implement analytics RPC and page.
-5. Run mobile lint/tests plus web typecheck/build and focused admin lint; record unrelated pre-existing full-web-lint failures separately.
-6. Run controlled production acceptance with dedicated test tenant/landlord accounts and an admin operator. Do not use customer accounts or delete audit/history records.
-7. Open a PR from `feature/admin-page`; merge only after explicit approval and required CI. During the approved rollout, apply the production migration, deploy `admin-user-access` with JWT verification enabled, regenerate Supabase types, then run read-only verification and controlled-account acceptance before enabling routine use.
+- [x] 1. Inventory existing apartment-read paths and Auth session behavior; document all query/RPC locations to update.
+- [x] 2. Write and test the migration/RLS/RPC changes locally or in `apt-test`; inspect the generated schema/types.
+- [x] 3. Implement access controls and moderation UI/actions; add targeted web tests where the repository pattern supports them.
+- [x] 4. Implement analytics RPC and page.
+- [ ] 5. Run mobile lint/tests plus web typecheck/build and focused admin lint; record unrelated pre-existing full-web-lint failures separately.
+- [ ] 6. Run controlled production acceptance with dedicated test tenant/landlord accounts and an admin operator. Do not use customer accounts or delete audit/history records.
+- [ ] 7. Open a PR from `feature/admin-page`; merge only after explicit approval and required CI. During the approved rollout, apply the production migration, deploy `admin-user-access` with JWT verification enabled, regenerate Supabase types, then run read-only verification and controlled-account acceptance before enabling routine use.
 
-## Acceptance criteria
+## Acceptance criteria — status: analytics + Phase 1 regression [x]; suspend/reactivate + hide/restore end-to-end [ ] blocked on deployment.
 
-- An admin can suspend/reactivate a non-admin with confirmation and audit history; a tenant/landlord cannot access or forge that operation.
-- An admin can hide/restore a non-deleted apartment with confirmation and audit history; hidden listings disappear from every tenant/public discovery path while landlord/admin access remains.
-- `/admin/analytics` shows correct, bounded, date-filtered aggregates without PII or unbounded client queries.
-- Existing Phase 1 verification behavior and all tenancy/payment data remain unchanged.
+- [ ] An admin can suspend/reactivate a non-admin with confirmation and audit history; a tenant/landlord cannot access or forge that operation.
+- [ ] An admin can hide/restore a non-deleted apartment with confirmation and audit history; hidden listings disappear from every tenant/public discovery path while landlord/admin access remains.
+- [x] `/admin/analytics` shows correct, bounded, date-filtered aggregates without PII or unbounded client queries.
+- [x] Existing Phase 1 verification behavior and all tenancy/payment data remain unchanged.
