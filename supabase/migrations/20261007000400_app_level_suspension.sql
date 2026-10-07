@@ -53,14 +53,14 @@ grant execute on function public.admin_set_user_access(uuid, boolean, text) to a
 -- 3. Suspended recipients keep their feed rows but no longer get push messages.
 do $$
 declare v_definition text := pg_get_functiondef('public.create_notification(uuid,text,text,text,jsonb)'::regprocedure);
-  v_anchor text := E'  returning id into v_id;\n';
+  v_anchor text := 'returning id into v_id;';
 begin
   if position('is_suspended' in v_definition) = 0 then
-    if position(v_anchor in v_definition) = 0 then
+    if (length(v_definition) - length(replace(v_definition, v_anchor, ''))) / length(v_anchor) <> 1 then
       raise exception 'create_notification changed; audit before migrating.';
     end if;
     execute replace(v_definition, v_anchor, v_anchor ||
-      E'\n  if exists (select 1 from public.users u where u.id = p_user_id and u.is_suspended) then\n    return v_id;\n  end if;\n');
+      ' if exists (select 1 from public.users u where u.id = p_user_id and u.is_suspended) then return v_id; end if;');
   end if;
 end;
 $$;

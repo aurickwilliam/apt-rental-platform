@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.tsx": {
-    "mtime": 1791377896.9960353,
-    "ast_hash": "1da72b4e5c990b9a80d39949ec396250",
+    "mtime": 1791379413.9230123,
+    "ast_hash": "dc45752f5e9c3c9ab75307c53a88c437",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-up.tsx": {
@@ -1390,8 +1390,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.ts": {
-    "mtime": 1791376694.2712197,
-    "ast_hash": "099245a8ed171e5aa8c1e2544bef46d3",
+    "mtime": 1791379413.9234195,
+    "ast_hash": "c1216d1d57f021cedb55316432576099",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useProfile.ts": {
@@ -1605,8 +1605,8 @@
     "semantic_hash": "2e918062ed77a8d5fcb51f1959ef8eb6"
   },
   "apps/web/app/(auth)/actions/sign-in.ts": {
-    "mtime": 1791373900.7483284,
-    "ast_hash": "58ce3f90ef40468824c62559549c7f56",
+    "mtime": 1791379329.4468935,
+    "ast_hash": "ee2368315ebea6002dc210c9fc1cd81e",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/sign-out.ts": {
@@ -1855,8 +1855,8 @@
     "semantic_hash": "22cd5e24e26a28df6724b54ce0c32948"
   },
   "apps/web/app/auth/callback/route.ts": {
-    "mtime": 1791373900.7527907,
-    "ast_hash": "a35e1d9b9293a587408d3b921e36abfc",
+    "mtime": 1791379329.4471295,
+    "ast_hash": "8a179b5c058775e78392b4bd34cca551",
     "semantic_hash": ""
   },
   "apps/web/app/auth/sign-out/route.ts": {
@@ -2655,8 +2655,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/middleware.ts": {
-    "mtime": 1791373900.7621233,
-    "ast_hash": "9ee7984b9b3c74e92377b0dabf02fbcd",
+    "mtime": 1791379391.6282573,
+    "ast_hash": "916e2a404d1e62c4d30bcdf1e77f5426",
     "semantic_hash": ""
   },
   "packages/supabase/src/server.ts": {
@@ -2665,8 +2665,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1791377215.299335,
-    "ast_hash": "89df05fa31da9fa09564f0e330d00904",
+    "mtime": 1791379306.080756,
+    "ast_hash": "e33627561af2ee5397cd5ae9feef5cd2",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1790780652.7305224,
-    "ast_hash": "cfb72c649e23281ebf7de47927ac9641",
+    "mtime": 1791379785.1401258,
+    "ast_hash": "00ea036ee44c4b26b3cc9d6b36b2e313",
     "semantic_hash": ""
   },
   "README.md": {
@@ -3005,8 +3005,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
-    "mtime": 1787912037.2307644,
-    "ast_hash": "e0f75321565457475c9f3205544da260",
+    "mtime": 1791379785.1397877,
+    "ast_hash": "91a099dc377551e70ca1419a2eda9ea2",
     "semantic_hash": ""
   },
   "supabase/functions/.zed/settings.json": {
@@ -4970,18 +4970,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/admin/actions/operations.ts": {
-    "mtime": 1791372550.207064,
-    "ast_hash": "dabc1b74b5863cf2377e8096bd1ea141",
+    "mtime": 1791379306.0812306,
+    "ast_hash": "4f882397d4bcb748576b0726de8a476a",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/page.tsx": {
     "mtime": 1790690386.1582768,
     "ast_hash": "00b7f6abde00e22207da6fda4c4028f9",
-    "semantic_hash": ""
-  },
-  "supabase/functions/admin-user-access/index.ts": {
-    "mtime": 1791371756.271316,
-    "ast_hash": "fd0d70c4f7a9b729eb27323a6f0a4d06",
     "semantic_hash": ""
   },
   "supabase/migrations/20260926143751_phase2_admin_operations.sql": {
@@ -4995,8 +4990,8 @@
     "semantic_hash": ""
   },
   "docs/plans/phase-2-admin-portal.md": {
-    "mtime": 1791373884.5960042,
-    "ast_hash": "67d9275eba1252926ad18099a32099db",
+    "mtime": 1791379785.1404178,
+    "ast_hash": "4d47f5b5bc788b59b77b3539a58c2a68",
     "semantic_hash": ""
   },
   "apps/web/app/admin/analytics/loading.tsx": {
@@ -5680,13 +5675,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.test.tsx": {
-    "mtime": 1791377896.996145,
-    "ast_hash": "7a535ad11fb45ec5947588b4f1b88219",
+    "mtime": 1791379431.1255665,
+    "ast_hash": "2b1be0975de862f55b96320f60be6f48",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.test.tsx": {
-    "mtime": 1791376704.9706306,
-    "ast_hash": "ed546f29734ea5cacd1c5beb07781d36",
+    "mtime": 1791379431.125342,
+    "ast_hash": "57008bf1a062d66089286757a9313607",
     "semantic_hash": ""
   },
   "apps/mobile/service/notifications/notificationService.test.ts": {
@@ -6185,18 +6180,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/suspensionService.test.ts": {
-    "mtime": 1791377228.9292245,
-    "ast_hash": "b530619b55c41c07aad30ca0614a7f81",
+    "mtime": 1791379431.1251435,
+    "ast_hash": "69a1460283bcd334b78e6f9a7fd7b42a",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/suspensionService.ts": {
-    "mtime": 1791377215.304213,
-    "ast_hash": "c8b91d82df79dec50c1dd0b04bfddbe2",
-    "semantic_hash": ""
-  },
-  "supabase/functions/suspension-notice/index.ts": {
-    "mtime": 1791376681.3949022,
-    "ast_hash": "a3e28eb937736068982873a8b8e2133c",
+    "mtime": 1791379413.9226344,
+    "ast_hash": "50499abe623b88fb2db85c6b0414bc08",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useSuspensionGuard.test.tsx": {
@@ -6217,6 +6207,16 @@
   "supabase/migrations/20261007000300_get_my_suspension_status.sql": {
     "mtime": 1791377204.1716242,
     "ast_hash": "e569b5cbe81dbdf24aab89de7758ee8d",
+    "semantic_hash": ""
+  },
+  "apps/web/app/suspended/page.tsx": {
+    "mtime": 1791379329.4278502,
+    "ast_hash": "72be5ed9e4cf872248f1764cfff69e29",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261007000400_app_level_suspension.sql": {
+    "mtime": 1791379253.3250103,
+    "ast_hash": "0ecdbfba5066a96b0669861bfba5002d",
     "semantic_hash": ""
   }
 }
