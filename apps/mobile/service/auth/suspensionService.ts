@@ -37,3 +37,14 @@ export function getOAuthRedirectError(url: string): { code: string | null; descr
   const read = (key: string) => parsed.searchParams.get(key) ?? hashParams.get(key);
   return { code: read("error_code"), description: read("error_description") };
 }
+
+// For a device that is still signed in when the account gets suspended. The
+// RPC returns only the caller's own state, so no password re-check is needed.
+export async function getMySuspensionStatus(): Promise<{ suspended: boolean; reason: string | null }> {
+  const { data, error } = await supabase.rpc("get_my_suspension_status");
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) {
+    return { suspended: false, reason: null };
+  }
+  const status = data as { suspended?: boolean; reason?: string | null };
+  return { suspended: status.suspended === true, reason: status.reason ?? null };
+}

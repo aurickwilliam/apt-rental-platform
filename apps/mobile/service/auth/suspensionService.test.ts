@@ -1,5 +1,6 @@
 import {
   buildSuspendedMessage,
+  getMySuspensionStatus,
   getOAuthRedirectError,
   getSuspensionReason,
   isBannedAuthError,
@@ -7,9 +8,13 @@ import {
 } from "./suspensionService";
 
 const mockInvoke = jest.fn();
+const mockRpc = jest.fn();
 
 jest.mock("@repo/supabase", () => ({
-  supabase: { functions: { invoke: (...args: unknown[]) => mockInvoke(...args) } },
+  supabase: {
+    functions: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+    rpc: (...args: unknown[]) => mockRpc(...args),
+  },
 }));
 
 describe("suspensionService", () => {
@@ -40,6 +45,15 @@ describe("suspensionService", () => {
 
     mockInvoke.mockResolvedValueOnce({ data: null, error: new Error("network") });
     await expect(getSuspensionReason("a@example.test", "pw")).resolves.toBeNull();
+  });
+
+  it("reads the caller's own suspension status", async () => {
+    mockRpc.mockResolvedValueOnce({ data: { suspended: true, reason: "Spam" }, error: null });
+    await expect(getMySuspensionStatus()).resolves.toEqual({ suspended: true, reason: "Spam" });
+    expect(mockRpc).toHaveBeenCalledWith("get_my_suspension_status");
+
+    mockRpc.mockResolvedValueOnce({ data: null, error: new Error("offline") });
+    await expect(getMySuspensionStatus()).resolves.toEqual({ suspended: false, reason: null });
   });
 
   it("reads OAuth redirect errors from the query or the hash", () => {

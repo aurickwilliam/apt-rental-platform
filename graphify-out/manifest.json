@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.tsx": {
-    "mtime": 1790780652.7318757,
-    "ast_hash": "3fd3d360bcb63b259c8bea708c59f12d",
+    "mtime": 1791376704.9538505,
+    "ast_hash": "36dbfa7fcffadb3d1f6a157fd44e596e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-up.tsx": {
@@ -1390,8 +1390,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.ts": {
-    "mtime": 1790780652.7350574,
-    "ast_hash": "f3ebb1ff779f391f286e52d07c4cff8c",
+    "mtime": 1791376694.2712197,
+    "ast_hash": "099245a8ed171e5aa8c1e2544bef46d3",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useProfile.ts": {
@@ -5680,13 +5680,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.test.tsx": {
-    "mtime": 1790780652.7317088,
-    "ast_hash": "aa9b66a9a0ee0a672d57ae8370feb61f",
+    "mtime": 1791376716.1280515,
+    "ast_hash": "7f61a1c0514411a960749ca94fd459b9",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.test.tsx": {
-    "mtime": 1790780652.7348516,
-    "ast_hash": "c502770953171c1a5a1a0b9273f6e2be",
+    "mtime": 1791376704.9706306,
+    "ast_hash": "ed546f29734ea5cacd1c5beb07781d36",
     "semantic_hash": ""
   },
   "apps/mobile/service/notifications/notificationService.test.ts": {
@@ -6182,6 +6182,21 @@
   "supabase/migrations/20261007000200_fix_admin_set_user_access_service_role_check.sql": {
     "mtime": 1791376209.4979322,
     "ast_hash": "4203f8987ffc83defca01cb647f29248",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/auth/suspensionService.test.ts": {
+    "mtime": 1791376704.9575818,
+    "ast_hash": "cd1d7f9711dd28ff4bd07b79e14bce44",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/auth/suspensionService.ts": {
+    "mtime": 1791376694.2358048,
+    "ast_hash": "28ccea5e7545ea7f4e75cc7289f6650b",
+    "semantic_hash": ""
+  },
+  "supabase/functions/suspension-notice/index.ts": {
+    "mtime": 1791376681.3949022,
+    "ast_hash": "a3e28eb937736068982873a8b8e2133c",
     "semantic_hash": ""
   }
 }

@@ -1528,6 +1528,7 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_my_suspension_status: { Args: never; Returns: Json }
       get_search_section_page: {
         Args: {
           p_after?: Json

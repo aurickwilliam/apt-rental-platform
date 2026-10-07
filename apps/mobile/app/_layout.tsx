@@ -31,6 +31,7 @@ import {
   useNotificationTapHandler,
 } from "@/hooks/notifications";
 import { useVerificationReviewRealtime } from "@/hooks/verification";
+import { useSuspensionGuard } from "@/hooks/auth/useSuspensionGuard";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTheme } from 'hooks/useTheme';
 import DevBadge from '../components/dev/DevBadge';
@@ -40,6 +41,7 @@ function NotificationManager() {
   useNotificationTapHandler();
   useInAppNotificationBanner();
   useVerificationReviewRealtime();
+  useSuspensionGuard();
 
   return null;
 }

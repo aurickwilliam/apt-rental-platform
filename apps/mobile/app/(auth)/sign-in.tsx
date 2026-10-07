@@ -33,6 +33,7 @@ import { useGoogleAuth } from "hooks/auth";
 import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { useSuspensionStore } from "@/stores/useSuspensionStore";
 import { portalHome } from "@/service/auth/portalPreference";
 import {
   buildSuspendedMessage,
@@ -58,6 +59,9 @@ export default function SignIn() {
   const [passwordError, setPasswordError] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+
+  // Set by the suspension guard when a signed-in device was signed out.
+  const suspensionNotice = useSuspensionStore((state) => state.notice);
 
   const {
     signInWithGoogle,
@@ -328,14 +332,19 @@ export default function SignIn() {
 
       {/* Error Dialog */}
       <ErrorDialog
-        isOpen={!!(error || googleError)}
+        isOpen={!!(error || googleError || suspensionNotice)}
         onClose={() => {
           setError("");
           setErrorTitle(undefined);
           resetGoogleError();
+          useSuspensionStore.getState().clear();
         }}
-        title={googleError ? googleErrorTitle : errorTitle}
-        message={googleError || error}
+        title={
+          suspensionNotice ? SUSPENDED_TITLE : googleError ? googleErrorTitle : errorTitle
+        }
+        message={
+          suspensionNotice ? buildSuspendedMessage(suspensionNotice.reason) : googleError || error
+        }
       />
     </ScreenWrapper>
   );

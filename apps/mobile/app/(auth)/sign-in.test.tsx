@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import SignIn from "./sign-in";
+import { useSuspensionStore } from "@/stores/useSuspensionStore";
 
 const mockReplace = jest.fn();
 const mockSignInWithPassword = jest.fn();
@@ -127,6 +128,21 @@ describe("role-neutral mobile sign-in", () => {
     await waitFor(() =>
       expect(mockErrorDialog).toHaveBeenLastCalledWith(
         expect.objectContaining({ title: "Account suspended", message: expect.stringContaining("suspended") }),
+      ),
+    );
+  });
+
+  it("shows the notice left by the suspension guard", async () => {
+    useSuspensionStore.getState().show("Fake listings");
+    render(<SignIn />);
+
+    await waitFor(() =>
+      expect(mockErrorDialog).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isOpen: true,
+          title: "Account suspended",
+          message: expect.stringContaining("Reason: Fake listings"),
+        }),
       ),
     );
   });
