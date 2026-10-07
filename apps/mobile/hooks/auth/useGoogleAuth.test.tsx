@@ -8,6 +8,7 @@ const mockExchangeCodeForSession = jest.fn();
 const mockSignOut = jest.fn();
 const mockSingle = jest.fn();
 const mockRestore = jest.fn();
+const mockGetStatus = jest.fn();
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace }) }));
 jest.mock("expo-linking", () => ({
@@ -28,6 +29,10 @@ jest.mock("@repo/supabase", () => ({
     rpc: jest.fn(),
   },
 }));
+jest.mock("@/service/auth/suspensionService", () => ({
+  ...jest.requireActual("@/service/auth/suspensionService"),
+  getMySuspensionStatus: (...args: unknown[]) => mockGetStatus(...args),
+}));
 jest.mock("@/stores/usePortalStore", () => ({
   usePortalStore: { getState: () => ({ restore: (...args: unknown[]) => mockRestore(...args) }) },
 }));
@@ -40,20 +45,20 @@ describe("Google sign-in without a role tab", () => {
     mockOpenAuthSessionAsync.mockResolvedValue({ type: "success", url: "apt://auth/callback?code=code-1" });
     mockExchangeCodeForSession.mockResolvedValue({ data: { session }, error: null });
     mockSignOut.mockResolvedValue({ error: null });
+    mockGetStatus.mockResolvedValue({ suspended: false, reason: null });
   });
 
-  it("tells a suspended account it is suspended instead of 'No code returned'", async () => {
-    mockOpenAuthSessionAsync.mockResolvedValue({
-      type: "success",
-      url: "apt://auth/callback?error_code=user_banned&error_description=User+is+banned",
-    });
+  it("signs out a suspended account and shows the reason", async () => {
+    mockGetStatus.mockResolvedValue({ suspended: true, reason: "Spam" });
 
     const { result } = renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
+    expect(mockSignOut).toHaveBeenCalled();
     expect(result.current.errorTitle).toBe("Account suspended");
-    expect(result.current.error).toContain("suspended");
-    expect(mockExchangeCodeForSession).not.toHaveBeenCalled();
+    expect(result.current.error).toContain("Reason: Spam");
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockSingle).not.toHaveBeenCalled();
   });
 
   it("shows the redirect error description when Google sign-in fails", async () => {

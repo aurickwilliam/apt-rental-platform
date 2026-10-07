@@ -37,8 +37,7 @@ import { useSuspensionStore } from "@/stores/useSuspensionStore";
 import { portalHome } from "@/service/auth/portalPreference";
 import {
   buildSuspendedMessage,
-  getSuspensionReason,
-  isBannedAuthError,
+  getMySuspensionStatus,
   SUSPENDED_TITLE,
 } from "@/service/auth/suspensionService";
 
@@ -130,11 +129,7 @@ export default function SignIn() {
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
-        if (isBannedAuthError(signInError)) {
-          const reason = await getSuspensionReason(email.trim(), password).catch(() => null);
-          setErrorTitle(SUSPENDED_TITLE);
-          setError(buildSuspendedMessage(reason));
-        } else if (signInError.message === "Invalid login credentials") {
+        if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           setError("Please verify your email address before signing in.");
@@ -143,6 +138,16 @@ export default function SignIn() {
         } else {
           setError(signInError.message);
         }
+        return;
+      }
+
+      // A suspended account authenticates but cannot read its own profile (RLS),
+      // so check suspension first and show the reason.
+      const suspension = await getMySuspensionStatus();
+      if (suspension.suspended) {
+        await supabase.auth.signOut();
+        setErrorTitle(SUSPENDED_TITLE);
+        setError(buildSuspendedMessage(suspension.reason));
         return;
       }
 

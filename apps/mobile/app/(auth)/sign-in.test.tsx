@@ -8,7 +8,7 @@ const mockSignInWithPassword = jest.fn();
 const mockSignOut = jest.fn();
 const mockSingle = jest.fn();
 const mockRestore = jest.fn();
-const mockGetSuspensionReason = jest.fn();
+const mockGetStatus = jest.fn();
 const mockErrorDialog = jest.fn();
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, push: jest.fn() }) }));
@@ -26,7 +26,7 @@ jest.mock("@/components/display/ErrorDialog", () => (props: unknown) => {
 });
 jest.mock("@/service/auth/suspensionService", () => ({
   ...jest.requireActual("@/service/auth/suspensionService"),
-  getSuspensionReason: (...args: unknown[]) => mockGetSuspensionReason(...args),
+  getMySuspensionStatus: (...args: unknown[]) => mockGetStatus(...args),
 }));
 jest.mock("hooks/auth", () => ({
   useGoogleAuth: () => ({ signInWithGoogle: jest.fn(), loading: false, error: "", errorTitle: undefined, resetError: jest.fn() }),
@@ -79,6 +79,7 @@ describe("role-neutral mobile sign-in", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["landlord", "tenant"] }, error: null });
     mockRestore.mockResolvedValue("tenant");
     mockSignOut.mockResolvedValue({ error: null });
+    mockGetStatus.mockResolvedValue({ suspended: false, reason: null });
   });
 
   it("does not show tenant and landlord tabs and restores the saved portal", async () => {
@@ -94,9 +95,8 @@ describe("role-neutral mobile sign-in", () => {
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
   });
 
-  it("shows the suspension reason when the account is banned", async () => {
-    mockSignInWithPassword.mockResolvedValue({ data: { user: null }, error: { code: "user_banned", message: "User is banned" } });
-    mockGetSuspensionReason.mockResolvedValue("Fake listings");
+  it("signs out a suspended account and shows the reason", async () => {
+    mockGetStatus.mockResolvedValue({ suspended: true, reason: "Fake listings" });
     render(<SignIn />);
 
     fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
@@ -112,24 +112,9 @@ describe("role-neutral mobile sign-in", () => {
         }),
       ),
     );
-    expect(mockGetSuspensionReason).toHaveBeenCalledWith("a@example.test", "password");
+    expect(mockSignOut).toHaveBeenCalled();
+    expect(mockSingle).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
-  });
-
-  it("still says the account is suspended when the reason lookup fails", async () => {
-    mockSignInWithPassword.mockResolvedValue({ data: { user: null }, error: { code: "user_banned", message: "User is banned" } });
-    mockGetSuspensionReason.mockRejectedValue(new Error("network"));
-    render(<SignIn />);
-
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
-
-    await waitFor(() =>
-      expect(mockErrorDialog).toHaveBeenLastCalledWith(
-        expect.objectContaining({ title: "Account suspended", message: expect.stringContaining("suspended") }),
-      ),
-    );
   });
 
   it("shows the notice left by the suspension guard", async () => {

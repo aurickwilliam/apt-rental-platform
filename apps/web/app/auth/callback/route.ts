@@ -60,6 +60,12 @@ export async function GET(request: Request) {
       let selectedPortal: "tenant" | "landlord" | null = null;
 
       if (user) {
+        // Suspended accounts authenticate but cannot read their profile (RLS).
+        const { data: suspension } = await supabase.rpc("get_my_suspension_status");
+        if ((suspension as { suspended?: boolean } | null)?.suspended) {
+          return NextResponse.redirect(`${appOrigin}/suspended`);
+        }
+
         const { data: profileData, error: profileError } = await supabase
           .from("users")
           .select("mobile_number, roles, account_status")

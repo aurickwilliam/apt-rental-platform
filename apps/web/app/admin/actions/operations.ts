@@ -26,22 +26,16 @@ export async function setUserAccess(formData: FormData): Promise<OperationResult
   const suspend = formData.get("decision");
   if (suspend !== "suspend" && suspend !== "reactivate") return { error: "Invalid decision." };
 
+  // The RPC authorizes the caller from auth.uid() and writes the audit row.
   const supabase = await createClient();
-  const { data, error } = await supabase.functions.invoke("admin-user-access", {
-    body: { targetId: parsed.id, suspend: suspend === "suspend", reason: parsed.reason },
+  const { error } = await supabase.rpc("admin_set_user_access", {
+    p_target_id: parsed.id,
+    p_suspend: suspend === "suspend",
+    p_reason: parsed.reason,
   });
-  if (error || data?.error) {
-    console.error("Admin account access failed", error ?? data?.error);
-    let message = typeof data?.error === "string" ? data.error : null;
-    if (!message && error?.context instanceof Response) {
-      try {
-        const payload: unknown = await error.context.json();
-        if (payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string") message = payload.error;
-      } catch {
-        // The Edge Function can return a non-JSON infrastructure error.
-      }
-    }
-    return { error: message ?? "Account access could not be updated. Refresh and try again." };
+  if (error) {
+    console.error("Admin account access failed", error);
+    return { error: "Account access could not be updated. Refresh and try again." };
   }
   revalidatePath(`/admin/users/${parsed.id}`);
   revalidatePath("/admin/users");

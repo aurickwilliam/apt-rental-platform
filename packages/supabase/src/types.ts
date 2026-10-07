@@ -1392,13 +1392,8 @@ export type Database = {
         Returns: undefined
       }
       admin_set_user_access: {
-        Args: {
-          p_actor_auth_id: string
-          p_reason: string
-          p_suspend: boolean
-          p_target_id: string
-        }
-        Returns: string
+        Args: { p_reason: string; p_suspend: boolean; p_target_id: string }
+        Returns: undefined
       }
       consume_verification_session: {
         Args: { p_token_hash: string }

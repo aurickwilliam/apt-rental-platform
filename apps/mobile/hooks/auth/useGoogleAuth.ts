@@ -6,7 +6,12 @@ import { useState } from "react";
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { choosePortal, portalHome, type Portal } from "@/service/auth/portalPreference";
-import { getOAuthRedirectError, SUSPENDED_MESSAGE, SUSPENDED_TITLE } from "@/service/auth/suspensionService";
+import {
+  buildSuspendedMessage,
+  getMySuspensionStatus,
+  getOAuthRedirectError,
+  SUSPENDED_TITLE,
+} from "@/service/auth/suspensionService";
 
 export function useGoogleAuth() {
   const router = useRouter();
@@ -24,13 +29,8 @@ export function useGoogleAuth() {
       // Show error, if there is no code in the URL
       // This means the authentication failed or was cancelled before completion
       if (!code) {
-        const { code: errorCode, description } = getOAuthRedirectError(url);
-        if (errorCode === "user_banned") {
-          setErrorTitle(SUSPENDED_TITLE);
-          setError(SUSPENDED_MESSAGE);
-        } else {
-          setError(description ?? "Authentication failed. No code returned.");
-        }
+        const { description } = getOAuthRedirectError(url);
+        setError(description ?? "Authentication failed. No code returned.");
         setLoading(false);
         return;
       }
@@ -42,6 +42,17 @@ export function useGoogleAuth() {
       // Show error if the code exchange fails for any reason
       if (exchangeError || !data.session) {
         setError("Failed to establish session.");
+        setLoading(false);
+        return;
+      }
+
+      // A suspended account authenticates but cannot read its own profile (RLS),
+      // so check suspension first and show the reason.
+      const suspension = await getMySuspensionStatus();
+      if (suspension.suspended) {
+        await supabase.auth.signOut();
+        setErrorTitle(SUSPENDED_TITLE);
+        setError(buildSuspendedMessage(suspension.reason));
         setLoading(false);
         return;
       }

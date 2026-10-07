@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.tsx": {
-    "mtime": 1791376704.9538505,
-    "ast_hash": "36dbfa7fcffadb3d1f6a157fd44e596e",
+    "mtime": 1791377896.9960353,
+    "ast_hash": "1da72b4e5c990b9a80d39949ec396250",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-up.tsx": {
@@ -380,8 +380,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/_layout.tsx": {
-    "mtime": 1790867305.3419528,
-    "ast_hash": "2cd754a0715af3a73040c8743b9f2d5a",
+    "mtime": 1791377215.3230894,
+    "ast_hash": "d0de661f3574d79a4488b214810fe338",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/_layout.tsx": {
@@ -1385,8 +1385,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/index.ts": {
-    "mtime": 1787060341.9129841,
-    "ast_hash": "ec7a2549b2726bcf0eb5d7bd653a1604",
+    "mtime": 1791377215.3228688,
+    "ast_hash": "252462a04ff30ff92c0dc3a245415e23",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.ts": {
@@ -2665,8 +2665,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1791372571.8597896,
-    "ast_hash": "7e8745b70afa629e2c3377f86367284f",
+    "mtime": 1791377215.299335,
+    "ast_hash": "89df05fa31da9fa09564f0e330d00904",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -5680,8 +5680,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.test.tsx": {
-    "mtime": 1791376716.1280515,
-    "ast_hash": "7f61a1c0514411a960749ca94fd459b9",
+    "mtime": 1791377896.996145,
+    "ast_hash": "7a535ad11fb45ec5947588b4f1b88219",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.test.tsx": {
@@ -6185,18 +6185,38 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/suspensionService.test.ts": {
-    "mtime": 1791376704.9575818,
-    "ast_hash": "cd1d7f9711dd28ff4bd07b79e14bce44",
+    "mtime": 1791377228.9292245,
+    "ast_hash": "b530619b55c41c07aad30ca0614a7f81",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/suspensionService.ts": {
-    "mtime": 1791376694.2358048,
-    "ast_hash": "28ccea5e7545ea7f4e75cc7289f6650b",
+    "mtime": 1791377215.304213,
+    "ast_hash": "c8b91d82df79dec50c1dd0b04bfddbe2",
     "semantic_hash": ""
   },
   "supabase/functions/suspension-notice/index.ts": {
     "mtime": 1791376681.3949022,
     "ast_hash": "a3e28eb937736068982873a8b8e2133c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/auth/useSuspensionGuard.test.tsx": {
+    "mtime": 1791377562.6595097,
+    "ast_hash": "20907e1790164af5e954be0c29d061a8",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/auth/useSuspensionGuard.ts": {
+    "mtime": 1791377215.3083563,
+    "ast_hash": "f6d73e0f6753432f90076a3ff0b4c167",
+    "semantic_hash": ""
+  },
+  "apps/mobile/stores/useSuspensionStore.ts": {
+    "mtime": 1791377215.3064244,
+    "ast_hash": "b08dee8a6bf5db3c5096f91329c9b7c9",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261007000300_get_my_suspension_status.sql": {
+    "mtime": 1791377204.1716242,
+    "ast_hash": "e569b5cbe81dbdf24aab89de7758ee8d",
     "semantic_hash": ""
   }
 }
