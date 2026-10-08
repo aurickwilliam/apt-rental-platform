@@ -27,11 +27,7 @@ import { Button, Spinner } from "heroui-native";
 
 import {
   IconChevronLeft,
-  IconBed,
-  IconBath,
-  IconHome,
   IconMapPin,
-  IconArrowsMaximize,
   IconStarFilled,
   IconInfoCircle,
 } from "@tabler/icons-react-native";
@@ -182,53 +178,11 @@ export default function ApartmentSummary() {
               {apartment.name}
             </Text>
 
-            <View className="flex-row items-center mt-2 gap-2">
+            <View className="flex-row items-center mt-2 mb-5 gap-2">
               <IconMapPin size={24} color={colors.secondaryForeground} />
               <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                 {fullAddress}
               </Text>
-            </View>
-
-            <View className="flex-row items-center justify-between mt-8 gap-6">
-              <View className="flex-row items-center gap-2">
-                <IconHome size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.type}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconStarFilled size={20} color={colors.secondary} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
-                </Text>
-              </View>
-            </View>
-
-            <View
-              className="flex-row items-center justify-between my-5 gap-6"
-              pointerEvents="none"
-            >
-              <View className="flex-row items-center gap-2">
-                <IconBed size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.no_bedrooms} Bedrooms
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconBath size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.no_bathrooms} Bathrooms
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconArrowsMaximize size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.area_sqm} Sqm
-                </Text>
-              </View>
             </View>
 
             <View className="flex-row items-center gap-3" pointerEvents="none">
@@ -251,10 +205,20 @@ export default function ApartmentSummary() {
               </View>
             </View>
 
-            <View className="mt-5 mb-10" pointerEvents="none">
+            <View
+              className="mt-5 mb-10 flex-row items-center justify-between gap-4"
+              pointerEvents="none"
+            >
               <Text className="text-secondary-foreground font-nunitoBold text-2xl">
                 {formattedMonthlyRent}/month
               </Text>
+
+              <View className="flex-row items-center gap-2">
+                <IconStarFilled size={20} color={colors.secondary} />
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
+                  {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
+                </Text>
+              </View>
             </View>
           </View>
 
