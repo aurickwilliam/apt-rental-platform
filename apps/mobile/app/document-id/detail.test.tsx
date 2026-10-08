@@ -7,12 +7,14 @@ const mockDocument = {
   user_id: "user-1",
   doc_type: "Proof of Residency",
   storage_path: "user-1/passport/residency.pdf",
-  storage_path_back: null,
+  storage_path_back: null as string | null,
+  mime_type: "application/pdf" as string | null,
+  rejection_reason: null as string | null,
   verification_id: null as string | null,
   is_primary: false,
   is_verified: false,
-  review_status: "unverified",
-  expires_at: null,
+  review_status: "unverified" as string,
+  expires_at: null as string | null,
   created_at: "2026-10-03T00:00:00.000Z",
 };
 
@@ -22,6 +24,15 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("expo-image", () => ({ Image: () => null }));
+jest.mock("@/components/display/PdfThumbnail", () => ({
+  __esModule: true,
+  default: () => {
+    const React = jest.requireActual<typeof import("react")>("react");
+    const { View } =
+      jest.requireActual<typeof import("react-native")>("react-native");
+    return React.createElement(View, { testID: "pdf-thumbnail" });
+  },
+}));
 jest.mock("react-native-image-viewing", () => () => null);
 
 jest.mock("@/components/layout/ScreenWrapper", () => {
@@ -49,7 +60,7 @@ jest.mock("@/components/display/ErrorDialog", () => ({
 
 jest.mock("@/hooks/useTheme", () => ({
   useColors: () => ({
-    colors: { primary: "#376BF5", gray400: "#9CA3AF", success: "#22C55E" },
+    colors: { primary: "#376BF5", gray400: "#9CA3AF", success: "#22C55E", danger: "#EF4444" },
   }),
 }));
 jest.mock("@/hooks/passport", () => ({
@@ -63,7 +74,13 @@ jest.mock("@/hooks/passport", () => ({
   }),
 }));
 jest.mock("@/hooks/applications", () => ({
-  useDocumentUrls: () => ({ resolved: [], loading: false }),
+  useDocumentUrls: () => ({
+    resolved: [
+      { signedUrl: "https://signed.test/front" },
+      { signedUrl: "https://signed.test/back" },
+    ],
+    loading: false,
+  }),
 }));
 
 jest.mock("heroui-native", () => {
@@ -72,7 +89,21 @@ jest.mock("heroui-native", () => {
     jest.requireActual<typeof import("react-native")>("react-native");
   const Passthrough = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
-  const Button = Passthrough as typeof Passthrough & {
+  const ButtonBase = ({
+    children,
+    isDisabled,
+    accessibilityLabel,
+  }: {
+    children?: React.ReactNode;
+    isDisabled?: boolean;
+    accessibilityLabel?: string;
+  }) =>
+    React.createElement(
+      View,
+      { accessibilityLabel, accessibilityState: { disabled: !!isDisabled } },
+      children,
+    );
+  const Button = ButtonBase as typeof ButtonBase & {
     Label: ({ children }: { children?: React.ReactNode }) => React.ReactNode;
   };
   Button.Label = function ButtonLabel({ children }: { children?: React.ReactNode }) {
@@ -143,4 +174,102 @@ it("uses a soft warning chip and an in-body banner during review", () => {
   } finally {
     mockDocument.review_status = "unverified";
   }
+});
+
+function withDocument(patch: Partial<typeof mockDocument>, run: () => void) {
+  const original = { ...mockDocument };
+  Object.assign(mockDocument, patch);
+  try {
+    run();
+  } finally {
+    Object.assign(mockDocument, original);
+  }
+}
+
+it("renders an inline PDF thumbnail for PDF documents", () => {
+  render(<PassportDocumentDetail />);
+
+  expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
+  expect(screen.getByText("Document preview")).toBeTruthy();
+});
+
+it("falls back to a file card for non-PDF, non-image files", () => {
+  withDocument(
+    {
+      storage_path: "user-1/passport/letter.docx",
+      mime_type:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    },
+    () => {
+      render(<PassportDocumentDetail />);
+
+      expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
+      expect(screen.getByText(/DOCX · Tap to open/)).toBeTruthy();
+    },
+  );
+});
+
+it("labels front and back only when a back image exists", () => {
+  render(<PassportDocumentDetail />);
+  expect(screen.queryByText("Front")).toBeNull();
+  expect(screen.queryByText("Back")).toBeNull();
+  screen.unmount();
+
+  withDocument({ storage_path_back: "user-1/passport/back.jpg" }, () => {
+    render(<PassportDocumentDetail />);
+    expect(screen.getByText("Front")).toBeTruthy();
+    expect(screen.getByText("Back")).toBeTruthy();
+  });
+});
+
+it("shows the uploaded date and 'No expiry' when there is no expiry date", () => {
+  render(<PassportDocumentDetail />);
+
+  expect(screen.getByText("Uploaded")).toBeTruthy();
+  expect(screen.getByText("Expiry date")).toBeTruthy();
+  expect(screen.getByText("No expiry")).toBeTruthy();
+});
+
+it("flags an expired document and disables verification", () => {
+  withDocument({ doc_type: "Payslip", expires_at: "2020-01-01" }, () => {
+    render(<PassportDocumentDetail />);
+
+    expect(screen.getByText("Expired document")).toBeTruthy();
+    expect(screen.getByText(/\(Expired\)/)).toBeTruthy();
+    expect(screen.getByText(/This document has expired/)).toBeTruthy();
+    expect(
+      screen.getByLabelText("Request document verification").props
+        .accessibilityState.disabled,
+    ).toBe(true);
+  });
+});
+
+it("shows Unverified, Rejected and Verified statuses with text", () => {
+  const original = mockDocument.doc_type;
+  mockDocument.doc_type = "Payslip";
+  render(<PassportDocumentDetail />);
+  mockDocument.doc_type = original;
+  expect(screen.getByText("Unverified")).toBeTruthy();
+  expect(screen.getByText("Request Verification")).toBeTruthy();
+  screen.unmount();
+
+  withDocument(
+    { doc_type: "Payslip", review_status: "rejected", rejection_reason: "Photo is blurry" },
+    () => {
+      render(<PassportDocumentDetail />);
+      expect(screen.getByText("Rejected")).toBeTruthy();
+      expect(screen.getByText("Photo is blurry")).toBeTruthy();
+      expect(screen.getByText("Request Review Again")).toBeTruthy();
+    },
+  );
+});
+
+it("hides the verify action once the document is verified", () => {
+  withDocument({ is_verified: true, review_status: "verified" }, () => {
+    render(<PassportDocumentDetail />);
+
+    expect(screen.getByText("Verified")).toBeTruthy();
+    expect(screen.queryByText("Request Verification")).toBeNull();
+    expect(screen.getByText("Delete Document")).toBeTruthy();
+  });
 });

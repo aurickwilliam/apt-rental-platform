@@ -5,14 +5,16 @@ import { Spinner } from "heroui-native";
 
 import { IconChevronRight, IconFileText } from "@tabler/icons-react-native";
 
+import PdfThumbnail from "@/components/display/PdfThumbnail";
 import { useColors } from "@/hooks/useTheme";
 
-import { getExtension, isImageUri } from "../utils/fileType";
+import { getExtension, isPdfDocument, isPreviewable } from "../utils/fileType";
 
 interface DocumentPreviewProps {
   docType: string;
   storagePath: string;
   signedUrl: string | null;
+  mimeType?: string | null;
   loading: boolean;
   onPress: () => void;
 }
@@ -21,14 +23,40 @@ export default function DocumentPreview({
   docType,
   storagePath,
   signedUrl,
+  mimeType,
   loading,
   onPress,
 }: DocumentPreviewProps) {
   const { colors } = useColors();
 
-  const showAsImage = signedUrl
-    ? isImageUri(signedUrl)
-    : isImageUri(storagePath);
+  const showAsImage = isPreviewable(mimeType, storagePath);
+  const showAsPdf = !showAsImage && isPdfDocument(mimeType, storagePath);
+
+  if (showAsPdf) {
+    return (
+      <TouchableOpacity
+        className="bg-surface border border-border rounded-3xl overflow-hidden"
+        activeOpacity={0.7}
+        onPress={onPress}
+        disabled={!signedUrl}
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${docType}`}
+      >
+        <View className="w-full bg-gray-100 items-center justify-center">
+          {loading || !signedUrl ? (
+            <View className="min-h-56 items-center justify-center">
+              <Spinner size="sm" color={colors.primary} />
+            </View>
+          ) : (
+            <PdfThumbnail
+              uri={signedUrl}
+              style={{ width: "100%", aspectRatio: 4 / 3 }}
+            />
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   if (showAsImage) {
     return (
@@ -41,8 +69,12 @@ export default function DocumentPreview({
         accessibilityLabel={`Open ${docType}`}
       >
         <View className="w-full bg-gray-100 min-h-56 items-center justify-center">
-          {loading || !signedUrl ? (
+          {loading ? (
             <Spinner size="sm" color={colors.primary} />
+          ) : !signedUrl ? (
+            <Text className="text-muted text-sm font-inter">
+              Preview unavailable
+            </Text>
           ) : (
             <Image
               source={{ uri: signedUrl }}
