@@ -4,12 +4,11 @@ import {
   fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
-  passportDocsForSlot,
   requestPassportDocumentReview,
   uploadPassportDocument,
   type PassportDocumentRow,
 } from './passportService';
-import { toExpiryDateString } from './expiry';
+import { toExpiryDateString } from '@repo/passport';
 
 const mockUpload = jest.fn();
 const mockRemove = jest.fn();
@@ -592,47 +591,5 @@ describe('fetchPassportVerifiedPaths', () => {
   it('returns an empty set without querying when there is nothing to check', async () => {
     await expect(fetchPassportVerifiedPaths('user-1', [])).resolves.toEqual(new Set());
     expect(mockFrom).not.toHaveBeenCalled();
-  });
-});
-
-describe('passportDocsForSlot', () => {
-  const verifiedId: PassportDocumentRow = {
-    ...baseRow,
-    id: 'doc-id',
-    doc_type: 'Passport',
-    storage_path: 'user-1/passport/passport-1.jpg',
-    id_type: 'Passport',
-    is_verified: true,
-    is_primary: true,
-  };
-  const otherVerifiedId: PassportDocumentRow = {
-    ...baseRow,
-    id: 'doc-id-2',
-    doc_type: 'National ID',
-    storage_path: 'user-1/passport/national-id-1.jpg',
-    id_type: 'National ID (PhilSys/PhilID)',
-    is_verified: true,
-    created_at: '2026-09-02T00:00:00.000Z',
-  };
-  const payslip: PassportDocumentRow = { ...baseRow, id: 'doc-pay' };
-  const birth: PassportDocumentRow = {
-    ...baseRow,
-    id: 'doc-birth',
-    doc_type: 'Birth Certificate',
-    storage_path: 'user-1/passport/birth-1.jpg',
-  };
-
-  it('matches any ID doc to the govId slot with the primary ID first', () => {
-    const matches = passportDocsForSlot([otherVerifiedId, payslip, birth, verifiedId], 'govId');
-    expect(matches.map((d) => d.id)).toEqual(['doc-id', 'doc-id-2']);
-  });
-
-  it('matches income-adjacent types to the proofOfIncome slot', () => {
-    const matches = passportDocsForSlot([birth, payslip, verifiedId], 'proofOfIncome');
-    expect(matches.map((d) => d.id)).toEqual(['doc-pay']);
-  });
-
-  it('matches nothing outside the slot taxonomy', () => {
-    expect(passportDocsForSlot([birth], 'nbiClearance')).toEqual([]);
   });
 });

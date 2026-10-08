@@ -2,6 +2,8 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // Shared pure logic is tested here because CI only runs the mobile suite.
+  roots: ['<rootDir>', '<rootDir>/../../packages/passport'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^components/(.*)$': '<rootDir>/components/$1',
