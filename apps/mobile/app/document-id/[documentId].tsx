@@ -322,7 +322,7 @@ export default function PassportDocumentDetail() {
               <Chip
                 variant="soft"
                 color="danger"
-                size="md"
+                size="sm"
                 style={statusChipSurface(danger)}
               >
                 <IconAlertTriangle size={14} color={danger.textColor} />
@@ -337,7 +337,7 @@ export default function PassportDocumentDetail() {
               <Chip
                 variant="soft"
                 color="default"
-                size="md"
+                size="sm"
                 style={statusChipSurface(neutral)}
               >
                 <IconShieldQuestion size={14} color={neutral.textColor} />

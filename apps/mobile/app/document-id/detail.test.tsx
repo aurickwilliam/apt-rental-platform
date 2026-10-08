@@ -146,7 +146,7 @@ it("explains auto-linked verified IDs without repeating the message", () => {
     render(<PassportDocumentDetail />);
 
     expect(screen.getByTestId("document-type-icon")).toBeTruthy();
-     expect(screen.getByTestId("status-chip-soft-success-md")).toBeTruthy();
+     expect(screen.getByTestId("status-chip-soft-success-sm")).toBeTruthy();
     expect(
       screen.getAllByText(
         "This ID is linked to your approved account verification and is managed automatically.",
@@ -167,7 +167,7 @@ it("uses a soft warning chip and an in-body banner during review", () => {
     render(<PassportDocumentDetail />);
 
     expect(screen.getByText("Under review")).toBeTruthy();
-    expect(screen.getByTestId("status-chip-soft-warning-md")).toBeTruthy();
+    expect(screen.getByTestId("status-chip-soft-warning-sm")).toBeTruthy();
     expect(screen.getByText("Under admin review")).toBeTruthy();
     expect(screen.queryByText("Delete Document")).toBeNull();
     expect(screen.queryByText(/You can delete it once/)).toBeNull();
@@ -190,7 +190,7 @@ it("renders an inline PDF thumbnail for PDF documents", () => {
   render(<PassportDocumentDetail />);
 
   expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
-  expect(screen.getByText("Document preview")).toBeTruthy();
+  expect(screen.getByText("Document Preview")).toBeTruthy();
 });
 
 it("falls back to a file card for non-PDF, non-image files", () => {

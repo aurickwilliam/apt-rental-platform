@@ -267,6 +267,41 @@ Follow DESIGN.md §22 (Before Creating a New Component — Checklist) for the fu
 - Preserve backwards compatibility whenever possible.
 - Content/visual decisions: follow DESIGN.md §25 (AI Working Rules).
 
+## Continuous Plan Execution
+
+When asked to implement any Markdown plan file, such as PLAN.md, FIX_PLAN.md, IMPLEMENTATION_PLAN.md, REFACTOR_PLAN.md, or similar:
+
+1. Treat the entire plan as one continuous task.
+2. Complete all unfinished, feasible tasks.
+3. Do not stop after one task, phase, or section.
+4. After completing one item, immediately continue to the next.
+5. Do not ask "Should I continue?" between tasks.
+6. Continue until all implementable tasks are completed and verified.
+7. Ask questions only when genuinely blocked by a decision, missing requirement, permission, credential, or external dependency.
+8. Prefer concise multiple-choice questions when appropriate, with the recommended option first.
+9. Questions are temporary interruptions. After the user answers, immediately resume the remaining plan.
+10. If a safe choice can be inferred from the repository, conventions, documentation, or surrounding code, make that decision yourself.
+11. Do not leave TODOs, placeholders, mocks, or incomplete work that can reasonably be finished now.
+12. Inspect existing code before modifying it and preserve working behavior unless the plan requires otherwise.
+13. Follow repository instructions, architecture, and coding conventions.
+14. Run relevant type checks, linting, tests, builds, and project-specific verification.
+15. Fix errors introduced by the implementation before finishing.
+16. Re-read the entire plan before declaring completion and confirm no feasible unfinished tasks remain.
+
+Only stop when:
+- every feasible task is completed and verified, or
+- progress is genuinely blocked by user input or an external dependency.
+
+Progress updates are allowed, but they must not interrupt implementation.
+
+### End-of-Implementation Summary
+
+After every implementation (plan-driven or not), finish with a short summary in simple, plain language:
+
+- What was done, in everyday terms (avoid jargon; explain any unavoidable technical term).
+- What was verified (tests, lint, type checks) and the result, including anything that failed or was skipped.
+- Anything left undone or blocked, and why.
+
 ## When Modifying Existing Code
 
 Before editing:
