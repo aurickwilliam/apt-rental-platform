@@ -20,7 +20,7 @@ import StandardHeader from '@/components/layout/StandardHeader';
 import DetailField from '@/components/display/DetailField';
 import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
-import DetailSection from '@/components/display/DetailSection';
+import DetailSection from './components/DetailSection';
 import TenantSummaryCard from './components/TenantSummaryCard';
 import ApplicationDecisionBar from './components/ApplicationDecisionBar';
 import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
