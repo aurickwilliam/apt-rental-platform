@@ -166,7 +166,9 @@ export async function insertTenantApplication(
     if (error.message.includes("unique_active_application_per_tenant_apartment")) {
       throw new Error("You already have an active application for this apartment.");
     }
-    throw error;
+    // Rule violations (unverified account, expired document, ...) carry a
+    // user-facing message; a bare PostgrestError is not an Error instance.
+    throw new Error(error.message);
   }
 
   return { id: data.id };
