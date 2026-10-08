@@ -1,4 +1,7 @@
-import { buildNotificationDeepLink } from "./notificationDeepLink";
+import {
+  buildNotificationDeepLink,
+  getWebOnlyNotificationNotice,
+} from "./notificationDeepLink";
 
 const USER_ID = "user-1";
 
@@ -222,6 +225,46 @@ describe("buildNotificationDeepLink", () => {
         USER_ID,
         null,
       )).toBeNull();
+    });
+  });
+
+  describe("application", () => {
+    it("routes landlords to the submitted application", () => {
+      expect(buildNotificationDeepLink(
+        { screen: "application", applicationId: "app-1", apartmentId: "apt-1" },
+        USER_ID,
+        "landlord",
+      )).toBe("/landlord/tenant-applications/app-1");
+    });
+
+    it("does not route tenants, missing ids or recipients without a portal role", () => {
+      const data = { screen: "application", applicationId: "app-1" };
+      expect(buildNotificationDeepLink(data, USER_ID, "tenant")).toBeNull();
+      expect(buildNotificationDeepLink(data, USER_ID, null)).toBeNull();
+      expect(buildNotificationDeepLink({ screen: "application" }, USER_ID, "landlord")).toBeNull();
+    });
+  });
+
+  describe("passportReview (admin, web only)", () => {
+    const data = { screen: "passportReview", documentId: "doc-1" };
+
+    it("never navigates, whatever role the admin is acting as", () => {
+      for (const role of ["tenant", "landlord", null]) {
+        expect(buildNotificationDeepLink(data, USER_ID, role)).toBeNull();
+      }
+    });
+
+    it("explains that the review happens on the web admin portal", () => {
+      expect(getWebOnlyNotificationNotice(data)).toEqual({
+        label: "Review on the web",
+        description: "Passport documents are reviewed in the admin portal on the web.",
+      });
+    });
+
+    it("has no notice for ordinary screens or bad payloads", () => {
+      expect(getWebOnlyNotificationNotice({ screen: "passport", documentId: "doc-1" })).toBeNull();
+      expect(getWebOnlyNotificationNotice(null)).toBeNull();
+      expect(getWebOnlyNotificationNotice("passportReview")).toBeNull();
     });
   });
 });
