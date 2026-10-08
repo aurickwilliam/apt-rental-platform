@@ -7,9 +7,9 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
@@ -47,15 +47,24 @@ export default function ApartmentSummary() {
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
   const hasShownGuidelines = useRef(false);
 
+  // The sheet renders through a global portal, so it must only be open while
+  // this screen is in front — a stacked or leaving screen must never show it.
+  const [isFocused, setIsFocused] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocused(true);
+      return () => setIsFocused(false);
+    }, []),
+  );
   const isApartmentReady = !loading && !error && !!apartment;
   useEffect(() => {
-    if (!isApartmentReady || hasShownGuidelines.current) return;
+    if (!isFocused || !isApartmentReady || hasShownGuidelines.current) return;
     const timer = setTimeout(() => {
       hasShownGuidelines.current = true;
       setIsGuidelinesOpen(true);
     }, GUIDELINES_OPEN_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [isApartmentReady]);
+  }, [isFocused, isApartmentReady]);
   const { setApartmentContext } = useApplicationFormStore();
   const readiness = useApplicationReadiness(apartmentId, apartment?.landlord?.id ?? null);
 
@@ -279,7 +288,7 @@ export default function ApartmentSummary() {
         </LinearGradient>
 
         <ApplicationGuidelinesSheet
-          isOpen={isGuidelinesOpen}
+          isOpen={isGuidelinesOpen && isFocused}
           onOpenChange={setIsGuidelinesOpen}
         />
 

@@ -1,5 +1,6 @@
 import { View } from 'react-native';
-import { SkeletonGroup, Separator } from 'heroui-native';
+import type { ReactNode } from 'react';
+import { SkeletonGroup } from 'heroui-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -9,6 +10,15 @@ function SkeletonRow({ widths }: { widths: [string, string] }) {
     <View className="flex-row gap-3">
       <SkeletonGroup.Item className={`h-10 ${widths[0]} rounded-lg`} />
       <SkeletonGroup.Item className={`h-10 ${widths[1]} rounded-lg`} />
+    </View>
+  );
+}
+
+function SectionCard({ titleClass, children }: { titleClass: string; children: ReactNode }) {
+  return (
+    <View className="bg-surface border border-border rounded-3xl p-4 gap-4">
+      <SkeletonGroup.Item className={`h-6 ${titleClass} rounded-md`} />
+      {children}
     </View>
   );
 }
@@ -30,7 +40,7 @@ export default function TenantApplicationDetailsSkeleton() {
           </View>
 
           {/* Tenant summary card */}
-          <SkeletonGroup isLoading className="flex-row items-center gap-3 border border-border rounded-xl p-4">
+          <SkeletonGroup isLoading className="flex-row items-center gap-3 bg-surface border border-border rounded-3xl p-4">
             <SkeletonGroup.Item className="h-12 w-12 rounded-full" />
             <View className="flex-1 gap-1.5">
               <SkeletonGroup.Item className="h-4 w-36 rounded-md" />
@@ -40,57 +50,39 @@ export default function TenantApplicationDetailsSkeleton() {
             <SkeletonGroup.Item className="h-7 w-20 rounded-full" />
           </SkeletonGroup>
 
-          {/* Application details section */}
-          <View className="gap-3">
-            <SkeletonGroup.Item className="h-6 w-44 rounded-md" />
+          {/* Application / Employment cards */}
+          <SectionCard titleClass="w-44">
             <SkeletonRow widths={['flex-1', 'flex-1']} />
             <SkeletonRow widths={['flex-1', 'flex-1']} />
-          </View>
-
-          <Separator className="my-3" />
-
-          {/* Employment section */}
-          <View className="gap-3">
-            <SkeletonGroup.Item className="h-6 w-32 rounded-md" />
+          </SectionCard>
+          <SectionCard titleClass="w-32">
             <SkeletonRow widths={['flex-1', 'flex-1']} />
             <SkeletonRow widths={['flex-1', 'flex-1']} />
-          </View>
+          </SectionCard>
 
-          <Separator className="my-3" />
-
-          {/* Preferences section */}
-          <View className="gap-3">
-            <SkeletonGroup.Item className="h-6 w-28 rounded-md" />
+          {/* Preferences card */}
+          <SectionCard titleClass="w-28">
             <SkeletonRow widths={['flex-1', 'flex-1']} />
             <SkeletonGroup.Item className="h-10 w-1/2 rounded-lg" />
-          </View>
+          </SectionCard>
 
-          <Separator className="my-3" />
-
-          {/* Previous landlord section */}
-          <View className="gap-3">
-            <SkeletonGroup.Item className="h-6 w-40 rounded-md" />
+          {/* Previous landlord card */}
+          <SectionCard titleClass="w-40">
             <SkeletonRow widths={['flex-1', 'flex-1']} />
-          </View>
+          </SectionCard>
 
-          <Separator className="my-3" />
-
-          {/* Documents section */}
-          <View className="gap-3">
-            <SkeletonGroup.Item className="h-6 w-28 rounded-md" />
+          {/* Documents card */}
+          <SectionCard titleClass="w-28">
             {[...Array(4)].map((_, i) => (
               <SkeletonGroup.Item key={i} className="h-14 w-full rounded-xl" />
             ))}
-          </View>
+          </SectionCard>
 
-          <Separator className="my-3" />
-
-          {/* Message section */}
-          <View className="gap-2">
-            <SkeletonGroup.Item className="h-6 w-48 rounded-md" />
+          {/* Message card */}
+          <SectionCard titleClass="w-48">
             <SkeletonGroup.Item className="h-4 w-full rounded-md" />
             <SkeletonGroup.Item className="h-4 w-4/5 rounded-md" />
-          </View>
+          </SectionCard>
         </View>
       </SkeletonGroup>
     </ScreenWrapper>
