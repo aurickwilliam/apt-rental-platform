@@ -76,6 +76,7 @@ const govId: PassportDocumentRow = {
   storage_path: 'tenant-1/ver-1/id-front.jpg',
   id_type: 'Passport',
   verification_id: 'ver-1',
+  storage_path_back: 'tenant-1/ver-1/id-back.jpg',
   is_primary: true,
   is_verified: true,
 }
@@ -118,12 +119,24 @@ it('attaches passport documents by reference without uploading', async () => {
     expect.objectContaining({
       gov_id_url: 'tenant-1/ver-1/id-front.jpg',
       proof_of_billing_url: 'tenant-1/passport/residency.pdf',
+      gov_id_back_url: 'tenant-1/ver-1/id-back.jpg',
       proof_of_income_url: null,
       nbi_clearance_url: null,
       status: 'pending',
     })
   )
   expect(mockResetForm).toHaveBeenCalled()
+})
+
+it('omits the ID back when the attached ID is not verification-linked', async () => {
+  mockFetchPassport.mockResolvedValue([
+    { ...govId, verification_id: null, storage_path_back: 'tenant-1/passport/back.jpg' },
+    billing,
+  ])
+  const insert = mockApartment('landlord-1')
+
+  expect(await submitApplication()).toEqual({ success: true })
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ gov_id_back_url: null }))
 })
 
 it('rejects an own-property application', async () => {

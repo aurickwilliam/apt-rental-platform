@@ -45,16 +45,17 @@ function isSensitiveBucket(bucket: PrivateMediaBucket): boolean {
 }
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-const VERIFIED_ID_FRONT_PATH = new RegExp(`^${UUID}/${UUID}/id-front\\.(jpe?g|png|webp)$`, 'i');
+const VERIFIED_ID_PATH = new RegExp(`^${UUID}/${UUID}/id-(front|back)\\.(jpe?g|png|webp)$`, 'i');
 
 /**
- * True for the ID front capture of an account verification
- * (`{users.id}/{verification id}/id-front.*` in `user-verification`).
+ * True for the ID front or back capture of an account verification
+ * (`{users.id}/{verification id}/id-front|id-back.*` in `user-verification`).
+ * The selfie never matches.
  * Application and passport uploads never use that shape, so this decides the
  * bucket without probing.
  */
-export function isVerifiedIdFrontPath(path: string): boolean {
-  return VERIFIED_ID_FRONT_PATH.test(path);
+export function isVerifiedIdPath(path: string): boolean {
+  return VERIFIED_ID_PATH.test(path);
 }
 
 function uniquePaths(paths: readonly string[]): string[] {
@@ -141,7 +142,7 @@ export async function resolvePrivateMediaUrls(
 }
 
 /**
- * Resolves rental-application document paths. A verified ID front (attached
+ * Resolves rental-application document paths. A verified ID front/back (attached
  * from the APT Passport) is signed from `user-verification`; every other path
  * from `application-documents`. Routing is by path shape, never by trial.
  */
@@ -149,8 +150,8 @@ export async function resolveApplicationDocumentUrls(
   paths: readonly string[]
 ): Promise<PrivateMediaResolution> {
   const unique = uniquePaths(paths);
-  const verifiedIds = unique.filter(isVerifiedIdFrontPath);
-  const documents = unique.filter((path) => !isVerifiedIdFrontPath(path));
+  const verifiedIds = unique.filter(isVerifiedIdPath);
+  const documents = unique.filter((path) => !isVerifiedIdPath(path));
 
   const [documentResult, idResult] = await Promise.all([
     resolvePrivateMediaUrls('application-documents', documents),

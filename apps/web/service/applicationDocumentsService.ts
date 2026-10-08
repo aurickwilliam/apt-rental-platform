@@ -12,11 +12,11 @@ export const VERIFICATION_BUCKET = "user-verification";
 export const VERIFICATION_ID_SIGNED_URL_TTL_SECONDS = 15 * 60;
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const VERIFIED_ID_FRONT_PATH = new RegExp(`^${UUID}/${UUID}/id-front\\.(jpe?g|png|webp)$`, "i");
+const VERIFIED_ID_PATH = new RegExp(`^${UUID}/${UUID}/id-(front|back)\\.(jpe?g|png|webp)$`, "i");
 
-/** `{users.id}/{verification id}/id-front.*` — never an application upload shape. */
-export function isVerifiedIdFrontPath(path: string): boolean {
-  return VERIFIED_ID_FRONT_PATH.test(path);
+/** `{users.id}/{verification id}/id-front|id-back.*` — never an application upload shape; the selfie never matches. */
+export function isVerifiedIdPath(path: string): boolean {
+  return VERIFIED_ID_PATH.test(path);
 }
 
 const MIME_MAP: Record<string, string> = {
@@ -79,12 +79,12 @@ export async function resolveApplicationDocumentUrls(
     {
       bucket: APPLICATION_DOCUMENTS_BUCKET,
       ttl: APPLICATION_DOCUMENT_SIGNED_URL_TTL_SECONDS,
-      paths: unique.filter((path) => !isVerifiedIdFrontPath(path)),
+      paths: unique.filter((path) => !isVerifiedIdPath(path)),
     },
     {
       bucket: VERIFICATION_BUCKET,
       ttl: VERIFICATION_ID_SIGNED_URL_TTL_SECONDS,
-      paths: unique.filter(isVerifiedIdFrontPath),
+      paths: unique.filter(isVerifiedIdPath),
     },
   ];
 
@@ -138,15 +138,21 @@ export async function fetchPassportVerifiedPaths(
   if (!tenantId || unique.length === 0) return new Set();
 
   const supabase = createClient();
+  // The tenant's verified rows are few; filtering locally lets a verified ID
+  // badge both its front (`storage_path`) and back (`storage_path_back`).
   const { data, error } = await supabase
     .from("passport_documents")
-    .select("storage_path")
+    .select("storage_path, storage_path_back")
     .eq("user_id", tenantId)
-    .in("storage_path", unique)
     .eq("is_verified", true);
 
   if (error) return new Set();
-  return new Set(
-    ((data ?? []) as { storage_path: string }[]).map((row) => row.storage_path),
-  );
+  const requested = new Set(unique);
+  const verified = new Set<string>();
+  for (const row of (data ?? []) as { storage_path: string; storage_path_back: string | null }[]) {
+    for (const path of [row.storage_path, row.storage_path_back]) {
+      if (path && requested.has(path)) verified.add(path);
+    }
+  }
+  return verified;
 }

@@ -49,6 +49,9 @@ export default function TenantApplicationDetails() {
 
   const docEntries = application ? [
     { label: 'Government ID',    path: application.gov_id_url },
+    ...(application.gov_id_back_url
+      ? [{ label: 'Government ID (Back)', path: application.gov_id_back_url }]
+      : []),
     { label: 'Proof of Income',  path: application.proof_of_income_url },
     { label: 'Proof of Billing', path: application.proof_of_billing_url },
     { label: 'NBI Clearance',    path: application.nbi_clearance_url },

@@ -560,8 +560,13 @@ describe('fetchPassportVerifiedPaths', () => {
           chainable({
             eq: jest.fn().mockResolvedValue({
               data: [
-                { storage_path: 'user-1/passport/national-id-1.jpg', expires_at: null },
-                { storage_path: 'user-1/passport/expired.jpg', expires_at: '2020-01-01' },
+                {
+                  storage_path: 'user-1/passport/national-id-1.jpg',
+                  storage_path_back: 'user-1/passport/national-id-1-back.jpg',
+                  expires_at: null,
+                },
+                { storage_path: 'user-1/passport/expired.jpg', storage_path_back: null, expires_at: '2020-01-01' },
+                { storage_path: 'user-1/passport/unrequested.jpg', storage_path_back: null, expires_at: null },
               ],
               error: null,
             }),
@@ -572,11 +577,14 @@ describe('fetchPassportVerifiedPaths', () => {
 
     const verified = await fetchPassportVerifiedPaths('user-1', [
       'user-1/passport/national-id-1.jpg',
+      'user-1/passport/national-id-1-back.jpg',
       'user-1/passport/expired.jpg',
       'user-1/passport/other.jpg',
     ]);
 
     expect(verified.has('user-1/passport/national-id-1.jpg')).toBe(true);
+    expect(verified.has('user-1/passport/national-id-1-back.jpg')).toBe(true);
+    expect(verified.has('user-1/passport/unrequested.jpg')).toBe(false);
     expect(verified.has('user-1/passport/expired.jpg')).toBe(false);
     expect(verified.has('user-1/passport/other.jpg')).toBe(false);
   });

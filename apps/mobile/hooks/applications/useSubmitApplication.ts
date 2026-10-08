@@ -107,6 +107,8 @@ export function useSubmitApplication() {
           need_parking: rentalPreferences.needParking ?? false,
           message: rentalPreferences.additionalNotes || null,
           gov_id_url: docs.govId.storage_path,
+          // Only a verification-linked ID has a back capture to share.
+          gov_id_back_url: docs.govId.verification_id ? docs.govId.storage_path_back : null,
           proof_of_income_url: docs.proofOfIncome?.storage_path ?? null,
           proof_of_billing_url: docs.proofOfBilling.storage_path,
           nbi_clearance_url: docs.nbiClearance?.storage_path ?? null,

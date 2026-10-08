@@ -50,17 +50,19 @@ const APPLICATION_SELECT = `id, status, created_at, rejected_reason, apartment_i
   occupation, employer_name, monthly_income, employment_type,
   prev_landlord_name, prev_landlord_contact,
   move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
-  gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
+  gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
   apartments(name, monthly_rent, street_address, barangay, city, province, zip_code, apartment_images(url, is_cover))`;
 
 type ApplicationDocumentPathKey =
   | "gov_id_url"
+  | "gov_id_back_url"
   | "proof_of_income_url"
   | "proof_of_billing_url"
   | "nbi_clearance_url";
 
 const DOCUMENT_DEFINITIONS: { label: string; pathKey: ApplicationDocumentPathKey }[] = [
   { label: "Government ID", pathKey: "gov_id_url" },
+  { label: "Government ID (Back)", pathKey: "gov_id_back_url" },
   { label: "Proof of Income", pathKey: "proof_of_income_url" },
   { label: "Proof of Billing", pathKey: "proof_of_billing_url" },
   { label: "NBI Clearance", pathKey: "nbi_clearance_url" },

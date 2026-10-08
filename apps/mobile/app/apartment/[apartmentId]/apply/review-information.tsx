@@ -285,7 +285,7 @@ export default function ReviewInformation() {
                 {(Object.keys(APPLICATION_SLOT_LABELS) as (keyof typeof APPLICATION_SLOT_LABELS)[]).map((slot) => {
                   const doc = readiness.selection.docs[slot];
                   const value = doc
-                    ? `${doc.doc_type}${doc.is_verified ? " · Verified" : ""}`
+                    ? `${doc.doc_type}${slot === "govId" && doc.verification_id && doc.storage_path_back ? " (front & back)" : ""}${doc.is_verified ? " · Verified" : ""}`
                     : slot === "nbiClearance"
                       ? "Not provided (optional)"
                       : "Missing";

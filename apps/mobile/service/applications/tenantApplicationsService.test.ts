@@ -34,6 +34,7 @@ const applicationRow = {
   need_parking: false,
   message: null,
   gov_id_url: "tenant/shared-document.jpg",
+  gov_id_back_url: null as string | null,
   proof_of_income_url: "tenant/shared-document.jpg",
   proof_of_billing_url: null,
   nbi_clearance_url: null,
@@ -88,6 +89,35 @@ describe("fetchTenantApplications", () => {
       occupation: "Engineer",
     });
     expect("gov_id_url" in applications[0]!).toBe(false);
+  });
+
+  it("lists the ID back as its own document when the application has one", async () => {
+    mockFrom.mockReturnValue(
+      (() => {
+        const query = createApplicationsQuery();
+        query.order.mockResolvedValue({
+          data: [{ ...applicationRow, gov_id_back_url: "tenant/ver/id-back.jpg" }],
+          error: null,
+        });
+        return query;
+      })(),
+    );
+    mockResolvePrivateMediaUrls.mockResolvedValue({
+      urls: {
+        "tenant/shared-document.jpg": "https://signed.example.test/document.jpg",
+        "tenant/ver/id-back.jpg": "https://signed.example.test/back.jpg",
+      },
+      error: null,
+    });
+
+    const applications = await fetchTenantApplications("tenant-1");
+
+    expect(applications[0]?.documents.map((doc) => doc.label)).toEqual([
+      "Government ID",
+      "Government ID (Back)",
+      "Proof of Income",
+    ]);
+    expect("gov_id_back_url" in applications[0]!).toBe(false);
   });
 
   it("degrades gracefully when the resolver reports an error", async () => {

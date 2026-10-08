@@ -350,20 +350,29 @@ export async function fetchPassportVerifiedPaths(
   const unique = [...new Set(paths.filter(Boolean))]
   if (!userId || unique.length === 0) return new Set()
 
+  // The tenant's verified rows are few; filtering locally lets a verified ID
+  // badge both its front (`storage_path`) and back (`storage_path_back`).
   const { data, error } = await supabase
     .from('passport_documents')
-    .select('storage_path, expires_at')
+    .select('storage_path, storage_path_back, expires_at')
     .eq('user_id', userId)
-    .in('storage_path', unique)
     .eq('is_verified', true)
 
   if (error) throw error
+  const requested = new Set(unique)
+  const verified = new Set<string>()
   // An expired document no longer counts as verified for landlords.
-  return new Set(
-    ((data ?? []) as { storage_path: string; expires_at: string | null }[])
-      .filter((row) => !isExpiredDate(row.expires_at))
-      .map((row) => row.storage_path)
-  )
+  for (const row of (data ?? []) as {
+    storage_path: string
+    storage_path_back: string | null
+    expires_at: string | null
+  }[]) {
+    if (isExpiredDate(row.expires_at)) continue
+    for (const path of [row.storage_path, row.storage_path_back]) {
+      if (path && requested.has(path)) verified.add(path)
+    }
+  }
+  return verified
 }
 
 /**

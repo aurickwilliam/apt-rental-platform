@@ -15,7 +15,7 @@ import {
   PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
   SENSITIVE_MEDIA_CACHE_TTL_MS,
   SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS,
-  isVerifiedIdFrontPath,
+  isVerifiedIdPath,
   resolveApplicationDocumentUrls,
   clearPrivateMediaUrlCache,
   refreshVisibleChatMediaUrls,
@@ -193,12 +193,12 @@ describe('verified ID media', () => {
     jest.restoreAllMocks();
   });
 
-  it('only treats the ID front capture as a verified ID path', () => {
-    expect(isVerifiedIdFrontPath(idFront)).toBe(true);
-    expect(isVerifiedIdFrontPath(`${USER}/${VERIFICATION}/id-back.jpg`)).toBe(false);
-    expect(isVerifiedIdFrontPath(`${USER}/${VERIFICATION}/selfie.jpg`)).toBe(false);
-    expect(isVerifiedIdFrontPath(`${USER}/passport/id-front.jpg`)).toBe(false);
-    expect(isVerifiedIdFrontPath(`${USER}/${VERIFICATION}/govId-1700000000.jpg`)).toBe(false);
+  it('treats the ID front and back as verified ID paths, never the selfie', () => {
+    expect(isVerifiedIdPath(idFront)).toBe(true);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/id-back.jpg`)).toBe(true);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/selfie.jpg`)).toBe(false);
+    expect(isVerifiedIdPath(`${USER}/passport/id-front.jpg`)).toBe(false);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/govId-1700000000.jpg`)).toBe(false);
   });
 
   it('routes each path to its own bucket without probing', async () => {
