@@ -10,6 +10,11 @@ export {
   type ApplicationReadinessInput,
 } from './readiness'
 export {
+  PASSPORT_DOCUMENT_STATUS_LABELS,
+  getPassportDocumentStatus,
+  type PassportDocumentStatus,
+} from './status'
+export {
   passportDocsForSlot,
   selectPassportDocsForApplication,
   type PassportApplicationSelection,

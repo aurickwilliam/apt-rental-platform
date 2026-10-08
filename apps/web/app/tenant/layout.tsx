@@ -9,6 +9,7 @@ const TENANT_NAV = [
   { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
   { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
+  { href: "/tenant/passport", label: "APT Passport", icon: "FileCheck" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
 ] as const;
 
