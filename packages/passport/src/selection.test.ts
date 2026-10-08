@@ -1,4 +1,4 @@
-import { passportDocsForSlot, type PassportSlotDocument } from './selection'
+import { getPassportSlotStates, passportDocsForSlot, type PassportSlotDocument } from './selection'
 
 interface TestDoc extends PassportSlotDocument {
   id: string
@@ -47,5 +47,25 @@ describe('passportDocsForSlot', () => {
 
   it('matches nothing outside the slot taxonomy', () => {
     expect(passportDocsForSlot([birth], 'nbiClearance')).toEqual([])
+  })
+})
+
+describe('getPassportSlotStates', () => {
+  const billing: TestDoc = { ...baseDoc, id: 'bill', doc_type: 'Proof of Residency' }
+
+  it('reports ready, expired and missing slots regardless of requirements', () => {
+    const states = getPassportSlotStates([
+      baseDoc,
+      { ...billing, expires_at: '2020-01-01' },
+    ])
+    expect(states.proofOfIncome).toEqual({ doc: baseDoc, state: 'ready' })
+    expect(states.proofOfBilling.state).toBe('expired')
+    expect(states.proofOfBilling.doc).toBeNull()
+    expect(states.nbiClearance).toEqual({ doc: null, state: 'missing' })
+  })
+
+  it('never counts rejected documents', () => {
+    const states = getPassportSlotStates([{ ...billing, review_status: 'rejected' }])
+    expect(states.proofOfBilling.state).toBe('missing')
   })
 })
