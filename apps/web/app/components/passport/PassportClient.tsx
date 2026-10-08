@@ -1,17 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Button, Spinner, buttonVariants } from "@heroui/react";
-import { IconFileUpload, IconPlus } from "@tabler/icons-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button, Card, toast } from "@heroui/react";
+import { IconFileUpload, IconLayoutGrid, IconLayoutList, IconPlus } from "@tabler/icons-react";
 
 import { getPassportDocumentStatus } from "@repo/passport";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
-import { usePassportDocuments } from "@/hooks/use-passport-documents";
+import { usePassportDocuments, type PassportDocumentRow } from "@/hooks/use-passport-documents";
 
-import PassportDocumentCard from "./PassportDocumentCard";
+import AddDocumentModal from "./AddDocumentModal";
+import PassportDocumentCard, { type PassportDocumentLayout } from "./PassportDocumentCard";
+import { PassportPageHeader, PassportPageShell } from "./PassportPageLayout";
+import PassportReadinessCard from "./PassportReadinessCard";
+import { PassportWalletSkeleton } from "./PassportSkeleton";
 import ValidIdCard from "./ValidIdCard";
 
 interface PassportClientProps {
@@ -20,19 +24,34 @@ interface PassportClientProps {
   basePath: string;
 }
 
-function AddDocumentLink({ basePath, label = "Add a Document" }: { basePath: string; label?: string }) {
-  return (
-    <Link href={`${basePath}/add`} className={buttonVariants({ variant: "primary" })}>
-      <IconPlus size={18} aria-hidden="true" />
-      {label}
-    </Link>
-  );
-}
+/** `?add=1` opens the type picker; `?add=<type>` opens the upload step. */
+const ADD_PARAM = "add";
+const ADD_PICKER_VALUE = "1";
 
 export default function PassportClient({ userId, basePath }: PassportClientProps) {
-  const { documents, loading, error, refresh } = usePassportDocuments(userId);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { documents, loading, error, refresh, addDocument } = usePassportDocuments(userId);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [layout, setLayout] = useState<PassportDocumentLayout>("grid");
+
+  const addParam = searchParams.get(ADD_PARAM);
+  const isAddOpen = addParam !== null;
+  const addDocType = addParam && addParam !== ADD_PICKER_VALUE ? addParam : null;
+
+  const addHref = (docType: string | null) =>
+    `${basePath}?${ADD_PARAM}=${docType ? encodeURIComponent(docType) : ADD_PICKER_VALUE}`;
+  // Opening pushes a history entry so Back closes the modal; steps replace it.
+  const openAdd = (docType: string | null = null) => router.push(addHref(docType), { scroll: false });
+  const selectAddType = (docType: string | null) => router.replace(addHref(docType), { scroll: false });
+  const closeAdd = () => router.replace(basePath, { scroll: false });
+
+  const handleUploaded = (row: PassportDocumentRow) => {
+    addDocument(row);
+    closeAdd();
+    toast.success(`${row.doc_type} added`);
+  };
 
   const primaryId = useMemo(
     () =>
@@ -61,115 +80,167 @@ export default function PassportClient({ userId, basePath }: PassportClientProps
     [supportingDocs],
   );
   const { resolved: resolvedId, loading: idLoading } = useApplicationDocumentUrls(idEntries);
-  const { resolved: resolvedDocs, loading: docsLoading } = useApplicationDocumentUrls(supportingEntries);
+  const { resolved: resolvedDocs } = useApplicationDocumentUrls(supportingEntries);
 
-  const frontUrl = resolvedId.find((doc) => doc.label === "Front")?.signedUrl ?? null;
-  const backUrl = resolvedId.find((doc) => doc.label === "Back")?.signedUrl ?? null;
-  const viewerPhotos = [
-    { label: "Front", url: frontUrl },
-    { label: "Back", url: backUrl },
-  ].filter((photo): photo is { label: string; url: string } => !!photo.url);
+  const idSides = resolvedId.map((side) => ({
+    label: side.label === "Back" ? ("Back" as const) : ("Front" as const),
+    url: side.signedUrl,
+  }));
+  const viewerSides = idSides.filter((side): side is { label: "Front" | "Back"; url: string } => !!side.url);
   const signedByPath = useMemo(
     () => new Map(resolvedDocs.map((doc) => [doc.path, doc.signedUrl])),
     [resolvedDocs],
   );
 
-  // Signed URLs resolve after the rows arrive; the spinner covers both.
-  const showSpinner = !error && (loading || docsLoading);
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
-      <div className="mx-auto max-w-4xl space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="font-nunito text-2xl font-bold text-card-foreground">APT Passport</h1>
-            <p className="text-sm text-muted-foreground">
-              Your verified ID and supporting documents, attached automatically when you apply.
-            </p>
-          </div>
-          {!loading && !error && documents.length > 0 ? <AddDocumentLink basePath={basePath} /> : null}
-        </div>
+    <PassportPageShell>
+      <PassportPageHeader
+        action={
+          !loading && !error ? (
+            <Button onPress={() => openAdd()}>
+              <IconPlus size={18} aria-hidden="true" />
+              Add a Document
+            </Button>
+          ) : null
+        }
+      />
 
-        {error ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
-            <p className="font-nunito text-xl font-bold text-card-foreground">Couldn&apos;t load your documents</p>
-            <p className="max-w-md text-sm text-muted-foreground">{error}</p>
-            <Button onPress={refresh}>Try Again</Button>
-          </div>
-        ) : showSpinner ? (
-          <div className="flex justify-center py-16">
-            <Spinner color="accent" />
-          </div>
-        ) : documents.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-4 py-16 text-center">
-            <IconFileUpload size={64} className="text-primary" aria-hidden="true" />
-            <p className="font-nunito text-xl font-bold text-card-foreground">No documents yet</p>
-            <p className="max-w-md text-base text-muted-foreground">
-              Add your IDs and supporting documents so they&apos;re ready when you apply for an apartment.
-            </p>
-            <AddDocumentLink basePath={basePath} />
-            <p className="max-w-md text-sm text-muted-foreground">
-              Uploaded documents are stored securely and only shared with landlords during the application
-              process.
-            </p>
-          </div>
-        ) : (
-          <>
+      {error ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
+          <p className="font-nunito text-xl font-bold text-card-foreground">Couldn&apos;t load your documents</p>
+          <p className="max-w-md text-sm text-muted-foreground">{error}</p>
+          <Button onPress={refresh}>Try Again</Button>
+        </div>
+      ) : loading ? (
+        <PassportWalletSkeleton />
+      ) : (
+        <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="space-y-4 lg:sticky lg:top-6">
             {primaryId ? (
               <ValidIdCard
                 key={primaryId.id}
                 idType={primaryId.id_type ?? primaryId.doc_type}
-                frontUrl={frontUrl}
-                backUrl={backUrl}
+                sides={idSides}
                 loading={idLoading}
-                onOpenViewer={(index) => {
-                  setViewerIndex(Math.min(index, Math.max(viewerPhotos.length - 1, 0)));
+                onOpenViewer={(label) => {
+                  setViewerIndex(Math.max(viewerSides.findIndex((side) => side.label === label), 0));
                   setViewerOpen(true);
                 }}
               />
-            ) : null}
-
-            <section className="space-y-3">
-              <h2 className="font-nunito text-lg font-semibold text-card-foreground">Uploaded Documents</h2>
-              {supportingDocs.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-10 text-center">
-                  <IconFileUpload size={48} className="text-primary" aria-hidden="true" />
-                  <p className="font-nunito text-lg font-bold text-card-foreground">No supporting documents yet</p>
-                  <p className="max-w-md text-sm text-muted-foreground">
-                    Add payslips, billing statements, or clearances so they&apos;re ready when you apply for an
-                    apartment.
+            ) : (
+              <Card className="rounded-2xl border border-border bg-card p-4 shadow-none">
+                <Card.Content className="p-0">
+                  <h2 className="font-nunito text-lg font-semibold text-card-foreground">Government ID</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Your ID is linked automatically from your approved account verification.
                   </p>
-                  <AddDocumentLink basePath={basePath} />
+                </Card.Content>
+              </Card>
+            )}
+            <PassportReadinessCard documents={documents} onAddDocument={(docType) => openAdd(docType)} />
+          </aside>
+
+          <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-nunito text-lg font-semibold text-card-foreground">Supporting documents</h2>
+                <p className="text-sm text-muted-foreground">
+                  {supportingDocs.length} {supportingDocs.length === 1 ? "document" : "documents"}
+                </p>
+              </div>
+              {supportingDocs.length > 0 ? (
+                <div className="flex items-center gap-1" role="group" aria-label="Document layout">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant={layout === "grid" ? "primary" : "ghost"}
+                    aria-label="Grid view"
+                    aria-pressed={layout === "grid"}
+                    onPress={() => setLayout("grid")}
+                  >
+                    <IconLayoutGrid size={16} aria-hidden="true" />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant={layout === "list" ? "primary" : "ghost"}
+                    aria-label="List view"
+                    aria-pressed={layout === "list"}
+                    onPress={() => setLayout("list")}
+                  >
+                    <IconLayoutList size={16} aria-hidden="true" />
+                  </Button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {supportingDocs.map((doc) => (
-                    <PassportDocumentCard
-                      key={doc.id}
-                      href={`${basePath}/${doc.id}`}
-                      label={doc.doc_type}
-                      storagePath={doc.storage_path}
-                      signedUrl={signedByPath.get(doc.storage_path) ?? null}
-                      mimeType={doc.mime_type}
-                      status={getPassportDocumentStatus(doc)}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-      </div>
+              ) : null}
+            </div>
+
+            {supportingDocs.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border px-4 py-12 text-center">
+                <IconFileUpload size={48} className="text-primary" aria-hidden="true" />
+                <p className="font-nunito text-lg font-bold text-card-foreground">No supporting documents yet</p>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  Add payslips, billing statements, or clearances so they&apos;re ready when you apply for an
+                  apartment. Documents are only shared with landlords you apply to.
+                </p>
+                <Button onPress={() => openAdd()}>
+                  <IconPlus size={18} aria-hidden="true" />
+                  Add a Document
+                </Button>
+              </div>
+            ) : (
+              <div
+                className={
+                  layout === "grid" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" : "flex flex-col gap-2"
+                }
+              >
+                {supportingDocs.map((doc) => (
+                  <PassportDocumentCard
+                    key={doc.id}
+                    href={`${basePath}/${doc.id}`}
+                    label={doc.doc_type}
+                    storagePath={doc.storage_path}
+                    signedUrl={signedByPath.get(doc.storage_path) ?? null}
+                    mimeType={doc.mime_type}
+                    status={getPassportDocumentStatus(doc)}
+                    createdAt={doc.created_at}
+                    expiresAt={doc.expires_at}
+                    layout={layout}
+                  />
+                ))}
+                <button
+                  type="button"
+                  onClick={() => openAdd()}
+                  className={`flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary focus-visible:outline-2 focus-visible:outline-primary ${
+                    layout === "grid" ? "min-h-48 flex-col" : "py-4"
+                  }`}
+                >
+                  <IconPlus size={24} aria-hidden="true" />
+                  Add document
+                </button>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      <AddDocumentModal
+        userId={userId}
+        isOpen={isAddOpen && !loading && !error}
+        docType={addDocType}
+        onSelectType={selectAddType}
+        onClose={closeAdd}
+        onUploaded={handleUploaded}
+      />
 
       <PhotoGalleryModal
-        name="Valid ID"
-        photos={viewerPhotos.map(({ url }) => ({ url }))}
-        labels={viewerPhotos.map(({ label }) => label)}
+        name="Government ID"
+        photos={viewerSides.map(({ url }) => ({ url }))}
+        labels={viewerSides.map(({ label }) => label)}
         isOpen={viewerOpen}
         onOpenChange={setViewerOpen}
         activeIndex={viewerIndex}
         onActiveIndexChange={setViewerIndex}
       />
-    </div>
+    </PassportPageShell>
   );
 }

@@ -15,8 +15,11 @@ export {
   type PassportDocumentStatus,
 } from './status'
 export {
+  APPLICATION_DOCUMENT_SLOTS,
+  getPassportSlotStates,
   passportDocsForSlot,
   selectPassportDocsForApplication,
   type PassportApplicationSelection,
   type PassportSlotDocument,
+  type PassportSlotState,
 } from './selection'

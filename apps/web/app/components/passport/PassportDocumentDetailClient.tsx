@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Modal, Spinner, buttonVariants, toast, useOverlayState } from "@heroui/react";
-import { IconArrowLeft, IconExternalLink, IconFileText, IconShieldCheck, IconTrash } from "@tabler/icons-react";
+import { IconExternalLink, IconShieldCheck, IconTrash } from "@tabler/icons-react";
 
 import { isReviewEligibleDocType } from "@repo/constants";
 import { formatDate } from "@repo/utils";
@@ -16,7 +15,10 @@ import { useApplicationDocumentUrls } from "@/hooks/use-application-document-url
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
 import { usePassportDocuments } from "@/hooks/use-passport-documents";
 
+import PassportDocumentThumbnail from "./PassportDocumentThumbnail";
+import { PassportBackLink, PassportPageShell } from "./PassportPageLayout";
 import PassportStatusChip from "./PassportStatusChip";
+import { PassportDetailSkeleton } from "./PassportSkeleton";
 import { DocumentTypeIcon, isImageDocument } from "./documentTypeIcons";
 
 interface PassportDocumentDetailClientProps {
@@ -32,23 +34,13 @@ interface PreviewSide {
   isImage: boolean;
 }
 
-function BackLink({ basePath }: { basePath: string }) {
-  return (
-    <Link
-      href={basePath}
-      className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary"
-    >
-      <IconArrowLeft size={16} aria-hidden="true" />
-      APT Passport
-    </Link>
-  );
-}
-
 function DetailRow({ label, value, isDanger = false }: { label: string; value: string; isDanger?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={`text-sm font-semibold ${isDanger ? "text-danger" : "text-card-foreground"}`}>{value}</span>
+      <span className={`text-right text-sm font-semibold ${isDanger ? "text-danger" : "text-card-foreground"}`}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -97,16 +89,17 @@ export default function PassportDocumentDetailClient({
 
   if (loading) {
     return (
-      <div className="flex justify-center px-4 py-16">
-        <Spinner color="accent" />
-      </div>
+      <PassportPageShell>
+        <PassportBackLink basePath={basePath} />
+        <PassportDetailSkeleton />
+      </PassportPageShell>
     );
   }
 
   if (error || !document) {
     return (
-      <div className="mx-auto max-w-2xl space-y-4 px-4 py-6 sm:py-8">
-        <BackLink basePath={basePath} />
+      <PassportPageShell>
+        <PassportBackLink basePath={basePath} />
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
           <p className="font-nunito text-xl font-bold text-card-foreground">
             {error ? "Couldn't load this document" : "Document not found"}
@@ -120,7 +113,7 @@ export default function PassportDocumentDetailClient({
             </Link>
           )}
         </div>
-      </div>
+      </PassportPageShell>
     );
   }
 
@@ -169,7 +162,7 @@ export default function PassportDocumentDetailClient({
     try {
       await remove({ id: document.id, storagePath: document.storage_path });
       confirmDelete.close();
-      toast.success("Document deleted.");
+      toast.success("Document deleted");
       router.replace(basePath);
     } catch (err) {
       console.error("Passport delete failed", err);
@@ -178,101 +171,122 @@ export default function PassportDocumentDetailClient({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <BackLink basePath={basePath} />
+    <PassportPageShell>
+      <PassportBackLink basePath={basePath} />
 
-        <div className="flex items-center gap-3">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/30 bg-accent text-primary">
-            <DocumentTypeIcon docType={document.doc_type} size={24} isIdentity={isLinkedVerification} />
-          </span>
-          <div className="min-w-0 space-y-1">
-            <h1 className="font-nunito text-2xl font-bold text-primary">{document.doc_type}</h1>
-            <PassportStatusChip status={status} />
-          </div>
-        </div>
-
-        <p className="text-sm text-muted-foreground">
-          {isLinkedVerification
-            ? "This ID is linked to your approved account verification and is managed automatically."
-            : getDocumentTypeDescription(document.doc_type)}
-        </p>
-
-        <section className="space-y-3">
-          <h2 className="font-nunito text-base font-semibold text-muted-foreground">Document Preview</h2>
-          <div className={`grid gap-3 ${sides.length > 1 ? "sm:grid-cols-2" : ""}`}>
-            {sides.map((side) => (
-              <div key={side.label} className="space-y-2">
-                {sides.length > 1 ? (
-                  <p className="font-nunito text-base font-semibold text-card-foreground">{side.label}</p>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="space-y-4" aria-label="Document preview">
+          {sides.map((side) => (
+            <div key={side.label} className="space-y-2">
+              {sides.length > 1 ? (
+                <p className="font-nunito text-base font-semibold text-card-foreground">{side.label}</p>
+              ) : null}
+              <button
+                type="button"
+                disabled={!side.url}
+                onClick={() => openSide(side)}
+                aria-label={
+                  side.isImage
+                    ? `Enlarge ${document.doc_type} ${side.label.toLowerCase()}`
+                    : `Open ${document.doc_type} file`
+                }
+                className="relative flex aspect-[4/3] max-h-[70vh] w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted enabled:cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
+              >
+                {side.url ? (
+                  <PassportDocumentThumbnail
+                    label={`${document.doc_type} ${side.label.toLowerCase()}`}
+                    storagePath={side.path}
+                    signedUrl={side.url}
+                    mimeType={side.label === "Front" ? document.mime_type : null}
+                    fit="contain"
+                    iconSize={48}
+                  />
+                ) : urlsLoading ? (
+                  <Spinner size="sm" color="accent" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">Preview unavailable</span>
+                )}
+                {side.url && !side.isImage ? (
+                  <span className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                    Open file <IconExternalLink size={14} aria-hidden="true" />
+                  </span>
                 ) : null}
-                <button
-                  type="button"
-                  disabled={!side.url}
-                  onClick={() => openSide(side)}
-                  aria-label={side.isImage ? `Enlarge ${document.doc_type} ${side.label.toLowerCase()}` : `Open ${document.doc_type} file`}
-                  className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted enabled:cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
-                >
-                  {side.isImage && side.url ? (
-                    <Image src={side.url} alt={`${document.doc_type} ${side.label.toLowerCase()}`} fill unoptimized className="object-contain" />
-                  ) : urlsLoading ? (
-                    <Spinner size="sm" color="accent" />
-                  ) : side.url ? (
-                    <span className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <IconFileText size={40} aria-hidden="true" />
-                      <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                        Open file <IconExternalLink size={14} aria-hidden="true" />
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Preview unavailable</span>
-                  )}
-                </button>
+              </button>
+            </div>
+          ))}
+        </section>
+
+        <aside className="space-y-4 lg:sticky lg:top-6">
+          <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/30 bg-accent text-primary">
+                <DocumentTypeIcon docType={document.doc_type} size={24} isIdentity={isLinkedVerification} />
+              </span>
+              <div className="min-w-0 space-y-1">
+                <h1 className="font-nunito text-xl font-bold text-primary">{document.doc_type}</h1>
+                <PassportStatusChip status={status} />
               </div>
-            ))}
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              {isLinkedVerification
+                ? "This ID is linked to your approved account verification and is managed automatically."
+                : getDocumentTypeDescription(document.doc_type)}
+            </p>
+
+            <div className="space-y-3 border-t border-border pt-4">
+              <DetailRow label="Uploaded" value={formatDate(document.created_at, "medium")} />
+              <DetailRow
+                label="Expiry date"
+                value={
+                  document.expires_at
+                    ? `${formatDate(`${document.expires_at}T00:00:00`, "medium")}${isExpired ? " (Expired)" : ""}`
+                    : "No expiry"
+                }
+                isDanger={isExpired}
+              />
+            </div>
           </div>
-        </section>
 
-        <section className="space-y-3">
-          <h2 className="font-nunito text-base font-semibold text-muted-foreground">Details</h2>
-          <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
-            <DetailRow label="Uploaded" value={formatDate(document.created_at, "medium")} />
-            <DetailRow
-              label="Expiry date"
-              value={
-                document.expires_at
-                  ? `${formatDate(`${document.expires_at}T00:00:00`, "medium")}${isExpired ? " (Expired)" : ""}`
-                  : "No expiry"
-              }
-              isDanger={isExpired}
-            />
-          </div>
-        </section>
+          {reviewStatus === "rejected" ? (
+            <Notice tone="danger" title="Not verified">
+              {document.rejection_reason ?? "An admin could not verify this document."}
+            </Notice>
+          ) : null}
+          {isExpired ? (
+            <Notice tone="danger" title="Expired document">
+              Upload a current copy before requesting verification.
+            </Notice>
+          ) : null}
 
-        {reviewStatus === "rejected" ? (
-          <Notice tone="danger" title="Not verified">
-            {document.rejection_reason ?? "An admin could not verify this document."}
-          </Notice>
-        ) : null}
-        {isExpired ? (
-          <Notice tone="danger" title="Expired document">
-            Upload a current copy before requesting verification.
-          </Notice>
-        ) : null}
-
-        {isUnderReview && !isLinkedVerification ? (
-          <Notice tone="warning" title="Under admin review">
-            We&apos;ll notify you once an admin has checked this document.
-          </Notice>
-        ) : !isLinkedVerification ? (
-          <div className="space-y-3">
-            {actionError ? (
-              <p role="alert" className="text-sm text-danger">
-                {actionError}
-              </p>
-            ) : null}
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          {isUnderReview && !isLinkedVerification ? (
+            <Notice tone="warning" title="Under admin review">
+              We&apos;ll notify you once an admin has checked this document.
+            </Notice>
+          ) : !isLinkedVerification ? (
+            <div className="space-y-2">
+              {actionError ? (
+                <p role="alert" className="text-sm text-danger">
+                  {actionError}
+                </p>
+              ) : null}
+              {canRequestReview ? (
+                <Button
+                  fullWidth
+                  isDisabled={isExpired || pending !== null}
+                  isPending={pending === "review"}
+                  onPress={() => void handleRequestReview()}
+                >
+                  {pending === "review" ? (
+                    <Spinner size="sm" color="current" />
+                  ) : (
+                    <IconShieldCheck size={18} aria-hidden="true" />
+                  )}
+                  {reviewStatus === "rejected" ? "Request Review Again" : "Request Verification"}
+                </Button>
+              ) : null}
               <Button
+                fullWidth
                 variant="danger-soft"
                 isDisabled={pending !== null}
                 onPress={() => {
@@ -283,23 +297,13 @@ export default function PassportDocumentDetailClient({
                 <IconTrash size={18} aria-hidden="true" />
                 Delete Document
               </Button>
-              {canRequestReview ? (
-                <Button
-                  isDisabled={isExpired || pending !== null}
-                  isPending={pending === "review"}
-                  onPress={() => void handleRequestReview()}
-                >
-                  {pending === "review" ? <Spinner size="sm" color="current" /> : <IconShieldCheck size={18} aria-hidden="true" />}
-                  {reviewStatus === "rejected" ? "Request Review Again" : "Request Verification"}
-                </Button>
-              ) : null}
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </aside>
       </div>
 
       <Modal isOpen={confirmDelete.isOpen} onOpenChange={confirmDelete.setOpen}>
-        <Modal.Backdrop>
+        <Modal.Backdrop isDismissable={pending !== "delete"} isKeyboardDismissDisabled={pending === "delete"}>
           <Modal.Container size="sm">
             <Modal.Dialog>
               <Modal.Header>
@@ -343,6 +347,6 @@ export default function PassportDocumentDetailClient({
         activeIndex={viewerIndex}
         onActiveIndexChange={setViewerIndex}
       />
-    </div>
+    </PassportPageShell>
   );
 }

@@ -54,5 +54,10 @@ export function usePassportDocuments(userId: string) {
     setDocuments((current) => current.map((doc) => (doc.id === row.id ? row : doc)));
   }, []);
 
-  return { documents, loading, error, refresh, replaceDocument };
+  /** Prepends a newly uploaded row (the wallet is ordered newest first). */
+  const addDocument = useCallback((row: PassportDocumentRow) => {
+    setDocuments((current) => [row, ...current.filter((doc) => doc.id !== row.id)]);
+  }, []);
+
+  return { documents, loading, error, refresh, replaceDocument, addDocument };
 }

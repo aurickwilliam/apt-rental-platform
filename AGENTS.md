@@ -34,7 +34,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 
 ## Stack & Monorepo Structure
 
-- pnpm@10.25.0 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
+- pnpm@10.34.5 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
 - Backend: Supabase (Postgres, Auth, Realtime, Storage)
 - No CI or formatter config exists; `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`) run via `pnpm --filter mobile test`
 
