@@ -1,14 +1,19 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
+import {
+  resolveApplicationDocumentUrls,
+  resolvePrivateMediaUrls,
+} from '@/service/media/privateMediaResolver';
 
 import { useDocumentUrls } from './useDocumentUrls';
 
 jest.mock('@/service/media/privateMediaResolver', () => ({
   resolvePrivateMediaUrls: jest.fn(),
+  resolveApplicationDocumentUrls: jest.fn(),
 }));
 
 const mockResolvePrivateMediaUrls = jest.mocked(resolvePrivateMediaUrls);
+const mockResolveApplicationDocumentUrls = jest.mocked(resolveApplicationDocumentUrls);
 
 type DocumentEntriesProps = {
   entries: { label: string; path: string | null }[];
@@ -17,10 +22,12 @@ type DocumentEntriesProps = {
 describe('useDocumentUrls', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockResolvePrivateMediaUrls.mockResolvedValue({
+    const resolution = {
       urls: { 'tenant/government-id.jpg': 'https://signed.example.test/government-id.jpg' },
       error: null,
-    });
+    };
+    mockResolvePrivateMediaUrls.mockResolvedValue(resolution);
+    mockResolveApplicationDocumentUrls.mockResolvedValue(resolution);
   });
 
   it('does not resolve again when a parent recreates equivalent document entries', async () => {
@@ -43,7 +50,7 @@ describe('useDocumentUrls', () => {
         signedUrl: 'https://signed.example.test/government-id.jpg',
       },
     ]));
-    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledTimes(1);
+    expect(mockResolveApplicationDocumentUrls).toHaveBeenCalledTimes(1);
   });
 
   it('does not flip loading again once the first pass has resolved', async () => {

@@ -1,23 +1,33 @@
 import { useMemo, useState } from 'react';
-import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { useStatusChipStyles } from "@/hooks/useStatusChipStyles";
 import { getLandlordApplicationStatusStyle } from "@/hooks/applications/useApplicationStatusStyles";
 import { Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import ImageViewing from 'react-native-image-viewing';
 
-import { Avatar, Button, Card, Chip, Separator, Spinner } from 'heroui-native';
-import { IconMail, IconMapPin } from '@tabler/icons-react-native';
+import { Spinner } from 'heroui-native';
+import {
+  IconBriefcase,
+  IconBuildingCommunity,
+  IconFiles,
+  IconFileDescription,
+  IconListDetails,
+  IconMessage,
+} from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
 import DetailField from '@/components/display/DetailField';
 import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
+import DetailSection from './components/DetailSection';
+import TenantSummaryCard from './components/TenantSummaryCard';
+import ApplicationDecisionBar from './components/ApplicationDecisionBar';
 import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
 import ErrorDialog from '@/components/display/ErrorDialog';
 import RejectDialog from '../../../components/display/RejectDialog';
 
-import { formatPesoDisplay, formatDate, getInitials } from '@repo/utils';
+import { formatPesoDisplay, formatDate } from '@repo/utils';
 
 import { useColors } from '@/hooks/useTheme';
 import {
@@ -27,6 +37,9 @@ import {
 } from '@/hooks/applications';
 import { usePassportVerifiedPaths } from '@/hooks/passport';
 
+
+const orDash = (value: string | null | undefined) =>
+  value?.trim() ? value : '-';
 
 export default function TenantApplicationDetails() {
   const { colors } = useColors();
@@ -49,6 +62,9 @@ export default function TenantApplicationDetails() {
 
   const docEntries = application ? [
     { label: 'Government ID',    path: application.gov_id_url },
+    ...(application.gov_id_back_url
+      ? [{ label: 'Government ID (Back)', path: application.gov_id_back_url }]
+      : []),
     { label: 'Proof of Income',  path: application.proof_of_income_url },
     { label: 'Proof of Billing', path: application.proof_of_billing_url },
     { label: 'NBI Clearance',    path: application.nbi_clearance_url },
@@ -102,12 +118,12 @@ export default function TenantApplicationDetails() {
         scrollable
         className="p-5"
       >
-        <View className="gap-4">
+        <View className="gap-4 pb-4">
           <View>
             <Text className="text-foreground text-sm font-nunitoSemiBold">
               Tenant Application For
             </Text>
-            <Text className='text-accent font-nunitoSemiBold text-lg'>
+            <Text className="text-accent font-nunitoSemiBold text-lg">
               {application.apartment_name}
             </Text>
             <Text className="text-muted font-inter text-sm">
@@ -115,70 +131,25 @@ export default function TenantApplicationDetails() {
             </Text>
           </View>
 
-          {/* Tenant + Property summary card */}
-          <Card className="shadow-none border border-border">
-            <Card.Body className="flex-row items-center gap-3">
-              <Avatar size="lg" className="border border-border">
-                <Avatar.Image source={{ uri: application.tenant_avatar_url ?? '' }} />
-                <Avatar.Fallback delayMs={200}>
-                  {getInitials(application.tenant_name)}
-                </Avatar.Fallback>
-              </Avatar>
-
-              <View className="flex-1 min-w-0">
-                <Text
-                  className="text-foreground text-base font-nunitoSemiBold"
-                  numberOfLines={1}
-                >
-                  {application.tenant_name}
-                </Text>
-
-                <View className="flex-row items-center gap-1 mt-0.5">
-                  <IconMail size={13} color={colors.gray500} />
-                  <Text
-                    className="text-gray-500 text-xs font-inter"
-                    numberOfLines={1}
-                  >
-                    {application.tenant_email}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center gap-1 mt-0.5">
-                  <IconMapPin size={13} color={colors.gray500} />
-                  <Text className="text-gray-500 text-xs font-inter">
-                    {application.tenant_city}
-                  </Text>
-                </View>
-              </View>
-
-              <Chip
-                size="sm"
-                variant="soft"
-                style={statusChipSurface(statusStyle)}
-              >
-                <Chip.Label
-                  className="font-nunitoSemiBold"
-                  style={{ color: statusStyle.textColor }}
-                >
-                  {displayStatus}
-                </Chip.Label>
-              </Chip>
-            </Card.Body>
-          </Card>
+          <TenantSummaryCard
+            name={application.tenant_name}
+            email={application.tenant_email}
+            city={application.tenant_city}
+            avatarUrl={application.tenant_avatar_url}
+            status={displayStatus ?? ''}
+            statusStyle={statusStyle}
+          />
 
           {application.rejected_reason ? (
-            <DetailField
-              label="Rejection Reason"
-              value={application.rejected_reason}
-            />
+            <View className="bg-danger/10 border border-danger/20 rounded-3xl p-4">
+              <DetailField
+                label="Rejection Reason"
+                value={application.rejected_reason}
+              />
+            </View>
           ) : null}
 
-          {/* Application details */}
-          <View className="gap-3">
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Application Details
-            </Text>
-
+          <DetailSection title="Application" icon={IconFileDescription}>
             <View className="flex-row">
               <DetailField
                 label="Date Submitted"
@@ -189,50 +160,34 @@ export default function TenantApplicationDetails() {
                 value={formatDate(application.move_in_date, 'medium')}
               />
             </View>
-
-            <View className='flex-row'>
+            <View className="flex-row">
               <DetailField
                 label="Monthly Rent"
-                value={`${formatPesoDisplay(application.monthly_rent)}`}
+                value={formatPesoDisplay(application.monthly_rent)}
               />
               <DetailField
                 label="No. of Occupants"
                 value={`${application.no_occupants}`}
               />
             </View>
-          </View>
+          </DetailSection>
 
-          <Separator className='my-3' />
-
-          {/* Employment */}
-          <View className="gap-3">
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Employment
-            </Text>
-
-            <View className='flex-row'>
-              <DetailField label="Occupation" value={application.occupation?.trim() ? application.occupation : '-'} />
-              <DetailField label="Employer" value={application.employer_name?.trim() ? application.employer_name : '-'} />
+          <DetailSection title="Employment" icon={IconBriefcase}>
+            <View className="flex-row">
+              <DetailField label="Occupation" value={orDash(application.occupation)} />
+              <DetailField label="Employer" value={orDash(application.employer_name)} />
             </View>
-
-            <View className='flex-row'>
+            <View className="flex-row">
               <DetailField label="Employment Type" value={application.employment_type} />
               <DetailField
                 label="Monthly Income"
-                value={`${formatPesoDisplay(application.monthly_income)}`}
+                value={formatPesoDisplay(application.monthly_income)}
               />
             </View>
-          </View>
+          </DetailSection>
 
-          <Separator className='my-3' />
-
-          {/* Preferences */}
-          <View className='gap-3'>
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Preferences
-            </Text>
-
-            <View className='flex-row'>
+          <DetailSection title="Preferences" icon={IconListDetails}>
+            <View className="flex-row">
               <DetailField label="Has Pets" value={application.has_pets ? 'Yes' : 'No'} />
               <DetailField label="Has Smoker" value={application.has_smoker ? 'Yes' : 'No'} />
             </View>
@@ -240,95 +195,48 @@ export default function TenantApplicationDetails() {
               label="Needs Parking"
               value={application.need_parking ? 'Yes' : 'No'}
             />
-          </View>
+          </DetailSection>
 
-          <Separator className='my-3' />
-
-          {/* Previous Landlord */}
-          <View className="gap-3">
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Previous Landlord
-            </Text>
-
-            <View className='flex-row'>
-              <DetailField
-                label="Name"
-                value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : '-'}
-              />
-              <DetailField
-                label="Contact"
-                value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : '-'}
-              />
+          <DetailSection title="Previous Landlord" icon={IconBuildingCommunity}>
+            <View className="flex-row">
+              <DetailField label="Name" value={orDash(application.prev_landlord_name)} />
+              <DetailField label="Contact" value={orDash(application.prev_landlord_contact)} />
             </View>
-          </View>
+          </DetailSection>
 
-          <Separator className='my-3' />
-
-          {/* Documents */}
-          <View className="gap-3">
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Documents
-            </Text>
-
+          <DetailSection title="Documents" icon={IconFiles}>
             {docsLoading ? (
               <Spinner size="sm" color={colors.primary} />
             ) : (
-              resolvedDocs.map((doc) => (
-                <DocumentRow
-                  key={doc.label}
-                  label={doc.label}
-                  path={doc.path}
-                  signedUrl={doc.signedUrl}
-                  onPressImage={setViewerUri}
-                  verified={verifiedPaths?.has(doc.path) ?? false}
-                />
-              ))
+              <View className="gap-1">
+                {resolvedDocs.map((doc) => (
+                  <DocumentRow
+                    key={doc.label}
+                    label={doc.label}
+                    path={doc.path}
+                    signedUrl={doc.signedUrl}
+                    onPressImage={setViewerUri}
+                    verified={verifiedPaths?.has(doc.path) ?? false}
+                  />
+                ))}
+              </View>
             )}
-          </View>
+          </DetailSection>
 
-          <Separator className='my-3' />
-
-          {/* Message */}
-          <View>
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Message from Tenant
-            </Text>
+          <DetailSection title="Message from Tenant" icon={IconMessage}>
             <Text className="text-muted text-base font-inter">
               {application.message || 'No message provided.'}
             </Text>
-          </View>
+          </DetailSection>
 
-          {isPending && (
-            <View className="gap-3 mt-2">
-              {isUnitOccupied && (
-                <Text
-                  className="text-sm font-inter"
-                  style={{ color: colors.danger }}
-                  accessibilityRole="alert"
-                >
-                  This unit is already occupied and cannot accept another
-                  tenant. Vacate it first, then approve.
-                </Text>
-              )}
-              <View className="flex-row gap-3">
-                <Button
-                  variant="danger-soft"
-                  className="flex-1"
-                  isDisabled={actionLoading}
-                  onPress={openRejectDialog}
-                >
-                  <Button.Label className="font-nunitoSemiBold">Reject</Button.Label>
-                </Button>
-                <Button
-                  className="flex-1"
-                  isDisabled={actionLoading || isUnitOccupied}
-                  onPress={approve}
-                >
-                  <Button.Label className="font-nunitoSemiBold">Approve</Button.Label>
-                </Button>
-              </View>
-            </View>
-          )}
+          {isPending ? (
+            <ApplicationDecisionBar
+              isUnitOccupied={isUnitOccupied}
+              isLoading={actionLoading}
+              onReject={openRejectDialog}
+              onApprove={approve}
+            />
+          ) : null}
         </View>
       </ScreenWrapper>
 

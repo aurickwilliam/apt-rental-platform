@@ -873,6 +873,7 @@ export type Database = {
           created_at: string
           employer_name: string
           employment_type: string
+          gov_id_back_url: string | null
           gov_id_url: string
           has_pets: boolean
           has_smoker: boolean
@@ -898,6 +899,7 @@ export type Database = {
           created_at?: string
           employer_name: string
           employment_type: string
+          gov_id_back_url?: string | null
           gov_id_url: string
           has_pets: boolean
           has_smoker: boolean
@@ -923,6 +925,7 @@ export type Database = {
           created_at?: string
           employer_name?: string
           employment_type?: string
+          gov_id_back_url?: string | null
           gov_id_url?: string
           has_pets?: boolean
           has_smoker?: boolean

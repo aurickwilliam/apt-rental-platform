@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useToast } from 'heroui-native'
 import { getRelativeTime } from '@repo/utils'
 
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
-import { buildNotificationDeepLink } from '@/utils/notificationDeepLink'
+import { buildNotificationDeepLink, getWebOnlyNotificationNotice } from '@/utils/notificationDeepLink'
 import { authorizedPortal } from '@/service/auth/portalPreference'
 import { usePortalStore } from '@/stores/usePortalStore'
 import NotificationCard from '@/app/(notification)/components/NotificationCard';
@@ -21,6 +22,7 @@ interface NotificationListProps {
 
 export default function NotificationList({ filter }: NotificationListProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
   const activePortal = usePortalStore((state) => state.portal);
@@ -79,7 +81,12 @@ export default function NotificationList({ filter }: NotificationListProps) {
           onPress={() => {
             markAsRead(n.id);
             const href = buildNotificationDeepLink(n.data, currentUserId, currentUserRole);
-            if (href) router.push(href);
+            if (href) {
+              router.push(href);
+              return;
+            }
+            const notice = getWebOnlyNotificationNotice(n.data);
+            if (notice) toast.show({ variant: 'default', ...notice });
           }}
         />
       ))}

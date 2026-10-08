@@ -8,7 +8,10 @@ import { shouldSuppressChatToast } from "@/hooks/notifications/notificationSuppr
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
 import { markNotificationRead } from "@/service/notifications/notificationService";
-import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
+import {
+  buildNotificationDeepLink,
+  getWebOnlyNotificationNotice,
+} from "@/utils/notificationDeepLink";
 import { authorizedPortal } from "@/service/auth/portalPreference";
 import { usePortalStore } from "@/stores/usePortalStore";
 
@@ -91,8 +94,11 @@ export function useInAppNotificationBanner() {
         onOpen: () => {
           void markNotificationRead(row.id);
           const href = buildNotificationDeepLink(row.data, userId, roleRef.current);
+          const webOnlyNotice = getWebOnlyNotificationNotice(row.data);
           if (href) {
             routerRef.current.push(href);
+          } else if (webOnlyNotice) {
+            toastRef.current.show({ variant: "default", ...webOnlyNotice });
           } else if (roleRef.current === "landlord") {
             routerRef.current.push("/landlord-notif");
           } else {

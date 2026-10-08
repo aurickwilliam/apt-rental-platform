@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  resolveApplicationDocumentUrls,
   resolvePrivateMediaUrls,
   type PrivateMediaBucket,
 } from '@/service/media/privateMediaResolver';
@@ -47,10 +48,13 @@ export function useDocumentUrls(docs: DocEntry[], bucket: PrivateMediaBucket = '
       }
 
       setLoading(!hasResolvedOnce.current);
-      const { urls, error } = await resolvePrivateMediaUrls(
-        bucket,
-        entries.map((entry) => entry.path)
-      );
+      const paths = entries.map((entry) => entry.path);
+      // Application documents may include a passport-attached verified ID
+      // that lives in another bucket; route those by path shape.
+      const { urls, error } =
+        bucket === 'application-documents'
+          ? await resolveApplicationDocumentUrls(paths)
+          : await resolvePrivateMediaUrls(bucket, paths);
 
       if (cancelled) return;
 

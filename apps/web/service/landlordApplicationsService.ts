@@ -37,6 +37,7 @@ export type LandlordApplication = {
   need_parking: boolean;
   message: string | null;
   gov_id_url: string | null;
+  gov_id_back_url: string | null;
   proof_of_income_url: string | null;
   proof_of_billing_url: string | null;
   nbi_clearance_url: string | null;
@@ -109,7 +110,7 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
       occupation, employer_name, monthly_income, employment_type,
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
-      gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
+      gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
       apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`,
     )
@@ -152,6 +153,7 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
       need_parking: Boolean(item.need_parking),
       message: (item.message as string | null) ?? null,
       gov_id_url: (item.gov_id_url as string | null) ?? null,
+      gov_id_back_url: (item.gov_id_back_url as string | null) ?? null,
       proof_of_income_url: (item.proof_of_income_url as string | null) ?? null,
       proof_of_billing_url: (item.proof_of_billing_url as string | null) ?? null,
       nbi_clearance_url: (item.nbi_clearance_url as string | null) ?? null,

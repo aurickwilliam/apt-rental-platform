@@ -1,7 +1,7 @@
 import { supabase } from '@repo/supabase';
 
 import type { ApplicationStatus } from '@/hooks/applications';
-import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
+import { resolveApplicationDocumentUrls } from '@/service/media/privateMediaResolver';
 
 export type ApplicationDocument = {
   label: string;
@@ -38,16 +38,17 @@ export type TenantApplication = {
   };
 };
 
-const APPLICATION_DOCUMENTS_BUCKET = 'application-documents';
 
 type ApplicationDocumentPathKey =
   | 'gov_id_url'
+  | 'gov_id_back_url'
   | 'proof_of_income_url'
   | 'proof_of_billing_url'
   | 'nbi_clearance_url';
 
 const DOCUMENT_DEFINITIONS: { label: string; pathKey: ApplicationDocumentPathKey }[] = [
   { label: 'Government ID', pathKey: 'gov_id_url' },
+  { label: 'Government ID (Back)', pathKey: 'gov_id_back_url' },
   { label: 'Proof of Income', pathKey: 'proof_of_income_url' },
   { label: 'Proof of Billing', pathKey: 'proof_of_billing_url' },
   { label: 'NBI Clearance', pathKey: 'nbi_clearance_url' },
@@ -72,6 +73,7 @@ type ApplicationRow = {
   need_parking: boolean;
   message: string | null;
   gov_id_url: string | null;
+  gov_id_back_url: string | null;
   proof_of_income_url: string | null;
   proof_of_billing_url: string | null;
   nbi_clearance_url: string | null;
@@ -89,7 +91,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       occupation, employer_name, monthly_income, employment_type,
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
-      gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
+      gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
       apartments(name, monthly_rent)`
     )
     .eq('tenant_id', tenantId)
@@ -103,8 +105,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
     .flatMap((item) => DOCUMENT_DEFINITIONS.map((d) => item[d.pathKey]))
     .filter((path): path is string => !!path);
 
-  const { urls: signedUrls, error: resolutionError } = await resolvePrivateMediaUrls(
-    APPLICATION_DOCUMENTS_BUCKET,
+  const { urls: signedUrls, error: resolutionError } = await resolveApplicationDocumentUrls(
     documentPaths
   );
 
@@ -116,6 +117,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
     });
     const {
       gov_id_url,
+      gov_id_back_url,
       proof_of_income_url,
       proof_of_billing_url,
       nbi_clearance_url,

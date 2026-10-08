@@ -34,7 +34,29 @@ export interface ChatMediaRetryResult extends PrivateMediaResolution {
 
 export const PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS = 60 * 60;
 export const PRIVATE_MEDIA_CACHE_TTL_MS = 55 * 60 * 1000;
+// Identity captures get a shorter lifetime than other private media, and the
+// client cache expires them before the signed URL does.
+export const SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS = 15 * 60;
+export const SENSITIVE_MEDIA_CACHE_TTL_MS = 12 * 60 * 1000;
 export const CHAT_VISIBLE_MEDIA_REFRESH_AGE_MS = 45 * 60 * 1000;
+
+function isSensitiveBucket(bucket: PrivateMediaBucket): boolean {
+  return bucket === 'user-verification';
+}
+
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+const VERIFIED_ID_PATH = new RegExp(`^${UUID}/${UUID}/id-(front|back)\\.(jpe?g|png|webp)$`, 'i');
+
+/**
+ * True for the ID front or back capture of an account verification
+ * (`{users.id}/{verification id}/id-front|id-back.*` in `user-verification`).
+ * The selfie never matches.
+ * Application and passport uploads never use that shape, so this decides the
+ * bucket without probing.
+ */
+export function isVerifiedIdPath(path: string): boolean {
+  return VERIFIED_ID_PATH.test(path);
+}
 
 function uniquePaths(paths: readonly string[]): string[] {
   return [...new Set(paths.filter(Boolean))];
@@ -71,9 +93,13 @@ export async function resolvePrivateMediaUrls(
   if (missingPaths.length === 0) return { urls, error: null };
 
   const cacheGeneration = getPrivateMediaCacheGeneration();
+  const sensitive = isSensitiveBucket(bucket);
   const { data, error } = await supabase.storage
     .from(bucket)
-    .createSignedUrls(missingPaths, PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS);
+    .createSignedUrls(
+      missingPaths,
+      sensitive ? SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS : PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS
+    );
 
   if (error) {
     return {
@@ -103,7 +129,7 @@ export async function resolvePrivateMediaUrls(
     if (isPrivateMediaCacheGenerationCurrent(cacheGeneration)) {
       setCachedPrivateMediaUrl(bucket, path, {
         signedUrl,
-        expiresAt: now + PRIVATE_MEDIA_CACHE_TTL_MS,
+        expiresAt: now + (sensitive ? SENSITIVE_MEDIA_CACHE_TTL_MS : PRIVATE_MEDIA_CACHE_TTL_MS),
       });
     }
     urls[path] = signedUrl;
@@ -112,6 +138,29 @@ export async function resolvePrivateMediaUrls(
   return {
     urls,
     error: hasMissingResult ? 'Some private media could not be accessed.' : null,
+  };
+}
+
+/**
+ * Resolves rental-application document paths. A verified ID front/back (attached
+ * from the APT Passport) is signed from `user-verification`; every other path
+ * from `application-documents`. Routing is by path shape, never by trial.
+ */
+export async function resolveApplicationDocumentUrls(
+  paths: readonly string[]
+): Promise<PrivateMediaResolution> {
+  const unique = uniquePaths(paths);
+  const verifiedIds = unique.filter(isVerifiedIdPath);
+  const documents = unique.filter((path) => !isVerifiedIdPath(path));
+
+  const [documentResult, idResult] = await Promise.all([
+    resolvePrivateMediaUrls('application-documents', documents),
+    resolvePrivateMediaUrls('user-verification', verifiedIds),
+  ]);
+
+  return {
+    urls: { ...documentResult.urls, ...idResult.urls },
+    error: documentResult.error ?? idResult.error,
   };
 }
 

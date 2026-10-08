@@ -10,6 +10,7 @@ export interface NotificationData {
   senderAvatarUrl?: string;
   verificationId?: string;
   documentId?: string;
+  applicationId?: string;
 }
 
 function parseConversationKey(key: string): { userIdA: string; userIdB: string; apartmentId: string | null } | null {
@@ -20,6 +21,29 @@ function parseConversationKey(key: string): { userIdA: string; userIdB: string; 
 
   const apartmentId = parts[1] === "none" ? null : parts[1];
   return { userIdA: parts[2], userIdB: parts[3], apartmentId };
+}
+
+export interface WebOnlyNotificationNotice {
+  label: string;
+  description: string;
+}
+
+/**
+ * Notifications whose action only exists on the web (no mobile screen).
+ * Callers show this as a toast instead of navigating.
+ */
+export function getWebOnlyNotificationNotice(
+  data: unknown,
+): WebOnlyNotificationNotice | null {
+  if (!data || typeof data !== "object") return null;
+
+  if ((data as NotificationData).screen === "passportReview") {
+    return {
+      label: "Review on the web",
+      description: "Passport documents are reviewed in the admin portal on the web.",
+    };
+  }
+  return null;
 }
 
 /**
@@ -85,9 +109,10 @@ export function buildNotificationDeepLink(
       if (role === "tenant") return "/(tabs)/(tenant)/profile" as Href;
       return null;
     case "passport":
-      // Tenant-requested document review resolution; land on the passport
-      // detail when a document id is present, else the passport list.
-      if (role !== "tenant") return null;
+      // Document review resolution; land on the passport detail when a
+      // document id is present, else the passport list. Both portals expose
+      // the passport; admins review on the web.
+      if (role !== "tenant" && role !== "landlord") return null;
       if (payload.documentId) {
         return {
           pathname: "/document-id/[documentId]",
@@ -95,6 +120,10 @@ export function buildNotificationDeepLink(
         } as unknown as Href;
       }
       return "/document-id" as Href;
+    case "application":
+      // A tenant applied to one of the landlord's apartments.
+      if (role !== "landlord" || !payload.applicationId) return null;
+      return `/landlord/tenant-applications/${payload.applicationId}` as unknown as Href;
     case "payments":
       if (role === "landlord") {
         if (!payload.apartmentId) return null;

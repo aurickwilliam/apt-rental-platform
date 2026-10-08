@@ -13,7 +13,7 @@ export default function ApplicationHeader({
   currentTitle,
   nextTitle,
   step = 1,
-  totalSteps = 4,
+  totalSteps = 3,
 }: ApplicationHeaderProps) {
 
   return (

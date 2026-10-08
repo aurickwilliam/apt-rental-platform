@@ -1,6 +1,6 @@
 # APT Passport — Document Detail Redesign Plan
 
-Status: Proposed (2026-10-06)
+Status: Complete (2026-10-08)
 Scope: Mobile document detail only (`apps/mobile/app/document-id/[documentId].tsx`)
 Goal: Make the file/image preview the visual focus, then show upload date and expiry date, status, delete, and request-verify actions in one clear scroll.
 

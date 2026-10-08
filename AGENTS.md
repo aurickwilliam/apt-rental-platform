@@ -53,6 +53,10 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`
 - Services: `service/` mirrors the `hooks/` domain folder layout (e.g. `service/chat/chatService.ts`, `service/media/privateMediaResolver.ts`); tests co-locate in their domain folder, imported via direct file paths (no barrels)
+- Rental application (`app/apartment/[apartmentId]/apply`): no document-upload step — APT Passport documents are attached automatically by reference (`selectPassportDocsForApplication`; expired/rejected docs never attach). Readiness (verified account, not own listing, no pending application, complete passport) lives in `service/applications/applicationReadiness.ts` and gates both the summary screen and submit. The web apply flow still uploads files (no web Passport).
+- Applications are validated in the database (`guard_rental_application_insert` / `_update`), not just the client: verified account, proof of income unless Student/Unemployed, and every document path must be the applicant's own (folder, existing file, non-rejected/non-expired Passport row; ID captures only for the ID slot; ID back paired with the ID). Document columns, `tenant_id` and `apartment_id` are immutable after insert. Client checks are for feedback only; DB messages are user-facing, so surface them as-is.
+- Notification payloads route through `buildNotificationDeepLink`; actions that only exist on the web (admin passport review, screen `passportReview`) return null there and callers show `getWebOnlyNotificationNotice` as a toast instead. Never reuse a tenant-facing screen key for an admin-facing notification.
+- Application document URLs resolve via `resolveApplicationDocumentUrls` (mobile resolver / web `applicationDocumentsService`): a verified ID front/back (`{users.id}/{verification id}/id-front|id-back.*`) signs from `user-verification` with a 15-minute URL; everything else from `application-documents`. Route by path shape — never probe/fall back across buckets. Applications store the front in `gov_id_url` and the back in `gov_id_back_url`; landlords read exactly those two files (never the selfie) through `private.landlord_can_read_applicant_id()`.
 - Payment receipt: GCash-style receipt in `apps/mobile/app/tenant/payment/success.tsx` via `components/ReceiptCard.tsx` (same folder)
 
 ### Shared packages (`packages/`)
@@ -266,6 +270,41 @@ Follow DESIGN.md §22 (Before Creating a New Component — Checklist) for the fu
 - Keep changes minimal.
 - Preserve backwards compatibility whenever possible.
 - Content/visual decisions: follow DESIGN.md §25 (AI Working Rules).
+
+## Continuous Plan Execution
+
+When asked to implement any Markdown plan file, such as PLAN.md, FIX_PLAN.md, IMPLEMENTATION_PLAN.md, REFACTOR_PLAN.md, or similar:
+
+1. Treat the entire plan as one continuous task.
+2. Complete all unfinished, feasible tasks.
+3. Do not stop after one task, phase, or section.
+4. After completing one item, immediately continue to the next.
+5. Do not ask "Should I continue?" between tasks.
+6. Continue until all implementable tasks are completed and verified.
+7. Ask questions only when genuinely blocked by a decision, missing requirement, permission, credential, or external dependency.
+8. Prefer concise multiple-choice questions when appropriate, with the recommended option first.
+9. Questions are temporary interruptions. After the user answers, immediately resume the remaining plan.
+10. If a safe choice can be inferred from the repository, conventions, documentation, or surrounding code, make that decision yourself.
+11. Do not leave TODOs, placeholders, mocks, or incomplete work that can reasonably be finished now.
+12. Inspect existing code before modifying it and preserve working behavior unless the plan requires otherwise.
+13. Follow repository instructions, architecture, and coding conventions.
+14. Run relevant type checks, linting, tests, builds, and project-specific verification.
+15. Fix errors introduced by the implementation before finishing.
+16. Re-read the entire plan before declaring completion and confirm no feasible unfinished tasks remain.
+
+Only stop when:
+- every feasible task is completed and verified, or
+- progress is genuinely blocked by user input or an external dependency.
+
+Progress updates are allowed, but they must not interrupt implementation.
+
+### End-of-Implementation Summary
+
+After every implementation (plan-driven or not), finish with a short summary in simple, plain language:
+
+- What was done, in everyday terms (avoid jargon; explain any unavoidable technical term).
+- What was verified (tests, lint, type checks) and the result, including anything that failed or was skipped.
+- Anything left undone or blocked, and why.
 
 ## When Modifying Existing Code
 

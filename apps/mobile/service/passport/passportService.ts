@@ -6,6 +6,7 @@ import {
   DOCUMENT_TYPES,
   PASSPORT_SLOT_DOC_TYPES,
   isReviewEligibleDocType,
+  requiresProofOfIncome,
   type ApplicationDocumentSlot,
 } from '@repo/constants'
 
@@ -68,7 +69,6 @@ export interface UploadPassportDocumentInput {
   userId: string
   docType: string
   asset: PassportUploadAsset
-  idType?: string | null
   expiresAt?: string | null
 }
 
@@ -76,7 +76,6 @@ export async function uploadPassportDocument({
   userId,
   docType,
   asset,
-  idType = null,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
   if (!DOCUMENT_TYPES.includes(docType)) {
@@ -101,7 +100,6 @@ export async function uploadPassportDocument({
       doc_type: docType,
       storage_path: path,
       mime_type: getContentType(asset.fileName, asset.mimeType),
-      id_type: idType,
       expires_at: expiresAt,
     })
     .select()
@@ -298,7 +296,9 @@ export async function deletePassportDocument(input: {
     throw new Error(
       'This document is under admin review and cannot be deleted yet.'
     )
-  }  const { data: applications, error: applicationsError } = await supabase
+  }
+
+  const { data: applications, error: applicationsError } = await supabase
     .from('rental_application')
     .select('gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url')
     .eq('tenant_id', input.userId)
@@ -350,15 +350,29 @@ export async function fetchPassportVerifiedPaths(
   const unique = [...new Set(paths.filter(Boolean))]
   if (!userId || unique.length === 0) return new Set()
 
+  // The tenant's verified rows are few; filtering locally lets a verified ID
+  // badge both its front (`storage_path`) and back (`storage_path_back`).
   const { data, error } = await supabase
     .from('passport_documents')
-    .select('storage_path, is_verified')
+    .select('storage_path, storage_path_back, expires_at')
     .eq('user_id', userId)
-    .in('storage_path', unique)
     .eq('is_verified', true)
 
   if (error) throw error
-  return new Set(((data ?? []) as { storage_path: string }[]).map((row) => row.storage_path))
+  const requested = new Set(unique)
+  const verified = new Set<string>()
+  // An expired document no longer counts as verified for landlords.
+  for (const row of (data ?? []) as {
+    storage_path: string
+    storage_path_back: string | null
+    expires_at: string | null
+  }[]) {
+    if (isExpiredDate(row.expires_at)) continue
+    for (const path of [row.storage_path, row.storage_path_back]) {
+      if (path && requested.has(path)) verified.add(path)
+    }
+  }
+  return verified
 }
 
 /**
@@ -382,4 +396,55 @@ export function passportDocsForSlot(
       if (a.is_verified !== b.is_verified) return a.is_verified ? -1 : 1
       return b.created_at.localeCompare(a.created_at)
     })
+}
+
+export interface PassportApplicationSelection {
+  /** Best usable passport document per application slot (null when none). */
+  docs: Record<ApplicationDocumentSlot, PassportDocumentRow | null>
+  /** Required slots with no usable document at all. */
+  missing: ApplicationDocumentSlot[]
+  /** Required slots whose only matching documents are expired. */
+  expired: ApplicationDocumentSlot[]
+}
+
+/**
+ * Picks the passport documents submitted with a rental application. Rejected
+ * and expired documents are never attached. Proof of income is only required
+ * when the employment type needs it (unknown employment skips that check);
+ * NBI clearance is optional and attached when available.
+ */
+export function selectPassportDocsForApplication(
+  docs: readonly PassportDocumentRow[],
+  employmentType: string | null = null
+): PassportApplicationSelection {
+  const slots: ApplicationDocumentSlot[] = [
+    'govId',
+    'proofOfIncome',
+    'proofOfBilling',
+    'nbiClearance',
+  ]
+  const required: ApplicationDocumentSlot[] = ['govId', 'proofOfBilling']
+  if (employmentType && requiresProofOfIncome(employmentType)) {
+    required.push('proofOfIncome')
+  }
+
+  const selection: PassportApplicationSelection = {
+    docs: { govId: null, proofOfIncome: null, proofOfBilling: null, nbiClearance: null },
+    missing: [],
+    expired: [],
+  }
+
+  for (const slot of slots) {
+    const candidates = passportDocsForSlot(docs, slot).filter(
+      (doc) => doc.review_status !== 'rejected'
+    )
+    const usable = candidates.filter((doc) => !isExpiredDate(doc.expires_at))
+    selection.docs[slot] = usable[0] ?? null
+
+    if (usable.length > 0 || !required.includes(slot)) continue
+    if (candidates.length > 0) selection.expired.push(slot)
+    else selection.missing.push(slot)
+  }
+
+  return selection
 }

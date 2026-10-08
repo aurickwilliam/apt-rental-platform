@@ -471,7 +471,7 @@ describe("Supporting documents view toggle", () => {
     expect(screen.queryByTestId("verified-badge")).toBeNull();
   });
 
-  it("marks expired cards and list rows even if the document is verified", () => {
+  it("shows expired instead of verified on cards and list rows", () => {
     mockPassportState.documents = [
       primaryDoc,
       { ...payslipDoc, is_verified: true, expires_at: "2020-01-01" },
@@ -479,12 +479,12 @@ describe("Supporting documents view toggle", () => {
     mockDocumentUrlsState.resolved = [frontResolved, payslipResolved];
     render(<Index />);
 
-    expect(screen.getByTestId("verified-badge")).toBeTruthy();
+    expect(screen.queryByTestId("verified-badge")).toBeNull();
     expect(screen.getByTestId("expired-badge")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText("Toggle view"));
     expect(screen.getByText("Expired")).toBeTruthy();
-    expect(screen.getByText("Verified")).toBeTruthy();
+    expect(screen.queryByText("Verified")).toBeNull();
   });
 });
 

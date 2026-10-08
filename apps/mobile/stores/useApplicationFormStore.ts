@@ -1,6 +1,4 @@
 import { create } from 'zustand'
-import type { ImagePickerAsset } from 'expo-image-picker'
-import type { DocumentPickerAsset } from 'expo-document-picker'
 
 // ---------- Types ----------
 
@@ -28,32 +26,6 @@ export type RentalPreferences = {
   additionalNotes: string
 }
 
-export type RequiredDocuments = {
-  govId: ImagePickerAsset[]
-  proofOfBilling: ImagePickerAsset[]
-  proofOfIncome: DocumentPickerAsset | null
-  nbiClearance: DocumentPickerAsset | null
-}
-
-export type UploadedDocumentPaths = {
-  govId: string | null
-  proofOfIncome: string | null
-  proofOfBilling: string | null
-  nbiClearance: string | null
-}
-
-/**
- * Passport storage paths selected for each slot. A fresh upload takes
- * precedence; otherwise submit reuses the passport path by reference
- * (no re-upload, no duplicate storage).
- */
-export type PassportSelections = {
-  govId: string | null
-  proofOfIncome: string | null
-  proofOfBilling: string | null
-  nbiClearance: string | null
-}
-
 const initialTenantInformation: TenantInformation = {
   fullName: '',
   contactNumber: '',
@@ -76,27 +48,6 @@ const initialRentalPreferences: RentalPreferences = {
   isSmoker: undefined,
   needParking: undefined,
   additionalNotes: '',
-}
-
-const initialDocuments: RequiredDocuments = {
-  govId: [],
-  proofOfBilling: [],
-  proofOfIncome: null,
-  nbiClearance: null,
-}
-
-const initialUploadedPaths: UploadedDocumentPaths = {
-  govId: null,
-  proofOfIncome: null,
-  proofOfBilling: null,
-  nbiClearance: null,
-}
-
-const initialPassportSelections: PassportSelections = {
-  govId: null,
-  proofOfIncome: null,
-  proofOfBilling: null,
-  nbiClearance: null,
 }
 
 export type ApartmentContext = {
@@ -134,9 +85,6 @@ type ApplicationFormState = {
 
   tenantInformation: TenantInformation
   rentalPreferences: RentalPreferences
-  documents: RequiredDocuments
-  uploadedPaths: UploadedDocumentPaths
-  passportSelections: PassportSelections
 
   isSubmitting: boolean
 
@@ -153,10 +101,6 @@ type ApplicationFormState = {
     field: K,
     value: RentalPreferences[K],
   ) => void
-  updateImageDocument: (field: 'govId' | 'proofOfBilling', assets: ImagePickerAsset[]) => void
-  updateFileDocument: (field: 'proofOfIncome' | 'nbiClearance', asset: DocumentPickerAsset | null) => void
-  setUploadedPath: (field: keyof UploadedDocumentPaths, path: string | null) => void
-  setPassportSelection: (field: keyof PassportSelections, path: string | null) => void
   setIsSubmitting: (isSubmitting: boolean) => void
 
   // Lifecycle
@@ -168,9 +112,6 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
 
   tenantInformation: initialTenantInformation,
   rentalPreferences: initialRentalPreferences,
-  documents: initialDocuments,
-  uploadedPaths: initialUploadedPaths,
-  passportSelections: initialPassportSelections,
 
   isSubmitting: false,
 
@@ -198,38 +139,6 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
       },
     })),
 
-  updateImageDocument: (field, assets) =>
-    set((state) => ({
-      documents: {
-        ...state.documents,
-        [field]: assets,
-      },
-    })),
-
-  updateFileDocument: (field, asset) =>
-    set((state) => ({
-      documents: {
-        ...state.documents,
-        [field]: asset,
-      },
-    })),
-
-  setUploadedPath: (field, path) =>
-    set((state) => ({
-      uploadedPaths: {
-        ...state.uploadedPaths,
-        [field]: path,
-      },
-    })),
-
-  setPassportSelection: (field, path) =>
-    set((state) => ({
-      passportSelections: {
-        ...state.passportSelections,
-        [field]: path,
-      },
-    })),
-
   setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
 
   resetApplicationForm: () =>
@@ -237,9 +146,6 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
       apartmentContext: initialApartmentContext,
       tenantInformation: initialTenantInformation,
       rentalPreferences: initialRentalPreferences,
-      documents: initialDocuments,
-      uploadedPaths: initialUploadedPaths,
-      passportSelections: initialPassportSelections,
       isSubmitting: false,
     }),
 }))

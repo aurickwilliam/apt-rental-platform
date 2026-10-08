@@ -7,9 +7,9 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
@@ -19,18 +19,20 @@ import { formatPesoDisplay } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
+import { useApplicationReadiness } from "@/hooks/applications";
+import ApplicationGuidelinesSheet from "./components/ApplicationGuidelinesSheet";
+import ApplicationIssues from "./components/ApplicationIssues";
 
 import { Button, Spinner } from "heroui-native";
 
 import {
   IconChevronLeft,
-  IconBed,
-  IconBath,
-  IconHome,
   IconMapPin,
-  IconArrowsMaximize,
   IconStarFilled,
+  IconInfoCircle,
 } from "@tabler/icons-react-native";
+
+const GUIDELINES_OPEN_DELAY_MS = 400;
 
 export default function ApartmentSummary() {
   const { colors } = useColors();
@@ -39,7 +41,33 @@ export default function ApartmentSummary() {
   const insets = useSafeAreaInsets();
 
   const { apartment, loading, error } = useApartmentDetails(apartmentId, { includeReviews: false });
+
+  // Guidelines pop up once the apartment has rendered; the link reopens them.
+  // The sheet must mount closed — it does not present when mounted open.
+  const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
+  const hasShownGuidelines = useRef(false);
+
+  // The sheet renders through a global portal, so it must only be open while
+  // this screen is in front — a stacked or leaving screen must never show it.
+  const [isFocused, setIsFocused] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocused(true);
+      return () => setIsFocused(false);
+    }, []),
+  );
+  const isApartmentReady = !loading && !error && !!apartment;
+  useEffect(() => {
+    if (!isFocused || !isApartmentReady || hasShownGuidelines.current) return;
+    const timer = setTimeout(() => {
+      hasShownGuidelines.current = true;
+      setIsGuidelinesOpen(true);
+    }, GUIDELINES_OPEN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isFocused, isApartmentReady]);
   const { setApartmentContext } = useApplicationFormStore();
+  const readiness = useApplicationReadiness(apartmentId, apartment?.landlord?.id ?? null);
+
 
   const imageScrollViewRef = useRef<ScrollView>(null);
   const [scrollX] = useState(() => new Animated.Value(0));
@@ -159,53 +187,11 @@ export default function ApartmentSummary() {
               {apartment.name}
             </Text>
 
-            <View className="flex-row items-center mt-2 gap-2">
+            <View className="flex-row items-center mt-2 mb-5 gap-2">
               <IconMapPin size={24} color={colors.secondaryForeground} />
               <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                 {fullAddress}
               </Text>
-            </View>
-
-            <View className="flex-row items-center justify-between mt-8 gap-6">
-              <View className="flex-row items-center gap-2">
-                <IconHome size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.type}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconStarFilled size={20} color={colors.secondary} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
-                </Text>
-              </View>
-            </View>
-
-            <View
-              className="flex-row items-center justify-between my-5 gap-6"
-              pointerEvents="none"
-            >
-              <View className="flex-row items-center gap-2">
-                <IconBed size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.no_bedrooms} Bedrooms
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconBath size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.no_bathrooms} Bathrooms
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-2">
-                <IconArrowsMaximize size={24} color={colors.secondaryForeground} />
-                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
-                  {apartment.area_sqm} Sqm
-                </Text>
-              </View>
             </View>
 
             <View className="flex-row items-center gap-3" pointerEvents="none">
@@ -228,10 +214,20 @@ export default function ApartmentSummary() {
               </View>
             </View>
 
-            <View className="mt-5 mb-10" pointerEvents="none">
+            <View
+              className="mt-5 mb-10 flex-row items-center justify-between gap-4"
+              pointerEvents="none"
+            >
               <Text className="text-secondary-foreground font-nunitoBold text-2xl">
                 {formattedMonthlyRent}/month
               </Text>
+
+              <View className="flex-row items-center gap-2">
+                <IconStarFilled size={20} color={colors.secondary} />
+                <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
+                  {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -268,12 +264,33 @@ export default function ApartmentSummary() {
             })}
           </View>
 
-          <View className="mt-5">
-            <Button onPress={handleContinueApplication}>
+          <View className="mt-5 gap-3">
+            <TouchableOpacity
+              onPress={() => setIsGuidelinesOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="View application guidelines"
+              className="flex-row items-center justify-center gap-2 py-1"
+            >
+              <IconInfoCircle size={18} color="#FFFFFF" />
+              <Text className="text-white text-sm font-nunitoSemiBold underline">
+                View application guidelines
+              </Text>
+            </TouchableOpacity>
+            {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
+            <Button
+              onPress={handleContinueApplication}
+              isDisabled={readiness.loading || !readiness.isReady}
+            >
               <Button.Label>Continue Application</Button.Label>
             </Button>
           </View>
         </LinearGradient>
+
+        <ApplicationGuidelinesSheet
+          isOpen={isGuidelinesOpen && isFocused}
+          onOpenChange={setIsGuidelinesOpen}
+        />
 
         <View className="absolute left-4" style={{ top: insets.top + 8 }}>
           <Button onPress={() => router.back()} variant="tertiary" isIconOnly>

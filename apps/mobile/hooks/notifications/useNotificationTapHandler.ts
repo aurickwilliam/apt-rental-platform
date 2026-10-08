@@ -1,10 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
+import { useToast } from "heroui-native";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { markNotificationRead } from "@/service/notifications/notificationService";
-import { buildNotificationDeepLink } from "@/utils/notificationDeepLink";
+import {
+  buildNotificationDeepLink,
+  getWebOnlyNotificationNotice,
+} from "@/utils/notificationDeepLink";
 import { authorizedPortal } from "@/service/auth/portalPreference";
 import { usePortalStore } from "@/stores/usePortalStore";
 
@@ -18,6 +22,11 @@ import { usePortalStore } from "@/stores/usePortalStore";
  */
 export function useNotificationTapHandler() {
   const router = useRouter();
+  const { toast } = useToast();
+  const toastRef = useRef(toast);
+  useEffect(() => {
+    toastRef.current = toast;
+  });
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
   const activePortal = usePortalStore((state) => state.portal);
@@ -26,6 +35,23 @@ export function useNotificationTapHandler() {
     ? authorizedPortal(currentUserQuery.data?.roles ?? [], activePortal) : null;
   const roleRef = useRef(currentUserRole);
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
+
+  // Navigates to the notification's screen, or explains web-only actions.
+  // Read through a ref so the response listener is not re-subscribed on
+  // every render.
+  const openTarget = (data: unknown, userId: string, role: string) => {
+    const href = buildNotificationDeepLink(data, userId, role);
+    if (href) {
+      router.push(href);
+      return;
+    }
+    const notice = getWebOnlyNotificationNotice(data);
+    if (notice) toastRef.current.show({ variant: "default", ...notice });
+  };
+  const openTargetRef = useRef(openTarget);
+  useEffect(() => {
+    openTargetRef.current = openTarget;
+  });
 
   useEffect(() => {
     roleRef.current = currentUserRole;
@@ -47,8 +73,7 @@ export function useNotificationTapHandler() {
       if (typeof data.notificationId === "string") {
         void markNotificationRead(data.notificationId);
       }
-      const href = buildNotificationDeepLink(data, currentUserId, roleRef.current);
-      if (href) router.push(href);
+      openTargetRef.current(data, currentUserId, roleRef.current);
     }
 
     const subscription = Notifications.addNotificationResponseReceivedListener(handleResponse);
@@ -66,8 +91,7 @@ export function useNotificationTapHandler() {
       if (typeof data?.notificationId === "string") {
         void markNotificationRead(data.notificationId);
       }
-      const href = buildNotificationDeepLink(data, currentUserId, currentUserRole);
-      if (href) router.push(href);
+      openTargetRef.current(data, currentUserId, currentUserRole);
     }
   }, [currentUserId, currentUserRole, router]);
 }

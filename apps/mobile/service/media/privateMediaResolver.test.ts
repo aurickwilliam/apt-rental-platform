@@ -12,6 +12,11 @@ jest.mock('@repo/supabase', () => ({
 import {
   CHAT_VISIBLE_MEDIA_REFRESH_AGE_MS,
   PRIVATE_MEDIA_CACHE_TTL_MS,
+  PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
+  SENSITIVE_MEDIA_CACHE_TTL_MS,
+  SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS,
+  isVerifiedIdPath,
+  resolveApplicationDocumentUrls,
   clearPrivateMediaUrlCache,
   refreshVisibleChatMediaUrls,
   resolvePrivateMediaUrls,
@@ -166,5 +171,88 @@ describe('privateMediaResolver', () => {
     expect(firstRetry.didRetry).toBe(true);
     expect(secondRetry.didRetry).toBe(false);
     expect(mockCreateSignedUrls).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('verified ID media', () => {
+  const USER = '11111111-1111-4111-8111-111111111111';
+  const VERIFICATION = '22222222-2222-4222-8222-222222222222';
+  const idFront = `${USER}/${VERIFICATION}/id-front.jpg`;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearPrivateMediaUrlCache();
+    jest.spyOn(Date, 'now').mockReturnValue(BASE_TIME);
+    mockCreateSignedUrls.mockImplementation(async (paths: string[]) => ({
+      data: paths.map((path) => ({ path, signedUrl: `https://signed.test/${path}`, error: null })),
+      error: null,
+    }));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('treats the ID front and back as verified ID paths, never the selfie', () => {
+    expect(isVerifiedIdPath(idFront)).toBe(true);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/id-back.jpg`)).toBe(true);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/selfie.jpg`)).toBe(false);
+    expect(isVerifiedIdPath(`${USER}/passport/id-front.jpg`)).toBe(false);
+    expect(isVerifiedIdPath(`${USER}/${VERIFICATION}/govId-1700000000.jpg`)).toBe(false);
+  });
+
+  it('routes each path to its own bucket without probing', async () => {
+    const docPath = `${USER}/passport/payslip-1.pdf`;
+    const { urls, error } = await resolveApplicationDocumentUrls([idFront, docPath]);
+
+    expect(error).toBeNull();
+    expect(urls[idFront]).toContain(idFront);
+    expect(urls[docPath]).toContain(docPath);
+    expect(mockStorageFrom).toHaveBeenCalledWith('user-verification');
+    expect(mockStorageFrom).toHaveBeenCalledWith('application-documents');
+    expect(mockCreateSignedUrls).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry a failed path in the other bucket', async () => {
+    mockCreateSignedUrls.mockImplementation(async (paths: string[]) => ({
+      data: paths.map((path) => ({ path, signedUrl: null, error: 'not found' })),
+      error: null,
+    }));
+
+    const { urls, error } = await resolveApplicationDocumentUrls([idFront]);
+
+    expect(urls[idFront]).toBeNull();
+    expect(error).not.toBeNull();
+    expect(mockStorageFrom).toHaveBeenCalledTimes(1);
+    expect(mockStorageFrom).toHaveBeenCalledWith('user-verification');
+  });
+
+  it('signs verification media for a shorter time than other private media', async () => {
+    await resolvePrivateMediaUrls('user-verification', [idFront]);
+    expect(mockCreateSignedUrls).toHaveBeenLastCalledWith(
+      [idFront],
+      SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS,
+    );
+
+    await resolvePrivateMediaUrls('chat-images', ['a/b.jpg']);
+    expect(mockCreateSignedUrls).toHaveBeenLastCalledWith(
+      ['a/b.jpg'],
+      PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS,
+    );
+    expect(SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS).toBeLessThan(PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS);
+  });
+
+  it('expires cached verification URLs before the signed URL does', async () => {
+    await resolvePrivateMediaUrls('user-verification', [idFront]);
+    mockCreateSignedUrls.mockClear();
+
+    jest.spyOn(Date, 'now').mockReturnValue(BASE_TIME + SENSITIVE_MEDIA_CACHE_TTL_MS - 1);
+    await resolvePrivateMediaUrls('user-verification', [idFront]);
+    expect(mockCreateSignedUrls).not.toHaveBeenCalled();
+
+    jest.spyOn(Date, 'now').mockReturnValue(BASE_TIME + SENSITIVE_MEDIA_CACHE_TTL_MS);
+    await resolvePrivateMediaUrls('user-verification', [idFront]);
+    expect(mockCreateSignedUrls).toHaveBeenCalledTimes(1);
+    expect(SENSITIVE_MEDIA_CACHE_TTL_MS).toBeLessThan(SENSITIVE_MEDIA_SIGNED_URL_TTL_SECONDS * 1000);
   });
 });

@@ -5,8 +5,8 @@ import Animated from 'react-native-reanimated';
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import ReviewAccordionItem from './components/ReviewAccordionItem'
-import ReviewDocumentFile from './components/ReviewDocumentFile'
-import ReviewDocumentImage from './components/ReviewDocumentImage'
+import PassportNotice from './components/PassportNotice'
+import ApplicationIssues from './components/ApplicationIssues'
 import DetailField from '@/components/display/DetailField';
 
 
@@ -23,8 +23,9 @@ import { calcMoveInCost, formatDate, formatPesoDisplay } from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
-import { useSubmitApplication } from '@/hooks/applications'
-import { usePassportDocuments } from '@/hooks/passport'
+import { useApplicationReadiness, useSubmitApplication } from '@/hooks/applications'
+import { useApartmentDetails } from '@/hooks/apartments'
+import { APPLICATION_SLOT_LABELS } from '@/service/applications/applicationReadiness'
 
 export default function ReviewInformation() {
   const router = useRouter();
@@ -35,13 +36,14 @@ export default function ReviewInformation() {
     apartmentContext,
     tenantInformation,
     rentalPreferences,
-    documents,
-    passportSelections
   } = useApplicationFormStore();
 
-  const { documents: passportDocs } = usePassportDocuments();
-  const passportNameFor = (path: string | null) =>
-    path ? (passportDocs.find((doc) => doc.storage_path === path)?.doc_type ?? null) : null;
+  const { apartment } = useApartmentDetails(apartmentId, { includeReviews: false });
+  const readiness = useApplicationReadiness(
+    apartmentId,
+    apartment?.landlord?.id ?? null,
+    tenantInformation.employmentType,
+  );
 
   const { submit, isSubmitting } = useSubmitApplication();
 
@@ -77,7 +79,7 @@ export default function ReviewInformation() {
       <ApplicationHeader
         currentTitle="Review Application"
         nextTitle="Submit Application"
-        step={4}
+        step={3}
       />
 
       <View className="p-5 flex-1">
@@ -180,8 +182,7 @@ export default function ReviewInformation() {
           </Text>
           <Text className="text-sm font-inter text-muted mt-1">
             Please review the information you have provided before submitting
-            your application. Make sure all details are accurate and all
-            required documents are uploaded.
+            your application. Make sure all details are accurate.
           </Text>
 
           <Animated.View
@@ -280,33 +281,33 @@ export default function ReviewInformation() {
                 />
               </ReviewAccordionItem>
 
-              <ReviewAccordionItem value="documents" title="Uploaded Documents">
-                <ReviewDocumentImage
-                  label="Valid Government-issued ID"
-                  uri={documents.govId[0]?.uri}
-                  passportName={passportNameFor(passportSelections.govId)}
-                />
-                <ReviewDocumentFile
-                  label="Proof of Income"
-                  fileName={documents.proofOfIncome?.name}
-                  passportName={passportNameFor(passportSelections.proofOfIncome)}
-                />
-                <ReviewDocumentImage
-                  label="Proof of Billing"
-                  uri={documents.proofOfBilling[0]?.uri}
-                  passportName={passportNameFor(passportSelections.proofOfBilling)}
-                />
-                <ReviewDocumentFile
-                  label="NBI Clearance"
-                  fileName={documents.nbiClearance?.name}
-                  passportName={passportNameFor(passportSelections.nbiClearance)}
-                />
+              <ReviewAccordionItem value="documents" title="APT Passport Documents">
+                {(Object.keys(APPLICATION_SLOT_LABELS) as (keyof typeof APPLICATION_SLOT_LABELS)[]).map((slot) => {
+                  const doc = readiness.selection.docs[slot];
+                  const value = doc
+                    ? `${doc.doc_type}${slot === "govId" && doc.verification_id && doc.storage_path_back ? " (front & back)" : ""}${doc.is_verified ? " · Verified" : ""}`
+                    : slot === "nbiClearance"
+                      ? "Not provided (optional)"
+                      : "Missing";
+                  return (
+                    <DetailField
+                      key={slot}
+                      label={APPLICATION_SLOT_LABELS[slot]}
+                      value={value}
+                    />
+                  );
+                })}
               </ReviewAccordionItem>
             </Accordion>
           </Animated.View>
         </View>
 
-        <View className="flex-row mt-16 gap-4">
+        <View className="mt-5 gap-3">
+          <PassportNotice />
+          {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
+        </View>
+
+        <View className="flex-row mt-10 gap-4">
           <Button
             variant="tertiary"
             onPress={() => router.back()}
@@ -319,7 +320,7 @@ export default function ReviewInformation() {
           <Button
             onPress={handleSubmit}
             className="flex-1"
-            isDisabled={isSubmitting}
+            isDisabled={isSubmitting || readiness.loading || !readiness.isReady}
           >
             {isSubmitting ? (
               <Spinner color="white" />
