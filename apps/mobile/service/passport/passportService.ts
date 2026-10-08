@@ -68,7 +68,6 @@ export interface UploadPassportDocumentInput {
   userId: string
   docType: string
   asset: PassportUploadAsset
-  idType?: string | null
   expiresAt?: string | null
 }
 
@@ -76,7 +75,6 @@ export async function uploadPassportDocument({
   userId,
   docType,
   asset,
-  idType = null,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
   if (!DOCUMENT_TYPES.includes(docType)) {
@@ -101,7 +99,6 @@ export async function uploadPassportDocument({
       doc_type: docType,
       storage_path: path,
       mime_type: getContentType(asset.fileName, asset.mimeType),
-      id_type: idType,
       expires_at: expiresAt,
     })
     .select()
@@ -298,7 +295,9 @@ export async function deletePassportDocument(input: {
     throw new Error(
       'This document is under admin review and cannot be deleted yet.'
     )
-  }  const { data: applications, error: applicationsError } = await supabase
+  }
+
+  const { data: applications, error: applicationsError } = await supabase
     .from('rental_application')
     .select('gov_id_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url')
     .eq('tenant_id', input.userId)
@@ -352,13 +351,18 @@ export async function fetchPassportVerifiedPaths(
 
   const { data, error } = await supabase
     .from('passport_documents')
-    .select('storage_path, is_verified')
+    .select('storage_path, expires_at')
     .eq('user_id', userId)
     .in('storage_path', unique)
     .eq('is_verified', true)
 
   if (error) throw error
-  return new Set(((data ?? []) as { storage_path: string }[]).map((row) => row.storage_path))
+  // An expired document no longer counts as verified for landlords.
+  return new Set(
+    ((data ?? []) as { storage_path: string; expires_at: string | null }[])
+      .filter((row) => !isExpiredDate(row.expires_at))
+      .map((row) => row.storage_path)
+  )
 }
 
 /**

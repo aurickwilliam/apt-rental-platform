@@ -85,9 +85,10 @@ export function buildNotificationDeepLink(
       if (role === "tenant") return "/(tabs)/(tenant)/profile" as Href;
       return null;
     case "passport":
-      // Tenant-requested document review resolution; land on the passport
-      // detail when a document id is present, else the passport list.
-      if (role !== "tenant") return null;
+      // Document review resolution; land on the passport detail when a
+      // document id is present, else the passport list. Both portals expose
+      // the passport; admins review on the web.
+      if (role !== "tenant" && role !== "landlord") return null;
       if (payload.documentId) {
         return {
           pathname: "/document-id/[documentId]",

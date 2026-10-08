@@ -205,12 +205,18 @@ describe("buildNotificationDeepLink", () => {
       )).toBe("/document-id");
     });
 
-    it("returns null for non-tenant recipients", () => {
+    it("routes landlords to the document detail too", () => {
       expect(buildNotificationDeepLink(
         { screen: "passport", documentId: "doc-1" },
         USER_ID,
         "landlord",
-      )).toBeNull();
+      )).toEqual({
+        pathname: "/document-id/[documentId]",
+        params: { documentId: "doc-1" },
+      });
+    });
+
+    it("returns null for recipients without a portal role", () => {
       expect(buildNotificationDeepLink(
         { screen: "passport", documentId: "doc-1" },
         USER_ID,

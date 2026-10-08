@@ -1,6 +1,10 @@
-import { render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import PassportDocumentDetail from "./[documentId]";
+
+const mockRequestReview = jest.fn();
+const mockRemove = jest.fn();
+let mockRequestError: Error | null = null;
 
 const mockDocument = {
   id: "doc-1",
@@ -51,7 +55,27 @@ jest.mock("@/components/layout/StandardHeader", () => ({
 }));
 jest.mock("@/components/display/ConfirmDialog", () => ({
   __esModule: true,
-  default: () => null,
+  default: ({
+    isOpen,
+    onConfirm,
+    errorMessage,
+  }: {
+    isOpen: boolean;
+    onConfirm: () => void;
+    errorMessage?: string | null;
+  }) => {
+    const React = jest.requireActual<typeof import("react")>("react");
+    const { Text, Pressable } =
+      jest.requireActual<typeof import("react-native")>("react-native");
+    return isOpen
+      ? React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(Pressable, { onPress: onConfirm, accessibilityLabel: "confirm-delete" }),
+          errorMessage ? React.createElement(Text, null, errorMessage) : null,
+        )
+      : null;
+  },
 }));
 jest.mock("@/components/display/ErrorDialog", () => ({
   __esModule: true,
@@ -65,11 +89,11 @@ jest.mock("@/hooks/useTheme", () => ({
 }));
 jest.mock("@/hooks/passport", () => ({
   usePassportDocuments: () => ({ documents: [mockDocument], loading: false }),
-  useDeletePassportDocument: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeletePassportDocument: () => ({ mutate: mockRemove, isPending: false }),
   useRequestPassportDocumentReview: () => ({
-    mutate: jest.fn(),
+    mutate: mockRequestReview,
     isPending: false,
-    error: null,
+    error: mockRequestError,
     reset: jest.fn(),
   }),
 }));
@@ -85,7 +109,7 @@ jest.mock("@/hooks/applications", () => ({
 
 jest.mock("heroui-native", () => {
   const React = jest.requireActual<typeof import("react")>("react");
-  const { View, Text } =
+  const { View, Text, Pressable } =
     jest.requireActual<typeof import("react-native")>("react-native");
   const Passthrough = ({ children }: { children?: React.ReactNode }) =>
     React.createElement(View, null, children);
@@ -93,14 +117,16 @@ jest.mock("heroui-native", () => {
     children,
     isDisabled,
     accessibilityLabel,
+    onPress,
   }: {
     children?: React.ReactNode;
     isDisabled?: boolean;
     accessibilityLabel?: string;
+    onPress?: () => void;
   }) =>
     React.createElement(
-      View,
-      { accessibilityLabel, accessibilityState: { disabled: !!isDisabled } },
+      Pressable,
+      { accessibilityLabel, onPress, accessibilityState: { disabled: !!isDisabled } },
       children,
     );
   const Button = ButtonBase as typeof ButtonBase & {
@@ -272,4 +298,57 @@ it("hides the verify action once the document is verified", () => {
     expect(screen.queryByText("Request Verification")).toBeNull();
     expect(screen.getByText("Delete Document")).toBeTruthy();
   });
+});
+
+beforeEach(() => {
+  mockRequestReview.mockClear();
+  mockRemove.mockClear();
+  mockRequestError = null;
+});
+
+it("shows an Expired chip instead of Verified for an expired verified document", () => {
+  withDocument(
+    { is_verified: true, review_status: "verified", expires_at: "2020-01-01" },
+    () => {
+      render(<PassportDocumentDetail />);
+
+      expect(screen.getByText("Expired")).toBeTruthy();
+      expect(screen.queryByText("Verified")).toBeNull();
+    },
+  );
+});
+
+it("submits a review request for an eligible document", () => {
+  withDocument({ doc_type: "Payslip" }, () => {
+    render(<PassportDocumentDetail />);
+
+    fireEvent(screen.getByLabelText("Request document verification"), "press");
+    expect(mockRequestReview).toHaveBeenCalledWith({ id: "doc-1" });
+  });
+});
+
+it("shows the review request error inline", () => {
+  mockRequestError = new Error("This document is already under review.");
+  withDocument({ doc_type: "Payslip" }, () => {
+    render(<PassportDocumentDetail />);
+
+    expect(
+      screen.getByText("This document is already under review."),
+    ).toBeTruthy();
+  });
+});
+
+it("deletes after confirmation and surfaces a delete error", () => {
+  render(<PassportDocumentDetail />);
+
+  fireEvent(screen.getByLabelText("Delete document"), "press");
+  fireEvent(screen.getByLabelText("confirm-delete"), "press");
+  expect(mockRemove).toHaveBeenCalledWith(
+    { id: "doc-1", storagePath: "user-1/passport/residency.pdf" },
+    expect.any(Object),
+  );
+
+  const { onError } = mockRemove.mock.calls[0][1];
+  act(() => onError(new Error("Attached to an active application.")));
+  expect(screen.getByText("Attached to an active application.")).toBeTruthy();
 });

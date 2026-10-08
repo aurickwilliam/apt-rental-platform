@@ -105,7 +105,9 @@ export default function Index() {
           label: doc.label,
           path: doc.path,
           signedUrl: doc.signedUrl,
-          verified: row?.is_verified ?? false,
+          verified:
+            (row?.is_verified ?? false) &&
+            !isExpiredDate(row?.expires_at ?? null),
           expired: isExpiredDate(row?.expires_at ?? null),
           mimeType: row?.mime_type ?? null,
           id: row?.id ?? null,
@@ -264,7 +266,7 @@ export default function Index() {
                     filePath={signedUrl}
                     storagePath={doc.storage_path}
                     label={doc.doc_type}
-                    verified={doc.is_verified}
+                    verified={doc.is_verified && !isExpiredDate(doc.expires_at)}
                     expired={isExpiredDate(doc.expires_at)}
                     pending={doc.review_status === "pending"}
                     mimeType={doc.mime_type}

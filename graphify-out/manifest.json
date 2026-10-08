@@ -595,8 +595,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.tsx": {
-    "mtime": 1791382521.7183526,
-    "ast_hash": "7b4d7e65acd3aa605599fff4a9d2110a",
+    "mtime": 1791436935.9892755,
+    "ast_hash": "9037ee344b3f9f91326d498a4e1e5b7a",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/select-document.tsx": {
@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791382558.5043175,
-    "ast_hash": "00ea036ee44c4b26b3cc9d6b36b2e313",
+    "mtime": 1791433963.5643268,
+    "ast_hash": "19277e8cc2701d90b84f1addc1148477",
     "semantic_hash": ""
   },
   "README.md": {
@@ -3505,8 +3505,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/utils/notificationDeepLink.ts": {
-    "mtime": 1791382521.727889,
-    "ast_hash": "f89d410f293ad2eb49872ef66ac74292",
+    "mtime": 1791436935.9906442,
+    "ast_hash": "56f89703527cd757b3b4bd66bc1c7329",
     "semantic_hash": ""
   },
   "supabase/functions/push-notify/deno.json": {
@@ -3560,8 +3560,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/utils/notificationDeepLink.test.ts": {
-    "mtime": 1791382521.7277997,
-    "ast_hash": "c108a5fe1505cd337cc295d3d331803b",
+    "mtime": 1791436935.990901,
+    "ast_hash": "134780a7d43c13be141d50e4eb96f180",
     "semantic_hash": ""
   },
   "supabase/migrations/20260816000000_restrict_create_notification.sql": {
@@ -5940,8 +5940,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/[documentId].tsx": {
-    "mtime": 1791433727.961328,
-    "ast_hash": "712ca30643260c24d67a135dda3d6607",
+    "mtime": 1791436935.9903417,
+    "ast_hash": "cd8677a90697c69e855651f7c9a481d5",
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/components/EmptySupportingDocs.tsx": {
@@ -5960,8 +5960,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/index.test.tsx": {
-    "mtime": 1791382521.7181265,
-    "ast_hash": "30ac29a9e66882d5310f97eea6f721fb",
+    "mtime": 1791436978.205062,
+    "ast_hash": "3db42d7854022f5a3f444012866e2831",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/passport/index.ts": {
@@ -5985,13 +5985,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.test.ts": {
-    "mtime": 1791382521.7274144,
-    "ast_hash": "437870fbd2bb20fd2b18cd9dfd3a56ed",
+    "mtime": 1791436954.9713361,
+    "ast_hash": "5b8c49eba638009f92de032a8ed60aab",
     "semantic_hash": ""
   },
   "apps/mobile/service/passport/passportService.ts": {
-    "mtime": 1791382521.7275538,
-    "ast_hash": "4838bd36726ee7b93460f73bd6b07ade",
+    "mtime": 1791436935.9882512,
+    "ast_hash": "152f08849889cd116740cadcaaed388e",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-passport-verified-paths.ts": {
@@ -6070,8 +6070,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/document-id/detail.test.tsx": {
-    "mtime": 1791433130.185465,
-    "ast_hash": "5930cdf345def149fe760603fc429f50",
+    "mtime": 1791436978.2051897,
+    "ast_hash": "ed6bd17c02e67d7c32b0ae592dffa478",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ScreenWrapper.test.tsx": {
@@ -6225,8 +6225,18 @@
     "semantic_hash": ""
   },
   "docs/plans/apt-passport-document-detail-redesign.md": {
-    "mtime": 1791382558.5202389,
-    "ast_hash": "3fb260204f54334fa076301a1e7ea7f7",
+    "mtime": 1791436900.7430246,
+    "ast_hash": "69a7c1e2238d88405bc3c7658db22086",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261008000000_passport_documents_integrity.sql": {
+    "mtime": 1791435376.510374,
+    "ast_hash": "39165adbcec832b642fb794344aac71b",
+    "semantic_hash": ""
+  },
+  "docs/plans/mobile-forgot-password.md": {
+    "mtime": 1791434828.316899,
+    "ast_hash": "69727b79c2c929c4cf10043076efcdd6",
     "semantic_hash": ""
   }
 }

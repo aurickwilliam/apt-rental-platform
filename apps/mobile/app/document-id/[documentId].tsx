@@ -288,7 +288,7 @@ export default function PassportDocumentDetail() {
             >
               {document.doc_type}
             </Text>
-            {document.is_verified ? (
+            {document.is_verified && !isExpired ? (
               <Chip
                 variant="soft"
                 color="success"
@@ -301,6 +301,21 @@ export default function PassportDocumentDetail() {
                   style={{ color: success.textColor }}
                 >
                   Verified
+                </Chip.Label>
+              </Chip>
+            ) : document.is_verified && isExpired ? (
+              <Chip
+                variant="soft"
+                color="danger"
+                size="sm"
+                style={statusChipSurface(danger)}
+              >
+                <IconAlertTriangle size={14} color={danger.textColor} />
+                <Chip.Label
+                  className="font-nunitoSemiBold"
+                  style={{ color: danger.textColor }}
+                >
+                  Expired
                 </Chip.Label>
               </Chip>
             ) : isUnderReview ? (
