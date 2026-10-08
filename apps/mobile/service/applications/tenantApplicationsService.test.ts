@@ -1,5 +1,5 @@
 import { fetchTenantApplications } from "./tenantApplicationsService";
-import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
+import { resolveApplicationDocumentUrls } from "@/service/media/privateMediaResolver";
 
 const mockFrom = jest.fn();
 
@@ -10,10 +10,10 @@ jest.mock("@repo/supabase", () => ({
 }));
 
 jest.mock("@/service/media/privateMediaResolver", () => ({
-  resolvePrivateMediaUrls: jest.fn(),
+  resolveApplicationDocumentUrls: jest.fn(),
 }));
 
-const mockResolvePrivateMediaUrls = jest.mocked(resolvePrivateMediaUrls);
+const mockResolvePrivateMediaUrls = jest.mocked(resolveApplicationDocumentUrls);
 
 const applicationRow = {
   id: "application-1",
@@ -66,7 +66,7 @@ describe("fetchTenantApplications", () => {
     const applications = await fetchTenantApplications("tenant-1");
 
     expect(mockFrom).toHaveBeenCalledWith("rental_application");
-    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith("application-documents", [
+    expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith([
       "tenant/shared-document.jpg",
       "tenant/shared-document.jpg",
     ]);

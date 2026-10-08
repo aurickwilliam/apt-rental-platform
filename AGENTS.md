@@ -53,6 +53,8 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`
 - Services: `service/` mirrors the `hooks/` domain folder layout (e.g. `service/chat/chatService.ts`, `service/media/privateMediaResolver.ts`); tests co-locate in their domain folder, imported via direct file paths (no barrels)
+- Rental application (`app/apartment/[apartmentId]/apply`): no document-upload step — APT Passport documents are attached automatically by reference (`selectPassportDocsForApplication`; expired/rejected docs never attach). Readiness (verified account, not own listing, no pending application, complete passport) lives in `service/applications/applicationReadiness.ts` and gates both the summary screen and submit. The web apply flow still uploads files (no web Passport).
+- Application document URLs resolve via `resolveApplicationDocumentUrls` (mobile resolver / web `applicationDocumentsService`): a verified ID front (`{users.id}/{verification id}/id-front.*`) signs from `user-verification` with a 15-minute URL; everything else from `application-documents`. Route by path shape — never probe/fall back across buckets. Landlords read that one file only through `private.landlord_can_read_applicant_id_front()`.
 - Payment receipt: GCash-style receipt in `apps/mobile/app/tenant/payment/success.tsx` via `components/ReceiptCard.tsx` (same folder)
 
 ### Shared packages (`packages/`)

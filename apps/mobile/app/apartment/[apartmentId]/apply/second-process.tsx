@@ -123,14 +123,14 @@ export default function SecondProcess() {
 
   const handleNext = () => {
     if (!validate()) return
-    router.push(`/apartment/${apartmentId}/apply/third-process`)
+    router.push(`/apartment/${apartmentId}/apply/review-information`)
   }
 
   return (
     <ScreenWrapper scrollable ref={scrollRef}>
       <ApplicationHeader
         currentTitle="Rental Preferences"
-        nextTitle="Upload Required Documents"
+        nextTitle="Review Application"
         step={2}
       />
 

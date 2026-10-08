@@ -1,7 +1,7 @@
 import { supabase } from '@repo/supabase';
 
 import type { ApplicationStatus } from '@/hooks/applications';
-import { resolvePrivateMediaUrls } from '@/service/media/privateMediaResolver';
+import { resolveApplicationDocumentUrls } from '@/service/media/privateMediaResolver';
 
 export type ApplicationDocument = {
   label: string;
@@ -38,7 +38,6 @@ export type TenantApplication = {
   };
 };
 
-const APPLICATION_DOCUMENTS_BUCKET = 'application-documents';
 
 type ApplicationDocumentPathKey =
   | 'gov_id_url'
@@ -103,8 +102,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
     .flatMap((item) => DOCUMENT_DEFINITIONS.map((d) => item[d.pathKey]))
     .filter((path): path is string => !!path);
 
-  const { urls: signedUrls, error: resolutionError } = await resolvePrivateMediaUrls(
-    APPLICATION_DOCUMENTS_BUCKET,
+  const { urls: signedUrls, error: resolutionError } = await resolveApplicationDocumentUrls(
     documentPaths
   );
 

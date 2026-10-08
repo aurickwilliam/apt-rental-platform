@@ -19,6 +19,9 @@ import { formatPesoDisplay } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
+import { useApplicationReadiness } from "@/hooks/applications";
+import PassportNotice from "./components/PassportNotice";
+import ApplicationIssues from "./components/ApplicationIssues";
 
 import { Button, Spinner } from "heroui-native";
 
@@ -40,6 +43,7 @@ export default function ApartmentSummary() {
 
   const { apartment, loading, error } = useApartmentDetails(apartmentId, { includeReviews: false });
   const { setApartmentContext } = useApplicationFormStore();
+  const readiness = useApplicationReadiness(apartmentId, apartment?.landlord?.id ?? null);
 
   const imageScrollViewRef = useRef<ScrollView>(null);
   const [scrollX] = useState(() => new Animated.Value(0));
@@ -268,8 +272,13 @@ export default function ApartmentSummary() {
             })}
           </View>
 
-          <View className="mt-5">
-            <Button onPress={handleContinueApplication}>
+          <View className="mt-5 gap-3">
+            <PassportNotice />
+            {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
+            <Button
+              onPress={handleContinueApplication}
+              isDisabled={readiness.loading || !readiness.isReady}
+            >
               <Button.Label>Continue Application</Button.Label>
             </Button>
           </View>

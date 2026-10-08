@@ -12,7 +12,6 @@ export default function _layout() {
       <Stack.Screen name="submitted" />
       <Stack.Screen name="first-process" />
       <Stack.Screen name="second-process" />
-      <Stack.Screen name="third-process" />
     </Stack>
   )
 }

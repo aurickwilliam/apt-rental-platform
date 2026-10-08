@@ -1,54 +1,47 @@
 import { act, renderHook } from '@testing-library/react-native'
 
-import type { PassportSelections } from '@/stores/useApplicationFormStore'
+import type { PassportDocumentRow } from '@/service/passport/passportService'
 
 import { useSubmitApplication } from './useSubmitApplication'
 
 const mockFrom = jest.fn()
 const mockUseProfile = jest.fn()
 const mockSetIsSubmitting = jest.fn()
-const mockUpload = jest.fn()
-const mockRemove = jest.fn()
-const mockBytes = jest.fn()
+const mockResetForm = jest.fn()
+const mockFetchPassport = jest.fn()
 
 jest.mock('@repo/supabase', () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-    storage: { from: () => ({ upload: mockUpload, remove: mockRemove }) },
-  },
-}))
-
-jest.mock('expo-file-system', () => ({
-  File: jest.fn().mockImplementation(() => ({ bytes: (...args: unknown[]) => mockBytes(...args) })),
-}))
-
-jest.mock('expo-crypto', () => ({
-  randomUUID: () => 'application-uuid',
+  supabase: { from: (...args: unknown[]) => mockFrom(...args) },
 }))
 
 jest.mock('hooks/auth', () => ({
   useProfile: () => mockUseProfile(),
 }))
 
-const mockStoreState: {
-  tenantInformation: { employmentType: string; monthlyIncome: number }
-  rentalPreferences: { moveInDate: Date; noOccupants: number }
-  documents: { govId: { uri: string }[]; proofOfBilling: { uri: string }[] }
-  passportSelections: PassportSelections
-  setUploadedPath: jest.Mock
-  setPassportSelection: jest.Mock
-  setIsSubmitting: jest.Mock
-  resetApplicationForm: jest.Mock
-  isSubmitting: boolean
-} = {
-  tenantInformation: { employmentType: 'Student', monthlyIncome: 0 },
-  rentalPreferences: { moveInDate: new Date('2026-10-01'), noOccupants: 1 },
-  documents: { govId: [{ uri: 'gov-id' }], proofOfBilling: [{ uri: 'proof' }] },
-  passportSelections: { govId: null, proofOfIncome: null, proofOfBilling: null, nbiClearance: null },
-  setUploadedPath: jest.fn(),
-  setPassportSelection: jest.fn(),
+jest.mock('@/service/passport/passportService', () => ({
+  ...jest.requireActual('@/service/passport/passportService'),
+  fetchPassportDocumentsWithVerification: (...args: unknown[]) => mockFetchPassport(...args),
+}))
+
+const mockStoreState = {
+  tenantInformation: {
+    employmentType: 'Student',
+    monthlyIncome: 0,
+    occupation: '',
+    companyName: '',
+    previousLandlordName: '',
+    previousLandlordContact: '',
+  },
+  rentalPreferences: {
+    moveInDate: new Date('2026-10-01'),
+    noOccupants: 1,
+    hasPets: false,
+    isSmoker: false,
+    needParking: false,
+    additionalNotes: '',
+  },
   setIsSubmitting: mockSetIsSubmitting,
-  resetApplicationForm: jest.fn(),
+  resetApplicationForm: mockResetForm,
   isSubmitting: false,
 }
 
@@ -56,63 +49,135 @@ jest.mock('@/stores/useApplicationFormStore', () => ({
   useApplicationFormStore: () => mockStoreState,
 }))
 
+const baseDoc: PassportDocumentRow = {
+  id: 'doc',
+  user_id: 'tenant-1',
+  doc_type: 'Passport',
+  storage_path: 'tenant-1/passport/x.jpg',
+  storage_path_back: null,
+  mime_type: 'image/jpeg',
+  id_type: null,
+  verification_id: null,
+  is_verified: false,
+  is_primary: false,
+  review_status: 'unverified',
+  requested_at: null,
+  reviewed_at: null,
+  reviewed_by: null,
+  rejection_reason: null,
+  expires_at: null,
+  created_at: '2026-10-01T00:00:00.000Z',
+  updated_at: null,
+}
+
+const govId: PassportDocumentRow = {
+  ...baseDoc,
+  id: 'gov',
+  storage_path: 'tenant-1/ver-1/id-front.jpg',
+  id_type: 'Passport',
+  verification_id: 'ver-1',
+  is_primary: true,
+  is_verified: true,
+}
+const billing: PassportDocumentRow = {
+  ...baseDoc,
+  id: 'bill',
+  doc_type: 'Proof of Residency',
+  storage_path: 'tenant-1/passport/residency.pdf',
+}
+
+function mockApartment(landlordId: string, insert = jest.fn().mockResolvedValue({ error: null })) {
+  mockFrom.mockImplementation((table: string) =>
+    table === 'apartments'
+      ? { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
+      : { insert }
+  )
+  return insert
+}
+
+async function submitApplication() {
+  const { result } = renderHook(() => useSubmitApplication())
+  let submission: Awaited<ReturnType<typeof result.current.submit>> | undefined
+  await act(async () => {
+    submission = await result.current.submit({ apartmentId: 'apartment-id' })
+  })
+  return submission
+}
+
 beforeEach(() => {
   jest.clearAllMocks()
-  mockStoreState.documents = { govId: [{ uri: 'gov-id' }], proofOfBilling: [{ uri: 'proof' }] }
-  mockStoreState.passportSelections = { govId: null, proofOfIncome: null, proofOfBilling: null, nbiClearance: null }
-  mockBytes.mockResolvedValue(new Uint8Array([1]))
-  mockUpload.mockResolvedValue({ error: null })
-  mockRemove.mockResolvedValue({ error: null })
+  mockUseProfile.mockReturnValue({ profile: { id: 'tenant-1', account_status: 'verified' } })
+  mockFetchPassport.mockResolvedValue([govId, billing])
 })
 
-it('rejects an own-property application before uploading any documents', async () => {
-  mockUseProfile.mockReturnValue({ profile: { id: 'owner-id' } })
-  const mockSingle = jest.fn().mockResolvedValue({ data: { landlord_id: 'owner-id' }, error: null })
-  mockFrom.mockReturnValue({ select: () => ({ eq: () => ({ single: mockSingle }) }) })
+it('attaches passport documents by reference without uploading', async () => {
+  const insert = mockApartment('landlord-1')
 
-  const { result } = renderHook(() => useSubmitApplication())
-  let submission: Awaited<ReturnType<typeof result.current.submit>> | undefined
-  await act(async () => {
-    submission = await result.current.submit({ apartmentId: 'apartment-id' })
-  })
-
-  expect(submission).toEqual({ success: false, error: 'You cannot apply to your own property.' })
-  expect(mockFrom).toHaveBeenCalledWith('apartments')
-  expect(mockFrom).toHaveBeenCalledTimes(1)
-  expect(mockSetIsSubmitting).not.toHaveBeenCalled()
-})
-
-it('reuses passport paths by reference without re-uploading', async () => {
-  mockUseProfile.mockReturnValue({ profile: { id: 'tenant-1' } })
-  mockStoreState.documents = { govId: [], proofOfBilling: [] }
-  mockStoreState.passportSelections = {
-    govId: 'tenant-1/passport/national-id-1.jpg',
-    proofOfIncome: null,
-    proofOfBilling: 'tenant-1/passport/proof-of-residency-1.jpg',
-    nbiClearance: null,
-  }
-
-  const mockSingle = jest.fn().mockResolvedValue({ data: { landlord_id: 'landlord-1' }, error: null })
-  const mockInsert = jest.fn().mockResolvedValue({ error: null })
-  mockFrom.mockImplementation((table: string) => {
-    if (table === 'apartments') {
-      return { select: () => ({ eq: () => ({ single: mockSingle }) }) }
-    }
-    return { insert: mockInsert }
-  })
-
-  const { result } = renderHook(() => useSubmitApplication())
-  let submission: Awaited<ReturnType<typeof result.current.submit>> | undefined
-  await act(async () => {
-    submission = await result.current.submit({ apartmentId: 'apartment-id' })
-  })
-
-  expect(submission).toEqual({ success: true })
-  expect(mockUpload).not.toHaveBeenCalled()
-  expect(mockInsert).toHaveBeenCalledWith(
+  expect(await submitApplication()).toEqual({ success: true })
+  expect(insert).toHaveBeenCalledWith(
     expect.objectContaining({
-      gov_id_url: 'tenant-1/passport/national-id-1.jpg',
-      proof_of_billing_url: 'tenant-1/passport/proof-of-residency-1.jpg',
+      gov_id_url: 'tenant-1/ver-1/id-front.jpg',
+      proof_of_billing_url: 'tenant-1/passport/residency.pdf',
+      proof_of_income_url: null,
+      nbi_clearance_url: null,
+      status: 'pending',
     })
   )
+  expect(mockResetForm).toHaveBeenCalled()
+})
+
+it('rejects an own-property application', async () => {
+  const insert = mockApartment('tenant-1')
+
+  expect(await submitApplication()).toEqual({
+    success: false,
+    error: 'You cannot apply to your own property.',
+  })
+  expect(insert).not.toHaveBeenCalled()
+})
+
+it('blocks unverified accounts', async () => {
+  mockUseProfile.mockReturnValue({ profile: { id: 'tenant-1', account_status: 'unverified' } })
+  const insert = mockApartment('landlord-1')
+
+  const submission = await submitApplication()
+  expect(submission?.success).toBe(false)
+  expect(submission?.error).toMatch(/Verify your account/)
+  expect(insert).not.toHaveBeenCalled()
+})
+
+it('blocks submission when the passport lacks a required document', async () => {
+  mockFetchPassport.mockResolvedValue([govId])
+  const insert = mockApartment('landlord-1')
+
+  const submission = await submitApplication()
+  expect(submission?.error).toMatch(/Proof of Billing/)
+  expect(insert).not.toHaveBeenCalled()
+})
+
+it('requires proof of income for employed tenants', async () => {
+  mockStoreState.tenantInformation.employmentType = 'Full-Time'
+  try {
+    const insert = mockApartment('landlord-1')
+    const submission = await submitApplication()
+    expect(submission?.error).toMatch(/Proof of Income/)
+    expect(insert).not.toHaveBeenCalled()
+  } finally {
+    mockStoreState.tenantInformation.employmentType = 'Student'
+  }
+})
+
+it('reports a duplicate active application', async () => {
+  mockApartment(
+    'landlord-1',
+    jest.fn().mockResolvedValue({
+      error: { message: 'duplicate key value violates unique_active_application_per_tenant_apartment' },
+    })
+  )
+
+  expect(await submitApplication()).toEqual({
+    success: false,
+    error: 'You already have an active application for this apartment.',
+  })
+  expect(mockResetForm).not.toHaveBeenCalled()
 })
