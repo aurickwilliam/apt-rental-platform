@@ -64,3 +64,17 @@ it("uses only the custom handler when one is given", () => {
   expect(onPressImage).not.toHaveBeenCalled();
   expect(openURL).not.toHaveBeenCalled();
 });
+
+it("says Not provided when no document was submitted", () => {
+  render(<DocumentRow label="NBI Clearance" path="" signedUrl={null} />);
+
+  expect(screen.getByText("Not provided")).toBeTruthy();
+  expect(screen.queryByText("Unavailable")).toBeNull();
+});
+
+it("still says Unavailable when a submitted document cannot be loaded", () => {
+  render(<DocumentRow label="Proof of Billing" path="u/passport/billing.pdf" signedUrl={null} />);
+
+  expect(screen.getByText("Unavailable")).toBeTruthy();
+  expect(screen.queryByText("Not provided")).toBeNull();
+});

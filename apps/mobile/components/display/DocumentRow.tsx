@@ -90,7 +90,9 @@ export default function DocumentRow({
     return (
       <View className="flex-row items-center justify-between py-2">
         <View className="flex-1">{labelRow}</View>
-        <Text className="text-muted text-sm">Unavailable</Text>
+        <Text className="text-muted text-sm">
+          {path ? "Unavailable" : "Not provided"}
+        </Text>
       </View>
     );
   }
