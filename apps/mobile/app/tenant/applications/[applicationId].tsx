@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
-import Animated from "react-native-reanimated";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import DetailField from "@/components/display/DetailField";
+import DetailSection from "@/components/display/DetailSection";
 import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
@@ -25,16 +25,20 @@ import { useProfile } from "@/hooks/auth";
 
 import { formatAddress, formatPesoDisplay, formatDate } from "@repo/utils";
 
-import {
-  Separator,
-  Button,
-  Chip,
-  Accordion,
-  AccordionLayoutTransition,
-  Spinner,
-} from "heroui-native";
+import { Button, Chip, Spinner } from "heroui-native";
 
-import { IconBan, IconChevronLeft } from '@tabler/icons-react-native';
+import {
+  IconBan,
+  IconBriefcase,
+  IconBuildingCommunity,
+  IconChevronLeft,
+  IconFileDescription,
+  IconFiles,
+  IconListDetails,
+} from '@tabler/icons-react-native';
+
+const orDash = (value: string | null | undefined) =>
+  value?.trim() ? value : "-";
 
 export default function ApplicationApartment() {
   const { colors } = useColors();
@@ -171,307 +175,223 @@ export default function ApplicationApartment() {
 
   return (
     <ScreenWrapper scrollable className="p-5">
-      {/* Header */}
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 flex-row gap-3 items-center">
-          <Button
-            isIconOnly
-            variant="ghost"
-            size="sm"
-            onPress={() => router.back()}
-            className="-ml-3"
-          >
-            <IconChevronLeft size={24} color={colors.gray400} />
-          </Button>
-          <View>
-            <Text className="text-sm text-muted font-inter">Applied for</Text>
-            <Text
-              className="text-accent font-nunitoBold text-2xl"
-              numberOfLines={1}
-            >
-              {apartment?.name}
-            </Text>
-          </View>
-        </View>
-        {chipConfig && (
-          <Chip variant="soft" color={chipConfig.chipColor} background={null} style={statusChipSurface(chipStatusStyle)}>
-            <Chip.Label style={{ color: chipStatusStyle.textColor }}>{chipConfig.label}</Chip.Label>
-          </Chip>
-        )}
-      </View>
-
-      {/* Apartment cover image */}
-      <Image
-        source={{ uri: coverImageUri }}
-        contentFit="cover"
-        style={{
-          width: "100%",
-          height: 200,
-          borderRadius: 24,
-          marginTop: 20,
-        }}
-        cachePolicy="disk"
-      />
-
-      {/* Apartment details */}
-      <View className="mt-5 flex gap-5">
-        <DetailField label="Location" value={fullAddress} />
-        <DetailField label="Monthly Rent" value={monthlyRent} />
-
-        <View className="flex-row items-center gap-2">
-          <Button
-            className="flex-1"
-            size="sm"
-            variant="secondary"
-            onPress={() =>
-              router.push({
-                pathname: "/apartment/[apartmentId]",
-                params: { apartmentId: apartment?.id ?? "" },
-              })
-            }
-          >
-            <Button.Label>View Description</Button.Label>
-          </Button>
-
-          {!visitRequest && application?.status === "pending" && (
+      <View className="gap-4">
+        {/* Header */}
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 flex-row gap-3 items-center">
             <Button
-              className="flex-1"
+              isIconOnly
+              variant="ghost"
               size="sm"
-              onPress={() =>
-                router.push({
-                  pathname: "/tenant/applications/request-visit",
-                  params: {
-                    apartmentId: apartment?.id ?? "",
-                    applicationId: applicationId,
-                  },
-                })
-              }
+              onPress={() => router.back()}
+              className="-ml-3"
             >
-              <Button.Label>Request a Visit</Button.Label>
+              <IconChevronLeft size={24} color={colors.gray400} />
             </Button>
+            <View>
+              <Text className="text-sm text-muted font-inter">Applied for</Text>
+              <Text
+                className="text-accent font-nunitoBold text-2xl"
+                numberOfLines={1}
+              >
+                {apartment?.name}
+              </Text>
+            </View>
+          </View>
+          {chipConfig && (
+            <Chip variant="soft" color={chipConfig.chipColor} background={null} style={statusChipSurface(chipStatusStyle)}>
+              <Chip.Label style={{ color: chipStatusStyle.textColor }}>{chipConfig.label}</Chip.Label>
+            </Chip>
           )}
         </View>
-      </View>
 
-      <Separator className="my-5" />
+        {/* Apartment card */}
+        <View className="bg-surface border border-border rounded-3xl overflow-hidden">
+          <Image
+            source={{ uri: coverImageUri }}
+            contentFit="cover"
+            style={{ width: "100%", height: 200 }}
+            cachePolicy="disk"
+          />
+          <View className="p-4 gap-4">
+            <DetailField label="Location" value={fullAddress} />
+            <DetailField label="Monthly Rent" value={monthlyRent} />
 
-      {application?.status === "rejected" && application.rejected_reason && (
-        <View className="mb-3 p-4 rounded-3xl bg-danger-soft border border-danger-light">
-          <Text className="text-sm font-nunitoSemiBold text-danger mb-1">
-            Application Rejected
-          </Text>
-          <Text className="text-sm text-foreground">
-            {application.rejected_reason}
-          </Text>
+            <View className="flex-row items-center gap-2">
+              <Button
+                className="flex-1"
+                size="sm"
+                variant="secondary"
+                onPress={() =>
+                  router.push({
+                    pathname: "/apartment/[apartmentId]",
+                    params: { apartmentId: apartment?.id ?? "" },
+                  })
+                }
+              >
+                <Button.Label>View Description</Button.Label>
+              </Button>
+
+              {!visitRequest && application?.status === "pending" && (
+                <Button
+                  className="flex-1"
+                  size="sm"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/tenant/applications/request-visit",
+                      params: {
+                        apartmentId: apartment?.id ?? "",
+                        applicationId: applicationId,
+                      },
+                    })
+                  }
+                >
+                  <Button.Label>Request a Visit</Button.Label>
+                </Button>
+              )}
+            </View>
+          </View>
         </View>
-      )}
 
-      {application?.status === "closed" && application.rejected_reason && (
-        <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
-          <Text className="text-sm font-nunitoSemiBold text-secondary mb-1">
-            Application Closed
-          </Text>
-          <Text className="text-sm text-foreground">
-            {application.rejected_reason}
-          </Text>
-        </View>
-      )}
-
-      {/* Visit Request */}
-      {visitRequest && (
-        <>
-          <View className="mb-3">
-            <VisitRequestCard
-              visitRequest={visitRequest}
-              onAccept={handleAccept}
-              onDecline={handleDecline}
-              onRequestAgain={handleRequestAgain}
-              onMessageLandlord={handleMessageLandlord}
-              onCancel={() => setCancelVisitDialogOpen(true)}
-            />
-          </View>
-          <Separator className="my-5" />
-        </>
-      )}
-
-      {/* Application details accordion */}
-      {application && (
-        <>
-          <View className="mb-3">
-            <Text className="text-lg text-foreground font-nunitoSemiBold">
-              Application Details
+        {application?.status === "rejected" && application.rejected_reason && (
+          <View className="p-4 rounded-3xl bg-danger-soft border border-danger-light">
+            <Text className="text-sm font-nunitoSemiBold text-danger mb-1">
+              Application Rejected
             </Text>
-            <Text className="text-sm text-muted">
-              These are the details you provided when you submitted your
-              application.
+            <Text className="text-sm text-foreground">
+              {application.rejected_reason}
             </Text>
           </View>
+        )}
 
-          <Animated.View
-            layout={AccordionLayoutTransition}
-            className="rounded-3xl bg-surface border border-border shadow-none"
-          >
-            <Accordion
-              selectionMode="single"
-              variant="surface"
-              className="shadow-none"
-            >
-              <Accordion.Item value="personal">
-                <Accordion.Trigger>
-                  <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
-                      Personal Information
-                    </Text>
-                  </View>
-                  <Accordion.Indicator />
-                </Accordion.Trigger>
-                <Accordion.Content>
-                  <View className="gap-3 pb-2">
-                    <DetailField
-                      label="Occupation"
-                      value={application.occupation?.trim() ? application.occupation : '-'}
-                    />
-                    <DetailField
-                      label="Employer"
-                      value={application.employer_name?.trim() ? application.employer_name : '-'}
-                    />
-                    <DetailField
-                      label="Employment Type"
-                      value={application.employment_type}
-                    />
-                    <DetailField
-                      label="Monthly Income"
-                      value={`${formatPesoDisplay(application.monthly_income)}`}
-                    />
-                    <Separator className="my-2" />
-                    <DetailField
-                      label="Previous Landlord Name"
-                      value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : '-'}
-                    />
-                    <DetailField
-                      label="Previous Landlord Contact"
-                      value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : '-'}
-                    />
-                  </View>
-                </Accordion.Content>
-              </Accordion.Item>
-
-              <Accordion.Item value="rental">
-                <Accordion.Trigger>
-                  <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
-                      Rental Preferences
-                    </Text>
-                  </View>
-                  <Accordion.Indicator />
-                </Accordion.Trigger>
-                <Accordion.Content>
-                  <View className="gap-3 pb-2">
-                    <DetailField label="Move-in Date" value={moveInDate} />
-                    <DetailField
-                      label="No. of Occupants"
-                      value={application.no_occupants.toString()}
-                    />
-                    <DetailField
-                      label="Has Pets"
-                      value={application.has_pets ? "Yes" : "No"}
-                    />
-                    <DetailField
-                      label="Has Smoker"
-                      value={application.has_smoker ? "Yes" : "No"}
-                    />
-                    <DetailField
-                      label="Needs Parking"
-                      value={application.need_parking ? "Yes" : "No"}
-                    />
-                    {application.message && (
-                      <DetailField
-                        label="Message"
-                        value={application.message}
-                      />
-                    )}
-                  </View>
-                </Accordion.Content>
-              </Accordion.Item>
-
-              <Accordion.Item value="documents">
-                <Accordion.Trigger>
-                  <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
-                      Submitted Documents
-                    </Text>
-                  </View>
-                  <Accordion.Indicator />
-                </Accordion.Trigger>
-                <Accordion.Content>
-                  <View className="gap-1 pb-2">
-                    {application.documents.length > 0 ? (
-                      application.documents.map((doc) => (
-                        <DocumentRow
-                          key={doc.label}
-                          label={doc.label}
-                          path={doc.path}
-                          signedUrl={doc.signedUrl}
-                          onPressImage={setDocViewerUri}
-                        />
-                      ))
-                    ) : (
-                      <Text className="text-muted text-sm">
-                        No documents submitted.
-                      </Text>
-                    )}
-                  </View>
-                </Accordion.Content>
-              </Accordion.Item>
-
-              <Accordion.Item value="status">
-                <Accordion.Trigger>
-                  <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
-                      Application Status
-                    </Text>
-                  </View>
-                  <Accordion.Indicator />
-                </Accordion.Trigger>
-                <Accordion.Content>
-                  <View className="gap-3 pb-2">
-                    <DetailField
-                      label="Date Submitted"
-                      value={formatDate(application.created_at, "long")}
-                    />
-                    <DetailField
-                      label="Status"
-                      value={chipConfig?.label ?? "—"}
-                    />
-                  </View>
-                </Accordion.Content>
-              </Accordion.Item>
-            </Accordion>
-          </Animated.View>
-        </>
-      )}
-
-      {history.length > 0 && (
-        <>
-          <Separator className="my-5" />
-          <View className="mb-3">
-            <Text className="text-lg text-foreground font-nunitoSemiBold">
-              Visit History
+        {application?.status === "closed" && application.rejected_reason && (
+          <View className="p-4 rounded-3xl bg-surface border border-border">
+            <Text className="text-sm font-nunitoSemiBold text-secondary mb-1">
+              Application Closed
             </Text>
-            <Text className="text-sm text-muted">
-              Previous visit requests for this apartment.
+            <Text className="text-sm text-foreground">
+              {application.rejected_reason}
             </Text>
           </View>
-          <View className="gap-2">
-            {history.map((vr) => (
-              <VisitRequestHistoryItem
-                key={vr.id}
-                visitRequest={vr}
+        )}
+
+        {/* Visit Request */}
+        {visitRequest && (
+          <VisitRequestCard
+            visitRequest={visitRequest}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+            onRequestAgain={handleRequestAgain}
+            onMessageLandlord={handleMessageLandlord}
+            onCancel={() => setCancelVisitDialogOpen(true)}
+          />
+        )}
+
+        {/* Application details */}
+        {application && (
+          <>
+            <View>
+              <Text className="text-lg text-foreground font-nunitoSemiBold">
+                Application Details
+              </Text>
+              <Text className="text-sm text-muted">
+                These are the details you provided when you submitted your
+                application.
+              </Text>
+            </View>
+
+            <DetailSection title="Application Status" icon={IconFileDescription}>
+              <View className="flex-row">
+                <DetailField
+                  label="Date Submitted"
+                  value={formatDate(application.created_at, "long")}
+                />
+                <DetailField label="Status" value={chipConfig?.label ?? "—"} />
+              </View>
+            </DetailSection>
+
+            <DetailSection title="Employment" icon={IconBriefcase}>
+              <View className="flex-row">
+                <DetailField label="Occupation" value={orDash(application.occupation)} />
+                <DetailField label="Employer" value={orDash(application.employer_name)} />
+              </View>
+              <View className="flex-row">
+                <DetailField label="Employment Type" value={application.employment_type} />
+                <DetailField
+                  label="Monthly Income"
+                  value={formatPesoDisplay(application.monthly_income)}
+                />
+              </View>
+            </DetailSection>
+
+            <DetailSection title="Previous Landlord" icon={IconBuildingCommunity}>
+              <View className="flex-row">
+                <DetailField label="Name" value={orDash(application.prev_landlord_name)} />
+                <DetailField label="Contact" value={orDash(application.prev_landlord_contact)} />
+              </View>
+            </DetailSection>
+
+            <DetailSection title="Rental Preferences" icon={IconListDetails}>
+              <View className="flex-row">
+                <DetailField label="Move-in Date" value={moveInDate} />
+                <DetailField
+                  label="No. of Occupants"
+                  value={application.no_occupants.toString()}
+                />
+              </View>
+              <View className="flex-row">
+                <DetailField label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
+                <DetailField label="Has Smoker" value={application.has_smoker ? "Yes" : "No"} />
+              </View>
+              <DetailField
+                label="Needs Parking"
+                value={application.need_parking ? "Yes" : "No"}
               />
-            ))}
-          </View>
-        </>
-      )}
+              {application.message ? (
+                <DetailField label="Message" value={application.message} />
+              ) : null}
+            </DetailSection>
+
+            <DetailSection title="Submitted Documents" icon={IconFiles}>
+              <View className="gap-1">
+                {application.documents.length > 0 ? (
+                  application.documents.map((doc) => (
+                    <DocumentRow
+                      key={doc.label}
+                      label={doc.label}
+                      path={doc.path}
+                      signedUrl={doc.signedUrl}
+                      onPressImage={setDocViewerUri}
+                    />
+                  ))
+                ) : (
+                  <Text className="text-muted text-sm">
+                    No documents submitted.
+                  </Text>
+                )}
+              </View>
+            </DetailSection>
+          </>
+        )}
+
+        {history.length > 0 && (
+          <>
+            <View>
+              <Text className="text-lg text-foreground font-nunitoSemiBold">
+                Visit History
+              </Text>
+              <Text className="text-sm text-muted">
+                Previous visit requests for this apartment.
+              </Text>
+            </View>
+            <View className="gap-2">
+              {history.map((vr) => (
+                <VisitRequestHistoryItem key={vr.id} visitRequest={vr} />
+              ))}
+            </View>
+          </>
+        )}
+      </View>
 
       {/* Cancel Application Button + Dialog */}
       {
