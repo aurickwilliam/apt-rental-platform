@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { useState } from "react";
-import { Image } from 'expo-image';
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ImageViewing from "react-native-image-viewing";
 import Animated from "react-native-reanimated";
@@ -14,11 +14,14 @@ import ConfirmDialog from "@/components/display/ConfirmDialog";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
-import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
+import {
+  useStatusChipStyles,
+  statusChipSurface,
+} from "@/hooks/useStatusChipStyles";
 import {
   useTenantApplications,
   useApplicationStatusStyles,
-  useCancelApplication
+  useCancelApplication,
 } from "@/hooks/applications";
 import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
@@ -34,7 +37,7 @@ import {
   Spinner,
 } from "heroui-native";
 
-import { IconBan, IconChevronLeft } from '@tabler/icons-react-native';
+import { IconBan, IconChevronLeft } from "@tabler/icons-react-native";
 
 export default function ApplicationApartment() {
   const { colors } = useColors();
@@ -46,23 +49,30 @@ export default function ApplicationApartment() {
   }>();
 
   const { profile } = useProfile();
-  const { apartment, loading: apartmentLoading } = useApartmentDetails(apartmentId);
+  const { apartment, loading: apartmentLoading } =
+    useApartmentDetails(apartmentId);
   const { applications, loading: appsLoading } = useTenantApplications();
   const { getStatusStyle } = useApplicationStatusStyles();
-  const { visitRequest, history, loading: visitLoading, refetch } = useVisitRequest(applicationId);
+  const {
+    visitRequest,
+    history,
+    loading: visitLoading,
+    refetch,
+  } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
 
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
   const chipConfig = status ? getStatusStyle(status) : null;
-  const chipStatusStyle = chipConfig?.chipColor === "success"
-    ? palette.success
-    : chipConfig?.chipColor === "warning"
-      ? palette.warning
-      : chipConfig?.chipColor === "danger"
-        ? palette.danger
-        : palette.neutral;
+  const chipStatusStyle =
+    chipConfig?.chipColor === "success"
+      ? palette.success
+      : chipConfig?.chipColor === "warning"
+        ? palette.warning
+        : chipConfig?.chipColor === "danger"
+          ? palette.danger
+          : palette.neutral;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -82,8 +92,7 @@ export default function ApplicationApartment() {
     apartment?.apartment_images?.find((img) => img.is_cover) ??
     apartment?.apartment_images?.[0];
 
-  const coverImageUri =
-    (coverImage?.url_thumb || coverImage?.url) ?? undefined;
+  const coverImageUri = (coverImage?.url_thumb || coverImage?.url) ?? undefined;
 
   const handleConfirmCancel = async () => {
     setCancelError(null);
@@ -119,7 +128,7 @@ export default function ApplicationApartment() {
     const { error } = await decline(visitRequest.id);
     if (error) {
       setCancelVisitError(
-        error.message ?? "Failed to cancel visit request. Please try again."
+        error.message ?? "Failed to cancel visit request. Please try again.",
       );
       refetch();
     } else {
@@ -163,7 +172,10 @@ export default function ApplicationApartment() {
 
   if (apartmentLoading || appsLoading || visitLoading) {
     return (
-      <ScreenWrapper scrollable className="p-5 flex-1 items-center justify-center">
+      <ScreenWrapper
+        scrollable
+        className="p-5 flex-1 items-center justify-center"
+      >
         <Spinner size="lg" color={colors.primary} className="mt-10" />
       </ScreenWrapper>
     );
@@ -194,8 +206,15 @@ export default function ApplicationApartment() {
           </View>
         </View>
         {chipConfig && (
-          <Chip variant="soft" color={chipConfig.chipColor} background={null} style={statusChipSurface(chipStatusStyle)}>
-            <Chip.Label style={{ color: chipStatusStyle.textColor }}>{chipConfig.label}</Chip.Label>
+          <Chip
+            variant="soft"
+            color={chipConfig.chipColor}
+            background={null}
+            style={statusChipSurface(chipStatusStyle)}
+          >
+            <Chip.Label style={{ color: chipStatusStyle.textColor }}>
+              {chipConfig.label}
+            </Chip.Label>
           </Chip>
         )}
       </View>
@@ -319,7 +338,7 @@ export default function ApplicationApartment() {
               <Accordion.Item value="personal">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
+                    <Text className="text-foreground text-base flex-1 font-nunitoSemiBold">
                       Personal Information
                     </Text>
                   </View>
@@ -329,11 +348,19 @@ export default function ApplicationApartment() {
                   <View className="gap-3 pb-2">
                     <DetailField
                       label="Occupation"
-                      value={application.occupation?.trim() ? application.occupation : '-'}
+                      value={
+                        application.occupation?.trim()
+                          ? application.occupation
+                          : "-"
+                      }
                     />
                     <DetailField
                       label="Employer"
-                      value={application.employer_name?.trim() ? application.employer_name : '-'}
+                      value={
+                        application.employer_name?.trim()
+                          ? application.employer_name
+                          : "-"
+                      }
                     />
                     <DetailField
                       label="Employment Type"
@@ -346,11 +373,19 @@ export default function ApplicationApartment() {
                     <Separator className="my-2" />
                     <DetailField
                       label="Previous Landlord Name"
-                      value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : '-'}
+                      value={
+                        application.prev_landlord_name?.trim()
+                          ? application.prev_landlord_name
+                          : "-"
+                      }
                     />
                     <DetailField
                       label="Previous Landlord Contact"
-                      value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : '-'}
+                      value={
+                        application.prev_landlord_contact?.trim()
+                          ? application.prev_landlord_contact
+                          : "-"
+                      }
                     />
                   </View>
                 </Accordion.Content>
@@ -359,7 +394,7 @@ export default function ApplicationApartment() {
               <Accordion.Item value="rental">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
+                    <Text className="text-foreground text-base flex-1 font-nunitoSemiBold">
                       Rental Preferences
                     </Text>
                   </View>
@@ -397,7 +432,7 @@ export default function ApplicationApartment() {
               <Accordion.Item value="documents">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
+                    <Text className="text-foreground text-base flex-1 font-nunitoSemiBold">
                       Submitted Documents
                     </Text>
                   </View>
@@ -427,7 +462,7 @@ export default function ApplicationApartment() {
               <Accordion.Item value="status">
                 <Accordion.Trigger>
                   <View className="flex-row items-center flex-1">
-                    <Text className="text-foreground text-base flex-1">
+                    <Text className="text-foreground text-base flex-1 font-nunitoSemiBold">
                       Application Status
                     </Text>
                   </View>
@@ -464,43 +499,38 @@ export default function ApplicationApartment() {
           </View>
           <View className="gap-2">
             {history.map((vr) => (
-              <VisitRequestHistoryItem
-                key={vr.id}
-                visitRequest={vr}
-              />
+              <VisitRequestHistoryItem key={vr.id} visitRequest={vr} />
             ))}
           </View>
         </>
       )}
 
       {/* Cancel Application Button + Dialog */}
-      {
-        application?.status === "pending" && (
-          <>
-            <Button
-              className="mt-5"
-              variant="danger"
-              isDisabled={cancelling || responding}
-              onPress={() => setCancelDialogOpen(true)}
-            >
-              <IconBan size={20} color={colors.secondaryForeground} />
-              <Button.Label>Cancel Application</Button.Label>
-            </Button>
+      {application?.status === "pending" && (
+        <>
+          <Button
+            className="mt-5"
+            variant="danger"
+            isDisabled={cancelling || responding}
+            onPress={() => setCancelDialogOpen(true)}
+          >
+            <IconBan size={20} color={colors.secondaryForeground} />
+            <Button.Label>Cancel Application</Button.Label>
+          </Button>
 
-            <ConfirmDialog
-              isOpen={cancelDialogOpen}
-              onOpenChange={handleCancelDialogOpenChange}
-              title="Cancel Application"
-              description={`Are you sure you want to cancel your application for ${apartment?.name ?? "this apartment"}? This cannot be undone.`}
-              confirmLabel="Yes, Cancel"
-              confirmVariant="danger"
-              onConfirm={handleConfirmCancel}
-              errorMessage={cancelError}
-              isConfirmDisabled={cancelling}
-            />
-          </>
-        )
-      }
+          <ConfirmDialog
+            isOpen={cancelDialogOpen}
+            onOpenChange={handleCancelDialogOpenChange}
+            title="Cancel Application"
+            description={`Are you sure you want to cancel your application for ${apartment?.name ?? "this apartment"}? This cannot be undone.`}
+            confirmLabel="Yes, Cancel"
+            confirmVariant="danger"
+            onConfirm={handleConfirmCancel}
+            errorMessage={cancelError}
+            isConfirmDisabled={cancelling}
+          />
+        </>
+      )}
 
       {/* Cancel Visit Request Dialog */}
       <ConfirmDialog
