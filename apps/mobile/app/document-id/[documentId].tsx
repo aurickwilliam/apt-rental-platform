@@ -23,7 +23,10 @@ import ConfirmDialog from "@/components/display/ConfirmDialog";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { useColors } from "@/hooks/useTheme";
-import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
+import {
+  useStatusChipStyles,
+  statusChipSurface,
+} from "@/hooks/useStatusChipStyles";
 import { useDocumentUrls } from "@/hooks/applications";
 import {
   useDeletePassportDocument,
@@ -50,7 +53,7 @@ function DetailRow({
     <View className="flex-row items-center justify-between gap-3">
       <Text className="text-muted text-sm font-inter">{label}</Text>
       <Text
-        className={`text-base font-nunitoSemiBold ${isDanger ? "text-danger" : "text-foreground"}`}
+        className={`text-sm font-nunitoSemiBold ${isDanger ? "text-danger" : "text-foreground"}`}
       >
         {value}
       </Text>
@@ -197,10 +200,27 @@ export default function PassportDocumentDetail() {
   return (
     <ScreenWrapper
       scrollable
-      header={<StandardHeader title={document.doc_type} />}
+      header={<StandardHeader title={"Document Detail"} />}
       className="p-5"
       footer={
-        !isLinkedVerification && !isUnderReview ? (
+        isUnderReview && !isLinkedVerification ? (
+          <View className="px-5">
+            <View
+              className="rounded-2xl p-3"
+              style={statusChipSurface(warning)}
+            >
+              <Text
+                className="text-sm font-nunitoSemiBold"
+                style={{ color: warning.textColor }}
+              >
+                Under admin review
+              </Text>
+              <Text className="text-muted text-sm font-inter mt-0.5">
+                We&apos;ll notify you once an admin has checked this document.
+              </Text>
+            </View>
+          </View>
+        ) : !isLinkedVerification ? (
           <View className="gap-3 px-5">
             {requestError ? (
               <Text className="text-danger text-sm font-inter">
@@ -246,11 +266,11 @@ export default function PassportDocumentDetail() {
         ) : undefined
       }
     >
-      <View className="gap-4">
+      <View className="gap-2">
         <View className="flex-row items-center gap-3">
           <View
             testID="document-type-icon"
-            className="size-12 rounded-2xl bg-primary-light items-center justify-center"
+            className="size-12 rounded-2xl bg-primary-light border border-primary/30 items-center justify-center"
           >
             {isLinkedVerification ? (
               <IconId size={24} color={colors.primary} />
@@ -261,38 +281,70 @@ export default function PassportDocumentDetail() {
               })
             )}
           </View>
-          <View className="flex-1 items-start gap-1">
+          <View className="flex-1 items-start">
             <Text
-              className="text-foreground text-lg font-nunitoSemiBold"
+              className="text-accent text-xl font-nunitoBold"
               numberOfLines={2}
             >
               {document.doc_type}
             </Text>
             {document.is_verified ? (
-              <Chip variant="soft" color="success" size="md" style={statusChipSurface(success)}>
+              <Chip
+                variant="soft"
+                color="success"
+                size="sm"
+                style={statusChipSurface(success)}
+              >
                 <IconShieldCheck size={14} color={success.textColor} />
-                <Chip.Label className="font-nunitoSemiBold" style={{ color: success.textColor }}>
+                <Chip.Label
+                  className="font-nunitoSemiBold"
+                  style={{ color: success.textColor }}
+                >
                   Verified
                 </Chip.Label>
               </Chip>
             ) : isUnderReview ? (
-              <Chip variant="soft" color="warning" size="md" style={statusChipSurface(warning)}>
+              <Chip
+                variant="soft"
+                color="warning"
+                size="sm"
+                style={statusChipSurface(warning)}
+              >
                 <IconHourglass size={14} color={warning.textColor} />
-                <Chip.Label className="font-nunitoSemiBold" style={{ color: warning.textColor }}>
+                <Chip.Label
+                  className="font-nunitoSemiBold"
+                  style={{ color: warning.textColor }}
+                >
                   Under review
                 </Chip.Label>
               </Chip>
             ) : reviewStatus === "rejected" ? (
-              <Chip variant="soft" color="danger" size="md" style={statusChipSurface(danger)}>
+              <Chip
+                variant="soft"
+                color="danger"
+                size="md"
+                style={statusChipSurface(danger)}
+              >
                 <IconAlertTriangle size={14} color={danger.textColor} />
-                <Chip.Label className="font-nunitoSemiBold" style={{ color: danger.textColor }}>
+                <Chip.Label
+                  className="font-nunitoSemiBold"
+                  style={{ color: danger.textColor }}
+                >
                   Rejected
                 </Chip.Label>
               </Chip>
             ) : (
-              <Chip variant="soft" color="default" size="md" style={statusChipSurface(neutral)}>
+              <Chip
+                variant="soft"
+                color="default"
+                size="md"
+                style={statusChipSurface(neutral)}
+              >
                 <IconShieldQuestion size={14} color={neutral.textColor} />
-                <Chip.Label className="font-nunitoSemiBold" style={{ color: neutral.textColor }}>
+                <Chip.Label
+                  className="font-nunitoSemiBold"
+                  style={{ color: neutral.textColor }}
+                >
                   Unverified
                 </Chip.Label>
               </Chip>
@@ -306,48 +358,10 @@ export default function PassportDocumentDetail() {
             : getDocumentTypeDescription(document.doc_type)}
         </Text>
 
-        {isUnderReview && !document.is_verified ? (
-          <View
-            className="rounded-2xl p-3"
-            style={statusChipSurface(warning)}
-          >
-            <Text
-              className="text-sm font-nunitoSemiBold"
-              style={{ color: warning.textColor }}
-            >
-              Under admin review
-            </Text>
-            <Text className="text-muted text-sm font-inter mt-0.5">
-              We&apos;ll notify you once an admin has checked this document.
-            </Text>
-          </View>
-        ) : null}
-
-        {reviewStatus === "rejected" ? (
-          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
-            <Text className="text-danger text-sm font-nunitoSemiBold">
-              Not verified
-            </Text>
-            <Text className="text-muted text-sm font-inter mt-0.5">
-              {document.rejection_reason ?? "An admin could not verify this document."}
-            </Text>
-          </View>
-        ) : null}
-
-        {isExpired ? (
-          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
-            <Text className="text-danger text-sm font-nunitoSemiBold">
-              Expired document
-            </Text>
-            <Text className="text-muted text-sm font-inter mt-0.5">
-              Upload a current copy before requesting verification.
-            </Text>
-          </View>
-        ) : null}
-
-        <Text className="text-muted text-sm font-nunitoSemiBold uppercase">
-          Document preview
+        <Text className="text-muted text-base font-nunitoSemiBold">
+          Document Preview
         </Text>
+
         <View className="gap-2">
           {document.storage_path_back ? (
             <Text className="text-foreground text-base font-nunitoSemiBold">
@@ -379,7 +393,7 @@ export default function PassportDocumentDetail() {
           </View>
         ) : null}
 
-        <Text className="text-muted text-sm font-nunitoSemiBold uppercase">
+        <Text className="text-muted text-base font-nunitoSemiBold">
           Details
         </Text>
         <View className="bg-surface border border-border rounded-2xl p-4 gap-3">
@@ -397,6 +411,29 @@ export default function PassportDocumentDetail() {
             isDanger={isExpired}
           />
         </View>
+
+        {reviewStatus === "rejected" ? (
+          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
+            <Text className="text-danger text-sm font-nunitoSemiBold">
+              Not verified
+            </Text>
+            <Text className="text-muted text-sm font-inter mt-0.5">
+              {document.rejection_reason ??
+                "An admin could not verify this document."}
+            </Text>
+          </View>
+        ) : null}
+
+        {isExpired ? (
+          <View className="bg-danger/10 border border-danger/20 rounded-2xl p-3">
+            <Text className="text-danger text-sm font-nunitoSemiBold">
+              Expired document
+            </Text>
+            <Text className="text-muted text-sm font-inter mt-0.5">
+              Upload a current copy before requesting verification.
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <ConfirmDialog
