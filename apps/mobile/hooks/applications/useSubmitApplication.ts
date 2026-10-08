@@ -4,7 +4,7 @@ import { supabase } from '@repo/supabase'
 import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
-import { evaluateApplicationReadiness } from '@/service/applications/applicationReadiness'
+import { evaluateApplicationReadiness } from '@repo/passport'
 
 type SubmitArgs = {
   apartmentId: string

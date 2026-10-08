@@ -16,7 +16,7 @@ Non-goals:
   - Resolves private signed URLs via `useDocumentUrls()` (bucket `application-documents`, or `user-verification` for linked IDs).
   - Preview via local `components/DocumentPreview.tsx` (image inline + `Linking.openURL` fallback; non-image file card).
   - Full-screen image viewer via `react-native-image-viewing`.
-  - Dates: `Uploaded` (`created_at`) + `Expires` (`expires_at` or "No expiry"), expiry via `service/passport/expiry.ts:isExpiredDate()`.
+  - Dates: `Uploaded` (`created_at`) + `Expires` (`expires_at` or "No expiry"), expiry via `isExpiredDate()` from `@repo/passport`.
   - Status: Verified (`success`) / Under review (`warning`) chips + rejection-reason and expired banners.
   - Footer actions: Request Verification (`useRequestPassportDocumentReview()`) + Delete (`useDeletePassportDocument()` + `ConfirmDialog`), hidden for linked primary IDs and under-review docs.
   - Tests: `app/document-id/detail.test.tsx` (icon, linked-ID copy, pending banner).

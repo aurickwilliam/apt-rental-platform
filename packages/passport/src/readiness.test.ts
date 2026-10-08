@@ -1,23 +1,24 @@
-import { evaluateApplicationReadiness } from './applicationReadiness'
-import type { PassportDocumentRow } from '@/service/passport/passportService'
+import { evaluateApplicationReadiness } from './readiness'
+import type { PassportSlotDocument } from './selection'
 
-jest.mock('@repo/supabase', () => ({ supabase: {} }))
-jest.mock('expo-file-system', () => ({ File: jest.fn() }))
+interface TestDoc extends PassportSlotDocument {
+  id: string
+  storage_path: string
+}
 
-const baseDoc = {
-  user_id: 't',
-  mime_type: null,
+const baseDoc: TestDoc = {
+  id: '',
+  doc_type: '',
+  storage_path: '',
   id_type: null,
-  verification_id: null,
   is_verified: false,
   is_primary: false,
   review_status: 'unverified',
   expires_at: null,
   created_at: '2026-10-01T00:00:00.000Z',
-  storage_path_back: null,
-} as unknown as PassportDocumentRow
+}
 
-const doc = (patch: Partial<PassportDocumentRow>): PassportDocumentRow => ({ ...baseDoc, ...patch })
+const doc = (patch: Partial<TestDoc>): TestDoc => ({ ...baseDoc, ...patch })
 
 const gov = doc({ id: 'g', doc_type: 'Passport', id_type: 'Passport', storage_path: 'g', is_primary: true, is_verified: true })
 const billing = doc({ id: 'b', doc_type: 'Proof of Residency', storage_path: 'b' })

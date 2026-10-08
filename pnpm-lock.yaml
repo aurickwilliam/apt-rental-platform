@@ -149,6 +149,9 @@ importers:
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
+      '@repo/passport':
+        specifier: workspace:*
+        version: link:../../packages/passport
       '@repo/supabase':
         specifier: workspace:*
         version: link:../../packages/supabase
@@ -390,6 +393,9 @@ importers:
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
+      '@repo/passport':
+        specifier: workspace:*
+        version: link:../../packages/passport
       '@repo/supabase':
         specifier: workspace:*
         version: link:../../packages/supabase
@@ -512,6 +518,16 @@ importers:
       '@types/react':
         specifier: ^19
         version: 19.2.18
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/passport:
+    dependencies:
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../constants
+    devDependencies:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
