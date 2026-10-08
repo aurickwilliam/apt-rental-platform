@@ -70,6 +70,22 @@ export default function DocumentRow({
     </View>
   );
 
+  // A custom handler wins. Otherwise images open in the in-app viewer and
+  // everything else (PDFs, documents) opens externally — the image viewer
+  // cannot render a PDF.
+  const handlePress = () => {
+    if (!signedUrl) return;
+    if (onPress) {
+      onPress();
+      return;
+    }
+    if (isImage && onPressImage) {
+      onPressImage(signedUrl);
+      return;
+    }
+    void Linking.openURL(signedUrl);
+  };
+
   if (!signedUrl) {
     return (
       <View className="flex-row items-center justify-between py-2">
@@ -83,7 +99,7 @@ export default function DocumentRow({
     return (
       <PressableFeedback
         className="flex-row items-center gap-3 py-2"
-        onPress={() => onPress?.() ?? onPressImage?.(signedUrl)}
+        onPress={handlePress}
       >
         <PressableFeedback.Highlight />
         <View
@@ -116,7 +132,7 @@ export default function DocumentRow({
   return (
     <PressableFeedback
       className="flex-row items-center gap-3 py-2"
-      onPress={() => onPress?.() ?? Linking.openURL(signedUrl)}
+      onPress={handlePress}
     >
       <PressableFeedback.Highlight />
       <View className="w-14 h-14 rounded-xl border border-border items-center justify-center">
