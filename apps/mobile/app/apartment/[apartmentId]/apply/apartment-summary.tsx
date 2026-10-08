@@ -7,7 +7,7 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +20,7 @@ import { useColors } from "@/hooks/useTheme";
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useApplicationFormStore } from "@/stores/useApplicationFormStore";
 import { useApplicationReadiness } from "@/hooks/applications";
-import PassportNotice from "./components/PassportNotice";
+import ApplicationGuidelinesSheet from "./components/ApplicationGuidelinesSheet";
 import ApplicationIssues from "./components/ApplicationIssues";
 
 import { Button, Spinner } from "heroui-native";
@@ -33,7 +33,10 @@ import {
   IconMapPin,
   IconArrowsMaximize,
   IconStarFilled,
+  IconInfoCircle,
 } from "@tabler/icons-react-native";
+
+const GUIDELINES_OPEN_DELAY_MS = 400;
 
 export default function ApartmentSummary() {
   const { colors } = useColors();
@@ -42,8 +45,24 @@ export default function ApartmentSummary() {
   const insets = useSafeAreaInsets();
 
   const { apartment, loading, error } = useApartmentDetails(apartmentId, { includeReviews: false });
+
+  // Guidelines pop up once the apartment has rendered; the link reopens them.
+  // The sheet must mount closed — it does not present when mounted open.
+  const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
+  const hasShownGuidelines = useRef(false);
+
+  const isApartmentReady = !loading && !error && !!apartment;
+  useEffect(() => {
+    if (!isApartmentReady || hasShownGuidelines.current) return;
+    const timer = setTimeout(() => {
+      hasShownGuidelines.current = true;
+      setIsGuidelinesOpen(true);
+    }, GUIDELINES_OPEN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isApartmentReady]);
   const { setApartmentContext } = useApplicationFormStore();
   const readiness = useApplicationReadiness(apartmentId, apartment?.landlord?.id ?? null);
+
 
   const imageScrollViewRef = useRef<ScrollView>(null);
   const [scrollX] = useState(() => new Animated.Value(0));
@@ -273,7 +292,18 @@ export default function ApartmentSummary() {
           </View>
 
           <View className="mt-5 gap-3">
-            <PassportNotice />
+            <TouchableOpacity
+              onPress={() => setIsGuidelinesOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="View application guidelines"
+              className="flex-row items-center justify-center gap-2 py-1"
+            >
+              <IconInfoCircle size={18} color="#FFFFFF" />
+              <Text className="text-white text-sm font-nunitoSemiBold underline">
+                View application guidelines
+              </Text>
+            </TouchableOpacity>
             {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
             <Button
               onPress={handleContinueApplication}
@@ -283,6 +313,11 @@ export default function ApartmentSummary() {
             </Button>
           </View>
         </LinearGradient>
+
+        <ApplicationGuidelinesSheet
+          isOpen={isGuidelinesOpen}
+          onOpenChange={setIsGuidelinesOpen}
+        />
 
         <View className="absolute left-4" style={{ top: insets.top + 8 }}>
           <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
