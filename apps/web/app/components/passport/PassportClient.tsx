@@ -22,13 +22,15 @@ interface PassportClientProps {
   userId: string;
   /** Route prefix for this portal's Passport, e.g. `/tenant/passport`. */
   basePath: string;
+  /** The rental-application checklist only applies to the tenant portal. */
+  showApplicationReadiness?: boolean;
 }
 
 /** `?add=1` opens the type picker; `?add=<type>` opens the upload step. */
 const ADD_PARAM = "add";
 const ADD_PICKER_VALUE = "1";
 
-export default function PassportClient({ userId, basePath }: PassportClientProps) {
+export default function PassportClient({ userId, basePath, showApplicationReadiness = true }: PassportClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { documents, loading, error, refresh, addDocument } = usePassportDocuments(userId);
@@ -112,7 +114,7 @@ export default function PassportClient({ userId, basePath }: PassportClientProps
           <Button onPress={refresh}>Try Again</Button>
         </div>
       ) : loading ? (
-        <PassportWalletSkeleton />
+        <PassportWalletSkeleton showApplicationReadiness={showApplicationReadiness} />
       ) : (
         <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
           <aside className="space-y-4 lg:sticky lg:top-6">
@@ -137,7 +139,9 @@ export default function PassportClient({ userId, basePath }: PassportClientProps
                 </Card.Content>
               </Card>
             )}
-            <PassportReadinessCard documents={documents} onAddDocument={(docType) => openAdd(docType)} />
+            {showApplicationReadiness ? (
+              <PassportReadinessCard documents={documents} onAddDocument={(docType) => openAdd(docType)} />
+            ) : null}
           </aside>
 
           <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">

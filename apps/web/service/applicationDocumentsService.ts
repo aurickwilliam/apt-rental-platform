@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
-import { isVerifiedIdPath } from "@repo/passport";
+import { isVerifiedIdPath, verifiedPassportPaths, type VerifiedPassportPathRow } from "@repo/passport";
 
 export const APPLICATION_DOCUMENTS_BUCKET = "application-documents";
 
@@ -87,17 +87,15 @@ export async function fetchPassportVerifiedPaths(
   // badge both its front (`storage_path`) and back (`storage_path_back`).
   const { data, error } = await supabase
     .from("passport_documents")
-    .select("storage_path, storage_path_back")
+    .select("storage_path, storage_path_back, expires_at")
     .eq("user_id", tenantId)
     .eq("is_verified", true);
 
-  if (error) return new Set();
-  const requested = new Set(unique);
-  const verified = new Set<string>();
-  for (const row of (data ?? []) as { storage_path: string; storage_path_back: string | null }[]) {
-    for (const path of [row.storage_path, row.storage_path_back]) {
-      if (path && requested.has(path)) verified.add(path);
-    }
+  if (error) {
+    // Badges are advisory: show none rather than failing the page.
+    console.warn("Could not load verified passport paths", error.message);
+    return new Set();
   }
-  return verified;
+  // Expired documents never count as verified.
+  return verifiedPassportPaths((data ?? []) as VerifiedPassportPathRow[], unique);
 }
