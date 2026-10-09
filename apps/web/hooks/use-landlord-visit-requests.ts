@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
+import { useAsyncResource } from "@/hooks/use-async-resource";
 import {
   fetchLandlordVisitRequests,
   type LandlordVisitRequest,
@@ -9,26 +10,11 @@ import {
 
 export type { LandlordVisitRequest };
 
+const NO_VISIT_REQUESTS: LandlordVisitRequest[] = [];
+
 export function useLandlordVisitRequests() {
-  const [visitRequests, setVisitRequests] = useState<LandlordVisitRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => fetchLandlordVisitRequests(), []);
+  const { data, loading, error, refresh } = useAsyncResource(load, NO_VISIT_REQUESTS, "Failed to load visit requests.");
 
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setVisitRequests(await fetchLandlordVisitRequests());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load visit requests.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
-  return { visitRequests, loading, error, refetch };
+  return { visitRequests: data, loading, error, refetch: refresh };
 }

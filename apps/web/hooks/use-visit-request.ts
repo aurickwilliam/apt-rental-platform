@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
+import { useAsyncResource } from "@/hooks/use-async-resource";
 import { getTenantContext } from "@/service/favoritesService";
 import {
   fetchVisitRequest,
@@ -10,41 +11,21 @@ import {
 
 export type { VisitRequest };
 
+interface VisitRequestData {
+  current: VisitRequest | null;
+  history: VisitRequest[];
+}
+
+const EMPTY: VisitRequestData = { current: null, history: [] };
+
 export function useVisitRequest(applicationId: string | undefined) {
-  const [visitRequest, setVisitRequest] = useState<VisitRequest | null>(null);
-  const [history, setHistory] = useState<VisitRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refetch = useCallback(async () => {
-    if (!applicationId) {
-      setVisitRequest(null);
-      setHistory([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const context = await getTenantContext();
-      if (!context.tenantId) {
-        setVisitRequest(null);
-        setHistory([]);
-        return;
-      }
-      const result = await fetchVisitRequest(applicationId, context.tenantId);
-      setVisitRequest(result.current);
-      setHistory(result.history);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load visit request.");
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async (): Promise<VisitRequestData> => {
+    if (!applicationId) return EMPTY;
+    const context = await getTenantContext();
+    if (!context.tenantId) return EMPTY;
+    return fetchVisitRequest(applicationId, context.tenantId);
   }, [applicationId]);
+  const { data, loading, error, refresh } = useAsyncResource(load, EMPTY, "Failed to load visit request.");
 
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
-  return { visitRequest, history, loading, error, refetch };
+  return { visitRequest: data.current, history: data.history, loading, error, refetch: refresh };
 }

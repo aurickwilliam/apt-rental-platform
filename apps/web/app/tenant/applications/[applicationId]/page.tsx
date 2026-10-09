@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -142,7 +143,7 @@ export default function ApplicationDetailPage() {
       <div className="border border-border rounded-3xl overflow-hidden bg-card isolate">
         <div className="relative h-64 md:h-[360px] overflow-hidden rounded-3xl">
           {cover ? (
-            <img src={cover} alt={apartment?.name ?? "Apartment"} className="w-full h-full object-cover" />
+            <Image src={cover} alt={apartment?.name ?? "Apartment"} fill unoptimized className="object-cover" />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">No image</div>
           )}

@@ -83,17 +83,18 @@ export function usePaymentByReference(
   options?: { pollWhilePending?: boolean },
 ): QueryResult<PaymentRecord | null> {
   const result = useQueryOnce<PaymentRecord | null>(referenceId, (ref) => fetchPaymentByReferenceId(ref));
+  const { data, refetch } = result;
 
   // Mobile parity: e-wallet/card rows flip fast so poll briefly once pending.
   // Cash rows stay pending until landlord confirms — never poll those.
   useEffect(() => {
     if (!options?.pollWhilePending || !referenceId) return;
-    if (result.data?.status !== "pending" || result.data?.method === "cash") return;
+    if (data?.status !== "pending" || data?.method === "cash") return;
     const timer = setInterval(() => {
-      void result.refetch();
+      void refetch();
     }, 3000);
     return () => clearInterval(timer);
-  }, [options?.pollWhilePending, referenceId, result.data, result.refetch]);
+  }, [options?.pollWhilePending, referenceId, data, refetch]);
 
   return result;
 }

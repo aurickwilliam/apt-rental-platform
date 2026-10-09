@@ -36,7 +36,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 
 - pnpm@10.34.5 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
 - Backend: Supabase (Postgres, Auth, Realtime, Storage)
-- No CI or formatter config exists; `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`) run via `pnpm --filter mobile test`
+- CI: one required `ci` job (`.github/workflows/ci.yml`) runs mobile lint + jest and web lint + typecheck + tests; no formatter config. `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`, also covering `packages/passport`) via `pnpm --filter mobile test`; `apps/web` has `node:test` suites for pure helpers in `lib/*.test.mjs` via `pnpm --filter web test`
 
 ### `apps/web` — Next.js 16 (App Router)
 - Styling: **Tailwind CSS v4** + PostCSS (`@tailwindcss/postcss`)
@@ -76,7 +76,7 @@ pnpm mobile       # pnpm --filter mobile start
 ```
 
 Individual app scripts:
-- `pnpm --filter web dev` / `pnpm --filter web build` / `pnpm --filter web lint`
+- `pnpm --filter web dev` / `pnpm --filter web build` / `pnpm --filter web lint` / `pnpm --filter web typecheck` / `pnpm --filter web test`
 - `pnpm --filter mobile start` / `pnpm --filter mobile ios` / `pnpm --filter mobile android` / `pnpm --filter mobile lint` (expo lint)
 - `pnpm --filter mobile test` (jest) / `pnpm --filter mobile exec jest --runInBand` (CI-style run)
 
@@ -84,7 +84,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 
 ## Git & CI Workflow
 
-- `main` is protected by the `main-protection` ruleset: PR required, `ci` check (expo lint + jest) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
+- `main` is protected by the `main-protection` ruleset: PR required, `ci` check (mobile lint + jest, web lint + typecheck + tests) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
 - Sync with `main` before opening/merging a PR: `git merge main` on your branch (the `ci` check runs against the PR's merge commit).
 - If CI fails with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install` locally and commit the updated `pnpm-lock.yaml` (CI installs with `--frozen-lockfile`).
 - Stale branches (long-diverged from `main`) commonly fail CI on lockfile drift or moved tests — merge `main` first, then re-run.
@@ -218,6 +218,7 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 - **Zustand** (mobile only): client state shared across screens — form flows, theme, personalization. Lives in `stores/`; includes `reset()`.
 - **Portal preference** (mobile): `users.roles` is server-authoritative; `usePortalStore` holds only the active tenant/landlord navigation choice in memory. Persist that choice per auth user in AsyncStorage across sign-out, but clear in-memory state and React Query on sign-out/account change. Always validate the saved choice against the latest roles before routing; never persist roles or treat a preference as authorization.
 - **Supabase** is the source of truth for all server data; fetch in hooks/services behind React Query — never mirror it in stores.
+- **Server data (web)**: data hooks load through `hooks/use-async-resource.ts` (memoized loader → `{ data, loading, error, refresh, setData }`); effects never set state synchronously (`react-hooks/set-state-in-effect` is enforced in CI). Browser-only values use `useSyncExternalStore` (`use-hydrated`, `use-mobile`); prop-to-state resets compare with the previous prop during render instead of an effect.
 - **URL state** (web): filters and search via `searchParams` / `useSearchParams`.
 - **Context** (web): none for session state — `AuthContext` is form-state scoped to the `(auth)` route group only. Session awareness comes from `hooks/use-user.ts` (with `onAuthStateChange`) and server pages. Avoid adding global contexts.
 - Never duplicate state: derive from a single source, reset stores on completion, keep stores out of server data.

@@ -24,13 +24,18 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
   // ignores this state.
   const [isThreadOpen, setIsThreadOpen] = useState(false);
 
-  useEffect(() => {
+  // Reset local contact state when the server sends new lists (React's
+  // "adjust state on prop change" pattern; no effect round-trip).
+  const [syncedTenants, setSyncedTenants] = useState(currentTenants);
+  if (syncedTenants !== currentTenants) {
+    setSyncedTenants(currentTenants);
     setCurrentTenantContacts(currentTenants);
-  }, [currentTenants]);
-
-  useEffect(() => {
+  }
+  const [syncedInquiries, setSyncedInquiries] = useState(inquiries);
+  if (syncedInquiries !== inquiries) {
+    setSyncedInquiries(inquiries);
     setInquiryContacts(inquiries);
-  }, [inquiries]);
+  }
 
   const markContactAsRead = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {

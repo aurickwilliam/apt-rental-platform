@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@heroui/react";
 
+import { useHydrated } from "@/hooks/use-hydrated";
+
 export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // The theme is only known in the browser; render a placeholder until then.
+  const mounted = useHydrated();
 
   if (!mounted) {
     return <Button isIconOnly size="sm" variant="ghost" aria-label="Toggle theme" />;

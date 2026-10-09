@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Avatar, Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
+import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
 import {
   CreditCard,
   FileText,
