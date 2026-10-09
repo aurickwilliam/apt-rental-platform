@@ -50,7 +50,7 @@ export default function ThirdPartySignIn({ next }: { next?: string }) {
     }
     // Otherwise the browser leaves for Google; the button stays in its
     // loading/disabled state while redirecting.
-  }, [role, type]);
+  }, [next, role, type]);
 
   return (
     <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex flex-col items-center gap-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -155,8 +156,8 @@ export default function LandlordVisitRequestDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
         <div className="flex flex-col gap-4 min-w-0">
           {request.apartment.cover_url ? (
-            <div className="rounded-3xl overflow-hidden border border-border h-56 lg:h-72">
-              <img src={request.apartment.cover_url} alt={request.apartment.name} className="w-full h-full object-cover" />
+            <div className="relative rounded-3xl overflow-hidden border border-border h-56 lg:h-72">
+              <Image src={request.apartment.cover_url} alt={request.apartment.name} fill unoptimized className="object-cover" />
             </div>
           ) : (
             <div className="rounded-3xl border border-border h-56 lg:h-72 bg-muted flex items-center justify-center">

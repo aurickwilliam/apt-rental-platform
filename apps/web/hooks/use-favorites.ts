@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+
+import { useAsyncResource } from "@/hooks/use-async-resource";
 
 import {
   deleteFavorite,
@@ -15,43 +17,40 @@ export type ToggleFavoriteError = Error & {
   code?: ToggleFavoriteErrorCode;
 };
 
+interface FavoritesData {
+  tenantId: string | null;
+  role: string | null;
+  isAuthenticated: boolean;
+  favoriteApartmentIds: Set<string>;
+}
+
+const NO_FAVORITES: FavoritesData = {
+  tenantId: null,
+  role: null,
+  isAuthenticated: false,
+  favoriteApartmentIds: new Set(),
+};
+
 export function useFavorites() {
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [favoriteApartmentIds, setFavoriteApartmentIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refreshFavorites = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const context = await getTenantContext();
-      setRole(context.role);
-      setIsAuthenticated(context.isAuthenticated);
-
-      if (!context.tenantId) {
-        setTenantId(null);
-        setFavoriteApartmentIds(new Set());
-        return;
-      }
-
-      const apartmentIds = await fetchFavoriteApartmentIds(context.tenantId);
-      setTenantId(context.tenantId);
-      setFavoriteApartmentIds(new Set(apartmentIds));
-    } catch (err: any) {
-      console.error("useFavorites:", err);
-      setError(err?.message ?? "Failed to load favorites.");
-    } finally {
-      setLoading(false);
+  const load = useCallback(async (): Promise<FavoritesData> => {
+    const context = await getTenantContext();
+    if (!context.tenantId) {
+      return { ...NO_FAVORITES, role: context.role, isAuthenticated: context.isAuthenticated };
     }
+    const apartmentIds = await fetchFavoriteApartmentIds(context.tenantId);
+    return {
+      tenantId: context.tenantId,
+      role: context.role,
+      isAuthenticated: context.isAuthenticated,
+      favoriteApartmentIds: new Set(apartmentIds),
+    };
   }, []);
-
-  useEffect(() => {
-    void refreshFavorites();
-  }, [refreshFavorites]);
+  const { data, loading, error, refresh: refreshFavorites, setData } = useAsyncResource(
+    load,
+    NO_FAVORITES,
+    "Failed to load favorites.",
+  );
+  const { tenantId, role, isAuthenticated, favoriteApartmentIds } = data;
 
   const isFavorite = useCallback(
     (apartmentId: string) => favoriteApartmentIds.has(apartmentId),
@@ -78,16 +77,16 @@ export function useFavorites() {
         await insertFavorite(tenantId, apartmentId);
       }
 
-      setFavoriteApartmentIds((prev) => {
-        const next = new Set(prev);
+      setData((prev) => {
+        const next = new Set(prev.favoriteApartmentIds);
         if (next.has(apartmentId)) next.delete(apartmentId);
         else next.add(apartmentId);
-        return next;
+        return { ...prev, favoriteApartmentIds: next };
       });
 
       return !favorited;
     },
-    [favoriteApartmentIds, isAuthenticated, tenantId],
+    [favoriteApartmentIds, isAuthenticated, tenantId, setData],
   );
 
   return {

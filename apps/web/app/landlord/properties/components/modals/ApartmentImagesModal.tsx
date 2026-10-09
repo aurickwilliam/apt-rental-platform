@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 
 import {
@@ -40,9 +40,12 @@ export default function ApartmentImagesModal({
   const [deleting, setDeleting]       = useState<string | null>(null);
   const fileInputRef                  = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  // Take new images from the parent without an effect round-trip.
+  const [syncedImages, setSyncedImages] = useState(images);
+  if (syncedImages !== images) {
+    setSyncedImages(images);
     setLocalImages(images);
-  }, [images]);
+  }
 
   const supabase = createBrowserClient();
 

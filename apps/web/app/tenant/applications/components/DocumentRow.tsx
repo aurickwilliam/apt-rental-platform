@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FileText, Image as ImageIcon } from "lucide-react";
 
 type Props = {
@@ -38,9 +39,9 @@ export default function DocumentRow({ label, fileName, path, signedUrl, isImage,
 
   const inner = (
     <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card w-full text-left">
-      <div className="w-14 h-14 rounded-lg border border-border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="relative w-14 h-14 rounded-lg border border-border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
         {showsImage && signedUrl ? (
-          <img src={signedUrl} alt={label} className="w-full h-full object-cover" />
+          <Image src={signedUrl} alt={label} fill unoptimized className="object-cover" />
         ) : showsImage ? (
           <ImageIcon size={20} className="text-muted-foreground" />
         ) : (
