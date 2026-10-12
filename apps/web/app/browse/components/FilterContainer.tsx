@@ -19,7 +19,7 @@ import {
   ToggleButton,
 } from "@heroui/react";
 
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 
 import {
   APARTMENT_TYPES,
@@ -276,7 +276,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
           className="w-full"
           onPress={handleApply}
         >
-          <Search size={20} />
+          <IconSearch size={20} />
           Search Apartment
         </Button>
 

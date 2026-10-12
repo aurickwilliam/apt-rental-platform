@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Drawer, useOverlayState } from "@heroui/react";
-import { SlidersHorizontal, X } from "lucide-react";
+import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-react";
 
 import FilterContainer from "./FilterContainer";
 
@@ -72,7 +72,7 @@ export default function BrowseFilters({
           onPress={() => setIsOpen(true)}
           aria-label="Open filters"
         >
-          <SlidersHorizontal size={16} />
+          <IconAdjustmentsHorizontal size={16} />
           Filters
           {activeCount > 0 && (
             <span className="absolute -right-1 -top-1 min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
@@ -106,7 +106,7 @@ export default function BrowseFilters({
                 <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
                 <div className="flex items-center justify-between border-b border-divider px-4 py-3">
                   <h3 className="flex items-center gap-2 text-base font-medium">
-                    <SlidersHorizontal size={16} />
+                    <IconAdjustmentsHorizontal size={16} />
                     Filters
                     {activeCount > 0 && (
                       <span className="min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
@@ -121,7 +121,7 @@ export default function BrowseFilters({
                     onPress={close}
                     aria-label="Close filters"
                   >
-                    <X size={16} />
+                    <IconX size={16} />
                   </Button>
                 </div>
                 <Drawer.Body className="flex-1 overflow-y-auto p-3">

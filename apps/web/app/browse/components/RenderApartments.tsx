@@ -8,19 +8,16 @@ import { Pagination, toast } from "@heroui/react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
-
-interface ApartmentItem {
-  id: string;
-  name: string;
-  location: string;
-  price: number;
-  rating: number;
-  isVerified: boolean;
-  image: string;
-}
+import type { BrowseApartment } from "../lib/fetch-browse-results";
+import ApartmentHoverPreview from "./ApartmentHoverPreview";
+import {
+  previewPosition,
+  useHoverPreview,
+} from "./use-hover-preview";
+import { AnimatePresence } from "framer-motion";
 
 interface RenderApartmentsProps {
-  apartment: ApartmentItem[];
+  apartment: BrowseApartment[];
   page: number;
   totalCount: number;
   pageSize: number;
@@ -50,6 +47,13 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
+  const {
+    preview,
+    handleHoverCard,
+    handleLeaveCard,
+    handleKeepPreview,
+    dismissPreview,
+  } = useHoverPreview();
 
   const handlePageChange = (newPage: number) => {
     const current = new URLSearchParams(searchParams.toString());
@@ -57,10 +61,18 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
     router.push(`${basePath}?${current.toString()}`);
   };
 
+  const handlePressApartment = (apartmentId: string) => {
+    dismissPreview();
+    router.push(`${basePath}/${apartmentId}`);
+  };
+
+  const handleToggleFavorite = (apartmentId: string) => {
+    void handleFavoriteToggle(apartmentId);
+  };
+
   const isVerifiedOnly = searchParams.get("verified") === "1";
 
-  const handleFavoriteToggle = async (apartmentId: string) => {
-    setActiveFavoriteId(apartmentId);
+  const handleFavoriteToggle = async (apartmentId: string) => {    setActiveFavoriteId(apartmentId);
 
     try {
       const nextValue = await toggleFavorite(apartmentId);
@@ -100,21 +112,35 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {apartment.map(apt => (
-            <ApartmentCard
+            <div
               key={apt.id}
-              name={apt.name}
-              location={apt.location}
-              price={apt.price}
-              rating={apt.rating}
-              isVerified={apt.isVerified}
-              thumbnailUrl={apt.image}
-              isFavorite={isFavorite(apt.id)}
-              isFavoriteLoading={activeFavoriteId === apt.id}
-              onFavoritePress={() => {
-                void handleFavoriteToggle(apt.id);
+              className="min-w-0"
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                handleHoverCard(apt, {
+                  left: rect.left,
+                  top: rect.top,
+                  width: rect.width,
+                  height: rect.height,
+                });
               }}
-              onPress={() => router.push(`${basePath}/${apt.id}`)}
-            />
+              onMouseLeave={handleLeaveCard}
+            >
+              <ApartmentCard
+                name={apt.name}
+                location={apt.location}
+                price={apt.price}
+                rating={apt.rating}
+                isVerified={apt.isVerified}
+                thumbnailUrl={apt.image}
+                isFavorite={isFavorite(apt.id)}
+                isFavoriteLoading={activeFavoriteId === apt.id}
+                onFavoritePress={() => {
+                  handleToggleFavorite(apt.id);
+                }}
+                onPress={() => handlePressApartment(apt.id)}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -165,6 +191,22 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           </div>
         </div>
       )}
+
+      <AnimatePresence>
+        {preview && (
+          <ApartmentHoverPreview
+            key={preview.apartment.id}
+            apartment={preview.apartment}
+            style={previewPosition(preview.rect)}
+            isFavorite={isFavorite(preview.apartment.id)}
+            isFavoriteLoading={activeFavoriteId === preview.apartment.id}
+            onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
+            onViewDetails={() => handlePressApartment(preview.apartment.id)}
+            onMouseEnter={handleKeepPreview}
+            onMouseLeave={dismissPreview}
+          />
+        )}
+      </AnimatePresence>
 
       <AuthPromptModal
         isOpen={isAuthModalOpen}

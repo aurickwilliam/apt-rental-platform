@@ -4,8 +4,7 @@ import Image from "next/image";
 
 import { Card, Button, Spinner } from "@heroui/react";
 
-import { Star, Heart } from "lucide-react";
-import { IconShieldCheckFilled } from "@tabler/icons-react";
+import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -70,7 +69,7 @@ export default function ApartmentCard({
           </p>
 
           <div className="flex items-center gap-1">
-            <Star className="text-yellow-400" fill="currentColor" size={18} />
+            <IconStarFilled size={18} className="text-yellow-400" />
             <p className="text-sm">
               {rating === 0 ? "-" : rating}
             </p>
@@ -106,12 +105,10 @@ export default function ApartmentCard({
                     color="current"
                     size="sm"
                   />
+                ) : isFavorite ? (
+                  <IconHeartFilled size={18} className="text-red-500" />
                 ) : (
-                  <Heart
-                    size={18}
-                    className={isFavorite ? "text-red-500" : "text-grey-500"}
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
+                  <IconHeart size={18} className="text-grey-500" />
                 )}
               </>
             )}

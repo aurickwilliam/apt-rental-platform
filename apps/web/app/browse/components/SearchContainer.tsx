@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 
 import { useDebouncedCallback } from "./use-debounced-callback";
 
@@ -71,7 +71,7 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
             {isPending ? (
               <Spinner size="sm" color="current" className="text-grey-500" />
             ) : (
-              <Search size={20} className="text-grey-500" />
+              <IconSearch size={20} className="text-grey-500" />
             )}
           </InputGroup.Prefix>
           <InputGroup.Input

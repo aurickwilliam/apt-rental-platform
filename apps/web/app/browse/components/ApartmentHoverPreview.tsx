@@ -4,8 +4,15 @@ import Image from "next/image";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { Button, Card, Spinner } from "@heroui/react";
-import { Bath, BedDouble, Heart, Ruler, Star } from "lucide-react";
-import { IconShieldCheckFilled } from "@tabler/icons-react";
+import {
+  IconBath,
+  IconBed,
+  IconHeart,
+  IconHeartFilled,
+  IconRuler,
+  IconShieldCheckFilled,
+  IconStarFilled,
+} from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
@@ -73,7 +80,7 @@ export default function ApartmentHoverPreview({
               {formatPesoDisplay(apartment.price)}
             </p>
             <p className="flex items-center gap-1 text-sm">
-              <Star className="text-yellow-400" fill="currentColor" size={16} />
+              <IconStarFilled size={16} className="text-yellow-400" />
               {apartment.rating === 0 ? "-" : apartment.rating}
             </p>
           </div>
@@ -84,19 +91,19 @@ export default function ApartmentHoverPreview({
             <div className="flex items-center gap-3 text-xs text-default-500">
               {apartment.bedrooms !== undefined && (
                 <span className="flex items-center gap-1">
-                  <BedDouble size={14} />
+                  <IconBed size={14} />
                   {apartment.bedrooms} BR
                 </span>
               )}
               {apartment.bathrooms !== undefined && (
                 <span className="flex items-center gap-1">
-                  <Bath size={14} />
+                  <IconBath size={14} />
                   {apartment.bathrooms} BA
                 </span>
               )}
               {apartment.areaSqm !== undefined && (
                 <span className="flex items-center gap-1">
-                  <Ruler size={14} />
+                  <IconRuler size={14} />
                   {apartment.areaSqm} sqm
                 </span>
               )}
@@ -123,12 +130,10 @@ export default function ApartmentHoverPreview({
               {({ isPending }) =>
                 isPending ? (
                   <Spinner color="current" size="sm" />
+                ) : isFavorite ? (
+                  <IconHeartFilled size={18} className="text-red-500" />
                 ) : (
-                  <Heart
-                    size={18}
-                    className={isFavorite ? "text-red-500" : "text-grey-500"}
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
+                  <IconHeart size={18} className="text-grey-500" />
                 )
               }
             </Button>

@@ -149,6 +149,9 @@ export async function fetchBrowseResults(
     image:
       apt.apartment_images?.find((img) => img.is_cover)?.url ??
       "/default/default-thumbnail.jpeg",
+    bedrooms: apt.no_bedrooms ?? undefined,
+    bathrooms: apt.no_bathrooms ?? undefined,
+    areaSqm: apt.area_sqm ?? undefined,
   }));
 
   return {
