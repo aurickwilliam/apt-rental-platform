@@ -89,6 +89,7 @@
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
     --color-secondary-light: #FFF3E0; 
+    --color-primary-light: #EFF6FF;
 
     /* Semantic */
     --success: var(--color-success);
@@ -169,6 +170,9 @@
 
     /* Override secondary-light for dark mode */
     --color-secondary-light: #2E2212;
+
+    /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
+    --color-primary-light: var(--color-dark-primary-light);
   }
 }
 
