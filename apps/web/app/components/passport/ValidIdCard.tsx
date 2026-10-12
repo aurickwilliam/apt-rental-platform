@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Button, Card, Spinner } from "@heroui/react";
+import { Button, Card, Skeleton } from "@heroui/react";
 import { IconRefresh } from "@tabler/icons-react";
 
 import PassportStatusChip from "./PassportStatusChip";
@@ -59,7 +59,7 @@ export default function ValidIdCard({ idType, sides, loading, onOpenViewer }: Va
                 className="object-contain"
               />
             ) : loading ? (
-              <Spinner size="sm" color="accent" />
+              <Skeleton className="absolute inset-0 rounded-none bg-grey-300!" />
             ) : (
               <span className="text-sm text-muted-foreground">Preview unavailable</span>
             )}

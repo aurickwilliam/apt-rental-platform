@@ -96,16 +96,7 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
 
   return (
     <PassportPageShell>
-      <PassportPageHeader
-        action={
-          !loading && !error ? (
-            <Button onPress={() => openAdd()}>
-              <IconPlus size={18} aria-hidden="true" />
-              Add a Document
-            </Button>
-          ) : null
-        }
-      />
+      <PassportPageHeader />
 
       {error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
