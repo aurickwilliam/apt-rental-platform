@@ -1,18 +1,28 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button, Card, toast } from "@heroui/react";
-import { IconFileUpload, IconLayoutGrid, IconLayoutList, IconPlus } from "@tabler/icons-react";
+import {
+  IconFileUpload,
+  IconLayoutGrid,
+  IconLayoutList,
+  IconPlus,
+} from "@tabler/icons-react";
 
 import { getPassportDocumentStatus } from "@repo/passport";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
-import { usePassportDocuments, type PassportDocumentRow } from "@/hooks/use-passport-documents";
+import {
+  usePassportDocuments,
+  type PassportDocumentRow,
+} from "@/hooks/use-passport-documents";
 
 import AddDocumentModal from "./AddDocumentModal";
-import PassportDocumentCard, { type PassportDocumentLayout } from "./PassportDocumentCard";
+import PassportDocumentCard, {
+  type PassportDocumentLayout,
+} from "./PassportDocumentCard";
 import { PassportPageHeader, PassportPageShell } from "./PassportPageLayout";
 import PassportReadinessCard from "./PassportReadinessCard";
 import { PassportWalletSkeleton } from "./PassportSkeleton";
@@ -30,24 +40,33 @@ interface PassportClientProps {
 const ADD_PARAM = "add";
 const ADD_PICKER_VALUE = "1";
 
-export default function PassportClient({ userId, basePath, showApplicationReadiness = true }: PassportClientProps) {
-  const router = useRouter();
+export default function PassportClient({
+  userId,
+  basePath,
+  showApplicationReadiness = true,
+}: PassportClientProps) {
   const searchParams = useSearchParams();
-  const { documents, loading, error, refresh, addDocument } = usePassportDocuments(userId);
+  const { documents, loading, error, refresh, addDocument } =
+    usePassportDocuments(userId);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [layout, setLayout] = useState<PassportDocumentLayout>("grid");
 
   const addParam = searchParams.get(ADD_PARAM);
   const isAddOpen = addParam !== null;
-  const addDocType = addParam && addParam !== ADD_PICKER_VALUE ? addParam : null;
+  const addDocType =
+    addParam && addParam !== ADD_PICKER_VALUE ? addParam : null;
 
   const addHref = (docType: string | null) =>
     `${basePath}?${ADD_PARAM}=${docType ? encodeURIComponent(docType) : ADD_PICKER_VALUE}`;
-  // Opening pushes a history entry so Back closes the modal; steps replace it.
-  const openAdd = (docType: string | null = null) => router.push(addHref(docType), { scroll: false });
-  const selectAddType = (docType: string | null) => router.replace(addHref(docType), { scroll: false });
-  const closeAdd = () => router.replace(basePath, { scroll: false });
+  // Native history calls sync with useSearchParams without re-rendering the
+  // server page (router.push/replace would refetch it on every step).
+  // Opening pushes an entry so Back closes the modal; steps replace it.
+  const openAdd = (docType: string | null = null) =>
+    window.history.pushState(null, "", addHref(docType));
+  const selectAddType = (docType: string | null) =>
+    window.history.replaceState(null, "", addHref(docType));
+  const closeAdd = () => window.history.replaceState(null, "", basePath);
 
   const handleUploaded = (row: PassportDocumentRow) => {
     addDocument(row);
@@ -78,17 +97,25 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
     [primaryId],
   );
   const supportingEntries = useMemo(
-    () => supportingDocs.map((doc) => ({ label: doc.doc_type, path: doc.storage_path })),
+    () =>
+      supportingDocs.map((doc) => ({
+        label: doc.doc_type,
+        path: doc.storage_path,
+      })),
     [supportingDocs],
   );
-  const { resolved: resolvedId, loading: idLoading } = useApplicationDocumentUrls(idEntries);
-  const { resolved: resolvedDocs } = useApplicationDocumentUrls(supportingEntries);
+  const { resolved: resolvedId, loading: idLoading } =
+    useApplicationDocumentUrls(idEntries);
+  const { resolved: resolvedDocs } =
+    useApplicationDocumentUrls(supportingEntries);
 
   const idSides = resolvedId.map((side) => ({
     label: side.label === "Back" ? ("Back" as const) : ("Front" as const),
     url: side.signedUrl,
   }));
-  const viewerSides = idSides.filter((side): side is { label: "Front" | "Back"; url: string } => !!side.url);
+  const viewerSides = idSides.filter(
+    (side): side is { label: "Front" | "Back"; url: string } => !!side.url,
+  );
   const signedByPath = useMemo(
     () => new Map(resolvedDocs.map((doc) => [doc.path, doc.signedUrl])),
     [resolvedDocs],
@@ -100,12 +127,16 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
 
       {error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
-          <p className="font-nunito text-xl font-bold text-card-foreground">Couldn&apos;t load your documents</p>
+          <p className="font-nunito text-xl font-bold text-card-foreground">
+            Couldn&apos;t load your documents
+          </p>
           <p className="max-w-md text-sm text-muted-foreground">{error}</p>
           <Button onPress={refresh}>Try Again</Button>
         </div>
       ) : loading ? (
-        <PassportWalletSkeleton showApplicationReadiness={showApplicationReadiness} />
+        <PassportWalletSkeleton
+          showApplicationReadiness={showApplicationReadiness}
+        />
       ) : (
         <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
           <aside className="space-y-4 lg:sticky lg:top-6">
@@ -116,35 +147,53 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
                 sides={idSides}
                 loading={idLoading}
                 onOpenViewer={(label) => {
-                  setViewerIndex(Math.max(viewerSides.findIndex((side) => side.label === label), 0));
+                  setViewerIndex(
+                    Math.max(
+                      viewerSides.findIndex((side) => side.label === label),
+                      0,
+                    ),
+                  );
                   setViewerOpen(true);
                 }}
               />
             ) : (
               <Card className="rounded-2xl border border-border bg-card p-4 shadow-none">
                 <Card.Content className="p-0">
-                  <h2 className="font-nunito text-lg font-semibold text-card-foreground">Government ID</h2>
+                  <h2 className="font-nunito text-lg font-semibold text-card-foreground">
+                    Government ID
+                  </h2>
                   <p className="text-sm text-muted-foreground">
-                    Your ID is linked automatically from your approved account verification.
+                    Your ID is linked automatically from your approved account
+                    verification.
                   </p>
                 </Card.Content>
               </Card>
             )}
             {showApplicationReadiness ? (
-              <PassportReadinessCard documents={documents} onAddDocument={(docType) => openAdd(docType)} />
+              <PassportReadinessCard
+                documents={documents}
+                onAddDocument={(docType) => openAdd(docType)}
+              />
             ) : null}
           </aside>
 
           <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="font-nunito text-lg font-semibold text-card-foreground">Supporting documents</h2>
+                <h2 className="font-nunito text-lg font-semibold text-card-foreground">
+                  Supporting documents
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  {supportingDocs.length} {supportingDocs.length === 1 ? "document" : "documents"}
+                  {supportingDocs.length}{" "}
+                  {supportingDocs.length === 1 ? "document" : "documents"}
                 </p>
               </div>
               {supportingDocs.length > 0 ? (
-                <div className="flex items-center gap-1" role="group" aria-label="Document layout">
+                <div
+                  className="flex items-center gap-1"
+                  role="group"
+                  aria-label="Document layout"
+                >
                   <Button
                     isIconOnly
                     size="sm"
@@ -171,11 +220,18 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
 
             {supportingDocs.length === 0 ? (
               <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border px-4 py-12 text-center">
-                <IconFileUpload size={48} className="text-primary" aria-hidden="true" />
-                <p className="font-nunito text-lg font-bold text-card-foreground">No supporting documents yet</p>
+                <IconFileUpload
+                  size={48}
+                  className="text-primary"
+                  aria-hidden="true"
+                />
+                <p className="font-nunito text-lg font-bold text-card-foreground">
+                  No supporting documents yet
+                </p>
                 <p className="max-w-md text-sm text-muted-foreground">
-                  Add payslips, billing statements, or clearances so they&apos;re ready when you apply for an
-                  apartment. Documents are only shared with landlords you apply to.
+                  Add payslips, billing statements, or clearances so
+                  they&apos;re ready when you apply for an apartment. Documents
+                  are only shared with landlords you apply to.
                 </p>
                 <Button onPress={() => openAdd()}>
                   <IconPlus size={18} aria-hidden="true" />
@@ -185,7 +241,9 @@ export default function PassportClient({ userId, basePath, showApplicationReadin
             ) : (
               <div
                 className={
-                  layout === "grid" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" : "flex flex-col gap-2"
+                  layout === "grid"
+                    ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                    : "flex flex-col gap-2"
                 }
               >
                 {supportingDocs.map((doc) => (

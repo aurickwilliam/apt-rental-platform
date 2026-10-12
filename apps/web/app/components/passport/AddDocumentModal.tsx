@@ -48,7 +48,7 @@ export default function AddDocumentModal({
       <Modal.Backdrop isDismissable={!isUploading} isKeyboardDismissDisabled={isUploading}>
         <Modal.Container placement="center" scroll="inside" size="lg">
           <Modal.Dialog className="w-full max-w-3xl! rounded-3xl bg-card">
-            {!isUploading ? <Modal.CloseTrigger /> : null}
+            {!isUploading ? <Modal.CloseTrigger className="text-card-foreground" /> : null}
             <Modal.Header className="flex flex-col items-start gap-1">
               {docType ? (
                 <button

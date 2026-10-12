@@ -21,7 +21,7 @@ export default function DocumentTypePicker({ onSelect }: DocumentTypePickerProps
             key={docType}
             type="button"
             onClick={() => onSelect(docType)}
-            className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+            className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
           >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
               <DocumentTypeIcon docType={docType} size={20} />
