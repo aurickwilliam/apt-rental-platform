@@ -1,162 +1,145 @@
 import { IconShieldCheck } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
-import VerificationTabs from "./components/VerificationTabs";
-import VerificationResults from "./components/VerificationResults";
-import VerificationEmptyState from "./components/VerificationEmptyState";
-import type { VerificationRow } from "./lib/verification-display";
+import VerificationQueues from "./components/VerificationQueues";
+import {
+  parseVerificationQueue,
+  type VerificationQueueData,
+  type VerificationRow,
+} from "./lib/verification-display";
 
 export const dynamic = "force-dynamic";
+const QUEUE_LIMIT = 50;
+
+interface PersonName {
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+}
+
+function personLabel(person: PersonName | null, fallback: string) {
+  return (
+    `${person?.first_name ?? ""} ${person?.last_name ?? ""}`.trim() ||
+    person?.email ||
+    fallback
+  );
+}
 
 export default async function VerificationPage({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
-  await requireAdmin();
-  const tab = (await searchParams).tab;
-  const selected =
-    tab === "apartments" ? "apartments" : tab === "documents" ? "documents" : "users";
+  const initialQueue = parseVerificationQueue((await searchParams).tab);
   const supabase = await createClient();
-  const [userQueue, apartmentQueue, documentQueue, userCount, apartmentCount, documentCount] =
-    await Promise.all([
-      selected === "users"
-        ? supabase.from("user_verifications")
-            .select("id, user_id, id_type, submitted_at")
-            .eq("status", "pending")
-            .order("submitted_at", { ascending: true })
-            .limit(50)
-        : Promise.resolve({ data: [], error: null }),
-      selected === "apartments"
-        ? supabase.from("apartment_verifications")
-            .select("id, apartment_id, submitted_at")
-            .eq("status", "pending")
-            .order("submitted_at", { ascending: true })
-            .limit(50)
-        : Promise.resolve({ data: [], error: null }),
-      selected === "documents"
-        ? supabase.from("passport_documents")
-            .select("id, user_id, doc_type, requested_at")
-            .eq("review_status", "pending")
-            .order("requested_at", { ascending: true })
-            .limit(50)
-        : Promise.resolve({ data: [], error: null }),
-      supabase
-        .from("user_verifications")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending"),
-      supabase
-        .from("apartment_verifications")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending"),
-      supabase
-        .from("passport_documents")
-        .select("id", { count: "exact", head: true })
-        .eq("review_status", "pending"),
-    ]);
-  const [profiles, apartments, docOwners] = await Promise.all([
-    userQueue.data?.length
-      ? supabase
-          .from("users")
-          .select("id, first_name, last_name, email, avatar_url")
-          .in(
-            "id",
-            userQueue.data.map((item) => item.user_id),
-          )
-      : Promise.resolve({ data: [] }),
-    apartmentQueue.data?.length
-      ? supabase
-          .from("apartments")
-          .select("id, name, city")
-          .in(
-            "id",
-            apartmentQueue.data.map((item) => item.apartment_id),
-          )
-      : Promise.resolve({ data: [] }),
-    documentQueue.data?.length
-      ? supabase
-          .from("users")
-          .select("id, first_name, last_name, email")
-          .in(
-            "id",
-            [...new Set(documentQueue.data.map((item) => item.user_id))],
-          )
-      : Promise.resolve({ data: [] }),
-  ]);
-  const docOwnerById = new Map(
-    ((docOwners.data ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null }>).map((profile) => [profile.id, profile]),
-  );
-  const profileById = new Map(
-    (profiles.data ?? []).map((profile) => [profile.id, profile]),
-  );
-  const apartmentById = new Map(
-    (apartments.data ?? []).map((apartment) => [apartment.id, apartment]),
-  );
-  const coverByApartmentId = new Map<string, string>();
-  if (selected === "apartments" && apartmentQueue.data?.length) {
-    const { data: covers } = await supabase
-      .from("apartment_images")
-      .select("apartment_id, url, url_thumb")
-      .in(
-        "apartment_id",
-        apartmentQueue.data.map((item) => item.apartment_id),
+
+  // All three queues load together so switching tabs is instant on the
+  // client. Each is one request: related names, apartments and cover images
+  // are embedded, and the pending total comes back as the row count.
+  // The admin check runs alongside instead of before: RLS already limits
+  // what a non-admin could read, and nothing renders unless it passes.
+  const [, userQueue, apartmentQueue, documentQueue] = await Promise.all([
+    requireAdmin(),
+    supabase
+      .from("user_verifications")
+      .select(
+        "id, id_type, submitted_at, applicant:users!user_verifications_user_id_fkey(first_name, last_name, email, avatar_url)",
+        { count: "exact" },
       )
-      .eq("is_cover", true);
-    for (const cover of covers ?? []) {
-      if (cover.apartment_id && !coverByApartmentId.has(cover.apartment_id)) {
-        coverByApartmentId.set(cover.apartment_id, cover.url_thumb ?? cover.url);
-      }
-    }
+      .eq("status", "pending")
+      .order("submitted_at", { ascending: true })
+      .limit(QUEUE_LIMIT),
+    supabase
+      .from("apartment_verifications")
+      .select(
+        "id, submitted_at, apartment:apartments!apartment_verifications_apartment_id_fkey(name, city, apartment_images(url, url_thumb))",
+        { count: "exact" },
+      )
+      .eq("status", "pending")
+      .eq("apartment.apartment_images.is_cover", true)
+      .limit(1, { referencedTable: "apartment.apartment_images" })
+      .order("submitted_at", { ascending: true })
+      .limit(QUEUE_LIMIT),
+    supabase
+      .from("passport_documents")
+      .select(
+        "id, doc_type, requested_at, owner:users!passport_documents_user_id_fkey(first_name, last_name, email)",
+        { count: "exact" },
+      )
+      .eq("review_status", "pending")
+      .order("requested_at", { ascending: true })
+      .limit(QUEUE_LIMIT),
+  ]);
+
+  for (const [name, result] of [
+    ["users", userQueue],
+    ["apartments", apartmentQueue],
+    ["documents", documentQueue],
+  ] as const) {
+    if (result.error)
+      console.error(`Admin ${name} verification queue failed`, result.error);
   }
-  const rows: VerificationRow[] =
-    selected === "users"
-      ? (userQueue.data ?? []).map((item) => {
-          const profile = profileById.get(item.user_id) as unknown as {
-            first_name: string | null;
-            last_name: string | null;
-            email: string | null;
-            avatar_url: string | null;
-          } | undefined;
-          const label =
-            `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||
-            profile?.email ||
-            "Unknown applicant";
-          return {
-            id: item.id,
-            label,
-            detail: `Document: ${item.id_type}`,
-            submittedAt: item.submitted_at,
-            image: profile?.avatar_url ?? null,
-          };
-        })
-      : selected === "documents"
-        ? (documentQueue.data ?? []).map((item) => {
-            const owner = docOwnerById.get(item.user_id);
-            const label =
-              `${owner?.first_name ?? ""} ${owner?.last_name ?? ""}`.trim() ||
-              owner?.email ||
-              "Unknown tenant";
-            return {
-              id: item.id,
-              label,
-              detail: `Document: ${item.doc_type}`,
-              submittedAt: item.requested_at ?? new Date().toISOString(),
-              image: null,
-            };
-          })
-        : (apartmentQueue.data ?? []).map((item) => {
-          const apartment = apartmentById.get(item.apartment_id);
-          return {
-            id: item.id,
-            label: apartment?.name || "Unknown apartment",
-            detail: apartment?.city || "Location unavailable",
-            submittedAt: item.submitted_at,
-            image: coverByApartmentId.get(item.apartment_id) ?? null,
-          };
-        });
-  const hasError = [userQueue, apartmentQueue, documentQueue, userCount, apartmentCount, documentCount].some(
-    (result) => Boolean(result.error),
+
+  const userRows: VerificationRow[] = (
+    (userQueue.data ?? []) as unknown as Array<{
+      id: string;
+      id_type: string;
+      submitted_at: string;
+      applicant: (PersonName & { avatar_url: string | null }) | null;
+    }>
+  ).map((item) => ({
+    id: item.id,
+    label: personLabel(item.applicant, "Unknown applicant"),
+    detail: `Document: ${item.id_type}`,
+    submittedAt: item.submitted_at,
+    image: item.applicant?.avatar_url ?? null,
+  }));
+
+  const apartmentRows: VerificationRow[] = (
+    (apartmentQueue.data ?? []) as unknown as Array<{
+      id: string;
+      submitted_at: string;
+      apartment: {
+        name: string | null;
+        city: string | null;
+        apartment_images: { url: string; url_thumb: string | null }[];
+      } | null;
+    }>
+  ).map((item) => {
+    const cover = item.apartment?.apartment_images[0];
+    return {
+      id: item.id,
+      label: item.apartment?.name || "Unknown apartment",
+      detail: item.apartment?.city || "Location unavailable",
+      submittedAt: item.submitted_at,
+      image: cover?.url_thumb ?? cover?.url ?? null,
+    };
+  });
+
+  const documentRows: VerificationRow[] = (
+    (documentQueue.data ?? []) as unknown as Array<{
+      id: string;
+      doc_type: string;
+      requested_at: string | null;
+      owner: PersonName | null;
+    }>
+  ).map((item) => ({
+    id: item.id,
+    label: personLabel(item.owner, "Unknown tenant"),
+    detail: `Document: ${item.doc_type}`,
+    submittedAt: item.requested_at ?? new Date().toISOString(),
+    image: null,
+  }));
+
+  const queues: VerificationQueueData = {
+    users: { rows: userRows, count: userQueue.count ?? 0 },
+    apartments: { rows: apartmentRows, count: apartmentQueue.count ?? 0 },
+    documents: { rows: documentRows, count: documentQueue.count ?? 0 },
+  };
+  const hasError = [userQueue, apartmentQueue, documentQueue].some((result) =>
+    Boolean(result.error),
   );
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
       <div>
@@ -175,21 +158,7 @@ export default async function VerificationPage({
           Unable to load every verification request. Refresh and try again.
         </p>
       ) : null}
-      <VerificationTabs
-        selected={selected}
-        userCount={userCount.count ?? 0}
-        apartmentCount={apartmentCount.count ?? 0}
-        documentCount={documentCount.count ?? 0}
-      />
-      {rows.length ? (
-        <VerificationResults
-          key={selected}
-          rows={rows}
-          selected={selected}
-        />
-      ) : (
-        <VerificationEmptyState selected={selected} />
-      )}
+      <VerificationQueues queues={queues} initialQueue={initialQueue} />
     </div>
   );
 }
