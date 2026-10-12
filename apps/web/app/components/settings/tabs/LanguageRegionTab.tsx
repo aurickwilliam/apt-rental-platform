@@ -2,34 +2,13 @@
 
 import { useState } from "react";
 import { IconGlobe, IconMapPin } from "@tabler/icons-react";
-import { Popover, ListBox, Button } from "@heroui/react";
 
 import SettingsRow from "../SettingsRow";
-import SectionTitle from "../SectionTitle";
+import SettingsSelect from "../SettingsSelect";
 import { LANGUAGES, REGIONS } from "@repo/constants";
 
-const RegionSelect = ({ value, onChange, options, placeholder, className }: { value: string; onChange: (value: string) => void; options: string[]; placeholder?: string; className?: string }) => (
-  <Popover>
-    <Popover.Trigger>
-      <Button variant="outline" className={`w-full justify-between px-4 py-3 h-auto ${className || ""}`}>
-        <span className="text-left flex-1 font-inter text-sm text-foreground truncate">
-          {value || placeholder || "Select"}
-        </span>
-      </Button>
-    </Popover.Trigger>
-    <Popover.Content placement="bottom" className="w-(--trigger-width) p-0">
-      <Popover.Dialog className="p-2 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
-        <ListBox selectionMode="single" selectedKeys={[value]} onSelectionChange={(keys) => onChange(Array.from(keys)[0] as string)}>
-          {options.map((opt) => (
-            <ListBox.Item key={opt} id={opt} textValue={opt}>
-              {opt}
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Popover.Dialog>
-    </Popover.Content>
-  </Popover>
-);
+const LANGUAGE_OPTIONS = LANGUAGES.map(({ label }) => ({ value: label, label }));
+const REGION_OPTIONS = REGIONS.map((region) => ({ value: region, label: region }));
 
 export default function LanguageRegionTab() {
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].label);
@@ -44,55 +23,38 @@ export default function LanguageRegionTab() {
         Configure your language and region settings
       </p>
       <div className="mt-3 divide-y divide-border">
-        <div className="pt-6">
-          <div className="px-4 pb-3">
-            <SectionTitle title="Language" />
-          </div>
-          <div className="divide-y divide-border">
-            <SettingsRow
-              icon={<IconGlobe size={18} />}
-              title="Language"
-              suffix={
-                <RegionSelect
-                  value={selectedLanguage}
-                  onChange={setSelectedLanguage}
-                  options={LANGUAGES.map(l => l.label)}
-                  placeholder="Select language"
-                  className="w-full max-w-[12rem] sm:w-48"
-                />
-              }
+        <SettingsRow
+          icon={<IconGlobe size={18} />}
+          title="Language"
+          description="Choose the language used in the app."
+          suffix={
+            <SettingsSelect
+              label="Language"
+              value={selectedLanguage}
+              options={LANGUAGE_OPTIONS}
+              onChange={setSelectedLanguage}
+              className="w-44"
             />
-          </div>
-        </div>
-
-        <div className="pt-6">
-          <div className="px-4 pb-3">
-            <SectionTitle title="Region" />
-          </div>
-          <div className="divide-y divide-border">
-            <SettingsRow
-              icon={<IconMapPin size={18} />}
-              title="Region"
-              suffix={
-                <RegionSelect
-                  value={selectedRegion}
-                  onChange={setSelectedRegion}
-                  options={REGIONS}
-                  placeholder="Select region"
-                  className="w-full max-w-[16rem] sm:w-64"
-                />
-              }
+          }
+        />
+        <SettingsRow
+          icon={<IconMapPin size={18} />}
+          title="Region"
+          description="Set the region used for local content."
+          suffix={
+            <SettingsSelect
+              label="Region"
+              value={selectedRegion}
+              options={REGION_OPTIONS}
+              onChange={setSelectedRegion}
+              className="w-64"
             />
-          </div>
-        </div>
-
-        <div className="pt-4 pb-6 px-4">
-          <p className="text-muted-foreground text-sm font-inter">
-            Note: Some changes may require restarting the app. This feature is coming soon.
-          </p>
-        </div>
-
+          }
+        />
       </div>
+      <p className="mt-4 px-4 font-inter text-sm text-muted-foreground">
+        Note: Some changes may require restarting the app. This feature is coming soon.
+      </p>
     </>
   );
 }

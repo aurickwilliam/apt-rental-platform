@@ -7,10 +7,10 @@ import {
   IconPlayerPause,
   IconSun,
 } from "@tabler/icons-react";
-import { ListBox, Select } from "@heroui/react";
 import { useTheme } from "next-themes";
 
 import SettingsRow from "../SettingsRow";
+import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
 import {
   getReducedMotion,
@@ -55,32 +55,13 @@ export default function GeneralTab() {
           title="Theme"
           description="Choose light, dark, or follow your device."
           suffix={
-            <Select
-              aria-label="Theme"
+            <SettingsSelect
+              label="Theme"
               value={activeTheme}
+              options={THEME_OPTIONS.map(({ value, label, icon }) => ({ value, label, icon }))}
+              onChange={setTheme}
               isDisabled={!mounted}
-              onChange={(key) => {
-                if (key) setTheme(String(key));
-              }}
-              className="w-40"
-            >
-              <Select.Trigger className="cursor-pointer border-border bg-background! text-foreground hover:bg-muted!">
-                <Select.Value />
-                <Select.Indicator />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
-                    <ListBox.Item key={value} id={value} textValue={label}>
-                      <span className="flex flex-row items-center gap-2">
-                        <Icon size={16} aria-hidden="true" />
-                        {label}
-                      </span>
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
+            />
           }
         />
         <SettingsRow
