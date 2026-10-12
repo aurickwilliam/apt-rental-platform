@@ -43,9 +43,13 @@ export default async function BrowsePage({ searchParams }: PageProps) {
         <SearchContainer />
       </Suspense>
       <div className="mt-4 flex flex-col md:flex-row gap-4">
-        <Suspense>
-          <BrowseFilters resultCount={totalCount} />
-        </Suspense>
+        {/* Filters only exist outside discovery mode: text search, See All,
+            or any filter switches to the grid, which brings this panel. */}
+        {!useSections && (
+          <Suspense>
+            <BrowseFilters resultCount={totalCount} />
+          </Suspense>
+        )}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense>
             {useSections ? (
