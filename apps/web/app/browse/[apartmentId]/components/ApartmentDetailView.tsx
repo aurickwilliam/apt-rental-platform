@@ -33,10 +33,32 @@ export default async function ApartmentDetailView({
   const { data: currentUser } = user
     ? await supabase
         .from("users")
-        .select("id")
+        .select("id, roles, account_status")
         .eq("user_id", user.id)
         .maybeSingle()
     : { data: null };
+
+  // Apply Now opens the start-of-application modal for tenants; everyone
+  // else goes to the apply route, which redirects them (sign-in / browse).
+  const isTenant = !!currentUser?.roles?.includes("tenant");
+  const { data: pendingApplications } =
+    currentUser && isTenant
+      ? await supabase
+          .from("rental_application")
+          .select("id")
+          .eq("tenant_id", currentUser.id)
+          .eq("apartment_id", apartmentId)
+          .eq("status", "pending")
+          .limit(1)
+      : { data: null };
+  const applyViewer =
+    currentUser && isTenant
+      ? {
+          userId: currentUser.id,
+          accountStatus: currentUser.account_status,
+          hasActiveApplication: (pendingApplications ?? []).length > 0,
+        }
+      : null;
 
   // Fetch apartment details along with images
   const { data: apartment, error } = await supabase
@@ -198,6 +220,18 @@ export default async function ApartmentDetailView({
             advancePayment={apartment.advance_rent ?? undefined}
             apartmentId={apartment.id}
             basePath={basePath}
+            applyViewer={applyViewer}
+            applyApartment={{
+              id: apartment.id,
+              name: apartment.name,
+              location: [apartment.barangay, apartment.city].filter(Boolean).join(", ") || null,
+              coverUrl: apartment.apartment_images?.find((img) => img.is_cover)?.url ?? images[0],
+              landlordId: apartment.landlord_id ?? null,
+              monthlyRent: apartment.monthly_rent,
+              securityDeposit: apartment.security_deposit ?? 0,
+              advanceRent: apartment.advance_rent ?? 0,
+              maxOccupants: apartment.max_occupants ?? null,
+            }}
           />
 
           <LeaseAgreementCard

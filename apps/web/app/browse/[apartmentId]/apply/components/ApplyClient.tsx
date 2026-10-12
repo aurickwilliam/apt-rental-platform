@@ -16,15 +16,14 @@ import {
   type ApplicationForm,
   type ApplyApartmentContext,
 } from "../types";
-import ApplicationGuidelinesModal from "./ApplicationGuidelinesModal";
 import ApplicationHeader from "./ApplicationHeader";
-import ApartmentSummaryStep from "./steps/ApartmentSummaryStep";
+import ApplicationIssues from "./ApplicationIssues";
 import PreferencesStep from "./steps/PreferencesStep";
 import ReviewStep from "./steps/ReviewStep";
 import SubmittedStep from "./steps/SubmittedStep";
 import TenantInfoStep from "./steps/TenantInfoStep";
 
-type Step = "summary" | "tenant" | "preferences" | "review" | "submitted";
+type Step = "tenant" | "preferences" | "review" | "submitted";
 
 // The three form steps; mobile's `ApplicationHeader` counts the same.
 const WIZARD: Partial<Record<Step, { index: number; currentTitle: string; nextTitle: string }>> = {
@@ -33,7 +32,7 @@ const WIZARD: Partial<Record<Step, { index: number; currentTitle: string; nextTi
   review: { index: 3, currentTitle: "Review Application", nextTitle: "Submit Application" },
 };
 const WIZARD_STEP_COUNT = 3;
-const PREVIOUS_STEP: Partial<Record<Step, Step>> = { tenant: "summary", preferences: "tenant", review: "preferences" };
+const PREVIOUS_STEP: Partial<Record<Step, Step>> = { preferences: "tenant", review: "preferences" };
 const REDIRECT_AFTER_SUBMIT_MS = 900;
 
 interface ApplyClientProps {
@@ -43,14 +42,15 @@ interface ApplyClientProps {
 }
 
 /**
- * Apply flow: summary → tenant info → preferences → review → submitted.
- * There is no upload step: the APT Passport is attached by reference.
+ * Apply flow: tenant info → preferences → review → submitted. The summary
+ * (move-in cost + readiness) is the apartment page's Apply Now modal
+ * (`ApplyStartModal`). There is no upload step: the APT Passport is attached
+ * by reference.
  */
 export default function ApplyClient({ apartment, viewer, hasActiveApplication }: ApplyClientProps) {
   const router = useRouter();
   const discardModal = useOverlayState();
-  const [step, setStep] = useState<Step>("summary");
-  const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(true);
+  const [step, setStep] = useState<Step>("tenant");
   const [form, setForm] = useState<ApplicationForm>(EMPTY_APPLICATION_FORM);
   const [errors, setErrors] = useState<ApplicationErrors>({});
 
@@ -88,7 +88,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication }:
   const goBack = () => {
     const previous = PREVIOUS_STEP[step];
     if (previous) goTo(previous);
-    else router.back();
+    else discardModal.open();
   };
 
   const handleSubmit = async () => {
@@ -126,16 +126,12 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication }:
         </div>
       ) : null}
 
-      {step === "summary" && (
-        <ApartmentSummaryStep
-          apartment={apartment}
-          totalMoveIn={totalMoveIn}
-          readiness={readiness}
-          onContinue={() => goTo("tenant")}
-          onCancel={discardModal.open}
-          onOpenGuidelines={() => setIsGuidelinesOpen(true)}
-        />
-      )}
+      {/* Normally caught by the Apply Now modal; covers direct links to this page. */}
+      {(step === "tenant" || step === "preferences") && !readiness.loading && !readiness.isReady ? (
+        <div className="mb-6">
+          <ApplicationIssues issues={readiness.issues} />
+        </div>
+      ) : null}
 
       {step === "tenant" && (
         <TenantInfoStep
@@ -174,11 +170,6 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication }:
       )}
 
       {step === "submitted" && <SubmittedStep apartmentName={apartment.name} />}
-
-      <ApplicationGuidelinesModal
-        isOpen={isGuidelinesOpen && step === "summary"}
-        onOpenChange={setIsGuidelinesOpen}
-      />
 
       <Modal isOpen={discardModal.isOpen} onOpenChange={discardModal.setOpen}>
         <Modal.Backdrop>
