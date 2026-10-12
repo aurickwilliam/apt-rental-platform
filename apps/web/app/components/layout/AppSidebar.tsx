@@ -500,7 +500,7 @@ export function AppSidebar({
                   if (settingsQueryParam) {
                     const url = new URL(window.location.href);
                     url.searchParams.set("settings", settingsQueryParam);
-                    router.push(`${url.pathname}${url.search}${url.hash}`);
+                    window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
                   } else {
                     router.push(settingsHref ?? "/settings");
                   }
@@ -647,7 +647,7 @@ function MobileSidebarMenu({
     const params = new URLSearchParams(searchParams.toString());
     params.set("settings", SETTINGS_QUERY_VALUE);
     const query = params.toString();
-    router.push(`${pathname}${query ? `?${query}` : ""}`);
+    window.history.pushState(null, "", `${pathname}${query ? `?${query}` : ""}`);
   };
 
   // Same helper the sidebar dropdown uses, so both menus stay in step.
