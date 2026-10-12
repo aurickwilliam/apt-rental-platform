@@ -30,7 +30,7 @@ function DocumentCardSkeleton() {
 }
 
 /** Body of the wallet page (below the header). */
-export function PassportWalletSkeleton() {
+export function PassportWalletSkeleton({ showApplicationReadiness = true }: { showApplicationReadiness?: boolean }) {
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]" aria-hidden="true">
       <div className="space-y-4">
@@ -39,20 +39,22 @@ export function PassportWalletSkeleton() {
           <div className="aspect-video w-full animate-pulse rounded-xl bg-default-200" />
         </div>
 
-        <div className={`space-y-3 p-4 ${CARD}`}>
-          <CardHeaderSkeleton titleWidth="w-48" withSubtitle={false} />
-          <div className="divide-y divide-border">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5">
-                <div className={`size-7 shrink-0 rounded-full ${BLOCK}`} />
-                <div className="flex-1 space-y-1.5">
-                  <div className={`h-4 w-32 ${BLOCK}`} />
-                  <div className={`h-3 w-24 ${BLOCK}`} />
+        {showApplicationReadiness ? (
+          <div className={`space-y-3 p-4 ${CARD}`}>
+            <CardHeaderSkeleton titleWidth="w-48" withSubtitle={false} />
+            <div className="divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-2.5">
+                  <div className={`size-7 shrink-0 rounded-full ${BLOCK}`} />
+                  <div className="flex-1 space-y-1.5">
+                    <div className={`h-4 w-32 ${BLOCK}`} />
+                    <div className={`h-3 w-24 ${BLOCK}`} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <div className={`space-y-4 p-4 sm:p-5 ${CARD}`}>

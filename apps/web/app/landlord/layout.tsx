@@ -9,6 +9,7 @@ const LANDLORD_NAV = [
   { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
   { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
+  { href: "/landlord/passport", label: "APT Passport", icon: "ShieldCheck" },
   { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ] as const;
 

@@ -2,7 +2,7 @@ import { File } from 'expo-file-system'
 
 import { supabase, type Database } from '@repo/supabase'
 import { DOCUMENT_TYPES, isReviewEligibleDocType } from '@repo/constants'
-import { isExpiredDate } from '@repo/passport'
+import { isExpiredDate, verifiedPassportPaths, type VerifiedPassportPathRow } from '@repo/passport'
 
 export const PASSPORT_DOCUMENTS_BUCKET = 'application-documents'
 const PASSPORT_PREFIX = 'passport'
@@ -353,18 +353,5 @@ export async function fetchPassportVerifiedPaths(
     .eq('is_verified', true)
 
   if (error) throw error
-  const requested = new Set(unique)
-  const verified = new Set<string>()
-  // An expired document no longer counts as verified for landlords.
-  for (const row of (data ?? []) as {
-    storage_path: string
-    storage_path_back: string | null
-    expires_at: string | null
-  }[]) {
-    if (isExpiredDate(row.expires_at)) continue
-    for (const path of [row.storage_path, row.storage_path_back]) {
-      if (path && requested.has(path)) verified.add(path)
-    }
-  }
-  return verified
+  return verifiedPassportPaths((data ?? []) as VerifiedPassportPathRow[], unique)
 }
