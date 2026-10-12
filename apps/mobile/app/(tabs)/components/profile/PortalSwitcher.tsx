@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Alert, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button } from "heroui-native";
+import { IconSwitchHorizontal } from "@tabler/icons-react-native";
 
 import { portalHome, type Portal } from "@/service/auth/portalPreference";
+import { useColors } from "@/hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
 
 interface PortalSwitcherProps {
@@ -14,6 +16,7 @@ interface PortalSwitcherProps {
 
 export default function PortalSwitcher({ authUserId, roles, currentPortal }: PortalSwitcherProps) {
   const router = useRouter();
+  const { colors } = useColors();
   const [switching, setSwitching] = useState(false);
   const otherPortal: Portal = currentPortal === "tenant" ? "landlord" : "tenant";
 
@@ -33,9 +36,22 @@ export default function PortalSwitcher({ authUserId, roles, currentPortal }: Por
   };
 
   return (
-    <View className="px-5 mt-5">
-      <Button variant="outline" isDisabled={switching} onPress={handleSwitch} accessibilityLabel={`Switch to ${otherPortal} portal`}>
-        <Button.Label>Switch to {otherPortal === "tenant" ? "Tenant" : "Landlord"} portal</Button.Label>
+    <View className="px-5 pt-5">
+      <Button
+        variant="secondary"
+        isDisabled={switching}
+        onPress={handleSwitch}
+        style={{
+          backgroundColor: `${colors.primary}26`,
+          borderWidth: 1,
+          borderColor: `${colors.primary}80`,
+        }}
+        accessibilityLabel={`Switch to ${otherPortal} portal`}
+      >
+        <IconSwitchHorizontal size={18} color={colors.primary} />
+        <Button.Label className="font-nunitoSemiBold" style={{ color: colors.primary }}>
+          Switch to {otherPortal === "tenant" ? "Tenant" : "Landlord"} portal
+        </Button.Label>
       </Button>
     </View>
   );
