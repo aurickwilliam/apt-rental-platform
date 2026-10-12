@@ -44,6 +44,41 @@ export function passportDocsForSlot<T extends PassportSlotDocument>(
     })
 }
 
+export const APPLICATION_DOCUMENT_SLOTS: readonly ApplicationDocumentSlot[] = [
+  'govId',
+  'proofOfIncome',
+  'proofOfBilling',
+  'nbiClearance',
+]
+
+export interface PassportSlotState<T extends PassportSlotDocument = PassportSlotDocument> {
+  /** Best usable document for the slot, or null. */
+  doc: T | null
+  /** `expired` when every non-rejected match is past its expiry date. */
+  state: 'ready' | 'expired' | 'missing'
+}
+
+/**
+ * Per-slot availability, independent of which slots an application needs.
+ * Rejected documents never count; expired ones only mark the slot expired.
+ */
+export function getPassportSlotStates<T extends PassportSlotDocument>(
+  docs: readonly T[]
+): Record<ApplicationDocumentSlot, PassportSlotState<T>> {
+  const states = {} as Record<ApplicationDocumentSlot, PassportSlotState<T>>
+  for (const slot of APPLICATION_DOCUMENT_SLOTS) {
+    const candidates = passportDocsForSlot(docs, slot).filter(
+      (doc) => doc.review_status !== 'rejected'
+    )
+    const usable = candidates.find((doc) => !isExpiredDate(doc.expires_at)) ?? null
+    states[slot] = {
+      doc: usable,
+      state: usable ? 'ready' : candidates.length > 0 ? 'expired' : 'missing',
+    }
+  }
+  return states
+}
+
 export interface PassportApplicationSelection<T extends PassportSlotDocument = PassportSlotDocument> {
   /** Best usable passport document per application slot (null when none). */
   docs: Record<ApplicationDocumentSlot, T | null>
@@ -63,12 +98,6 @@ export function selectPassportDocsForApplication<T extends PassportSlotDocument>
   docs: readonly T[],
   employmentType: string | null = null
 ): PassportApplicationSelection<T> {
-  const slots: ApplicationDocumentSlot[] = [
-    'govId',
-    'proofOfIncome',
-    'proofOfBilling',
-    'nbiClearance',
-  ]
   const required: ApplicationDocumentSlot[] = ['govId', 'proofOfBilling']
   if (employmentType && requiresProofOfIncome(employmentType)) {
     required.push('proofOfIncome')
@@ -80,15 +109,13 @@ export function selectPassportDocsForApplication<T extends PassportSlotDocument>
     expired: [],
   }
 
-  for (const slot of slots) {
-    const candidates = passportDocsForSlot(docs, slot).filter(
-      (doc) => doc.review_status !== 'rejected'
-    )
-    const usable = candidates.filter((doc) => !isExpiredDate(doc.expires_at))
-    selection.docs[slot] = usable[0] ?? null
+  const states = getPassportSlotStates(docs)
+  for (const slot of APPLICATION_DOCUMENT_SLOTS) {
+    const { doc, state } = states[slot]
+    selection.docs[slot] = doc
 
-    if (usable.length > 0 || !required.includes(slot)) continue
-    if (candidates.length > 0) selection.expired.push(slot)
+    if (state === 'ready' || !required.includes(slot)) continue
+    if (state === 'expired') selection.expired.push(slot)
     else selection.missing.push(slot)
   }
 

@@ -242,6 +242,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 ## 12. Lists
 
 - **Mobile:** `FlatList` `gap-3`–`gap-16`, `contentContainerStyle paddingBottom: 84` when a floating bar exists; `ListGroup` for settings/profile (icon 22 + `font-nunitoSemiBold` title + `Separator mx-4`); `Separator` between items; `RefreshControl` tinted `colors.primary`
+- **Grid/list toggle (web):** document and favorites collections offer `isIconOnly size="sm"` buttons (`primary` = active, `ghost` = inactive, `aria-pressed`) with `IconLayoutGrid`/`IconLayoutList`; list rows are `rounded-2xl border p-3` with a `size-16 rounded-lg` thumbnail, title + meta, status chip, chevron
 - **Web:** shadcn `Table` on `bg-darker-white`, header `text-[11px] tracking-wider`, rows `hover:bg-default-50` cursor-pointer, thumbs `w-12 h-12 rounded-lg`; search grids `grid-cols-1 sm:2 lg:4 gap-3`
 - **Chat:** `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`; inverted list (newest at bottom) with history paged in 30-message keyset loads at the top edge — loading indicator at the history edge, never a full-screen spinner
 - **Notifications:** `NotificationCard` (mobile) — `Card bg-surface rounded-3xl border p-4 shadow-none`; type icon 20 tinted by type + title `text-base` (`font-nunitoBold` unread / `font-nunitoSemiBold` read) + message + footer time `text-sm text-muted`; unread adds `border-primary/30` + 10px `bg-primary` dot; tap marks read + deep-links. Screen header: filter `DropdownButton` (All/Payment/Message/Maintenance/Apartment/System) + "Mark all read" text button (shown while unread > 0)
@@ -277,6 +278,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 ### Web (HeroUI v3)
 
 - **Modal** ✅: `Modal.Backdrop` → `Container placement="center" size="sm"|"lg" scroll="inside"` → `Dialog` with `CloseTrigger`, `Header/Heading (font-medium text-2xl)`, `Body`, `Footer`; blur backdrop for OTP. Tabbed settings modals (profile `SettingsModal`, admin `UserSettingsModal`) share one fixed size: `max-w-5xl`, `h-[calc(100dvh-2rem)] md:h-[85dvh]`, content scrolls inside the tab panel. Apartment photo lightbox uses shared `app/components/display/PhotoGalleryModal.tsx`: centered content-height container, `bg-black/80` backdrop, responsive `max-w-5xl rounded-3xl` card, contained rounded photo stage, Previous/Next buttons and selectable thumbnails.
+- **Add document modal** ✅ (APT Passport, `app/components/passport/AddDocumentModal.tsx`): two steps in one `size="lg"` dialog widened to `max-w-3xl!` — type-card grid, then upload form (file drop zone + preview left, expiry/confirmation/legal notice right). Open state lives in the URL (`?add=1` picker, `?add=<type>` upload) so Back closes it and links can deep-open a type; dismissal is blocked while uploading (`isDismissable`/`isKeyboardDismissDisabled`, no close trigger). Legal notice is an inline disclosure, never a second stacked modal.
 - **Drawer** ✅ (PropertyDetailsSheet): right `w-[500px] max-w-[90vw] z-60`; cover `h-56` w/ `bg-linear-to-t from-black/60`; section titles `text-xs font-medium text-primary uppercase`; ReadOnlyField (label `text-xs text-grey-500` / value `text-sm font-medium`)
 
 ### Mobile (HeroUI Native)
@@ -311,6 +313,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Avatars:** HeroUI `Avatar` sm/md/lg; profile `size-36 border-4 border-background`; initials fallback `bg-primary text-white` (web) / `bg-gray-100 text-accent` (mobile); landlord `size-12 rounded-full border`
 - **Lightbox:** web browse/admin apartment details share `PhotoGalleryModal` (§14); mobile `react-native-image-viewing` (`presentationStyle overFullScreen`, `rgba(0,0,0,0.8)`)
 - Private Supabase storage: always signed URLs at read time
+- **PDF previews (web):** `app/components/display/PdfThumbnail.tsx` renders page 1 client-side with `pdfjs-dist` (lazy-loaded, only once the element scrolls into view, cached per storage path); falls back to a file icon. Use `cover` (top of page) in cards/rows and `contain` on detail previews. Mobile uses `react-native-pdf` (`PdfThumbnail.tsx`).
 
 ---
 
@@ -339,6 +342,8 @@ Conservative — functional, not decorative.
 | Container | `max-w-7xl` (80rem) | all page shells: `max-w-7xl mx-auto p-4` |
 
 Mobile-first (`grid-cols-1` → responsive); landlord layout = fixed sidebar + `bg-white rounded-xl` content.
+
+**Page widths (web portals):** every page shell is `max-w-7xl mx-auto px-4 py-6 sm:py-8`. Sidebar destinations (Profile, Favorites, My Rental, APT Passport) use the full shell; never nest a narrower centered column inside it. Detail pages reached from a list may cap content at `max-w-4xl`, short single-purpose forms at `max-w-2xl`; a section whose pages link to each other (e.g. APT Passport wallet ↔ document detail) keeps one width so the left edge doesn't jump. Use `lg:` two-column grids (sticky narrow aside + main) to fill wide screens instead of stretching a single card.
 
 ### Mobile
 
