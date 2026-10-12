@@ -34,7 +34,7 @@ export default function UserMaintenance({
         <IconTools size={20} className="shrink-0 text-primary" aria-hidden="true" />
         Maintenance
       </h2>
-      <div className="mt-3 grid grid-cols-4 gap-4">
+      <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <MetricItem value={String(breakdown.total)} label="Total" />
         <MetricItem value={String(breakdown.pending)} label="Pending" />
         <MetricItem value={String(breakdown.active)} label="Active" />

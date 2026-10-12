@@ -35,7 +35,7 @@ import {
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Button, Dropdown, Label } from "@heroui/react";
+import { Button, Dropdown, Label, Separator } from "@heroui/react";
 import {
   ArrowLeftRight,
   LogOut,
@@ -603,6 +603,8 @@ type MobileSidebarNavigationProps = {
   // same entries instead of being role-blind on phones.
   userRoles?: string[];
   activePortal?: "tenant" | "landlord" | "admin";
+  // Rendered in the account group (with Settings and Dark Mode), not the page list.
+  profileHref?: string;
 };
 
 // `useSearchParams` (for the Settings row) opts a subtree into client-side
@@ -618,6 +620,7 @@ function MobileSidebarMenu({
   buttonLabel,
   userRoles,
   activePortal,
+  profileHref,
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -671,7 +674,12 @@ function MobileSidebarMenu({
           )}{" "}
           Menu
         </Button>
-        <Dropdown.Popover placement="top start">
+        {/* Capped to the viewport so the longest portal list (admin) scrolls
+            instead of running off short or landscape screens. */}
+        <Dropdown.Popover
+          placement="top start"
+          className="max-h-[calc(100dvh-6rem)] min-w-60 overflow-y-auto font-nunito"
+        >
           <Dropdown.Menu
             aria-label={menuLabel}
             onAction={(key) => {
@@ -679,82 +687,127 @@ function MobileSidebarMenu({
               // The switch is pointer-events-none, so the row tap is what
               // actually toggles the theme (mirrors the sidebar footer).
               if (key === "theme") toggleTheme();
+              if (key === "logout") signOut();
               const target = switchTargets.find((item) => `switch:${item.href}` === key);
               if (target) router.push(target.href);
+              if (key === "profile" && profileHref) router.push(profileHref);
               const navItem = navItems.find((item) => item.href === key);
               if (navItem) router.push(navItem.href);
             }}
           >
-            {navItems.map(({ href, label, icon }) => {
-              const Icon =
-                iconSet === "tabler"
-                  ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
-                  : (ICON_MAP[icon] ?? Search);
-              return (
+            <Dropdown.Section aria-label={menuLabel}>
+              {navItems.map(({ href, label, icon }) => {
+                const Icon =
+                  iconSet === "tabler"
+                    ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
+                    : (ICON_MAP[icon] ?? Search);
+                const active = isActive(pathname, href);
+                return (
+                  <Dropdown.Item
+                    key={href}
+                    id={href}
+                    textValue={label}
+                    aria-current={active ? "page" : undefined}
+                    className={active ? "bg-primary/10 text-primary" : undefined}
+                  >
+                    <Label
+                      className={`flex items-center gap-2 ${active ? "font-semibold text-primary" : ""}`}
+                    >
+                      <Icon size={18} aria-hidden="true" />
+                      {label}
+                    </Label>
+                  </Dropdown.Item>
+                );
+              })}
+            </Dropdown.Section>
+
+            <Separator />
+
+            <Dropdown.Section aria-label="Account">
+              {profileHref ? (
                 <Dropdown.Item
-                  key={href}
-                  id={href}
-                  textValue={label}
-                  aria-current={isActive(pathname, href) ? "page" : undefined}
+                  id="profile"
+                  textValue="Profile"
+                  aria-current={isActive(pathname, profileHref) ? "page" : undefined}
+                  className={isActive(pathname, profileHref) ? "bg-primary/10 text-primary" : undefined}
                 >
-                  <Label className="flex items-center gap-2">
-                    <Icon size={18} aria-hidden="true" />
-                    {label}
+                  <Label
+                    className={`flex items-center gap-2 ${isActive(pathname, profileHref) ? "font-semibold text-primary" : ""}`}
+                  >
+                    {iconSet === "tabler" ? (
+                      <IconUser size={18} aria-hidden="true" />
+                    ) : (
+                      <UserRound size={18} aria-hidden="true" />
+                    )}
+                    Profile
                   </Label>
                 </Dropdown.Item>
-              );
-            })}
+              ) : null}
 
-            {switchTargets.map((target) => (
-              <Dropdown.Item
-                key={target.href}
-                id={`switch:${target.href}`}
-                textValue={target.label}
-              >
+              {switchTargets.map((target) => (
+                <Dropdown.Item
+                  key={target.href}
+                  id={`switch:${target.href}`}
+                  textValue={target.label}
+                >
+                  <Label className="flex items-center gap-2">
+                    {iconSet === "tabler" ? (
+                      <IconArrowsExchange size={18} aria-hidden="true" />
+                    ) : (
+                      <ArrowLeftRight size={18} aria-hidden="true" />
+                    )}
+                    {target.label}
+                  </Label>
+                </Dropdown.Item>
+              ))}
+
+              <Dropdown.Item id="settings" textValue="Settings">
                 <Label className="flex items-center gap-2">
                   {iconSet === "tabler" ? (
-                    <IconArrowsExchange size={18} aria-hidden="true" />
+                    <IconSettings size={18} aria-hidden="true" />
                   ) : (
-                    <ArrowLeftRight size={18} aria-hidden="true" />
+                    <Settings size={18} aria-hidden="true" />
                   )}
-                  {target.label}
+                  Settings
                 </Label>
               </Dropdown.Item>
-            ))}
 
-            <Dropdown.Item id="settings" textValue="Settings">
+              <Dropdown.Item id="theme" textValue="Dark Mode">
+                <Label className="flex w-full items-center gap-2">
+                  {iconSet === "tabler" ? (
+                    isDark ? (
+                      <IconMoon size={18} aria-hidden="true" />
+                    ) : (
+                      <IconSun size={18} aria-hidden="true" />
+                    )
+                  ) : isDark ? (
+                    <Moon size={18} aria-hidden="true" />
+                  ) : (
+                    <Sun size={18} aria-hidden="true" />
+                  )}
+                  Dark Mode
+                  <span className="ml-auto pointer-events-none flex items-center">
+                    <ToggleSwitch
+                      isSelected={isDark}
+                      onValueChange={toggleTheme}
+                      disabled={!themeMounted}
+                      aria-label="Toggle dark mode"
+                    />
+                  </span>
+                </Label>
+              </Dropdown.Item>
+            </Dropdown.Section>
+
+            <Separator />
+
+            <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
               <Label className="flex items-center gap-2">
                 {iconSet === "tabler" ? (
-                  <IconSettings size={18} aria-hidden="true" />
+                  <IconLogout size={18} aria-hidden="true" />
                 ) : (
-                  <Settings size={18} aria-hidden="true" />
+                  <LogOut size={18} aria-hidden="true" />
                 )}
-                Settings
-              </Label>
-            </Dropdown.Item>
-
-            <Dropdown.Item id="theme" textValue="Dark Mode">
-              <Label className="flex w-full items-center gap-2">
-                {iconSet === "tabler" ? (
-                  isDark ? (
-                    <IconMoon size={18} aria-hidden="true" />
-                  ) : (
-                    <IconSun size={18} aria-hidden="true" />
-                  )
-                ) : isDark ? (
-                  <Moon size={18} aria-hidden="true" />
-                ) : (
-                  <Sun size={18} aria-hidden="true" />
-                )}
-                Dark Mode
-                <span className="ml-auto pointer-events-none flex items-center">
-                  <ToggleSwitch
-                    isSelected={isDark}
-                    onValueChange={toggleTheme}
-                    disabled={!themeMounted}
-                    aria-label="Toggle dark mode"
-                  />
-                </span>
+                Log Out
               </Label>
             </Dropdown.Item>
           </Dropdown.Menu>
