@@ -1,55 +1,51 @@
-import { useEffect } from "react";
-import { Appearance, useColorScheme as useSystemColorScheme } from "react-native";
+import { useLayoutEffect } from "react";
+import { Uniwind, useUniwind } from "uniwind";
 
 import { COLORS } from "@repo/constants";
 
-import { type ThemeMode, useThemeStore } from "../stores/useThemeStore";
+import {
+  useThemeHydrationStore,
+  useThemeStore,
+} from "../stores/useThemeStore";
 
-export function useTheme() {
-  const { themeMode, setThemeMode } = useThemeStore();
-  const systemScheme = useSystemColorScheme(); // 'light' | 'dark' | null
+/**
+ * Resolved palette for inline styles. Reads Uniwind's active theme, the same
+ * source the utility classes and HeroUI Native use, so a forced choice and an
+ * OS appearance change in System mode all update together.
+ */
+export function useColors() {
+  const { theme } = useUniwind();
+  const isDark = theme === "dark";
 
-  // Resolve actual scheme — fall back to 'light' if system returns null
-  const resolvedScheme =
-    themeMode === "system" ? (systemScheme ?? "light") : themeMode;
-
-  const isDark = resolvedScheme === "dark";
-  const colors = isDark ? COLORS.dark : COLORS.light;
-
-  // Appearance.setColorScheme is what Uniwind reads from under the hood.
-  // It accepts 'light' | 'dark' | null — null means "follow system".
-  useEffect(() => {
-    if (themeMode !== "system") {
-      Appearance.setColorScheme(themeMode);
-    }
-  }, [themeMode]);
-
-  const toggleTheme = () => setThemeMode(isDark ? "light" : "dark");
-
-  const cycleTheme = () => {
-    const order: ThemeMode[] = ["system", "light", "dark"];
-    const next = order[(order.indexOf(themeMode) + 1) % order.length];
-    setThemeMode(next);
-  };
-
-  return {
-    /** Resolved COLORS palette — use for inline styles */
-    colors,
-    /** true when the resolved scheme is dark */
-    isDark,
-    /** The stored preference: 'light' | 'dark' | 'system' */
-    themeMode,
-    /** Set a specific mode */
-    setThemeMode,
-    /** Toggle between light ↔ dark (drops 'system') */
-    toggleTheme,
-    /** Cycle through system → light → dark → system */
-    cycleTheme,
-  };
+  return { colors: isDark ? COLORS.dark : COLORS.light, isDark };
 }
 
-/** Convenience alias — just need the palette without controls */
-export function useColors() {
-  const { colors, isDark } = useTheme();
-  return { colors, isDark };
+/** Resolved palette and `isDark` — kept for existing consumers. */
+export function useTheme() {
+  return useColors();
+}
+
+/** The saved preference ('system' | 'light' | 'dark') and its setter. */
+export function useThemePreference() {
+  const themeMode = useThemeStore((state) => state.themeMode);
+  const setThemeMode = useThemeStore((state) => state.setThemeMode);
+
+  return { themeMode, setThemeMode };
+}
+
+/**
+ * The single place the saved preference is applied. Mount once at the root.
+ * `Uniwind.setTheme("system")` clears any forced override and resumes
+ * following the device. Returns false until the saved choice has loaded, so
+ * the root can keep the splash up instead of showing a wrong-theme frame.
+ */
+export function useThemeSync() {
+  const hydrated = useThemeHydrationStore((state) => state.hydrated);
+  const themeMode = useThemeStore((state) => state.themeMode);
+
+  useLayoutEffect(() => {
+    if (hydrated) Uniwind.setTheme(themeMode);
+  }, [hydrated, themeMode]);
+
+  return hydrated;
 }

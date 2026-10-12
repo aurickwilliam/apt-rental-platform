@@ -30,7 +30,7 @@ function chartLabel(name: string): string {
 export default function ProfitByPropertyCard({
   revenueByProperty,
 }: ProfitByPropertyCardProps) {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
 
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -88,8 +88,8 @@ export default function ProfitByPropertyCard({
             maxValue={maxValue + 1500}
             noOfSections={4}
             yAxisColor="transparent"
-            xAxisColor="#e5e7eb"
-            rulesColor="#f3f4f6"
+            xAxisColor={isDark ? colors.gray200 : "#e5e7eb"}
+            rulesColor={isDark ? colors.gray200 : "#f3f4f6"}
             rulesType="solid"
             yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
             xAxisLabelTextStyle={{

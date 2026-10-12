@@ -2,6 +2,8 @@ import { Pressable, Text } from "react-native";
 import { Menu } from "heroui-native";
 import { IconChevronDown } from "@tabler/icons-react-native";
 
+import { useColors } from "@/hooks/useTheme";
+
 interface DropdownButtonProps<T extends string> {
   label?: string;
   options: T[];
@@ -38,6 +40,7 @@ export default function DropdownButton<T extends string>({
   buttonClassName,
   textClassName,
 }: DropdownButtonProps<T>) {
+  const { colors } = useColors();
   const selectedKeys = multi ? new Set<string>(values ?? []) : value ? new Set([value]) : new Set<string>();
 
   const defaultButtonClassName =
@@ -53,7 +56,7 @@ export default function DropdownButton<T extends string>({
       <Menu.Trigger asChild>
         <Pressable className={buttonClassName || defaultButtonClassName}>
           <Text className={textClassName || defaultTextClassName} numberOfLines={1}>{displayText}</Text>
-          <IconChevronDown size={14} color="currentColor" />
+          <IconChevronDown size={14} color={colors.textPrimary} />
         </Pressable>
       </Menu.Trigger>
 

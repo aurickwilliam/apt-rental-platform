@@ -39,7 +39,7 @@ export default function EmptyState({
 
   return (
     <View className={`items-center justify-center py-10 gap-4 ${className ?? ""}`}>
-      <View className="bg-gray-100 rounded-full p-5">
+      <View className="bg-surface-secondary rounded-full p-5">
         {icon}
       </View>
       <View className="items-center gap-1">

@@ -17,14 +17,14 @@ import { HeroUINativeProvider } from "heroui-native";
 
 import * as WebBrowser from "expo-web-browser";
 
-import { COLORS } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
-import { Appearance, View } from "react-native";
+import { View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { clearQueryClient } from "@/utils/queryClient";
+import { getSplashBackground } from "@/utils/splashBackground";
 import {
   useInAppNotificationBanner,
   usePushRegistration,
@@ -32,8 +32,7 @@ import {
 } from "@/hooks/notifications";
 import { useVerificationReviewRealtime } from "@/hooks/verification";
 import { useSuspensionGuard } from "@/hooks/auth/useSuspensionGuard";
-import { useThemeStore } from "../stores/useThemeStore";
-import { useTheme } from 'hooks/useTheme';
+import { useColors, useThemeSync } from 'hooks/useTheme';
 import DevBadge from '../components/dev/DevBadge';
 
 function NotificationManager() {
@@ -42,18 +41,6 @@ function NotificationManager() {
   useInAppNotificationBanner();
   useVerificationReviewRealtime();
   useSuspensionGuard();
-
-  return null;
-}
-
-function ThemeInitializer() {
-  const { themeMode } = useThemeStore();
-
-  useEffect(() => {
-    if (themeMode !== "system") {
-      Appearance.setColorScheme(themeMode);
-    }
-  }, [themeMode]);
 
   return null;
 }
@@ -72,7 +59,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   const router = useRouter();
-  const { isDark } = useTheme();
+  const { isDark } = useColors();
+  // Applies the saved appearance (incl. System); false until it has loaded
+  const themeReady = useThemeSync();
   // True once navigation has left the "/" boot screen (index) — the
   // redirect to the role-based home has committed and the destination
   // screen is mounted and rendering.
@@ -91,7 +80,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(isDark ? COLORS.dark.white : COLORS.light.primary);
+    SystemUI.setBackgroundColorAsync(getSplashBackground(isDark));
   }, [isDark]);
 
   useEffect(() => {
@@ -108,13 +97,14 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Keep the splash up until fonts are ready AND the boot redirect has
-  // committed (root navigation left "/"), so the "/" spinner is never visible
+  // Keep the splash up until fonts are ready, the saved theme is applied AND
+  // the boot redirect has committed (root navigation left "/"), so the "/"
+  // spinner is never visible
   useEffect(() => {
-    if ((fontsLoaded || fontError) && navigatedAway) {
+    if ((fontsLoaded || fontError) && themeReady && navigatedAway) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, navigatedAway, router]);
+  }, [fontsLoaded, fontError, themeReady, navigatedAway, router]);
 
   // Fallback: never leave the splash up forever (e.g. deep-link cold starts
   // that bypass the index boot route)
@@ -123,14 +113,15 @@ export default function RootLayout() {
     return () => clearTimeout(timeout);
   }, []);
 
-  if (!fontsLoaded && !fontError) {
+  // Hold the tree until the saved theme has loaded; the splash covers the one
+  // render in which the layout effect applies it
+  if ((!fontsLoaded && !fontError) || !themeReady) {
     return null;
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>
-        <ThemeInitializer />
         <HeroUINativeProvider>
           <NotificationManager />
           <PortalProvider>
