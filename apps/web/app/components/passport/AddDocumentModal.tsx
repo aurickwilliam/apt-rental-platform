@@ -55,7 +55,7 @@ export default function AddDocumentModal({
                   type="button"
                   disabled={isUploading}
                   onClick={() => onSelectType(null)}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:opacity-50"
+                  className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <IconArrowLeft size={16} aria-hidden="true" />
                   Document types

@@ -263,7 +263,7 @@ export default function PassportClient({
                 <button
                   type="button"
                   onClick={() => openAdd()}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary focus-visible:outline-2 focus-visible:outline-primary ${
                     layout === "grid" ? "min-h-48 flex-col" : "py-4"
                   }`}
                 >

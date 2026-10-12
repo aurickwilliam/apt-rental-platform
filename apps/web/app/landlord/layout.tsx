@@ -3,13 +3,17 @@ import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSid
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import { createClient } from "@repo/supabase/server";
 
+import { canViewPassport } from "@/lib/passport-access";
+
+const PASSPORT_HREF = "/landlord/passport";
+
 const LANDLORD_NAV = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
   { href: "/landlord/properties", label: "My Properties", icon: "Building" },
   { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
   { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
-  { href: "/landlord/passport", label: "APT Passport", icon: "ShieldCheck" },
+  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck" },
   { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ] as const;
 
@@ -22,6 +26,7 @@ export default async function DashboardLayout({
   const userRole = "Landlord";
   let userRoles: string[] = ["landlord"];
   let userAvatarUrl: string | null = null;
+  let accountStatus: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -31,7 +36,7 @@ export default async function DashboardLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, roles, avatar_url")
+        .select("first_name, last_name, roles, avatar_url, account_status")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
@@ -39,15 +44,22 @@ export default async function DashboardLayout({
       else if (user.email) userName = user.email;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
+      accountStatus = profile?.account_status ?? null;
     }
   } catch {
     // fallback to defaults
   }
 
+  // Pending/unverified accounts can't open the Passport (the route guard
+  // redirects them), so don't offer the link.
+  const navItems = canViewPassport(accountStatus)
+    ? [...LANDLORD_NAV]
+    : LANDLORD_NAV.filter((item) => item.href !== PASSPORT_HREF);
+
   return (
     <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
       <AppSidebar
-        navItems={[...LANDLORD_NAV]}
+        navItems={navItems}
         userName={userName}
         userRole={userRole}
         userAvatarUrl={userAvatarUrl}
@@ -62,7 +74,7 @@ export default async function DashboardLayout({
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
-        navItems={[...LANDLORD_NAV, { href: "/landlord/profile", label: "Profile", icon: "User" }]}
+        navItems={[...navItems, { href: "/landlord/profile", label: "Profile", icon: "User" }]}
         iconSet="tabler"
         navLabel="Landlord navigation"
         menuLabel="Landlord pages"

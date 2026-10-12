@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Button, Checkbox, FieldError, Input, Label, Modal, Spinner, TextField } from "@heroui/react";
-import { IconChevronDown, IconFileInfo, IconFileText, IconUpload } from "@tabler/icons-react";
+import { parseDate, type CalendarDate } from "@internationalized/date";
+import { Button, Calendar, Checkbox, CloseButton, DateField, DatePicker, FieldError, Label, Link, Modal, Spinner } from "@heroui/react";
+import { IconAlertTriangle, IconFileInfo, IconFileText, IconShieldCheck, IconUpload } from "@tabler/icons-react";
 
+import { isReviewEligibleDocType } from "@repo/constants";
 import { getDocumentTypeDescription, isExpiredDate, toExpiryDateString } from "@repo/passport";
 
 import PdfThumbnail from "@/app/components/display/PdfThumbnail";
@@ -20,11 +22,13 @@ interface PassportUploadFormProps {
   onCancel: () => void;
 }
 
-function validateExpiry(value: string): string | null {
+function validateExpiry(value: CalendarDate | null): string | null {
   if (!value) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Select a valid expiry date.";
-  return isExpiredDate(value) ? "Expiry date cannot be in the past." : null;
+  return isExpiredDate(value.toString()) ? "Expiry date cannot be in the past." : null;
 }
+
+const LEGAL_NOTICE =
+  "By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).";
 
 /** Upload step of the add-document modal; renders the modal body and footer. */
 export default function PassportUploadForm({ docType, isUploading, onSubmit, onCancel }: PassportUploadFormProps) {
@@ -33,7 +37,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [expiresAt, setExpiresAt] = useState("");
+  const [expiresAt, setExpiresAt] = useState<CalendarDate | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -64,7 +68,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
     if (!file || !isConfirmed || expiryError) return;
     setSubmitError(null);
     try {
-      await onSubmit({ file, expiresAt: expiresAt || null });
+      await onSubmit({ file, expiresAt: expiresAt ? expiresAt.toString() : null });
     } catch (err) {
       console.error("Passport upload failed", err);
       setSubmitError(err instanceof Error ? err.message : "Could not save your document. Please try again.");
@@ -84,6 +88,12 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
               <IconFileInfo size={14} aria-hidden="true" />
               JPG, PNG, WebP, or PDF, up to 5 MB
             </p>
+            {isReviewEligibleDocType(docType) ? (
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-success">
+                <IconShieldCheck size={14} aria-hidden="true" />
+                Can be verified: request a review from the document&apos;s page after adding it.
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -105,7 +115,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
               aria-label={file ? `Replace ${file.name}` : "Choose a file"}
-              className={`relative flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
+              className={`relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                 fileError
                   ? "border-danger text-danger"
                   : file
@@ -148,7 +158,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
                     setFile(null);
                     setPreviewUrl(null);
                   }}
-                  className="shrink-0 font-medium text-danger hover:underline"
+                  className="shrink-0 cursor-pointer font-medium text-danger hover:underline"
                 >
                   Remove
                 </button>
@@ -158,53 +168,97 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
           </div>
 
           <div className="space-y-5">
-            <TextField isInvalid={!!expiryError} value={expiresAt} onChange={setExpiresAt} isDisabled={isUploading}>
+            <DatePicker
+              className="flex w-full flex-col gap-1"
+              value={expiresAt}
+              onChange={setExpiresAt}
+              minValue={parseDate(toExpiryDateString(new Date()))}
+              isInvalid={!!expiryError}
+              isDisabled={isUploading}
+            >
               <Label className="text-sm font-medium text-card-foreground">Expiry date (optional)</Label>
-              <Input
-                type="date"
-                min={toExpiryDateString(new Date())}
-                className="border-border bg-card text-card-foreground"
-              />
+              <DateField.Group fullWidth className="border border-border bg-card">
+                <DateField.Input>
+                  {(segment) => (
+                    <DateField.Segment
+                      segment={segment}
+                      className="text-card-foreground data-[placeholder=true]:text-muted-foreground"
+                    />
+                  )}
+                </DateField.Input>
+                <DateField.Suffix className="flex items-center gap-1">
+                  {expiresAt ? (
+                    <CloseButton
+                      // Opt out of the DatePicker's button context, which
+                      // would otherwise make this open the calendar too.
+                      slot={null}
+                      aria-label="Clear expiry date"
+                      className="cursor-pointer text-muted-foreground!"
+                      isDisabled={isUploading}
+                      onPress={() => setExpiresAt(null)}
+                    />
+                  ) : null}
+                  <DatePicker.Trigger className="cursor-pointer">
+                    <DatePicker.TriggerIndicator className="text-muted-foreground" />
+                  </DatePicker.Trigger>
+                </DateField.Suffix>
+              </DateField.Group>
               <FieldError>{expiryError}</FieldError>
-            </TextField>
+              <DatePicker.Popover>
+                <Calendar aria-label="Expiry date">
+                  <Calendar.Header>
+                    <Calendar.YearPickerTrigger className="cursor-pointer">
+                      <Calendar.YearPickerTriggerHeading />
+                      <Calendar.YearPickerTriggerIndicator className="text-muted-foreground" />
+                    </Calendar.YearPickerTrigger>
+                    <Calendar.NavButton slot="previous" className="cursor-pointer text-muted-foreground" />
+                    <Calendar.NavButton slot="next" className="cursor-pointer text-muted-foreground" />
+                  </Calendar.Header>
+                  <Calendar.Grid>
+                    <Calendar.GridHeader>{(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}</Calendar.GridHeader>
+                    <Calendar.GridBody>
+                      {(date) => (
+                        <Calendar.Cell
+                          date={date}
+                          className="cursor-pointer data-selected:bg-primary data-selected:text-white data-disabled:cursor-not-allowed"
+                        />
+                      )}
+                    </Calendar.GridBody>
+                  </Calendar.Grid>
+                  <Calendar.YearPickerGrid>
+                    <Calendar.YearPickerGridBody>
+                      {(yearProps) => (
+                        <Calendar.YearPickerCell
+                          year={yearProps.year}
+                          className="cursor-pointer data-selected:bg-primary data-selected:text-white"
+                        />
+                      )}
+                    </Calendar.YearPickerGridBody>
+                  </Calendar.YearPickerGrid>
+                </Calendar>
+              </DatePicker.Popover>
+            </DatePicker>
 
-            <Checkbox isSelected={isConfirmed} onChange={setIsConfirmed} isDisabled={isUploading}>
+            <Checkbox className="group" isSelected={isConfirmed} onChange={setIsConfirmed} isDisabled={isUploading}>
               <Checkbox.Content className="flex cursor-pointer items-start gap-2 select-none">
-                <Checkbox.Control className="mt-0.5 size-5 shrink-0">
-                  <Checkbox.Indicator />
+                <Checkbox.Control className="mt-0.5 size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                  <Checkbox.Indicator className="[&_svg]:text-white!" />
                 </Checkbox.Control>
-                <Label className="text-sm font-semibold text-card-foreground">
+                <Label className="cursor-pointer text-sm font-semibold text-card-foreground">
                   I confirm that the information provided is true and the document belongs to me.{" "}
                   <span className="text-danger">*</span>
                 </Label>
               </Checkbox.Content>
             </Checkbox>
 
-            <div className="rounded-xl border border-border p-3">
-              <button
-                type="button"
-                onClick={() => setIsLegalOpen((open) => !open)}
-                aria-expanded={isLegalOpen}
-                className="flex w-full items-center justify-between gap-2 text-left text-sm font-medium text-card-foreground"
-              >
-                Legal notice
-                <IconChevronDown
-                  size={16}
-                  className={`shrink-0 transition-transform ${isLegalOpen ? "rotate-180" : ""}`}
-                  aria-hidden="true"
-                />
-              </button>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Fraudulent documents may lead to account suspension.
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                <span className="text-danger">*</span> By uploading, you confirm this document is valid and belongs to
+                you. Fraudulent documents may lead to account suspension.
               </p>
-              {isLegalOpen ? (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  By uploading your documents, you certify that all information is true and valid. Any fraudulent or
-                  falsified documents may result in account suspension and legal action in accordance with applicable
-                  Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No.
-                  10175).
-                </p>
-              ) : null}
+              <Link className="cursor-pointer text-sm font-medium text-primary! underline" onPress={() => setIsLegalOpen(true)}>
+                Legal notice
+              </Link>
             </div>
           </div>
         </div>
@@ -217,7 +271,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
       </Modal.Body>
 
       <Modal.Footer className="flex justify-end gap-2">
-        <Button variant="outline" isDisabled={isUploading} onPress={onCancel}>
+        <Button variant="danger-soft" isDisabled={isUploading} onPress={onCancel}>
           Cancel
         </Button>
         <Button
@@ -229,6 +283,30 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
           {isUploading ? "Adding…" : "Add Document"}
         </Button>
       </Modal.Footer>
+
+      <Modal isOpen={isLegalOpen} onOpenChange={setIsLegalOpen}>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="sm">
+            <Modal.Dialog className="rounded-3xl bg-card">
+              <Modal.CloseTrigger className="cursor-pointer text-card-foreground" />
+              <Modal.Header>
+                <Modal.Heading className="flex items-center gap-2 font-nunito text-xl font-bold text-card-foreground">
+                  <IconAlertTriangle size={20} className="text-warning" aria-hidden="true" />
+                  Legal notice
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <p className="text-sm leading-relaxed text-muted-foreground">{LEGAL_NOTICE}</p>
+              </Modal.Body>
+              <Modal.Footer className="flex justify-end">
+                <Button className="cursor-pointer" onPress={() => setIsLegalOpen(false)}>
+                  Got it
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </>
   );
 }
