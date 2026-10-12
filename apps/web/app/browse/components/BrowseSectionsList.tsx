@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Button, toast } from "@heroui/react";
+import { toast } from "@heroui/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import ApartmentCard from "../../components/ui/ApartmentCard";
@@ -65,8 +65,12 @@ function SectionRow({
     track.scrollBy({ left: direction * track.clientWidth * 0.8, behavior: "smooth" });
   };
 
-  const arrowClass =
-    "absolute top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 shadow-md backdrop-blur transition-opacity duration-200 hover:bg-white focus-visible:opacity-100 md:flex opacity-0 group-hover:opacity-100";
+  // Tall edge strips (not floating circles) so aiming for an arrow never
+  // lands on a card. Base is hidden: revealed on row hover at md+ only.
+  const stripBase =
+    "absolute inset-y-0 z-10 hidden w-12 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-primary md:flex";
+  const leftStripClass = `${stripBase} left-0 bg-gradient-to-r from-white via-white/80 to-transparent`;
+  const rightStripClass = `${stripBase} right-0 bg-gradient-to-l from-white via-white/80 to-transparent`;
 
   return (
     <div className="group relative">
@@ -98,28 +102,24 @@ function SectionRow({
       </div>
 
       {canScrollLeft && (
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           aria-label={`Scroll ${section.title} left`}
-          onPress={() => scrollRow(-1)}
-          className={`${arrowClass} left-1`}
+          onClick={() => scrollRow(-1)}
+          className={leftStripClass}
         >
-          <ChevronLeft size={20} />
-        </Button>
+          <ChevronLeft size={28} className="text-foreground" />
+        </button>
       )}
       {canScrollRight && (
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           aria-label={`Scroll ${section.title} right`}
-          onPress={() => scrollRow(1)}
-          className={`${arrowClass} right-1`}
+          onClick={() => scrollRow(1)}
+          className={rightStripClass}
         >
-          <ChevronRight size={20} />
-        </Button>
+          <ChevronRight size={28} className="text-foreground" />
+        </button>
       )}
     </div>
   );
