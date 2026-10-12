@@ -110,7 +110,7 @@ export default function SettingsModal({
                   aria-label={visibleTabs.find(({ id }) => id === activeId)?.label}
                   className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                 >
-                  {activeId === "general" ? <GeneralTab iconSet={iconSet} /> : null}
+                  {activeId === "general" ? <GeneralTab /> : null}
                   {activeId === "security" ? <SecurityTab isAdmin={isAdmin} iconSet={iconSet} /> : null}
                   {activeId === "language" ? <LanguageRegionTab iconSet={iconSet} /> : null}
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} iconSet={iconSet} /> : null}

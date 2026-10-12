@@ -1,8 +1,13 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Moon, Sun } from "lucide-react";
-import { IconMoon, IconSun } from "@tabler/icons-react";
+import {
+  IconDeviceDesktop,
+  IconMoon,
+  IconPlayerPause,
+  IconSun,
+} from "@tabler/icons-react";
+import { ListBox, Select } from "@heroui/react";
 import { useTheme } from "next-themes";
 
 import SettingsRow from "../SettingsRow";
@@ -13,12 +18,16 @@ import {
   subscribeReducedMotion,
 } from "@/lib/reduced-motion";
 
-export default function GeneralTab({
-  iconSet = "lucide",
-}: {
-  iconSet?: "lucide" | "tabler";
-}) {
-  const { resolvedTheme, setTheme } = useTheme();
+type ThemeMode = "light" | "system" | "dark";
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: IconSun },
+  { value: "system", label: "System", icon: IconDeviceDesktop },
+  { value: "dark", label: "Dark", icon: IconMoon },
+] as const;
+
+export default function GeneralTab() {
+  const { theme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -30,13 +39,9 @@ export default function GeneralTab({
     () => false,
   );
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
+  const activeTheme: ThemeMode = mounted && (theme === "dark" || theme === "system") ? theme : "light";
 
-  const isDark = mounted && resolvedTheme === "dark";
-  const DarkIcon = iconSet === "tabler" ? (isDark ? IconMoon : IconSun) : isDark ? Moon : Sun;
-  const MotionIcon = iconSet === "tabler" ? IconSun : Sun;
+  const ThemeIcon = THEME_OPTIONS.find(({ value }) => value === activeTheme)!.icon;
 
   return (
     <>
@@ -46,20 +51,40 @@ export default function GeneralTab({
       </p>
       <div className="mt-3 divide-y divide-border">
         <SettingsRow
-          icon={<DarkIcon size={18} />}
-          title="Dark Mode"
-          description="Use a darker color theme on this browser."
+          icon={<ThemeIcon size={18} />}
+          title="Theme"
+          description="Choose light, dark, or follow your device."
           suffix={
-            <ToggleSwitch
-              isSelected={isDark}
-              onValueChange={toggleTheme}
-              disabled={!mounted}
-              aria-label="Toggle dark mode"
-            />
+            <Select
+              aria-label="Theme"
+              value={activeTheme}
+              isDisabled={!mounted}
+              onChange={(key) => {
+                if (key) setTheme(String(key));
+              }}
+              className="w-40"
+            >
+              <Select.Trigger className="cursor-pointer border-border bg-background! text-foreground hover:bg-muted!">
+                <Select.Value />
+                <Select.Indicator />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                    <ListBox.Item key={value} id={value} textValue={label}>
+                      <span className="flex flex-row items-center gap-2">
+                        <Icon size={16} aria-hidden="true" />
+                        {label}
+                      </span>
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </Select.Popover>
+            </Select>
           }
         />
         <SettingsRow
-          icon={<MotionIcon size={18} />}
+          icon={<IconPlayerPause size={18} />}
           title="Reduce motion"
           description="Limit animations on this browser."
           suffix={
