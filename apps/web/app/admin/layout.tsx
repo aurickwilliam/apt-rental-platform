@@ -43,8 +43,12 @@ export default async function AdminLayout({
         </main>
       </div>
       <MobileSidebarNavigation
-        navItems={[...ADMIN_NAV, { href: "/admin/profile", label: "Profile", icon: "User" }]}
+        navItems={[...ADMIN_NAV]}
+        profileHref="/admin/profile"
         iconSet="tabler"
+        navLabel="Admin navigation"
+        menuLabel="Admin pages"
+        buttonLabel="Open admin navigation"
         userRoles={profile.roles}
         activePortal="admin"
       />
