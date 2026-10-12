@@ -1,6 +1,10 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { IconRefresh } from "@tabler/icons-react";
+import { Button } from "@heroui/react";
+import PendingList from "../../_components/filters/PendingList";
 import VerificationTabs from "./VerificationTabs";
 import VerificationResults from "./VerificationResults";
 import VerificationEmptyState from "./VerificationEmptyState";
@@ -25,7 +29,9 @@ export default function VerificationQueues({
   queues,
   initialQueue,
 }: VerificationQueuesProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [isRefreshing, startTransition] = useTransition();
   const tab = searchParams.get("tab");
   const selected = tab ? parseVerificationQueue(tab) : initialQueue;
   const { rows } = queues[selected];
@@ -37,20 +43,43 @@ export default function VerificationQueues({
     window.history.pushState(null, "", `?${params.toString()}`);
   }
 
+  function refresh() {
+    startTransition(() => {
+      router.refresh();
+    });
+  }
+
   return (
     <>
-      <VerificationTabs
-        selected={selected}
-        onSelect={selectQueue}
-        userCount={queues.users.count}
-        apartmentCount={queues.apartments.count}
-        documentCount={queues.documents.count}
-      />
-      {rows.length ? (
-        <VerificationResults key={selected} rows={rows} selected={selected} />
-      ) : (
-        <VerificationEmptyState selected={selected} />
-      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <VerificationTabs
+          selected={selected}
+          onSelect={selectQueue}
+          userCount={queues.users.count}
+          apartmentCount={queues.apartments.count}
+          documentCount={queues.documents.count}
+        />
+        <Button
+          isIconOnly
+          variant="tertiary"
+          aria-label="Refresh verification queues"
+          onPress={refresh}
+          className="cursor-pointer"
+        >
+          <IconRefresh
+            size={18}
+            aria-hidden="true"
+            className={isRefreshing ? "animate-spin" : undefined}
+          />
+        </Button>
+      </div>
+      <PendingList isPending={isRefreshing} label="Refreshing verification queues">
+        {rows.length ? (
+          <VerificationResults key={selected} rows={rows} selected={selected} />
+        ) : (
+          <VerificationEmptyState selected={selected} />
+        )}
+      </PendingList>
     </>
   );
 }
