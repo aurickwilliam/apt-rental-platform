@@ -4,9 +4,11 @@ import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
 
 import BrowseFilters from "@/app/browse/components/BrowseFilters";
+import BrowseSectionsList from "@/app/browse/components/BrowseSectionsList";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
+import { fetchBrowseSections, isDefaultBrowseParams } from "@/app/browse/lib/fetch-browse-sections";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;
@@ -36,11 +38,28 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   }
 
   const params = await searchParams;
-  const { apartments: mapped, page, totalCount, pageSize } =
-    await fetchBrowseResults(supabase, params);
+
+  // Default state (no search, filters, or paging) shows curated discovery
+  // sections. Anything filtered, searched, or paged shows the flat grid.
+  // An empty/failed sections RPC falls back to the grid.
+  const showSections = isDefaultBrowseParams(params);
+  const { sections, totalCount: sectionsTotal } = showSections
+    ? await fetchBrowseSections(supabase, "/tenant/browse")
+    : { sections: [], totalCount: 0 };
+  const useSections = showSections && sections.length > 0;
+
+  const { apartments: mapped, page, totalCount, pageSize } = useSections
+    ? { apartments: [], page: 1, totalCount: sectionsTotal, pageSize: 0 }
+    : await fetchBrowseResults(supabase, params);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
+    // control internals) from widening the page. Unlike hidden it does not
+    // create a scroll container, so the sticky filter sidebar keeps working.
+    // w-full is load-bearing: this root is a flex item of the tenant
+    // layout's flex-column main, where mx-auto alone disables stretch
+    // sizing and lets the root balloon to max-w-7xl on narrow screens.
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
         <SearchContainer basePath="/tenant/browse" />
       </Suspense>
@@ -54,13 +73,17 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
         </Suspense>
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense>
-            <RenderApartments
-              apartment={mapped}
-              page={page}
-              totalCount={totalCount}
-              pageSize={pageSize}
-              basePath="/tenant/browse"
-            />
+            {useSections ? (
+              <BrowseSectionsList sections={sections} basePath="/tenant/browse" />
+            ) : (
+              <RenderApartments
+                apartment={mapped}
+                page={page}
+                totalCount={totalCount}
+                pageSize={pageSize}
+                basePath="/tenant/browse"
+              />
+            )}
           </Suspense>
         </div>
       </div>

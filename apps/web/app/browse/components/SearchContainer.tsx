@@ -54,16 +54,18 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
   }, [urlSearch]);
 
   return (
-    <div className="w-full min-h-52 bg-primary rounded-xl flex items-center justify-center flex-col gap-2 sm:gap-3 px-4 py-8 sm:py-10 text-center">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight">
+    // Below md the hero banner is hidden entirely (mirrors the mobile app,
+    // which opens straight into search). md+ keeps the banner.
+    <div className="w-full min-w-0 md:min-h-52 md:bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-0 md:px-4 py-2 md:py-10 md:text-center md:text-balance">
+      <h2 className="hidden md:block w-full text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight text-balance">
         Find your Perfect Apartment!
       </h2>
-      <p className="text-white/80 text-xs sm:text-sm px-2">
+      <p className="hidden md:block w-full text-white/80 text-xs sm:text-sm px-2 text-balance">
         Browse verified listings across Caloocan, Malabon, Navotas, and Valenzuela
       </p>
 
       {/* Search bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-lg mt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-lg mt-2 mx-auto min-w-0">
         <InputGroup className="w-full rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
           <InputGroup.Prefix>
             {isPending ? (

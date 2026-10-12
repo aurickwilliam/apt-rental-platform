@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Drawer, useOverlayState } from "@heroui/react";
 import { SlidersHorizontal, X } from "lucide-react";
 
@@ -38,6 +38,7 @@ export default function BrowseFilters({
   basePath = "/browse",
   stickyClassName = "md:top-20 md:max-h-[calc(100dvh-6rem)]",
 }: Props) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -55,6 +56,11 @@ export default function BrowseFilters({
   });
 
   const close = () => setIsOpen(false);
+
+  // Mobile clear-all: drops filters and text search, like the panel's Clear All.
+  const clearAll = () => {
+    router.replace(basePath);
+  };
 
   return (
     <>
@@ -77,14 +83,27 @@ export default function BrowseFilters({
         <p className="shrink-0 text-sm text-default-500" aria-live="polite">
           {resultCount} result{resultCount === 1 ? "" : "s"}
         </p>
+        {activeCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 text-danger"
+            onPress={clearAll}
+            aria-label="Clear all filters"
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
-      {/* Mobile drawer — conditionally mounted so no backdrop lingers */}
+      {/* Mobile bottom sheet — mirrors the app's FilterBottomSheet. Only
+          reachable from the md:hidden trigger above. */}
       {isOpen && (
         <Drawer.Root state={drawerState}>
           <Drawer.Backdrop>
-            <Drawer.Content placement="left">
-              <Drawer.Dialog className="flex h-full w-[340px] max-w-[90vw] flex-col p-0">
+            <Drawer.Content placement="bottom">
+              <Drawer.Dialog className="flex max-h-[85dvh] w-full flex-col rounded-t-2xl p-0">
+                <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
                 <div className="flex items-center justify-between border-b border-divider px-4 py-3">
                   <h3 className="flex items-center gap-2 text-base font-medium">
                     <SlidersHorizontal size={16} />
