@@ -30,6 +30,8 @@ export default function PhotoGalleryModal({
 }: PhotoGalleryModalProps) {
   if (!photos.length) return null;
 
+  const handleClose = () => onOpenChange(false);
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop className="bg-black/80">
@@ -42,6 +44,7 @@ export default function PhotoGalleryModal({
             <Modal.CloseTrigger
               aria-label="Close photo gallery"
               className="top-4 right-4 z-10 size-8 rounded-full bg-muted text-foreground hover:bg-muted-foreground/20 focus-visible:outline-2 focus-visible:outline-primary"
+              onPress={handleClose}
             />
             <Modal.Header className="pr-12">
               <Modal.Heading className="font-nunito text-lg font-bold">
