@@ -13,7 +13,7 @@ export default function PassportSkeleton() {
         <SkeletonGroup.Item className="h-52 w-full rounded-3xl" />
 
         {/* Supporting documents grid */}
-        <View className="flex-row flex-wrap gap-x-4 gap-y-5 mt-2">
+        <View className="flex-row flex-wrap justify-between gap-y-5 mt-2">
           {[...Array(4)].map((_, index) => (
             // Width lives on a plain View: the item renders an Animated.View
             // that ignores the arbitrary percentage.
