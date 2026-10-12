@@ -1,5 +1,6 @@
 import { createClient } from "@repo/supabase/server";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 
 export interface AdminProfile {
   id: string;
@@ -10,7 +11,7 @@ export interface AdminProfile {
   roles: string[];
 }
 
-export async function requireAdmin(): Promise<AdminProfile> {
+export const requireAdmin = cache(async (): Promise<AdminProfile> => {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -38,4 +39,4 @@ export async function requireAdmin(): Promise<AdminProfile> {
     ...profile,
     avatar_url: profile.avatar_url ?? user.user_metadata.avatar_url ?? null,
   };
-}
+});

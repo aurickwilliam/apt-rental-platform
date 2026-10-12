@@ -20,24 +20,27 @@ export default async function VerificationPage({
   const supabase = await createClient();
   const [userQueue, apartmentQueue, documentQueue, userCount, apartmentCount, documentCount] =
     await Promise.all([
-      supabase
-        .from("user_verifications")
-        .select("id, user_id, id_type, submitted_at")
-        .eq("status", "pending")
-        .order("submitted_at", { ascending: true })
-        .limit(50),
-      supabase
-        .from("apartment_verifications")
-        .select("id, apartment_id, submitted_at")
-        .eq("status", "pending")
-        .order("submitted_at", { ascending: true })
-        .limit(50),
-      supabase
-        .from("passport_documents")
-        .select("id, user_id, doc_type, requested_at")
-        .eq("review_status", "pending")
-        .order("requested_at", { ascending: true })
-        .limit(50),
+      selected === "users"
+        ? supabase.from("user_verifications")
+            .select("id, user_id, id_type, submitted_at")
+            .eq("status", "pending")
+            .order("submitted_at", { ascending: true })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null }),
+      selected === "apartments"
+        ? supabase.from("apartment_verifications")
+            .select("id, apartment_id, submitted_at")
+            .eq("status", "pending")
+            .order("submitted_at", { ascending: true })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null }),
+      selected === "documents"
+        ? supabase.from("passport_documents")
+            .select("id, user_id, doc_type, requested_at")
+            .eq("review_status", "pending")
+            .order("requested_at", { ascending: true })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null }),
       supabase
         .from("user_verifications")
         .select("id", { count: "exact", head: true })
