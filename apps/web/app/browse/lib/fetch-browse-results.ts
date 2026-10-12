@@ -17,6 +17,9 @@ export interface BrowseApartment {
   rating: number;
   isVerified: boolean;
   image: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  areaSqm?: number;
 }
 
 export interface BrowseResults {

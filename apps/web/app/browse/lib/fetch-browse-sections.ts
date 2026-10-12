@@ -28,6 +28,9 @@ interface SectionRow {
   monthly_rent?: number | null;
   average_rating?: number | null;
   is_verified?: boolean | null;
+  no_bedrooms?: number | null;
+  no_bathrooms?: number | null;
+  area_sqm?: number | null;
   apartment_images?: Array<{
     url?: string | null;
     is_cover?: boolean | null;
@@ -94,6 +97,9 @@ function mapRow(apt: SectionRow): BrowseApartment {
       images.find((img) => img.is_cover)?.url ??
       images[0]?.url ??
       DEFAULT_THUMBNAIL,
+    bedrooms: apt.no_bedrooms ?? undefined,
+    bathrooms: apt.no_bathrooms ?? undefined,
+    areaSqm: apt.area_sqm ?? undefined,
   };
 }
 
