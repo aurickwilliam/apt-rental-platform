@@ -1,7 +1,8 @@
 import { IconBuilding, IconFileText, IconUsers } from "@tabler/icons-react";
+import type { VerificationQueue } from "../lib/verification-display";
 
 interface VerificationEmptyStateProps {
-  selected: "users" | "apartments" | "documents";
+  selected: VerificationQueue;
 }
 
 export default function VerificationEmptyState({

@@ -2,9 +2,10 @@ import Image from "next/image";
 import { IconBuilding, IconFileText } from "@tabler/icons-react";
 
 import SharedUserAvatar from "@/app/components/profile/UserAvatar";
+import type { VerificationQueue } from "../lib/verification-display";
 
 interface VerificationImageProps {
-  kind: "users" | "apartments" | "documents";
+  kind: VerificationQueue;
   image: string | null;
   name: string;
 }

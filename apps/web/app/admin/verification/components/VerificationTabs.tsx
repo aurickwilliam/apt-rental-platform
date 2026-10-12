@@ -1,12 +1,16 @@
 "use client";
 
 import { Fragment } from "react";
-import { useRouter } from "next/navigation";
 import { IconBuilding, IconFileText, IconUsers } from "@tabler/icons-react";
 import { Badge, Separator, Tabs } from "@heroui/react";
+import {
+  parseVerificationQueue,
+  type VerificationQueue,
+} from "../lib/verification-display";
 
 interface VerificationTabsProps {
-  selected: "users" | "apartments" | "documents";
+  selected: VerificationQueue;
+  onSelect: (queue: VerificationQueue) => void;
   userCount: number;
   apartmentCount: number;
   documentCount: number;
@@ -14,17 +18,15 @@ interface VerificationTabsProps {
 
 export default function VerificationTabs({
   selected,
+  onSelect,
   userCount,
   apartmentCount,
   documentCount,
 }: VerificationTabsProps) {
-  const router = useRouter();
   return (
     <Tabs
       selectedKey={selected}
-      onSelectionChange={(key) => {
-        router.push(`/admin/verification?tab=${String(key)}`);
-      }}
+      onSelectionChange={(key) => onSelect(parseVerificationQueue(String(key)))}
       className="w-fit"
     >
       <Tabs.ListContainer className="w-fit">
@@ -49,7 +51,7 @@ export default function VerificationTabs({
               <Tabs.Tab
                 key={value}
                 id={value}
-                className="relative font-nunito font-semibold whitespace-nowrap text-sm data-[selected=true]:text-primary"
+                className="relative cursor-pointer font-nunito font-semibold whitespace-nowrap text-sm data-[selected=true]:text-primary"
               >
                 <span className="flex items-center gap-1.5 px-2">
                 <Icon size={14} aria-hidden="true" />

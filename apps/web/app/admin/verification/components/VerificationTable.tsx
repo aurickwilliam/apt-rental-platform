@@ -6,11 +6,12 @@ import VerificationImage from "./VerificationImage";
 import {
   submittedFormatter,
   type VerificationRow,
+  type VerificationQueue,
 } from "../lib/verification-display";
 
 interface VerificationTableProps {
   rows: VerificationRow[];
-  selected: "users" | "apartments" | "documents";
+  selected: VerificationQueue;
 }
 
 export default function VerificationTable({

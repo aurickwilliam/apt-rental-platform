@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Pagination } from "@heroui/react";
 import VerificationTable from "./VerificationTable";
 import VerificationCardList from "./VerificationCardList";
-import type { VerificationRow } from "../lib/verification-display";
+import type { VerificationRow, VerificationQueue } from "../lib/verification-display";
 
 const PAGE_SIZE = 10;
 
 interface VerificationResultsProps {
   rows: VerificationRow[];
-  selected: "users" | "apartments" | "documents";
+  selected: VerificationQueue;
 }
 
 export default function VerificationResults({

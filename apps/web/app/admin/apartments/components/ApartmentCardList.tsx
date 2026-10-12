@@ -4,6 +4,7 @@ import { Chip } from "@heroui/react";
 import ApartmentThumbnail from "./ApartmentThumbnail";
 import {
   joinedFormatter,
+  rentFormatter,
   verificationChipColor,
   type AdminApartment,
 } from "../lib/apartment-display";
@@ -30,7 +31,8 @@ export default function ApartmentCardList({
                   {apartment.name}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {apartment.city}
+                  {apartment.city} ·{" "}
+                  {rentFormatter.format(apartment.monthly_rent)}/mo
                 </p>
               </div>
               <IconChevronRight

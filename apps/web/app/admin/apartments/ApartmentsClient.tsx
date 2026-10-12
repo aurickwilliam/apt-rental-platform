@@ -1,28 +1,34 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconRefresh } from "@tabler/icons-react";
-import {
-  Button,
-  Label,
-  ListBox,
-  Pagination,
-  SearchField,
-  Select,
-  Spinner,
-} from "@heroui/react";
+import { formatOptionLabels, formatResultRange } from "@/lib/admin-filters";
+import AdminFilterToolbar from "../_components/filters/AdminFilterToolbar";
+import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
+import AdminListFooter from "../_components/filters/AdminListFooter";
+import FilterPillGroup from "../_components/filters/FilterPillGroup";
+import FilterPopover from "../_components/filters/FilterPopover";
+import PendingList from "../_components/filters/PendingList";
+import SortDropdown from "../_components/filters/SortDropdown";
+import type { ActiveFilterTag } from "../_components/filters/types";
+import { useListFilters } from "../_components/filters/use-list-filters";
 import ApartmentsTable from "./components/ApartmentsTable";
 import ApartmentCardList from "./components/ApartmentCardList";
 import ApartmentsEmptyState from "./components/ApartmentsEmptyState";
 import type { AdminApartment } from "./lib/apartment-display";
-
-interface ApartmentFilters {
-  q: string;
-  status: string[];
-  verification: string;
-  visibility: string;
-}
+import {
+  APARTMENT_SORT_OPTIONS,
+  LOCATION_OPTIONS,
+  STATUS_OPTIONS,
+  VERIFICATION_OPTIONS,
+  VISIBILITY_OPTIONS,
+  apartmentFilterParams,
+  type ApartmentFilters,
+  type ListingStatus,
+  type LocationFilter,
+  type VerificationFilter,
+  type VisibilityFilter,
+} from "./lib/apartment-filters";
 
 interface ApartmentsClientProps {
   filters: ApartmentFilters;
@@ -33,290 +39,198 @@ interface ApartmentsClientProps {
   pageSize: number;
 }
 
-const STATUS_OPTIONS = [
-  { id: "available", label: "Available" },
-  { id: "occupied", label: "Occupied" },
-  { id: "under_maintenance", label: "Under maintenance" },
-  { id: "unverified", label: "Unverified" },
-];
+interface PopoverDraft {
+  statuses: ListingStatus[];
+  locations: LocationFilter[];
+  verification: VerificationFilter;
+  visibility: VisibilityFilter;
+}
 
-const VERIFICATION_OPTIONS = [
-  { id: "all", label: "All verification statuses" },
-  { id: "verified", label: "Verified" },
-  { id: "unverified", label: "Unverified" },
-];
+const EMPTY_DRAFT: PopoverDraft = {
+  statuses: [],
+  locations: [],
+  verification: "all",
+  visibility: "all",
+};
 
-const VISIBILITY_OPTIONS = [
-  { id: "all", label: "All visibility" },
-  { id: "visible", label: "Visible" },
-  { id: "hidden", label: "Hidden" },
-];
+function draftFromFilters(filters: ApartmentFilters): PopoverDraft {
+  return {
+    statuses: filters.statuses,
+    locations: filters.locations,
+    verification: filters.verification,
+    visibility: filters.visibility,
+  };
+}
 
-// `bg-card!` / `text-foreground!` are needed because @heroui/styles ships
-// unlayered CSS that otherwise beats layered Tailwind utilities, leaving
-// the trigger white-on-white in dark mode.
-const TRIGGER_FOCUS_CLASSES =
-  "bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15";
+function buildActiveTags(filters: ApartmentFilters): ActiveFilterTag[] {
+  const tags: ActiveFilterTag[] = [];
+  if (filters.statuses.length)
+    tags.push({
+      id: "statuses",
+      label: `Status: ${formatOptionLabels(STATUS_OPTIONS, filters.statuses)}`,
+    });
+  if (filters.locations.length)
+    tags.push({
+      id: "locations",
+      label: `Location: ${formatOptionLabels(LOCATION_OPTIONS, filters.locations)}`,
+    });
+  if (filters.verification !== "all")
+    tags.push({
+      id: "verification",
+      label: `Verification: ${filters.verification === "verified" ? "Verified" : "Unverified"}`,
+    });
+  if (filters.visibility !== "all")
+    tags.push({
+      id: "visibility",
+      label: `Visibility: ${filters.visibility === "hidden" ? "Hidden" : "Visible"}`,
+    });
+  return tags;
+}
 
 export default function ApartmentsClient({
-  filters,
+  filters: appliedFilters,
   apartments,
   error,
-  page,
+  page: appliedPage,
   totalCount,
   pageSize,
 }: ApartmentsClientProps) {
   const router = useRouter();
-  const [isNavigating, startTransition] = useTransition();
-  const [search, setSearch] = useState(filters.q);
-  const [statuses, setStatuses] = useState<string[]>(filters.status);
-  const [verification, setVerification] = useState(
-    filters.verification || "all",
+  const list = useListFilters({
+    pathname: "/admin/apartments",
+    filters: appliedFilters,
+    page: appliedPage,
+    toParams: apartmentFilterParams,
+  });
+  const { filters, page } = list;
+  const [draft, setDraft] = useState<PopoverDraft>(() =>
+    draftFromFilters(filters),
   );
-  const [visibility, setVisibility] = useState(filters.visibility || "all");
+  const activeTags = buildActiveTags(filters);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const firstVisiblePage = Math.max(1, Math.min(page - 2, totalPages - 4));
-  const visiblePages = Array.from(
-    { length: Math.min(5, totalPages) },
-    (_, index) => firstVisiblePage + index,
-  );
 
-  function currentFilters(nextSearch: string): ApartmentFilters {
-    return {
-      q: nextSearch,
-      status: statuses,
-      verification: verification === "all" ? "" : verification,
-      visibility: visibility === "all" ? "" : visibility,
-    };
-  }
-
-  function navigate(nextFilters: ApartmentFilters, nextPage: number) {
-    const params = new URLSearchParams();
-    if (nextFilters.q.trim()) params.set("q", nextFilters.q.trim());
-    if (nextFilters.status.length)
-      params.set("status", nextFilters.status.join(","));
-    if (nextFilters.verification)
-      params.set("verification", nextFilters.verification);
-    if (nextFilters.visibility) params.set("visibility", nextFilters.visibility);
-    params.set("page", String(nextPage));
-    startTransition(() => {
-      router.push(`/admin/apartments?${params.toString()}`);
-    });
-  }
-
-  function applyFilters(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    navigate(currentFilters(search), 1);
-  }
-
-  function changePage(nextPage: number) {
-    navigate(
-      {
-        q: filters.q,
-        status: filters.status,
-        verification: filters.verification,
-        visibility: filters.visibility,
-      },
-      nextPage,
-    );
+  function removeTags(ids: string[]) {
+    const patch: Partial<ApartmentFilters> = {};
+    if (ids.includes("statuses")) patch.statuses = [];
+    if (ids.includes("locations")) patch.locations = [];
+    if (ids.includes("verification")) patch.verification = "all";
+    if (ids.includes("visibility")) patch.visibility = "all";
+    list.apply(patch);
   }
 
   return (
     <>
-    <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
-      <SearchField
-        name="q"
-        value={search}
-        onChange={setSearch}
-        onClear={() => {
-          setSearch("");
-          navigate(currentFilters(""), 1);
-        }}
-        className="w-full sm:w-80"
-      >
-        <Label>Search apartments or landlords</Label>
-        <SearchField.Group className="border border-border bg-card shadow-none focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
-          <SearchField.SearchIcon className="text-muted-foreground" />
-          <SearchField.Input placeholder="Search name, landlord, or email…" />
-          <SearchField.ClearButton className="text-white" />
-        </SearchField.Group>
-      </SearchField>
-      <Button
-        isIconOnly
-        variant="tertiary"
-        aria-label="Refresh apartments"
-        onPress={() => {
-          startTransition(() => {
-            router.refresh();
-          });
-        }}
-      >
-        <IconRefresh size={18} aria-hidden="true" />
-      </Button>
-
-      <div className="ml-auto flex flex-wrap items-end gap-3">
-        <Select
-          className="w-full sm:w-60"
-          selectionMode="multiple"
-          value={statuses}
-          onChange={(value) => {
-            setStatuses(Array.isArray(value) ? value.map(String) : []);
-          }}
-          placeholder="All listing statuses"
+      <div className="space-y-3">
+        <AdminFilterToolbar
+          searchLabel="Search apartments or landlords"
+          searchPlaceholder="Search name, landlord, or email…"
+          searchValue={list.search}
+          onSearchChange={list.changeSearch}
+          onSearchSubmit={list.submitSearch}
+          onSearchClear={list.clearSearch}
+          refreshLabel="Refresh apartments"
+          onRefresh={list.refresh}
         >
-          <Label>Listing status</Label>
-          <Select.Trigger className={TRIGGER_FOCUS_CLASSES}>
-            <Select.Value className="min-w-0 truncate" />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox selectionMode="multiple">
-              {STATUS_OPTIONS.map((option) => (
-                <ListBox.Item
-                  key={option.id}
-                  id={option.id}
-                  textValue={option.label}
-                >
-                  {option.label}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
+          <FilterPopover
+            activeCount={activeTags.length}
+            onOpen={() => setDraft(draftFromFilters(filters))}
+            onReset={() => setDraft(EMPTY_DRAFT)}
+            onApply={() => list.apply(draft)}
+          >
+            <FilterPillGroup
+              selectionMode="multiple"
+              label="Listing status"
+              options={STATUS_OPTIONS}
+              value={draft.statuses}
+              onChange={(statuses) =>
+                setDraft((current) => ({ ...current, statuses }))
+              }
+            />
+            <FilterPillGroup
+              selectionMode="multiple"
+              label="Location"
+              options={LOCATION_OPTIONS}
+              value={draft.locations}
+              onChange={(locations) =>
+                setDraft((current) => ({ ...current, locations }))
+              }
+            />
+            <FilterPillGroup
+              selectionMode="single"
+              label="Verification"
+              options={VERIFICATION_OPTIONS}
+              value={draft.verification}
+              onChange={(verification) =>
+                setDraft((current) => ({ ...current, verification }))
+              }
+            />
+            <FilterPillGroup
+              selectionMode="single"
+              label="Visibility"
+              options={VISIBILITY_OPTIONS}
+              value={draft.visibility}
+              onChange={(visibility) =>
+                setDraft((current) => ({ ...current, visibility }))
+              }
+            />
+          </FilterPopover>
+          <SortDropdown
+            options={APARTMENT_SORT_OPTIONS}
+            value={filters.sort}
+            onChange={(sort) => list.apply({ sort })}
+          />
+        </AdminFilterToolbar>
 
-        <Select
-          className="w-full sm:w-60"
-          value={verification}
-          onChange={(key) => setVerification(key ? String(key) : "all")}
-          placeholder="Select a status"
-        >
-          <Label>Verification status</Label>
-          <Select.Trigger className={TRIGGER_FOCUS_CLASSES}>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {VERIFICATION_OPTIONS.map((option) => (
-                <ListBox.Item
-                  key={option.id}
-                  id={option.id}
-                  textValue={option.label}
-                >
-                  {option.label}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
-
-        <Select
-          className="w-full sm:w-48"
-          value={visibility}
-          onChange={(key) => setVisibility(key ? String(key) : "all")}
-          placeholder="Select visibility"
-        >
-          <Label>Visibility</Label>
-          <Select.Trigger className={TRIGGER_FOCUS_CLASSES}>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {VISIBILITY_OPTIONS.map((option) => (
-                <ListBox.Item
-                  key={option.id}
-                  id={option.id}
-                  textValue={option.label}
-                >
-                  {option.label}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
-
-        <Button type="submit" variant="primary">
-          Apply
-        </Button>
+        <ActiveFilterTags
+          tags={activeTags}
+          onRemove={removeTags}
+          onClearAll={() => removeTags(activeTags.map((tag) => tag.id))}
+        />
       </div>
-    </form>
 
-    <div className="space-y-5">
-      {error ? (
-        <p role="alert" className="text-sm text-danger">
-          Unable to load apartments. Refresh and try again.
-        </p>
-      ) : (
-        <>
-          <div aria-busy={isNavigating} className="relative">
-            {isNavigating ? (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
-                <Spinner
-                  size="lg"
-                  color="current"
-                  className="text-primary"
-                  aria-label="Loading apartments"
-                />
-              </div>
-            ) : null}
-            {apartments.length ? (
-              <>
-                <ApartmentsTable
-                  apartments={apartments}
-                  onSelectApartment={(id) =>
-                    router.push(`/admin/apartments/${id}`)
-                  }
-                />
-                <ApartmentCardList apartments={apartments} />
-              </>
-            ) : (
-              <ApartmentsEmptyState />
-            )}
-          </div>
+      <div className="space-y-5">
+        {error ? (
+          <p role="alert" className="text-sm text-danger">
+            Unable to load apartments. Refresh and try again.
+          </p>
+        ) : (
+          <>
+            <PendingList
+              isPending={list.isPending}
+              label="Loading apartments"
+            >
+              {apartments.length ? (
+                <>
+                  <ApartmentsTable
+                    apartments={apartments}
+                    sort={filters.sort}
+                    onSortChange={(sort) => list.apply({ sort })}
+                    onSelectApartment={(id) =>
+                      router.push(`/admin/apartments/${id}`)
+                    }
+                  />
+                  <ApartmentCardList apartments={apartments} />
+                </>
+              ) : (
+                <ApartmentsEmptyState />
+              )}
+            </PendingList>
 
-          <nav aria-label="Apartment pagination" className="flex justify-center">
-            <Pagination>
-              <Pagination.Content>
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={page <= 1}
-                    onPress={() => changePage(page - 1)}
-                    className="font-nunito text-primary"
-                  >
-                    <Pagination.PreviousIcon />
-                    <span>Previous</span>
-                  </Pagination.Previous>
-                </Pagination.Item>
-                {visiblePages.map((number) => (
-                  <Pagination.Item key={number}>
-                    <Pagination.Link
-                      isActive={number === page}
-                      onPress={() => changePage(number)}
-                    >
-                      {number}
-                    </Pagination.Link>
-                  </Pagination.Item>
-                ))}
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={page >= totalPages}
-                    onPress={() => changePage(page + 1)}
-                    className="font-nunito text-primary"
-                  >
-                    <span>Next</span>
-                    <Pagination.NextIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-              </Pagination.Content>
-            </Pagination>
-          </nav>
-        </>
-      )}
-    </div>
+            <AdminListFooter
+              ariaLabel="Apartment pagination"
+              page={page}
+              totalPages={totalPages}
+              onPageChange={list.goToPage}
+              summary={formatResultRange(
+                page,
+                pageSize,
+                totalCount,
+                "apartments",
+              )}
+            />
+          </>
+        )}
+      </div>
     </>
   );
 }
