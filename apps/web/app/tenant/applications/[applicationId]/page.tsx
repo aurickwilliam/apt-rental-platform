@@ -259,19 +259,15 @@ export default function ApplicationDetailPage() {
             <AccordionPanel>
               <AccordionBody className="px-4 pb-4">
                 <div className="flex flex-col gap-3">
-                  {application.documents.length > 0 ? (
-                    application.documents.map((doc) => (
-                      <DocumentRow
-                        key={doc.label}
-                        label={doc.label}
-                        path={doc.path}
-                        signedUrl={doc.signedUrl}
-                        isImage={doc.label === "Government ID" || doc.label === "Proof of Billing"}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No documents submitted.</p>
-                  )}
+                  {application.documents.map((doc) => (
+                    <DocumentRow
+                      key={doc.label}
+                      label={doc.label}
+                      path={doc.path}
+                      signedUrl={doc.signedUrl}
+                      emptyLabel={doc.emptyLabel}
+                    />
+                  ))}
                 </div>
               </AccordionBody>
             </AccordionPanel>

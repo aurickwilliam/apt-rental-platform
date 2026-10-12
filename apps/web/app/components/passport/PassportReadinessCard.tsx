@@ -7,12 +7,7 @@ import { APPLICATION_DOCUMENT_SLOTS, APPLICATION_SLOT_LABELS, getPassportSlotSta
 
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
 
-/** Upload type offered when a slot needs a document; the ID comes from verification. */
-const SLOT_UPLOAD_TYPE: Record<Exclude<ApplicationDocumentSlot, "govId">, string> = {
-  proofOfIncome: "Proof of Income",
-  proofOfBilling: "Proof of Residency",
-  nbiClearance: "NBI Clearance",
-};
+import { PASSPORT_SLOT_UPLOAD_TYPE } from "./passportSlots";
 
 const SLOT_HINT: Record<ApplicationDocumentSlot, string> = {
   govId: "Required",
@@ -49,7 +44,7 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
           {APPLICATION_DOCUMENT_SLOTS.map((slot) => {
             const { doc, state } = states[slot];
             const isOptional = slot === "nbiClearance" || slot === "proofOfIncome";
-            const uploadType = slot === "govId" ? null : SLOT_UPLOAD_TYPE[slot];
+            const uploadType = slot === "govId" ? null : PASSPORT_SLOT_UPLOAD_TYPE[slot];
 
             return (
               <li key={slot} className="flex items-center gap-3 py-2.5">

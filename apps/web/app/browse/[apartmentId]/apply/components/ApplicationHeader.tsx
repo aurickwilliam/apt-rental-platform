@@ -14,7 +14,7 @@ export default function ApplicationHeader({
   currentTitle,
   nextTitle,
   step = 1,
-  totalSteps = 4,
+  totalSteps = 3,
 }: ApplicationHeaderProps) {
   return (
     <Card className="bg-card md:bg-card border border-border shadow-none p-5 flex flex-row items-center justify-between">

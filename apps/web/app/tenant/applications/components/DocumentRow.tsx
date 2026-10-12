@@ -7,35 +7,41 @@ type Props = {
   fileName?: string | null;
   path?: string | null;
   signedUrl?: string | null;
+  /** Defaults to the file extension. */
   isImage?: boolean;
+  /** Shown when there is no document, e.g. "Not provided (optional)". */
+  emptyLabel?: string;
 };
+
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
 
 function fileNameFromPath(path: string): string {
   const parts = path.split("/");
   return parts[parts.length - 1] ?? path;
 }
 
-export default function DocumentRow({ label, fileName, path, signedUrl, isImage }: Props) {
+export default function DocumentRow({ label, fileName, path, signedUrl, isImage, emptyLabel = "Not provided" }: Props) {
   const displayName = fileName ?? (path ? fileNameFromPath(path) : null);
 
   if (!displayName) {
     return (
       <div className="flex items-center justify-between border border-border rounded-xl p-3 bg-card">
         <span className="text-sm font-medium text-card-foreground">{label}</span>
-        <span className="text-xs text-muted-foreground">Not uploaded</span>
+        <span className="text-xs text-muted-foreground">{emptyLabel}</span>
       </div>
     );
   }
 
   const ext = displayName.split(".").pop()?.toLowerCase() ?? "";
   const href = signedUrl ?? undefined;
+  const showsImage = isImage ?? IMAGE_EXTENSIONS.includes(ext);
 
   const inner = (
     <div className="flex items-center gap-3 border border-border rounded-xl p-3 bg-card w-full text-left">
       <div className="w-14 h-14 rounded-lg border border-border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-        {isImage && signedUrl ? (
+        {showsImage && signedUrl ? (
           <img src={signedUrl} alt={label} className="w-full h-full object-cover" />
-        ) : isImage ? (
+        ) : showsImage ? (
           <ImageIcon size={20} className="text-muted-foreground" />
         ) : (
           <FileText size={20} className="text-muted-foreground" />
@@ -49,7 +55,7 @@ export default function DocumentRow({ label, fileName, path, signedUrl, isImage 
       </div>
       {href && (
         <span className="text-xs font-medium text-primary shrink-0">
-          {isImage ? "View" : "Open"}
+          {showsImage ? "View" : "Open"}
         </span>
       )}
     </div>

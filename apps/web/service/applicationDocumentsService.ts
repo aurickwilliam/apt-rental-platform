@@ -12,54 +12,6 @@ export const APPLICATION_DOCUMENT_SIGNED_URL_TTL_SECONDS = 60 * 60;
 export const VERIFICATION_BUCKET = "user-verification";
 export const VERIFICATION_ID_SIGNED_URL_TTL_SECONDS = 15 * 60;
 
-const MIME_MAP: Record<string, string> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  pdf: "application/pdf",
-  doc: "application/msword",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-};
-
-function contentTypeFor(fileName: string, fallback: string): string {
-  if (fallback) return fallback;
-  const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
-  return MIME_MAP[ext] ?? "application/octet-stream";
-}
-
-export type ApplicationDocKey = "govId" | "proofOfIncome" | "proofOfBilling" | "nbiClearance";
-
-export async function uploadApplicationDocument(
-  file: File,
-  tenantId: string,
-  folderId: string,
-  docKey: ApplicationDocKey,
-): Promise<string> {
-  const supabase = createClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const path = `${tenantId}/${folderId}/${docKey}-${Date.now()}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from(APPLICATION_DOCUMENTS_BUCKET)
-    .upload(path, file, { contentType: contentTypeFor(file.name, file.type) });
-
-  if (error) throw new Error(`Failed to upload ${docKey}: ${error.message}`);
-
-  return path;
-}
-
-export async function removeApplicationDocuments(paths: string[]): Promise<void> {
-  if (paths.length === 0) return;
-  const supabase = createClient();
-  const { error } = await supabase.storage
-    .from(APPLICATION_DOCUMENTS_BUCKET)
-    .remove(paths);
-  if (error) {
-    console.warn("Cleanup failed for", paths, error.message);
-  }
-}
-
 export async function resolveApplicationDocumentUrls(
   paths: readonly string[],
 ): Promise<{ urls: Record<string, string | null>; error: string | null }> {
