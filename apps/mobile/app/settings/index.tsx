@@ -1,18 +1,20 @@
 import { View, Text } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
-import { ListGroup, Separator, Switch, Chip } from 'heroui-native'
+import { ListGroup, Separator, Chip } from 'heroui-native'
 
 import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
-import { useTheme } from '@/hooks/useTheme'
+import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
+
+import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
 type SettingItem = {
   icon: Icon
@@ -38,7 +40,9 @@ function ComingSoonChip() {
 
 export default function Index() {
   const router = useRouter()
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors } = useColors();
+  const { themeMode, setThemeMode } = useThemePreference();
+  const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
 
   const { preferences: notifPrefs } = useNotificationPreferences();
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
@@ -113,13 +117,15 @@ export default function Index() {
         },
         {
           icon: IconMoonStars,
-          title: 'Dark Mode',
-          disabled: true,
+          title: 'Appearance',
+          onPress: () => setAppearanceSheetOpen(true),
           suffix: (
-            <Switch
-              isSelected={isDark}
-              onSelectedChange={toggleTheme}
-            />
+            <View className="flex-row items-center gap-1">
+              <Text className='text-muted text-sm font-inter'>
+                {getThemeModeLabel(themeMode)}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
           ),
         },
       ],
@@ -195,6 +201,12 @@ export default function Index() {
           </ListGroup>
         </View>
       ))}
+      <AppearanceSheet
+        isOpen={appearanceSheetOpen}
+        onOpenChange={setAppearanceSheetOpen}
+        themeMode={themeMode}
+        onSelect={setThemeMode}
+      />
     </ScreenWrapper>
   )
 }

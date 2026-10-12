@@ -327,7 +327,7 @@ Conservative — functional, not decorative.
 - **Skeletons:** 700ms Reanimated opacity 0.45↔0.85; CSS `animate-pulse`
 - **Sheets/dialogs:** HeroUI Native/HeroUI defaults (fade + slide); legacy modals `animationType="fade"`
 - **Page transitions: none exist** — do not add full-page animation systems
-- Dark-mode: instant (next-themes; mobile `Appearance.setColorScheme`)
+- Dark-mode: instant (next-themes; mobile `Uniwind.setTheme`, with a System / Light / Dark choice in Settings → Appearance)
 
 ---
 
