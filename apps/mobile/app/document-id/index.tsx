@@ -243,10 +243,11 @@ export default function Index() {
                 accessibilityRole="button"
                 onPress={() => setIsGridView((prev) => !prev)}
               >
+                {/* Shows the mode the button switches to, not the current one */}
                 {isGridView ? (
-                  <IconLayoutGrid size={22} color={colors.gray500} />
-                ) : (
                   <IconLayoutRows size={22} color={colors.gray500} />
+                ) : (
+                  <IconLayoutGrid size={22} color={colors.gray500} />
                 )}
               </Button>
             ) : null}
@@ -257,7 +258,7 @@ export default function Index() {
               onAddDocument={() => router.push("/document-id/select-document")}
             />
           ) : isGridView ? (
-            <View className="flex-row flex-wrap gap-x-4 gap-y-5">
+            <View className="flex-row flex-wrap justify-between gap-y-5">
               {supportingDocs.map((doc) => {
                 const signedUrl = signedByPath.get(doc.storage_path) ?? null;
                 return (

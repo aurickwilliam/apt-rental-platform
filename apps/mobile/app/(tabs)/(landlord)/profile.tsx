@@ -120,8 +120,6 @@ export default function Profile() {
         role="landlord"
       />
 
-      <PortalSwitcher authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="landlord" />
-
       {!profile?.mobile_number && (
         <CompleteProfileCard
           email={profile?.email ?? ''}
@@ -175,6 +173,8 @@ export default function Profile() {
           ))}
         </ListGroup>
       </View>
+
+      <PortalSwitcher authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="landlord" />
 
       <View className='p-5'>
         <Button

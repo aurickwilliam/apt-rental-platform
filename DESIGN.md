@@ -269,7 +269,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
   - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
 - Tabs — tenant: Rentals / Search / Chat / Profile; landlord: Dashboard / Units / Chat / Profile
 - Mobile sign-in is role-neutral (no Tenant/Landlord tabs). Role tabs remain on sign-up; Google users signing in with an incomplete profile choose their account type on the profile-completion screen instead.
-- Dual-role mobile profiles offer a quiet outlined button to switch between authorized Tenant and Landlord portals; single-role profiles do not show a switch.
+- Dual-role mobile profiles offer a light-blue switch button directly above Logout to switch between authorized Tenant and Landlord portals (single-role profiles do not show it): `variant="secondary"` with a 15% tint of `colors.primary` (`${colors.primary}26`) as the fill and a 1px `${colors.primary}80` border, `IconSwitchHorizontal` 18 in `colors.primary` and a `font-nunitoSemiBold` label. The tint is derived from the theme primary so it stays visible on both the light and dark page background; the fixed `#EFF6FF` (`primaryLight`) was too close to the page colour.
 
 ---
 
@@ -327,7 +327,7 @@ Conservative — functional, not decorative.
 - **Skeletons:** 700ms Reanimated opacity 0.45↔0.85; CSS `animate-pulse`
 - **Sheets/dialogs:** HeroUI Native/HeroUI defaults (fade + slide); legacy modals `animationType="fade"`
 - **Page transitions: none exist** — do not add full-page animation systems
-- Dark-mode: instant (next-themes; mobile `Appearance.setColorScheme`)
+- Dark-mode: instant (next-themes; mobile `Uniwind.setTheme`, with a System / Light / Dark choice in Settings → Appearance)
 
 ---
 

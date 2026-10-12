@@ -64,7 +64,7 @@ const BUILDERS: Record<FilterOption, (points: MonthlyRevenuePoint[]) => ChartDat
 };
 
 export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps) {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
 
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Monthly");
 
@@ -112,15 +112,15 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
             dataPointsColor={colors.primary}
             dataPointsRadius={4}
             startFillColor={colors.primary}
-            endFillColor={"#ffffff"}
+            endFillColor={isDark ? colors.surface : "#ffffff"}
             startOpacity={0.2}
             endOpacity={0.01}
             areaChart
             maxValue={maxValue + 2000}
             noOfSections={4}
             yAxisColor="transparent"
-            xAxisColor="#e5e7eb"
-            rulesColor="#f3f4f6"
+            xAxisColor={isDark ? colors.gray200 : "#e5e7eb"}
+            rulesColor={isDark ? colors.gray200 : "#f3f4f6"}
             rulesType="solid"
             yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
             xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}

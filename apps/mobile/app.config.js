@@ -102,7 +102,7 @@ module.exports = {
         foregroundImage: './assets/icons/android/adaptive-icon.png',
       },
       predictiveBackGestureEnabled: false,
-      softwareKeyboardLayoutMode: 'pan',
+      softwareKeyboardLayoutMode: 'resize',
       package: 'com.aurickwilliam.apt',
       googleServicesFile,
       permissions: ['android.permission.CAMERA', 'android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
@@ -119,6 +119,7 @@ module.exports = {
     },
     plugins: [
       'expo-router',
+      './plugins/withHiddenDevMenuButton',
       [
         'expo-splash-screen',
         {

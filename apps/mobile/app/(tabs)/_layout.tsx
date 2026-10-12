@@ -2,17 +2,18 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 
-import { COLORS } from '@repo/constants';
-
 import { useProfile } from 'hooks/auth';
 import { supabase } from '@repo/supabase';
 import { usePortalStore } from '@/stores/usePortalStore';
 import { portalHome } from '@/service/auth/portalPreference';
+import { useColors } from 'hooks/useTheme';
+import { getSplashBackground } from '@/utils/splashBackground';
 
 export default function TabsLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { profile, loading } = useProfile();
+  const { isDark } = useColors();
   const authUserId = usePortalStore((state) => state.authUserId);
   const portal = usePortalStore((state) => state.portal);
   const portalLoading = usePortalStore((state) => state.loading);
@@ -53,7 +54,7 @@ export default function TabsLayout() {
   if (loading || portalLoading || !hasAppAccess || !portal || authUserId !== profile?.user_id) {
     // Splash-colored backdrop while the profile loads — no spinner, so the
     // splash-to-home transition is seamless
-    return <View style={{ flex: 1, backgroundColor: COLORS.light.primary }} />;
+    return <View style={{ flex: 1, backgroundColor: getSplashBackground(isDark) }} />;
   }
 
   return (
