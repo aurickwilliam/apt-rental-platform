@@ -21,7 +21,9 @@ export default function AccountActions() {
       <Button
         variant="outline"
         className="min-h-11 w-full justify-start gap-3"
-        onPress={() => router.push(`/admin/profile?settings=${SETTINGS_QUERY_VALUE}`)}
+        onPress={() =>
+          window.history.pushState(null, "", `/admin/profile?settings=${SETTINGS_QUERY_VALUE}`)
+        }
       >
         <IconSettings size={20} aria-hidden="true" /> Settings
       </Button>

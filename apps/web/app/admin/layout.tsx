@@ -49,7 +49,7 @@ export default async function AdminLayout({
         activePortal="admin"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay iconSet="tabler" />
+        <SettingsOverlay />
       </Suspense>
     </div>
   );

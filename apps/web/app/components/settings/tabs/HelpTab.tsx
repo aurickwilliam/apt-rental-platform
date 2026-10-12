@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, HelpCircle } from "lucide-react";
 import { IconAlertCircle, IconChevronDown, IconChevronUp, IconExternalLink, IconHelpCircle } from "@tabler/icons-react";
 import { Accordion, AccordionBody, AccordionIndicator, AccordionItem, AccordionPanel, AccordionTrigger } from "@heroui/react";
 
@@ -47,23 +46,11 @@ const linkClassName =
 
 export default function HelpTab({
   isAdmin = false,
-  iconSet = "lucide",
 }: {
   isAdmin?: boolean;
-  iconSet?: "lucide" | "tabler";
 }) {
   const [faqsOpen, setFaqsOpen] = useState(false);
-  const ReportIcon = iconSet === "tabler" ? IconAlertCircle : AlertCircle;
-  const ExternalIcon = iconSet === "tabler" ? IconExternalLink : ExternalLink;
-  const FaqIcon = iconSet === "tabler" ? IconHelpCircle : HelpCircle;
-  const ExpandIcon =
-    iconSet === "tabler"
-      ? faqsOpen
-        ? IconChevronUp
-        : IconChevronDown
-      : faqsOpen
-        ? ChevronUp
-        : ChevronDown;
+  const ExpandIcon = faqsOpen ? IconChevronUp : IconChevronDown;
 
   return (
     <>
@@ -72,62 +59,55 @@ export default function HelpTab({
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {isAdmin
-          ? "Need help or want to read our policies?"
+          ? "Read our policies and learn more about APT."
           : "Find answers and read our policies."}
       </p>
-      {isAdmin ? (
-        <div className="mt-4 space-y-3">
-          <a
-            href="mailto:support@apt-rental.ph"
-            className={linkClassName}
-          >
-            Report a problem · support@apt-rental.ph
-          </a>
-        </div>
-      ) : (
+      {!isAdmin ? (
         <div className="mt-3 divide-y divide-border">
           <SettingsRow
-            icon={<ReportIcon size={18} />}
+            icon={<IconAlertCircle size={18} />}
             title="Report a Problem"
             disabled
             suffix={<ComingSoonChip />}
           />
         </div>
-      )}
-      <div className="mt-4">
-        <div className="rounded-xl border border-border overflow-hidden">
-          <SettingsRow
-            icon={<FaqIcon size={18} />}
-            title="Frequently Asked Questions"
-            onClick={() => setFaqsOpen((v) => !v)}
-            hideChevron
-            expanded={faqsOpen}
-            controlsId="settings-faq-list"
-            suffix={
-              <ExpandIcon size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
-            }
-          />
+      ) : null}
+      {!isAdmin ? (
+        <div className="mt-4">
+          <div className="rounded-xl border border-border overflow-hidden">
+            <SettingsRow
+              icon={<IconHelpCircle size={18} />}
+              title="Frequently Asked Questions"
+              onClick={() => setFaqsOpen((v) => !v)}
+              hideChevron
+              expanded={faqsOpen}
+              controlsId="settings-faq-list"
+              suffix={
+                <ExpandIcon size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
+              }
+            />
+          </div>
+          {faqsOpen ? (
+            <Accordion id="settings-faq-list" className="mt-3 flex flex-col gap-3">
+            {faqs.map((faq) => (
+              <AccordionItem key={faq.id} id={String(faq.id)} className="rounded-lg bg-muted/30 px-2 overflow-hidden">
+                <AccordionTrigger className="w-full flex items-center justify-between p-4 text-left font-nunito font-semibold text-base text-foreground">
+                  <span className="pr-4">
+                    {faq.question}
+                  </span>
+                  <AccordionIndicator className="text-muted-foreground flex-shrink-0" />
+                </AccordionTrigger>
+                <AccordionPanel>
+                  <AccordionBody className="px-4 pb-4">
+                    <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
+                  </AccordionBody>
+                </AccordionPanel>
+              </AccordionItem>
+            ))}
+            </Accordion>
+          ) : null}
         </div>
-        {faqsOpen ? (
-          <Accordion id="settings-faq-list" className="mt-3 flex flex-col gap-3">
-          {faqs.map((faq) => (
-            <AccordionItem key={faq.id} id={String(faq.id)} className="rounded-lg bg-muted/30 px-2 overflow-hidden">
-              <AccordionTrigger className="w-full flex items-center justify-between p-4 text-left font-nunito font-semibold text-base text-foreground">
-                <span className="pr-4">
-                  {faq.question}
-                </span>
-                <AccordionIndicator className="text-muted-foreground flex-shrink-0" />
-              </AccordionTrigger>
-              <AccordionPanel>
-                <AccordionBody className="px-4 pb-4">
-                  <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
-                </AccordionBody>
-              </AccordionPanel>
-            </AccordionItem>
-          ))}
-          </Accordion>
-        ) : null}
-      </div>
+      ) : null}
       <div className="mt-4 space-y-3">
         <Link
           href="/tos"
@@ -158,31 +138,17 @@ export default function HelpTab({
         )}
       </div>
       {isAdmin ? (
-        <>
-          <div className="mt-4 rounded-xl border border-border p-4">
-            <p className="font-nunito text-xl font-bold text-primary">
-              APT — A Place to Thrive
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Connecting renters and property owners in the
-              Philippines.
-            </p>
-            <p className="mt-3 text-xs text-muted-foreground">
-              APT web portal
-            </p>
-          </div>
-          <Link
-            href="/about"
-            className="mt-4 inline-block text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            Learn more about APT{" "}
-            <ExternalIcon
-              size={16}
-              className="ml-1 inline"
-              aria-hidden="true"
-            />
-          </Link>
-        </>
+        <Link
+          href="/about"
+          className="mt-4 inline-block text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          Learn more about APT{" "}
+          <IconExternalLink
+            size={16}
+            className="ml-1 inline"
+            aria-hidden="true"
+          />
+        </Link>
       ) : null}
     </>
   );
