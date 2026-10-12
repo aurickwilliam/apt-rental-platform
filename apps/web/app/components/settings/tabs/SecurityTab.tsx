@@ -29,22 +29,11 @@ export default function SecurityTab({
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {isAdmin
-          ? "Manage your profile and review how your information is handled."
+          ? "Review how your information is handled."
           : "Manage your account credentials."}
       </p>
       {isAdmin ? (
         <div className="mt-4 space-y-3">
-          <Link
-            href="/admin/profile/edit"
-            className="block rounded-xl border border-border p-4 text-sm font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            Edit your profile{" "}
-            <ExternalIcon
-              size={16}
-              className="ml-1 inline"
-              aria-hidden="true"
-            />
-          </Link>
           <div className="rounded-xl border border-border p-4 text-sm">
             <p className="font-semibold">Password and email</p>
             <p className="mt-1 text-muted-foreground">
