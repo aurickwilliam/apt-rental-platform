@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconUsers } from "@tabler/icons-react";
-import { Spinner } from "@heroui/react";
 import {
-  buildListHref,
   formatOptionLabels,
   formatResultRange,
   type JoinedPreset,
@@ -19,8 +17,10 @@ import DateRangeFilter, {
 } from "../_components/filters/DateRangeFilter";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
 import FilterPopover from "../_components/filters/FilterPopover";
+import PendingList from "../_components/filters/PendingList";
 import SortDropdown from "../_components/filters/SortDropdown";
 import type { ActiveFilterTag } from "../_components/filters/types";
+import { useListFilters } from "../_components/filters/use-list-filters";
 import UsersTable from "./components/UsersTable";
 import UserCardList from "./components/UserCardList";
 import UsersEmptyState from "./components/UsersEmptyState";
@@ -116,33 +116,28 @@ function buildActiveTags(filters: UserFilters): ActiveFilterTag[] {
 export default function UsersClient({
   users,
   error,
-  filters,
-  page,
+  filters: appliedFilters,
+  page: appliedPage,
   totalCount,
   pageSize,
 }: UsersClientProps) {
   const router = useRouter();
-  const [isNavigating, startTransition] = useTransition();
-  const [search, setSearch] = useState(filters.q);
+  const list = useListFilters({
+    pathname: "/admin/users",
+    filters: appliedFilters,
+    page: appliedPage,
+    toParams: userFilterParams,
+  });
+  const { filters, page } = list;
   const [draft, setDraft] = useState<PopoverDraft>(() =>
     draftFromFilters(filters),
   );
   const activeTags = buildActiveTags(filters);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
-  function navigate(nextFilters: UserFilters, nextPage = 1) {
-    startTransition(() => {
-      router.push(
-        buildListHref("/admin/users", userFilterParams(nextFilters, nextPage)),
-      );
-    });
-  }
-
   function applyDraft(nextDraft: PopoverDraft) {
     const range = nextDraft.joined === "custom" ? nextDraft.range : null;
-    navigate({
-      ...filters,
-      q: search,
+    list.apply({
       verifications: nextDraft.verifications,
       roles: nextDraft.roles,
       access: nextDraft.access,
@@ -154,16 +149,16 @@ export default function UsersClient({
   }
 
   function removeTags(ids: string[]) {
-    const next = { ...filters, q: search };
-    if (ids.includes("verifications")) next.verifications = [];
-    if (ids.includes("roles")) next.roles = [];
-    if (ids.includes("access")) next.access = "all";
+    const patch: Partial<UserFilters> = {};
+    if (ids.includes("verifications")) patch.verifications = [];
+    if (ids.includes("roles")) patch.roles = [];
+    if (ids.includes("access")) patch.access = "all";
     if (ids.includes("joined")) {
-      next.joined = "any";
-      next.from = null;
-      next.to = null;
+      patch.joined = "any";
+      patch.from = null;
+      patch.to = null;
     }
-    navigate(next);
+    list.apply(patch);
   }
 
   return (
@@ -184,19 +179,12 @@ export default function UsersClient({
         <AdminFilterToolbar
           searchLabel="Search users"
           searchPlaceholder="Search name or email…"
-          searchValue={search}
-          onSearchChange={setSearch}
-          onSearchSubmit={() => navigate({ ...filters, q: search })}
-          onSearchClear={() => {
-            setSearch("");
-            navigate({ ...filters, q: "" });
-          }}
+          searchValue={list.search}
+          onSearchChange={list.changeSearch}
+          onSearchSubmit={list.submitSearch}
+          onSearchClear={list.clearSearch}
           refreshLabel="Refresh users"
-          onRefresh={() => {
-            startTransition(() => {
-              router.refresh();
-            });
-          }}
+          onRefresh={list.refresh}
         >
           <FilterPopover
             activeCount={activeTags.length}
@@ -244,7 +232,7 @@ export default function UsersClient({
           <SortDropdown
             options={USER_SORT_OPTIONS}
             value={filters.sort}
-            onChange={(sort) => navigate({ ...filters, q: search, sort }, page)}
+            onChange={(sort) => list.apply({ sort })}
           />
         </AdminFilterToolbar>
 
@@ -261,25 +249,13 @@ export default function UsersClient({
         </p>
       ) : (
         <>
-          <div aria-busy={isNavigating} className="relative">
-            {isNavigating ? (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
-                <Spinner
-                  size="lg"
-                  color="current"
-                  className="text-primary"
-                  aria-label="Loading users"
-                />
-              </div>
-            ) : null}
+          <PendingList isPending={list.isPending} label="Loading users">
             {users.length ? (
               <>
                 <UsersTable
                   users={users}
                   sort={filters.sort}
-                  onSortChange={(sort) =>
-                    navigate({ ...filters, q: search, sort }, page)
-                  }
+                  onSortChange={(sort) => list.apply({ sort })}
                   onSelectUser={(id) => router.push(`/admin/users/${id}`)}
                 />
                 <UserCardList users={users} />
@@ -287,13 +263,13 @@ export default function UsersClient({
             ) : (
               <UsersEmptyState />
             )}
-          </div>
+          </PendingList>
 
           <AdminListFooter
             ariaLabel="User pagination"
             page={page}
             totalPages={totalPages}
-            onPageChange={(nextPage) => navigate(filters, nextPage)}
+            onPageChange={list.goToPage}
             summary={formatResultRange(page, pageSize, totalCount, "users")}
           />
         </>

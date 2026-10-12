@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Spinner } from "@heroui/react";
-import {
-  buildListHref,
-  formatOptionLabels,
-  formatResultRange,
-} from "@/lib/admin-filters";
+import { formatOptionLabels, formatResultRange } from "@/lib/admin-filters";
 import AdminFilterToolbar from "../_components/filters/AdminFilterToolbar";
 import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
 import AdminListFooter from "../_components/filters/AdminListFooter";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
 import FilterPopover from "../_components/filters/FilterPopover";
+import PendingList from "../_components/filters/PendingList";
 import SortDropdown from "../_components/filters/SortDropdown";
 import type { ActiveFilterTag } from "../_components/filters/types";
+import { useListFilters } from "../_components/filters/use-list-filters";
 import ApartmentsTable from "./components/ApartmentsTable";
 import ApartmentCardList from "./components/ApartmentCardList";
 import ApartmentsEmptyState from "./components/ApartmentsEmptyState";
@@ -91,40 +88,34 @@ function buildActiveTags(filters: ApartmentFilters): ActiveFilterTag[] {
 }
 
 export default function ApartmentsClient({
-  filters,
+  filters: appliedFilters,
   apartments,
   error,
-  page,
+  page: appliedPage,
   totalCount,
   pageSize,
 }: ApartmentsClientProps) {
   const router = useRouter();
-  const [isNavigating, startTransition] = useTransition();
-  const [search, setSearch] = useState(filters.q);
+  const list = useListFilters({
+    pathname: "/admin/apartments",
+    filters: appliedFilters,
+    page: appliedPage,
+    toParams: apartmentFilterParams,
+  });
+  const { filters, page } = list;
   const [draft, setDraft] = useState<PopoverDraft>(() =>
     draftFromFilters(filters),
   );
   const activeTags = buildActiveTags(filters);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
-  function navigate(nextFilters: ApartmentFilters, nextPage = 1) {
-    startTransition(() => {
-      router.push(
-        buildListHref(
-          "/admin/apartments",
-          apartmentFilterParams(nextFilters, nextPage),
-        ),
-      );
-    });
-  }
-
   function removeTags(ids: string[]) {
-    const next = { ...filters, q: search };
-    if (ids.includes("statuses")) next.statuses = [];
-    if (ids.includes("locations")) next.locations = [];
-    if (ids.includes("verification")) next.verification = "all";
-    if (ids.includes("visibility")) next.visibility = "all";
-    navigate(next);
+    const patch: Partial<ApartmentFilters> = {};
+    if (ids.includes("statuses")) patch.statuses = [];
+    if (ids.includes("locations")) patch.locations = [];
+    if (ids.includes("verification")) patch.verification = "all";
+    if (ids.includes("visibility")) patch.visibility = "all";
+    list.apply(patch);
   }
 
   return (
@@ -133,25 +124,18 @@ export default function ApartmentsClient({
         <AdminFilterToolbar
           searchLabel="Search apartments or landlords"
           searchPlaceholder="Search name, landlord, or email…"
-          searchValue={search}
-          onSearchChange={setSearch}
-          onSearchSubmit={() => navigate({ ...filters, q: search })}
-          onSearchClear={() => {
-            setSearch("");
-            navigate({ ...filters, q: "" });
-          }}
+          searchValue={list.search}
+          onSearchChange={list.changeSearch}
+          onSearchSubmit={list.submitSearch}
+          onSearchClear={list.clearSearch}
           refreshLabel="Refresh apartments"
-          onRefresh={() => {
-            startTransition(() => {
-              router.refresh();
-            });
-          }}
+          onRefresh={list.refresh}
         >
           <FilterPopover
             activeCount={activeTags.length}
             onOpen={() => setDraft(draftFromFilters(filters))}
             onReset={() => setDraft(EMPTY_DRAFT)}
-            onApply={() => navigate({ ...filters, q: search, ...draft })}
+            onApply={() => list.apply(draft)}
           >
             <FilterPillGroup
               selectionMode="multiple"
@@ -193,7 +177,7 @@ export default function ApartmentsClient({
           <SortDropdown
             options={APARTMENT_SORT_OPTIONS}
             value={filters.sort}
-            onChange={(sort) => navigate({ ...filters, q: search, sort }, page)}
+            onChange={(sort) => list.apply({ sort })}
           />
         </AdminFilterToolbar>
 
@@ -211,25 +195,16 @@ export default function ApartmentsClient({
           </p>
         ) : (
           <>
-            <div aria-busy={isNavigating} className="relative">
-              {isNavigating ? (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
-                  <Spinner
-                    size="lg"
-                    color="current"
-                    className="text-primary"
-                    aria-label="Loading apartments"
-                  />
-                </div>
-              ) : null}
+            <PendingList
+              isPending={list.isPending}
+              label="Loading apartments"
+            >
               {apartments.length ? (
                 <>
                   <ApartmentsTable
                     apartments={apartments}
                     sort={filters.sort}
-                    onSortChange={(sort) =>
-                      navigate({ ...filters, q: search, sort }, page)
-                    }
+                    onSortChange={(sort) => list.apply({ sort })}
                     onSelectApartment={(id) =>
                       router.push(`/admin/apartments/${id}`)
                     }
@@ -239,13 +214,13 @@ export default function ApartmentsClient({
               ) : (
                 <ApartmentsEmptyState />
               )}
-            </div>
+            </PendingList>
 
             <AdminListFooter
               ariaLabel="Apartment pagination"
               page={page}
               totalPages={totalPages}
-              onPageChange={(nextPage) => navigate(filters, nextPage)}
+              onPageChange={list.goToPage}
               summary={formatResultRange(
                 page,
                 pageSize,

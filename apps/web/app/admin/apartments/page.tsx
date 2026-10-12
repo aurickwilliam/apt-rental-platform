@@ -13,7 +13,11 @@ import {
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 10;
 const APARTMENT_COLUMNS =
-  "id, name, city, status, is_verified, is_hidden_by_admin, monthly_rent, created_at";
+  "id, name, city, status, is_verified, is_hidden_by_admin, monthly_rent, created_at, apartment_images(url, url_thumb)";
+
+type ApartmentRow = Omit<AdminApartment, "thumbnail_url"> & {
+  apartment_images: { url: string; url_thumb: string | null }[];
+};
 
 const APARTMENT_SORT_ORDER: Record<
   ApartmentSort,
@@ -32,71 +36,68 @@ interface PageProps {
 }
 
 export default async function ApartmentsPage({ searchParams }: PageProps) {
-  await requireAdmin();
   const params = await searchParams;
   const filters = parseApartmentFilters(params);
   const page = Math.max(1, Number(params.page) || 1);
   const supabase = await createClient();
   const locationFilter = locationOrFilter(filters.locations);
 
-  let landlordIds: string[] = [];
-  if (filters.q) {
-    const { data: landlords } = await supabase
-      .from("users")
-      .select("id")
-      .filter("roles", "cs", "{landlord}")
-      .or(
-        `first_name.ilike.%${filters.q}%,last_name.ilike.%${filters.q}%,email.ilike.%${filters.q}%`,
-      )
-      .limit(100);
-    landlordIds = (landlords ?? []).map((profile) => profile.id);
+  async function loadApartments() {
+    let landlordIds: string[] = [];
+    if (filters.q) {
+      const { data: landlords } = await supabase
+        .from("users")
+        .select("id")
+        .filter("roles", "cs", "{landlord}")
+        .or(
+          `first_name.ilike.%${filters.q}%,last_name.ilike.%${filters.q}%,email.ilike.%${filters.q}%`,
+        )
+        .limit(100);
+      landlordIds = (landlords ?? []).map((profile) => profile.id);
+    }
+
+    const { column, ascending } = APARTMENT_SORT_ORDER[filters.sort];
+    let query = supabase
+      .from("apartments")
+      .select(APARTMENT_COLUMNS, { count: "exact" })
+      .is("deleted_at", null)
+      // Only the cover image is embedded, in the same request as the rows.
+      .eq("apartment_images.is_cover", true)
+      .limit(1, { referencedTable: "apartment_images" });
+    if (filters.statuses.length) query = query.in("status", filters.statuses);
+    if (filters.verification !== "all")
+      query = query.eq("is_verified", filters.verification === "verified");
+    if (filters.visibility !== "all")
+      query = query.eq("is_hidden_by_admin", filters.visibility === "hidden");
+    if (locationFilter) query = query.or(locationFilter);
+    if (filters.q)
+      query = landlordIds.length
+        ? query.or(
+            `name.ilike.%${filters.q}%,landlord_id.in.(${landlordIds.join(",")})`,
+          )
+        : query.ilike("name", `%${filters.q}%`);
+
+    return query
+      .order(column, { ascending, nullsFirst: false })
+      // Tiebreaker keeps pagination stable when sort values repeat.
+      .order("id", { ascending: true })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   }
 
-  const { column, ascending } = APARTMENT_SORT_ORDER[filters.sort];
-  let query = supabase
-    .from("apartments")
-    .select(APARTMENT_COLUMNS, { count: "exact" })
-    .is("deleted_at", null);
-  if (filters.statuses.length) query = query.in("status", filters.statuses);
-  if (filters.verification !== "all")
-    query = query.eq("is_verified", filters.verification === "verified");
-  if (filters.visibility !== "all")
-    query = query.eq("is_hidden_by_admin", filters.visibility === "hidden");
-  if (locationFilter) query = query.or(locationFilter);
-  if (filters.q)
-    query = landlordIds.length
-      ? query.or(
-          `name.ilike.%${filters.q}%,landlord_id.in.(${landlordIds.join(",")})`,
-        )
-      : query.ilike("name", `%${filters.q}%`);
-
-  const { data, error, count } = await query
-    .order(column, { ascending, nullsFirst: false })
-    // Tiebreaker keeps pagination stable when sort values repeat.
-    .order("id", { ascending: true })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  // The admin check runs alongside the queries instead of before them: RLS
+  // already limits what a non-admin could read, and nothing renders unless
+  // the check passes (it redirects or throws otherwise).
+  const [, { data, error, count }] = await Promise.all([
+    requireAdmin(),
+    loadApartments(),
+  ]);
   if (error) console.error("Admin apartments query failed", error);
 
-  const apartmentRows = (data ?? []) as unknown as AdminApartment[];
-  const thumbnails = new Map<string, string>();
-  if (apartmentRows.length) {
-    const { data: covers } = await supabase
-      .from("apartment_images")
-      .select("apartment_id, url, url_thumb")
-      .in(
-        "apartment_id",
-        apartmentRows.map((apartment) => apartment.id),
-      )
-      .eq("is_cover", true);
-    for (const cover of covers ?? []) {
-      if (cover.apartment_id && !thumbnails.has(cover.apartment_id)) {
-        thumbnails.set(cover.apartment_id, cover.url_thumb ?? cover.url);
-      }
-    }
-  }
-  const apartmentsData = apartmentRows.map((apartment) => ({
+  const apartmentsData: AdminApartment[] = (
+    (data ?? []) as unknown as ApartmentRow[]
+  ).map(({ apartment_images: covers, ...apartment }) => ({
     ...apartment,
-    thumbnail_url: thumbnails.get(apartment.id) ?? null,
+    thumbnail_url: covers[0]?.url_thumb ?? covers[0]?.url ?? null,
   }));
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
@@ -112,7 +113,6 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
         </p>
       </div>
       <ApartmentsClient
-        key={JSON.stringify(filters)}
         filters={filters}
         apartments={apartmentsData}
         error={Boolean(error)}

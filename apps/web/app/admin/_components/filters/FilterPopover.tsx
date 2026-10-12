@@ -43,7 +43,12 @@ export default function FilterPopover({
           Filters
         </Button>
         {activeCount ? (
-          <Badge color="accent" size="sm" placement="top-right">
+          // `!` beats @heroui/styles' unlayered badge colors.
+          <Badge
+            size="sm"
+            placement="top-right"
+            className="bg-primary! text-white!"
+          >
             {activeCount}
           </Badge>
         ) : null}

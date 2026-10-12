@@ -37,7 +37,6 @@ interface PageProps {
 }
 
 export default async function UsersPage({ searchParams }: PageProps) {
-  await requireAdmin();
   const params = await searchParams;
   const filters = parseUserFilters(params);
   const page = Math.max(1, Number(params.page) || 1);
@@ -64,15 +63,17 @@ export default async function UsersPage({ searchParams }: PageProps) {
   // Tiebreaker keeps pagination stable when sort values repeat.
   query = query.order("id", { ascending: true });
 
-  const { data, error, count } = await query.range(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE - 1,
-  );
+  // The admin check runs alongside the query instead of before it: RLS
+  // already limits what a non-admin could read, and nothing renders unless
+  // the check passes (it redirects or throws otherwise).
+  const [, { data, error, count }] = await Promise.all([
+    requireAdmin(),
+    query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+  ]);
   if (error) console.error("Admin users query failed", error);
 
   return (
     <UsersClient
-      key={JSON.stringify(filters)}
       users={(data ?? []) as unknown as AdminUser[]}
       error={Boolean(error)}
       filters={filters}
