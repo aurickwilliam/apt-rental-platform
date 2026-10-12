@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   IconBuilding,
   IconChevronRight,
@@ -16,7 +18,7 @@ import RecentApartmentCard from "./components/RecentApartmentCard";
 import RecentUserCard from "./components/RecentUserCard";
 import VerificationQueue from "./components/VerificationQueue";
 import { QueueChart } from "./components/DashboardCharts";
-import { getDashboardData, type RecentItem } from "./lib/get-dashboard-data";
+import { getDashboardData, getDashboardTrends, type RecentItem } from "./lib/get-dashboard-data";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +107,38 @@ function RecentSection({
   );
 }
 
+async function TrendsSection({ from, to, today, trendsPromise }: {
+  from: string;
+  to: string;
+  today: string;
+  trendsPromise: ReturnType<typeof getDashboardTrends>;
+}) {
+  const { trends, error } = await trendsPromise;
+  return (
+    <>
+      {error ? (
+        <p role="alert" className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+          Some dashboard data could not be loaded. Refresh and try again.
+        </p>
+      ) : null}
+      <DashboardTrends from={from} to={to} today={today} initialTrends={trends} />
+    </>
+  );
+}
+
+function TrendsSkeleton() {
+  return (
+    <section aria-label="Loading platform trends" className="space-y-3">
+      <Skeleton className="h-6 w-44 bg-muted" />
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <Skeleton key={index} className="h-64 rounded-3xl border border-border bg-muted" />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function AdminDashboardPage({
   searchParams,
 }: {
@@ -133,7 +167,8 @@ export default async function AdminDashboardPage({
     fromDate >= new Date(todayDate.getTime() - 89 * DAY_MS);
   const from = validRange ? params.from! : defaultFrom;
   const to = validRange ? params.to! : today;
-  const data = await getDashboardData(from, to);
+  const trendsPromise = getDashboardTrends(from, to);
+  const data = await getDashboardData();
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", {
       hour: "numeric",
@@ -194,7 +229,7 @@ export default async function AdminDashboardPage({
         </div>
       </header>
 
-      {data.hasError || data.chartsError ? (
+      {data.hasError ? (
         <p
           role="alert"
           className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger"
@@ -243,12 +278,9 @@ export default async function AdminDashboardPage({
         </div>
       </div>
 
-      <DashboardTrends
-        from={from}
-        to={to}
-        today={today}
-        initialTrends={data.trends}
-      />
+      <Suspense fallback={<TrendsSkeleton />}>
+        <TrendsSection from={from} to={to} today={today} trendsPromise={trendsPromise} />
+      </Suspense>
 
       <section aria-labelledby="recent-heading">
         <h2 id="recent-heading" className="mb-3 font-nunito text-xl font-bold">

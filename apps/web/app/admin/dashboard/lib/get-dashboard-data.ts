@@ -46,9 +46,7 @@ export interface DashboardData {
   recentUsers: RecentItem[];
   recentApartments: RecentItem[];
   recentActivity: RecentItem[];
-  trends: TrendPoint[];
   hasError: boolean;
-  chartsError: boolean;
 }
 
 const QUEUE_LIMIT = 8;
@@ -71,10 +69,7 @@ function fullName(
   );
 }
 
-export async function getDashboardData(
-  from: string,
-  to: string,
-): Promise<DashboardData> {
+export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
   const [
     users,
@@ -214,11 +209,6 @@ export async function getDashboardData(
     }),
   ].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 
-  const { data: trendData, error: trendsError } = await supabase.rpc(
-    "get_admin_dashboard_trends",
-    { p_from: from, p_to: to },
-  );
-
   const hasError = [
     users,
     apartments,
@@ -233,8 +223,7 @@ export async function getDashboardData(
     queueApartments,
     images,
   ].some((result) => Boolean(result.error));
-  const chartsError = Boolean(trendsError);
-  if (hasError || chartsError)
+  if (hasError)
     console.error("Admin dashboard: some queries failed");
 
   return {
@@ -269,8 +258,19 @@ export async function getDashboardData(
       image: null,
       date: row.created_at,
     })),
-    trends: trendData ?? [],
     hasError,
-    chartsError,
   };
+}
+
+export async function getDashboardTrends(from: string, to: string): Promise<{
+  trends: TrendPoint[];
+  error: boolean;
+}> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_admin_dashboard_trends", {
+    p_from: from,
+    p_to: to,
+  });
+  if (error) console.error("Admin dashboard trends failed", error);
+  return { trends: data ?? [], error: Boolean(error) };
 }

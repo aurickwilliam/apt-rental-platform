@@ -495,18 +495,18 @@ export function AppSidebar({
           >
             <Dropdown.Menu
               onAction={(key) => {
-                if (key === "profile") window.location.assign(profileHref);
+                if (key === "profile") router.push(profileHref);
                 if (key === "settings") {
                   if (settingsQueryParam) {
                     const url = new URL(window.location.href);
                     url.searchParams.set("settings", settingsQueryParam);
                     router.push(`${url.pathname}${url.search}${url.hash}`);
                   } else {
-                    window.location.assign(settingsHref ?? "/settings");
+                    router.push(settingsHref ?? "/settings");
                   }
                 }
                 const target = switchTargets.find((item) => `switch:${item.href}` === key);
-                if (target) window.location.assign(target.href);
+                if (target) router.push(target.href);
                 if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
@@ -680,7 +680,9 @@ function MobileSidebarMenu({
               // actually toggles the theme (mirrors the sidebar footer).
               if (key === "theme") toggleTheme();
               const target = switchTargets.find((item) => `switch:${item.href}` === key);
-              if (target) window.location.assign(target.href);
+              if (target) router.push(target.href);
+              const navItem = navItems.find((item) => item.href === key);
+              if (navItem) router.push(navItem.href);
             }}
           >
             {navItems.map(({ href, label, icon }) => {
@@ -693,7 +695,6 @@ function MobileSidebarMenu({
                   key={href}
                   id={href}
                   textValue={label}
-                  href={href}
                   aria-current={isActive(pathname, href) ? "page" : undefined}
                 >
                   <Label className="flex items-center gap-2">
