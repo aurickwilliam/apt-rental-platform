@@ -8,9 +8,14 @@ import {
 
 import { Flag } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { formatPesoDisplay } from "@repo/utils";
 import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
+import ApplyStartModal, {
+  type ApplyStartApartment,
+  type ApplyStartViewer,
+} from "../apply/components/ApplyStartModal";
 
 interface PriceCardProps {
   price: number;
@@ -18,6 +23,9 @@ interface PriceCardProps {
   advancePayment: number | undefined;
   apartmentId?: string;
   basePath?: string;
+  /** Signed-in tenant; null sends Apply Now to the apply route instead. */
+  applyViewer?: ApplyStartViewer | null;
+  applyApartment?: ApplyStartApartment;
 }
 
 export default function PriceCard({
@@ -26,15 +34,23 @@ export default function PriceCard({
   advancePayment = 0,
   apartmentId,
   basePath = "/browse",
+  applyViewer = null,
+  applyApartment,
 }: PriceCardProps) {
   const router = useRouter();
+  const [isApplyOpen, setIsApplyOpen] = useState(false);
+
+  const handleApply = () => {
+    if (applyViewer && applyApartment) setIsApplyOpen(true);
+    else if (apartmentId) router.push(`${basePath}/${apartmentId}/apply`);
+  };
 
   const formattedPrice = formatPesoDisplay(price);
 
   const totalMoveInCost = price + securityDeposit + advancePayment;
 
   const costBreakdown = [
-    { label: "Monthly Rent", value: `₱ ${formattedPrice}` },
+    { label: "Monthly Rent", value: formattedPrice },
     { label: "Security Deposit", value: `${formatPesoDisplay(securityDeposit)}` },
     { label: "Advance Payment", value: `${formatPesoDisplay(advancePayment)}` },
   ]
@@ -43,7 +59,7 @@ export default function PriceCard({
     <Card className="border border-grey-300 shadow-none">
       <Card.Header>
         <Card.Title className="text-3xl font-medium text-primary">
-          ₱ {formattedPrice}<span className="text-xl">/month</span>
+          {formattedPrice}<span className="text-xl">/month</span>
         </Card.Title>
       </Card.Header>
 
@@ -66,7 +82,7 @@ export default function PriceCard({
       </Card.Content>
 
       <Card.Footer className="flex flex-col gap-2">
-        <Button fullWidth onPress={() => apartmentId && router.push(`${basePath}/${apartmentId}/apply`)}>
+        <Button fullWidth className="cursor-pointer" onPress={handleApply}>
           Apply Now
         </Button>
 
@@ -82,6 +98,15 @@ export default function PriceCard({
           Report
         </Button>
       </Card.Footer>
+      {applyViewer && applyApartment ? (
+        <ApplyStartModal
+          isOpen={isApplyOpen}
+          onOpenChange={setIsApplyOpen}
+          apartment={applyApartment}
+          viewer={applyViewer}
+          basePath={basePath}
+        />
+      ) : null}
     </Card>
   );
 }

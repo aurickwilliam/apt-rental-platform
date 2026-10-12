@@ -37,8 +37,7 @@ import {
 import DocumentPreview from "./components/DocumentPreview";
 import { isPreviewable } from "./utils/fileType";
 import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
-import { getDocumentTypeDescription } from "./utils/documentTypeDescriptions";
-import { isExpiredDate } from "@/service/passport/expiry";
+import { getDocumentTypeDescription, isExpiredDate } from "@repo/passport";
 
 function DetailRow({
   label,

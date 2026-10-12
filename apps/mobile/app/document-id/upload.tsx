@@ -24,14 +24,14 @@ import DateField from "@/components/inputs/DateField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import AppDialog from "@/components/display/AppDialog";
 import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
-import { getDocumentTypeDescription } from "./utils/documentTypeDescriptions";
 
 import { useColors } from "@/hooks/useTheme";
 import { useUploadPassportDocument } from "@/hooks/passport";
 import {
+  getDocumentTypeDescription,
   toExpiryDateString,
   validateExpiryDate,
-} from "@/service/passport/expiry";
+} from "@repo/passport";
 
 export default function Upload() {
   const { docType } = useLocalSearchParams<{ docType?: string | string[] }>();

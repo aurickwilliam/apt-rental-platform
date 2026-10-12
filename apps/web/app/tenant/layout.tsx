@@ -4,11 +4,16 @@ import SettingsOverlay from "../components/settings/SettingsOverlay";
 import ReviewUnlockGate from "./components/ReviewUnlockGate";
 import { createClient } from "@repo/supabase/server";
 
+import { canViewPassport } from "@/lib/passport-access";
+
+const PASSPORT_HREF = "/tenant/passport";
+
 const TENANT_NAV = [
   { href: "/tenant/browse", label: "Browse", icon: "Search" },
   { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
   { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
+  { href: PASSPORT_HREF, label: "APT Passport", icon: "FileCheck" },
   { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
 ] as const;
 
@@ -21,6 +26,7 @@ export default async function TenantLayout({
   const userRole = "Tenant";
   let userRoles: string[] = ["tenant"];
   let userAvatarUrl: string | null = null;
+  let accountStatus: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -30,7 +36,7 @@ export default async function TenantLayout({
     if (user) {
       const { data: profile } = await supabase
         .from("users")
-        .select("first_name, last_name, roles, avatar_url")
+        .select("first_name, last_name, roles, avatar_url, account_status")
         .eq("user_id", user.id)
         .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
@@ -38,15 +44,22 @@ export default async function TenantLayout({
       else if (user.email) userName = user.email;
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
+      accountStatus = profile?.account_status ?? null;
     }
   } catch {
     // fallback to defaults — layout remains server-renderable
   }
 
+  // Pending/unverified accounts can't open the Passport (the route guard
+  // redirects them), so don't offer the link.
+  const navItems = canViewPassport(accountStatus)
+    ? [...TENANT_NAV]
+    : TENANT_NAV.filter((item) => item.href !== PASSPORT_HREF);
+
   return (
     <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
       <AppSidebar
-        navItems={[...TENANT_NAV]}
+        navItems={navItems}
         userName={userName}
         userRole={userRole}
         userAvatarUrl={userAvatarUrl}
@@ -61,7 +74,7 @@ export default async function TenantLayout({
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
-        navItems={[...TENANT_NAV, { href: "/tenant/profile", label: "Profile", icon: "User" }]}
+        navItems={[...navItems, { href: "/tenant/profile", label: "Profile", icon: "User" }]}
         iconSet="tabler"
         navLabel="Tenant navigation"
         menuLabel="Tenant pages"

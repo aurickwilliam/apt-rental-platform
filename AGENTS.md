@@ -34,9 +34,9 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 
 ## Stack & Monorepo Structure
 
-- pnpm@10.25.0 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
+- pnpm@10.34.5 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
 - Backend: Supabase (Postgres, Auth, Realtime, Storage)
-- No CI or formatter config exists; `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`) run via `pnpm --filter mobile test`
+- CI: one required `ci` job (`.github/workflows/ci.yml`) runs mobile lint + jest and web lint + typecheck + tests; no formatter config. `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`, also covering `packages/passport`) via `pnpm --filter mobile test`; `apps/web` has `node:test` suites for pure helpers in `lib/*.test.mjs` via `pnpm --filter web test`
 
 ### `apps/web` — Next.js 16 (App Router)
 - Styling: **Tailwind CSS v4** + PostCSS (`@tailwindcss/postcss`)
@@ -53,7 +53,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 - Auth: PKCE flow with `@react-native-async-storage/async-storage`; the platform-aware Supabase client lives in `@repo/supabase` (`packages/supabase/src/client.ts` handles RN/SSR branching)
 - Babel: `react-native-reanimated/plugin` in `babel.config.js`
 - Services: `service/` mirrors the `hooks/` domain folder layout (e.g. `service/chat/chatService.ts`, `service/media/privateMediaResolver.ts`); tests co-locate in their domain folder, imported via direct file paths (no barrels)
-- Rental application (`app/apartment/[apartmentId]/apply`): no document-upload step — APT Passport documents are attached automatically by reference (`selectPassportDocsForApplication`; expired/rejected docs never attach). Readiness (verified account, not own listing, no pending application, complete passport) lives in `service/applications/applicationReadiness.ts` and gates both the summary screen and submit. The web apply flow still uploads files (no web Passport).
+- Rental application (`app/apartment/[apartmentId]/apply`): no document-upload step — APT Passport documents are attached automatically by reference (`selectPassportDocsForApplication`; expired/rejected docs never attach). Readiness (verified account, not own listing, no pending application, complete passport) is `evaluateApplicationReadiness` in `@repo/passport` and gates both the summary screen and submit. The web has a Passport wallet in both portals (`/tenant/passport`, `/landlord/passport`; verified accounts only, guarded server-side by `requirePassportViewer(portal)`, and the portal layouts hide the nav link unless `canViewPassport(account_status)`; shared components in `app/components/passport/` take a `basePath`, and the application checklist is tenant-only), and the web apply flow (`/browse/[apartmentId]/apply` and `/tenant/browse/[apartmentId]/apply`, one shared `loadApplyPage` loader + `ApplyClient`) mirrors mobile, except that the summary step is the apartment page's Apply Now modal (`ApplyStartModal`) and the route opens at tenant info: no upload step, documents attached by reference, readiness re-read at submit (`use-submit-application`). Web apply never uploads files.
 - Applications are validated in the database (`guard_rental_application_insert` / `_update`), not just the client: verified account, proof of income unless Student/Unemployed, and every document path must be the applicant's own (folder, existing file, non-rejected/non-expired Passport row; ID captures only for the ID slot; ID back paired with the ID). Document columns, `tenant_id` and `apartment_id` are immutable after insert. Client checks are for feedback only; DB messages are user-facing, so surface them as-is.
 - Notification payloads route through `buildNotificationDeepLink`; actions that only exist on the web (admin passport review, screen `passportReview`) return null there and callers show `getWebOnlyNotificationNotice` as a toast instead. Never reuse a tenant-facing screen key for an admin-facing notification.
 - Application document URLs resolve via `resolveApplicationDocumentUrls` (mobile resolver / web `applicationDocumentsService`): a verified ID front/back (`{users.id}/{verification id}/id-front|id-back.*`) signs from `user-verification` with a 15-minute URL; everything else from `application-documents`. Route by path shape — never probe/fall back across buckets. Applications store the front in `gov_id_url` and the back in `gov_id_back_url`; landlords read exactly those two files (never the selfie) through `private.landlord_can_read_applicant_id()`.
@@ -66,6 +66,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 | `@repo/constants` | `.` | Colors, apartment/user constants, PH address data |
 | `@repo/utils` | `.` | Shared utilities |
 | `@repo/hooks` | `.` | `usePasswordValidation`, `usePHMobileValidation`, `usePHPostalCode` |
+| `@repo/passport` | `.` | Pure APT Passport logic shared by web and mobile: slot selection (`selectPassportDocsForApplication`), `evaluateApplicationReadiness`, expiry helpers, `isVerifiedIdPath`, `verifiedPassportPaths` (landlord Verified badges; expired documents never count), document statuses and slot states, document-type descriptions. Structural row type (`PassportSlotDocument`), no Supabase client; tests run in the mobile Jest suite via `roots` in `apps/mobile/jest.config.js` |
 
 ## Commands (root `package.json`)
 
@@ -75,7 +76,7 @@ pnpm mobile       # pnpm --filter mobile start
 ```
 
 Individual app scripts:
-- `pnpm --filter web dev` / `pnpm --filter web build` / `pnpm --filter web lint`
+- `pnpm --filter web dev` / `pnpm --filter web build` / `pnpm --filter web lint` / `pnpm --filter web typecheck` / `pnpm --filter web test`
 - `pnpm --filter mobile start` / `pnpm --filter mobile ios` / `pnpm --filter mobile android` / `pnpm --filter mobile lint` (expo lint)
 - `pnpm --filter mobile test` (jest) / `pnpm --filter mobile exec jest --runInBand` (CI-style run)
 
@@ -83,7 +84,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 
 ## Git & CI Workflow
 
-- `main` is protected by the `main-protection` ruleset: PR required, `ci` check (expo lint + jest) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
+- `main` is protected by the `main-protection` ruleset: PR required, `ci` check (mobile lint + jest, web lint + typecheck + tests) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
 - Sync with `main` before opening/merging a PR: `git merge main` on your branch (the `ci` check runs against the PR's merge commit).
 - If CI fails with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install` locally and commit the updated `pnpm-lock.yaml` (CI installs with `--frozen-lockfile`).
 - Stale branches (long-diverged from `main`) commonly fail CI on lockfile drift or moved tests — merge `main` first, then re-run.
@@ -217,6 +218,7 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 - **Zustand** (mobile only): client state shared across screens — form flows, theme, personalization. Lives in `stores/`; includes `reset()`.
 - **Portal preference** (mobile): `users.roles` is server-authoritative; `usePortalStore` holds only the active tenant/landlord navigation choice in memory. Persist that choice per auth user in AsyncStorage across sign-out, but clear in-memory state and React Query on sign-out/account change. Always validate the saved choice against the latest roles before routing; never persist roles or treat a preference as authorization.
 - **Supabase** is the source of truth for all server data; fetch in hooks/services behind React Query — never mirror it in stores.
+- **Server data (web)**: data hooks load through `hooks/use-async-resource.ts` (memoized loader → `{ data, loading, error, refresh, setData }`); effects never set state synchronously (`react-hooks/set-state-in-effect` is enforced in CI). Browser-only values use `useSyncExternalStore` (`use-hydrated`, `use-mobile`); prop-to-state resets compare with the previous prop during render instead of an effect.
 - **URL state** (web): filters and search via `searchParams` / `useSearchParams`.
 - **Context** (web): none for session state — `AuthContext` is form-state scoped to the `(auth)` route group only. Session awareness comes from `hooks/use-user.ts` (with `onAuthStateChange`) and server pages. Avoid adding global contexts.
 - Never duplicate state: derive from a single source, reset stores on completion, keep stores out of server data.

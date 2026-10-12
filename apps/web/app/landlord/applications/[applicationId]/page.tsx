@@ -24,6 +24,7 @@ import { useLandlordApplications } from "@/hooks/use-landlord-applications";
 import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-actions";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportVerifiedPaths } from "@/hooks/use-passport-verified-paths";
+import { buildApplicationDocumentList } from "@/lib/application-documents";
 import { statusChipColor } from "../lib/application-status";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
@@ -39,7 +40,7 @@ function SectionTitle({ children }: { children: string }) {
   return <p className="text-sm font-nunito font-bold text-primary uppercase tracking-wide">{children}</p>;
 }
 
-function DocumentRow({ label, path, signedUrl, verified = false }: { label: string; path: string | null; signedUrl: string | null; verified?: boolean }) {
+function DocumentRow({ label, path, signedUrl, verified = false, emptyLabel }: { label: string; path: string | null; signedUrl: string | null; verified?: boolean; emptyLabel: string }) {
   return (
     <div className="flex items-center justify-between rounded-xl bg-muted px-3 py-2.5">
       <div className="flex items-center gap-2 min-w-0">
@@ -56,7 +57,7 @@ function DocumentRow({ label, path, signedUrl, verified = false }: { label: stri
               </Chip>
             ) : null}
           </p>
-          <p className="text-xs font-nunito text-muted-foreground truncate">{path ? "Tap View to open" : "Not submitted"}</p>
+          <p className="text-xs font-nunito text-muted-foreground truncate">{path ? "Tap View to open" : emptyLabel}</p>
         </div>
       </div>
       {signedUrl ? (
@@ -94,19 +95,8 @@ export default function LandlordApplicationDetailPage() {
 
   const app = useMemo(() => applications.find((a) => a.id === id) ?? null, [applications, id]);
 
-  const docEntries = useMemo(
-    () =>
-      app
-        ? [
-            { label: "Government ID", path: app.gov_id_url },
-            ...(app.gov_id_back_url ? [{ label: "Government ID (Back)", path: app.gov_id_back_url }] : []),
-            { label: "Proof of Income", path: app.proof_of_income_url },
-            { label: "Proof of Billing", path: app.proof_of_billing_url },
-            { label: "NBI Clearance", path: app.nbi_clearance_url },
-          ]
-        : [],
-    [app],
-  );
+  // Every slot in display order, with "Not provided" wording for empty ones.
+  const docEntries = useMemo(() => (app ? buildApplicationDocumentList(app, {}) : []), [app]);
   const { resolved: resolvedDocs } = useApplicationDocumentUrls(docEntries);
   const signedByLabel = useMemo(() => new Map(resolvedDocs.map((d) => [d.label, d.signedUrl])), [resolvedDocs]);
   const docPaths = useMemo(
@@ -118,6 +108,16 @@ export default function LandlordApplicationDetailPage() {
     const entry = docEntries.find((d) => d.label === label);
     return !!entry?.path && verifiedPaths.has(entry.path);
   };
+  const documentRows = docEntries.map((entry) => (
+    <DocumentRow
+      key={entry.label}
+      label={entry.label}
+      path={entry.path}
+      signedUrl={signedByLabel.get(entry.label) ?? null}
+      verified={isVerifiedLabel(entry.label)}
+      emptyLabel={entry.emptyLabel}
+    />
+  ));
 
   if (loading) {
     return (
@@ -187,7 +187,7 @@ export default function LandlordApplicationDetailPage() {
   );
 
   return (
-    <div className="w-full max-w-none mx-0 px-0 py-2 flex flex-col gap-2 bg-card h-[calc(100dvh-4.5rem)] min-h-0">
+    <div className="w-full max-w-none mx-0 px-0 py-2 flex flex-1 flex-col gap-2 bg-card">
       <div className="flex items-center gap-2 shrink-0 px-3">
         <Button variant="ghost" size="sm" onPress={() => router.back()} className="gap-1.5 font-nunito">
           <ArrowLeft size={16} />
@@ -207,9 +207,9 @@ export default function LandlordApplicationDetailPage() {
         </div>
       )}
 
-      <Card className="shadow-none bg-card rounded-none border-0 flex-1 min-h-0 overflow-hidden flex flex-col p-0">
-        {/* Mobile stacked — scrollable, borderless tiny gap */}
-        <div className="md:hidden flex flex-col overflow-y-auto p-3 gap-2">
+      <Card className="shadow-none bg-card rounded-none border-0 flex flex-col p-0">
+        {/* Mobile stacked — borderless tiny gap */}
+        <div className="md:hidden flex flex-col p-3 gap-2">
           <div className="rounded-2xl bg-card p-3 flex flex-row items-start justify-between gap-3">
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
@@ -246,12 +246,12 @@ export default function LandlordApplicationDetailPage() {
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Preferences</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} /><DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} /><DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} /></div></div>
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Previous Landlord</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Name" value={app.prev_landlord_name ?? "Not provided"} /><DetailField label="Contact" value={app.prev_landlord_contact ?? "Not provided"} /></div></div>
           <Separator className="bg-border" />
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Documents</SectionTitle><div className="flex flex-col gap-1.5"><DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} verified={isVerifiedLabel("Government ID")} />{app.gov_id_back_url && <DocumentRow label="Government ID (Back)" path={app.gov_id_back_url} signedUrl={signedByLabel.get("Government ID (Back)") ?? null} verified={isVerifiedLabel("Government ID (Back)")} />}<DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} verified={isVerifiedLabel("Proof of Income")} /><DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} verified={isVerifiedLabel("Proof of Billing")} /><DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} verified={isVerifiedLabel("NBI Clearance")} /></div></div>
+          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Documents</SectionTitle><div className="flex flex-col gap-1.5">{documentRows}</div></div>
           <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Message</SectionTitle><p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">{app.message ?? "No message provided."}</p></div>
         </div>
 
-        {/* Desktop — strictly no scroll, tiny gap, borderless, two separators, bigger Nunito, actions aligned with apartment name row */}
-        <div className="hidden md:flex flex-1 min-h-0 flex-col gap-2 p-3 overflow-hidden">
+        {/* Desktop — tiny gap, borderless, two separators, bigger Nunito, actions aligned with apartment name row */}
+        <div className="hidden md:flex flex-col gap-2 p-3">
           <div className="rounded-2xl bg-card px-4 py-3 flex flex-row items-start justify-between gap-3 shrink-0">
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
@@ -324,19 +324,16 @@ export default function LandlordApplicationDetailPage() {
 
           <Separator className="bg-border shrink-0" />
 
-          <div className="grid grid-cols-2 gap-2 flex-1 min-h-0 overflow-hidden">
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2 overflow-hidden">
+          <div className="grid grid-cols-2 gap-2 shrink-0">
+            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
               <SectionTitle>Documents</SectionTitle>
-              <div className="flex flex-col gap-1.5 overflow-hidden flex-1 justify-between">
-                <DocumentRow label="Government ID" path={app.gov_id_url} signedUrl={signedByLabel.get("Government ID") ?? null} verified={isVerifiedLabel("Government ID")} />{app.gov_id_back_url && <DocumentRow label="Government ID (Back)" path={app.gov_id_back_url} signedUrl={signedByLabel.get("Government ID (Back)") ?? null} verified={isVerifiedLabel("Government ID (Back)")} />}
-                <DocumentRow label="Proof of Income" path={app.proof_of_income_url} signedUrl={signedByLabel.get("Proof of Income") ?? null} verified={isVerifiedLabel("Proof of Income")} />
-                <DocumentRow label="Proof of Billing" path={app.proof_of_billing_url} signedUrl={signedByLabel.get("Proof of Billing") ?? null} verified={isVerifiedLabel("Proof of Billing")} />
-                <DocumentRow label="NBI Clearance" path={app.nbi_clearance_url} signedUrl={signedByLabel.get("NBI Clearance") ?? null} verified={isVerifiedLabel("NBI Clearance")} />
+              <div className="flex flex-col gap-1.5">
+                {documentRows}
               </div>
             </div>
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2 overflow-hidden">
+            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
               <SectionTitle>Message</SectionTitle>
-              <p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line flex-1 overflow-hidden">{app.message ?? "No message provided."}</p>
+              <p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">{app.message ?? "No message provided."}</p>
             </div>
           </div>
         </div>

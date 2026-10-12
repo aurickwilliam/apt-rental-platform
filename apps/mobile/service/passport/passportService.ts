@@ -1,14 +1,8 @@
 import { File } from 'expo-file-system'
-import { isExpiredDate } from './expiry'
 
 import { supabase, type Database } from '@repo/supabase'
-import {
-  DOCUMENT_TYPES,
-  PASSPORT_SLOT_DOC_TYPES,
-  isReviewEligibleDocType,
-  requiresProofOfIncome,
-  type ApplicationDocumentSlot,
-} from '@repo/constants'
+import { DOCUMENT_TYPES, isReviewEligibleDocType } from '@repo/constants'
+import { isExpiredDate, verifiedPassportPaths, type VerifiedPassportPathRow } from '@repo/passport'
 
 export const PASSPORT_DOCUMENTS_BUCKET = 'application-documents'
 const PASSPORT_PREFIX = 'passport'
@@ -359,92 +353,5 @@ export async function fetchPassportVerifiedPaths(
     .eq('is_verified', true)
 
   if (error) throw error
-  const requested = new Set(unique)
-  const verified = new Set<string>()
-  // An expired document no longer counts as verified for landlords.
-  for (const row of (data ?? []) as {
-    storage_path: string
-    storage_path_back: string | null
-    expires_at: string | null
-  }[]) {
-    if (isExpiredDate(row.expires_at)) continue
-    for (const path of [row.storage_path, row.storage_path_back]) {
-      if (path && requested.has(path)) verified.add(path)
-    }
-  }
-  return verified
-}
-
-/**
- * Returns passport docs that can satisfy an application slot — primary ID,
- * then verified, then newest. Gov IDs also match rows carrying an id_type
- * (verification-linked IDs whose doc_type is the raw ID name).
- */
-export function passportDocsForSlot(
-  docs: readonly PassportDocumentRow[],
-  slot: ApplicationDocumentSlot
-): PassportDocumentRow[] {
-  const accepted = PASSPORT_SLOT_DOC_TYPES[slot]
-  return docs
-    .filter((doc) => {
-      if (accepted.includes(doc.doc_type)) return true
-      if (slot === 'govId' && doc.id_type) return true
-      return false
-    })
-    .sort((a, b) => {
-      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
-      if (a.is_verified !== b.is_verified) return a.is_verified ? -1 : 1
-      return b.created_at.localeCompare(a.created_at)
-    })
-}
-
-export interface PassportApplicationSelection {
-  /** Best usable passport document per application slot (null when none). */
-  docs: Record<ApplicationDocumentSlot, PassportDocumentRow | null>
-  /** Required slots with no usable document at all. */
-  missing: ApplicationDocumentSlot[]
-  /** Required slots whose only matching documents are expired. */
-  expired: ApplicationDocumentSlot[]
-}
-
-/**
- * Picks the passport documents submitted with a rental application. Rejected
- * and expired documents are never attached. Proof of income is only required
- * when the employment type needs it (unknown employment skips that check);
- * NBI clearance is optional and attached when available.
- */
-export function selectPassportDocsForApplication(
-  docs: readonly PassportDocumentRow[],
-  employmentType: string | null = null
-): PassportApplicationSelection {
-  const slots: ApplicationDocumentSlot[] = [
-    'govId',
-    'proofOfIncome',
-    'proofOfBilling',
-    'nbiClearance',
-  ]
-  const required: ApplicationDocumentSlot[] = ['govId', 'proofOfBilling']
-  if (employmentType && requiresProofOfIncome(employmentType)) {
-    required.push('proofOfIncome')
-  }
-
-  const selection: PassportApplicationSelection = {
-    docs: { govId: null, proofOfIncome: null, proofOfBilling: null, nbiClearance: null },
-    missing: [],
-    expired: [],
-  }
-
-  for (const slot of slots) {
-    const candidates = passportDocsForSlot(docs, slot).filter(
-      (doc) => doc.review_status !== 'rejected'
-    )
-    const usable = candidates.filter((doc) => !isExpiredDate(doc.expires_at))
-    selection.docs[slot] = usable[0] ?? null
-
-    if (usable.length > 0 || !required.includes(slot)) continue
-    if (candidates.length > 0) selection.expired.push(slot)
-    else selection.missing.push(slot)
-  }
-
-  return selection
+  return verifiedPassportPaths((data ?? []) as VerifiedPassportPathRow[], unique)
 }

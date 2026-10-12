@@ -23,7 +23,7 @@ import ValidIdCard from "./components/ValidIdCard";
 import { useColors } from "@/hooks/useTheme";
 import { useDocumentUrls } from "@/hooks/applications";
 import { usePassportDocuments } from "@/hooks/passport";
-import { isExpiredDate } from "@/service/passport/expiry";
+import { isExpiredDate } from "@repo/passport";
 
 export default function Index() {
   const router = useRouter();

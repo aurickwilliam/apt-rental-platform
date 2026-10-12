@@ -1,6 +1,6 @@
 # APT Passport — Document Detail Redesign Plan
 
-Status: Complete (2026-10-08)
+Status: Complete (2026-10-08). The web counterpart (document detail, wallet, apply flow) is tracked in `docs/plans/web-apt-passport-mirroring.md`.
 Scope: Mobile document detail only (`apps/mobile/app/document-id/[documentId].tsx`)
 Goal: Make the file/image preview the visual focus, then show upload date and expiry date, status, delete, and request-verify actions in one clear scroll.
 
@@ -16,7 +16,7 @@ Non-goals:
   - Resolves private signed URLs via `useDocumentUrls()` (bucket `application-documents`, or `user-verification` for linked IDs).
   - Preview via local `components/DocumentPreview.tsx` (image inline + `Linking.openURL` fallback; non-image file card).
   - Full-screen image viewer via `react-native-image-viewing`.
-  - Dates: `Uploaded` (`created_at`) + `Expires` (`expires_at` or "No expiry"), expiry via `service/passport/expiry.ts:isExpiredDate()`.
+  - Dates: `Uploaded` (`created_at`) + `Expires` (`expires_at` or "No expiry"), expiry via `isExpiredDate()` from `@repo/passport`.
   - Status: Verified (`success`) / Under review (`warning`) chips + rejection-reason and expired banners.
   - Footer actions: Request Verification (`useRequestPassportDocumentReview()`) + Delete (`useDeletePassportDocument()` + `ConfirmDialog`), hidden for linked primary IDs and under-review docs.
   - Tests: `app/document-id/detail.test.tsx` (icon, linked-ID copy, pending banner).

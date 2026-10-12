@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useProfile } from 'hooks/auth'
 import { usePassportDocuments } from '@/hooks/passport'
 import { useTenantApplications } from './useTenantApplications'
-import { evaluateApplicationReadiness } from '@/service/applications/applicationReadiness'
+import { evaluateApplicationReadiness } from '@repo/passport'
 
 /**
  * Live "can this tenant apply to this apartment?" state: account verified,

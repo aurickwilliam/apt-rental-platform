@@ -2,6 +2,13 @@
 
 import { createClient } from "@repo/supabase/browser";
 
+import {
+  APPLICATION_DOCUMENT_PATH_KEYS,
+  buildApplicationDocumentList,
+  type ApplicationDocumentEntry,
+  type ApplicationDocumentPathKey,
+} from "@/lib/application-documents";
+
 export type ApplicationStatus =
   | "pending"
   | "approved"
@@ -9,11 +16,7 @@ export type ApplicationStatus =
   | "cancelled"
   | "closed";
 
-export type ApplicationDocument = {
-  label: string;
-  path: string;
-  signedUrl: string | null;
-};
+export type ApplicationDocument = ApplicationDocumentEntry;
 
 export type TenantApplication = {
   id: string;
@@ -53,21 +56,6 @@ const APPLICATION_SELECT = `id, status, created_at, rejected_reason, apartment_i
   gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
   apartments(name, monthly_rent, street_address, barangay, city, province, zip_code, apartment_images(url, is_cover))`;
 
-type ApplicationDocumentPathKey =
-  | "gov_id_url"
-  | "gov_id_back_url"
-  | "proof_of_income_url"
-  | "proof_of_billing_url"
-  | "nbi_clearance_url";
-
-const DOCUMENT_DEFINITIONS: { label: string; pathKey: ApplicationDocumentPathKey }[] = [
-  { label: "Government ID", pathKey: "gov_id_url" },
-  { label: "Government ID (Back)", pathKey: "gov_id_back_url" },
-  { label: "Proof of Income", pathKey: "proof_of_income_url" },
-  { label: "Proof of Billing", pathKey: "proof_of_billing_url" },
-  { label: "NBI Clearance", pathKey: "nbi_clearance_url" },
-];
-
 export async function fetchTenantApplications(tenantId: string): Promise<TenantApplication[]> {
   const supabase = createClient();
 
@@ -92,19 +80,13 @@ export async function fetchTenantApplications(tenantId: string): Promise<TenantA
     })[];
 
   const paths = typed
-    .flatMap((item) => DOCUMENT_DEFINITIONS.map((d) => item[d.pathKey]))
+    .flatMap((item) => APPLICATION_DOCUMENT_PATH_KEYS.map((key) => item[key]))
     .filter((path): path is string => !!path);
 
   const { urls } = await resolveApplicationDocumentUrls(paths);
 
   return typed.map((item) => {
-    const documents: ApplicationDocument[] = DOCUMENT_DEFINITIONS.flatMap(
-      (definition) => {
-        const path = item[definition.pathKey];
-        if (!path) return [];
-        return [{ label: definition.label, path, signedUrl: urls[path] ?? null }];
-      },
-    );
+    const documents = buildApplicationDocumentList(item, urls);
 
     return {
       id: item.id,
@@ -146,6 +128,8 @@ export type InsertTenantApplicationPayload = {
   need_parking: boolean;
   message: string | null;
   gov_id_url: string;
+  /** Only for a verification-linked ID, which has a back capture. */
+  gov_id_back_url: string | null;
   proof_of_income_url: string | null;
   proof_of_billing_url: string;
   nbi_clearance_url: string | null;
@@ -172,6 +156,58 @@ export async function insertTenantApplication(
   }
 
   return { id: data.id };
+}
+
+export interface ApplicationSubmitContext {
+  tenantId: string;
+  accountStatus: string | null;
+  landlordId: string | null;
+  hasActiveApplication: boolean;
+}
+
+/**
+ * Fresh, submit-time facts for the readiness check: the applicant's
+ * account status, the apartment's owner, and any pending application.
+ * Read again at submit so a stale page can't skip a check (the database
+ * still has the final say).
+ */
+export async function fetchApplicationSubmitContext(apartmentId: string): Promise<ApplicationSubmitContext> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("You must be signed in to submit an application.");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("id, account_status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (profileError) throw new Error(profileError.message);
+  if (!profile) throw new Error("You must be signed in to submit an application.");
+
+  const [apartmentResult, pendingResult] = await Promise.all([
+    supabase.from("apartments").select("landlord_id").eq("id", apartmentId).maybeSingle(),
+    supabase
+      .from("rental_application")
+      .select("id")
+      .eq("tenant_id", profile.id)
+      .eq("apartment_id", apartmentId)
+      .eq("status", "pending")
+      .limit(1),
+  ]);
+  if (apartmentResult.error || !apartmentResult.data) {
+    throw new Error("Could not verify this apartment. Please try again.");
+  }
+  if (pendingResult.error) throw new Error(pendingResult.error.message);
+
+  return {
+    tenantId: profile.id,
+    accountStatus: profile.account_status,
+    landlordId: apartmentResult.data.landlord_id,
+    hasActiveApplication: (pendingResult.data ?? []).length > 0,
+  };
 }
 
 export async function cancelTenantApplication(

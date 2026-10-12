@@ -3,7 +3,6 @@
 import { Card, Separator } from "@heroui/react";
 import Link from "next/link";
 import { getApplicationStatusStyle, type ApplicationStatus } from "@/app/tenant/applications/lib/statusStyles";
-import { formatPesoDisplay } from "@repo/utils";
 
 type Props = {
   id: string;

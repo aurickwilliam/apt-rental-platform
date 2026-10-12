@@ -27,3 +27,12 @@ jobs:
 
       - name: Mobile tests
         run: pnpm --filter mobile exec jest --runInBand --forceExit
+
+      - name: Web lint
+        run: pnpm --filter web lint
+
+      - name: Web typecheck
+        run: pnpm --filter web typecheck
+
+      - name: Web tests
+        run: pnpm --filter web test

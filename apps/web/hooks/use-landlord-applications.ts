@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
+import { useAsyncResource } from "@/hooks/use-async-resource";
 import {
   fetchLandlordApplications,
   getLandlordContext,
@@ -11,32 +12,15 @@ import {
 export type { LandlordApplication };
 export type DisplayStatus = LandlordApplication["status"];
 
+const NO_APPLICATIONS: LandlordApplication[] = [];
+
 export function useLandlordApplications() {
-  const [applications, setApplications] = useState<LandlordApplication[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const context = await getLandlordContext();
-      if (!context.landlordId) {
-        setApplications([]);
-        return;
-      }
-      const rows = await fetchLandlordApplications();
-      setApplications(rows);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load applications.");
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async () => {
+    const context = await getLandlordContext();
+    if (!context.landlordId) return NO_APPLICATIONS;
+    return fetchLandlordApplications();
   }, []);
+  const { data, loading, error, refresh } = useAsyncResource(load, NO_APPLICATIONS, "Failed to load applications.");
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  return { applications, loading, error, refresh };
+  return { applications: data, loading, error, refresh };
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
+import { useAsyncResource } from "@/hooks/use-async-resource";
 import {
   fetchTenantApplications,
   type TenantApplication,
@@ -10,35 +11,20 @@ import { getTenantContext } from "@/service/favoritesService";
 
 export type { TenantApplication };
 
+interface TenantApplicationsData {
+  tenantId: string | null;
+  applications: TenantApplication[];
+}
+
+const EMPTY: TenantApplicationsData = { tenantId: null, applications: [] };
+
 export function useTenantApplications() {
-  const [applications, setApplications] = useState<TenantApplication[]>([]);
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const context = await getTenantContext();
-      if (!context.tenantId) {
-        setTenantId(null);
-        setApplications([]);
-        return;
-      }
-      setTenantId(context.tenantId);
-      const rows = await fetchTenantApplications(context.tenantId);
-      setApplications(rows);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load applications.");
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async (): Promise<TenantApplicationsData> => {
+    const context = await getTenantContext();
+    if (!context.tenantId) return EMPTY;
+    return { tenantId: context.tenantId, applications: await fetchTenantApplications(context.tenantId) };
   }, []);
+  const { data, loading, error, refresh } = useAsyncResource(load, EMPTY, "Failed to load applications.");
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  return { applications, tenantId, loading, error, refresh };
+  return { applications: data.applications, tenantId: data.tenantId, loading, error, refresh };
 }

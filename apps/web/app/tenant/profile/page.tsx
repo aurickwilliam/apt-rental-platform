@@ -8,6 +8,7 @@ import ProfileForm from "@/app/components/profile/ProfileForm";
 import type { ProfileInitial } from "@/app/components/profile/ProfileForm";
 import AddRoleSection from "@/app/components/profile/AddRoleSection";
 import ProfileHeader from "@/app/components/profile/ProfileHeader";
+import PassportProfileCard from "@/app/components/passport/PassportProfileCard";
 
 function getInitials(firstName: string | null, lastName: string | null, email: string | null) {
   const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
@@ -76,6 +77,8 @@ export default async function TenantProfilePage() {
         avatarUrl={profile.avatar_url}
         backgroundUrl={profile.background_url}
       />
+
+      <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" />
 
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
         <Card.Content className="p-0">

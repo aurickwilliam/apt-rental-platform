@@ -3,8 +3,8 @@ import type { ApplicationDocumentSlot } from '@repo/constants'
 import {
   selectPassportDocsForApplication,
   type PassportApplicationSelection,
-  type PassportDocumentRow,
-} from '@/service/passport/passportService'
+  type PassportSlotDocument,
+} from './selection'
 
 export type ApplicationIssueCode =
   | 'unverified'
@@ -26,19 +26,19 @@ export const APPLICATION_SLOT_LABELS: Record<ApplicationDocumentSlot, string> = 
   nbiClearance: 'NBI Clearance',
 }
 
-export interface ApplicationReadinessInput {
+export interface ApplicationReadinessInput<T extends PassportSlotDocument = PassportSlotDocument> {
   accountStatus: string | null | undefined
   tenantId: string | null | undefined
   landlordId: string | null | undefined
   hasActiveApplication: boolean
-  passportDocs: readonly PassportDocumentRow[]
+  passportDocs: readonly T[]
   /** Unknown until the tenant picks it in step 1; income is skipped when null. */
   employmentType?: string | null
 }
 
-export interface ApplicationReadiness {
+export interface ApplicationReadiness<T extends PassportSlotDocument = PassportSlotDocument> {
   issues: ApplicationIssue[]
-  selection: PassportApplicationSelection
+  selection: PassportApplicationSelection<T>
   isReady: boolean
 }
 
@@ -50,9 +50,9 @@ function labelList(slots: ApplicationDocumentSlot[]): string {
  * Everything that must be true before a tenant can apply. Shared by the
  * summary/review screens (early feedback) and the submit hook (final check).
  */
-export function evaluateApplicationReadiness(
-  input: ApplicationReadinessInput
-): ApplicationReadiness {
+export function evaluateApplicationReadiness<T extends PassportSlotDocument>(
+  input: ApplicationReadinessInput<T>
+): ApplicationReadiness<T> {
   const issues: ApplicationIssue[] = []
 
   if (input.accountStatus !== 'verified') {

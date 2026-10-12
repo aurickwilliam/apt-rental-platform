@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+
+import { useAsyncResource } from "@/hooks/use-async-resource";
 
 import { getLandlordContext } from "@/service/landlordApplicationsService";
 import {
@@ -13,33 +15,23 @@ import {
 export type { LandlordMaintenanceRequest };
 export { getNextStatus };
 
+const NO_REQUESTS: LandlordMaintenanceRequest[] = [];
+
 export function useLandlordMaintenanceRequests() {
-  const [requests, setRequests] = useState<LandlordMaintenanceRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const context = await getLandlordContext();
-      if (!context.landlordId) {
-        setRequests([]);
-        return;
-      }
-      const rows = await fetchLandlordMaintenanceRequests(context.landlordId);
-      setRequests(rows);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load maintenance requests.");
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async (): Promise<LandlordMaintenanceRequest[]> => {
+    const context = await getLandlordContext();
+    if (!context.landlordId) return NO_REQUESTS;
+    return fetchLandlordMaintenanceRequests(context.landlordId);
   }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const {
+    data: requests,
+    loading,
+    error,
+    refresh,
+    setData: setRequests,
+  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.");
 
   const updateStatus = useCallback(
     async (
@@ -93,7 +85,7 @@ export function useLandlordMaintenanceRequests() {
         setActionLoading(false);
       }
     },
-    [requests],
+    [requests, setRequests],
   );
 
   const advanceStatus = useCallback(

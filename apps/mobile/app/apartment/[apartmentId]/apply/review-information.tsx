@@ -25,7 +25,7 @@ import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 import { useApplicationReadiness, useSubmitApplication } from '@/hooks/applications'
 import { useApartmentDetails } from '@/hooks/apartments'
-import { APPLICATION_SLOT_LABELS } from '@/service/applications/applicationReadiness'
+import { APPLICATION_SLOT_LABELS } from '@repo/passport'
 
 export default function ReviewInformation() {
   const router = useRouter();

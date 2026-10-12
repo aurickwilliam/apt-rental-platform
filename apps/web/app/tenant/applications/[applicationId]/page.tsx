@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -142,7 +143,7 @@ export default function ApplicationDetailPage() {
       <div className="border border-border rounded-3xl overflow-hidden bg-card isolate">
         <div className="relative h-64 md:h-[360px] overflow-hidden rounded-3xl">
           {cover ? (
-            <img src={cover} alt={apartment?.name ?? "Apartment"} className="w-full h-full object-cover" />
+            <Image src={cover} alt={apartment?.name ?? "Apartment"} fill unoptimized className="object-cover" />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">No image</div>
           )}
@@ -259,19 +260,15 @@ export default function ApplicationDetailPage() {
             <AccordionPanel>
               <AccordionBody className="px-4 pb-4">
                 <div className="flex flex-col gap-3">
-                  {application.documents.length > 0 ? (
-                    application.documents.map((doc) => (
-                      <DocumentRow
-                        key={doc.label}
-                        label={doc.label}
-                        path={doc.path}
-                        signedUrl={doc.signedUrl}
-                        isImage={doc.label === "Government ID" || doc.label === "Proof of Billing"}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No documents submitted.</p>
-                  )}
+                  {application.documents.map((doc) => (
+                    <DocumentRow
+                      key={doc.label}
+                      label={doc.label}
+                      path={doc.path}
+                      signedUrl={doc.signedUrl}
+                      emptyLabel={doc.emptyLabel}
+                    />
+                  ))}
                 </div>
               </AccordionBody>
             </AccordionPanel>

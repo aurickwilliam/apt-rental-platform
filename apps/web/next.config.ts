@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@repo/supabase", "@repo/constants", "@repo/utils", "@repo/hooks"],
+  transpilePackages: ["@repo/supabase", "@repo/constants", "@repo/utils", "@repo/hooks", "@repo/passport"],
   turbopack: {
     resolveAlias: {
       'react-native': './empty-module.ts',
