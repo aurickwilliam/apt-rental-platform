@@ -3,80 +3,81 @@ import { createClient } from "@repo/supabase/server";
 import { requireAdmin } from "../_lib/require-admin";
 import ApartmentsClient from "./ApartmentsClient";
 import type { AdminApartment } from "./lib/apartment-display";
+import {
+  locationOrFilter,
+  parseApartmentFilters,
+  type ApartmentSearchParams,
+  type ApartmentSort,
+} from "./lib/apartment-filters";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 10;
-const VALID_STATUSES = [
-  "available",
-  "occupied",
-  "under_maintenance",
-  "unverified",
-] as const;
+const APARTMENT_COLUMNS =
+  "id, name, city, status, is_verified, is_hidden_by_admin, monthly_rent, created_at";
+
+const APARTMENT_SORT_ORDER: Record<
+  ApartmentSort,
+  { column: "created_at" | "name" | "monthly_rent"; ascending: boolean }
+> = {
+  newest: { column: "created_at", ascending: false },
+  oldest: { column: "created_at", ascending: true },
+  name_asc: { column: "name", ascending: true },
+  name_desc: { column: "name", ascending: false },
+  rent_asc: { column: "monthly_rent", ascending: true },
+  rent_desc: { column: "monthly_rent", ascending: false },
+};
+
 interface PageProps {
-  searchParams: Promise<{
-    q?: string;
-    verification?: string;
-    status?: string;
-    visibility?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<ApartmentSearchParams>;
 }
 
 export default async function ApartmentsPage({ searchParams }: PageProps) {
   await requireAdmin();
-  const {
-    q = "",
-    verification = "",
-    status = "",
-    visibility = "",
-    page: pageParam,
-  } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
-  const statuses = [
-    ...new Set(
-      status
-        .split(",")
-        .map((value) => value.trim())
-        .filter((value): value is (typeof VALID_STATUSES)[number] =>
-          (VALID_STATUSES as readonly string[]).includes(value),
-        ),
-    ),
-  ];
+  const params = await searchParams;
+  const filters = parseApartmentFilters(params);
+  const page = Math.max(1, Number(params.page) || 1);
   const supabase = await createClient();
-  let query = supabase
-    .from("apartments")
-    .select(
-      "id, name, city, status, is_verified, is_hidden_by_admin, monthly_rent, created_at",
-      { count: "exact" },
-    )
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
-  if (verification === "verified") query = query.eq("is_verified", true);
-  if (verification === "unverified") query = query.eq("is_verified", false);
-  if (visibility === "visible") query = query.eq("is_hidden_by_admin", false);
-  if (visibility === "hidden") query = query.eq("is_hidden_by_admin", true);
-  if (statuses.length) query = query.in("status", statuses);
-  if (q.trim()) {
-    const term = q.trim();
+  const locationFilter = locationOrFilter(filters.locations);
+
+  let landlordIds: string[] = [];
+  if (filters.q) {
     const { data: landlords } = await supabase
       .from("users")
       .select("id")
       .filter("roles", "cs", "{landlord}")
       .or(
-        `first_name.ilike.%${term}%,last_name.ilike.%${term}%,email.ilike.%${term}%`,
+        `first_name.ilike.%${filters.q}%,last_name.ilike.%${filters.q}%,email.ilike.%${filters.q}%`,
       )
       .limit(100);
-    const landlordIds = (landlords ?? []).map((profile) => profile.id);
-    query = landlordIds.length
-      ? query.or(`name.ilike.%${term}%,landlord_id.in.(${landlordIds.join(",")})`)
-      : query.ilike("name", `%${term}%`);
+    landlordIds = (landlords ?? []).map((profile) => profile.id);
   }
-  const {
-    data: apartments,
-    error,
-    count,
-  } = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
-  const apartmentRows = (apartments ?? []) as unknown as AdminApartment[];
+
+  const { column, ascending } = APARTMENT_SORT_ORDER[filters.sort];
+  let query = supabase
+    .from("apartments")
+    .select(APARTMENT_COLUMNS, { count: "exact" })
+    .is("deleted_at", null);
+  if (filters.statuses.length) query = query.in("status", filters.statuses);
+  if (filters.verification !== "all")
+    query = query.eq("is_verified", filters.verification === "verified");
+  if (filters.visibility !== "all")
+    query = query.eq("is_hidden_by_admin", filters.visibility === "hidden");
+  if (locationFilter) query = query.or(locationFilter);
+  if (filters.q)
+    query = landlordIds.length
+      ? query.or(
+          `name.ilike.%${filters.q}%,landlord_id.in.(${landlordIds.join(",")})`,
+        )
+      : query.ilike("name", `%${filters.q}%`);
+
+  const { data, error, count } = await query
+    .order(column, { ascending, nullsFirst: false })
+    // Tiebreaker keeps pagination stable when sort values repeat.
+    .order("id", { ascending: true })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (error) console.error("Admin apartments query failed", error);
+
+  const apartmentRows = (data ?? []) as unknown as AdminApartment[];
   const thumbnails = new Map<string, string>();
   if (apartmentRows.length) {
     const { data: covers } = await supabase
@@ -111,13 +112,8 @@ export default async function ApartmentsPage({ searchParams }: PageProps) {
         </p>
       </div>
       <ApartmentsClient
-        key={`${q}:${statuses.join(",")}:${verification}:${visibility}`}
-        filters={{
-          q,
-          status: statuses,
-          verification,
-          visibility,
-        }}
+        key={JSON.stringify(filters)}
+        filters={filters}
         apartments={apartmentsData}
         error={Boolean(error)}
         page={page}

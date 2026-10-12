@@ -28,7 +28,19 @@ export default function UserCardList({ users }: UserCardListProps) {
               <div className="flex items-center gap-3">
                 <UserAvatar user={user} name={name} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-nunito font-bold">{name}</p>
+                  <p className="flex items-center gap-2 font-nunito font-bold">
+                    <span className="truncate">{name}</span>
+                    {user.is_suspended ? (
+                      <Chip
+                        size="sm"
+                        variant="soft"
+                        color="danger"
+                        className="shrink-0 text-[11px]"
+                      >
+                        Suspended
+                      </Chip>
+                    ) : null}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </p>

@@ -1,27 +1,41 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { IconRefresh, IconUsers } from "@tabler/icons-react";
+import { IconUsers } from "@tabler/icons-react";
+import { Spinner } from "@heroui/react";
 import {
-  Button,
-  Label,
-  ListBox,
-  Pagination,
-  SearchField,
-  Select,
-  Spinner,
-} from "@heroui/react";
+  buildListHref,
+  formatOptionLabels,
+  formatResultRange,
+  type JoinedPreset,
+} from "@/lib/admin-filters";
+import AdminFilterToolbar from "../_components/filters/AdminFilterToolbar";
+import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
+import AdminListFooter from "../_components/filters/AdminListFooter";
+import DateRangeFilter, {
+  DATE_PRESET_OPTIONS,
+  type IsoDateRange,
+} from "../_components/filters/DateRangeFilter";
+import FilterPillGroup from "../_components/filters/FilterPillGroup";
+import FilterPopover from "../_components/filters/FilterPopover";
+import SortDropdown from "../_components/filters/SortDropdown";
+import type { ActiveFilterTag } from "../_components/filters/types";
 import UsersTable from "./components/UsersTable";
 import UserCardList from "./components/UserCardList";
 import UsersEmptyState from "./components/UsersEmptyState";
 import type { AdminUser } from "./lib/user-display";
-
-interface UserFilters {
-  q: string;
-  role: string[];
-  verification: string;
-}
+import {
+  ACCESS_OPTIONS,
+  ROLE_OPTIONS,
+  USER_SORT_OPTIONS,
+  VERIFICATION_OPTIONS,
+  userFilterParams,
+  type AccessFilter,
+  type UserFilters,
+  type UserRole,
+  type VerificationStatus,
+} from "./lib/user-filters";
 
 interface UsersClientProps {
   users: AdminUser[];
@@ -32,19 +46,72 @@ interface UsersClientProps {
   pageSize: number;
 }
 
-const ROLE_OPTIONS = [
-  { id: "tenant", label: "Tenant" },
-  { id: "landlord", label: "Landlord" },
-  { id: "admin", label: "Administrator" },
-];
+interface PopoverDraft {
+  verifications: VerificationStatus[];
+  roles: UserRole[];
+  access: AccessFilter;
+  joined: JoinedPreset;
+  range: IsoDateRange | null;
+}
 
-const VERIFICATION_OPTIONS = [
-  { id: "all", label: "All verification statuses" },
-  { id: "unverified", label: "Unverified" },
-  { id: "pending", label: "Pending" },
-  { id: "verified", label: "Verified" },
-  { id: "rejected", label: "Rejected" },
-];
+const EMPTY_DRAFT: PopoverDraft = {
+  verifications: [],
+  roles: [],
+  access: "all",
+  joined: "any",
+  range: null,
+};
+
+const shortDateFormatter = new Intl.DateTimeFormat("en-PH", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+function draftFromFilters(filters: UserFilters): PopoverDraft {
+  return {
+    verifications: filters.verifications,
+    roles: filters.roles,
+    access: filters.access,
+    joined: filters.joined,
+    range:
+      filters.from && filters.to ? { from: filters.from, to: filters.to } : null,
+  };
+}
+
+function formatIsoDate(value: string) {
+  return shortDateFormatter.format(new Date(`${value}T00:00:00Z`));
+}
+
+function joinedTagLabel(filters: UserFilters) {
+  if (filters.joined === "custom" && filters.from && filters.to)
+    return `Joined: ${formatIsoDate(filters.from)} – ${formatIsoDate(filters.to)}`;
+  const preset = DATE_PRESET_OPTIONS.find(
+    (option) => option.id === filters.joined,
+  );
+  return `Joined: ${preset?.label.toLowerCase() ?? filters.joined}`;
+}
+
+function buildActiveTags(filters: UserFilters): ActiveFilterTag[] {
+  const tags: ActiveFilterTag[] = [];
+  if (filters.verifications.length)
+    tags.push({
+      id: "verifications",
+      label: `Verification: ${formatOptionLabels(VERIFICATION_OPTIONS, filters.verifications)}`,
+    });
+  if (filters.roles.length)
+    tags.push({
+      id: "roles",
+      label: `Role: ${formatOptionLabels(ROLE_OPTIONS, filters.roles)}`,
+    });
+  if (filters.access !== "all")
+    tags.push({
+      id: "access",
+      label: `Access: ${filters.access === "suspended" ? "Suspended" : "Active"}`,
+    });
+  if (filters.joined !== "any")
+    tags.push({ id: "joined", label: joinedTagLabel(filters) });
+  return tags;
+}
 
 export default function UsersClient({
   users,
@@ -57,43 +124,46 @@ export default function UsersClient({
   const router = useRouter();
   const [isNavigating, startTransition] = useTransition();
   const [search, setSearch] = useState(filters.q);
-  const [roles, setRoles] = useState<string[]>(filters.role);
-  const [verification, setVerification] = useState(
-    filters.verification || "all",
+  const [draft, setDraft] = useState<PopoverDraft>(() =>
+    draftFromFilters(filters),
   );
+  const activeTags = buildActiveTags(filters);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const firstVisiblePage = Math.max(1, Math.min(page - 2, totalPages - 4));
-  const visiblePages = Array.from(
-    { length: Math.min(5, totalPages) },
-    (_, index) => firstVisiblePage + index,
-  );
 
-  function navigate(nextFilters: UserFilters, nextPage: number) {
-    const params = new URLSearchParams();
-    if (nextFilters.q.trim()) params.set("q", nextFilters.q.trim());
-    if (nextFilters.role.length) params.set("role", nextFilters.role.join(","));
-    if (nextFilters.verification)
-      params.set("verification", nextFilters.verification);
-    params.set("page", String(nextPage));
+  function navigate(nextFilters: UserFilters, nextPage = 1) {
     startTransition(() => {
-      router.push(`/admin/users?${params.toString()}`);
+      router.push(
+        buildListHref("/admin/users", userFilterParams(nextFilters, nextPage)),
+      );
     });
   }
 
-  function applyFilters(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    navigate(
-      {
-        q: search,
-        role: roles,
-        verification: verification === "all" ? "" : verification,
-      },
-      1,
-    );
+  function applyDraft(nextDraft: PopoverDraft) {
+    const range = nextDraft.joined === "custom" ? nextDraft.range : null;
+    navigate({
+      ...filters,
+      q: search,
+      verifications: nextDraft.verifications,
+      roles: nextDraft.roles,
+      access: nextDraft.access,
+      // An unfinished custom range applies as "any time" instead of failing.
+      joined: nextDraft.joined === "custom" && !range ? "any" : nextDraft.joined,
+      from: range?.from ?? null,
+      to: range?.to ?? null,
+    });
   }
 
-  function changePage(nextPage: number) {
-    navigate(filters, nextPage);
+  function removeTags(ids: string[]) {
+    const next = { ...filters, q: search };
+    if (ids.includes("verifications")) next.verifications = [];
+    if (ids.includes("roles")) next.roles = [];
+    if (ids.includes("access")) next.access = "all";
+    if (ids.includes("joined")) {
+      next.joined = "any";
+      next.from = null;
+      next.to = null;
+    }
+    navigate(next);
   }
 
   return (
@@ -110,107 +180,80 @@ export default function UsersClient({
         </p>
       </div>
 
-      <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
-        <SearchField
-          name="q"
-          value={search}
-          onChange={setSearch}
-          onClear={() => {
+      <div className="space-y-3">
+        <AdminFilterToolbar
+          searchLabel="Search users"
+          searchPlaceholder="Search name or email…"
+          searchValue={search}
+          onSearchChange={setSearch}
+          onSearchSubmit={() => navigate({ ...filters, q: search })}
+          onSearchClear={() => {
             setSearch("");
-            navigate(
-              {
-                q: "",
-                role: roles,
-                verification: verification === "all" ? "" : verification,
-              },
-              1,
-            );
+            navigate({ ...filters, q: "" });
           }}
-          className="w-full sm:w-80"
-        >
-          <Label>Search users</Label>
-          <SearchField.Group className="border border-border bg-card shadow-none focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
-            <SearchField.SearchIcon className="text-muted-foreground" />
-            <SearchField.Input placeholder="Search name or email…" />
-            <SearchField.ClearButton className="text-white" />
-          </SearchField.Group>
-        </SearchField>
-        <Button
-          isIconOnly
-          variant="tertiary"
-          aria-label="Refresh users"
-          onPress={() => {
+          refreshLabel="Refresh users"
+          onRefresh={() => {
             startTransition(() => {
               router.refresh();
             });
           }}
         >
-          <IconRefresh size={18} aria-hidden="true" />
-        </Button>
-
-        <div className="ml-auto flex flex-wrap items-end gap-3">
-          <Select
-            className="w-full sm:w-60"
-            selectionMode="multiple"
-            value={roles}
-            onChange={(value) => {
-              setRoles(Array.isArray(value) ? value.map(String) : []);
-            }}
-            placeholder="All roles"
+          <FilterPopover
+            activeCount={activeTags.length}
+            onOpen={() => setDraft(draftFromFilters(filters))}
+            onReset={() => setDraft(EMPTY_DRAFT)}
+            onApply={() => applyDraft(draft)}
           >
-            <Label>Role</Label>
-            <Select.Trigger className="bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
-              <Select.Value className="min-w-0 truncate" />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox selectionMode="multiple">
-                {ROLE_OPTIONS.map((option) => (
-                  <ListBox.Item
-                    key={option.id}
-                    id={option.id}
-                    textValue={option.label}
-                  >
-                    {option.label}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
+            <FilterPillGroup
+              selectionMode="multiple"
+              label="Verification status"
+              options={VERIFICATION_OPTIONS}
+              value={draft.verifications}
+              onChange={(verifications) =>
+                setDraft((current) => ({ ...current, verifications }))
+              }
+            />
+            <FilterPillGroup
+              selectionMode="multiple"
+              label="Role"
+              options={ROLE_OPTIONS}
+              value={draft.roles}
+              onChange={(roles) => setDraft((current) => ({ ...current, roles }))}
+            />
+            <FilterPillGroup
+              selectionMode="single"
+              label="Account access"
+              options={ACCESS_OPTIONS}
+              value={draft.access}
+              onChange={(access) =>
+                setDraft((current) => ({ ...current, access }))
+              }
+            />
+            <DateRangeFilter
+              label="Joined"
+              preset={draft.joined}
+              onPresetChange={(joined) =>
+                setDraft((current) => ({ ...current, joined }))
+              }
+              range={draft.range}
+              onRangeChange={(range) =>
+                setDraft((current) => ({ ...current, range }))
+              }
+            />
+          </FilterPopover>
+          <SortDropdown
+            options={USER_SORT_OPTIONS}
+            value={filters.sort}
+            onChange={(sort) => navigate({ ...filters, q: search, sort }, page)}
+          />
+        </AdminFilterToolbar>
 
-          <Select
-            className="w-full sm:w-60"
-            value={verification}
-            onChange={(key) => setVerification(key ? String(key) : "all")}
-            placeholder="Select a status"
-          >
-            <Label>Verification status</Label>
-            <Select.Trigger className="bg-card! text-foreground! focus:border-primary focus:ring-2 focus:ring-primary/15 data-[focus-visible=true]:border-primary aria-expanded:border-primary aria-expanded:ring-2 aria-expanded:ring-primary/15">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {VERIFICATION_OPTIONS.map((option) => (
-                  <ListBox.Item
-                    key={option.id}
-                    id={option.id}
-                    textValue={option.label}
-                  >
-                    {option.label}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <Button type="submit" variant="primary">
-            Apply
-          </Button>
-        </div>
-      </form>
+        <ActiveFilterTags
+          tags={activeTags}
+          onRemove={removeTags}
+          onClearAll={() => removeTags(activeTags.map((tag) => tag.id))}
+        />
+      </div>
 
       {error ? (
         <p role="alert" className="text-sm text-danger">
@@ -233,6 +276,10 @@ export default function UsersClient({
               <>
                 <UsersTable
                   users={users}
+                  sort={filters.sort}
+                  onSortChange={(sort) =>
+                    navigate({ ...filters, q: search, sort }, page)
+                  }
                   onSelectUser={(id) => router.push(`/admin/users/${id}`)}
                 />
                 <UserCardList users={users} />
@@ -242,42 +289,13 @@ export default function UsersClient({
             )}
           </div>
 
-          <nav aria-label="User pagination" className="flex justify-center">
-            <Pagination>
-              <Pagination.Content>
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={page <= 1}
-                    onPress={() => changePage(page - 1)}
-                    className="font-nunito text-primary"
-                  >
-                    <Pagination.PreviousIcon />
-                    <span>Previous</span>
-                  </Pagination.Previous>
-                </Pagination.Item>
-                {visiblePages.map((number) => (
-                  <Pagination.Item key={number}>
-                    <Pagination.Link
-                      isActive={number === page}
-                      onPress={() => changePage(number)}
-                    >
-                      {number}
-                    </Pagination.Link>
-                  </Pagination.Item>
-                ))}
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={page >= totalPages}
-                    onPress={() => changePage(page + 1)}
-                    className="font-nunito text-primary"
-                  >
-                    <span>Next</span>
-                    <Pagination.NextIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-              </Pagination.Content>
-            </Pagination>
-          </nav>
+          <AdminListFooter
+            ariaLabel="User pagination"
+            page={page}
+            totalPages={totalPages}
+            onPageChange={(nextPage) => navigate(filters, nextPage)}
+            summary={formatResultRange(page, pageSize, totalCount, "users")}
+          />
         </>
       )}
     </div>

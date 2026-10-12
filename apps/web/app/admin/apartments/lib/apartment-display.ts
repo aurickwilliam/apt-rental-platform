@@ -44,3 +44,9 @@ export const joinedFormatter = new Intl.DateTimeFormat("en-PH", {
   dateStyle: "medium",
   timeZone: "Asia/Manila",
 });
+
+export const rentFormatter = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+  maximumFractionDigits: 0,
+});

@@ -5,24 +5,34 @@ import {
   IconShieldCheckFilled,
   IconShieldX,
 } from "@tabler/icons-react";
+import { sortDescriptorFor, sortForColumn } from "@/lib/admin-filters";
 import ApartmentThumbnail from "./ApartmentThumbnail";
 import {
   joinedFormatter,
+  rentFormatter,
   statusChipStyle,
   verificationChipColor,
   visibilityChipColor,
   type AdminApartment,
 } from "../lib/apartment-display";
+import {
+  APARTMENT_SORT_OPTIONS,
+  type ApartmentSort,
+} from "../lib/apartment-filters";
 
 const MIN_ROWS = 10;
 
 interface ApartmentsTableProps {
   apartments: AdminApartment[];
+  sort: ApartmentSort;
+  onSortChange: (sort: ApartmentSort) => void;
   onSelectApartment: (id: string) => void;
 }
 
 export default function ApartmentsTable({
   apartments,
+  sort,
+  onSortChange,
   onSelectApartment,
 }: ApartmentsTableProps) {
   const placeholderCount = Math.max(0, MIN_ROWS - apartments.length);
@@ -32,6 +42,15 @@ export default function ApartmentsTable({
         <Table.ScrollContainer>
           <Table.Content
             aria-label="Apartments"
+            sortDescriptor={sortDescriptorFor(APARTMENT_SORT_OPTIONS, sort)}
+            onSortChange={({ column, direction }) => {
+              const next = sortForColumn(
+                APARTMENT_SORT_OPTIONS,
+                String(column),
+                direction,
+              );
+              if (next) onSortChange(next);
+            }}
             onRowAction={(key) => {
               const selected = apartments.find(
                 (apartment) => apartment.id === String(key),
@@ -42,11 +61,30 @@ export default function ApartmentsTable({
             }}
           >
             <Table.Header className="text-foreground! [&_th]:text-foreground!">
-              <Table.Column isRowHeader>Apartment</Table.Column>
-              <Table.Column>Status</Table.Column>
-              <Table.Column>Verification</Table.Column>
-              <Table.Column>Visibility</Table.Column>
-              <Table.Column>Joined</Table.Column>
+              <Table.Column id="apartment" isRowHeader allowsSorting>
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Apartment
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
+              <Table.Column id="rent" allowsSorting>
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Rent
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
+              <Table.Column id="status">Status</Table.Column>
+              <Table.Column id="verification">Verification</Table.Column>
+              <Table.Column id="visibility">Visibility</Table.Column>
+              <Table.Column id="joined" allowsSorting>
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Joined
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
             </Table.Header>
             <Table.Body>
               {apartments.map((apartment) => {
@@ -70,6 +108,9 @@ export default function ApartmentsTable({
                         </p>
                       </div>
                     </div>
+                  </Table.Cell>
+                  <Table.Cell className="whitespace-nowrap text-sm tabular-nums">
+                    {rentFormatter.format(apartment.monthly_rent)}
                   </Table.Cell>
                   <Table.Cell>
                     <Chip
@@ -122,6 +163,7 @@ export default function ApartmentsTable({
                   aria-hidden="true"
                   className="h-14"
                 >
+                  <Table.Cell>&nbsp;</Table.Cell>
                   <Table.Cell>&nbsp;</Table.Cell>
                   <Table.Cell>&nbsp;</Table.Cell>
                   <Table.Cell>&nbsp;</Table.Cell>
