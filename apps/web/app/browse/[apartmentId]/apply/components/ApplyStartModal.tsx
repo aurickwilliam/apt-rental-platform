@@ -53,33 +53,33 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
 
   return (
     <>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <Modal.Backdrop>
-          <Modal.Container placement="center" scroll="outside" size="lg">
-            <Modal.Dialog className="w-full max-w-2xl! overflow-hidden rounded-3xl bg-card">
-              <Modal.CloseTrigger
-                className="z-10 cursor-pointer bg-white/90! text-card-foreground shadow-sm"
-                onPress={handleClose}
-              />
-              {/* Bleeds past the dialog's p-6 to its top, left and right edges. */}
-              <div className="relative -mx-6 -mt-6 mb-4 h-56 shrink-0 bg-muted">
-                <NextImage
-                  src={apartment.coverUrl}
-                  alt={apartment.name ?? "Apartment"}
-                  fill
-                  sizes="672px"
-                  unoptimized
-                  className="object-cover"
+      {isOpen ? (
+        <Modal isOpen onOpenChange={onOpenChange}>
+          <Modal.Backdrop>
+            <Modal.Container placement="center" scroll="outside" size="lg">
+              <Modal.Dialog className="w-full max-w-2xl! overflow-hidden rounded-3xl bg-card">
+                <Modal.CloseTrigger
+                  className="z-10 cursor-pointer bg-white/90! text-card-foreground shadow-sm"
+                  onPress={handleClose}
                 />
-              </div>
-              <Modal.Header className="flex flex-col items-start gap-1">
-                <Modal.Heading className="font-nunito text-xl font-bold text-card-foreground">
-                  {apartment.name ?? "Apartment"}
-                </Modal.Heading>
-                {apartment.location ? <p className="text-sm text-muted-foreground">{apartment.location}</p> : null}
-              </Modal.Header>
-              {/* Mounted only while open: loading the Passport may link the verified ID (a write). */}
-              {isOpen ? (
+                {/* Bleeds past the dialog's p-6 to its top, left and right edges. */}
+                <div className="relative -mx-6 -mt-6 mb-4 h-56 shrink-0 bg-muted">
+                  <NextImage
+                    src={apartment.coverUrl}
+                    alt={apartment.name ?? "Apartment"}
+                    fill
+                    sizes="672px"
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+                <Modal.Header className="flex flex-col items-start gap-1">
+                  <Modal.Heading className="font-nunito text-xl font-bold text-card-foreground">
+                    {apartment.name ?? "Apartment"}
+                  </Modal.Heading>
+                  {apartment.location ? <p className="text-sm text-muted-foreground">{apartment.location}</p> : null}
+                </Modal.Header>
+                {/* Mounted only while open: loading the Passport may link the verified ID (a write). */}
                 <ApplyStartContent
                   apartment={apartment}
                   viewer={viewer}
@@ -87,11 +87,11 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
                   onCancel={handleClose}
                   onOpenGuidelines={() => setIsGuidelinesOpen(true)}
                 />
-              ) : null}
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      ) : null}
 
       <ApplicationGuidelinesModal isOpen={isGuidelinesOpen} onOpenChange={setIsGuidelinesOpen} />
     </>
