@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { evaluateApplicationReadiness } from "@repo/passport";
+import { evaluateApplicationReadiness, type ApplicationIssue } from "@repo/passport";
 
 import { usePassportDocuments } from "@/hooks/use-passport-documents";
 
@@ -13,6 +13,10 @@ interface UseApplicationReadinessInput {
   hasActiveApplication: boolean;
   /** Unknown until the tenant picks it; proof of income is skipped while null. */
   employmentType?: string | null;
+}
+
+function isPassportIssue(issue: ApplicationIssue): boolean {
+  return issue.code === "passport-missing" || issue.code === "passport-expired";
 }
 
 /**
@@ -29,18 +33,18 @@ export function useApplicationReadiness({
 }: UseApplicationReadinessInput) {
   const { documents, loading, error, refresh } = usePassportDocuments(userId);
 
-  const readiness = useMemo(
-    () =>
-      evaluateApplicationReadiness({
-        accountStatus,
-        tenantId: userId,
-        landlordId,
-        hasActiveApplication,
-        passportDocs: documents,
-        employmentType,
-      }),
-    [accountStatus, userId, landlordId, hasActiveApplication, documents, employmentType],
-  );
+  const readiness = useMemo(() => {
+    const base = { accountStatus, tenantId: userId, landlordId, hasActiveApplication, passportDocs: documents };
+    const current = evaluateApplicationReadiness({ ...base, employmentType });
+    return {
+      ...current,
+      // Issues that don't depend on the form (proof of income is only checked
+      // once employment is known), shown up front instead of mid-form.
+      upfrontIssues: evaluateApplicationReadiness({ ...base, employmentType: null }).issues,
+      // A required document is missing or expired, so "submitted automatically" doesn't apply yet.
+      isPassportIncomplete: current.issues.some(isPassportIssue),
+    };
+  }, [accountStatus, userId, landlordId, hasActiveApplication, documents, employmentType]);
 
   return { ...readiness, loading, error, refresh };
 }

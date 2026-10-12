@@ -36,6 +36,7 @@ interface ReviewStepProps {
   readiness: {
     issues: ApplicationIssue[];
     isReady: boolean;
+    isPassportIncomplete: boolean;
     loading: boolean;
     selection: PassportApplicationSelection<PassportDocumentRow>;
   };
@@ -70,7 +71,7 @@ function emptySlotLabel(slot: ApplicationDocumentSlot, employmentType: string): 
 }
 
 const SECTION_ITEM = "overflow-hidden rounded-xl border border-border bg-muted";
-const SECTION_TRIGGER = "flex w-full items-center justify-between p-4 text-sm font-semibold text-card-foreground";
+const SECTION_TRIGGER = "flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold text-card-foreground";
 
 export default function ReviewStep({
   apartment,
@@ -113,13 +114,13 @@ export default function ReviewStep({
         </p>
         <Accordion
           allowsMultipleExpanded
-          defaultExpandedKeys={new Set(["tenant", "documents"]) as never}
+          defaultExpandedKeys={new Set(["tenant", "prefs", "documents"]) as never}
           className="flex flex-col gap-3"
         >
           <AccordionItem id="tenant" className={SECTION_ITEM}>
             <AccordionTrigger className={SECTION_TRIGGER}>
               Tenant Information
-              <AccordionIndicator />
+              <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="px-4 pb-4">
@@ -145,7 +146,7 @@ export default function ReviewStep({
           <AccordionItem id="prefs" className={SECTION_ITEM}>
             <AccordionTrigger className={SECTION_TRIGGER}>
               Rental Preferences
-              <AccordionIndicator />
+              <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="px-4 pb-4">
@@ -166,7 +167,7 @@ export default function ReviewStep({
           <AccordionItem id="documents" className={SECTION_ITEM}>
             <AccordionTrigger className={SECTION_TRIGGER}>
               APT Passport Documents
-              <AccordionIndicator />
+              <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="px-4 pb-4">
@@ -204,7 +205,7 @@ export default function ReviewStep({
         </Accordion>
 
         <div className="mt-5 space-y-3">
-          <PassportNotice />
+          {!readiness.loading && !readiness.isPassportIncomplete ? <PassportNotice /> : null}
           {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
         </div>
 

@@ -6,14 +6,20 @@ import type { ApplicationIssue } from "@repo/passport";
 
 import { passportFixHref } from "@/app/components/passport/passportSlots";
 
+/**
+ * The fix offered for an issue. The government ID only comes from account
+ * verification (it can't be uploaded), so a missing-documents card points at
+ * the first slot the tenant can add; verification has its own "unverified"
+ * card, and a verified account missing only its ID is sent to the Passport.
+ */
 function actionFor(issue: ApplicationIssue): { label: string; href: string } | null {
   switch (issue.code) {
     case "unverified":
       return { label: "Verify account", href: "/verify" };
     case "passport-missing": {
-      const slot = issue.slots?.[0];
-      if (slot === "govId") return { label: "Verify your ID", href: passportFixHref(slot) };
-      return { label: "Add to APT Passport", href: slot ? passportFixHref(slot) : "/tenant/passport?add=1" };
+      const addable = issue.slots?.find((slot) => slot !== "govId");
+      if (addable) return { label: "Add to APT Passport", href: passportFixHref(addable) };
+      return { label: "Open APT Passport", href: "/tenant/passport" };
     }
     case "passport-expired":
       return { label: "Open APT Passport", href: "/tenant/passport" };
@@ -39,7 +45,7 @@ export default function ApplicationIssues({ issues }: { issues: ApplicationIssue
               <p className="text-sm text-card-foreground">{issue.message}</p>
             </div>
             {action ? (
-              <Link href={action.href} className={buttonVariants({ size: "sm", variant: "danger-soft" })}>
+              <Link href={action.href} className={`cursor-pointer ${buttonVariants({ size: "sm", variant: "primary" })}`}>
                 {action.label}
               </Link>
             ) : null}

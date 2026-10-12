@@ -1,18 +1,20 @@
-import { Card } from "@heroui/react";
-import { CircleCheckBig } from "lucide-react";
+import NextImage from "next/image";
+import Link from "next/link";
+import { Card, buttonVariants } from "@heroui/react";
 
+/** Matches mobile's submitted screen: stays put until the tenant moves on. */
 export default function SubmittedStep({ apartmentName }: { apartmentName: string | null }) {
   return (
-    <Card className="border border-border bg-card p-8 text-center text-card-foreground shadow-none md:p-12">
-      <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-success/10">
-        <CircleCheckBig size={32} className="text-success" aria-hidden="true" />
-      </div>
-      <h2 className="text-2xl font-bold text-primary md:text-3xl">Application Sent!</h2>
-      <p className="mx-auto mt-3 max-w-xl text-sm text-card-foreground">
-        Your application for <span className="font-semibold">{apartmentName}</span> has been submitted with your APT
-        Passport documents. The rental owner will review it and get back to you.
+    <Card className="items-center border border-border bg-card p-8 text-center text-card-foreground shadow-none md:p-12">
+      <NextImage src="/images/house-check.png" alt="" width={160} height={160} className="mb-5" priority />
+      <h2 className="font-nunito text-3xl font-bold text-primary">Application Sent!</h2>
+      <p className="mx-auto mt-3 max-w-xl text-base text-card-foreground">
+        Your application for <span className="font-semibold">{apartmentName ?? "this apartment"}</span> has been
+        submitted with your APT Passport documents. The rental owner will review it and get back to you soon.
       </p>
-      <p className="mt-2 text-xs text-muted-foreground">You can follow its status from My Rental.</p>
+      <Link href="/tenant/my-rental" className={`mt-8 cursor-pointer ${buttonVariants({ variant: "primary" })}`}>
+        View Application Status
+      </Link>
     </Card>
   );
 }

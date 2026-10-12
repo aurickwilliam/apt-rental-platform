@@ -54,7 +54,7 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
     <>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <Modal.Backdrop>
-          <Modal.Container placement="center" scroll="inside" size="lg">
+          <Modal.Container placement="center" scroll="outside" size="lg">
             <Modal.Dialog className="w-full max-w-2xl! overflow-hidden rounded-3xl bg-card">
               <Modal.CloseTrigger className="z-10 cursor-pointer bg-white/90! text-card-foreground shadow-sm" />
               {/* Bleeds past the dialog's p-6 to its top, left and right edges. */}
@@ -112,6 +112,8 @@ function ApplyStartContent({ apartment, viewer, basePath, onCancel, onOpenGuidel
   });
 
   const totalMoveIn = apartment.monthlyRent + apartment.securityDeposit + apartment.advanceRent;
+  // "Submitted automatically" only makes sense once the Passport holds what's needed.
+  const showPassportNotice = !readiness.loading && !readiness.error && !readiness.isPassportIncomplete;
   const costs = [
     { label: "Monthly Rent", value: apartment.monthlyRent },
     { label: "Security Deposit", value: apartment.securityDeposit },
@@ -140,7 +142,7 @@ function ApplyStartContent({ apartment, viewer, basePath, onCancel, onOpenGuidel
           ) : null}
         </div>
 
-        <PassportNotice />
+        {showPassportNotice ? <PassportNotice /> : null}
 
         {readiness.loading ? (
           <div className="space-y-2" aria-busy="true" aria-label="Checking your APT Passport">

@@ -50,7 +50,7 @@ export default function PriceCard({
   const totalMoveInCost = price + securityDeposit + advancePayment;
 
   const costBreakdown = [
-    { label: "Monthly Rent", value: `₱ ${formattedPrice}` },
+    { label: "Monthly Rent", value: formattedPrice },
     { label: "Security Deposit", value: `${formatPesoDisplay(securityDeposit)}` },
     { label: "Advance Payment", value: `${formatPesoDisplay(advancePayment)}` },
   ]
@@ -59,7 +59,7 @@ export default function PriceCard({
     <Card className="border border-grey-300 shadow-none">
       <Card.Header>
         <Card.Title className="text-3xl font-medium text-primary">
-          ₱ {formattedPrice}<span className="text-xl">/month</span>
+          {formattedPrice}<span className="text-xl">/month</span>
         </Card.Title>
       </Card.Header>
 

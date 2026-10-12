@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@repo/supabase/server";
 
+import { applicantPersonalInfo, type ApplicantPersonalInfo } from "@/lib/application-profile";
+
 import { getApplyApartmentContext, type ApplyApartmentContext } from "./get-apply-context";
 
 export interface ApplyViewer {
@@ -14,6 +16,8 @@ export interface ApplyPageData {
   apartment: ApplyApartmentContext;
   viewer: ApplyViewer;
   hasActiveApplication: boolean;
+  /** Personal details from the profile; read-only in the form, as on mobile. */
+  personalInfo: ApplicantPersonalInfo;
 }
 
 /**
@@ -32,7 +36,9 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("id, roles, account_status")
+    .select(
+      "id, roles, account_status, first_name, middle_name, last_name, email, mobile_number, birth_date, street_address, barangay, city, province",
+    )
     .eq("user_id", user.id)
     .maybeSingle();
   if (profileError) throw new Error(`Couldn't load your profile: ${profileError.message}`);
@@ -55,5 +61,6 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
     apartment,
     viewer: { userId: profile.id, accountStatus: profile.account_status },
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
+    personalInfo: applicantPersonalInfo(profile, user.email ?? null),
   };
 }
