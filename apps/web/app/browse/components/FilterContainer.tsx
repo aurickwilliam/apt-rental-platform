@@ -342,7 +342,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
           step={500}
           value={filters.priceRange}
           onChange={(val) => updateFilter("priceRange", val as [number, number])}
-          className="w-full"
+          className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
         >
           <Label>Budget</Label>
 
@@ -360,7 +360,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
           <Slider.Track>
             {({ state }) => (
               <>
-                <Slider.Fill />
+                <Slider.Fill className="bg-primary" />
                 {state.values.map((_, i) => (
                   <Slider.Thumb key={i} index={i} />
                 ))}
@@ -466,7 +466,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
           step={5}
           value={filters.sizeRange}
           onChange={(val) => updateFilter("sizeRange", val as [number, number])}
-          className="w-full"
+          className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
         >
           <Label>Size Range</Label>
 
@@ -477,7 +477,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
           <Slider.Track>
             {({ state }) => (
               <>
-                <Slider.Fill />
+                <Slider.Fill className="bg-primary" />
                 {state.values.map((_, i) => (
                   <Slider.Thumb key={i} index={i} />
                 ))}
