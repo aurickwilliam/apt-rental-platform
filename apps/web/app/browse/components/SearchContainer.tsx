@@ -76,7 +76,7 @@ export default function SearchContainer({
         <Button
           variant="secondary"
           size="lg"
-          className="order-first shrink-0 sm:order-last sm:w-auto"
+          className="order-last shrink-0 sm:w-auto"
           onPress={handleSearch}
           aria-label="Search"
         >

@@ -270,7 +270,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
 
   return (
     <div className="bg-surface rounded-xl p-4 border w-full">
-      <div className="flex gap-3 items-center justify-center mb-5">
+      <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 items-stretch xl:items-center justify-center mb-5">
         {/* Search Button */}
         <Button
           className="w-full"
@@ -282,6 +282,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
 
         <Button
           variant="tertiary"
+          className="w-full xl:w-auto shrink-0"
           onPress={handleClear}
         >
           Clear All

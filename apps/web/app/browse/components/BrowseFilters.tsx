@@ -76,7 +76,7 @@ export default function BrowseFilters({
       </div>
 
       {/* Desktop sidebar — hidden below md */}
-      <aside className={`hidden md:block md:w-72 lg:w-80 shrink-0 self-start md:sticky md:overflow-y-auto ${stickyClassName}`}>
+      <aside className={`hidden md:block md:w-64 lg:w-72 xl:w-80 shrink-0 self-start md:sticky md:overflow-y-auto ${stickyClassName}`}>
         <FilterContainer resultCount={resultCount} basePath={basePath} />
       </aside>
     </>
