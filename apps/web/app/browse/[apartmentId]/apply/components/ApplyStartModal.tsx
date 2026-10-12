@@ -49,6 +49,7 @@ interface ApplyStartModalProps {
  */
 export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewer, basePath }: ApplyStartModalProps) {
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
+  const handleClose = () => onOpenChange(false);
 
   return (
     <>
@@ -56,7 +57,10 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
         <Modal.Backdrop>
           <Modal.Container placement="center" scroll="outside" size="lg">
             <Modal.Dialog className="w-full max-w-2xl! overflow-hidden rounded-3xl bg-card">
-              <Modal.CloseTrigger className="z-10 cursor-pointer bg-white/90! text-card-foreground shadow-sm" />
+              <Modal.CloseTrigger
+                className="z-10 cursor-pointer bg-white/90! text-card-foreground shadow-sm"
+                onPress={handleClose}
+              />
               {/* Bleeds past the dialog's p-6 to its top, left and right edges. */}
               <div className="relative -mx-6 -mt-6 mb-4 h-56 shrink-0 bg-muted">
                 <NextImage
@@ -80,7 +84,7 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
                   apartment={apartment}
                   viewer={viewer}
                   basePath={basePath}
-                  onCancel={() => onOpenChange(false)}
+                  onCancel={handleClose}
                   onOpenGuidelines={() => setIsGuidelinesOpen(true)}
                 />
               ) : null}
