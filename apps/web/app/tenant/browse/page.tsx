@@ -5,6 +5,7 @@ import { createClient } from "@repo/supabase/server";
 
 import BrowseFilters from "@/app/browse/components/BrowseFilters";
 import BrowseSectionsList from "@/app/browse/components/BrowseSectionsList";
+import { BrowseCardsSkeleton } from "@/app/browse/components/BrowsePageSkeleton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
@@ -76,7 +77,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
           </Suspense>
         )}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
-          <Suspense>
+          <Suspense fallback={<BrowseCardsSkeleton />}>
             {useSections ? (
               <BrowseSectionsList sections={sections} basePath="/tenant/browse" />
             ) : (
