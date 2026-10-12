@@ -83,7 +83,7 @@ export default function NotificationsTab({
             <SectionTitle title="General" />
           </div>
           <div className="divide-y divide-border">
-            {GENERAL_TOGGLES.map(({ key, icon, title, description }) => (
+            {GENERAL_TOGGLES.filter(({ key }) => !isAdmin || key !== "show_chat_toasts").map(({ key, icon, title, description }) => (
               <SettingsRow
                 key={key}
                 icon={icon}
@@ -101,32 +101,34 @@ export default function NotificationsTab({
           </div>
         </div>
 
-        {/* Notification Types */}
-        <div className="pt-6">
-          <div className="px-4 pb-3">
-            <SectionTitle title="Notification Types" />
+        {/* Notification Types — admins only receive system alerts, shown above */}
+        {!isAdmin ? (
+          <div className="pt-6">
+            <div className="px-4 pb-3">
+              <SectionTitle title="Notification Types" />
+            </div>
+            <p className="px-4 pb-3 text-sm text-muted-foreground">
+              Per-type toggles are shared by both channels, so they only matter when at least one master is on.
+            </p>
+            <div className="divide-y divide-border">
+              {NOTIFICATION_TYPE_LABELS.map(({ type, label }) => (
+                <SettingsRow
+                  key={type}
+                  icon={TYPE_ICONS[type]}
+                  title={label}
+                  suffix={
+                    <ToggleSwitch
+                      isSelected={preferences[type]}
+                      onValueChange={() => toggleType(type)}
+                      disabled={typesDisabled}
+                      aria-label={label}
+                    />
+                  }
+                />
+              ))}
+            </div>
           </div>
-          <p className="px-4 pb-3 text-sm text-muted-foreground">
-            Per-type toggles are shared by both channels, so they only matter when at least one master is on.
-          </p>
-          <div className="divide-y divide-border">
-            {NOTIFICATION_TYPE_LABELS.map(({ type, label }) => (
-              <SettingsRow
-                key={type}
-                icon={TYPE_ICONS[type]}
-                title={label}
-                suffix={
-                  <ToggleSwitch
-                    isSelected={preferences[type]}
-                    onValueChange={() => toggleType(type)}
-                    disabled={typesDisabled}
-                    aria-label={label}
-                  />
-                }
-              />
-            ))}
-          </div>
-        </div>
+        ) : null}
 
         {/* Reset */}
         <div className="pt-4 pb-6 px-4">
