@@ -6,6 +6,7 @@ import { createClient } from "@repo/supabase/server";
 import BrowseFilters from "@/app/browse/components/BrowseFilters";
 import BrowseSectionsList from "@/app/browse/components/BrowseSectionsList";
 import { BrowseCardsSkeleton } from "@/app/browse/components/BrowsePageSkeleton";
+import MobileFilterButton from "@/app/browse/components/MobileFilterButton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
@@ -62,7 +63,14 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     // sizing and lets the root balloon to max-w-7xl on narrow screens.
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
-        <SearchContainer basePath="/tenant/browse" />
+        <SearchContainer
+          basePath="/tenant/browse"
+          filterButton={
+            !useSections ? (
+              <MobileFilterButton resultCount={totalCount} basePath="/tenant/browse" />
+            ) : undefined
+          }
+        />
       </Suspense>
       <div className="mt-4 flex flex-col md:flex-row gap-4">
         {/* Filters only exist outside discovery mode: text search, See All,

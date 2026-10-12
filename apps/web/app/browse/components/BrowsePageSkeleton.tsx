@@ -30,33 +30,34 @@ export function BrowseCardsSkeleton({ count = 8 }: { count?: number }) {
   );
 }
 
-function SidebarSkeleton() {
+function SectionSkeleton() {
   return (
-    <div
-      aria-hidden="true"
-      className="hidden w-72 shrink-0 self-start rounded-xl border border-divider bg-surface p-4 md:block lg:w-80"
-    >
-      <Skeleton className="h-10 w-full rounded-full" />
-      <div className="mt-4 flex flex-col gap-2.5">
-        <Skeleton className="h-5 w-24 rounded-md" />
-        <Skeleton className="h-4 w-full rounded-md" />
-        <Skeleton className="h-4 w-full rounded-md" />
-        <Skeleton className="h-4 w-2/3 rounded-md" />
-        <Skeleton className="mt-2 h-5 w-20 rounded-md" />
-        <Skeleton className="h-8 w-full rounded-lg" />
-        <Skeleton className="h-5 w-28 rounded-md" />
-        <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-7 w-16 rounded-full" />
-          <Skeleton className="h-7 w-20 rounded-full" />
-          <Skeleton className="h-7 w-14 rounded-full" />
-        </div>
+    <section aria-hidden="true" className="min-w-0">
+      <Skeleton className="mb-2 h-6 w-48 rounded-md sm:mb-3" />
+      <div className="flex gap-3 overflow-hidden pb-2 sm:gap-4">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="w-44 shrink-0 sm:w-56">
+            <CardSkeleton />
+          </div>
+        ))}
       </div>
+    </section>
+  );
+}
+
+export function BrowseSectionsSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div aria-label="Loading curated sections" role="status" className="flex min-w-0 flex-col gap-6 sm:gap-8">
+      {Array.from({ length: count }, (_, i) => (
+        <SectionSkeleton key={i} />
+      ))}
     </div>
   );
 }
 
-// Full-page loading state for /browse and /tenant/browse: mirrors the page
-// anatomy (compact search on mobile, hero on desktop, sidebar + cards).
+// Full-page loading state for /browse and /tenant/browse: mirrors discovery
+// mode (compact search on mobile, hero on desktop, full-width section rows,
+// no filter sidebar) since that is the landing users watch load.
 export default function BrowsePageSkeleton() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6" aria-busy="true">
@@ -64,12 +65,8 @@ export default function BrowsePageSkeleton() {
       <Skeleton className="hidden h-52 w-full rounded-xl md:block" />
 
       <div className="mt-4 flex flex-col gap-4 md:flex-row">
-        <div className="mb-3 md:hidden">
-          <Skeleton className="h-10 w-full rounded-full" />
-        </div>
-        <SidebarSkeleton />
         <div className="w-full min-w-0 flex-1">
-          <BrowseCardsSkeleton />
+          <BrowseSectionsSkeleton />
         </div>
       </div>
     </div>

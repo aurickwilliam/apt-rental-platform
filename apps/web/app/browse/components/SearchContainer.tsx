@@ -9,7 +9,13 @@ import { useDebouncedCallback } from "./use-debounced-callback";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export default function SearchContainer({ basePath = "/browse" }: { basePath?: string }) {
+export default function SearchContainer({
+  basePath = "/browse",
+  filterButton,
+}: {
+  basePath?: string;
+  filterButton?: React.ReactNode;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
@@ -56,7 +62,7 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
   return (
     // Below md the hero banner is hidden entirely (mirrors the mobile app,
     // which opens straight into search). md+ keeps the banner.
-    <div className="w-full min-w-0 md:min-h-52 md:bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-0 md:px-4 py-2 md:py-10 md:text-center md:text-balance">
+    <div className="w-full min-w-0 md:min-h-52 bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-3 md:px-4 py-3 md:py-10 md:text-center">
       <h2 className="hidden md:block w-full text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight text-balance">
         Find your Perfect Apartment!
       </h2>
@@ -64,9 +70,21 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
         Browse verified listings across Caloocan, Malabon, Navotas, and Valenzuela
       </p>
 
-      {/* Search bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-lg mt-2 mx-auto min-w-0">
-        <InputGroup className="w-full rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+      {/* Search bar: one row on all sizes — compact Search left, pill
+          center, filter entry right (mobile only). */}
+      <div className="flex flex-row items-center gap-2 w-full max-w-lg mt-2 mx-auto min-w-0">
+        <Button
+          variant="secondary"
+          size="lg"
+          className="order-first shrink-0 sm:order-last sm:w-auto"
+          onPress={handleSearch}
+          aria-label="Search"
+        >
+          <IconSearch size={18} />
+          <span className="hidden sm:inline">Search</span>
+        </Button>
+
+        <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
           <InputGroup.Prefix>
             {isPending ? (
               <Spinner size="sm" color="current" className="text-grey-500" />
@@ -83,14 +101,7 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
           />
         </InputGroup>
 
-        <Button
-          variant="secondary"
-          size="lg"
-          className="w-full sm:w-auto shrink-0"
-          onPress={handleSearch}
-        >
-          Search
-        </Button>
+        {filterButton}
       </div>
     </div>
   );

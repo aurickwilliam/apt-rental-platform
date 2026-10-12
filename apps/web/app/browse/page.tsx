@@ -3,6 +3,7 @@ import { createClient } from "@repo/supabase/server";
 import BrowseFilters from "./components/BrowseFilters";
 import BrowseSectionsList from "./components/BrowseSectionsList";
 import { BrowseCardsSkeleton } from "./components/BrowsePageSkeleton";
+import MobileFilterButton from "./components/MobileFilterButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
@@ -41,7 +42,13 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     // create a scroll container, so the sticky filter sidebar keeps working.
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
-        <SearchContainer />
+        <SearchContainer
+          filterButton={
+            !useSections ? (
+              <MobileFilterButton resultCount={totalCount} basePath="/browse" />
+            ) : undefined
+          }
+        />
       </Suspense>
       <div className="mt-4 flex flex-col md:flex-row gap-4">
         {/* Filters only exist outside discovery mode: text search, See All,
