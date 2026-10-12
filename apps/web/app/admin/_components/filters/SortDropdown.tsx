@@ -46,7 +46,8 @@ export default function SortDropdown<T extends string>({
               textValue={option.label}
               className="cursor-pointer"
             >
-              <Dropdown.ItemIndicator />
+              {/* `!` beats @heroui/styles' unlayered indicator color. */}
+              <Dropdown.ItemIndicator className="text-primary!" />
               <Label>{option.label}</Label>
             </Dropdown.Item>
           ))}
