@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test lib/*.test.mjs"
   },
   "dependencies": {
     "@heroui/react": "3.2.6",

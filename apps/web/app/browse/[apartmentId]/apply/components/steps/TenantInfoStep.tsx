@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button, Card, FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
 
 import { handlePesoChange } from "@repo/utils";
@@ -9,6 +10,29 @@ import { employmentRules } from "../../lib/validate-application";
 import type { ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
+const READ_ONLY_INPUT_CLASS = "bg-muted border-border text-card-foreground placeholder:text-muted-foreground cursor-default";
+
+// Filled from the profile and read-only, as on mobile.
+const PERSONAL_FIELDS: {
+  key: "fullName" | "email" | "dateOfBirth" | "contactNumber" | "currentAddress";
+  label: string;
+  emptyLabel: string;
+  wide?: boolean;
+}[] = [
+  { key: "fullName", label: "Full Name", emptyLabel: "No full name on file" },
+  { key: "email", label: "Email", emptyLabel: "No email on file" },
+  { key: "dateOfBirth", label: "Date of Birth", emptyLabel: "No date of birth on file" },
+  { key: "contactNumber", label: "Contact Number", emptyLabel: "No contact number on file" },
+  { key: "currentAddress", label: "Current Address", emptyLabel: "No current address on file", wide: true },
+];
+
+function formatBirthDate(value: string): string {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" });
+}
 
 interface TenantInfoStepProps extends ApplicationStepProps {
   onBack: () => void;
@@ -21,75 +45,28 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
   return (
     <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
       <h2 className="text-lg font-semibold text-card-foreground">Personal Information</h2>
-      <p className="mb-5 text-xs text-muted-foreground">All fields are editable. Please ensure accuracy.</p>
+      <p className="mb-5 text-xs text-muted-foreground">
+        From your profile. To change these, update your{" "}
+        <Link href="/tenant/profile" className="font-medium text-primary hover:underline">
+          profile
+        </Link>
+        .
+      </p>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <TextField
-          isRequired
-          isInvalid={!!errors.fullName}
-          value={form.fullName}
-          onChange={(value: string) => {
-            onChange({ fullName: value });
-            if (value.trim()) clearError("fullName");
-          }}
-        >
-          <Label>Full Name</Label>
-          <Input placeholder="Enter your full name" className={INPUT_CLASS} />
-          <FieldError>{errors.fullName}</FieldError>
-        </TextField>
-        <TextField
-          isRequired
-          isInvalid={!!errors.email}
-          value={form.email}
-          onChange={(value: string) => {
-            onChange({ email: value });
-            if (value.trim()) clearError("email");
-          }}
-        >
-          <Label>Email</Label>
-          <Input placeholder="Enter your email" inputMode="email" className={INPUT_CLASS} />
-          <FieldError>{errors.email}</FieldError>
-        </TextField>
-        <TextField
-          isRequired
-          isInvalid={!!errors.dateOfBirth}
-          value={form.dateOfBirth}
-          onChange={(value: string) => {
-            onChange({ dateOfBirth: value });
-            if (value) clearError("dateOfBirth");
-          }}
-        >
-          <Label>Date of Birth</Label>
-          <Input type="date" className={INPUT_CLASS} />
-          <FieldError>{errors.dateOfBirth}</FieldError>
-        </TextField>
-        <TextField
-          isRequired
-          isInvalid={!!errors.contactNumber}
-          value={form.contactNumber}
-          onChange={(value: string) => {
-            onChange({ contactNumber: value });
-            clearError("contactNumber");
-          }}
-        >
-          <Label>Contact Number</Label>
-          <Input placeholder="09XXXXXXXXX" inputMode="numeric" className={INPUT_CLASS} />
-          <FieldError>{errors.contactNumber}</FieldError>
-        </TextField>
-        <div className="md:col-span-2">
+        {PERSONAL_FIELDS.map(({ key, label, emptyLabel, wide }) => (
           <TextField
+            key={key}
+            isReadOnly
             isRequired
-            isInvalid={!!errors.currentAddress}
-            value={form.currentAddress}
-            onChange={(value: string) => {
-              onChange({ currentAddress: value });
-              if (value.trim()) clearError("currentAddress");
-            }}
+            isInvalid={!!errors[key]}
+            value={key === "dateOfBirth" ? formatBirthDate(form.dateOfBirth) : form[key]}
+            className={wide ? "md:col-span-2" : undefined}
           >
-            <Label>Current Address</Label>
-            <Input placeholder="Street, Barangay, City, Province" className={INPUT_CLASS} />
-            <FieldError>{errors.currentAddress}</FieldError>
+            <Label>{label}</Label>
+            <Input placeholder={emptyLabel} className={READ_ONLY_INPUT_CLASS} />
+            <FieldError>{errors[key]}</FieldError>
           </TextField>
-        </div>
+        ))}
       </div>
 
       <Separator className="my-6" />

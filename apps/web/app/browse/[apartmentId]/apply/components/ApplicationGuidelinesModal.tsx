@@ -53,14 +53,14 @@ interface ApplicationGuidelinesModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** Rules for applying, shown when the apply flow opens and on demand. */
+/** Rules for applying, opened from the Apply Now modal's guidelines link. */
 export default function ApplicationGuidelinesModal({ isOpen, onOpenChange }: ApplicationGuidelinesModalProps) {
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container placement="center" scroll="inside" size="md">
           <Modal.Dialog className="rounded-3xl bg-card">
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="cursor-pointer text-card-foreground" />
             <Modal.Header className="flex flex-col items-start gap-1">
               <Modal.Heading className="font-nunito text-xl font-bold text-card-foreground">Before you apply</Modal.Heading>
               <p className="text-sm text-muted-foreground">A few things to know about applying for this apartment.</p>

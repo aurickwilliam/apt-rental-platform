@@ -84,6 +84,12 @@ const STEPS = [
 
 export type FormErrors = Partial<Record<keyof ApartmentFormData, string>>;
 
+/** `{apartmentId}/{timestamp}-{random}.{ext}`: unique per upload, never reused. */
+function uniqueStoragePath(apartmentId: string, fileName: string): string {
+  const ext = fileName.split(".").pop();
+  return `${apartmentId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+}
+
 export default function CreateApartmentPage() {
   const { profile } = useUser();
   const [step, setStep] = useState(1);
@@ -167,8 +173,7 @@ export default function CreateApartmentPage() {
       try {
         if (formData.lease_agreement) {
           const file = formData.lease_agreement;
-          const ext = file.name.split(".").pop();
-          const path = `${apartment.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const path = uniqueStoragePath(apartment.id, file.name);
 
           const { error: leaseUploadError } = await supabase.storage
             .from("lease-agreements")
@@ -197,8 +202,7 @@ export default function CreateApartmentPage() {
           const imageRows: { apartment_id: string; url: string; is_cover: boolean }[] = [];
 
           for (const { file, isCover } of allImages) {
-            const ext = file.name.split(".").pop();
-            const path = `${apartment.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const path = uniqueStoragePath(apartment.id, file.name);
 
             const { error: uploadError } = await supabase.storage
               .from("apartment-images")

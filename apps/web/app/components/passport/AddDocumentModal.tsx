@@ -48,14 +48,14 @@ export default function AddDocumentModal({
       <Modal.Backdrop isDismissable={!isUploading} isKeyboardDismissDisabled={isUploading}>
         <Modal.Container placement="center" scroll="inside" size="lg">
           <Modal.Dialog className="w-full max-w-3xl! rounded-3xl bg-card">
-            {!isUploading ? <Modal.CloseTrigger /> : null}
+            {!isUploading ? <Modal.CloseTrigger className="text-card-foreground" /> : null}
             <Modal.Header className="flex flex-col items-start gap-1">
               {docType ? (
                 <button
                   type="button"
                   disabled={isUploading}
                   onClick={() => onSelectType(null)}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:opacity-50"
+                  className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <IconArrowLeft size={16} aria-hidden="true" />
                   Document types

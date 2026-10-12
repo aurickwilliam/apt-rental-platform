@@ -10,21 +10,18 @@ export function PassportPageShell({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:py-8">{children}</div>;
 }
 
-export function PassportPageHeader({ action }: { action?: React.ReactNode }) {
+export function PassportPageHeader() {
   return (
-    <div className="flex min-h-11 flex-wrap items-start justify-between gap-3">
-      <div>
-        <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <IconFileCheck size={28} aria-hidden="true" />
-          </span>
-          APT Passport
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your verified ID and supporting documents, attached automatically when you apply.
-        </p>
-      </div>
-      {action}
+    <div>
+      <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <IconFileCheck size={28} aria-hidden="true" />
+        </span>
+        APT Passport
+      </h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Your verified ID and supporting documents, attached automatically when you apply.
+      </p>
     </div>
   );
 }

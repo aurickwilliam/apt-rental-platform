@@ -39,21 +39,21 @@ export function validateTenantInfo(form: ApplicationForm): ApplicationErrors {
   const next: ApplicationErrors = {};
   const { isNoIncomeType, requiresOccupation, requiresCompany } = employmentRules(form.employmentType);
 
-  if (!form.fullName.trim()) next.fullName = "Full name is required.";
-  if (!form.email.trim()) next.email = "Email is required.";
+  if (!form.fullName.trim()) next.fullName = "Add your full name to your profile first.";
+  if (!form.email.trim()) next.email = "Add your email to your profile first.";
   else if (!isValidEmail(form.email.trim())) next.email = "Enter a valid email address.";
-  if (!form.dateOfBirth) next.dateOfBirth = "Date of birth is required.";
+  if (!form.dateOfBirth) next.dateOfBirth = "Add your date of birth to your profile first.";
   else {
     const date = new Date(form.dateOfBirth);
     if (Number.isNaN(date.getTime())) next.dateOfBirth = "Enter a valid date.";
     else if (date > new Date()) next.dateOfBirth = "Date of birth cannot be in the future.";
   }
-  if (!form.contactNumber.trim()) next.contactNumber = "Contact number is required.";
+  if (!form.contactNumber.trim()) next.contactNumber = "Add your contact number to your profile first.";
   else {
     const result = validatePHMobile(form.contactNumber);
     if (!result.isValid) next.contactNumber = result.errorMessage ?? "Invalid contact number.";
   }
-  if (!form.currentAddress.trim()) next.currentAddress = "Current address is required.";
+  if (!form.currentAddress.trim()) next.currentAddress = "Add your current address to your profile first.";
   if (!form.employmentType.trim()) next.employmentType = "Employment type is required.";
   if (requiresOccupation && !form.occupation.trim()) next.occupation = "Occupation is required.";
   if (requiresCompany && !form.companyName.trim()) next.companyName = "Company name is required.";

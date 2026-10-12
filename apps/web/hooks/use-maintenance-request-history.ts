@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+
+import { useAsyncResource } from "@/hooks/use-async-resource";
 
 import { getTenantContext } from "@/service/favoritesService";
 import {
@@ -11,42 +13,28 @@ import {
 
 export type { MaintenanceRequest };
 
+const NO_REQUESTS: MaintenanceRequest[] = [];
+
 export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]) {
   return status === "Pending" || status === "In Progress";
 }
 
 export function useMaintenanceRequestHistory(apartmentId: string | null) {
-  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (!apartmentId) {
-      setRequests([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const context = await getTenantContext();
-      if (!context.tenantId) {
-        setRequests([]);
-        return;
-      }
-      const rows = await fetchMaintenanceRequestHistory(apartmentId, context.tenantId);
-      setRequests(rows);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load maintenance requests.");
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
+    if (!apartmentId) return NO_REQUESTS;
+    const context = await getTenantContext();
+    if (!context.tenantId) return NO_REQUESTS;
+    return fetchMaintenanceRequestHistory(apartmentId, context.tenantId);
   }, [apartmentId]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const {
+    data: requests,
+    loading,
+    error,
+    refresh,
+    setData: setRequests,
+  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.");
 
   const cancelRequest = useCallback(
     async (requestId: string) => {
@@ -79,7 +67,7 @@ export function useMaintenanceRequestHistory(apartmentId: string | null) {
         setCancellingId(null);
       }
     },
-    [requests],
+    [requests, setRequests],
   );
 
   const latestRequest = requests[0] ?? null;

@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 import { Dropdown, Button, Label } from "@heroui/react";
 import { Menu, X } from "lucide-react";
 
+import { useHydrated } from "@/hooks/use-hydrated";
+
 import ThemeToggle from "./ThemeToggle";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
@@ -29,7 +31,7 @@ const getInitials = (value: string) => {
 
 export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -61,22 +63,12 @@ export default function AppNavbar() {
       : "/tenant/profile";
   };
 
-   useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // The mobile panel is hidden by `sm:hidden`, so a window widened past the
   // breakpoint would otherwise leave it "open" in state and re-shown on the
   // next shrink. Close it when the media query stops matching.
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 640px)");
-    
-    // Close menu if already above breakpoint on mount to prevent hydration
-    // mismatches or transient "menu flash" at desktop widths.
-    if (desktop.matches) {
-      setIsMenuOpen(false);
-    }
-    
+    // The menu starts closed; only widening the window needs to close it.
     const handleChange = (e: MediaQueryListEvent) => {
       if (e.matches) setIsMenuOpen(false);
     };

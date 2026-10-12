@@ -320,13 +320,20 @@ export default function PassportDocumentDetailClient({
                   </p>
                 ) : null}
               </Modal.Body>
-              <Modal.Footer className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" isDisabled={pending === "delete"} onPress={confirmDelete.close}>
+              <Modal.Footer className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  isDisabled={pending === "delete"}
+                  onPress={confirmDelete.close}
+                >
                   Keep
                 </Button>
                 <Button
                   variant="danger"
                   size="sm"
+                  fullWidth
                   isPending={pending === "delete"}
                   onPress={() => void handleDelete()}
                 >

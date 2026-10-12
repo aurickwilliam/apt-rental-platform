@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Button, Card, Spinner } from "@heroui/react";
+import { Button, Card, Skeleton } from "@heroui/react";
 import { IconRefresh } from "@tabler/icons-react";
 
 import PassportStatusChip from "./PassportStatusChip";
@@ -25,7 +25,12 @@ interface ValidIdCardProps {
  * resets when the linked ID changes. The flip button is a sibling of the
  * viewer trigger, so flipping never opens the lightbox.
  */
-export default function ValidIdCard({ idType, sides, loading, onOpenViewer }: ValidIdCardProps) {
+export default function ValidIdCard({
+  idType,
+  sides,
+  loading,
+  onOpenViewer,
+}: ValidIdCardProps) {
   const [showBack, setShowBack] = useState(false);
   const front = sides.find((side) => side.label === "Front") ?? null;
   const back = sides.find((side) => side.label === "Back" && side.url) ?? null;
@@ -36,7 +41,9 @@ export default function ValidIdCard({ idType, sides, loading, onOpenViewer }: Va
       <Card.Content className="flex flex-col gap-3 p-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="font-nunito text-lg font-semibold text-card-foreground">Government ID</h2>
+            <h2 className="font-nunito text-lg font-semibold text-card-foreground">
+              Government ID
+            </h2>
             <p className="truncate text-sm text-muted-foreground">{idType}</p>
           </div>
           <PassportStatusChip status="verified" />
@@ -59,9 +66,11 @@ export default function ValidIdCard({ idType, sides, loading, onOpenViewer }: Va
                 className="object-contain"
               />
             ) : loading ? (
-              <Spinner size="sm" color="accent" />
+              <Skeleton className="absolute inset-0 rounded-none bg-grey-300!" />
             ) : (
-              <span className="text-sm text-muted-foreground">Preview unavailable</span>
+              <span className="text-sm text-muted-foreground">
+                Preview unavailable
+              </span>
             )}
           </button>
 
@@ -71,7 +80,7 @@ export default function ValidIdCard({ idType, sides, loading, onOpenViewer }: Va
                 {current?.label ?? "Front"}
               </span>
               <Button
-                variant="secondary"
+                variant="primary"
                 size="sm"
                 isIconOnly
                 className="absolute right-3 bottom-3"

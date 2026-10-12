@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calendar } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 
@@ -32,9 +32,13 @@ export default function MiniCalendar({ focusDate, highlightDate, highlightLabel 
   const monthEnd = new Date(focusDate.getFullYear(), focusDate.getMonth() + 1, 0);
   const highlightKey = selectedValue ? selectedValue.toString() : null;
 
-  useEffect(() => {
+  // Refocus when the parent moves to another month (compared by value, so a
+  // new Date for the same day doesn't reset the user's navigation).
+  const [syncedFocusTime, setSyncedFocusTime] = useState(focusDate.getTime());
+  if (syncedFocusTime !== focusDate.getTime()) {
+    setSyncedFocusTime(focusDate.getTime());
     setFocusedValue(toCalendarDate(focusDate));
-  }, [focusDate]);
+  }
 
   return (
     <DashboardCard>

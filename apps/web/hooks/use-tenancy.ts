@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { createBrowserClient } from "@repo/supabase";
+
+import { useAsyncResource } from "@/hooks/use-async-resource";
 
 export type TenancyApartment = {
   id: string;
@@ -53,127 +54,98 @@ export type CurrentTenancy = {
   landlord: TenancyLandlord | null;
 };
 
+interface TenancyData {
+  tenancy: CurrentTenancy | null;
+  payments: TenancyPayment[];
+  /** Payments failed to load; the tenancy itself is still shown. */
+  paymentError: string | null;
+}
+
+const NO_TENANCY: TenancyData = { tenancy: null, payments: [], paymentError: null };
+
+async function fetchCurrentTenancy(): Promise<TenancyData> {
+  const supabase = createBrowserClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NO_TENANCY;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  if (profileError || !profile) throw new Error(profileError?.message ?? "Profile not found");
+
+  const { data: tenancyData, error: tenancyError } = await supabase
+    .from("tenancies")
+    .select(`
+      id,
+      lease_start,
+      lease_end,
+      monthly_rent,
+      status,
+      apartment:apartments (
+        id,
+        name,
+        street_address,
+        barangay,
+        city,
+        province,
+        monthly_rent,
+        type,
+        no_bedrooms,
+        no_bathrooms,
+        area_sqm,
+        amenities,
+        description,
+        furnished_type,
+        floor_level,
+        max_occupants,
+        lease_duration,
+        lease_agreement_url
+      ),
+      landlord:users!tenancies_landlord_id_fkey (
+        id,
+        first_name,
+        last_name,
+        email,
+        mobile_number,
+        avatar_url
+      )
+    `)
+    .eq("tenant_id", profile.id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (tenancyError) throw new Error(tenancyError.message);
+  if (!tenancyData) return NO_TENANCY;
+
+  const { data: paymentRows, error: paymentError } = await supabase
+    .from("payment")
+    .select("id, amount, status, date, due_date, period_start, period_end")
+    .eq("tenancy_id", tenancyData.id)
+    .order("date", { ascending: false });
+
+  return {
+    tenancy: tenancyData as CurrentTenancy,
+    payments: (paymentRows ?? []) as TenancyPayment[],
+    paymentError: paymentError?.message ?? null,
+  };
+}
+
 export function useTenancy() {
-  const [tenancy, setTenancy] = useState<CurrentTenancy | null>(null);
-  const [payments, setPayments] = useState<TenancyPayment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTenancy = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const supabase = createBrowserClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setTenancy(null);
-        setPayments([]);
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (profileError || !profile) {
-        setError(profileError?.message ?? "Profile not found");
-        setTenancy(null);
-        setPayments([]);
-        return;
-      }
-
-      const { data: tenancyData, error: tenancyError } = await supabase
-        .from("tenancies")
-        .select(`
-          id,
-          lease_start,
-          lease_end,
-          monthly_rent,
-          status,
-          apartment:apartments (
-            id,
-            name,
-            street_address,
-            barangay,
-            city,
-            province,
-            monthly_rent,
-            type,
-            no_bedrooms,
-            no_bathrooms,
-            area_sqm,
-            amenities,
-            description,
-            furnished_type,
-            floor_level,
-            max_occupants,
-            lease_duration,
-            lease_agreement_url
-          ),
-          landlord:users!tenancies_landlord_id_fkey (
-            id,
-            first_name,
-            last_name,
-            email,
-            mobile_number,
-            avatar_url
-          )
-        `)
-        .eq("tenant_id", profile.id)
-        .eq("status", "active")
-        .maybeSingle();
-
-      if (tenancyError) {
-        setError(tenancyError.message);
-        setTenancy(null);
-        setPayments([]);
-        return;
-      }
-
-      if (!tenancyData) {
-        setTenancy(null);
-        setPayments([]);
-        return;
-      }
-
-      const { data: paymentRows, error: paymentError } = await supabase
-        .from("payment")
-        .select("id, amount, status, date, due_date, period_start, period_end")
-        .eq("tenancy_id", tenancyData.id)
-        .order("date", { ascending: false });
-
-      if (paymentError) {
-        setError(paymentError.message);
-      }
-
-      setTenancy(tenancyData as CurrentTenancy);
-      setPayments((paymentRows ?? []) as TenancyPayment[]);
-    } catch (err) {
-      console.error("useTenancy:", err);
-      setError("An unexpected error occurred.");
-      setTenancy(null);
-      setPayments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchTenancy();
-  }, [fetchTenancy]);
-
-  const currentPayment = payments[0] ?? null;
+  const { data, loading, error, refresh } = useAsyncResource(
+    fetchCurrentTenancy,
+    NO_TENANCY,
+    "An unexpected error occurred.",
+  );
+  const tenancy = error ? null : data.tenancy;
+  const payments = error ? NO_TENANCY.payments : data.payments;
 
   return {
     tenancy,
     payments,
-    currentPayment,
+    currentPayment: payments[0] ?? null,
     loading,
-    error,
-    refetch: fetchTenancy,
+    error: error ?? data.paymentError,
+    refetch: refresh,
   };
 }
