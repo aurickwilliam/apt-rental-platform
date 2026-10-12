@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import { isVerifiedIdPath } from "@repo/passport";
 
 export const APPLICATION_DOCUMENTS_BUCKET = "application-documents";
 
@@ -10,14 +11,6 @@ export const APPLICATION_DOCUMENT_SIGNED_URL_TTL_SECONDS = 60 * 60;
 // bucket and get a shorter-lived signed URL.
 export const VERIFICATION_BUCKET = "user-verification";
 export const VERIFICATION_ID_SIGNED_URL_TTL_SECONDS = 15 * 60;
-
-const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const VERIFIED_ID_PATH = new RegExp(`^${UUID}/${UUID}/id-(front|back)\\.(jpe?g|png|webp)$`, "i");
-
-/** `{users.id}/{verification id}/id-front|id-back.*` — never an application upload shape; the selfie never matches. */
-export function isVerifiedIdPath(path: string): boolean {
-  return VERIFIED_ID_PATH.test(path);
-}
 
 const MIME_MAP: Record<string, string> = {
   jpg: "image/jpeg",

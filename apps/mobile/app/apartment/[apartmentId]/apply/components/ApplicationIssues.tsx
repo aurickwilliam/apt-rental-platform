@@ -6,7 +6,7 @@ import { Button } from "heroui-native";
 import { IconAlertTriangle } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
-import type { ApplicationIssue } from "@/service/applications/applicationReadiness";
+import type { ApplicationIssue } from "@repo/passport";
 
 function actionFor(issue: ApplicationIssue): { label: string; href: Href } | null {
   switch (issue.code) {
