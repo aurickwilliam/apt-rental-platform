@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { createClient } from "@repo/supabase/server";
 
-import FilterContainer from "@/app/browse/components/FilterContainer";
+import BrowseFilters from "@/app/browse/components/BrowseFilters";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
@@ -40,17 +40,19 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     await fetchBrowseResults(supabase, params);
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
       <Suspense>
         <SearchContainer basePath="/tenant/browse" />
       </Suspense>
-      <div className="mt-4 flex flex-col md:flex-row gap-3">
+      <div className="mt-4 flex flex-col md:flex-row gap-4">
         <Suspense>
-          <div className="md:w-1/4 self-start">
-            <FilterContainer resultCount={totalCount} basePath="/tenant/browse" />
-          </div>
+          <BrowseFilters
+            resultCount={totalCount}
+            basePath="/tenant/browse"
+            stickyClassName="md:top-4 md:max-h-[calc(100dvh-2rem)]"
+          />
         </Suspense>
-        <div className="w-full md:w-3/4  rounded-lg p-0">
+        <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense>
             <RenderApartments
               apartment={mapped}

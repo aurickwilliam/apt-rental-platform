@@ -81,6 +81,7 @@ const INITIAL_FILTERS: Filters = {
 type Props = {
   resultCount: number;
   basePath?: string;
+  onApply?: () => void;
 };
 
 const FILTER_DEBOUNCE_MS = 300;
@@ -171,7 +172,7 @@ function serializeFilters(f: Filters, search: string | null): string {
   return current.toString();
 }
 
-export default function FilterContainer({ resultCount, basePath = "/browse" }: Props)
+export default function FilterContainer({ resultCount, basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -239,6 +240,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
   const handleApply = () => {
     cancelPush();
     pushFilters(filtersRef.current);
+    onApply?.();
   };
 
   const handleClear = () => {
@@ -267,7 +269,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
   }, [paramsSignature]);
 
   return (
-    <div className="bg-surface rounded-xl p-4 border ">
+    <div className="bg-surface rounded-xl p-4 border w-full">
       <div className="flex gap-3 items-center justify-center mb-5">
         {/* Search Button */}
         <Button

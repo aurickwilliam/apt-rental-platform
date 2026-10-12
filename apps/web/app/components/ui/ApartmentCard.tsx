@@ -38,19 +38,19 @@ export default function ApartmentCard({
 
   return (
     <div
-      className="cursor-pointer"
+      className="w-full min-w-0 cursor-pointer"
       onClick={onPress}
       role="button"
     >
-      <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-56 h-full relative p-0">
-        <div>
+      <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-full h-full relative p-0">
+        <div className="min-w-0">
           <Image
             src={thumbnailUrl}
             alt="Apartment Thumbnail"
-            width={300}
-            height={200}
+            width={600}
+            height={600}
             unoptimized
-            className="object-cover rounded-xl size-56"
+            className="object-cover rounded-xl w-full aspect-square h-auto"
           />
 
           <div className="p-2">
@@ -85,9 +85,13 @@ export default function ApartmentCard({
         ) : null}
 
         {showFavoriteButton ? (
+          <span
+            className="absolute top-2 right-2"
+            onClick={(e) => e.stopPropagation()}
+          >
           <Button
             variant="ghost"
-            className="absolute top-2 right-2 bg-white/75"
+            className="bg-white/75"
             isIconOnly
             aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             isPending={isFavoriteLoading}
@@ -112,6 +116,7 @@ export default function ApartmentCard({
               </>
             )}
           </Button>
+          </span>
         ) : null}
       </Card>
     </div>

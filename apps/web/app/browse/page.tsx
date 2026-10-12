@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
-import FilterContainer from "./components/FilterContainer";
+import BrowseFilters from "./components/BrowseFilters";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
@@ -23,17 +23,15 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     await fetchBrowseResults(supabase, params);
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
       <Suspense>
         <SearchContainer />
       </Suspense>
-      <div className="mt-4 flex flex-col md:flex-row gap-3">
+      <div className="mt-4 flex flex-col md:flex-row gap-4">
         <Suspense>
-          <div className="md:w-1/4 self-start">
-            <FilterContainer resultCount={totalCount} />
-          </div>
+          <BrowseFilters resultCount={totalCount} />
         </Suspense>
-        <div className="w-full md:w-3/4  rounded-lg p-0">
+        <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense>
             <RenderApartments
               apartment={mapped}

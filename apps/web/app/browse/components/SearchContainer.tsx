@@ -54,16 +54,16 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
   }, [urlSearch]);
 
   return (
-    <div className="w-full h-52 bg-primary rounded-xl flex items-center justify-center flex-col gap-3">
-      <h2 className="text-4xl font-medium font-dm-serif text-white">
+    <div className="w-full min-h-52 bg-primary rounded-xl flex items-center justify-center flex-col gap-2 sm:gap-3 px-4 py-8 sm:py-10 text-center">
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight">
         Find your Perfect Apartment!
       </h2>
-      <p className="text-white/80 text-sm">
+      <p className="text-white/80 text-xs sm:text-sm px-2">
         Browse verified listings across Caloocan, Malabon, Navotas, and Valenzuela
       </p>
 
       {/* Search bar */}
-      <div className="flex items-center gap-2 w-full max-w-lg mt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-lg mt-2">
         <InputGroup className="w-full rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
           <InputGroup.Prefix>
             {isPending ? (
@@ -84,6 +84,7 @@ export default function SearchContainer({ basePath = "/browse" }: { basePath?: s
         <Button
           variant="secondary"
           size="lg"
+          className="w-full sm:w-auto shrink-0"
           onPress={handleSearch}
         >
           Search

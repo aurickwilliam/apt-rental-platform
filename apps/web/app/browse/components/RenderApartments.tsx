@@ -27,6 +27,22 @@ interface RenderApartmentsProps {
   basePath?: string;
 }
 
+// Windowed page numbers so the control never overflows small screens:
+// always show first/last, plus current ± 1, with ellipses for gaps.
+function getVisiblePages(page: number, totalPages: number): (number | "…")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const pages: (number | "…")[] = [1];
+  if (page > 3) pages.push("…");
+  for (let p = Math.max(2, page - 1); p <= Math.min(totalPages - 1, page + 1); p++) {
+    pages.push(p);
+  }
+  if (page < totalPages - 2) pages.push("…");
+  pages.push(totalPages);
+  return pages;
+}
+
 export default function RenderApartments({ apartment, page, totalCount, pageSize, basePath = "/browse" }: RenderApartmentsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,16 +89,16 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       {apartment.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-default-400">
+        <div className="flex flex-col items-center justify-center h-64 px-4 text-center text-default-400">
           <p className="text-lg font-medium">
             {isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
           </p>
           <p className="text-sm">Try adjusting your filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {apartment.map(apt => (
             <ApartmentCard
               key={apt.id}
@@ -104,7 +120,8 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       )}
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="mt-4 flex justify-center">
+          <div className="max-w-full overflow-x-auto">
           <Pagination className="justify-center">
             <Pagination.Content>
               <Pagination.Item>
@@ -113,32 +130,39 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
                   onPress={() => handlePageChange(page - 1)}
                 >
                   <Pagination.PreviousIcon />
-                  <span>Previous</span>
+                  <span className="hidden sm:inline">Previous</span>
                 </Pagination.Previous>
               </Pagination.Item>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <Pagination.Item key={p}>
-                  <Pagination.Link
-                    isActive={p === page}
-                    onPress={() => handlePageChange(p)}
-                  >
-                    {p}
-                  </Pagination.Link>
-                </Pagination.Item>
-              ))}
+              {getVisiblePages(page, totalPages).map((p, i) =>
+                p === "…" ? (
+                  <Pagination.Item key={`ellipsis-${i}`}>
+                    <span className="px-2 text-default-400">…</span>
+                  </Pagination.Item>
+                ) : (
+                  <Pagination.Item key={p}>
+                    <Pagination.Link
+                      isActive={p === page}
+                      onPress={() => handlePageChange(p)}
+                    >
+                      {p}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ),
+              )}
 
               <Pagination.Item>
                 <Pagination.Next
                   isDisabled={page === totalPages}
                   onPress={() => handlePageChange(page + 1)}
                 >
-                  <span>Next</span>
+                  <span className="hidden sm:inline">Next</span>
                   <Pagination.NextIcon />
                 </Pagination.Next>
               </Pagination.Item>
             </Pagination.Content>
           </Pagination>
+          </div>
         </div>
       )}
 
