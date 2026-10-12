@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, MapPin } from "lucide-react";
 import { IconGlobe, IconMapPin } from "@tabler/icons-react";
 import { Popover, ListBox, Button } from "@heroui/react";
 
@@ -32,15 +31,9 @@ const RegionSelect = ({ value, onChange, options, placeholder, className }: { va
   </Popover>
 );
 
-export default function LanguageRegionTab({
-  iconSet = "lucide",
-}: {
-  iconSet?: "lucide" | "tabler";
-}) {
+export default function LanguageRegionTab() {
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].label);
   const [selectedRegion, setSelectedRegion] = useState(REGIONS[0]);
-  const GlobeIcon = iconSet === "tabler" ? IconGlobe : Globe;
-  const PinIcon = iconSet === "tabler" ? IconMapPin : MapPin;
 
   return (
     <>
@@ -57,7 +50,7 @@ export default function LanguageRegionTab({
           </div>
           <div className="divide-y divide-border">
             <SettingsRow
-              icon={<GlobeIcon size={18} />}
+              icon={<IconGlobe size={18} />}
               title="Language"
               suffix={
                 <RegionSelect
@@ -78,7 +71,7 @@ export default function LanguageRegionTab({
           </div>
           <div className="divide-y divide-border">
             <SettingsRow
-              icon={<PinIcon size={18} />}
+              icon={<IconMapPin size={18} />}
               title="Region"
               suffix={
                 <RegionSelect

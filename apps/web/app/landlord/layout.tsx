@@ -83,7 +83,7 @@ export default async function DashboardLayout({
         activePortal="landlord"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay iconSet="tabler" />
+        <SettingsOverlay />
       </Suspense>
     </div>
   );

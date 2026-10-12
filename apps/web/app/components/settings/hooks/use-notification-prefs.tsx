@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useUser } from "@/hooks/use-user";
 import { toast } from "@heroui/react";
-import { Bell, BellRing, MessageSquare } from "lucide-react";
+import { IconBell, IconBellRinging, IconMessageCircle } from "@tabler/icons-react";
 
 export interface NotificationPreferences {
   notifications_enabled: boolean;
@@ -38,19 +38,19 @@ const GENERAL_TOGGLES: {
 }[] = [
   {
     key: "notifications_enabled",
-    icon: <Bell className="w-5 h-5" />,
+    icon: <IconBell size={20} aria-hidden="true" />,
     title: "In-App Notifications",
     description: "Show banner notifications while using the app",
   },
   {
     key: "push_enabled",
-    icon: <BellRing className="w-5 h-5" />,
+    icon: <IconBellRinging size={20} aria-hidden="true" />,
     title: "Push Notifications",
     description: "Receive alerts on your device when the app is closed",
   },
   {
     key: "show_chat_toasts",
-    icon: <MessageSquare className="w-5 h-5" />,
+    icon: <IconMessageCircle size={20} aria-hidden="true" />,
     title: "Message Toasts in Chat",
     description: "Show a banner for new messages in the chat you are viewing",
   },

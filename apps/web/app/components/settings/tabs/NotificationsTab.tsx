@@ -1,9 +1,6 @@
 "use client";
 
-import { MessageSquare, Home, Wrench, CreditCard, Settings } from "lucide-react";
 import {
-  IconBell,
-  IconBellRinging,
   IconCreditCard,
   IconHome,
   IconMessageCircle,
@@ -17,15 +14,7 @@ import SectionTitle from "../SectionTitle";
 import ToggleSwitch from "../ToggleSwitch";
 import { useNotificationPreferences } from "../hooks/use-notification-prefs";
 
-const LUCIDE_TYPE_ICONS: Record<string, React.ReactNode> = {
-  payment: <CreditCard className="w-5 h-5" />,
-  message: <MessageSquare className="w-5 h-5" />,
-  maintenance: <Wrench className="w-5 h-5" />,
-  apartment: <Home className="w-5 h-5" />,
-  system: <Settings className="w-5 h-5" />,
-};
-
-const TABLER_TYPE_ICONS: Record<string, React.ReactNode> = {
+const TYPE_ICONS: Record<string, React.ReactNode> = {
   payment: <IconCreditCard size={20} aria-hidden="true" />,
   message: <IconMessageCircle size={20} aria-hidden="true" />,
   maintenance: <IconTool size={20} aria-hidden="true" />,
@@ -33,23 +22,14 @@ const TABLER_TYPE_ICONS: Record<string, React.ReactNode> = {
   system: <IconSettings size={20} aria-hidden="true" />,
 };
 
-const TABLER_GENERAL_ICONS: Record<string, React.ReactNode> = {
-  notifications_enabled: <IconBell size={20} aria-hidden="true" />,
-  push_enabled: <IconBellRinging size={20} aria-hidden="true" />,
-  show_chat_toasts: <IconMessageCircle size={20} aria-hidden="true" />,
-};
-
 export default function NotificationsTab({
   isAdmin = false,
-  iconSet = "lucide",
 }: {
   isAdmin?: boolean;
-  iconSet?: "lucide" | "tabler";
 }) {
   const { preferences, loading, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
 
   const typesDisabled = !preferences.notifications_enabled && !preferences.push_enabled;
-  const TYPE_ICONS = iconSet === "tabler" ? TABLER_TYPE_ICONS : LUCIDE_TYPE_ICONS;
 
   if (loading) {
     return (
@@ -106,7 +86,7 @@ export default function NotificationsTab({
             {GENERAL_TOGGLES.map(({ key, icon, title, description }) => (
               <SettingsRow
                 key={key}
-                icon={iconSet === "tabler" ? (TABLER_GENERAL_ICONS[key] ?? icon) : icon}
+                icon={icon}
                 title={title}
                 description={description}
                 suffix={

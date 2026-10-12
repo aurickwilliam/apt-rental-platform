@@ -2,14 +2,6 @@
 
 import { useState } from "react";
 import {
-  Sun,
-  ShieldCheck,
-  Globe,
-  Bell,
-  HelpCircle,
-  Settings as SettingsIcon,
-} from "lucide-react";
-import {
   IconBell,
   IconGlobe,
   IconHelpCircle,
@@ -29,21 +21,19 @@ import HelpTab from "./tabs/HelpTab";
 type TabId = "general" | "security" | "language" | "notifications" | "help";
 
 const TAB_META = [
-  { id: "general", label: "General", lucide: Sun, tabler: IconSun },
-  { id: "security", label: "Security", lucide: ShieldCheck, tabler: IconShieldLock },
-  { id: "language", label: "Language & Region", lucide: Globe, tabler: IconGlobe },
-  { id: "notifications", label: "Notifications", lucide: Bell, tabler: IconBell },
-  { id: "help", label: "Help & Support", lucide: HelpCircle, tabler: IconHelpCircle },
+  { id: "general", label: "General", icon: IconSun },
+  { id: "security", label: "Security", icon: IconShieldLock },
+  { id: "language", label: "Language & Region", icon: IconGlobe },
+  { id: "notifications", label: "Notifications", icon: IconBell },
+  { id: "help", label: "Help & Support", icon: IconHelpCircle },
 ] as const;
 
 export default function SettingsModal({
   open,
   onClose,
-  iconSet = "lucide",
 }: {
   open: boolean;
   onClose: () => void;
-  iconSet?: "lucide" | "tabler";
 }) {
   const { profile } = useUser();
   const roles = profile?.roles ?? [];
@@ -52,7 +42,6 @@ export default function SettingsModal({
 
   const visibleTabs = TAB_META;
   const activeId: TabId = visibleTabs.some((t) => t.id === tab) ? tab : "general";
-  const HeaderIcon = iconSet === "tabler" ? IconSettings : SettingsIcon;
 
   return (
     <Modal
@@ -75,7 +64,7 @@ export default function SettingsModal({
             />
             <Modal.Header className="shrink-0 border-b border-border px-5 py-4 pr-12">
               <Modal.Heading className="font-nunito text-2xl text-primary font-bold flex flex-row items-center">
-                <HeaderIcon
+                <IconSettings
                   size={28}
                   className="mr-2 inline"
                   aria-hidden="true"
@@ -89,8 +78,7 @@ export default function SettingsModal({
                   aria-label="Settings sections"
                   className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-b-0"
                 >
-                  {visibleTabs.map(({ id, label, lucide: LucideIcon, tabler: TablerIcon }) => {
-                    const Icon = iconSet === "tabler" ? TablerIcon : LucideIcon;
+                  {visibleTabs.map(({ id, label, icon: Icon }) => {
                     return (
                       <button
                         key={id}
@@ -111,10 +99,10 @@ export default function SettingsModal({
                   className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
-                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} iconSet={iconSet} /> : null}
-                  {activeId === "language" ? <LanguageRegionTab iconSet={iconSet} /> : null}
-                  {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} iconSet={iconSet} /> : null}
-                  {activeId === "help" ? <HelpTab isAdmin={isAdmin} iconSet={iconSet} /> : null}
+                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} /> : null}
+                  {activeId === "language" ? <LanguageRegionTab /> : null}
+                  {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
+                  {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}
                 </section>
               </div>
             </Modal.Body>

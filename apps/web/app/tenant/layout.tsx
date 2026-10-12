@@ -83,7 +83,7 @@ export default async function TenantLayout({
         activePortal="tenant"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay iconSet="tabler" />
+        <SettingsOverlay />
       </Suspense>
       <ReviewUnlockGate />
     </div>

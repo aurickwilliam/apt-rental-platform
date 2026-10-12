@@ -6,11 +6,7 @@ import SettingsModal from "./SettingsModal";
 
 export const SETTINGS_QUERY_VALUE = "open";
 
-export default function SettingsOverlay({
-  iconSet = "lucide",
-}: {
-  iconSet?: "lucide" | "tabler";
-}) {
+export default function SettingsOverlay() {
   const searchParams = useSearchParams();
   const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
   // Stay mounted after the first open so reopening is instant and the
@@ -28,5 +24,5 @@ export default function SettingsOverlay({
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
-  return <SettingsModal open={open} onClose={close} iconSet={iconSet} />;
+  return <SettingsModal open={open} onClose={close} />;
 }

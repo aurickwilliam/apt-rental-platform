@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Key, Mail } from "lucide-react";
 import {
   IconExternalLink,
   IconKey,
@@ -13,15 +12,9 @@ import ComingSoonChip from "../ComingSoonChip";
 
 export default function SecurityTab({
   isAdmin = false,
-  iconSet = "lucide",
 }: {
   isAdmin?: boolean;
-  iconSet?: "lucide" | "tabler";
 }) {
-  const KeyIcon = iconSet === "tabler" ? IconKey : Key;
-  const MailIcon = iconSet === "tabler" ? IconMail : Mail;
-  const ExternalIcon = iconSet === "tabler" ? IconExternalLink : ExternalLink;
-
   return (
     <>
       <h2 className="font-nunito text-lg font-bold text-primary">
@@ -45,7 +38,7 @@ export default function SecurityTab({
             className="block rounded-xl border border-border p-4 text-sm font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             Privacy policy{" "}
-            <ExternalIcon
+            <IconExternalLink
               size={16}
               className="ml-1 inline"
               aria-hidden="true"
@@ -55,13 +48,13 @@ export default function SecurityTab({
       ) : (
         <div className="mt-3 divide-y divide-border">
           <SettingsRow
-            icon={<KeyIcon size={18} />}
+            icon={<IconKey size={18} />}
             title="Change Password"
             disabled
             suffix={<ComingSoonChip />}
           />
           <SettingsRow
-            icon={<MailIcon size={18} />}
+            icon={<IconMail size={18} />}
             title="Change Email"
             disabled
             suffix={<ComingSoonChip />}

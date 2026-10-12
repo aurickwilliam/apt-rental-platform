@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { IconChevronRight } from "@tabler/icons-react";
 import Link from "next/link";
 
 interface SettingsRowProps {
@@ -57,7 +57,7 @@ export default function SettingsRow({
     <div className="flex items-center gap-2 justify-self-end min-w-0">
       {suffix}
       {showChevron && (
-        <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
+        <IconChevronRight size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
       )}
     </div>
   );

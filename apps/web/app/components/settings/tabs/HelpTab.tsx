@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, HelpCircle } from "lucide-react";
 import { IconAlertCircle, IconChevronDown, IconChevronUp, IconExternalLink, IconHelpCircle } from "@tabler/icons-react";
 import { Accordion, AccordionBody, AccordionIndicator, AccordionItem, AccordionPanel, AccordionTrigger } from "@heroui/react";
 
@@ -47,23 +46,11 @@ const linkClassName =
 
 export default function HelpTab({
   isAdmin = false,
-  iconSet = "lucide",
 }: {
   isAdmin?: boolean;
-  iconSet?: "lucide" | "tabler";
 }) {
   const [faqsOpen, setFaqsOpen] = useState(false);
-  const ReportIcon = iconSet === "tabler" ? IconAlertCircle : AlertCircle;
-  const ExternalIcon = iconSet === "tabler" ? IconExternalLink : ExternalLink;
-  const FaqIcon = iconSet === "tabler" ? IconHelpCircle : HelpCircle;
-  const ExpandIcon =
-    iconSet === "tabler"
-      ? faqsOpen
-        ? IconChevronUp
-        : IconChevronDown
-      : faqsOpen
-        ? ChevronUp
-        : ChevronDown;
+  const ExpandIcon = faqsOpen ? IconChevronUp : IconChevronDown;
 
   return (
     <>
@@ -87,7 +74,7 @@ export default function HelpTab({
       ) : (
         <div className="mt-3 divide-y divide-border">
           <SettingsRow
-            icon={<ReportIcon size={18} />}
+            icon={<IconAlertCircle size={18} />}
             title="Report a Problem"
             disabled
             suffix={<ComingSoonChip />}
@@ -97,7 +84,7 @@ export default function HelpTab({
       <div className="mt-4">
         <div className="rounded-xl border border-border overflow-hidden">
           <SettingsRow
-            icon={<FaqIcon size={18} />}
+            icon={<IconHelpCircle size={18} />}
             title="Frequently Asked Questions"
             onClick={() => setFaqsOpen((v) => !v)}
             hideChevron
@@ -176,7 +163,7 @@ export default function HelpTab({
             className="mt-4 inline-block text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             Learn more about APT{" "}
-            <ExternalIcon
+            <IconExternalLink
               size={16}
               className="ml-1 inline"
               aria-hidden="true"
