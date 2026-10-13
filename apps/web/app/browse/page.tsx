@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
 import BrowseFilters from "./components/BrowseFilters";
 import BrowseSectionsList from "./components/BrowseSectionsList";
-import BrowsePageSkeleton, { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
+import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
 import MobileFilterButton from "./components/MobileFilterButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
@@ -19,22 +19,7 @@ type PageProps = {
 // could otherwise fail the whole production build.
 export const dynamic = "force-dynamic";
 
-export default function BrowsePage({ searchParams }: PageProps) {
-  return (
-    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
-    // control internals) from widening the page. Unlike hidden it does not
-    // create a scroll container, so the sticky filter sidebar keeps working.
-    // The list skeleton lives in-page (not in loading.tsx) so navigating to
-    // an apartment detail route only ever shows the detail skeleton.
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
-      <Suspense fallback={<BrowsePageSkeleton />}>
-        <BrowseContent searchParams={searchParams} />
-      </Suspense>
-    </div>
-  );
-}
-
-async function BrowseContent({ searchParams }: PageProps) {
+export default async function BrowsePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const supabase = await createClient();
 
@@ -52,7 +37,10 @@ async function BrowseContent({ searchParams }: PageProps) {
     : await fetchBrowseResults(supabase, params);
 
   return (
-    <>
+    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
+    // control internals) from widening the page. Unlike hidden it does not
+    // create a scroll container, so the sticky filter sidebar keeps working.
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
         <SearchContainer
           filterButton={
@@ -89,6 +77,6 @@ async function BrowseContent({ searchParams }: PageProps) {
           </Suspense>
         </div>
       </div>
-    </>
+    </div>
   );
 }

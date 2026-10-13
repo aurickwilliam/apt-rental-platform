@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Pagination, toast } from "@heroui/react";
@@ -9,12 +10,13 @@ import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
-import ApartmentHoverPreview from "./ApartmentHoverPreview";
 import {
   previewPosition,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
+
+const ApartmentHoverPreview = dynamic(() => import("./ApartmentHoverPreview"));
 
 interface RenderApartmentsProps {
   apartment: BrowseApartment[];
