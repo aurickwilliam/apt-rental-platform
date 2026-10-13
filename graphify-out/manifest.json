@@ -1590,8 +1590,8 @@
     "semantic_hash": "2e918062ed77a8d5fcb51f1959ef8eb6"
   },
   "apps/web/app/(auth)/actions/sign-in.ts": {
-    "mtime": 1791382558.5091488,
-    "ast_hash": "ee2368315ebea6002dc210c9fc1cd81e",
+    "mtime": 1791878062.5867305,
+    "ast_hash": "7e603970e6aecc5fe806181480a9a84c",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/sign-out.ts": {
@@ -2730,8 +2730,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791875670.450223,
-    "ast_hash": "e04619f105ce1a7fbd2c36f805bd5360",
+    "mtime": 1791878155.0529997,
+    "ast_hash": "3f3d8af935669b32b26d9eb643cbe100",
     "semantic_hash": ""
   },
   "README.md": {
@@ -2980,8 +2980,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791875690.2662108,
-    "ast_hash": "49bf6865869f50611d32986042f4e3c3",
+    "mtime": 1791878155.0526774,
+    "ast_hash": "13ddf3083ac3592114cce8d2c2808b47",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -6920,13 +6920,13 @@
     "semantic_hash": ""
   },
   "docs/plans/web-forgot-password-mirroring.md": {
-    "mtime": 1791875709.2460685,
-    "ast_hash": "76646b7967a2a8828105dec0b77a2bce",
+    "mtime": 1791878155.053112,
+    "ast_hash": "ee9edd82bd3301eafe1d5d40f2b9f3c1",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/password-recovery.ts": {
-    "mtime": 1791875295.078714,
-    "ast_hash": "00084ce1482354e153f3da95c9ce2d7b",
+    "mtime": 1791878045.0964453,
+    "ast_hash": "69f1eaea63c14c1a750b88310b24aa77",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ErrorBanner.tsx": {
@@ -6955,8 +6955,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ResetPasswordClient.tsx": {
-    "mtime": 1791875628.1920881,
-    "ast_hash": "dd3af0bc16c44da70b4f104017838abb",
+    "mtime": 1791878045.0963147,
+    "ast_hash": "0fa54dc390964a96b657a4663ea22d01",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/page.tsx": {
@@ -6970,8 +6970,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/reset-password/page.tsx": {
-    "mtime": 1791875458.2898629,
-    "ast_hash": "4c6f566adf1d669b4535c17ac8d1e82e",
+    "mtime": 1791878054.4637167,
+    "ast_hash": "4fa0d54344edce88398fd87b51ee9652",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/updated/page.tsx": {
@@ -7022,6 +7022,11 @@
   "packages/utils/src/passwordRecovery.ts": {
     "mtime": 1791875067.5121753,
     "ast_hash": "fb8e2a754fefd423de8f92cc153c91fa",
+    "semantic_hash": ""
+  },
+  "apps/web/app/(auth)/forgot-password/components/RecoverySessionEnded.tsx": {
+    "mtime": 1791878054.4615924,
+    "ast_hash": "d50443e24f466340d3ff6e104b85ac2f",
     "semantic_hash": ""
   }
 }

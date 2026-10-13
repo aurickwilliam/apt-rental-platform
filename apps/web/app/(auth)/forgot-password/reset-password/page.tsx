@@ -1,21 +1,18 @@
-import { redirect } from "next/navigation";
-
-import { RECOVERY_START_PATH } from "@repo/supabase/password-recovery";
-
 import RecoveryLayout from "../components/RecoveryLayout";
+import RecoverySessionEnded from "../components/RecoverySessionEnded";
 import ResetPasswordClient from "../components/ResetPasswordClient";
 import { hasActiveRecoverySession } from "../recovery-session";
 
 export const dynamic = "force-dynamic";
 
 export default async function ResetPasswordPage() {
-  // Second line of defense behind the middleware: only a verified recovery
-  // code may reach this page; anything else starts the flow again.
-  if (!(await hasActiveRecoverySession())) redirect(RECOVERY_START_PATH);
+  // The middleware already sends page loads without a recovery session back to
+  // the start. This check covers server-action re-renders, which skip it.
+  const isActive = await hasActiveRecoverySession();
 
   return (
     <RecoveryLayout>
-      <ResetPasswordClient />
+      {isActive ? <ResetPasswordClient /> : <RecoverySessionEnded />}
     </RecoveryLayout>
   );
 }

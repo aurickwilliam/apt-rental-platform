@@ -12,7 +12,8 @@ Deviations from the original plan, found during implementation:
 - The recovery pages use their own `RecoveryLayout` (the sign-in page shell) instead of `AuthWrapper`, which is specific to sign-in and sign-up (tabs, sign-in form, Google button).
 - The exported cancel action is `cancelPasswordRecovery()` (local sign-out only). `endPasswordRecovery(scope)` stays internal, so the browser cannot trigger a global sign-out directly.
 - The decision function has an extra `allow` result for the reset page, so the normal `authRoutes` rule does not send the recovery session home.
-- The reset page also ends the recovery on `popstate`, because browser back/forward can restore a cached page without any request reaching the middleware.
+- The reset page reloads on `popstate`, because browser back/forward can restore a cached page without any request reaching the middleware; the reload is a real page load, which the middleware signs out. A successful password sign-in also clears any leftover marker.
+- Found in real-inbox testing: a server-action `redirect()` rejects the client's promise with Next's redirect signal, which the reset form's `catch` showed as "Password reset failed". The form now runs its actions in a transition and calls `unstable_rethrow`. Because ending the session sets cookies (which re-renders the current page), the reset page renders a "session ended" view instead of redirecting from its server render.
 
 ## Goal
 

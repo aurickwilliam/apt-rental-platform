@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { unstable_rethrow, useRouter } from "next/navigation";
 
 import { Button, Form } from "@heroui/react";
 import { ArrowLeft } from "lucide-react";
@@ -25,6 +25,11 @@ const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
 // Rendered only for a verified recovery session (checked by the page and the
 // middleware). Leaving by any route other than success ends that session.
+//
+// Both actions finish with a server-side redirect (success page / sign-in), which
+// rejects the action's promise with Next's redirect signal. They run inside a
+// transition and pass that signal on with unstable_rethrow, so Next's router
+// handles the redirect instead of it being shown as an error.
 export default function ResetPasswordClient() {
   const router = useRouter();
   const {
@@ -37,22 +42,20 @@ export default function ResetPasswordClient() {
   } = usePasswordValidation();
 
   const [submitted, setSubmitted] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [leaving, setLeaving] = useState(false);
+  const [saving, startSaving] = useTransition();
+  const [leaving, startLeaving] = useTransition();
+  const [restarting, setRestarting] = useState(false);
   const [serverPasswordError, setServerPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  const busy = saving || leaving;
+  const busy = saving || leaving || restarting;
 
   // Browser back/forward can restore a cached page without a server request,
-  // so the middleware never sees it; end the recovery here instead.
+  // so the middleware never sees it. Reloading makes it a real page load,
+  // which the middleware turns into a sign-out.
   useEffect(() => {
-    const handlePopState = () => {
-      cancelPasswordRecovery().catch(() => {
-        console.error("Password recovery cancel failed");
-      });
-    };
+    const handlePopState = () => window.location.reload();
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
@@ -76,55 +79,53 @@ export default function ResetPasswordClient() {
     if (serverPasswordError) setServerPasswordError(null);
   };
 
-  const handleCancel = async () => {
+  const handleCancel = () => {
     if (busy) return;
-    setLeaving(true);
-    try {
-      await cancelPasswordRecovery();
-    } catch {
-      // The middleware still signs this browser out on the next page.
-      console.error("Password recovery cancel failed");
-    }
-    router.replace("/sign-in");
+    startLeaving(async () => {
+      try {
+        await cancelPasswordRecovery();
+      } catch (err) {
+        unstable_rethrow(err);
+        // A full page load lets the middleware sign this browser out instead.
+        console.error("Password recovery cancel failed:", err instanceof Error ? err.name : typeof err);
+        window.location.assign("/sign-in");
+      }
+    });
   };
 
   const handleRestart = () => {
-    setLeaving(true);
+    setRestarting(true);
     router.replace(RECOVERY_START_PATH);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (busy || sessionExpired) return;
     setSubmitted(true);
     setError(null);
     if (!isPasswordValid) return;
 
-    setSaving(true);
     setServerPasswordError(null);
-    try {
-      // On success the action signs every session out and redirects to the
-      // success page; only failures come back with a reason.
-      const result: Awaited<ReturnType<typeof updateRecoveredPassword>> | undefined =
-        await updateRecoveredPassword(password);
-      if (!result) return;
-      const reason = result.error;
-      const message = new PasswordError(reason).message;
-      if (INLINE_PASSWORD_ERRORS.has(reason)) {
-        setServerPasswordError(message);
-      } else if (reason === "session_expired") {
-        setSessionExpired(true);
-        setError(message);
-      } else {
-        setError(message);
+    startSaving(async () => {
+      try {
+        // Success redirects to the success page; only failures return.
+        const { error: reason } = await updateRecoveredPassword(password);
+        const message = new PasswordError(reason).message;
+        if (INLINE_PASSWORD_ERRORS.has(reason)) {
+          setServerPasswordError(message);
+        } else if (reason === "session_expired") {
+          setSessionExpired(true);
+          setError(message);
+        } else {
+          setError(message);
+        }
+      } catch (err) {
+        unstable_rethrow(err);
+        // Log the type only: an unexpected message could echo the password.
+        console.error("Password reset failed:", err instanceof Error ? err.name : typeof err);
+        setError(UNEXPECTED_ERROR);
       }
-    } catch (err) {
-      // Log the type only: an unexpected message could echo the password.
-      console.error("Password reset failed:", err instanceof Error ? err.name : typeof err);
-      setError(UNEXPECTED_ERROR);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   return (
@@ -154,7 +155,7 @@ export default function ResetPasswordClient() {
               variant="secondary"
               className="mt-3 cursor-pointer"
               onPress={handleRestart}
-              isDisabled={leaving}
+              isDisabled={restarting}
             >
               Request a new code
             </Button>

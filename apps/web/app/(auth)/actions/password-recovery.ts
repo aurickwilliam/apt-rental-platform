@@ -134,7 +134,9 @@ export async function verifyPasswordRecoveryCode(
 }
 
 // Requires the session and marker created by verifyPasswordRecoveryCode. On
-// success every session ends and the browser lands on the signed-out success page.
+// success every session ends and the action redirects to the signed-out success
+// page (Next renders it in this response). The client's promise then rejects
+// with Next's redirect signal, so callers must pass it on (unstable_rethrow).
 export async function updateRecoveredPassword(
   password: string,
 ): Promise<{ error: PasswordErrorReason }> {
@@ -165,8 +167,10 @@ export async function updateRecoveredPassword(
   redirect(RECOVERY_UPDATED_PATH);
 }
 
-// Leaving the reset on purpose (Cancel) or after an expired session.
+// Leaving the reset on purpose (Cancel). Redirects like updateRecoveredPassword,
+// so Next renders the sign-in page in this response.
 export async function cancelPasswordRecovery(): Promise<void> {
   const supabase = await createClient();
   await endPasswordRecovery(supabase, "local");
+  redirect("/sign-in");
 }
