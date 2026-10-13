@@ -10,6 +10,18 @@ type CameraCaptureProps = {
   guide: string;
   onCapture: (file: File) => void;
   onCancel: () => void;
+  // Optional override for the "camera unavailable" state. When omitted, an
+  // upload-photo fallback is offered (mobile behavior). Desktop selfie
+  // capture passes a route back to mobile verification instead, since a
+  // live webcam capture is required there.
+  fallback?: {
+    hint: string;
+    label: string;
+    onSelect: () => void;
+  };
+  // When true, the internal Back action is hidden because the embedding
+  // wizard owns Back/Continue navigation. Capture/retake stay visible.
+  hideBack?: boolean;
 };
 
 // Browser camera capture (web-only, no native app): permission is requested
@@ -19,7 +31,7 @@ type CameraCaptureProps = {
 // Falls back to a file picker (which opens the native camera sheet on
 // iPhone Safari via the capture attribute) when the camera is unavailable
 // or permission is denied.
-export default function CameraCapture({ facing, guide, onCapture, onCancel }: CameraCaptureProps) {
+export default function CameraCapture({ facing, guide, onCapture, onCancel, fallback, hideBack = false }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -147,9 +159,11 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel }: Ca
           </div>
           {status === "live" && (
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
-                Back
-              </Button>
+              {!hideBack && (
+                <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
+                  Back
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="primary"
@@ -167,32 +181,47 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel }: Ca
 
       {status === "unavailable" && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-4 text-center">
-          <p className="text-sm text-muted-foreground">{errorMessage}</p>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture={facing === "user" ? "user" : "environment"}
-            className="hidden"
-            aria-label="Upload a photo instead"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onCapture(file);
-              e.target.value = "";
-            }}
-          />
+          <p className="text-sm text-muted-foreground">{fallback?.hint ?? errorMessage}</p>
+          {!fallback && (
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture={facing === "user" ? "user" : "environment"}
+              className="hidden"
+              aria-label="Upload a photo instead"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onCapture(file);
+                e.target.value = "";
+              }}
+            />
+          )}
           <div className="flex w-full items-center gap-2">
-            <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
-              Back
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onPress={() => fileRef.current?.click()}
-              className="flex-1"
-            >
-              Upload photo
-            </Button>
+            {!hideBack && (
+              <Button type="button" variant="outline" onPress={onCancel} className="flex-1">
+                Back
+              </Button>
+            )}
+            {fallback ? (
+              <Button
+                type="button"
+                variant="primary"
+                onPress={fallback.onSelect}
+                className="flex-1"
+              >
+                {fallback.label}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="primary"
+                onPress={() => fileRef.current?.click()}
+                className="flex-1"
+              >
+                Upload photo
+              </Button>
+            )}
           </div>
         </div>
       )}

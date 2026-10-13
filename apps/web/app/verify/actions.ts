@@ -181,6 +181,15 @@ export type VerificationSubmission = {
   idType: string;
 };
 
+export type DesktopVerificationSubmission = VerificationSubmission & {
+  // Client-generated folder id (crypto.randomUUID). Server-scoped under the
+  // caller's own folder, so it cannot address anyone else's files.
+  verificationId: string;
+};
+
+const UUID_SHAPE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Phone: final submit. Uploads already happened client-side straight into the
 // private bucket (owner-prefix RLS). This action re-validates the session,
 // atomically consumes it (single-use), confirms the three files exist under
@@ -290,6 +299,85 @@ export async function submitVerificationSession(
         ? "You already have a verification pending review."
         : "Couldn't save your submission. Please generate a new code and try again.",
       needsNewCode: !alreadyPending,
+    };
+  }
+
+  return { ok: true };
+}
+
+// Desktop: standalone submit without a QR session. Uploads already happened
+// client-side straight into the private bucket (owner-prefix RLS). This
+// action re-validates ownership, confirms the files exist under the
+// caller-scoped folder, then inserts the pending row -- whose trigger flips
+// account_status to pending. Duplicate protection comes from the pending
+// pre-check plus the one-pending-per-user unique index.
+export async function submitDesktopVerification(
+  submission: DesktopVerificationSubmission,
+): Promise<SubmitResult> {
+  if (!UUID_SHAPE.test(submission.verificationId)) {
+    return { ok: false, error: "This submission is invalid. Please try again." };
+  }
+
+  const allowedTypes = [...VALID_IDS, ...SECONDARY_IDS];
+  if (!allowedTypes.includes(submission.idType)) {
+    return { ok: false, error: "Please choose a valid ID type." };
+  }
+  const needsBack = submission.idType !== PASSPORT_LABEL;
+
+  const { supabase, profile } = await getCaller();
+  if (!profile) return { ok: false, error: "Please sign in to submit verification." };
+
+  if (profile.account_status === "verified") {
+    return { ok: false, error: "Your account is already verified." };
+  }
+  if (await hasPendingVerification(supabase, profile.id)) {
+    return { ok: false, error: "You already have a verification pending review." };
+  }
+
+  // Confirm the captures actually landed in this submission's private folder.
+  // Paths are server-constructed, never taken from the client.
+  const prefix = `${profile.id}/${submission.verificationId}`;
+  const frontPath = `${prefix}/${FRONT_FILE}`;
+  const backPath = needsBack ? `${prefix}/${BACK_FILE}` : null;
+  const selfiePath = `${prefix}/${SELFIE_FILE}`;
+
+  const { data: objects, error: listError } = await supabase.storage
+    .from(VERIFICATION_BUCKET)
+    .list(prefix);
+
+  if (listError || !objects) {
+    return { ok: false, error: "Couldn't confirm your uploads. Please try again." };
+  }
+  const names = new Set(objects.map((o) => o.name));
+  const missing =
+    !names.has(FRONT_FILE) ||
+    !names.has(SELFIE_FILE) ||
+    (needsBack && !names.has(BACK_FILE));
+  if (missing) {
+    return {
+      ok: false,
+      error: "Some images are missing. Please recapture and submit again.",
+    };
+  }
+
+  const { error: insertError } = await supabase.from("user_verifications").insert({
+    id: submission.verificationId,
+    user_id: profile.id,
+    id_type: submission.idType,
+    id_front_path: frontPath,
+    id_back_path: backPath,
+    selfie_path: selfiePath,
+  });
+
+  if (insertError) {
+    const alreadyPending =
+      insertError.code === "23505" ||
+      /pending|duplicate/i.test(insertError.message);
+    return {
+      ok: false,
+      error: alreadyPending
+        ? "You already have a verification pending review."
+        : "Couldn't save your submission. Please try again.",
     };
   }
 

@@ -11,9 +11,10 @@ import { IconChevronLeft, IconCheck } from '@tabler/icons-react-native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
 import ErrorDialog from '@/components/display/ErrorDialog'
+import ConfirmDialog from '@/components/display/ConfirmDialog'
 
 import { useColors } from '@/hooks/useTheme'
-import { buildVerificationInput, useSubmitVerification } from '@/hooks/verification'
+import { buildVerificationInput, useSubmitSessionVerification, useSubmitVerification } from '@/hooks/verification'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
 import { getCaptureProgress } from './utils/gating'
@@ -24,14 +25,19 @@ export default function Review() {
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
+  const sessionClaim = useVerificationStore((state) => state.sessionClaim);
 
   const sequence = getCaptureSequence(selectedId);
   const idStepsComplete = getCaptureProgress(sequence, captures).isComplete;
   const selfie = captures[SELFIE_STEP.id] ?? null;
 
-  const { mutateAsync, isPending } = useSubmitVerification();
+  const { mutateAsync: submitStandalone, isPending: isStandalonePending } = useSubmitVerification();
+  const { mutateAsync: submitSession, isPending: isSessionPending } =
+    useSubmitSessionVerification(sessionClaim?.token ?? null);
+  const isPending = isStandalonePending || isSessionPending;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Guard against landing here with an incomplete session — e.g. a deep
   // link straight to this screen. Redirect to the correct step rather than
@@ -104,7 +110,13 @@ export default function Review() {
     }
 
     try {
-      await mutateAsync(input);
+      // A claimed desktop session consumes the session row so the desktop
+      // modal observes completion; otherwise the standalone flow applies.
+      if (sessionClaim) {
+        await submitSession(input);
+      } else {
+        await submitStandalone(input);
+      }
       router.push('/(auth)/verify-account/success');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to submit verification.');
@@ -119,7 +131,7 @@ export default function Review() {
       footer={
         <Button
           isDisabled={isPending}
-          onPress={handleSubmit}
+          onPress={() => setConfirmOpen(true)}
           className='mx-5'
         >
           <Button.Label>
@@ -128,6 +140,26 @@ export default function Review() {
         </Button>
       }
     >
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        onOpenChange={(value) => {
+          if (!value && !isPending) setConfirmOpen(false);
+        }}
+        title="Submit for verification?"
+        description="Please review your ID photos and selfie before submitting. Once submitted, your documents will be sent to our team for review."
+        checklistItems={[
+          ...(idStepsComplete ? ['Your required ID photos are ready.'] : []),
+          ...(selfie ? ['Your selfie is ready.'] : []),
+        ]}
+        confirmLabel={isPending ? 'Submitting…' : 'Confirm & submit'}
+        confirmVariant="primary"
+        isConfirmDisabled={isPending}
+        cancelLabel="Go back and review"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void handleSubmit();
+        }}
+      />
       <CloseButton
         variant="ghost"
         className="-ml-2 mb-2"

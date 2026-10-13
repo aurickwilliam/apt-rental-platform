@@ -4,6 +4,7 @@ import { CURRENT_USER_QUERY_KEY } from '@/utils/queryClient'
 import {
   fetchLatestVerification,
   fetchVerificationHistory,
+  submitSessionVerification,
   submitVerification,
   type SubmitVerificationInput,
   type UserVerificationRow,
@@ -60,6 +61,39 @@ export function useSubmitVerification() {
 
   return useMutation({
     mutationFn: (input: SubmitVerificationInput) => submitVerification(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: getUserVerificationQueryKey(userId),
+        exact: true,
+      })
+      await queryClient.invalidateQueries({
+        queryKey: getUserVerificationHistoryQueryKey(userId),
+        exact: true,
+      })
+      // The submission trigger flips users.account_status to pending.
+      await queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY })
+    },
+  })
+}
+
+/**
+ * Submit captures against a desktop QR session claimed by the in-app
+ * scanner. Same cache settlement as the standalone flow — the desktop
+ * modal observes completion through its own session polling.
+ */
+export function useSubmitSessionVerification(token: string | null) {
+  const queryClient = useQueryClient()
+  const userId = useCurrentUserId()
+
+  return useMutation({
+    mutationFn: (input: SubmitVerificationInput) => {
+      if (!token) {
+        return Promise.reject(
+          new Error('No verification session claimed. Please scan the QR code again.'),
+        )
+      }
+      return submitSessionVerification(token, input)
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: getUserVerificationQueryKey(userId),
