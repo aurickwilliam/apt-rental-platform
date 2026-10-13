@@ -152,24 +152,24 @@ export default function PriceCard({
             <Modal.Dialog>
               <Modal.CloseTrigger className="text-black" />
               <Modal.Header>
-                <Modal.Heading>Move-in Cost Breakdown</Modal.Heading>
+                <Modal.Heading className="text-foreground">Move-in Cost Breakdown</Modal.Heading>
               </Modal.Header>
               <Modal.Body className="flex flex-col gap-3">
-                <p className="text-sm text-grey-500">
+                <p className="text-sm text-foreground/70">
                   Estimated initial payment required to move in.
                 </p>
                 {costBreakdown.map(({ label, value }) => (
                   <div key={label} className="flex justify-between text-sm">
-                    <span className="text-grey-500">{label}</span>
-                    <span className="font-medium">{value}</span>
+                    <span className="text-foreground">{label}</span>
+                    <span className="font-medium text-foreground">{value}</span>
                   </div>
                 ))}
 
                 <Separator />
 
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">Total Move-in Cost:</span>
-                  <span className="font-medium">{formatPesoDisplay(totalMoveInCost)}</span>
+                  <span className="font-medium text-foreground">Total Move-in Cost:</span>
+                  <span className="font-medium text-foreground">{formatPesoDisplay(totalMoveInCost)}</span>
                 </div>
               </Modal.Body>
               <Modal.Footer className="flex justify-end gap-2">
