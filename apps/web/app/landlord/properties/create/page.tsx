@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
-import { isCamanavaCity } from "@repo/constants";
+import { APARTMENT_FLOOR_AREA, APARTMENT_ROOM_LIMITS, isCamanavaCity } from "@repo/constants";
 import { useUser } from "@/hooks/use-user";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 
@@ -298,12 +298,29 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 2) {
+      const roomLimits = APARTMENT_ROOM_LIMITS[data.type];
+      const areaLimits = APARTMENT_FLOOR_AREA[data.type];
+
       if (!data.type) errors.type = "Apartment type is required.";
       if (!data.furnished_type) errors.furnished_type = "Furnished type is required.";
       if (!data.floor_level) errors.floor_level = "Floor level is required.";
       if (!data.lease_duration) errors.lease_duration = "Lease duration is required.";
-      if (data.area_sqm <= 0) errors.area_sqm = "Must be greater than 0.";
-      if (data.max_occupants <= 0) errors.max_occupants = "Must be greater than 0.";
+      if (data.area_sqm <= 0) {
+        errors.area_sqm = "Must be greater than 0.";
+      } else if (areaLimits && (data.area_sqm < areaLimits.min || data.area_sqm > areaLimits.max)) {
+        errors.area_sqm = `Floor area must be between ${areaLimits.min} and ${areaLimits.max} sqm.`;
+      }
+      if (data.max_occupants <= 0) {
+        errors.max_occupants = "Must be greater than 0.";
+      } else if (roomLimits && (data.max_occupants < roomLimits.maxOccupants.min || data.max_occupants > roomLimits.maxOccupants.max)) {
+        errors.max_occupants = `Max occupants must be between ${roomLimits.maxOccupants.min} and ${roomLimits.maxOccupants.max}.`;
+      }
+      if (roomLimits && (data.no_bedrooms < roomLimits.bedrooms.min || data.no_bedrooms > roomLimits.bedrooms.max)) {
+        errors.no_bedrooms = `Bedrooms must be between ${roomLimits.bedrooms.min} and ${roomLimits.bedrooms.max}.`;
+      }
+      if (roomLimits && (data.no_bathrooms < roomLimits.bathrooms.min || data.no_bathrooms > roomLimits.bathrooms.max)) {
+        errors.no_bathrooms = `Bathrooms must be between ${roomLimits.bathrooms.min} and ${roomLimits.bathrooms.max}.`;
+      }
       if (!data.street_address.trim()) errors.street_address = "Street address is required.";
       if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
       if (!isCamanavaCity(data.city)) errors.city = "Select a city within CAMANAVA.";

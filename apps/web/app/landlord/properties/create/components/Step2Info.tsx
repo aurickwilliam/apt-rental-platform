@@ -7,7 +7,15 @@ import { Input, Select, Checkbox, Label, ListBox, FieldError, NumberField, TextF
 
 import type { ApartmentFormData, FormErrors } from "../page";
 
-import { CAMANAVA_CITIES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
+import {
+  APARTMENT_FLOOR_AREA,
+  APARTMENT_ROOM_LIMITS,
+  APARTMENT_TYPES,
+  CAMANAVA_CITIES,
+  FLOOR_LEVELS,
+  FURNISHED_TYPES,
+  LEASE_DURATIONS,
+} from "@repo/constants";
 
 const GoogleMapPicker = dynamic(() => import("../../components/GoogleMapPicker"), { ssr: false });
 
@@ -17,7 +25,16 @@ interface Props {
   errors: FormErrors;
 }
 
+function formatRange(min: number, max: number): string {
+  return min === max ? String(min) : `${min}-${max}`;
+}
+
 export default function Step2Info({ formData, updateForm, errors }: Props) {
+  const roomLimits = APARTMENT_ROOM_LIMITS[formData.type];
+  const areaLimits = APARTMENT_FLOOR_AREA[formData.type];
+  const bedroomLimits = roomLimits?.bedrooms;
+  const bathroomLimits = roomLimits?.bathrooms;
+  const occupantLimits = roomLimits?.maxOccupants;
 
   const handlePick = useCallback(
     (lat: number, lng: number) => updateForm({ 
@@ -92,7 +109,8 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
           </Select>
 
           <NumberField
-            minValue={1}
+            minValue={bedroomLimits?.min ?? 1}
+            maxValue={bedroomLimits?.max}
             value={formData.no_bedrooms}
             onChange={(value) => updateForm({ no_bedrooms: value })}
             isInvalid={!!errors.no_bedrooms}
@@ -109,11 +127,17 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
               
             </NumberField.Group>
+            {bedroomLimits && (
+              <Description className="mt-1 text-xs text-muted-foreground">
+                Allowed: {formatRange(bedroomLimits.min, bedroomLimits.max)}
+              </Description>
+            )}
             <FieldError className="text-xs text-danger mt-1">{errors.no_bedrooms}</FieldError>
           </NumberField>
 
           <NumberField
-            minValue={1}
+            minValue={bathroomLimits?.min ?? 1}
+            maxValue={bathroomLimits?.max}
             value={formData.no_bathrooms}
             onChange={(value) => updateForm({ no_bathrooms: value })}
             isInvalid={!!errors.no_bathrooms}
@@ -125,11 +149,17 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
               <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
+            {bathroomLimits && (
+              <Description className="mt-1 text-xs text-muted-foreground">
+                Allowed: {formatRange(bathroomLimits.min, bathroomLimits.max)}
+              </Description>
+            )}
             <FieldError className="text-xs text-danger mt-1">{errors.no_bathrooms}</FieldError>
           </NumberField>
 
           <NumberField
-            minValue={0}
+            minValue={areaLimits?.min ?? 0}
+            maxValue={areaLimits?.max}
             value={formData.area_sqm}
             onChange={(value) => updateForm({ area_sqm: value })}
             isInvalid={!!errors.area_sqm}
@@ -141,11 +171,17 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
               <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
+            {areaLimits && (
+              <Description className="mt-1 text-xs text-muted-foreground">
+                Allowed: {areaLimits.min}-{areaLimits.max} sqm
+              </Description>
+            )}
             <FieldError className="text-xs text-danger mt-1">{errors.area_sqm}</FieldError>
           </NumberField>
 
           <NumberField
-            minValue={1}
+            minValue={occupantLimits?.min ?? 1}
+            maxValue={occupantLimits?.max}
             value={formData.max_occupants}
             onChange={(value) => updateForm({ max_occupants: value })}
             isInvalid={!!errors.max_occupants}
@@ -157,6 +193,11 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <NumberField.Input className="w-full text-center bg-transparent py-3 text-foreground focus:outline-none" />
               <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11" />
             </NumberField.Group>
+            {occupantLimits && (
+              <Description className="mt-1 text-xs text-muted-foreground">
+                Allowed: {formatRange(occupantLimits.min, occupantLimits.max)}
+              </Description>
+            )}
             <FieldError className="text-xs text-danger mt-1">{errors.max_occupants}</FieldError>
           </NumberField>
 
