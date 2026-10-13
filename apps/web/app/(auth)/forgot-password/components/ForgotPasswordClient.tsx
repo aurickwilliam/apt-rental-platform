@@ -13,6 +13,7 @@ import {
   Input,
   InputOTP,
   Label,
+  Link as HeroLink,
   REGEXP_ONLY_DIGITS,
   TextField,
 } from "@heroui/react";
@@ -237,15 +238,14 @@ export default function ForgotPasswordClient() {
           }
         />
 
-        <Button
-          variant="ghost"
-          size="sm"
+        {/* HeroUI Link without href: an action styled as a link (mobile's LinkButton). */}
+        <HeroLink
           onPress={handleChangeEmail}
           isDisabled={verifying}
-          className="mt-2 h-auto min-w-0 self-start p-0 font-medium text-primary cursor-pointer"
+          className="mt-2 text-primary cursor-pointer"
         >
           Wrong email? Change it
-        </Button>
+        </HeroLink>
 
         {error && <ErrorBanner message={error} />}
 
@@ -297,16 +297,13 @@ export default function ForgotPasswordClient() {
             {secondsLeft > 0 ? (
               <span className="font-medium text-primary">Resend in {secondsLeft}s</span>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                isPending={resending}
-                isDisabled={resending}
+              <HeroLink
                 onPress={handleResend}
-                className="h-auto min-w-0 p-0 font-medium text-primary cursor-pointer"
+                isDisabled={resending}
+                className="text-primary cursor-pointer"
               >
                 {resending ? "Sending..." : "Resend"}
-              </Button>
+              </HeroLink>
             )}
           </div>
         </div>
