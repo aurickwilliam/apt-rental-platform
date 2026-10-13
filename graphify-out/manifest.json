@@ -45,17 +45,17 @@
     "semantic_hash": "fbfff4db24502363512ecdb828925a8d"
   },
   "apps/mobile/app/(auth)/forgot-password/index.tsx": {
-    "mtime": 1791875088.366059,
+    "mtime": 1791881639.2465286,
     "ast_hash": "73699f3da5b2e7451e747ee15cf2ab68",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/forgot-password/otp-verification.tsx": {
-    "mtime": 1791875088.366205,
+    "mtime": 1791881639.2466986,
     "ast_hash": "595356e9cbddc9ee100d222dc86bee76",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/forgot-password/reset-password.tsx": {
-    "mtime": 1791875075.2537537,
+    "mtime": 1791881639.2468607,
     "ast_hash": "d2b095ecba1cc58affc5403d94921b88",
     "semantic_hash": ""
   },
@@ -1590,7 +1590,7 @@
     "semantic_hash": "2e918062ed77a8d5fcb51f1959ef8eb6"
   },
   "apps/web/app/(auth)/actions/sign-in.ts": {
-    "mtime": 1791878062.5867305,
+    "mtime": 1791881639.2487817,
     "ast_hash": "7e603970e6aecc5fe806181480a9a84c",
     "semantic_hash": ""
   },
@@ -1955,7 +1955,7 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/inputs/PasswordField.tsx": {
-    "mtime": 1791880651.9179964,
+    "mtime": 1791881639.252314,
     "ast_hash": "13a6d00e6e1ffa1f36b83b78225eef36",
     "semantic_hash": ""
   },
@@ -2620,7 +2620,7 @@
     "semantic_hash": "4d70dcb772950db902ef38e4cc11ccd3"
   },
   "packages/supabase/package.json": {
-    "mtime": 1791875167.1523502,
+    "mtime": 1791881639.2906759,
     "ast_hash": "6004d12738ec20bdc282f79ec6f20c5d",
     "semantic_hash": ""
   },
@@ -2640,7 +2640,7 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/middleware.ts": {
-    "mtime": 1791875616.800337,
+    "mtime": 1791881639.2909105,
     "ast_hash": "749c3e67ec48c618c56071b6182e9500",
     "semantic_hash": ""
   },
@@ -2705,7 +2705,7 @@
     "semantic_hash": "e6fad820ff606a03d9cde377f4248a08"
   },
   "packages/utils/src/index.ts": {
-    "mtime": 1791875067.5173242,
+    "mtime": 1791881639.2913368,
     "ast_hash": "38a39751bc65a43421e8cd495a1aa3e0",
     "semantic_hash": ""
   },
@@ -2720,7 +2720,7 @@
     "semantic_hash": "28e6bcee3f3d6d981a97b7e5137eaf1d"
   },
   "packages/utils/tsconfig.json": {
-    "mtime": 1791875075.2420635,
+    "mtime": 1791881639.292173,
     "ast_hash": "db85028b4b73936b3b4b6cb71fe988ee",
     "semantic_hash": ""
   },
@@ -2730,7 +2730,7 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791878155.0529997,
+    "mtime": 1791881639.245579,
     "ast_hash": "3f3d8af935669b32b26d9eb643cbe100",
     "semantic_hash": ""
   },
@@ -2980,7 +2980,7 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791878155.0526774,
+    "mtime": 1791881639.2460058,
     "ast_hash": "13ddf3083ac3592114cce8d2c2808b47",
     "semantic_hash": ""
   },
@@ -3245,7 +3245,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/jest.config.js": {
-    "mtime": 1791875075.242772,
+    "mtime": 1791881639.2472079,
     "ast_hash": "f4fbe2e61963682d0dc474fe4ebd3c54",
     "semantic_hash": ""
   },
@@ -6780,12 +6780,12 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordRecoveryService.test.ts": {
-    "mtime": 1791875075.2640314,
+    "mtime": 1791881639.2475834,
     "ast_hash": "dcdc0736fbfa4501d2238f2e03dba7ab",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordRecoveryService.ts": {
-    "mtime": 1791875088.3666096,
+    "mtime": 1791881639.2477126,
     "ast_hash": "1745fc6f6afb1cad29e602aa51b489bc",
     "semantic_hash": ""
   },
@@ -6800,17 +6800,17 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/forgot-password/forgot-password.test.tsx": {
-    "mtime": 1791875075.2577753,
+    "mtime": 1791881639.2478514,
     "ast_hash": "13a8caa69b84afe0ca13abb1fde6f0b0",
     "semantic_hash": ""
   },
   "apps/mobile/tests/forgot-password/otp-verification.test.tsx": {
-    "mtime": 1791875088.3662863,
+    "mtime": 1791881639.247948,
     "ast_hash": "37f183c68597b68a7f8494df34dc3734",
     "semantic_hash": ""
   },
   "apps/mobile/tests/forgot-password/reset-password.test.tsx": {
-    "mtime": 1791875075.2594793,
+    "mtime": 1791881639.2480488,
     "ast_hash": "33fd12e7705b4059f592caa0b97d6fe4",
     "semantic_hash": ""
   },
@@ -6860,12 +6860,12 @@
     "semantic_hash": ""
   },
   "supabase/templates/recovery.html": {
-    "mtime": 1791875483.319915,
+    "mtime": 1791881639.2923017,
     "ast_hash": "fb3808002fc4e9932ed39f014f9b8915",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/change-password.tsx": {
-    "mtime": 1791875075.2504165,
+    "mtime": 1791881639.2470655,
     "ast_hash": "83554177134078e50e62ae5ad711e20c",
     "semantic_hash": ""
   },
@@ -6890,17 +6890,17 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordChangeService.test.ts": {
-    "mtime": 1791875075.2644866,
+    "mtime": 1791881639.247351,
     "ast_hash": "5b9624635455479ddb170788469a7c39",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordChangeService.ts": {
-    "mtime": 1791875088.3663754,
+    "mtime": 1791881639.2474422,
     "ast_hash": "12dca1cea4bc7d8d31d92a3a26a2b295",
     "semantic_hash": ""
   },
   "apps/mobile/tests/settings/change-password.test.tsx": {
-    "mtime": 1791875075.2559724,
+    "mtime": 1791881639.248589,
     "ast_hash": "d5bc77d11579501a2adcd6feac60f88f",
     "semantic_hash": ""
   },
@@ -6920,113 +6920,118 @@
     "semantic_hash": ""
   },
   "docs/plans/web-forgot-password-mirroring.md": {
-    "mtime": 1791879408.6174548,
+    "mtime": 1791881639.2526026,
     "ast_hash": "1503a26b58123b677c054e7c64be94b2",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/password-recovery.ts": {
-    "mtime": 1791878045.0964453,
+    "mtime": 1791881639.2486765,
     "ast_hash": "69f1eaea63c14c1a750b88310b24aa77",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ErrorBanner.tsx": {
-    "mtime": 1791875382.1249087,
+    "mtime": 1791881639.2489054,
     "ast_hash": "5328a58d78c5c18f645eb8fc93617ae2",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ForgotPasswordClient.tsx": {
-    "mtime": 1791880651.9172318,
+    "mtime": 1791881639.2497256,
     "ast_hash": "4a366cb7caad64d49e5c1018c6a9dbe6",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/PasswordRequirementList.tsx": {
-    "mtime": 1791880651.9176075,
+    "mtime": 1791881639.250268,
     "ast_hash": "e4acef5a451784352387cacda91df3bf",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoveryHeader.tsx": {
-    "mtime": 1791875382.122801,
+    "mtime": 1791881639.250349,
     "ast_hash": "6655d8c3b118e3dd34ab188974740678",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoveryLayout.tsx": {
-    "mtime": 1791875382.1206665,
+    "mtime": 1791881639.2504094,
     "ast_hash": "cc9640332c88686d9165e0eba4825e4a",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ResetPasswordClient.tsx": {
-    "mtime": 1791880651.9173505,
+    "mtime": 1791881639.2511454,
     "ast_hash": "fe60816e801249ffa783c5a90fb224f3",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/page.tsx": {
-    "mtime": 1791875458.286942,
+    "mtime": 1791881639.2512147,
     "ast_hash": "5745c9846f8f6acf24726902dd896e60",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/recovery-session.ts": {
-    "mtime": 1791875382.129769,
+    "mtime": 1791881639.251283,
     "ast_hash": "23a0a5b50c37d99975228b88cef2a6e9",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/reset-password/page.tsx": {
-    "mtime": 1791878054.4637167,
+    "mtime": 1791881639.2513785,
     "ast_hash": "4fa0d54344edce88398fd87b51ee9652",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/updated/page.tsx": {
-    "mtime": 1791880651.9178348,
+    "mtime": 1791881639.2518995,
     "ast_hash": "9b93a9e028733165eaffd851b458dd02",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-countdown.ts": {
-    "mtime": 1791875382.1160102,
+    "mtime": 1791881639.25241,
     "ast_hash": "08a1990849b0e8048a012928276c8a14",
     "semantic_hash": ""
   },
   "apps/web/lib/password-recovery.test.mjs": {
-    "mtime": 1791875616.8004446,
+    "mtime": 1791881639.2525048,
     "ast_hash": "a7721a87493f6ac71f470e26e6176140",
     "semantic_hash": ""
   },
   "packages/supabase/src/password-recovery.ts": {
-    "mtime": 1791875616.8001955,
+    "mtime": 1791881639.2911088,
     "ast_hash": "9d067bc50a2afd075dc060c7772a540f",
     "semantic_hash": ""
   },
   "packages/utils/src/authIdentity.test.ts": {
-    "mtime": 1791873711.690598,
+    "mtime": 1791881639.2911854,
     "ast_hash": "41346aa74e4d423c897c7e6608454f86",
     "semantic_hash": ""
   },
   "packages/utils/src/authIdentity.ts": {
-    "mtime": 1791873711.6906574,
+    "mtime": 1791881639.2912426,
     "ast_hash": "bf4964eff52c1aea2b9db77e08eb7526",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordErrors.test.ts": {
-    "mtime": 1791875067.5156682,
+    "mtime": 1791881639.2913942,
     "ast_hash": "c6017eb8be11c8d6df2785445fa6ba0b",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordErrors.ts": {
-    "mtime": 1791875067.5189817,
+    "mtime": 1791881639.291495,
     "ast_hash": "78da3ee4adce594eded24e5f96fa0e4e",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordRecovery.test.ts": {
-    "mtime": 1791875067.5138693,
+    "mtime": 1791881639.2915647,
     "ast_hash": "fe937898af5b4230f5d4d63b63490aaa",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordRecovery.ts": {
-    "mtime": 1791875067.5121753,
+    "mtime": 1791881639.2916262,
     "ast_hash": "fb8e2a754fefd423de8f92cc153c91fa",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoverySessionEnded.tsx": {
-    "mtime": 1791878054.4615924,
+    "mtime": 1791881639.2504632,
     "ast_hash": "d50443e24f466340d3ff6e104b85ac2f",
+    "semantic_hash": ""
+  },
+  "docs/plans/web-change-password.md": {
+    "mtime": 1791881766.9293563,
+    "ast_hash": "7528c67922d963dd0fc8993c70e05cfe",
     "semantic_hash": ""
   }
 }
