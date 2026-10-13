@@ -27,6 +27,11 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
 - Enable the password-changed security notification if available.
 - Mirror the recovery template in `supabase/config.toml` by adding an `[auth.email.template.recovery]` section (subject + `content_path`), and the password-changed notification where the local config supports it. Local config must not be treated as deployment of hosted Auth configuration.
 
+**Phase 1 findings (2026-10-13):**
+- Hosted accounts come in three shapes, and an `email` identity always means the account has a password: Google-only (`identities` = `google`, no password), email/password (`email`), and linked (`email` + `google`, has a password). The Phase 3 check is therefore: the verified user's `identities` include provider `email` (mirrored in `app_metadata.providers`).
+- Templates: `supabase/templates/recovery.html` (6-digit `{{ .Token }}`, recovery wording) and `supabase/templates/password-changed.html` (security notice), both using the existing OTP email design; mirrored in `supabase/config.toml` under `[auth.email.template.recovery]` and `[auth.email.notification.password_changed]`.
+- Hosted rollout: `python3 supabase/templates/build-payload.py <out.json>` builds the Management API payload (fonts embedded) for `PATCH /v1/projects/{ref}/config/auth`. Never use `supabase config push` for this — it would also push local-only auth settings such as `site_url`.
+
 ### Phase 2 — Add the mobile recovery service
 
    - Create `apps/mobile/service/auth/passwordRecoveryService.ts` following the existing `service/auth/` conventions.

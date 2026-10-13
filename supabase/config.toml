@@ -46,6 +46,17 @@ content_path = "./supabase/templates/otp.html"
 subject = "Your APT verification code"
 content_path = "./supabase/templates/otp.html"
 
+# Password recovery sends a 6-digit code (resetPasswordForEmail -> verifyOtp type "recovery"), not a link.
+[auth.email.template.recovery]
+subject = "Reset your APT password"
+content_path = "./supabase/templates/recovery.html"
+
+# Security notice sent after any password change (including recovery).
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your APT password was changed"
+content_path = "./supabase/templates/password-changed.html"
+
 # Edge function invoked by the mobile app with the anon key, so JWT
 # verification is enforced (default) — the key is checked, not a specific role.
 [functions.paymongo]
