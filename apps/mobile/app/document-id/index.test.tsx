@@ -52,22 +52,6 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
-jest.mock("react-native-keyboard-aware-scroll-view", () => {
-  const React = jest.requireActual<typeof import("react")>("react");
-  const RN = jest.requireActual<typeof import("react-native")>("react-native");
-  const MockKeyboardAwareScrollView = React.forwardRef<
-    React.ComponentRef<typeof RN.View>,
-    { children?: React.ReactNode }
-  >(function MockKeyboardAwareScrollView({ children }, ref) {
-    return React.createElement(RN.View, { ref }, children);
-  });
-  return {
-    __esModule: true,
-    default: MockKeyboardAwareScrollView,
-    KeyboardAwareScrollView: MockKeyboardAwareScrollView,
-  };
-});
-
 jest.mock("@/hooks/useTheme", () => ({
   useColors: () => ({
     colors: {

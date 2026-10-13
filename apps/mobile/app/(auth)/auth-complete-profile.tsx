@@ -1,7 +1,6 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router'
 import { useRef, useState } from 'react';
-import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { usePreventRemove } from '@react-navigation/native';
 
@@ -14,7 +13,7 @@ import {
   getPostalCode
 } from "@repo/constants";
 
-import ScreenWrapper from 'components/layout/ScreenWrapper';
+import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
 import DateField from '@/components/inputs/DateField';
 import DropdownField from 'components/inputs/DropdownField';
 import ErrorDialog from '@/components/display/ErrorDialog';
@@ -111,7 +110,7 @@ export default function AuthCompleteProfile() {
   });
 
   // Scroll-to-error refs
-  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
 
   type ScrollableField =
     | keyof ProfileForm
@@ -201,7 +200,7 @@ export default function AuthCompleteProfile() {
       });
       const y = firstError ? fieldPositions.current[firstError] : undefined;
       if (y !== undefined) {
-        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true);
+        scrollRef.current?.scrollTo({ x: 0, y: Math.max(y - 16, 0), animated: true });
       }
       return;
     }

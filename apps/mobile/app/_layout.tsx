@@ -11,6 +11,7 @@ import { useEffect } from "react";
 
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { HeroUINativeProvider } from "heroui-native";
@@ -121,6 +122,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Required by ScreenWrapper's KeyboardAwareScrollView */}
+      <KeyboardProvider>
       <QueryProvider>
         <HeroUINativeProvider>
           <NotificationManager />
@@ -154,6 +157,7 @@ export default function RootLayout() {
           </PortalProvider>
         </HeroUINativeProvider>
       </QueryProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }
