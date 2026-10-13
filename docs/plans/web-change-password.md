@@ -202,6 +202,17 @@ Move the two forgot-password components that this flow also needs into shared fo
    - AGENTS.md: web stack notes get the change-password action and the Security-tab sub-view; the `@repo/utils` package row gains `changePasswordWith` / `getPasswordChangeErrorField`.
    - DESIGN.md: document the shared web `NewPasswordFields`, `PasswordRequirementList` and `ErrorBanner` locations.
 
+**Phase 5 status (2026-10-13): checks and docs done; browser checklist waiting on a signed-in test account.**
+- Checks run:
+  - Web lint, typecheck and tests pass (47 tests).
+  - Mobile lint, typecheck and the full Jest suite pass (97 suites, 706 tests).
+  - `graphify update .` run.
+- Docs:
+  - ARCHITECTURE.md §4.3 has a "Password change" note; the web key-files list now includes `change-password`. §4.4 says mobile runs the shared `changePasswordWith`, and the summary table lists web password recovery and change.
+  - AGENTS.md has a web password-change bullet. The mobile password-change bullet names the shared steps and `getPasswordChangeErrorField`, and the `@repo/utils` row lists `changePasswordWith` / `getPasswordChangeErrorField`.
+  - DESIGN.md gives the web locations of `PasswordField` / `NewPasswordFields` / `PasswordRequirementList`, plus the shared `ErrorBanner` and the settings `StatusChip`.
+- Remaining: the browser checklist above (items 1–10). It needs a signed-in email/password test account on the hosted project, so it's run manually.
+
 ## Out of scope / follow-ups
 
 - Server-enforced current-password check (same follow-up as mobile: e.g. reauthentication by email code for changes outside recovery).
