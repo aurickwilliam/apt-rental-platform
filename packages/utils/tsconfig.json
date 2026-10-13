@@ -8,6 +8,8 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
+    "allowUmdGlobalAccess": true,
+    "types": ["jest"],
     "outDir": "./dist",
     "rootDir": "./src"
   },

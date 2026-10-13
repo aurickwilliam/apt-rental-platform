@@ -40,7 +40,7 @@ export class PasswordError extends Error {
 }
 
 // Structural subset of Supabase Auth errors (AuthError carries name/code/status).
-interface AuthErrorLike {
+export interface AuthErrorLike {
   name?: string;
   code?: string;
   status?: number;

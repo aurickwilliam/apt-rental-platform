@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import ResetPassword from "@/app/(auth)/forgot-password/reset-password";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import { PasswordError } from "@/service/auth/passwordErrors";
+import { PasswordError } from "@repo/utils";
 
 const mockHasSession = jest.fn();
 const mockUpdatePassword = jest.fn();

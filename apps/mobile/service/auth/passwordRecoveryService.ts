@@ -1,10 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { supabase } from "@repo/supabase";
-import { isValidEmail } from "@repo/utils";
-
-import { hasEmailPasswordIdentity } from "./authIdentity";
-import { describeAuthError, PasswordError, toPasswordError, toPasswordErrorReason } from "./passwordErrors";
+import {
+  describeAuthError,
+  hasEmailPasswordIdentity,
+  isRecoveryCodeFormat,
+  normalizeRecoveryEmail,
+  PasswordError,
+  toPasswordError,
+  toPasswordErrorReason,
+} from "@repo/utils";
 
 // Password recovery by 6-digit email code: resetPasswordForEmail sends the
 // code (hosted `recovery` template), verifyOtp({ type: "recovery" }) turns it
@@ -16,10 +21,8 @@ import { describeAuthError, PasswordError, toPasswordError, toPasswordErrorReaso
 // call could still give a Google-only account a password; that is accepted,
 // because whoever can read the inbox already controls the account.
 
-// Mirrors hosted Auth (mailer_otp_length / smtp_max_frequency) and
-// supabase/config.toml [auth.email].
-export const RECOVERY_CODE_LENGTH = 6;
-export const RECOVERY_RESEND_COOLDOWN_SECONDS = 60;
+// The code length, resend cooldown and email/code validation are shared with
+// the web flow in @repo/utils (passwordRecovery.ts).
 
 // A verified code creates a full, persisted session. This marker is set before
 // verification and cleared only when the recovery ends, so a reset that was
@@ -54,17 +57,11 @@ export async function isPasswordRecoveryInProgress(): Promise<boolean> {
   }
 }
 
-function normalizeEmail(email: string): string {
-  const trimmed = email.trim();
-  if (!isValidEmail(trimmed)) throw new PasswordError("invalid_email");
-  return trimmed;
-}
-
 // Sends (or resends) a recovery code. supabase.auth.resend() does not support
 // recovery codes, so resend calls this again. Resolves the same way whether or
 // not the account exists, so callers can't reveal account existence.
 export async function requestPasswordRecovery(email: string): Promise<void> {
-  const normalizedEmail = normalizeEmail(email);
+  const normalizedEmail = normalizeRecoveryEmail(email);
   const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
   if (!error || error.code === "user_not_found") return;
   throw toPasswordError(error, "Password recovery request");
@@ -78,9 +75,9 @@ export async function verifyPasswordRecoveryCode(
   email: string,
   code: string,
 ): Promise<RecoveryCodeResult> {
-  const normalizedEmail = normalizeEmail(email);
+  const normalizedEmail = normalizeRecoveryEmail(email);
   const token = code.trim();
-  if (!new RegExp(`^\\d{${RECOVERY_CODE_LENGTH}}$`).test(token)) {
+  if (!isRecoveryCodeFormat(token)) {
     throw new PasswordError("invalid_or_expired_code");
   }
 

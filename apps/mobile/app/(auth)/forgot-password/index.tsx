@@ -18,14 +18,13 @@ import {
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
-import { isValidEmail } from "@repo/utils";
+import { isValidEmail, PasswordError } from "@repo/utils";
 
 import { useColors } from "hooks/useTheme";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
   requestPasswordRecovery,
 } from "@/service/auth/passwordRecoveryService";
-import { PasswordError } from "@/service/auth/passwordErrors";
 
 export default function ForgotPassword() {
   const router = useRouter();
