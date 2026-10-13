@@ -81,7 +81,9 @@ export function QrScanPanel({
           Code expires in {countdownText}
         </p>
         <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
-          <Spinner size="sm" aria-hidden="true" />
+          <span className="flex text-primary" aria-hidden="true">
+            <Spinner size="sm" />
+          </span>
           Waiting for your phone…
         </p>
         <p className="max-w-sm text-[13px] leading-5 text-muted-foreground">
