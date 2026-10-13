@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native'
 import { router, useRouter } from 'expo-router'
+import { useEffect, useState } from 'react'
 import type React from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
@@ -8,12 +9,18 @@ import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButt
 import LandlordCard from 'components/cards/LandlordCard';
 import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
-import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
+import {
+  getRentalsLayoutToRemember,
+  getRentalsSkeleton,
+  getRentalsView,
+} from '../components/rentals/rentalsView';
+import EmptyState from 'components/display/EmptyState';
 
 import {
+  IconAlertCircle,
   IconLink,
   IconUser,
   IconFileText,
@@ -25,7 +32,7 @@ import {
   IconClipboardText,
 } from "@tabler/icons-react-native";
 
-import { useTenancy } from '@/hooks/tenancy';
+import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
 import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
@@ -77,23 +84,67 @@ export default function Rentals() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const { tenancy, loading: tenancyLoading, refreshing: tenancyRefreshing, refetch: refetchTenancy } = useTenancy();
+  const {
+    tenancy,
+    loading: tenancyLoading,
+    error: tenancyError,
+    refetch: refetchTenancy,
+  } = useTenancy();
   const { profile } = useProfile();
   const {
     latestRequest,
     isFinal,
+    loading: maintenanceLoading,
     refetch: refetchMaintenance,
-    // maintenance hook doesn't expose refreshing yet, but tenancy covers isFetching scope
   } = useMaintenanceRequests({
     apartmentId: tenancy?.apartment.id,
   });
-  const { refreshing: applicationsRefreshing, refetch: refetchApplications } = useTenantApplications();
+  const {
+    loading: applicationsLoading,
+    error: applicationsError,
+    refetch: refetchApplications,
+  } = useTenantApplications();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
-  const loading = tenancyLoading;
-  const refreshing = tenancyRefreshing || applicationsRefreshing;
+  const view = getRentalsView({
+    hasTenancy: tenancy !== null,
+    tenancyLoading,
+    tenancyError,
+    applicationsLoading,
+    applicationsError,
+    tenancyDetailsLoading: maintenanceLoading || paymentsQuery.isLoading,
+  });
+
+  // Picks the skeleton before the server answers, then remembers the answer
+  // for next launch. The hint never decides what data is shown.
+  const { hint, isReady: isHintReady, remember: rememberLayout } = useRentalsLayoutHint();
+  const skeleton = getRentalsSkeleton(hint, isHintReady);
+  const layoutToRemember = getRentalsLayoutToRemember(view);
+  useEffect(() => {
+    if (layoutToRemember) rememberLayout(layoutToRemember);
+  }, [layoutToRemember, rememberLayout]);
+
+  // Pull-to-refresh only: background refetches (realtime, focus) stay silent,
+  // and the spinner waits for every section, not just the tenancy.
+  const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => {
-    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications(), paymentsQuery.refetch()]);
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications(), paymentsQuery.refetch()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  // A failed query keeps its error status while refetching, so track the
+  // retry locally to give the button feedback.
+  const [retrying, setRetrying] = useState(false);
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      await Promise.all([refetchTenancy(), refetchApplications()]);
+    } finally {
+      setRetrying(false);
+    }
   };
 
   const handleRequestMaintenance = () => {
@@ -126,21 +177,21 @@ export default function Rentals() {
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
 
 
-  // Loading
-  if (loading) {
+  // Loading a rental (the applications skeleton is drawn by the shell below)
+  if (view === 'loading' && skeleton !== 'applications') {
     return (
       <ScreenWrapper
         scrollable
         className="p-5"
         bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       >
-        <RentalsSkeleton />
+        {skeleton === 'tenancy' && <RentalsSkeleton />}
       </ScreenWrapper>
     );
   }
 
   // Active tenancy
-  if (tenancy) {
+  if (view === 'tenancy' && tenancy) {
     const { apartment, landlord, currentPayment } = tenancy;
     const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
 
@@ -159,7 +210,9 @@ export default function Rentals() {
         ? 'Paid'
         : 'Pending';
 
-    const landlordFullName = formatFullName(landlord!);
+    // The landlord join can come back null (e.g. a profile RLS hides), so the
+    // landlord section is skipped rather than crashing the whole tab.
+    const landlordFullName = landlord ? formatFullName(landlord) : '';
     const address = formatAddress(apartment);
 
     const handleMessageLandlord = () => {
@@ -240,22 +293,24 @@ export default function Rentals() {
         </View>
 
         {/* Landlord Information */}
-        <View className="mt-5 flex gap-3">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconUser size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Landlord Information
-            </Text>
+        {landlord && (
+          <View className="mt-5 flex gap-3">
+            <View className="flex-row items-center justify-start gap-2">
+              <IconUser size={24} color={colors.textPrimary} />
+              <Text className="text-foreground text-lg font-nunitoSemiBold">
+                Landlord Information
+              </Text>
+            </View>
+            <LandlordCard
+              fullName={landlordFullName}
+              email={landlord.email ?? "No email provided"}
+              phoneNumber={landlord.mobile_number ?? "No number provided"}
+              profilePictureUrl={landlord.avatar_url}
+              onPress={handleViewLandlordProfile}
+              onMessagePress={handleMessageLandlord}
+            />
           </View>
-          <LandlordCard
-            fullName={landlordFullName}
-            email={landlord?.email ?? "No email provided"}
-            phoneNumber={landlord?.mobile_number ?? "No number provided"}
-            profilePictureUrl={landlord?.avatar_url}
-            onPress={handleViewLandlordProfile}
-            onMessagePress={handleMessageLandlord}
-          />
-        </View>
+        )}
 
         {/* Apartment Description */}
         <View className="mt-5 flex gap-3">
@@ -345,29 +400,9 @@ export default function Rentals() {
     );
   }
 
-  // No tenancy, has applications
-  if (!tenancy) {
-    return (
-      <ScreenWrapper
-        scrollable
-        className="p-5"
-        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      >
-        <View className="flex-row items-center justify-between mb-5">
-          <Text className="text-secondary text-2xl font-nunitoBold">
-            Rentals
-          </Text>
-          <NotificationBellButton route="/tenant-notif" />
-        </View>
-
-        <ApplicationsList />
-      </ScreenWrapper>
-    );
-  }
-
-  // Brand new user, nothing at all
+  // No tenancy: the applications list (it has its own empty state), its
+  // skeleton while loading, or an error when we couldn't tell whether the
+  // tenant has a rental at all.
   return (
     <ScreenWrapper
       scrollable
@@ -383,7 +418,21 @@ export default function Rentals() {
         <NotificationBellButton route="/tenant-notif" />
       </View>
 
-      <TenancyEmptyState />
+      {view === 'error' ? (
+        <EmptyState
+          variant="tenant"
+          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          title="Couldn't load your rentals"
+          description="Check your connection and try again."
+          action={
+            <Button onPress={handleRetry} isDisabled={retrying}>
+              <Button.Label>{retrying ? 'Trying again…' : 'Try Again'}</Button.Label>
+            </Button>
+          }
+        />
+      ) : (
+        <ApplicationsList isLoading={view === 'loading'} />
+      )}
     </ScreenWrapper>
   );
 }

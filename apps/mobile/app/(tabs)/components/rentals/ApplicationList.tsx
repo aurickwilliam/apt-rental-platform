@@ -9,7 +9,13 @@ import ApplicationStatusCard from './ApplicationStatusCard';
 import ApplicationsEmptyState from './ApplicationsEmptyState';
 import ApplicationStatusCardSkeleton from './ApplicationStatusCardSkeleton';
 
-export default function ApplicationsList() {
+interface ApplicationsListProps {
+  // Show the skeleton even if applications have loaded, while the parent
+  // still waits for the rest of the page.
+  isLoading?: boolean;
+}
+
+export default function ApplicationsList({ isLoading = false }: ApplicationsListProps) {
   const { colors } = useColors();
   const { applications, loading } = useTenantApplications();
 
@@ -22,7 +28,7 @@ export default function ApplicationsList() {
         </Text>
       </View>
 
-      {loading ? (
+      {isLoading || loading ? (
         <View className="flex gap-3">
           <ApplicationStatusCardSkeleton />
           <ApplicationStatusCardSkeleton />
