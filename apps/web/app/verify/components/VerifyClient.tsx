@@ -10,9 +10,7 @@ import {
   IconArrowRight,
   IconBrandAndroid,
   IconCamera,
-  IconCheck,
   IconClock,
-  IconCopy,
   IconDeviceMobile,
   IconQrcode,
   IconShieldCheck,
@@ -26,6 +24,12 @@ import type { SessionResult } from "../actions";
 import DesktopVerifyWizard, {
   type DesktopWizardStep,
 } from "./DesktopVerifyWizard";
+import {
+  QrCompletedPanel,
+  QrExpiredPanel,
+  QrScanPanel,
+  QrUnavailablePanel,
+} from "./VerifyStatePanels";
 
 type VerifyClientProps = {
   siteUrl: string;
@@ -278,7 +282,6 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [isWorking, setIsWorking] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [desktopStep, setDesktopStep] = useState<DesktopWizardStep>("id");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -301,16 +304,6 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
   const handleShowDesktop = useCallback(() => {
     setDesktopStep("id");
     setPhase({ name: "desktop" });
-  }, []);
-
-  const copyQrLink = useCallback(async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.danger("Couldn't copy the link. Scan the QR code instead.", { timeout: 0 });
-    }
   }, []);
 
   const stopPolling = useCallback(() => {
@@ -457,20 +450,23 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
   const apkDownloadUrl =
     phase.name === "apk" ? validApkDownloadUrl(resolveApkUrl()) : null;
 
-  // Contextual modal header: the wizard and completion states own their
-  // titles so content headings are never repeated.
+  // Contextual modal header: the wizard states own their titles, while
+  // session states (active/expired/unavailable/completed) render headings
+  // inside their panels -- so the shared header collapses to the eyebrow
+  // and titles are never duplicated.
   const headerCopy =
     phase.name === "desktop"
       ? DESKTOP_HEADER_COPY[desktopStep]
-      : phase.name === "completed"
-        ? {
-            title: "Verification submitted",
-            sub: "Your documents are with our team. Check your status in your APT Passport.",
-          }
-        : {
-            title: "Verify your identity",
-            sub: "Choose how you'd like to verify your identity using your phone.",
-          };
+      : {
+          title: "Verify your identity",
+          sub: "Choose how you'd like to verify your identity using your phone.",
+        };
+
+  // Session states (active/expired/unavailable/completed) render their own
+  // headings inside their panels; the shared header collapses to the
+  // eyebrow so titles are never duplicated.
+  const showFullHeader =
+    phase.name === "idle" || phase.name === "apk" || phase.name === "desktop";
 
   const main = (
     <>
@@ -482,10 +478,14 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
               Identity verification
             </span>
           </span>
-          <h1 className="mt-1 font-nunito text-2xl font-bold text-foreground">{headerCopy.title}</h1>
-          <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-            {headerCopy.sub}
-          </p>
+          {showFullHeader && (
+            <>
+              <h1 className="mt-1 font-nunito text-2xl font-bold text-foreground">{headerCopy.title}</h1>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+                {headerCopy.sub}
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3 text-center">
@@ -639,111 +639,25 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
       )}
 
       {activeSession && originBlocked && (
-        <div className="flex flex-col items-start gap-2 text-left">
-          <h2 className="font-nunito text-xl font-bold text-foreground">
-            Verification unavailable
-          </h2>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Your phone can&apos;t open a verification link from this local address.
-          </p>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Open APT using its public HTTPS address, then generate a new QR code.
-          </p>
-          {isUnreachableDevOrigin(siteUrl) && (
-            <p className="max-w-md text-xs leading-5 text-muted-foreground">
-              For local development, use a public HTTPS tunnel or a deployed testing URL.
-            </p>
-          )}
-          <div className="pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="md"
-              onPress={() => {
-                stopPolling();
-                setPhase({ name: "idle" });
-              }}
-              className={`min-h-10 border border-primary/25 bg-primary/10 px-6 text-sm font-semibold text-primary hover:bg-primary/15 ${FOCUS_RING}`}
-            >
-              <span className="flex items-center gap-1.5">
-                <IconArrowLeft size={16} aria-hidden="true" />
-                Back to options
-              </span>
-            </Button>
-          </div>
-        </div>
+        <QrUnavailablePanel
+          showDevNote={isUnreachableDevOrigin(siteUrl)}
+          onBack={() => {
+            stopPolling();
+            setPhase({ name: "idle" });
+          }}
+        />
       )}
 
       {activeSession && !originBlocked && activeQrValue && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
-          <div className="flex justify-center sm:justify-start">
-            <div className="rounded-xl border border-border bg-white p-3 shadow-sm">
-              <QRCode
-                value={activeQrValue}
-                size={embedded ? 192 : 240}
-                aria-label="QR code linking to the mobile verification page"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-3 text-left">
-            <div className="flex flex-col gap-1.5">
-              <p className="font-nunito text-lg font-bold text-foreground">Scan with your phone</p>
-              <p className="max-w-sm text-[13px] leading-5 text-muted-foreground">
-                Point your camera at the code to open this site on your phone. The link
-                holds only a one-time code. No personal information.
-              </p>
-            </div>
-            <p
-              role="timer"
-              aria-live="off"
-              aria-atomic="true"
-              className="flex items-center gap-1.5 text-sm font-medium tabular-nums text-foreground"
-            >
-              <IconClock size={14} className="text-muted-foreground" aria-hidden="true" />
-              Code expires in {formatCountdown(activeSession.expiresAt, now)}
-            </p>
-            <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
-              <Spinner size="sm" aria-hidden="true" />
-              Waiting for your phone...
-            </p>
-            <div className="flex flex-col items-start gap-1 pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onPress={() => {
-                  stopPolling();
-                  setPhase({ name: "idle" });
-                }}
-                className="min-h-9 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                Cancel
-              </Button>
-              <p className="text-xs leading-5 text-muted-foreground">
-                Having trouble scanning?{" "}
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  size="sm"
-                  onPress={() => void copyQrLink(activeQrValue)}
-                  className="min-h-9 px-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  {copied ? (
-                    <span className="flex items-center gap-1">
-                      <IconCheck size={14} aria-hidden="true" />
-                      Link copied
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <IconCopy size={14} aria-hidden="true" />
-                      Copy the link instead
-                    </span>
-                  )}
-                </Button>
-              </p>
-            </div>
-          </div>
-        </div>
+        <QrScanPanel
+          qrValue={activeQrValue}
+          qrSize={embedded ? 192 : 240}
+          countdownText={formatCountdown(activeSession.expiresAt, now)}
+          onBack={() => {
+            stopPolling();
+            setPhase({ name: "idle" });
+          }}
+        />
       )}
 
       {phase.name === "desktop" && (
@@ -760,48 +674,29 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
       )}
 
       {phase.name === "completed" && (
-        <div className="flex flex-col items-start gap-2 text-left">
-          <span className="flex items-center gap-2 text-success">
-            <IconShieldCheck size={20} aria-hidden="true" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Identity verification
+        embedded ? (
+          <QrCompletedPanel />
+        ) : (
+          <div className="flex flex-col items-start gap-2 text-left">
+            <span className="flex items-center gap-2 text-success">
+              <IconShieldCheck size={20} aria-hidden="true" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Identity verification
+              </span>
             </span>
-          </span>
-          {!embedded && (
             <h2 className="font-nunito text-xl font-bold text-foreground">Verification submitted successfully</h2>
-          )}
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Status: Pending Review. Our team will review your documents shortly.
-          </p>
-        </div>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              Status: Pending Review. Our team will review your documents shortly.
+            </p>
+          </div>
+        )
       )}
 
       {phase.name === "expired" && (
-        <div className="flex flex-col items-start gap-2 text-left" role="status">
-          <span className="flex items-center gap-2">
-            <IconClock size={20} className="text-warning" aria-hidden="true" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Code expired
-            </span>
-          </span>
-          <h2 className="font-nunito text-xl font-bold text-foreground">This code has expired</h2>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Verification codes last 10 minutes. Generate a new one to continue.
-          </p>
-          <div className="pt-2">
-            <Button
-              type="button"
-              size="md"
-              variant="primary"
-              onPress={() => void startSession()}
-              isDisabled={isWorking}
-              isPending={isWorking}
-              className="min-h-10 px-6 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              Generate a new code
-            </Button>
-          </div>
-        </div>
+        <QrExpiredPanel
+          isWorking={isWorking}
+          onRegenerate={() => void startSession()}
+        />
       )}
     </>
   );
