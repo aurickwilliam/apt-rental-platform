@@ -416,22 +416,25 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         {/* Pin Confirmation Checkbox */}
         {formData.latitude !== null && formData.longitude !== null && (
           <Checkbox
+            className="group"
             isSelected={formData.isPinConfirmed ?? false}
             onChange={(checked) => updateForm({ isPinConfirmed: checked })}
             isInvalid={!!errors.isPinConfirmed}
           >
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Checkbox.Content>
-              <Label className="text-sm text-grey-700">
-                I confirm that the pin location on the map is correct
-              </Label>
-              {errors.isPinConfirmed && (
-                <Description className="text-xs text-danger mt-0.5">
-                  {errors.isPinConfirmed}
-                </Description>
-              )}
+            <Checkbox.Content className="flex cursor-pointer items-start gap-2 select-none">
+              <Checkbox.Control className="mt-0.5 size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                <Checkbox.Indicator className="[&_svg]:text-white!" />
+              </Checkbox.Control>
+              <div>
+                <Label className="cursor-pointer text-sm text-grey-700">
+                  I confirm that the pin location on the map is correct
+                </Label>
+                {errors.isPinConfirmed && (
+                  <Description className="mt-0.5 text-xs text-danger">
+                    {errors.isPinConfirmed}
+                  </Description>
+                )}
+              </div>
             </Checkbox.Content>
           </Checkbox>
         )}
