@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/rentals.tsx": {
-    "mtime": 1789483034.6534026,
-    "ast_hash": "af374156bade187f5b1dcbf58056a47a",
+    "mtime": 1791906321.9358485,
+    "ast_hash": "b47c62636d6cb2505fe166439daca0ac",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/ApplicationList.tsx": {
-    "mtime": 1787912037.1291454,
-    "ast_hash": "69a0faed8662c56963f444589a4ddd20",
+    "mtime": 1791906289.1815774,
+    "ast_hash": "e098d2ecd25ebdf23305e6f62732fed5",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/ApplicationStatusCard.tsx": {
@@ -322,11 +322,6 @@
   "apps/mobile/app/(tabs)/components/rentals/PaymentSummaryCard.tsx": {
     "mtime": 1791382521.714937,
     "ast_hash": "7319871d9e2f0f8112efb32b39e60677",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/(tabs)/components/rentals/TenancyEmptyState.tsx": {
-    "mtime": 1787912037.1301684,
-    "ast_hash": "aec91845b54d7c4413485ca9b089d119",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/search/ApartmentsList.tsx": {
@@ -600,8 +595,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/index.tsx": {
-    "mtime": 1791865821.0526602,
-    "ast_hash": "8d98fdddc942efdf8767dcb846e281f6",
+    "mtime": 1791906271.1554418,
+    "ast_hash": "d7ea8b0ccf93c6989edbaad5f67aac17",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/_layout.tsx": {
@@ -1475,8 +1470,8 @@
     "semantic_hash": "e71f96fad5b127121b9ab5e675242da0"
   },
   "apps/mobile/hooks/tenancy/index.ts": {
-    "mtime": 1787912037.1711416,
-    "ast_hash": "0304683823507bf1161073ade39b5fe1",
+    "mtime": 1791906261.7736044,
+    "ast_hash": "5dd1025e60affc9c1508a6d9af2e80c3",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/useLandlordTenancy.ts": {
@@ -2730,8 +2725,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791902275.4874814,
-    "ast_hash": "1cbce183f8a81d1d24467e7cc0277807",
+    "mtime": 1791906662.4891577,
+    "ast_hash": "506fcb0032097ff043b9159746a33948",
     "semantic_hash": ""
   },
   "README.md": {
@@ -7137,6 +7132,36 @@
   "apps/web/app/components/settings/ChangePasswordModal.tsx": {
     "mtime": 1791903381.2923973,
     "ast_hash": "0e335deea4709cc27c691e563937e7a8",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/rentals/rentalsView.test.ts": {
+    "mtime": 1791906307.555654,
+    "ast_hash": "ed3f3b461140f67e3718317373bc3d13",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/rentals/rentalsView.ts": {
+    "mtime": 1791906307.3988714,
+    "ast_hash": "bdf1d7ec7cd3a23e2e7ba769ef96cac8",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/tenancy/prepareTenantHome.ts": {
+    "mtime": 1791906261.7518983,
+    "ast_hash": "2992c2bf142a3e5b398334e0d66fc32e",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/tenancy/useRentalsLayoutHint.ts": {
+    "mtime": 1791906241.503382,
+    "ast_hash": "1757c51ad4eb7741f3fc425e64717d90",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/tenancy/rentalsLayoutHint.test.ts": {
+    "mtime": 1791906218.88267,
+    "ast_hash": "a3a6f69f21830993962b34fa2ae2f529",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/tenancy/rentalsLayoutHint.ts": {
+    "mtime": 1791906211.7579525,
+    "ast_hash": "89e91698c54b47c1f769899c4f6727fc",
     "semantic_hash": ""
   }
 }
