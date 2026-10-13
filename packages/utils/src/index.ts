@@ -36,3 +36,9 @@ export {
   normalizeRecoveryEmail,
   isRecoveryCodeFormat,
 } from './passwordRecovery';
+export {
+  type PasswordChangeAuth,
+  changePasswordWith,
+  type PasswordChangeErrorField,
+  getPasswordChangeErrorField,
+} from './passwordChange';
