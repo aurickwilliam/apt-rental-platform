@@ -41,6 +41,11 @@ type Step = "email" | "code" | "google_only";
 const INLINE_CODE_ERRORS = new Set<PasswordErrorReason>(["invalid_or_expired_code", "rate_limited"]);
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
+// Bordered, shadowless slots matching the site's text inputs (and the mobile
+// code input). `!`: @heroui/styles' slot rules are unlayered CSS.
+const CODE_SLOT_CLASS =
+  "rounded-xl! border! border-input! bg-card! shadow-none! data-[active=true]:border-[#376BF5]! data-[active=true]:ring-2 data-[active=true]:ring-[#376BF5]/15 data-[invalid=true]:border-danger!";
+
 function messageFor(reason: PasswordErrorReason): string {
   return new PasswordError(reason).message;
 }
@@ -263,15 +268,15 @@ export default function ForgotPasswordClient() {
             className="justify-center"
           >
             <InputOTP.Group>
-              <InputOTP.Slot index={0} />
-              <InputOTP.Slot index={1} />
-              <InputOTP.Slot index={2} />
+              <InputOTP.Slot index={0} className={CODE_SLOT_CLASS} />
+              <InputOTP.Slot index={1} className={CODE_SLOT_CLASS} />
+              <InputOTP.Slot index={2} className={CODE_SLOT_CLASS} />
             </InputOTP.Group>
             <InputOTP.Separator />
             <InputOTP.Group>
-              <InputOTP.Slot index={3} />
-              <InputOTP.Slot index={4} />
-              <InputOTP.Slot index={5} />
+              <InputOTP.Slot index={3} className={CODE_SLOT_CLASS} />
+              <InputOTP.Slot index={4} className={CODE_SLOT_CLASS} />
+              <InputOTP.Slot index={5} className={CODE_SLOT_CLASS} />
             </InputOTP.Group>
           </InputOTP>
 
