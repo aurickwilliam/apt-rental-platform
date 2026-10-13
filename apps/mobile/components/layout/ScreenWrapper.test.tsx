@@ -7,7 +7,7 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
-jest.mock("react-native-keyboard-aware-scroll-view", () => {
+jest.mock("react-native-keyboard-controller", () => {
   const React = jest.requireActual<typeof import("react")>("react");
   const { ScrollView } =
     jest.requireActual<typeof import("react-native")>("react-native");

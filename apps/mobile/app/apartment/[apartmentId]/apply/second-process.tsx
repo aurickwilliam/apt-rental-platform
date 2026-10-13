@@ -1,9 +1,8 @@
 import { View } from 'react-native'
 import { useRef, useState } from 'react'
-import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DateField from '@/components/inputs/DateField'
 
@@ -39,7 +38,7 @@ export default function SecondProcess() {
 
   const [errors, setErrors] = useState<FormErrors>({})
 
-  const scrollRef = useRef<KeyboardAwareScrollView>(null)
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null)
   const contentRef = useRef<View>(null)
   const groupOffsets = useRef<Partial<Record<string, number>>>({})
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({})
@@ -114,7 +113,7 @@ export default function SecondProcess() {
           ? fieldPositions.current[firstInvalidField] 
           : undefined
       if (y !== undefined) {
-        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
+        scrollRef.current?.scrollTo({ x: 0, y: Math.max(y - 16, 0), animated: true })
       }
     }
 
