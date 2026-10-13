@@ -105,6 +105,24 @@ Move the two forgot-password components that this flow also needs into shared fo
    - `getUser()` asks the server, so linked identities are current.
    - Loading and error states are kept separate.
 
+**Phase 3 status (2026-10-13): done.**
+- Moved with `git mv`, so their history is kept:
+  - `PasswordRequirementList.tsx` → `app/components/inputs/`;
+  - `ErrorBanner.tsx` → `app/components/display/` (that folder already exists).
+  - `ForgotPasswordClient` and `ResetPasswordClient` import them from the new paths.
+- `app/components/inputs/NewPasswordFields.tsx`:
+  - renders the new-password and confirm-password fields plus the checklist, as a fragment so the fields keep the parent form's spacing;
+  - takes the same props as mobile (`passwordLabel` defaults to "New Password");
+  - field errors accept `string | null`.
+  - `ResetPasswordClient` now uses it. The labels, placeholders, `name`/`autoComplete` values and checklist are unchanged.
+- `hooks/use-password-sign-in-status.ts` → `usePasswordSignInStatus()` returns `{ status, loading, error }`:
+  - `status` is `"has_password" | "no_password"`, or `null` when no one is signed in;
+  - `getUser()` errors come back through `useAsyncResource`'s `error`.
+- Checks:
+  - Web typecheck, lint and tests pass (47 tests).
+  - `/forgot-password` renders in the browser with no console errors.
+  - The reset page needs a real emailed code, so its browser check is part of the Phase 5 forgot-password regression test.
+
 ### Phase 4 — Security tab and change-password form
 
 1. `SecurityTab.tsx`:

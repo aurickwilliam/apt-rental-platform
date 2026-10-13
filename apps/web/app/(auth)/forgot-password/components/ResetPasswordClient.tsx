@@ -10,13 +10,12 @@ import { usePasswordValidation } from "@repo/hooks";
 import { RECOVERY_START_PATH } from "@repo/supabase/password-recovery";
 import { PasswordError, type PasswordErrorReason } from "@repo/utils";
 
-import PasswordField from "@/app/components/inputs/PasswordField";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
+import NewPasswordFields from "@/app/components/inputs/NewPasswordFields";
 import {
   cancelPasswordRecovery,
   updateRecoveredPassword,
 } from "../../actions/password-recovery";
-import ErrorBanner from "./ErrorBanner";
-import PasswordRequirementList from "./PasswordRequirementList";
 import RecoveryHeader from "./RecoveryHeader";
 
 // Server errors shown under the password field; anything else shows the banner.
@@ -168,35 +167,15 @@ export default function ResetPasswordClient() {
         validationBehavior="aria"
         onSubmit={handleSubmit}
       >
-        <PasswordField
-          isRequired
-          label="New Password"
-          name="password"
-          placeholder="Enter your new password"
-          autoComplete="new-password"
-          value={password}
-          onChange={handlePasswordChange}
-          isInvalid={!!passwordError}
-          errorMessage={passwordError ?? undefined}
-          isDisabled={busy || sessionExpired}
-        />
-
-        <PasswordField
-          isRequired
-          label="Confirm Password"
-          name="confirmPassword"
-          placeholder="Confirm your new password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          isInvalid={!!confirmPasswordError}
-          errorMessage={confirmPasswordError ?? undefined}
-          isDisabled={busy || sessionExpired}
-        />
-
-        <PasswordRequirementList
+        <NewPasswordFields
+          password={password}
+          confirmPassword={confirmPassword}
+          onPasswordChange={handlePasswordChange}
+          onConfirmPasswordChange={setConfirmPassword}
           requirements={passwordRequirements}
-          hasInput={password.length > 0 || confirmPassword.length > 0}
+          passwordError={passwordError}
+          confirmPasswordError={confirmPasswordError}
+          isDisabled={busy || sessionExpired}
         />
 
         {/* Cancel + main action side by side; Cancel stays quiet (tertiary). */}
