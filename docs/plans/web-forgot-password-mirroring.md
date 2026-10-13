@@ -2,9 +2,8 @@
 
 ## Status (2026-10-13)
 
-Implemented on `feature/web-forgot-password`. Remaining steps that need people or live systems:
+Implemented on `feature/web-forgot-password`. The new recovery email wording was pushed to the hosted `APT` project on 2026-10-13 (only the recovery template differed; all templates verified to match the repo afterwards). Remaining:
 
-- Pushing the new recovery email wording to the hosted project (step 6.3) — waits for the owner's go-ahead.
 - End-to-end checks that need a real recovery code from an inbox (verify, Google-only, reset, global sign-out, 30-minute expiry).
 
 Deviations from the original plan, found during implementation:
