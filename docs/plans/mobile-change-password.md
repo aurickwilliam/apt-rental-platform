@@ -42,6 +42,13 @@ Turn the **Change Password** row in mobile Settings (currently disabled with a "
 - Never log the current or new password (log only error name/code/status, as the recovery service does).
 - Note: if Supabase's "secure password change" (reauthentication) is ever enabled, `updateUser` returns `reauthentication_needed`; the error module maps it to a clear message rather than the recovery-specific "reset session has expired".
 
+**Phase 2 status (2026-10-13): done.** `service/auth/passwordChangeService.ts` exports `getPasswordSignInStatus()` (`"has_password" | "no_password"`, from the server-checked `getUser()`) and `changePassword()`. Beyond the steps above, it:
+- rejects a new password equal to the current one before any network call;
+- refuses accounts without an email/password identity before verifying;
+- stops if the verification sign-in returns a different account id.
+
+Covered by 16 tests in `passwordChangeService.test.ts`, including call order and no passwords in logs.
+
 ### Phase 3 — Settings row and screen
 
 - `app/settings/index.tsx`: the Change Password row reads `getPasswordSignInStatus()` through a small React Query hook (`hooks/auth/`, stable key, cleared with the query client on sign-out):
