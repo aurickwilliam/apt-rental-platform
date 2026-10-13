@@ -34,11 +34,12 @@ export default async function LandlordProfilePage() {
   const { data: profileData, error } = await supabase
     .from("users")
     .select(
-      "email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url, background_url"
+      "id, email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url, background_url"
     )
     .eq("user_id", user.id)
     .maybeSingle();
   const profile = profileData as unknown as (ProfileInitial & {
+    id: string;
     roles: string[];
     account_status: string;
     avatar_url: string | null;
@@ -62,6 +63,16 @@ export default async function LandlordProfilePage() {
     redirect("/browse");
   }
 
+  // Latest verification submission for the activity timeline. Owners read
+  // only their own rows; absent when the user never submitted.
+  const { data: verification } = await supabase
+    .from("user_verifications")
+    .select("status, submitted_at, reviewed_at, rejection_reason")
+    .eq("user_id", profile.id)
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const displayName =
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Landlord";
 
@@ -78,7 +89,7 @@ export default async function LandlordProfilePage() {
         backgroundUrl={profile.background_url}
       />
 
-      <PassportProfileCard accountStatus={profile.account_status} basePath="/landlord/passport" />
+      <PassportProfileCard accountStatus={profile.account_status} basePath="/landlord/passport" verification={verification} />
 
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
         <Card.Content className="p-0">
