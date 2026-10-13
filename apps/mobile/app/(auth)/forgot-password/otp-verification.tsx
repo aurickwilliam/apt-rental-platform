@@ -21,12 +21,12 @@ import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
-  PasswordRecoveryError,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "@/service/auth/passwordRecoveryService";
+import { PasswordError } from "@/service/auth/passwordErrors";
 
 // Errors shown under the code input; anything else opens the error dialog.
 const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);
@@ -63,11 +63,11 @@ export default function RecoveryCodeVerification() {
   };
 
   const showError = (err: unknown) => {
-    if (err instanceof PasswordRecoveryError && INLINE_CODE_ERRORS.has(err.reason)) {
+    if (err instanceof PasswordError && INLINE_CODE_ERRORS.has(err.reason)) {
       setCodeError(err.message);
       return;
     }
-    setError(err instanceof PasswordRecoveryError ? err.message : GENERIC_ERROR);
+    setError(err instanceof PasswordError ? err.message : GENERIC_ERROR);
   };
 
   const handleVerify = async (value: string = code) => {

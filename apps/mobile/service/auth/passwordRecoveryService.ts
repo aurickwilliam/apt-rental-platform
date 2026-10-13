@@ -3,6 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
 import { isValidEmail } from "@repo/utils";
 
+import { hasEmailPasswordIdentity } from "./authIdentity";
+import { describeAuthError, PasswordError, toPasswordError, toPasswordErrorReason } from "./passwordErrors";
+
 // Password recovery by 6-digit email code: resetPasswordForEmail sends the
 // code (hosted `recovery` template), verifyOtp({ type: "recovery" }) turns it
 // into a full, persisted session, and updateUser sets the new password.
@@ -30,7 +33,7 @@ async function setRecoveryInProgress(): Promise<void> {
     await AsyncStorage.setItem(RECOVERY_IN_PROGRESS_KEY, "1");
   } catch (error) {
     console.error("Password recovery marker could not be saved:", error);
-    throw new PasswordRecoveryError("unknown");
+    throw new PasswordError("unknown");
   }
 }
 
@@ -51,78 +54,9 @@ export async function isPasswordRecoveryInProgress(): Promise<boolean> {
   }
 }
 
-export type PasswordRecoveryErrorReason =
-  | "invalid_email"
-  | "invalid_or_expired_code"
-  | "rate_limited"
-  | "same_password"
-  | "weak_password"
-  | "session_expired"
-  | "network"
-  | "unknown";
-
-const RECOVERY_ERROR_MESSAGES: Record<PasswordRecoveryErrorReason, string> = {
-  invalid_email: "Enter a valid email address.",
-  invalid_or_expired_code:
-    "That code is incorrect or has expired. Check the code or request a new one.",
-  rate_limited: "Too many attempts. Please wait a minute before trying again.",
-  same_password: "Your new password must be different from your current password.",
-  weak_password: "This password is too weak. Please choose a stronger password.",
-  session_expired: "Your reset session has expired. Please request a new code.",
-  network: "Can't connect right now. Check your internet connection and try again.",
-  unknown: "Something went wrong. Please try again.",
-};
-
-export class PasswordRecoveryError extends Error {
-  readonly reason: PasswordRecoveryErrorReason;
-
-  constructor(reason: PasswordRecoveryErrorReason) {
-    super(RECOVERY_ERROR_MESSAGES[reason]);
-    this.name = "PasswordRecoveryError";
-    this.reason = reason;
-  }
-}
-
-// Structural subset of Supabase Auth errors (AuthError carries name/code/status).
-interface AuthErrorLike {
-  name?: string;
-  code?: string;
-  status?: number;
-}
-
-const INVALID_CODE_ERRORS = new Set(["otp_expired"]);
-const RATE_LIMIT_ERRORS = new Set(["over_email_send_rate_limit", "over_request_rate_limit"]);
-const SESSION_ERRORS = new Set(["session_not_found", "session_expired", "reauthentication_needed"]);
-const INVALID_EMAIL_ERRORS = new Set(["email_address_invalid", "validation_failed"]);
-const RATE_LIMIT_STATUS = 429;
-
-export function toRecoveryErrorReason(error: unknown): PasswordRecoveryErrorReason {
-  if (!error || typeof error !== "object") return "unknown";
-  const { name, code, status } = error as AuthErrorLike;
-
-  if (code && INVALID_CODE_ERRORS.has(code)) return "invalid_or_expired_code";
-  if ((code && RATE_LIMIT_ERRORS.has(code)) || status === RATE_LIMIT_STATUS) return "rate_limited";
-  if (code === "same_password") return "same_password";
-  if (code === "weak_password" || name === "AuthWeakPasswordError") return "weak_password";
-  if ((code && SESSION_ERRORS.has(code)) || name === "AuthSessionMissingError") return "session_expired";
-  if (code && INVALID_EMAIL_ERRORS.has(code)) return "invalid_email";
-  if (name === "AuthRetryableFetchError") return "network";
-  return "unknown";
-}
-
-// Never log the message: Auth error messages can echo the email address.
-function toRecoveryError(error: unknown, step: string): PasswordRecoveryError {
-  const reason = toRecoveryErrorReason(error);
-  if (reason === "unknown") {
-    const { name, code, status } = (error ?? {}) as AuthErrorLike;
-    console.error(`Password recovery ${step} failed:`, { name, code, status });
-  }
-  return new PasswordRecoveryError(reason);
-}
-
 function normalizeEmail(email: string): string {
   const trimmed = email.trim();
-  if (!isValidEmail(trimmed)) throw new PasswordRecoveryError("invalid_email");
+  if (!isValidEmail(trimmed)) throw new PasswordError("invalid_email");
   return trimmed;
 }
 
@@ -133,20 +67,7 @@ export async function requestPasswordRecovery(email: string): Promise<void> {
   const normalizedEmail = normalizeEmail(email);
   const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
   if (!error || error.code === "user_not_found") return;
-  throw toRecoveryError(error, "request");
-}
-
-interface RecoveryUser {
-  identities?: { provider: string }[] | null;
-  app_metadata?: { providers?: unknown } | null;
-}
-
-// An `email` identity always means the account has a password (confirmed on
-// the hosted project); Google-only accounts have only a `google` identity.
-export function hasEmailPasswordIdentity(user: RecoveryUser): boolean {
-  if (user.identities?.some((identity) => identity.provider === "email")) return true;
-  const providers = user.app_metadata?.providers;
-  return Array.isArray(providers) && providers.includes("email");
+  throw toPasswordError(error, "Password recovery request");
 }
 
 export type RecoveryCodeResult = "ready" | "google_only";
@@ -160,7 +81,7 @@ export async function verifyPasswordRecoveryCode(
   const normalizedEmail = normalizeEmail(email);
   const token = code.trim();
   if (!new RegExp(`^\\d{${RECOVERY_CODE_LENGTH}}$`).test(token)) {
-    throw new PasswordRecoveryError("invalid_or_expired_code");
+    throw new PasswordError("invalid_or_expired_code");
   }
 
   // Marked before verifying so the app can't be closed between the session
@@ -173,7 +94,7 @@ export async function verifyPasswordRecoveryCode(
   });
   if (error || !data.user || !data.session) {
     await clearRecoveryInProgress();
-    throw toRecoveryError(error, "verification");
+    throw toPasswordError(error, "Password recovery verification");
   }
 
   if (!hasEmailPasswordIdentity(data.user)) {
@@ -193,7 +114,7 @@ export async function hasActiveRecoverySession(): Promise<boolean> {
 // Requires the session created by verifyPasswordRecoveryCode.
 export async function updateRecoveredPassword(password: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) throw toRecoveryError(error, "password update");
+  if (error) throw toPasswordError(error, "Password recovery update");
 }
 
 // App start: a recovery left unfinished (e.g. the app was closed on the reset
@@ -211,8 +132,7 @@ export async function abandonUnfinishedPasswordRecovery(): Promise<boolean> {
 export async function endPasswordRecovery(scope: "local" | "global" = "local"): Promise<void> {
   await clearRecoveryInProgress();
   const { error } = await supabase.auth.signOut({ scope });
-  if (error && toRecoveryErrorReason(error) !== "network") {
-    const { name, code, status } = error as AuthErrorLike;
-    console.error("Password recovery sign-out failed:", { name, code, status });
+  if (error && toPasswordErrorReason(error) !== "network") {
+    console.error("Password recovery sign-out failed:", describeAuthError(error));
   }
 }

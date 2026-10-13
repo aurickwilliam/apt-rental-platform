@@ -23,9 +23,9 @@ import { isValidEmail } from "@repo/utils";
 import { useColors } from "hooks/useTheme";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
-  PasswordRecoveryError,
   requestPasswordRecovery,
 } from "@/service/auth/passwordRecoveryService";
+import { PasswordError } from "@/service/auth/passwordErrors";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -69,10 +69,10 @@ export default function ForgotPassword() {
       setRecoveryEmail(trimmedEmail);
       router.push("/forgot-password/otp-verification");
     } catch (err) {
-      if (err instanceof PasswordRecoveryError && err.reason === "invalid_email") {
+      if (err instanceof PasswordError && err.reason === "invalid_email") {
         setEmailError(err.message);
       } else {
-        setError(err instanceof PasswordRecoveryError ? err.message : "Something went wrong. Please try again.");
+        setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

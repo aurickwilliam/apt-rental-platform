@@ -5,13 +5,11 @@ import {
   endPasswordRecovery,
   hasActiveRecoverySession,
   isPasswordRecoveryInProgress,
-  hasEmailPasswordIdentity,
-  PasswordRecoveryError,
   requestPasswordRecovery,
-  toRecoveryErrorReason,
   updateRecoveredPassword,
   verifyPasswordRecoveryCode,
 } from "./passwordRecoveryService";
+import { PasswordError } from "./passwordErrors";
 
 const mockResetPasswordForEmail = jest.fn();
 const mockVerifyOtp = jest.fn();
@@ -47,7 +45,7 @@ const linkedUser = {
 };
 
 async function expectReason(promise: Promise<unknown>, reason: string) {
-  await expect(promise).rejects.toBeInstanceOf(PasswordRecoveryError);
+  await expect(promise).rejects.toBeInstanceOf(PasswordError);
   await expect(promise).rejects.toMatchObject({ reason });
 }
 
@@ -234,41 +232,7 @@ describe("passwordRecoveryService", () => {
     });
   });
 
-  describe("hasEmailPasswordIdentity", () => {
-    it("recognises email, Google-only and linked accounts", () => {
-      expect(hasEmailPasswordIdentity(emailUser)).toBe(true);
-      expect(hasEmailPasswordIdentity(googleUser)).toBe(false);
-      expect(
-        hasEmailPasswordIdentity({ identities: [{ provider: "google" }, { provider: "email" }] }),
-      ).toBe(true);
-      expect(hasEmailPasswordIdentity({ identities: null, app_metadata: { providers: ["email"] } })).toBe(true);
-      expect(hasEmailPasswordIdentity({})).toBe(false);
-    });
-  });
-
-  it.each([
-    [{ code: "otp_expired", status: 403 }, "invalid_or_expired_code"],
-    [{ code: "over_email_send_rate_limit", status: 429 }, "rate_limited"],
-    [{ code: "over_request_rate_limit", status: 429 }, "rate_limited"],
-    [{ status: 429 }, "rate_limited"],
-    [{ code: "same_password", status: 422 }, "same_password"],
-    [{ code: "weak_password", status: 422 }, "weak_password"],
-    [{ name: "AuthWeakPasswordError" }, "weak_password"],
-    [{ code: "session_not_found", status: 403 }, "session_expired"],
-    [{ code: "session_expired", status: 403 }, "session_expired"],
-    [{ code: "reauthentication_needed", status: 400 }, "session_expired"],
-    [{ name: "AuthSessionMissingError" }, "session_expired"],
-    [{ code: "email_address_invalid", status: 400 }, "invalid_email"],
-    [{ code: "validation_failed", status: 400 }, "invalid_email"],
-    [{ name: "AuthRetryableFetchError", status: 0 }, "network"],
-  ])("maps Supabase error %o to %s", (fields, reason) => {
-    expect(toRecoveryErrorReason(authError(fields))).toBe(reason);
-  });
-
-  it("maps unknown errors and never logs the email, code or password", async () => {
-    expect(toRecoveryErrorReason(null)).toBe("unknown");
-    expect(toRecoveryErrorReason(authError({ code: "something_new", status: 500 }))).toBe("unknown");
-
+  it("never logs the email, code or password for unexpected errors", async () => {
     mockVerifyOtp.mockResolvedValueOnce({
       data: { user: null, session: null },
       error: authError({ code: "unexpected_failure", status: 500, message: `Bad token ${CODE} for ${EMAIL}` }),

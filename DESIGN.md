@@ -208,7 +208,7 @@ Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-c
 - **Focus (web):** `border-gray-300` rest → `focus-within:border-[#376BF5] focus-within:ring-2 ring-[#376BF5]/15`; fields `rounded-xl bg-white`
 - **Focus (mobile):** `border-focus` focused / `border-field-border` rest / `border-danger` error / `bg-surface-tertiary` disabled
 - **Labels** above field (`font-nunitoSemiBold` mobile / HeroUI `Label` web), required `*` in danger; **validation** `isInvalid` + `FieldError` (HeroUI) or inline `text-danger text-xs mt-1`
-- **Password:** `InputGroup` suffix eye toggle (`IconEye/EyeOff size 20 gray400`); **search:** `SearchField` w/ icon prefix, `rounded-full` on web browse; **selects:** `Select` with `rounded-xl`/`rounded-lg` trigger, `ListBox.Item hover:bg-light-blue!`; placeholders `text-gray-400`/`text-muted`
+- **Password:** `InputGroup` suffix eye toggle (`IconEye/EyeOff size 20 gray400`) — on mobile use `components/inputs/PasswordField` (one field) or `NewPasswordFields` (new + confirm + live requirements checklist; met/unmet shown by icon shape and label, not colour alone); **search:** `SearchField` w/ icon prefix, `rounded-full` on web browse; **selects:** `Select` with `rounded-xl`/`rounded-lg` trigger, `ListBox.Item hover:bg-light-blue!`; placeholders `text-gray-400`/`text-muted`
 
 **🚧 Transitional (custom, token-correct, raw RN):** `DateField`, `DropdownField`, `UploadImageField`, `UploadFileField`, `TimeField`, `QuantityField`, `AppInput` — current implementation for apply/add-apartment/edit-profile flows; follow canonical border rules (`rounded-2xl h-12 border-field-border`). Prefer HeroUI for new code.
 

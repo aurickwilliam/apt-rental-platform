@@ -23,6 +23,13 @@ Turn the **Change Password** row in mobile Settings (currently disabled with a "
 - Move `PasswordRecoveryError`, its reasons/messages and `toRecoveryErrorReason` from `service/auth/passwordRecoveryService.ts` into `service/auth/passwordErrors.ts` (named for both flows, e.g. `PasswordError` / `toPasswordErrorReason`). Add the reason `wrong_current_password` ("Your current password is incorrect."). Update the recovery service, its screens and tests to import from the new module; behaviour unchanged.
 - Extract the new-password + confirm fields and the "Your password must contain" checklist from `app/(auth)/forgot-password/reset-password.tsx` into a shared component (e.g. `components/inputs/NewPasswordFields.tsx`). Build it on the canonical HeroUI `TextField` + `InputGroup` with the eye-toggle suffix (DESIGN.md §10) and Tabler icons, replacing the transitional `AppInput` and the `@expo/vector-icons` Ionicons the reset screen uses today. The reset screen switches to the shared component; its behaviour and tests stay green.
 
+**Phase 1 status (2026-10-13): done.**
+- `service/auth/passwordErrors.ts` holds `PasswordError`, `toPasswordErrorReason`, `toPasswordError` and `describeAuthError`. New reasons: `wrong_current_password` (`invalid_credentials`) and `reauthentication_required` (`reauthentication_needed`, previously folded into `session_expired`).
+- `hasEmailPasswordIdentity` moved to `service/auth/authIdentity.ts`.
+- `components/inputs/PasswordField.tsx` (one field with an eye toggle) and `components/inputs/NewPasswordFields.tsx` (new + confirm + checklist) are shared; the reset screen uses them, and they're documented in DESIGN.md §10.
+- The `heroui-native` test stub moved to `tests/support/` (now with `InputGroup`).
+- Forgot-password tests are unchanged in behaviour and all pass.
+
 ### Phase 2 — Change-password service
 
 - Create `service/auth/passwordChangeService.ts`:
