@@ -6929,19 +6929,9 @@
     "ast_hash": "69f1eaea63c14c1a750b88310b24aa77",
     "semantic_hash": ""
   },
-  "apps/web/app/(auth)/forgot-password/components/ErrorBanner.tsx": {
-    "mtime": 1791881639.2489054,
-    "ast_hash": "5328a58d78c5c18f645eb8fc93617ae2",
-    "semantic_hash": ""
-  },
   "apps/web/app/(auth)/forgot-password/components/ForgotPasswordClient.tsx": {
-    "mtime": 1791881639.2497256,
-    "ast_hash": "4a366cb7caad64d49e5c1018c6a9dbe6",
-    "semantic_hash": ""
-  },
-  "apps/web/app/(auth)/forgot-password/components/PasswordRequirementList.tsx": {
-    "mtime": 1791881639.250268,
-    "ast_hash": "e4acef5a451784352387cacda91df3bf",
+    "mtime": 1791882842.665323,
+    "ast_hash": "b9f17a9f6546d72f2c591a9e0fa385aa",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoveryHeader.tsx": {
@@ -6955,8 +6945,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ResetPasswordClient.tsx": {
-    "mtime": 1791881639.2511454,
-    "ast_hash": "fe60816e801249ffa783c5a90fb224f3",
+    "mtime": 1791882842.8483794,
+    "ast_hash": "f2aafada57998358d58ea81152e9cbf8",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/page.tsx": {
@@ -7030,8 +7020,8 @@
     "semantic_hash": ""
   },
   "docs/plans/web-change-password.md": {
-    "mtime": 1791882718.114976,
-    "ast_hash": "f165c64d72e02504a363338ac1946083",
+    "mtime": 1791882889.3964784,
+    "ast_hash": "a3306e7abafb4d202a70a0faac67d6ab",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordChange.test.ts": {
@@ -7047,6 +7037,26 @@
   "apps/web/app/(auth)/actions/change-password.ts": {
     "mtime": 1791882699.3486555,
     "ast_hash": "1e4023ed860df7fc51437c71563dd1fa",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/display/ErrorBanner.tsx": {
+    "mtime": 1791881639.2489054,
+    "ast_hash": "5328a58d78c5c18f645eb8fc93617ae2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/inputs/NewPasswordFields.tsx": {
+    "mtime": 1791882842.695058,
+    "ast_hash": "8d585d9dd9d091b57b354324214b7a80",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/inputs/PasswordRequirementList.tsx": {
+    "mtime": 1791881639.250268,
+    "ast_hash": "e4acef5a451784352387cacda91df3bf",
+    "semantic_hash": ""
+  },
+  "apps/web/hooks/use-password-sign-in-status.ts": {
+    "mtime": 1791882849.7076871,
+    "ast_hash": "308c34693c175089eec0b7e34ea58299",
     "semantic_hash": ""
   }
 }
