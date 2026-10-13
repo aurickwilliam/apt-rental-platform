@@ -57,8 +57,9 @@ export function QrScanPanel({
 }) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_1fr] sm:items-start">
-      <div className="flex justify-center sm:justify-start">
+      <div className="flex flex-col items-center gap-4">
         <QrTile value={qrValue} label="QR code linking to the mobile verification page" size={qrSize} />
+        <BackToOptionsButton onPress={onBack} />
       </div>
       <div className="flex flex-col items-start gap-4 text-left">
         <div className="flex flex-col gap-1.5">
@@ -86,7 +87,6 @@ export function QrScanPanel({
         <p className="max-w-sm text-[13px] leading-5 text-muted-foreground">
           Keep this window open while verifying on your phone.
         </p>
-        <BackToOptionsButton onPress={onBack} />
       </div>
     </div>
   );
