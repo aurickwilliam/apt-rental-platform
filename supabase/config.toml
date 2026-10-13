@@ -35,6 +35,13 @@ enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 
+# Mirrors hosted email OTP settings (confirmed 2026-10-13). The templates say the
+# code expires in 5 minutes and the mobile resend cooldown is 60s — keep them in sync.
+[auth.email]
+otp_length = 6
+otp_expiry = 300
+max_frequency = "60s"
+
 # Mirrors the hosted Email Templates config (Authentication > Emails > Magic link or OTP).
 # Local dev only — hosted projects apply via the Management API or the dashboard.
 [auth.email.template.magic_link]
