@@ -19,6 +19,10 @@ interface ApartmentCardProps {
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
+  /** Above-the-fold cards only: disables lazy loading for faster LCP. */
+  priority?: boolean;
+  /** Rendered-width hint so the browser picks a fitting file. */
+  sizes?: string;
 }
 
 export default function ApartmentCard({
@@ -32,6 +36,8 @@ export default function ApartmentCard({
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
+  priority = false,
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: ApartmentCardProps) {
   const showFavoriteButton = Boolean(onFavoritePress);
 
@@ -49,6 +55,8 @@ export default function ApartmentCard({
             width={600}
             height={600}
             unoptimized
+            priority={priority}
+            sizes={sizes}
             className="object-cover rounded-xl w-full aspect-square h-auto"
           />
 

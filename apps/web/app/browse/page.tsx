@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
 import BrowseFilters from "./components/BrowseFilters";
 import BrowseSectionsList from "./components/BrowseSectionsList";
-import { BrowseCardsSkeleton } from "./components/BrowsePageSkeleton";
+import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
 import MobileFilterButton from "./components/MobileFilterButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
@@ -59,7 +59,11 @@ export default async function BrowsePage({ searchParams }: PageProps) {
           </Suspense>
         )}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
-          <Suspense fallback={<BrowseCardsSkeleton />}>
+          <Suspense
+            fallback={
+              useSections ? <BrowseSectionsSkeleton /> : <BrowseCardsSkeleton />
+            }
+          >
             {useSections ? (
               <BrowseSectionsList sections={sections} />
             ) : (

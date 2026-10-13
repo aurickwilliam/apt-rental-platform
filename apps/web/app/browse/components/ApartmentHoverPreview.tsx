@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { Button, Card, Spinner } from "@heroui/react";
 import {
   IconBath,
@@ -38,18 +37,14 @@ export default function ApartmentHoverPreview({
   onMouseEnter,
   onMouseLeave,
 }: ApartmentHoverPreviewProps) {
-  const reduceMotion = useReducedMotion();
-
+  // CSS-only enter animation (no motion library): fade + slight zoom on
+  // mount, instant unmount. Respects reduced-motion preferences.
   return (
-    <motion.div
+    <div
       role="dialog"
       aria-label={`Quick preview of ${apartment.name}`}
-      className="fixed z-50 hidden md:block"
+      className="fixed z-50 hidden animate-in fade-in-0 zoom-in-95 duration-180 motion-reduce:animate-none md:block"
       style={style}
-      initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.92, y: reduceMotion ? 0 : 8 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96, y: reduceMotion ? 0 : 4 }}
-      transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -140,6 +135,6 @@ export default function ApartmentHoverPreview({
           </div>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 }

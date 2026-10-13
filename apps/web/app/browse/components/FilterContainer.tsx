@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { memo, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -32,7 +32,6 @@ import {
 
 import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../components/inputs/perks";
-import { useDebouncedCallback } from "./use-debounced-callback";
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
@@ -85,8 +84,6 @@ type Props = {
   basePath?: string;
   onApply?: () => void;
 };
-
-const FILTER_DEBOUNCE_MS = 300;
 
 function readFiltersFromParams(
   params: URLSearchParams,
@@ -287,6 +284,115 @@ function RangeInputs({
   );
 }
 
+// Slider sections are memoized so high-frequency slider drags redraw only
+// the dragged section instead of the whole ~30-control panel. Inline
+// handlers live inside, where they can't break the memo; parents pass
+// stable range values plus a stable commit callback.
+const BudgetSection = memo(function BudgetSection({
+  priceRange,
+  onPriceChange,
+}: {
+  priceRange: [number, number];
+  onPriceChange: (next: [number, number]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 mt-6">
+      <Slider
+        minValue={MIN_BUDGET}
+        maxValue={MAX_BUDGET}
+        step={500}
+        value={priceRange}
+        onChange={(val) => onPriceChange(val as [number, number])}
+        className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
+      >
+        <Label>Budget</Label>
+
+        <Slider.Output>
+          {() => {
+            const maxDisplay =
+              priceRange[1] === MAX_BUDGET
+                ? `₱${MAX_BUDGET.toLocaleString()}+`
+                : `₱${priceRange[1].toLocaleString()}`;
+
+            return `₱${priceRange[0].toLocaleString()} – ${maxDisplay}`;
+          }}
+        </Slider.Output>
+
+        <Slider.Track>
+          {({ state }) => (
+            <>
+              <Slider.Fill className="bg-primary" />
+              {state.values.map((_, i) => (
+                <Slider.Thumb key={i} index={i} />
+              ))}
+            </>
+          )}
+        </Slider.Track>
+      </Slider>
+      <RangeInputs
+        min={priceRange[0]}
+        max={priceRange[1]}
+        absoluteMin={MIN_BUDGET}
+        absoluteMax={MAX_BUDGET}
+        step={500}
+        prefix="₱"
+        minLabel="Minimum budget"
+        maxLabel="Maximum budget"
+        onCommit={onPriceChange}
+      />
+    </div>
+  );
+});
+
+const SizeSection = memo(function SizeSection({
+  sizeRange,
+  onSizeChange,
+}: {
+  sizeRange: [number, number];
+  onSizeChange: (next: [number, number]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 mt-6">
+      <Slider
+        minValue={MIN_SIZE}
+        maxValue={MAX_SIZE}
+        step={5}
+        value={sizeRange}
+        onChange={(val) => onSizeChange(val as [number, number])}
+        className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
+      >
+        <Label>Size Range</Label>
+
+        <Slider.Output>
+          {() => `${sizeRange[0]} – ${sizeRange[1]} sqm`}
+        </Slider.Output>
+
+        <Slider.Track>
+          {({ state }) => (
+            <>
+              <Slider.Fill className="bg-primary" />
+              {state.values.map((_, i) => (
+                <Slider.Thumb key={i} index={i} />
+              ))}
+            </>
+          )}
+        </Slider.Track>
+      </Slider>
+      <RangeInputs
+        min={sizeRange[0]}
+        max={sizeRange[1]}
+        absoluteMin={MIN_SIZE}
+        absoluteMax={MAX_SIZE}
+        step={5}
+        suffix="sqm"
+        minLabel="Minimum size"
+        maxLabel="Maximum size"
+        onCommit={onSizeChange}
+      />
+    </div>
+  );
+});
+
 export default function FilterContainer({ resultCount, basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
@@ -311,55 +417,70 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
   }, [filters]);
 
   // Signature of the last URL this panel pushed. The URL→state sync below
-  // ignores echoes of our own pushes, so in-flight interaction (e.g. a
-  // slider drag with a pending debounced push) is never clobbered.
+  // ignores echoes of our own pushes, so local edits made after an apply
+  // are never clobbered by a stale URL.
   const lastPushedRef = useRef<string | null>(null);
 
-  const pushFilters = (next: Filters) => {
-    const query = serializeFilters(next, searchParamsRef.current.get("search"));
-    lastPushedRef.current = query;
-    startTransition(() => {
-      router.replace(query ? `${basePath}?${query}` : basePath);
-    });
-  };
+  const pushFilters = useCallback(
+    (next: Filters) => {
+      const query = serializeFilters(next, searchParamsRef.current.get("search"));
+      lastPushedRef.current = query;
+      startTransition(() => {
+        router.replace(query ? `${basePath}?${query}` : basePath);
+      });
+    },
+    [basePath, router],
+  );
 
-  const { debounced: debouncedPush, cancel: cancelPush } =
-    useDebouncedCallback(pushFilters, FILTER_DEBOUNCE_MS);
-
-  // Applies a new filter state instantly to the UI and schedules the
-  // debounced URL sync. Called only from event handlers (never render).
-  const applyNext = (next: Filters) => {
+  // Applies a new filter state instantly to the UI only — no fetching.
+  // The URL (and therefore results) updates solely via "Search Apartment"
+  // or "Clear All". Called only from event handlers (never render).
+  // Stable so memoized sections skip unrelated updates.
+  const applyNext = useCallback((next: Filters) => {
     filtersRef.current = next;
     setFilters(next);
-    debouncedPush(next);
-  };
+  }, []);
 
-  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
-    applyNext({ ...filtersRef.current, [key]: value });
-  };
+  const updateFilter = useCallback(
+    <K extends keyof Filters>(key: K, value: Filters[K]) => {
+      applyNext({ ...filtersRef.current, [key]: value });
+    },
+    [applyNext],
+  );
 
-  const toggleArray = (
-    key: "locations" | "aptTypes" | "furnishing" | "floorLevel" | "leaseDuration",
-    value: string,
-  ) => {
-    const current = filtersRef.current[key];
-    applyNext({
-      ...filtersRef.current,
-      [key]: current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value],
-    });
-  };
+  const toggleArray = useCallback(
+    (
+      key: "locations" | "aptTypes" | "furnishing" | "floorLevel" | "leaseDuration",
+      value: string,
+    ) => {
+      const current = filtersRef.current[key];
+      applyNext({
+        ...filtersRef.current,
+        [key]: current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value],
+      });
+    },
+    [applyNext],
+  );
 
-  // "Search Apartment" applies any pending change immediately.
-  const handleApply = () => {
-    cancelPush();
+  // Stable range commits for the memoized slider sections.
+  const handlePriceChange = useCallback(
+    (next: [number, number]) => updateFilter("priceRange", next),
+    [updateFilter],
+  );
+  const handleSizeChange = useCallback(
+    (next: [number, number]) => updateFilter("sizeRange", next),
+    [updateFilter],
+  );
+
+  // "Search Apartment" is the single fetch trigger for filter edits.
+  const handleApply = useCallback(() => {
     pushFilters(filtersRef.current);
     onApply?.();
-  };
+  }, [onApply, pushFilters]);
 
-  const handleClear = () => {
-    cancelPush();
+  const handleClear = useCallback(() => {
     filtersRef.current = INITIAL_FILTERS;
     setFilters(INITIAL_FILTERS);
     // Clear All also drops the text search so results are fully unfiltered.
@@ -367,12 +488,11 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
     startTransition(() => {
       router.replace(basePath);
     });
-  };
+  }, [basePath, router]);
 
-  // Stay in sync when the URL changes elsewhere (browser back/forward).
-  // Echoes of this panel's own pushes are ignored so in-flight interaction
-  // (e.g. a slider drag with a pending debounced push) is never clobbered
-  // by a stale URL.
+  // Stay in sync when the URL changes elsewhere (browser back/forward,
+  // text search). Echoes of this panel's own pushes are ignored so local
+  // edits made after an apply are never clobbered by a stale URL.
   const paramsSignature = searchParams.toString();
   useEffect(() => {
     if (lastPushedRef.current === paramsSignature) return;
@@ -451,51 +571,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
       </CheckboxGroup>
 
       {/* Budget */}
-      <div className="flex flex-col gap-2 mt-6">
-        <Slider
-          minValue={MIN_BUDGET}
-          maxValue={MAX_BUDGET}
-          step={500}
-          value={filters.priceRange}
-          onChange={(val) => updateFilter("priceRange", val as [number, number])}
-          className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
-        >
-          <Label>Budget</Label>
-
-          <Slider.Output>
-            {() => {
-              const maxDisplay =
-                filters.priceRange[1] === MAX_BUDGET
-                  ? `₱${MAX_BUDGET.toLocaleString()}+`
-                  : `₱${filters.priceRange[1].toLocaleString()}`;
-
-              return `₱${filters.priceRange[0].toLocaleString()} – ${maxDisplay}`;
-            }}
-          </Slider.Output>
-
-          <Slider.Track>
-            {({ state }) => (
-              <>
-                <Slider.Fill className="bg-primary" />
-                {state.values.map((_, i) => (
-                  <Slider.Thumb key={i} index={i} />
-                ))}
-              </>
-            )}
-          </Slider.Track>
-        </Slider>
-        <RangeInputs
-          min={filters.priceRange[0]}
-          max={filters.priceRange[1]}
-          absoluteMin={MIN_BUDGET}
-          absoluteMax={MAX_BUDGET}
-          step={500}
-          prefix="₱"
-          minLabel="Minimum budget"
-          maxLabel="Maximum budget"
-          onCommit={(next) => updateFilter("priceRange", next)}
-        />
-      </div>
+      <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
 
       {/* Unit Type */}
       <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
@@ -586,44 +662,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
       </ToggleButtonGroup>
 
       {/* Size Range */}
-      <div className="flex flex-col gap-2 mt-6">
-        <Slider
-          minValue={MIN_SIZE}
-          maxValue={MAX_SIZE}
-          step={5}
-          value={filters.sizeRange}
-          onChange={(val) => updateFilter("sizeRange", val as [number, number])}
-          className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
-        >
-          <Label>Size Range</Label>
-
-          <Slider.Output>
-            {() => `${filters.sizeRange[0]} – ${filters.sizeRange[1]} sqm`}
-          </Slider.Output>
-
-          <Slider.Track>
-            {({ state }) => (
-              <>
-                <Slider.Fill className="bg-primary" />
-                {state.values.map((_, i) => (
-                  <Slider.Thumb key={i} index={i} />
-                ))}
-              </>
-            )}
-          </Slider.Track>
-        </Slider>
-        <RangeInputs
-          min={filters.sizeRange[0]}
-          max={filters.sizeRange[1]}
-          absoluteMin={MIN_SIZE}
-          absoluteMax={MAX_SIZE}
-          step={5}
-          suffix="sqm"
-          minLabel="Minimum size"
-          maxLabel="Maximum size"
-          onCommit={(next) => updateFilter("sizeRange", next)}
-        />
-      </div>
+      <SizeSection sizeRange={filters.sizeRange} onSizeChange={handleSizeChange} />
 
       <Separator className="my-5" />
 

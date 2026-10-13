@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { toast } from "@heroui/react";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
-import { AnimatePresence } from "framer-motion";
 
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
@@ -14,6 +13,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
 import ApartmentHoverPreview from "./ApartmentHoverPreview";
+import { BrowseCardsSkeleton } from "./BrowsePageSkeleton";
 import {
   previewPosition,
   useHoverPreview,
@@ -27,6 +27,7 @@ interface BrowseSectionsListProps {
 
 interface SectionRowProps {
   section: BrowseSection;
+  sectionIndex: number;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (apartmentId: string) => void;
   onPressApartment: (apartmentId: string) => void;
@@ -35,10 +36,13 @@ interface SectionRowProps {
   activeFavoriteId: string | null;
 }
 
-// One horizontally scrolling row with Netflix-style hover-reveal edge arrows
-// (desktop only). Arrows hide at each scroll end and when the row fits.
-function SectionRow({
+// Memoized like the grid items: hover-preview state at the list root must
+// not redraw every row. Re-renders only when this section's data or a
+// handler identity changes. Edge arrows hide at each scroll end and when
+// the row fits without scrolling.
+const SectionRow = memo(function SectionRow({
   section,
+  sectionIndex,
   isFavorite,
   onToggleFavorite,
   onPressApartment,
@@ -93,7 +97,7 @@ function SectionRow({
         ref={trackRef}
         className="flex w-full max-w-full gap-3 overflow-x-auto pb-2 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
       >
-        {section.apartments.map((apt) => (
+        {section.apartments.map((apt, i) => (
           <div
             key={apt.id}
             className="w-44 shrink-0 sm:w-56"
@@ -121,6 +125,8 @@ function SectionRow({
                 onToggleFavorite(apt.id);
               }}
               onPress={() => onPressApartment(apt.id)}
+              sizes="(max-width: 640px) 176px, 224px"
+              priority={sectionIndex === 0 && i < 4}
             />
           </div>
         ))}
@@ -148,13 +154,19 @@ function SectionRow({
       )}
     </div>
   );
-}
+});
 
 export default function BrowseSectionsList({ sections, basePath = "/browse" }: BrowseSectionsListProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
+  // Set on See All click so the HeroUI card-grid skeleton shows instantly
+  // in the results area (search bar + sidebar persist) while the grid
+  // loads. A completed navigation unmounts this list; the check below
+  // clears the flag if the URL changes while still mounted.
+  const [navigatingHref, setNavigatingHref] = useState<string | null>(null);
   const {
     preview,
     handleHoverCard,
@@ -163,91 +175,133 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
     dismissPreview,
   } = useHoverPreview();
 
-  const handleFavoriteToggle = async (apartmentId: string) => {
-    setActiveFavoriteId(apartmentId);
+  const handleFavoriteToggle = useCallback(
+    async (apartmentId: string) => {
+      setActiveFavoriteId(apartmentId);
 
-    try {
-      const nextValue = await toggleFavorite(apartmentId);
-      if (nextValue) {
-        toast.success("Saved to favorites");
-      } else {
-        toast("Removed from favorites");
+      try {
+        const nextValue = await toggleFavorite(apartmentId);
+        if (nextValue) {
+          toast.success("Saved to favorites");
+        } else {
+          toast("Removed from favorites");
+        }
+      } catch (err: unknown) {
+        const error = err as { code?: string; message?: string };
+
+        if (error?.code === "AUTH_REQUIRED") {
+          setIsAuthModalOpen(true);
+          return;
+        }
+
+        if (error?.code === "NOT_TENANT") {
+          toast.warning(error?.message ?? "Only tenants can save favorites");
+          return;
+        }
+
+        toast.danger(error?.message ?? "Unable to update favorites");
+      } finally {
+        setActiveFavoriteId(null);
       }
-    } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
+    },
+    [toggleFavorite],
+  );
 
-      if (error?.code === "AUTH_REQUIRED") {
-        setIsAuthModalOpen(true);
-        return;
-      }
+  const handlePressApartment = useCallback(
+    (apartmentId: string) => {
+      dismissPreview();
+      router.push(`${basePath}/${apartmentId}`);
+    },
+    [basePath, dismissPreview, router],
+  );
 
-      if (error?.code === "NOT_TENANT") {
-        toast.warning(error?.message ?? "Only tenants can save favorites");
-        return;
-      }
+  const handleToggleFavorite = useCallback(
+    (apartmentId: string) => {
+      void handleFavoriteToggle(apartmentId);
+    },
+    [handleFavoriteToggle],
+  );
 
-      toast.danger(error?.message ?? "Unable to update favorites");
-    } finally {
-      setActiveFavoriteId(null);
+  // Safety net: never stick on the skeleton if a See All click doesn't
+  // actually navigate away (modifier-clicks are filtered at the Link, this
+  // covers the rest). Compared during render, not in an effect.
+  const paramsSignature = searchParams.toString();
+  const [prevSig, setPrevSig] = useState(paramsSignature);
+  if (prevSig !== paramsSignature) {
+    setPrevSig(paramsSignature);
+    if (navigatingHref !== null) setNavigatingHref(null);
+  }
+
+  // Plain left-clicks navigate in the same tab; modifier/middle clicks
+  // must not trigger the skeleton.
+  const handleSeeAllClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (
+      e.button !== 0 ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey
+    ) {
+      return;
     }
-  };
-
-  const handlePressApartment = (apartmentId: string) => {
     dismissPreview();
-    router.push(`${basePath}/${apartmentId}`);
-  };
-
-  const handleToggleFavorite = (apartmentId: string) => {
-    void handleFavoriteToggle(apartmentId);
+    setNavigatingHref(href);
   };
 
   return (
     <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
-      {sections.map((section) => (
-        <section key={section.id} aria-label={section.title} className="min-w-0">
-          <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-            <h3 className="min-w-0 truncate text-lg font-medium">
-              {section.title}
-            </h3>
-            {section.seeAllHref ? (
-              <Link
-                href={section.seeAllHref}
-                className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-                aria-label={`See all ${section.title}`}
-              >
-                See All
-                <IconChevronRight size={18} />
-              </Link>
-            ) : null}
-          </div>
+      {navigatingHref !== null ? (
+        <BrowseCardsSkeleton />
+      ) : (
+        sections.map((section, sectionIndex) => (
+          <section key={section.id} aria-label={section.title} className="min-w-0">
+            <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
+              <h3 className="min-w-0 truncate text-lg font-medium">
+                {section.title}
+              </h3>
+              {section.seeAllHref ? (
+                <Link
+                  href={section.seeAllHref}
+                  onClick={(e) => handleSeeAllClick(e, section.seeAllHref as string)}
+                  className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+                  aria-label={`See all ${section.title}`}
+                >
+                  See All
+                  <IconChevronRight size={18} />
+                </Link>
+              ) : null}
+            </div>
 
-          <SectionRow
-            section={section}
-            isFavorite={isFavorite}
-            onToggleFavorite={handleToggleFavorite}
-            onPressApartment={handlePressApartment}
-            onHoverCard={handleHoverCard}
-            onLeaveCard={handleLeaveCard}
-            activeFavoriteId={activeFavoriteId}
-          />
-        </section>
-      ))}
+            <SectionRow
+              section={section}
+              sectionIndex={sectionIndex}
+              isFavorite={isFavorite}
+              onToggleFavorite={handleToggleFavorite}
+              onPressApartment={handlePressApartment}
+              onHoverCard={handleHoverCard}
+              onLeaveCard={handleLeaveCard}
+              activeFavoriteId={activeFavoriteId}
+            />
+          </section>
+        ))
+      )}
 
-      <AnimatePresence>
-        {preview && (
-          <ApartmentHoverPreview
-            key={preview.apartment.id}
-            apartment={preview.apartment}
-            style={previewPosition(preview.rect)}
-            isFavorite={isFavorite(preview.apartment.id)}
-            isFavoriteLoading={activeFavoriteId === preview.apartment.id}
-            onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
-            onViewDetails={() => handlePressApartment(preview.apartment.id)}
-            onMouseEnter={handleKeepPreview}
-            onMouseLeave={dismissPreview}
-          />
-        )}
-      </AnimatePresence>
+      {preview && (
+        <ApartmentHoverPreview
+          key={preview.apartment.id}
+          apartment={preview.apartment}
+          style={previewPosition(preview.rect)}
+          isFavorite={isFavorite(preview.apartment.id)}
+          isFavoriteLoading={activeFavoriteId === preview.apartment.id}
+          onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
+          onViewDetails={() => handlePressApartment(preview.apartment.id)}
+          onMouseEnter={handleKeepPreview}
+          onMouseLeave={dismissPreview}
+        />
+      )}
 
       <AuthPromptModal
         isOpen={isAuthModalOpen}

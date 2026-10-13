@@ -33,6 +33,7 @@ interface SectionRow {
   area_sqm?: number | null;
   apartment_images?: Array<{
     url?: string | null;
+    url_thumb?: string | null;
     is_cover?: boolean | null;
   }> | null;
 }
@@ -86,6 +87,7 @@ function seeAllQuery(sectionId: string): string | null {
 
 function mapRow(apt: SectionRow): BrowseApartment {
   const images = apt.apartment_images ?? [];
+  const cover = images.find((img) => img.is_cover) ?? images[0];
   return {
     id: apt.id,
     name: apt.name,
@@ -93,10 +95,8 @@ function mapRow(apt: SectionRow): BrowseApartment {
     price: apt.monthly_rent ?? 0,
     rating: apt.average_rating ?? 0,
     isVerified: apt.is_verified ?? false,
-    image:
-      images.find((img) => img.is_cover)?.url ??
-      images[0]?.url ??
-      DEFAULT_THUMBNAIL,
+    // Cards render small: prefer the thumbnail tier, fall back to full-size.
+    image: cover?.url_thumb ?? cover?.url ?? DEFAULT_THUMBNAIL,
     bedrooms: apt.no_bedrooms ?? undefined,
     bathrooms: apt.no_bathrooms ?? undefined,
     areaSqm: apt.area_sqm ?? undefined,

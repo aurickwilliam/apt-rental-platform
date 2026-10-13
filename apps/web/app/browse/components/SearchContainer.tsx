@@ -5,10 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
 import { IconSearch } from "@tabler/icons-react";
 
-import { useDebouncedCallback } from "./use-debounced-callback";
-
-const SEARCH_DEBOUNCE_MS = 300;
-
 export default function SearchContainer({
   basePath = "/browse",
   filterButton,
@@ -22,31 +18,22 @@ export default function SearchContainer({
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const pushSearch = (value: string) => {
+  // No live fetching while typing: the URL (and therefore results) only
+  // updates when the user commits via the magnifier button or Enter.
+  const handleChange = (value: string) => {
+    setSearch(value);
+  };
+
+  // Magnifier button / Enter applies the search immediately.
+  const handleSearch = () => {
     const current = new URLSearchParams(searchParams.toString());
-    const trimmed = value.trim();
+    const trimmed = search.trim();
     if (trimmed) current.set("search", trimmed);
     else current.delete("search");
     current.delete("page");
     startTransition(() => {
       router.replace(`${basePath}?${current.toString()}`);
     });
-  };
-
-  const { debounced, flush } = useDebouncedCallback(
-    pushSearch,
-    SEARCH_DEBOUNCE_MS,
-  );
-
-  // Live filtering (debounced) as the user types.
-  const handleChange = (value: string) => {
-    setSearch(value);
-    debounced(value);
-  };
-
-  // Search button / Enter applies immediately.
-  const handleSearch = () => {
-    flush(search);
   };
 
   // Stay in sync when the URL changes elsewhere (e.g. filter-panel Clear All).

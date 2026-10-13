@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Pagination, toast } from "@heroui/react";
@@ -13,8 +13,8 @@ import ApartmentHoverPreview from "./ApartmentHoverPreview";
 import {
   previewPosition,
   useHoverPreview,
+  type HoveredCardRect,
 } from "./use-hover-preview";
-import { AnimatePresence } from "framer-motion";
 
 interface RenderApartmentsProps {
   apartment: BrowseApartment[];
@@ -23,6 +23,62 @@ interface RenderApartmentsProps {
   pageSize: number;
   basePath?: string;
 }
+
+// Memoized so list-level state (hover preview, page nav) never redraws
+// every card: re-renders only when this card's data, favorite state, or a
+// stable handler identity changes. Inline closures live inside, where they
+// can't break the memo.
+const ApartmentGridItem = memo(function ApartmentGridItem({
+  apt,
+  isFavorite,
+  isFavoriteLoading,
+  onPressApartment,
+  onToggleFavorite,
+  onHoverCard,
+  onLeaveCard,
+  priority,
+}: {
+  apt: BrowseApartment;
+  isFavorite: (id: string) => boolean;
+  isFavoriteLoading: boolean;
+  onPressApartment: (apartmentId: string) => void;
+  onToggleFavorite: (apartmentId: string) => void;
+  onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect) => void;
+  onLeaveCard: () => void;
+  priority: boolean;
+}) {
+  return (
+    <div
+      className="min-w-0"
+      onMouseEnter={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        onHoverCard(apt, {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        });
+      }}
+      onMouseLeave={onLeaveCard}
+    >
+      <ApartmentCard
+        name={apt.name}
+        location={apt.location}
+        price={apt.price}
+        rating={apt.rating}
+        isVerified={apt.isVerified}
+        thumbnailUrl={apt.image}
+        isFavorite={isFavorite(apt.id)}
+        isFavoriteLoading={isFavoriteLoading}
+        onFavoritePress={() => {
+          onToggleFavorite(apt.id);
+        }}
+        onPress={() => onPressApartment(apt.id)}
+        priority={priority}
+      />
+    </div>
+  );
+});
 
 // Windowed page numbers so the control never overflows small screens:
 // always show first/last, plus current ± 1, with ellipses for gaps.
@@ -61,44 +117,54 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
     router.push(`${basePath}?${current.toString()}`);
   };
 
-  const handlePressApartment = (apartmentId: string) => {
-    dismissPreview();
-    router.push(`${basePath}/${apartmentId}`);
-  };
-
-  const handleToggleFavorite = (apartmentId: string) => {
-    void handleFavoriteToggle(apartmentId);
-  };
+  const handlePressApartment = useCallback(
+    (apartmentId: string) => {
+      dismissPreview();
+      router.push(`${basePath}/${apartmentId}`);
+    },
+    [basePath, dismissPreview, router],
+  );
 
   const isVerifiedOnly = searchParams.get("verified") === "1";
 
-  const handleFavoriteToggle = async (apartmentId: string) => {    setActiveFavoriteId(apartmentId);
+  const handleFavoriteToggle = useCallback(
+    async (apartmentId: string) => {
+      setActiveFavoriteId(apartmentId);
 
-    try {
-      const nextValue = await toggleFavorite(apartmentId);
-      if (nextValue) {
-        toast.success("Saved to favorites");
-      } else {
-        toast("Removed from favorites");
+      try {
+        const nextValue = await toggleFavorite(apartmentId);
+        if (nextValue) {
+          toast.success("Saved to favorites");
+        } else {
+          toast("Removed from favorites");
+        }
+      } catch (err: unknown) {
+        const error = err as { code?: string; message?: string };
+
+        if (error?.code === "AUTH_REQUIRED") {
+          setIsAuthModalOpen(true);
+          return;
+        }
+
+        if (error?.code === "NOT_TENANT") {
+          toast.warning(error?.message ?? "Only tenants can save favorites");
+          return;
+        }
+
+        toast.danger(error?.message ?? "Unable to update favorites");
+      } finally {
+        setActiveFavoriteId(null);
       }
-    } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
+    },
+    [toggleFavorite],
+  );
 
-      if (error?.code === "AUTH_REQUIRED") {
-        setIsAuthModalOpen(true);
-        return;
-      }
-
-      if (error?.code === "NOT_TENANT") {
-        toast.warning(error?.message ?? "Only tenants can save favorites");
-        return;
-      }
-
-      toast.danger(error?.message ?? "Unable to update favorites");
-    } finally {
-      setActiveFavoriteId(null);
-    }
-  };
+  const handleToggleFavorite = useCallback(
+    (apartmentId: string) => {
+      void handleFavoriteToggle(apartmentId);
+    },
+    [handleFavoriteToggle],
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -111,36 +177,18 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-          {apartment.map(apt => (
-            <div
+          {apartment.map((apt, i) => (
+            <ApartmentGridItem
               key={apt.id}
-              className="min-w-0"
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                handleHoverCard(apt, {
-                  left: rect.left,
-                  top: rect.top,
-                  width: rect.width,
-                  height: rect.height,
-                });
-              }}
-              onMouseLeave={handleLeaveCard}
-            >
-              <ApartmentCard
-                name={apt.name}
-                location={apt.location}
-                price={apt.price}
-                rating={apt.rating}
-                isVerified={apt.isVerified}
-                thumbnailUrl={apt.image}
-                isFavorite={isFavorite(apt.id)}
-                isFavoriteLoading={activeFavoriteId === apt.id}
-                onFavoritePress={() => {
-                  handleToggleFavorite(apt.id);
-                }}
-                onPress={() => handlePressApartment(apt.id)}
-              />
-            </div>
+              apt={apt}
+              isFavorite={isFavorite}
+              isFavoriteLoading={activeFavoriteId === apt.id}
+              onPressApartment={handlePressApartment}
+              onToggleFavorite={handleToggleFavorite}
+              onHoverCard={handleHoverCard}
+              onLeaveCard={handleLeaveCard}
+              priority={page === 1 && i < 4}
+            />
           ))}
         </div>
       )}
@@ -192,21 +240,19 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
         </div>
       )}
 
-      <AnimatePresence>
-        {preview && (
-          <ApartmentHoverPreview
-            key={preview.apartment.id}
-            apartment={preview.apartment}
-            style={previewPosition(preview.rect)}
-            isFavorite={isFavorite(preview.apartment.id)}
-            isFavoriteLoading={activeFavoriteId === preview.apartment.id}
-            onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
-            onViewDetails={() => handlePressApartment(preview.apartment.id)}
-            onMouseEnter={handleKeepPreview}
-            onMouseLeave={dismissPreview}
-          />
-        )}
-      </AnimatePresence>
+      {preview && (
+        <ApartmentHoverPreview
+          key={preview.apartment.id}
+          apartment={preview.apartment}
+          style={previewPosition(preview.rect)}
+          isFavorite={isFavorite(preview.apartment.id)}
+          isFavoriteLoading={activeFavoriteId === preview.apartment.id}
+          onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
+          onViewDetails={() => handlePressApartment(preview.apartment.id)}
+          onMouseEnter={handleKeepPreview}
+          onMouseLeave={dismissPreview}
+        />
+      )}
 
       <AuthPromptModal
         isOpen={isAuthModalOpen}
