@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SettingsModal from "./SettingsModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 export const SETTINGS_QUERY_VALUE = "open";
 
@@ -13,6 +14,8 @@ export default function SettingsOverlay() {
   // dialog can play its exit animation instead of being torn down.
   const [hasOpened, setHasOpened] = useState(open);
   if (open && !hasOpened) setHasOpened(true);
+  // Change Password has its own modal; Settings closes before it opens.
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   if (!hasOpened) return null;
 
@@ -24,5 +27,15 @@ export default function SettingsOverlay() {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
-  return <SettingsModal open={open} onClose={close} />;
+  const openChangePassword = () => {
+    close();
+    setChangePasswordOpen(true);
+  };
+
+  return (
+    <>
+      <SettingsModal open={open} onClose={close} onChangePassword={openChangePassword} />
+      <ChangePasswordModal isOpen={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
+    </>
+  );
 }
