@@ -112,6 +112,25 @@ Covered by 16 tests in `passwordChangeService.test.ts`, including call order and
   7. The "Your APT password was changed" email arrives.
   8. Forgot-password still works end to end (regression check after the Phase 1 refactor).
 
+**Phase 5 status (2026-10-13): done; three device checks remain.**
+- Mobile typecheck, lint and the full Jest suite pass; `graphify update .` run.
+- ARCHITECTURE.md §4.4 gained a "Password change" note (and the summary table mentions it).
+- AGENTS.md records the change-password rules: the service, the app-flow-only current-password check with Supabase's setting kept off, the shared error/identity modules and fields, and closing the keyboard on submit.
+
+Device checklist (iOS Simulator, email/password account on Yahoo; cross-checked against hosted Auth logs):
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Row opens the screen; Google-only account sees the disabled "Signed in with Google" row | ✅ |
+| 2 | Wrong current password → error under that field, nothing changes | ✅ (`invalid_credentials`, no update) |
+| 3 | New password equal to the current one → "must be different", form kept | ✅ |
+| 4 | Valid change → success toast, back in Settings, still signed in | ✅ (`user_modified` + `logout` scope others) |
+| 5 | New password signs in | ✅ (password sign-in after the change) |
+| 5 | Old password is rejected | ⏳ not yet tried |
+| 6 | Another signed-in session is signed out | ✅ (the earlier session was ended; no second device tried) |
+| 7 | "Your APT password was changed" email arrives | ⏳ not yet confirmed (Yahoo files these in Spam) |
+| 8 | Forgot-password end to end after the shared-fields restyle | ⏳ not yet run |
+
 ## Out of scope / follow-ups
 
 - Server-enforced current-password check (needs a solution that keeps the forgot-password recovery session working, e.g. reauthentication by email code for changes outside recovery).
