@@ -296,7 +296,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 ## 15. Feedback
 
-- **Toasts** ✅ (web): `Toast.Provider placement="top end" maxVisibleToasts={3} className="top-4 right-4"`; `toast.success / warning / danger / toast(msg)`
+- **Toasts** ✅ (web): `Toast.Provider placement="top end" maxVisibleToasts={3} className="top-4 right-4"`; `toast.success / warning / danger / toast(msg)`; descriptions and the close icon use `text-muted-foreground` (override in `globals.css`, because HeroUI's `text-muted` resolves to shadcn's light `--muted` background here); pass a Tabler `indicator` for a domain icon (e.g. `IconShieldCheck` on "Password updated")
 - **Notification banner** ✅ (mobile in-app): realtime-driven HeroUI toast from `useInAppNotificationBanner` — foreground push substitute that works without push credentials; auto-dismiss; action press marks the row read and deep-links (role-aware); message-type toasts are suppressed while the matching chat is open (`shouldSuppressChatToast`)
 - **Loading:** web `Spinner color="accent"` centered (`py-16/20`); `Button isPending`; mobile HeroUI Native `Spinner size="lg" color={colors.primary}` (`sm` for inline). Pull-to-refresh keeps the native `RefreshControl` gesture with transparent iOS/Android indicator colors; only the HeroUI spinner is visible.
 - **Empty states** ✅: mobile — centered `gap-4 py-16/20`; tenant: bare icon 64px `primary` + `text-xl font-nunitoBold` title + `text-gray-400 text-base px-8` desc; landlord: icon 32–48px `gray500` in `bg-gray-100 rounded-full p-5/6` + `text-lg font-nunitoBold` title + `text-gray-500 text-sm` desc; optional CTA. Web — centered `text-default-400` ("No apartments found", `h-64`) or card-wrapped `text-sm text-default-500`
