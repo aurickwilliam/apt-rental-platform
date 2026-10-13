@@ -61,6 +61,11 @@ Covered by 16 tests in `passwordChangeService.test.ts`, including call order and
   - `wrong_current_password` shows under the current-password field; `same_password` / `weak_password` show under the new-password field; other failures open `ErrorDialog`. The form keeps what was typed on any error.
   - On success: clear all password fields, show a success toast ("Password updated. Other devices were signed out.") with `useToast`, and go back to Settings.
 
+**Phase 3 status (2026-10-13): done; device check pending.**
+- `hooks/auth/usePasswordSignInStatus.ts` reads the status with the session-scoped key `["password-sign-in-status"]`.
+- The Settings row opens `/settings/change-password` for password accounts, shows a "Signed in with Google" chip for Google-only accounts, and stays disabled while loading or on error.
+- `app/settings/change-password.tsx` uses `PasswordField` + `NewPasswordFields`. It shows server errors under the matching field, shows a success toast, then goes back to Settings.
+
 ### Phase 4 — Tests
 
 - Service tests (`service/auth/passwordChangeService.test.ts`):
