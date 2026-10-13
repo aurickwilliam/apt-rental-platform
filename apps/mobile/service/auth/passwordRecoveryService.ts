@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { supabase } from "@repo/supabase";
 import { isValidEmail } from "@repo/utils";
 
@@ -15,6 +17,39 @@ import { isValidEmail } from "@repo/utils";
 // supabase/config.toml [auth.email].
 export const RECOVERY_CODE_LENGTH = 6;
 export const RECOVERY_RESEND_COOLDOWN_SECONDS = 60;
+
+// A verified code creates a full, persisted session. This marker is set before
+// verification and cleared only when the recovery ends, so a reset that was
+// abandoned by closing the app is signed out at the next launch instead of
+// being restored into a portal.
+const RECOVERY_IN_PROGRESS_KEY = "apt:password-recovery-in-progress";
+
+// Without the marker there is no safety net, so verification must not proceed.
+async function setRecoveryInProgress(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(RECOVERY_IN_PROGRESS_KEY, "1");
+  } catch (error) {
+    console.error("Password recovery marker could not be saved:", error);
+    throw new PasswordRecoveryError("unknown");
+  }
+}
+
+async function clearRecoveryInProgress(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(RECOVERY_IN_PROGRESS_KEY);
+  } catch (error) {
+    console.error("Password recovery marker could not be cleared:", error);
+  }
+}
+
+export async function isPasswordRecoveryInProgress(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(RECOVERY_IN_PROGRESS_KEY)) !== null;
+  } catch (error) {
+    console.error("Password recovery marker could not be read:", error);
+    return false;
+  }
+}
 
 export type PasswordRecoveryErrorReason =
   | "invalid_email"
@@ -128,13 +163,18 @@ export async function verifyPasswordRecoveryCode(
     throw new PasswordRecoveryError("invalid_or_expired_code");
   }
 
+  // Marked before verifying so the app can't be closed between the session
+  // being saved and the marker being written.
+  await setRecoveryInProgress();
   const { data, error } = await supabase.auth.verifyOtp({
     email: normalizedEmail,
     token,
     type: "recovery",
   });
-  if (error) throw toRecoveryError(error, "verification");
-  if (!data.user || !data.session) throw toRecoveryError(null, "verification");
+  if (error || !data.user || !data.session) {
+    await clearRecoveryInProgress();
+    throw toRecoveryError(error, "verification");
+  }
 
   if (!hasEmailPasswordIdentity(data.user)) {
     await endPasswordRecovery();
@@ -143,10 +183,25 @@ export async function verifyPasswordRecoveryCode(
   return "ready";
 }
 
+// The reset screen is usable only with the session a verified code created.
+export async function hasActiveRecoverySession(): Promise<boolean> {
+  if (!(await isPasswordRecoveryInProgress())) return false;
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+}
+
 // Requires the session created by verifyPasswordRecoveryCode.
 export async function updateRecoveredPassword(password: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) throw toRecoveryError(error, "password update");
+}
+
+// App start: a recovery left unfinished (e.g. the app was closed on the reset
+// screen) is signed out. Returns true when one was found.
+export async function abandonUnfinishedPasswordRecovery(): Promise<boolean> {
+  if (!(await isPasswordRecoveryInProgress())) return false;
+  await endPasswordRecovery();
+  return true;
 }
 
 // Ends the recovery session. "local" (abandoning the flow) signs out only this
@@ -154,6 +209,7 @@ export async function updateRecoveredPassword(password: string): Promise<void> {
 // every other device. supabase-js removes the local session even when the
 // network call fails, so a failure here never leaves this device signed in.
 export async function endPasswordRecovery(scope: "local" | "global" = "local"): Promise<void> {
+  await clearRecoveryInProgress();
   const { error } = await supabase.auth.signOut({ scope });
   if (error && toRecoveryErrorReason(error) !== "network") {
     const { name, code, status } = error as AuthErrorLike;

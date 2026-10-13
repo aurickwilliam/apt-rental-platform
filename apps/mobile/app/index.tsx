@@ -8,6 +8,7 @@ import { supabase } from "@repo/supabase";
 import { useTheme } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { portalHome } from "@/service/auth/portalPreference";
+import { abandonUnfinishedPasswordRecovery } from "@/service/auth/passwordRecoveryService";
 
 export default function Index() {
   const { isDark } = useTheme();
@@ -46,6 +47,12 @@ export default function Index() {
         try {
           const wentToOnboarding = await checkOnboarding();
           if (wentToOnboarding) {
+            return;
+          }
+
+          // A password reset left unfinished must never restore into a portal.
+          if (await abandonUnfinishedPasswordRecovery()) {
+            router.replace("/sign-in");
             return;
           }
 

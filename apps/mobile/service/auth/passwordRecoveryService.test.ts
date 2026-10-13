@@ -1,5 +1,10 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
+  abandonUnfinishedPasswordRecovery,
   endPasswordRecovery,
+  hasActiveRecoverySession,
+  isPasswordRecoveryInProgress,
   hasEmailPasswordIdentity,
   PasswordRecoveryError,
   requestPasswordRecovery,
@@ -12,6 +17,7 @@ const mockResetPasswordForEmail = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateUser = jest.fn();
 const mockSignOut = jest.fn();
+const mockGetSession = jest.fn();
 
 jest.mock("@repo/supabase", () => ({
   supabase: {
@@ -20,6 +26,7 @@ jest.mock("@repo/supabase", () => ({
       verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
       updateUser: (...args: unknown[]) => mockUpdateUser(...args),
       signOut: (...args: unknown[]) => mockSignOut(...args),
+      getSession: (...args: unknown[]) => mockGetSession(...args),
     },
   },
 }));
@@ -43,8 +50,9 @@ async function expectReason(promise: Promise<unknown>, reason: string) {
 describe("passwordRecoveryService", () => {
   let consoleError: jest.SpyInstance;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    await AsyncStorage.clear();
     consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     mockSignOut.mockResolvedValue({ error: null });
   });
@@ -94,12 +102,29 @@ describe("passwordRecoveryService", () => {
       await expect(verifyPasswordRecoveryCode(EMAIL, ` ${CODE} `)).resolves.toBe("ready");
       expect(mockVerifyOtp).toHaveBeenCalledWith({ email: EMAIL, token: CODE, type: "recovery" });
       expect(mockSignOut).not.toHaveBeenCalled();
+      await expect(isPasswordRecoveryInProgress()).resolves.toBe(true);
+    });
+
+    it("marks the recovery before verifying, so a closed app is caught at launch", async () => {
+      mockVerifyOtp.mockImplementationOnce(async () => {
+        await expect(isPasswordRecoveryInProgress()).resolves.toBe(true);
+        return { data: { user: emailUser, session: {} }, error: null };
+      });
+      await verifyPasswordRecoveryCode(EMAIL, CODE);
+      expect(mockVerifyOtp).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not verify when the marker can't be saved", async () => {
+      jest.spyOn(AsyncStorage, "setItem").mockRejectedValueOnce(new Error("disk full"));
+      await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "unknown");
+      expect(mockVerifyOtp).not.toHaveBeenCalled();
     });
 
     it("signs Google-only accounts straight back out", async () => {
       mockVerifyOtp.mockResolvedValueOnce({ data: { user: googleUser, session: {} }, error: null });
       await expect(verifyPasswordRecoveryCode(EMAIL, CODE)).resolves.toBe("google_only");
       expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+      await expect(isPasswordRecoveryInProgress()).resolves.toBe(false);
     });
 
     it("rejects malformed codes without calling Supabase", async () => {
@@ -114,6 +139,7 @@ describe("passwordRecoveryService", () => {
         error: authError({ code: "otp_expired", status: 403 }),
       });
       await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "invalid_or_expired_code");
+      await expect(isPasswordRecoveryInProgress()).resolves.toBe(false);
     });
 
     it("treats a missing session as an unexpected failure", async () => {
@@ -153,6 +179,40 @@ describe("passwordRecoveryService", () => {
       mockSignOut.mockResolvedValueOnce({ error: authError({ code: "unexpected_failure", status: 500 }) });
       await expect(endPasswordRecovery()).resolves.toBeUndefined();
       expect(consoleError).toHaveBeenCalled();
+    });
+  });
+
+  describe("recovery session lifecycle", () => {
+    async function startRecovery() {
+      mockVerifyOtp.mockResolvedValueOnce({ data: { user: emailUser, session: {} }, error: null });
+      await verifyPasswordRecoveryCode(EMAIL, CODE);
+    }
+
+    it("only counts a session created by a verified code", async () => {
+      mockGetSession.mockResolvedValue({ data: { session: {} }, error: null });
+      await expect(hasActiveRecoverySession()).resolves.toBe(false);
+
+      await startRecovery();
+      await expect(hasActiveRecoverySession()).resolves.toBe(true);
+
+      mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
+      await expect(hasActiveRecoverySession()).resolves.toBe(false);
+    });
+
+    it("clears the marker whenever the recovery ends", async () => {
+      await startRecovery();
+      await endPasswordRecovery("global");
+      await expect(isPasswordRecoveryInProgress()).resolves.toBe(false);
+    });
+
+    it("signs out an unfinished recovery at app start", async () => {
+      await expect(abandonUnfinishedPasswordRecovery()).resolves.toBe(false);
+      expect(mockSignOut).not.toHaveBeenCalled();
+
+      await startRecovery();
+      await expect(abandonUnfinishedPasswordRecovery()).resolves.toBe(true);
+      expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+      await expect(isPasswordRecoveryInProgress()).resolves.toBe(false);
     });
   });
 
