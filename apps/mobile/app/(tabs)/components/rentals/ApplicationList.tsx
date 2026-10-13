@@ -44,6 +44,10 @@ export default function ApplicationsList({ isLoading = false }: ApplicationsList
               applicationId={application.id}
               status={application.status}
               apartmentName={application.apartments.name}
+              location={[application.apartments.barangay, application.apartments.city]
+                .filter(Boolean)
+                .join(', ')}
+              thumbnailUrl={application.apartments.thumbnail_url}
               submittedAt={application.created_at}
               apartmentId={application.apartment_id}
             />
