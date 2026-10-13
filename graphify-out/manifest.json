@@ -2705,8 +2705,8 @@
     "semantic_hash": "e6fad820ff606a03d9cde377f4248a08"
   },
   "packages/utils/src/index.ts": {
-    "mtime": 1791881639.2913368,
-    "ast_hash": "38a39751bc65a43421e8cd495a1aa3e0",
+    "mtime": 1791882098.1197765,
+    "ast_hash": "ee25df95a7805731a5b1eb529ec620c4",
     "semantic_hash": ""
   },
   "packages/utils/src/validateCardNumber.ts": {
@@ -6865,8 +6865,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/change-password.tsx": {
-    "mtime": 1791881639.2470655,
-    "ast_hash": "83554177134078e50e62ae5ad711e20c",
+    "mtime": 1791882104.3305645,
+    "ast_hash": "7cd312152709d761e6572c717c0dfea8",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/NewPasswordFields.test.tsx": {
@@ -6890,13 +6890,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordChangeService.test.ts": {
-    "mtime": 1791881639.247351,
-    "ast_hash": "5b9624635455479ddb170788469a7c39",
+    "mtime": 1791882135.6623049,
+    "ast_hash": "e47f815606d3455d56e5ccc7c70c4af3",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/passwordChangeService.ts": {
-    "mtime": 1791881639.2474422,
-    "ast_hash": "12dca1cea4bc7d8d31d92a3a26a2b295",
+    "mtime": 1791882098.1376622,
+    "ast_hash": "2f535622debf9c06b45b92a11fca3163",
     "semantic_hash": ""
   },
   "apps/mobile/tests/settings/change-password.test.tsx": {
@@ -7030,8 +7030,23 @@
     "semantic_hash": ""
   },
   "docs/plans/web-change-password.md": {
-    "mtime": 1791881766.9293563,
-    "ast_hash": "7528c67922d963dd0fc8993c70e05cfe",
+    "mtime": 1791882718.114976,
+    "ast_hash": "f165c64d72e02504a363338ac1946083",
+    "semantic_hash": ""
+  },
+  "packages/utils/src/passwordChange.test.ts": {
+    "mtime": 1791882135.6410582,
+    "ast_hash": "90bbc1f02a39f629584ef7d58d6552ba",
+    "semantic_hash": ""
+  },
+  "packages/utils/src/passwordChange.ts": {
+    "mtime": 1791882098.0789149,
+    "ast_hash": "baf4422f84423c801d92a637b342482b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/(auth)/actions/change-password.ts": {
+    "mtime": 1791882699.3486555,
+    "ast_hash": "1e4023ed860df7fc51437c71563dd1fa",
     "semantic_hash": ""
   }
 }
