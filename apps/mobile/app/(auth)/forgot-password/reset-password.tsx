@@ -162,7 +162,8 @@ export default function ResetPassword() {
       await finishRecovery();
     } catch (err) {
       if (!(err instanceof PasswordRecoveryError)) {
-        console.error('Password reset failed:', err);
+        // Log the type only: an unexpected message could echo the password.
+        console.error('Password reset failed:', err instanceof Error ? err.name : typeof err);
         setError(GENERIC_ERROR);
       } else if (INLINE_PASSWORD_ERRORS.has(err.reason)) {
         setServerPasswordError(err.message);

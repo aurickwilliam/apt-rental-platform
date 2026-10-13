@@ -56,13 +56,31 @@ function enterCode(value: string) {
   fireEvent.changeText(screen.getByLabelText("Recovery code"), value);
 }
 
+// JSON.stringify drops Error messages; include them so leaks are caught.
+const serialize = (value: unknown) =>
+  JSON.stringify(value, (_key, item) =>
+    item instanceof Error ? { name: item.name, message: item.message } : item);
+
 describe("Recovery code screen", () => {
+  const consoleSpies: jest.SpyInstance[] = [];
+
   beforeEach(() => {
     jest.clearAllMocks();
     usePasswordRecoveryStore.getState().setEmail(EMAIL);
+    consoleSpies.push(
+      jest.spyOn(console, "log").mockImplementation(() => {}),
+      jest.spyOn(console, "warn").mockImplementation(() => {}),
+      jest.spyOn(console, "error").mockImplementation(() => {}),
+    );
   });
 
-  afterEach(() => jest.useRealTimers());
+  afterEach(() => {
+    jest.useRealTimers();
+    const logged = serialize(consoleSpies.map((spy) => spy.mock.calls));
+    expect(logged).not.toContain(CODE);
+    expect(logged).not.toContain(EMAIL);
+    consoleSpies.splice(0).forEach((spy) => spy.mockRestore());
+  });
 
   it("starts the flow again when there is no email in memory", () => {
     usePasswordRecoveryStore.getState().reset();
@@ -84,7 +102,9 @@ describe("Recovery code screen", () => {
 
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/forgot-password/reset-password"));
     expect(mockVerify).toHaveBeenCalledWith(EMAIL, CODE);
-    expect(JSON.stringify(mockRouter.replace.mock.calls)).not.toContain(EMAIL);
+    const routed = JSON.stringify(mockRouter.replace.mock.calls);
+    expect(routed).not.toContain(EMAIL);
+    expect(routed).not.toContain(CODE);
   });
 
   it("shows invalid or expired codes inline and clears the input", async () => {

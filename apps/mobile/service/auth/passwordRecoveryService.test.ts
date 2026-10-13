@@ -41,6 +41,10 @@ function authError(fields: { name?: string; code?: string; status?: number; mess
 
 const emailUser = { identities: [{ provider: "email" }], app_metadata: { providers: ["email"] } };
 const googleUser = { identities: [{ provider: "google" }], app_metadata: { providers: ["google"] } };
+const linkedUser = {
+  identities: [{ provider: "google" }, { provider: "email" }],
+  app_metadata: { providers: ["email", "google"] },
+};
 
 async function expectReason(promise: Promise<unknown>, reason: string) {
   await expect(promise).rejects.toBeInstanceOf(PasswordRecoveryError);
@@ -87,6 +91,14 @@ describe("passwordRecoveryService", () => {
       await expectReason(requestPasswordRecovery(EMAIL), "rate_limited");
     });
 
+    it("maps an email Supabase rejects to the email field", async () => {
+      mockResetPasswordForEmail.mockResolvedValueOnce({
+        data: null,
+        error: authError({ code: "email_address_invalid", status: 400 }),
+      });
+      await expectReason(requestPasswordRecovery(EMAIL), "invalid_email");
+    });
+
     it("maps network failures", async () => {
       mockResetPasswordForEmail.mockResolvedValueOnce({
         data: null,
@@ -118,6 +130,12 @@ describe("passwordRecoveryService", () => {
       jest.spyOn(AsyncStorage, "setItem").mockRejectedValueOnce(new Error("disk full"));
       await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "unknown");
       expect(mockVerifyOtp).not.toHaveBeenCalled();
+    });
+
+    it("treats linked Google-plus-password accounts as password accounts", async () => {
+      mockVerifyOtp.mockResolvedValueOnce({ data: { user: linkedUser, session: {} }, error: null });
+      await expect(verifyPasswordRecoveryCode(EMAIL, CODE)).resolves.toBe("ready");
+      expect(mockSignOut).not.toHaveBeenCalled();
     });
 
     it("signs Google-only accounts straight back out", async () => {
@@ -226,6 +244,25 @@ describe("passwordRecoveryService", () => {
       expect(hasEmailPasswordIdentity({ identities: null, app_metadata: { providers: ["email"] } })).toBe(true);
       expect(hasEmailPasswordIdentity({})).toBe(false);
     });
+  });
+
+  it.each([
+    [{ code: "otp_expired", status: 403 }, "invalid_or_expired_code"],
+    [{ code: "over_email_send_rate_limit", status: 429 }, "rate_limited"],
+    [{ code: "over_request_rate_limit", status: 429 }, "rate_limited"],
+    [{ status: 429 }, "rate_limited"],
+    [{ code: "same_password", status: 422 }, "same_password"],
+    [{ code: "weak_password", status: 422 }, "weak_password"],
+    [{ name: "AuthWeakPasswordError" }, "weak_password"],
+    [{ code: "session_not_found", status: 403 }, "session_expired"],
+    [{ code: "session_expired", status: 403 }, "session_expired"],
+    [{ code: "reauthentication_needed", status: 400 }, "session_expired"],
+    [{ name: "AuthSessionMissingError" }, "session_expired"],
+    [{ code: "email_address_invalid", status: 400 }, "invalid_email"],
+    [{ code: "validation_failed", status: 400 }, "invalid_email"],
+    [{ name: "AuthRetryableFetchError", status: 0 }, "network"],
+  ])("maps Supabase error %o to %s", (fields, reason) => {
+    expect(toRecoveryErrorReason(authError(fields))).toBe(reason);
   });
 
   it("maps unknown errors and never logs the email, code or password", async () => {

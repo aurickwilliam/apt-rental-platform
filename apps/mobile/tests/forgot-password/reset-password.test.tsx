@@ -83,12 +83,44 @@ function fillPasswords(password = PASSWORD, confirm = password) {
 
 const submitButton = () => screen.getByRole("button", { name: /Submit|Saving/ });
 
+// JSON.stringify drops Error messages; include them so leaks are caught.
+const serialize = (value: unknown) =>
+  JSON.stringify(value, (_key, item) =>
+    item instanceof Error ? { name: item.name, message: item.message } : item);
+
 describe("Reset password screen", () => {
+  const consoleSpies: jest.SpyInstance[] = [];
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockBeforeRemove = null;
     mockEndRecovery.mockResolvedValue(undefined);
     usePasswordRecoveryStore.getState().setEmail("tenant@example.com");
+    consoleSpies.push(
+      jest.spyOn(console, "log").mockImplementation(() => {}),
+      jest.spyOn(console, "warn").mockImplementation(() => {}),
+      jest.spyOn(console, "error").mockImplementation(() => {}),
+    );
+  });
+
+  afterEach(() => {
+    const leaked = serialize([
+      consoleSpies.map((spy) => spy.mock.calls),
+      mockRouter.replace.mock.calls,
+      mockRedirect.mock.calls,
+    ]);
+    expect(leaked).not.toContain(PASSWORD);
+    consoleSpies.splice(0).forEach((spy) => spy.mockRestore());
+  });
+
+  it("logs unexpected failures without the password", async () => {
+    mockUpdatePassword.mockRejectedValueOnce(new Error(`server rejected ${PASSWORD}`));
+    await renderWithSession();
+
+    fillPasswords();
+    fireEvent.press(submitButton());
+
+    expect(await screen.findByText(/Error: Something went wrong/)).toBeTruthy();
   });
 
   it("sends visitors without a recovery session back to the start", async () => {

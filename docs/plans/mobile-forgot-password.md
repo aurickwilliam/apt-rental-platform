@@ -85,6 +85,22 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
    - Mock Expo Router and Supabase Auth; assert no email, password, token, or recovery code is written to logs or route parameters.
    - Add a device-level manual test using a non-production test account: request reset, enter the email code, set a new password, verify old-password sign-in fails and new-password sign-in succeeds. Also kill the app on the reset screen and confirm the next launch lands on sign-in, not a portal.
 
+**Phase 5 status (2026-10-13):** automated coverage done — 41 service tests (`service/auth/passwordRecoveryService.test.ts`, every Phase 2 error mapping, email / Google-only / linked accounts through verification, the in-progress marker) and 27 screen tests in `tests/forgot-password/` (email, code and reset screens plus the app-boot safety net). The code and reset screen tests fail if the email, code or password reaches route params or console output (error messages included). Already checked in the simulator against the hosted project: empty-email validation, sending a request, the neutral code screen, the 60 s countdown, and a wrong code being rejected.
+
+**Manual device test — pending** (run with an email/password test account; Gmail `+alias` addresses work):
+
+1. Sign in once with the current password to confirm the account works.
+2. Sign out → Forgot Password → enter the email → the code email arrives (in Gmail, the code is visible without "[Message clipped]").
+3. Enter a wrong code → inline error; enter the real code → reset screen.
+4. Try the current password as the new one → "must be different" under the field, form kept.
+5. Set a new valid password → "Password Updated" screen; the back gesture does not return to the reset steps; "Back to Sign In" opens sign-in.
+6. Sign in with the old password → rejected; with the new password → signed in.
+7. The "Your APT password was changed" email arrives.
+8. Abandon by back: request a new code, verify it, press back on the reset screen → still signed out (reopening the app lands on sign-in).
+9. Abandon by closing: request a new code, verify it, force-quit the app on the reset screen, reopen → sign-in screen, not a portal.
+10. Resend: on the code screen, wait for the 60 s countdown, press Resend → a new code arrives; the old code no longer works.
+11. Google-only account: request and verify a code → "This account uses Google", back to sign-in, still signed out.
+
 ### Phase 6 — Verify and document the completed flow
 
    - Run `pnpm --filter mobile typecheck`.

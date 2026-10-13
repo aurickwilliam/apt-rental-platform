@@ -107,6 +107,17 @@ describe("Forgot password email screen", () => {
     expect(usePasswordRecoveryStore.getState().email).toBe("");
   });
 
+  it("shows an email Supabase rejects under the field", async () => {
+    mockRequest.mockRejectedValueOnce(new PasswordRecoveryError("invalid_email"));
+    render(<ForgotPassword />);
+
+    enterEmail(EMAIL);
+    fireEvent.press(screen.getByText("Send Code"));
+
+    expect(await screen.findByText("Enter a valid email address.")).toBeTruthy();
+    expect(screen.queryByText(/^Error:/)).toBeNull();
+  });
+
   it("clears the remembered email when leaving the flow", () => {
     usePasswordRecoveryStore.getState().setEmail(EMAIL);
     render(<ForgotPassword />);
