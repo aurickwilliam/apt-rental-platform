@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@heroui/react";
-import { CircleCheck } from "lucide-react";
+import { IconCircleCheck } from "@tabler/icons-react";
 
 import RecoveryLayout from "../components/RecoveryLayout";
 
@@ -13,7 +13,7 @@ export default function PasswordUpdatedPage() {
     <RecoveryLayout>
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="rounded-full bg-primary/10 p-4">
-          <CircleCheck size={40} className="text-primary" aria-hidden="true" />
+          <IconCircleCheck size={40} className="text-primary" aria-hidden="true" />
         </div>
 
         <h1 className="mt-6 font-nunito font-semibold text-[clamp(1.75rem,5vw,2.5rem)] leading-tight text-foreground">

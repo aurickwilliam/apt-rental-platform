@@ -1,4 +1,4 @@
-import { CircleCheck, CircleX, Minus } from "lucide-react";
+import { IconCircleCheck, IconCircleX, IconMinus } from "@tabler/icons-react";
 
 import type { usePasswordValidation } from "@repo/hooks";
 
@@ -27,11 +27,11 @@ export default function PasswordRequirementList({ requirements, hasInput }: Pass
         return (
           <li key={key} className="flex items-center gap-2">
             {!hasInput ? (
-              <Minus size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
+              <IconMinus size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
             ) : isMet ? (
-              <CircleCheck size={20} className="shrink-0 text-green-500" aria-hidden="true" />
+              <IconCircleCheck size={20} className="shrink-0 text-green-500" aria-hidden="true" />
             ) : (
-              <CircleX size={20} className="shrink-0 text-red-500" aria-hidden="true" />
+              <IconCircleX size={20} className="shrink-0 text-red-500" aria-hidden="true" />
             )}
             <span className="text-sm text-gray-600 dark:text-muted-foreground">
               {label}

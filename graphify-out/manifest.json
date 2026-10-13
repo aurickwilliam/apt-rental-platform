@@ -1955,8 +1955,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/inputs/PasswordField.tsx": {
-    "mtime": 1791875389.0056353,
-    "ast_hash": "e3f7b098fc308bdfb26a258f3defbddf",
+    "mtime": 1791880651.9179964,
+    "ast_hash": "13a6d00e6e1ffa1f36b83b78225eef36",
     "semantic_hash": ""
   },
   "apps/web/app/components/inputs/perks.ts": {
@@ -6920,8 +6920,8 @@
     "semantic_hash": ""
   },
   "docs/plans/web-forgot-password-mirroring.md": {
-    "mtime": 1791878155.053112,
-    "ast_hash": "ee9edd82bd3301eafe1d5d40f2b9f3c1",
+    "mtime": 1791879408.6174548,
+    "ast_hash": "1503a26b58123b677c054e7c64be94b2",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/password-recovery.ts": {
@@ -6935,13 +6935,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ForgotPasswordClient.tsx": {
-    "mtime": 1791875419.932835,
-    "ast_hash": "df526a699e8b76689a2c3f303188a3c3",
+    "mtime": 1791880651.9172318,
+    "ast_hash": "4a366cb7caad64d49e5c1018c6a9dbe6",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/PasswordRequirementList.tsx": {
-    "mtime": 1791875382.127069,
-    "ast_hash": "5f094260e8e2345ba55f0aa13fc04780",
+    "mtime": 1791880651.9176075,
+    "ast_hash": "e4acef5a451784352387cacda91df3bf",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoveryHeader.tsx": {
@@ -6955,8 +6955,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ResetPasswordClient.tsx": {
-    "mtime": 1791878045.0963147,
-    "ast_hash": "0fa54dc390964a96b657a4663ea22d01",
+    "mtime": 1791880651.9173505,
+    "ast_hash": "fe60816e801249ffa783c5a90fb224f3",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/page.tsx": {
@@ -6975,8 +6975,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/updated/page.tsx": {
-    "mtime": 1791875458.2923703,
-    "ast_hash": "3249a7d2d4f0c12094f6f28e904204af",
+    "mtime": 1791880651.9178348,
+    "ast_hash": "9b93a9e028733165eaffd851b458dd02",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-countdown.ts": {

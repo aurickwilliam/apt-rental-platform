@@ -17,7 +17,7 @@ import {
   REGEXP_ONLY_DIGITS,
   TextField,
 } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { RECOVERY_RESET_PATH } from "@repo/supabase/password-recovery";
 import {
@@ -56,7 +56,7 @@ function BackToSignIn() {
     // Anchor outside the button so every click navigates (see AuthWrapper).
     <Link href="/sign-in" aria-label="Back to sign in">
       <Button isIconOnly variant="ghost" className="-ml-2 cursor-pointer">
-        <ArrowLeft size={20} />
+        <IconArrowLeft size={20} />
       </Button>
     </Link>
   );

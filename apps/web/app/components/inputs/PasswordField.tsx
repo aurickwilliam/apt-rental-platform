@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TextField, Label, InputGroup, FieldError, Button } from "@heroui/react";
 
-import { Eye, EyeOff } from "lucide-react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 interface PasswordFieldProps {
   label: string;
@@ -65,8 +65,8 @@ export default function PasswordField({
             variant="ghost"
           >
             {isVisible 
-              ? <EyeOff size={18} className="text-gray-400" /> 
-              : <Eye size={18} className="text-gray-400" />
+              ? <IconEyeOff size={18} className="text-gray-400" /> 
+              : <IconEye size={18} className="text-gray-400" />
             }
           </Button>
         </InputGroup.Suffix>
