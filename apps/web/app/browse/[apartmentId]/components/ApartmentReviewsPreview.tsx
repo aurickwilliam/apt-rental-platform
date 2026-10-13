@@ -25,8 +25,8 @@ function EmptyReviewsState() {
   return (
     <Card className="flex min-h-[150px] items-center justify-center p-8 shadow-none border border-default-200">
       <div className="flex max-w-sm flex-col items-center text-center">
-        <div className="mb-5 flex size-16 items-center justify-center rounded-full bg-secondary/10">
-          <IconMessage className="size-8 text-secondary" />
+        <div className="mb-5 flex size-16 items-center justify-center rounded-full bg-rating/10">
+          <IconMessage className="size-8 text-rating" />
         </div>
 
         <h3 className="text-lg font-semibold text-foreground">No reviews yet</h3>

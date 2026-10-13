@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { Share } from "lucide-react";
+import { IconShare } from "@tabler/icons-react";
 
 export default function ShareBtn() {
   return (
@@ -9,8 +9,9 @@ export default function ShareBtn() {
       variant="tertiary"
       size="md"
       isIconOnly
+      aria-label="Share this apartment"
     >
-      <Share size={20} />
+      <IconShare size={20} />
     </Button>
   );
 }

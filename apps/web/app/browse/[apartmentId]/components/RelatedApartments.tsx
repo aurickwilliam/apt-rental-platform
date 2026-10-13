@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
@@ -8,7 +8,7 @@ import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/componen
 
 import { Button } from "@heroui/react";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 type Props = {
   apartments: {
@@ -27,8 +27,29 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
 
   const router = useRouter();
 
+  // Below lg (the same breakpoint the page stacks at) the strip
+  // free-scrolls like a native row; on PC it keeps snapping card to card.
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023.98px)");
+    const handleChange = () => setIsMobileLayout(media.matches);
+    handleChange();
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
   return (
-    <Carousel setApi={setApi} className="mt-10">
+    <Carousel
+      key={isMobileLayout ? "free" : "snap"}
+      setApi={setApi}
+      className="mt-10"
+      opts={
+        isMobileLayout
+          ? { align: "start", containScroll: "trimSnaps", dragFree: true, skipSnaps: true }
+          : undefined
+      }
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-noto-serif font-medium text-secondary dark:text-[#FFA500] md:text-3xl">
           Related Apartments
@@ -40,14 +61,14 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
             isIconOnly
             onPress={() => api?.scrollPrev()}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             isIconOnly
             onPress={() => api?.scrollNext()}
           >
-            <ChevronRight className="w-4 h-4" />
+            <IconChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
@@ -55,7 +76,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
 
       <CarouselContent className="mt-4 pb-4">
         {apartments.map((apt) => (
-          <CarouselItem key={apt.id} className="basis-auto">
+          <CarouselItem key={apt.id} className="basis-44 sm:basis-56 shrink-0 grow-0">
             <ApartmentCard
               name={apt.name}
               location={apt.city}
@@ -63,6 +84,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
               rating={apt.average_rating ?? 0}
               thumbnailUrl={apt.image}
               onPress={() => router.push(`${basePath}/${apt.id}`)}
+              sizes="(max-width: 640px) 176px, 224px"
             />
           </CarouselItem>
         ))}

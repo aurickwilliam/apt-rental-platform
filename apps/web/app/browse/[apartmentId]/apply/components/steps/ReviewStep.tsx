@@ -11,7 +11,7 @@ import {
   Card,
   Spinner,
 } from "@heroui/react";
-import { MapPin } from "lucide-react";
+import { IconMapPin } from "@tabler/icons-react";
 
 import { requiresProofOfIncome, type ApplicationDocumentSlot } from "@repo/constants";
 import {
@@ -91,7 +91,7 @@ export default function ReviewStep({
         <p className="mb-1 text-xs tracking-widest text-muted-foreground uppercase">You are applying for</p>
         <h2 className="text-xl font-bold text-card-foreground">{apartment.name}</h2>
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin size={14} /> {apartment.address}
+          <IconMapPin size={14} /> {apartment.address}
         </p>
         <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
           <DetailRow label="Unit Type" value={apartment.type ?? "—"} />

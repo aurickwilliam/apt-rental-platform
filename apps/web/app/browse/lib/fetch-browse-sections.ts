@@ -91,7 +91,7 @@ function mapRow(apt: SectionRow): BrowseApartment {
   return {
     id: apt.id,
     name: apt.name,
-    location: apt.city ?? "",
+    location: [apt.barangay, apt.city].filter((v): v is string => Boolean(v)).join(", "),
     price: apt.monthly_rent ?? 0,
     rating: apt.average_rating ?? 0,
     isVerified: apt.is_verified ?? false,

@@ -7,8 +7,8 @@ import {
 } from "@heroui/react";
 
 import {
-  MessageSquare
-} from "lucide-react";
+  IconMessage
+} from "@tabler/icons-react";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
@@ -46,7 +46,7 @@ export default function LandlordCard({
   const avatarSrc = avatarUrl?.trim() || undefined;
 
   return (
-    <Card className="border border-grey-300 shadow-none">
+    <Card className="border border-border shadow-none">
       <Card.Content className="flex flex-row items-center justify-between gap-4">
         <UserAvatar
           src={avatarSrc}
@@ -75,7 +75,7 @@ export default function LandlordCard({
                   isDisabled={isMessageDisabled}
                   onPress={onMessagePress}
                 >
-                  <MessageSquare size={20} className="text-secondary dark:text-[#FFA500]" />
+                  <IconMessage size={20} className="text-secondary dark:text-[#FFA500]" />
                 </Button>
               </span>
             </Tooltip.Trigger>

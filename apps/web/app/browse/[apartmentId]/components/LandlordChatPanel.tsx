@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import {
@@ -10,11 +11,22 @@ import {
   Modal,
 } from "@heroui/react";
 
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 
 import LandlordCard from "./LandlordCard";
-import ConversationView from "../../../tenant/messages/components/ConversationView";
-import { Contact } from "../../../tenant/messages/components/types";
+import type { Contact } from "../../../tenant/messages/components/types";
+
+// Split from the initial bundle: the chat thread (realtime + history)
+// only loads after the panel opens.
+const ConversationView = dynamic(
+  () => import("../../../tenant/messages/components/ConversationView"),
+  {
+    ssr: false,
+    loading: () => (
+      <p className="p-4 text-sm text-muted-foreground">Loading chat…</p>
+    ),
+  },
+);
 
 interface LandlordChatPanelProps {
   currentUserId: string | null;
@@ -131,7 +143,7 @@ export default function LandlordChatPanel({
           <div className="flex flex-row items-center justify-between gap-3 p-4 shrink-0">
             <h3 className="text-base font-semibold text-foreground">Message</h3>
             <Button isIconOnly variant="tertiary" onPress={handleClosePanel} size="sm">
-              <X size={18} />
+              <IconX size={18} />
             </Button>
           </div>
 

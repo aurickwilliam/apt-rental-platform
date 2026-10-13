@@ -57,7 +57,7 @@ export default function PhotoGalleryModal({
                   src={photos[activeIndex].url}
                    alt={`${name} ${labels?.[activeIndex] ?? `photo ${activeIndex + 1}`}`}
                   fill
-                  unoptimized
+                  sizes="(max-width: 1024px) 100vw, 1024px"
                   className="object-contain"
                 />
               </div>
@@ -102,7 +102,7 @@ export default function PhotoGalleryModal({
                           src={photo.thumbnailUrl ?? photo.url}
                           alt=""
                           fill
-                          unoptimized
+                          sizes="96px"
                           className="object-cover"
                         />
                       </button>

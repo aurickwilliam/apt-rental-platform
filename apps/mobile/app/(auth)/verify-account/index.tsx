@@ -34,6 +34,14 @@ export default function Index() {
       <Button onPress={() => router.push('/(auth)/verify-account/select-id')}>
         <Button.Label>Continue Verification</Button.Label>
       </Button>
+
+      <Button
+        variant="tertiary"
+        className="mt-3"
+        onPress={() => router.push('/(auth)/verify-account/scan-session')}
+      >
+        <Button.Label>Scan a QR Code Instead</Button.Label>
+      </Button>
     </ScreenWrapper>
   )
 }

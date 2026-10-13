@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Modal, useOverlayState } from "@heroui/react";
-import { Wrench } from "lucide-react";
+import { IconTools } from "@tabler/icons-react";
 
 import ApartmentMaintenanceHistory from "./ApartmentMaintenanceHistory";
 import {
@@ -58,7 +58,7 @@ export default function MaintenanceHistoryButton({ apartmentId }: MaintenanceHis
         aria-label="View maintenance history"
         onPress={handleOpen}
       >
-        <Wrench size={16} />
+        <IconTools size={16} />
         Maintenance History
       </Button>
 
