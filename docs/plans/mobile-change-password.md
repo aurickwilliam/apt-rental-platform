@@ -84,6 +84,20 @@ Covered by 16 tests in `passwordChangeService.test.ts`, including call order and
 - Settings row test: the row is enabled for password accounts, disabled with the Google note for Google-only accounts, and disabled while loading.
 - Keep the forgot-password suites green after the Phase 1 refactor.
 
+**Phase 4 status (2026-10-13): done.**
+- The 16 service tests from Phase 2 cover the service list above.
+- `tests/settings/change-password.test.tsx` (9 tests) covers:
+  - submit disabled until the rules pass, and the missing-current-password message;
+  - success: toast, keyboard dismissed, fields cleared, back to Settings;
+  - each inline error and the error dialog;
+  - unexpected errors logged by type only;
+  - the pending state and repeat presses;
+  - no password in console output or router calls.
+- `tests/settings/settings-index.test.tsx` (4 tests) covers the row for password, Google-only and loading states, and Change Email staying "Coming soon".
+- The `heroui-native` stub in `tests/support/` gained `useToast`, `ListGroup`, `Separator` and `Chip`.
+- Forgot-password suites stay green. The full mobile suite is 691 tests.
+- The branch was synced with `main` after #173 (keyboard-controller) merged.
+
 ### Phase 5 — Verify and document
 
 - Run `pnpm --filter mobile typecheck`, `pnpm --filter mobile lint` and `pnpm --filter mobile exec jest --runInBand`, then `graphify update .`.
