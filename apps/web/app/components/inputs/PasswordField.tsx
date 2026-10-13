@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TextField, Label, InputGroup, FieldError, Button } from "@heroui/react";
 
-import { Eye, EyeOff } from "lucide-react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 interface PasswordFieldProps {
   label: string;
@@ -12,6 +12,10 @@ interface PasswordFieldProps {
   onChange?: (value: string) => void;
   errorMessage?: string;
   isRequired?: boolean;
+  // Controlled validation (e.g. a server error); omit to use native validation.
+  isInvalid?: boolean;
+  isDisabled?: boolean;
+  autoComplete?: string;
   placeholder?: string;
   className?: string;
 }
@@ -23,6 +27,9 @@ export default function PasswordField({
   onChange,
   errorMessage = "Please enter a valid password",
   isRequired = false,
+  isInvalid,
+  isDisabled,
+  autoComplete,
   placeholder = "Enter your password",
   className,
 }: PasswordFieldProps) {
@@ -33,6 +40,8 @@ export default function PasswordField({
       name={name}
       value={value}
       isRequired={isRequired}
+      isInvalid={isInvalid}
+      isDisabled={isDisabled}
       onChange={onChange}
       className={className}
     >
@@ -41,6 +50,7 @@ export default function PasswordField({
       <InputGroup className="rounded-xl border border-input bg-card transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
         <InputGroup.Input
           placeholder={placeholder}
+          autoComplete={autoComplete}
           type={isVisible ? "text" : "password"}
         />
 
@@ -55,8 +65,8 @@ export default function PasswordField({
             variant="ghost"
           >
             {isVisible 
-              ? <EyeOff size={18} className="text-gray-400" /> 
-              : <Eye size={18} className="text-gray-400" />
+              ? <IconEyeOff size={18} className="text-gray-400" /> 
+              : <IconEye size={18} className="text-gray-400" />
             }
           </Button>
         </InputGroup.Suffix>

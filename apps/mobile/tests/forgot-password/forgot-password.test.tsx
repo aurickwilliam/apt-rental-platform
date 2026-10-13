@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import ForgotPassword from "@/app/(auth)/forgot-password/index";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import { PasswordError } from "@/service/auth/passwordErrors";
+import { PasswordError } from "@repo/utils";
 
 const mockRequest = jest.fn();
 const mockRouter = { push: jest.fn(), back: jest.fn() };

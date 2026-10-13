@@ -1,7 +1,11 @@
 import { supabase } from "@repo/supabase";
 
-import { hasEmailPasswordIdentity } from "./authIdentity";
-import { describeAuthError, PasswordError, toPasswordError } from "./passwordErrors";
+import {
+  describeAuthError,
+  hasEmailPasswordIdentity,
+  PasswordError,
+  toPasswordError,
+} from "@repo/utils";
 
 // Change password while signed in (Settings → Change Password).
 //

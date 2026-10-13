@@ -2,8 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import RecoveryCodeVerification from "@/app/(auth)/forgot-password/otp-verification";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import { RECOVERY_RESEND_COOLDOWN_SECONDS } from "@/service/auth/passwordRecoveryService";
-import { PasswordError } from "@/service/auth/passwordErrors";
+import { PasswordError, RECOVERY_RESEND_COOLDOWN_SECONDS } from "@repo/utils";
 
 const mockRequest = jest.fn();
 const mockVerify = jest.fn();

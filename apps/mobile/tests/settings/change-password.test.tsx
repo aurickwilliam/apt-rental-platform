@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { Keyboard } from "react-native";
 
 import ChangePassword from "@/app/settings/change-password";
-import { PasswordError } from "@/service/auth/passwordErrors";
+import { PasswordError } from "@repo/utils";
 
 const mockChangePassword = jest.fn();
 const mockRouter = { back: jest.fn(), push: jest.fn(), replace: jest.fn() };

@@ -1,5 +1,5 @@
 import { changePassword, getPasswordSignInStatus } from "./passwordChangeService";
-import { PasswordError } from "./passwordErrors";
+import { PasswordError } from "@repo/utils";
 
 const mockGetUser = jest.fn();
 const mockSignInWithPassword = jest.fn();

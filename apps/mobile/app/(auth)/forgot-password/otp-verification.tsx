@@ -21,12 +21,14 @@ import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
-  RECOVERY_CODE_LENGTH,
-  RECOVERY_RESEND_COOLDOWN_SECONDS,
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "@/service/auth/passwordRecoveryService";
-import { PasswordError } from "@/service/auth/passwordErrors";
+import {
+  PasswordError,
+  RECOVERY_CODE_LENGTH,
+  RECOVERY_RESEND_COOLDOWN_SECONDS,
+} from "@repo/utils";
 
 // Errors shown under the code input; anything else opens the error dialog.
 const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);

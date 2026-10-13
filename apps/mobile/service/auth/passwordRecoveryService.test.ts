@@ -9,7 +9,7 @@ import {
   updateRecoveredPassword,
   verifyPasswordRecoveryCode,
 } from "./passwordRecoveryService";
-import { PasswordError } from "./passwordErrors";
+import { PasswordError } from "@repo/utils";
 
 const mockResetPasswordForEmail = jest.fn();
 const mockVerifyOtp = jest.fn();

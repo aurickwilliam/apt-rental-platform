@@ -13,7 +13,7 @@ import NewPasswordFields from "@/components/inputs/NewPasswordFields";
 import { usePasswordValidation } from "@repo/hooks";
 import { useColors } from "@/hooks/useTheme";
 import { changePassword } from "@/service/auth/passwordChangeService";
-import { PasswordError, type PasswordErrorReason } from "@/service/auth/passwordErrors";
+import { PasswordError, type PasswordErrorReason } from "@repo/utils";
 
 // Server errors shown under a field; anything else opens the error dialog.
 const CURRENT_PASSWORD_ERRORS = new Set<PasswordErrorReason>(["wrong_current_password"]);

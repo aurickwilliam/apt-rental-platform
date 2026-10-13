@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
+import { RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 export interface SignInFormState {
@@ -53,6 +54,10 @@ export async function signIn(
     }
     return { error: error.message };
   }
+
+  // A fresh sign-in replaces any password-recovery session, so drop its marker
+  // (otherwise the middleware would sign this new session out).
+  (await cookies()).set(RECOVERY_MARKER_COOKIE, "", { path: "/", maxAge: 0 });
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {

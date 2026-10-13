@@ -17,7 +17,7 @@ import {
   hasActiveRecoverySession,
   updateRecoveredPassword,
 } from '@/service/auth/passwordRecoveryService';
-import { PasswordError } from '@/service/auth/passwordErrors';
+import { PasswordError } from "@repo/utils";
 
 
 type SessionCheck = 'checking' | 'valid' | 'invalid';
