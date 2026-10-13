@@ -39,7 +39,7 @@ export default function UserPayments({
         <IconCreditCard size={20} className="shrink-0 text-primary" aria-hidden="true" />
         Payments
       </h2>
-      <div className="mt-3 grid grid-cols-3 gap-4">
+      <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <MetricItem value={formatPesoDisplay(paidTotal)} label="Collected" />
         <MetricItem value={String(transactionCount)} label="Transactions" />
         <MetricItem

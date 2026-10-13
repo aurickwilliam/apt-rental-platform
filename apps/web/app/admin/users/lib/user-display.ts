@@ -14,6 +14,7 @@ export interface AdminUser {
   avatar_url: string | null;
   roles: string[];
   account_status: string;
+  is_suspended: boolean;
   created_at: string;
 }
 
@@ -29,7 +30,6 @@ export interface AdminUserDetail extends AdminUser {
   province: string | null;
   postal_code: number | null;
   background_url: string | null;
-  is_suspended: boolean;
   suspension_reason: string | null;
   suspended_at: string | null;
   suspended_by: string | null;

@@ -74,7 +74,8 @@ export default async function TenantLayout({
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
-        navItems={[...navItems, { href: "/tenant/profile", label: "Profile", icon: "User" }]}
+        navItems={navItems}
+        profileHref="/tenant/profile"
         iconSet="tabler"
         navLabel="Tenant navigation"
         menuLabel="Tenant pages"
@@ -83,7 +84,7 @@ export default async function TenantLayout({
         activePortal="tenant"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay iconSet="tabler" />
+        <SettingsOverlay />
       </Suspense>
       <ReviewUnlockGate />
     </div>

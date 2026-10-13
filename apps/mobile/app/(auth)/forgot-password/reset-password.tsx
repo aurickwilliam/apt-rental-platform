@@ -1,25 +1,51 @@
 import { View, Text, Pressable } from 'react-native'
 import Ionicons from '@expo/vector-icons/build/Ionicons';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Redirect, useNavigation, useRouter } from 'expo-router';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import AppInput from '@/components/inputs/AppInput';
+import ErrorDialog from '@/components/display/ErrorDialog';
 
-import { Button, FieldError, Label, TextField } from 'heroui-native';
+import { Button, FieldError, Label, Spinner, TextField } from 'heroui-native';
 
 import { usePasswordValidation } from '@repo/hooks';
 import { useColors } from '@/hooks/useTheme';
+import { usePasswordRecoveryStore } from '@/stores/usePasswordRecoveryStore';
+import { clearQueryClient } from '@/utils/queryClient';
+import {
+  endPasswordRecovery,
+  hasActiveRecoverySession,
+  PasswordRecoveryError,
+  updateRecoveredPassword,
+} from '@/service/auth/passwordRecoveryService';
 
 import { IconEye, IconEyeOff } from '@tabler/icons-react-native';
 
+type SessionCheck = 'checking' | 'valid' | 'invalid';
+
+// Shown under the password field; other failures open the error dialog.
+const INLINE_PASSWORD_ERRORS = new Set(['same_password', 'weak_password']);
+const GENERIC_ERROR = 'Something went wrong. Please try again.';
+
 export default function ResetPassword() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useColors();
+  const resetRecovery = usePasswordRecoveryStore((state) => state.reset);
 
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sessionCheck, setSessionCheck] = useState<SessionCheck>('checking');
+  const [saving, setSaving] = useState(false);
+  const [serverPasswordError, setServerPasswordError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [restartAfterError, setRestartAfterError] = useState(false);
+
+  // Set when the screen is left on purpose (success or expired session), so
+  // the leave handler doesn't treat it as an abandoned reset.
+  const leavingRef = useRef(false);
 
   const requiredFields = [
     'password',
@@ -35,7 +61,42 @@ export default function ResetPassword() {
     passwordRequirements,
     isPasswordValid,
   } = usePasswordValidation();
-  
+
+  // Only reachable with the session a verified recovery code created.
+  useEffect(() => {
+    let active = true;
+    hasActiveRecoverySession()
+      .then((valid) => {
+        if (!active) return;
+        // No recovery to abandon: the redirect below is not a leave.
+        if (!valid) leavingRef.current = true;
+        setSessionCheck(valid ? 'valid' : 'invalid');
+      })
+      .catch((err: unknown) => {
+        console.error('Password recovery session check failed:', err);
+        if (active) setSessionCheck('invalid');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Leaving without finishing (back button, swipe, hardware back) abandons
+  // the reset: sign this device out so the recovery session isn't kept.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (leavingRef.current) return;
+      leavingRef.current = true;
+      resetRecovery();
+      void endPasswordRecovery();
+    });
+    return unsubscribe;
+  }, [navigation, resetRecovery]);
+
+  if (sessionCheck === 'invalid') {
+    return <Redirect href="/forgot-password" />;
+  }
+
   // Return error message if field is required and not filled out after form submission
   const getError = (field: string) => {
     if (submitted && requiredFields.includes(field) && (!password?.trim() || !confirmPassword?.trim())) {
@@ -50,18 +111,72 @@ export default function ResetPassword() {
       return 'Passwords do not match';
     }
 
+    if (field === 'password' && serverPasswordError) {
+      return serverPasswordError;
+    }
+
     return undefined;
   };
 
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (serverPasswordError) setServerPasswordError(null);
+  };
+
+  const finishRecovery = async () => {
+    leavingRef.current = true;
+    setPassword('');
+    setConfirmPassword('');
+    resetRecovery();
+    // A reset may follow a compromise, so end the account's other sessions too.
+    await endPasswordRecovery('global');
+    clearQueryClient();
+    router.dismissAll();
+    router.replace('/forgot-password/updated');
+  };
+
+  const restartRecovery = async () => {
+    leavingRef.current = true;
+    await endPasswordRecovery();
+    router.replace('/forgot-password');
+  };
+
+  const handleErrorClose = () => {
+    setError(null);
+    if (restartAfterError) void restartRecovery();
+  };
+
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (saving || sessionCheck !== 'valid') return;
     setSubmitted(true);
 
     if (!isPasswordValid) {
       return;
     }
 
-    router.push('/(auth)/forgot-password/updated');
+    setSaving(true);
+    setServerPasswordError(null);
+    try {
+      await updateRecoveredPassword(password);
+      await finishRecovery();
+    } catch (err) {
+      if (!(err instanceof PasswordRecoveryError)) {
+        // Log the type only: an unexpected message could echo the password.
+        console.error('Password reset failed:', err instanceof Error ? err.name : typeof err);
+        setError(GENERIC_ERROR);
+      } else if (INLINE_PASSWORD_ERRORS.has(err.reason)) {
+        setServerPasswordError(err.message);
+      } else if (err.reason === 'session_expired') {
+        // Restart only after the message is read (see handleErrorClose).
+        setRestartAfterError(true);
+        setError(err.message);
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setSaving(false);
+    }
   }
   return (
     <ScreenWrapper className="p-5">
@@ -85,9 +200,7 @@ export default function ResetPassword() {
               secureTextEntry={!showPassword}
               className="flex-1 pr-10"
               value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-              }}
+              onChangeText={handlePasswordChange}
             />
 
             <Pressable
@@ -248,10 +361,17 @@ export default function ResetPassword() {
       <Button
         onPress={handleSubmit}
         className="mt-5"
-        isDisabled={!isPasswordValid}
+        isDisabled={!isPasswordValid || saving || sessionCheck !== 'valid'}
       >
-        <Button.Label>Submit</Button.Label>
+        <Button.Label>{saving ? 'Saving...' : 'Submit'}</Button.Label>
+        {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
       </Button>
+
+      <ErrorDialog
+        isOpen={!!error}
+        onClose={handleErrorClose}
+        message={error}
+      />
     </ScreenWrapper>
   );
 }

@@ -254,13 +254,33 @@ sequenceDiagram
     alt new user or incomplete profile
         U->>S: auth-complete-profile → update user + users row
     end
+
+    Note over U,A: Password recovery (email + 6-digit code)
+    U->>S: forgot-password: email
+    S->>A: resetPasswordForEmail() → recovery-code email (same response for unknown emails)
+    U->>S: enter 6-digit code
+    S->>S: set AsyncStorage "recovery in progress" marker
+    S->>A: verifyOtp({ type: "recovery" }) → full session
+    alt Google-only account (no email identity)
+        S->>A: signOut({ scope: "local" }), then show "use Google"
+    else email/password account
+        U->>S: reset-password: new password
+        S->>A: updateUser({ password })
+        S->>A: signOut({ scope: "global" }), clear marker, "Password Updated"
+    end
 ```
 
-Key files: `apps/mobile/app/_layout.tsx` (crypto polyfill for PKCE via `expo-crypto`, `WebBrowser.maybeCompleteAuthSession()`), `apps/mobile/app/index.tsx` (first-launch onboarding gate + `onAuthStateChange` bootstrap that routes by DB role), `apps/mobile/app/(tabs)/_layout.tsx` (the only role-guard layout: redirects landlord ↔ tenant tabs), `apps/mobile/hooks/auth/useGoogleAuth.ts`, `apps/mobile/stores/useRegistrationStore.ts`.
+**Password recovery (2026-10-13).** Email/password accounts reset by 6-digit email code; all Auth calls live in `service/auth/passwordRecoveryService.ts`. Resend calls `resetPasswordForEmail` again (`auth.resend()` does not support recovery). A verified code is a full, persisted session, so the flow never leaves one behind: leaving the reset screen signs the device out, success signs the account out everywhere, and a marker written *before* verification makes the `app/index.tsx` bootstrap sign out a reset abandoned by closing the app instead of restoring it into a portal. Google-only accounts are an app-flow rule checked after verification (checking first would reveal whether an account exists); a direct Auth call could still add a password, accepted because the inbox owner already controls the account. The email lives only in `stores/usePasswordRecoveryStore.ts`, never in route params. Hosted email templates: §4.5.
+
+Key files: `apps/mobile/app/_layout.tsx` (crypto polyfill for PKCE via `expo-crypto`, `WebBrowser.maybeCompleteAuthSession()`), `apps/mobile/app/index.tsx` (first-launch onboarding gate + `onAuthStateChange` bootstrap that signs out an unfinished password reset, then routes by DB role), `apps/mobile/app/(tabs)/_layout.tsx` (the only role-guard layout: redirects landlord ↔ tenant tabs), `apps/mobile/hooks/auth/useGoogleAuth.ts`, `apps/mobile/stores/useRegistrationStore.ts`.
 
 **Session handling.** Sessions persist in AsyncStorage (`persistSession: true`). The bootstrap listener in `app/index.tsx` decides landlord vs tenant entry. Deep screens (`apartment/`, `chat/`, `settings/`) are not guarded client-side; they rely on RLS server-side — unauthenticated writes fail at the database.
 
 **User creation.** Signup (both platforms) is a two-step commit: `auth.signUp()`/`verifyOtp()` creates the auth user, then the client inserts the `public.users` row. Failure handling differs: mobile signs out if the profile insert fails (to avoid an authed-but-profiless state); web maps the unique-violation error (23505) to "account already exists". OAuth users who lack `mobile_number` are routed to a `complete-profile` screen on both platforms.
+
+### 4.5 Auth emails
+
+Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmation` and `magic_link` templates (signup / sign-in code), `recovery` (password-reset code) and the `password_changed` security notice live in `supabase/templates/` and are mirrored in `supabase/config.toml` for local development; `[auth.email]` there mirrors the hosted code length (6), expiry (300 s) and send interval (60 s, the mobile resend cooldown). The hosted project is updated by `python3 supabase/templates/build-payload.py <out.json>` plus a Management API `PATCH /v1/projects/{ref}/config/auth` — never `supabase config push`, which would also push local-only auth settings such as `site_url`. Templates load Nunito by `<link>` from Google Fonts: embedded (base64) fonts made each email ~700 KB, past Gmail's ~102 KB clipping limit, which hid the code, and `build-payload.py` now rejects them. Hosted Auth caches templates for several minutes after an update. The Management API response includes SMTP credentials, so print only the status code.
 
 ---
 
@@ -520,7 +540,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 
 | Feature | Mobile | Web | Backing tables |
 |---|---|---|---|
-| **Authentication** | §4.4 (PKCE, OTP, Google) | §4.3 (server actions, middleware, OAuth popup) | `users` |
+| **Authentication** | §4.4 (PKCE, OTP, Google, password recovery), §4.5 (auth emails) | §4.3 (server actions, middleware, OAuth popup) | `users` |
 | **Explore / Search** | `(tabs)/(tenant)/search.tsx` — default Netflix-style discovery: `useSearchSections` (React Query) calls the `get_search_sections` RPC once for 6 horizontal sections × 8 cards, rendered lazily by viewability; `search/section/[sectionId].tsx` (See All) pages one section via `useSearchSectionPage` + `get_search_section_page` (keyset cursor, 10/page). `useSearchLogic` (debounced search, server pagination 10/page, 4 sort modes, filter sheet; estimated result count) remains the filtered/list path | `browse/` server page: full filter set, `count: exact`, 25/page, Suspense-wrapped client children | `apartments`, `apartment_images` |
 | **Apartment detail** | `apartment/[apartmentId]` — sections + `useApartmentDetails` (apartment + landlord + top-3 reviews); two-tier images (compressed thumb + full) | `browse/[apartmentId]/` server page → 16 client children | `apartments`, `apartment_images`, `reviews`, `users` |
 | **Rental application** | 5-step wizard (`apply/*`) with `useApplicationFormStore`, document uploads with rollback, `useSubmitApplication` | Not implemented (landlord `applications/` is a placeholder) | `rental_application`, `application-documents` |

@@ -1,4 +1,5 @@
 import { Chip, Table } from "@heroui/react";
+import { sortDescriptorFor, sortForColumn } from "@/lib/admin-filters";
 import UserAvatar from "./UserAvatar";
 import {
   formatRoles,
@@ -7,15 +8,23 @@ import {
   verificationChipColor,
   type AdminUser,
 } from "../lib/user-display";
+import { USER_SORT_OPTIONS, type UserSort } from "../lib/user-filters";
 
 const MIN_ROWS = 10;
 
 interface UsersTableProps {
   users: AdminUser[];
+  sort: UserSort;
+  onSortChange: (sort: UserSort) => void;
   onSelectUser: (id: string) => void;
 }
 
-export default function UsersTable({ users, onSelectUser }: UsersTableProps) {
+export default function UsersTable({
+  users,
+  sort,
+  onSortChange,
+  onSelectUser,
+}: UsersTableProps) {
   const placeholderCount = Math.max(0, MIN_ROWS - users.length);
   return (
     <div className="hidden md:block">
@@ -23,6 +32,15 @@ export default function UsersTable({ users, onSelectUser }: UsersTableProps) {
         <Table.ScrollContainer>
           <Table.Content
             aria-label="Users"
+            sortDescriptor={sortDescriptorFor(USER_SORT_OPTIONS, sort)}
+            onSortChange={({ column, direction }) => {
+              const next = sortForColumn(
+                USER_SORT_OPTIONS,
+                String(column),
+                direction,
+              );
+              if (next) onSortChange(next);
+            }}
             onRowAction={(key) => {
               const selected = users.find((user) => user.id === String(key));
               if (selected) {
@@ -31,10 +49,22 @@ export default function UsersTable({ users, onSelectUser }: UsersTableProps) {
             }}
           >
             <Table.Header className="text-foreground! [&_th]:text-foreground!">
-              <Table.Column isRowHeader>User</Table.Column>
-              <Table.Column>Role</Table.Column>
-              <Table.Column>Verification</Table.Column>
-              <Table.Column>Joined</Table.Column>
+              <Table.Column id="user" isRowHeader allowsSorting>
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    User
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
+              <Table.Column id="role">Role</Table.Column>
+              <Table.Column id="verification">Verification</Table.Column>
+              <Table.Column id="joined" allowsSorting>
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Joined
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
             </Table.Header>
             <Table.Body>
               {users.map((user) => {
@@ -50,8 +80,18 @@ export default function UsersTable({ users, onSelectUser }: UsersTableProps) {
                       <div className="flex items-center gap-3">
                         <UserAvatar user={user} name={name} />
                         <div className="min-w-0">
-                          <p className="font-nunito text-sm font-bold">
+                          <p className="flex items-center gap-2 font-nunito text-sm font-bold">
                             {name}
+                            {user.is_suspended ? (
+                              <Chip
+                                size="sm"
+                                variant="soft"
+                                color="danger"
+                                className="text-[11px]"
+                              >
+                                Suspended
+                              </Chip>
+                            ) : null}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {user.email}

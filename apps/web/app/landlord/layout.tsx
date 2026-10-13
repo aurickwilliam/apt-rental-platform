@@ -74,7 +74,8 @@ export default async function DashboardLayout({
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
-        navItems={[...navItems, { href: "/landlord/profile", label: "Profile", icon: "User" }]}
+        navItems={navItems}
+        profileHref="/landlord/profile"
         iconSet="tabler"
         navLabel="Landlord navigation"
         menuLabel="Landlord pages"
@@ -83,7 +84,7 @@ export default async function DashboardLayout({
         activePortal="landlord"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay iconSet="tabler" />
+        <SettingsOverlay />
       </Suspense>
     </div>
   );

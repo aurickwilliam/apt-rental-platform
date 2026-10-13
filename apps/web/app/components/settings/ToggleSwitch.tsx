@@ -24,7 +24,7 @@ export default function ToggleSwitch({
       className="[--switch-control-bg-checked:var(--primary)]"
     >
       <Switch.Content className="flex items-center gap-2">
-        <Switch.Control className="shadow-none border-2">
+        <Switch.Control>
           <Switch.Thumb />
         </Switch.Control>
       </Switch.Content>
