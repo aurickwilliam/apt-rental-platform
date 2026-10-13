@@ -8,6 +8,10 @@ export const MAX_REVIEW_IMAGES = 5;
 const REVIEW_IMAGE_MAX_LONG_EDGE = 1600;
 const REVIEW_IMAGE_JPEG_QUALITY = 0.7;
 
+// Lazily shared browser client: getPublicUrl is a pure URL builder, so one
+// client serves every review row instead of allocating one per row.
+let reviewImageClient: ReturnType<typeof createClient> | null = null;
+
 export type ApartmentReviewRow = {
   id: string;
   rating: number;
@@ -110,9 +114,10 @@ export function formatStayPeriod(
 
 export function getReviewImageUrls(paths: string[] | null): string[] | undefined {
   if (!paths || paths.length === 0) return undefined;
-  const supabase = createClient();
+  reviewImageClient ??= createClient();
+  const client = reviewImageClient;
   return paths.map(
-    (path) => supabase.storage.from(REVIEW_IMAGES_BUCKET).getPublicUrl(path).data.publicUrl,
+    (path) => client.storage.from(REVIEW_IMAGES_BUCKET).getPublicUrl(path).data.publicUrl,
   );
 }
 
@@ -131,17 +136,34 @@ export function mapReviewRow(row: ApartmentReviewRow): ApartmentReview {
   };
 }
 
-export async function fetchApartmentReviews(apartmentId: string): Promise<ApartmentReviewRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("reviews")
-    .select(REVIEW_SELECT)
-    .eq("apartment_id", apartmentId)
-    .order("created_at", { ascending: false });
+// In-flight dedupe: the detail page mounts two useApartmentReviews
+// instances (breakdown + preview), so concurrent identical fetches share
+// one request instead of scanning the reviews table twice.
+const apartmentReviewsInflight = new Map<string, Promise<ApartmentReviewRow[]>>();
 
-  if (error) throw error;
+export function fetchApartmentReviews(apartmentId: string): Promise<ApartmentReviewRow[]> {
+  const shared = apartmentReviewsInflight.get(apartmentId);
+  if (shared) return shared;
 
-  return (data ?? []) as unknown as ApartmentReviewRow[];
+  const run = (async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("reviews")
+        .select(REVIEW_SELECT)
+        .eq("apartment_id", apartmentId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return (data ?? []) as unknown as ApartmentReviewRow[];
+    } finally {
+      apartmentReviewsInflight.delete(apartmentId);
+    }
+  })();
+
+  apartmentReviewsInflight.set(apartmentId, run);
+  return run;
 }
 
 export function isReviewStayEligible(

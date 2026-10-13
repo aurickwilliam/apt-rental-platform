@@ -24,8 +24,8 @@ export default function RatingBreakdown({
   no1Star,
 }: RatingBreakdownProps) {
   return (
-    <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3">
-      <div className="w-full flex flex-col items-center justify-center sm:w-1/3">
+    <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3 min-w-0">
+      <div className="w-full flex flex-col items-center justify-center sm:w-1/3 min-w-0">
         <h3 className="font-nunito text-5xl font-bold text-rating sm:text-6xl">
           {overallRate}
         </h3>
@@ -63,7 +63,7 @@ export default function RatingBreakdown({
         </div>
       </div>
 
-      <div className="flex w-full flex-col justify-center gap-2 sm:w-2/3">
+      <div className="flex w-full flex-col justify-center gap-2 sm:w-2/3 min-w-0">
         {[
           { label: 5, count: no5Star },
           { label: 4, count: no4Star },
@@ -71,7 +71,7 @@ export default function RatingBreakdown({
           { label: 2, count: no2Star },
           { label: 1, count: no1Star },
         ].map(({ label, count }) => (
-          <div key={label} className="flex gap-2 items-center">
+          <div key={label} className="flex gap-2 items-center min-w-0">
             <div className="flex items-center gap-1 w-8 shrink-0">
               <span className="text-sm font-medium text-card-foreground">{label}</span>
               <IconStarFilled size={14} className="text-rating" />
@@ -80,7 +80,7 @@ export default function RatingBreakdown({
             <Meter
               value={totalReviews > 0 ? (count / totalReviews) * 100 : 0}
               aria-label={`${label} Star`}
-              className="flex-1"
+              className="flex-1 min-w-0"
               color="accent"
             >
               <Meter.Track>

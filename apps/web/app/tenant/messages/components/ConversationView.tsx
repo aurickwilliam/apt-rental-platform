@@ -8,7 +8,7 @@ import { Contact, Message } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { createClient } from "@repo/supabase/browser";
-import { ChevronLeft, MessageSquare } from "lucide-react";
+import { IconChevronLeft, IconMessage } from "@tabler/icons-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -233,7 +233,7 @@ export default function ConversationView({
         {/* Icon cluster */}
         <div className="relative mb-8">
           <div className="w-18 h-18 rounded-full bg-primary/10 border border-border flex items-center justify-center">
-            <MessageSquare className="w-7 h-7 text-primary" />
+            <IconMessage className="w-7 h-7 text-primary" />
           </div>
         </div>
 
@@ -260,7 +260,7 @@ export default function ConversationView({
             aria-label="Back to conversations"
             className="-ml-1 shrink-0 rounded-lg p-2 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
           >
-            <ChevronLeft size={20} aria-hidden="true" />
+            <IconChevronLeft size={20} aria-hidden="true" />
           </button>
         )}
         <UserAvatar

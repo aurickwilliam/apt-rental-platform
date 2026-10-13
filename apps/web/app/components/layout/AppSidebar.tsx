@@ -656,10 +656,15 @@ function MobileSidebarMenu({
   // Same helper the sidebar dropdown uses, so both menus stay in step.
   const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
+  // On the tenant apartment detail page the fixed price bar docks to the
+  // screen bottom, so the pill floats above it instead of overlapping it.
+  const isApartmentDetail =
+    activePortal === "tenant" && /^\/tenant\/browse\/[^/]+\/?$/.test(pathname);
+
   return (
     <nav
       aria-label={navLabel}
-      className="fixed bottom-4 left-4 z-40 md:hidden"
+      className={`fixed left-4 z-40 md:hidden ${isApartmentDetail ? "bottom-24" : "bottom-4"}`}
     >
       <Dropdown isOpen={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <Button

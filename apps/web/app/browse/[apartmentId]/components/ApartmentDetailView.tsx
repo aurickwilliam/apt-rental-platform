@@ -6,7 +6,16 @@ import MapLocation from "./MapLocation";
 
 import { Separator } from "@heroui/react";
 
-import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } from "lucide-react";
+import {
+  IconHome,
+  IconBed,
+  IconBath,
+  IconArrowsMaximize,
+  IconUsers,
+  IconBuilding,
+  IconCalendar,
+  IconArmchair,
+} from "@tabler/icons-react";
 
 import ApartmentReviewsPreview from "./ApartmentReviewsPreview";
 import RelatedApartments from "./RelatedApartments";
@@ -28,16 +37,62 @@ export default async function ApartmentDetailView({
 }) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Batch 1: auth state and apartment details are independent of each other.
+  const [userResult, apartmentResult] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('apartments')
+      .select(`
+        *,
+        apartment_images(url, url_thumb, is_cover)
+      `)
+      .eq('id', apartmentId)
+      .eq('is_hidden_by_admin', false)
+      .is('deleted_at', null)
+      .single(),
+  ]);
 
-  const { data: currentUser } = user
-    ? await supabase
-        .from("users")
-        .select("id, roles, account_status")
-        .eq("user_id", user.id)
-        .maybeSingle()
-    : { data: null };
+  const user = userResult.data.user;
+  const { data: apartment, error } = apartmentResult;
 
+  if (error || !apartment) {
+    // handle not found
+    return <div>Apartment not found.</div>;
+  }
+
+  // Batch 2: profile, landlord, and related apartments only need the
+  // results above, so they run together.
+  const [profileResult, landlordResult, relatedResult] = await Promise.all([
+    user
+      ? supabase
+          .from("users")
+          .select("id, roles, account_status")
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    apartment.landlord_id
+      ? supabase
+          .from('users')
+          .select('first_name, last_name, mobile_number, avatar_url')
+          .eq('id', apartment.landlord_id)
+          .filter('roles', 'cs', '{landlord}')
+          .single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from('apartments')
+      .select('id, name, city, monthly_rent, average_rating, apartment_images(url, url_thumb, is_cover)')
+      .eq('city', apartment.city)
+      .neq('id', apartmentId)
+      .eq('is_hidden_by_admin', false)
+      .is('deleted_at', null)
+      .limit(10),
+  ]);
+
+  const { data: currentUser } = profileResult;
+  const { data: landlord } = landlordResult;
+  const { data: related } = relatedResult;
+
+  // Batch 3: the pending-application check needs the profile id above.
   // Apply Now opens the start-of-application modal for tenants; everyone
   // else goes to the apply route, which redirects them (sign-in / browse).
   const isTenant = !!currentUser?.roles?.includes("tenant");
@@ -60,60 +115,28 @@ export default async function ApartmentDetailView({
         }
       : null;
 
-  // Fetch apartment details along with images
-  const { data: apartment, error } = await supabase
-    .from('apartments')
-    .select(`
-      *,
-      apartment_images(url, is_cover)
-    `)
-    .eq('id', apartmentId)
-    .eq('is_hidden_by_admin', false)
-    .is('deleted_at', null)
-    .single();
-
   // Fetch Lease Agreement URL if it exists
   const leaseUrl = apartment?.lease_agreement_url ?? null;
 
-  // Fetch landlord details if landlord_id exists
-  const { data: landlord } = apartment?.landlord_id
-    ? await supabase
-        .from('users')
-        .select('first_name, last_name, mobile_number, avatar_url')
-        .eq('id', apartment.landlord_id)
-        .filter('roles', 'cs', '{landlord}')
-        .single()
-    : { data: null };
-
-  if (error || !apartment) {
-    // handle not found
-    return <div>Apartment not found.</div>;
-  }
-
   const images = apartment.apartment_images?.map((img) => img.url) ?? ['/default/default-thumbnail.jpeg'];
+  const thumbImages = apartment.apartment_images?.map((img) => img.url_thumb ?? img.url) ?? ['/default/default-thumbnail.jpeg'];
 
   // Fetch Related Apartments same city
-  const { data: related } = await supabase
-    .from('apartments')
-    .select('id, name, city, monthly_rent, average_rating, apartment_images(url, is_cover)')
-    .eq('city', apartment.city)
-    .neq('id', apartmentId)
-    .eq('is_hidden_by_admin', false)
-    .is('deleted_at', null)
-    .limit(10);
-
-  const relatedMapped = (related ?? []).map((apt) => ({
-    id: apt.id,
-    name: apt.name,
-    city: apt.city,
-    monthly_rent: apt.monthly_rent,
-    average_rating: apt.average_rating ?? 0,
-    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
-  }));
+  const relatedMapped = (related ?? []).map((apt) => {
+    const cover = apt.apartment_images?.find((img) => img.is_cover);
+    return {
+      id: apt.id,
+      name: apt.name,
+      city: apt.city,
+      monthly_rent: apt.monthly_rent,
+      average_rating: apt.average_rating ?? 0,
+      image: cover?.url_thumb ?? cover?.url ?? '/default/default-thumbnail.jpeg',
+    };
+  });
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 w-full min-w-0 overflow-x-clip">
+      <div className="flex items-center justify-between gap-2">
         <BackBtn />
         <div className="flex items-center gap-2">
           <ShareBtn />
@@ -122,89 +145,89 @@ export default async function ApartmentDetailView({
       </div>
 
       <div className="my-4">
-        <ImageHeader imageUrl={images} name={apartment.name} />
+        <ImageHeader imageUrl={images} thumbnailUrl={thumbImages} name={apartment.name} />
       </div>
 
-      <div className="w-full flex gap-5">
-        <div className="w-2/3">
+      <div className="w-full flex flex-col lg:flex-row gap-8 lg:gap-5 min-w-0">
+        <div className="w-full lg:w-2/3 min-w-0">
           {/* Name and Address */}
-          <div>
-            <h1 className="text-3xl font-medium text-primary">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-medium text-primary break-words">
               {apartment.name}
             </h1>
-            <h3>
+            <h3 className="text-sm sm:text-base text-foreground/80 break-words">
               {apartment.street_address}, {apartment.barangay}, {apartment.city}, {apartment.province}, {apartment.zip_code}
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-            <div className="flex gap-2 items-center">
-              <House size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 sm:gap-6 mt-6 min-w-0">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconHome size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.type}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <BedDouble size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBed size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.no_bedrooms} Bedroom{apartment.no_bedrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <Bath size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBath size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.no_bathrooms} Bathroom{apartment.no_bathrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <Expand size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconArrowsMaximize size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.area_sqm} sqm
               </h2>
             </div>
 
-            <div className="flex gap-2 items-center">
-              <Building2 size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBuilding size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.floor_level}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <Users size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconUsers size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.max_occupants} Occupant{apartment.max_occupants !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <Calendar size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconCalendar size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.lease_duration}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <Armchair size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconArmchair size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.furnished_type}
               </h2>
             </div>
           </div>
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <ExpandableDescription text={apartment.description || ""} />
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <Amenities apartmentPerks={apartment.amenities ?? []} />
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <div>
             <h3 className="text-lg font-medium mb-2">View on Map</h3>
             <MapLocation latitude={apartment.latitude} longitude={apartment.longitude} />
           </div>
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <RatingSection apartmentId={apartment.id} basePath={basePath} />
 
@@ -213,7 +236,7 @@ export default async function ApartmentDetailView({
           </div>
         </div>
 
-        <div className="w-1/3 flex flex-col gap-5">
+        <div className="w-full lg:w-1/3 min-w-0 flex flex-col gap-4 sm:gap-5">
           <PriceCard
             price={apartment.monthly_rent}
             securityDeposit={apartment.security_deposit ?? undefined}
@@ -253,6 +276,9 @@ export default async function ApartmentDetailView({
       <div className="w-full mt-10">
         <RelatedApartments apartments={relatedMapped} basePath={basePath} />
       </div>
+
+      {/* Clearance for the mobile fixed price bar */}
+      <div className="h-24 lg:hidden" aria-hidden="true" />
     </div>
   );
 }

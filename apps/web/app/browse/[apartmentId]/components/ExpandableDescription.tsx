@@ -24,7 +24,7 @@ export default function ExpandableDescription({ text, maxLength = 300 }: Props) 
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Description</h3>
-      <p className="whitespace-pre-line text-foreground/80 leading-relaxed">{displayText}</p>
+      <p className="whitespace-pre-line text-foreground/80 leading-relaxed text-sm sm:text-base break-words">{displayText}</p>
       {shouldTruncate && (
         <Button
           onPress={() => setIsExpanded(!isExpanded)}

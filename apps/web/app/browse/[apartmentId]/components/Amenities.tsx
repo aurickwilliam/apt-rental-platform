@@ -30,15 +30,15 @@ export default function Amenities({ apartmentPerks }: AmenitiesProps) {
         </Button> */}
       </div>
 
-      <ul className="grid grid-cols-2 gap-3">
+      <ul className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 min-w-0">
         {apartmentPerks.map((perkId) => {
           const perk = PERKS[perkId];
           if (!perk) return null;
           const Icon = perk.icon;
           return (
-            <li key={perk.id} className="flex items-center gap-2">
+            <li key={perk.id} className="flex items-center gap-2 min-w-0">
               <Icon size={20} className="text-primary shrink-0" />
-              <span className="text-base">{perk.name}</span>
+              <span className="text-sm sm:text-base break-words">{perk.name}</span>
             </li>
           );
         })}

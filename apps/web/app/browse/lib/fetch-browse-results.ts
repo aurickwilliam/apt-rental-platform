@@ -149,7 +149,7 @@ export async function fetchBrowseResults(
   const mapped = (apartments ?? []).map((apt) => ({
     id: apt.id,
     name: apt.name,
-    location: apt.city,
+    location: [apt.barangay, apt.city].filter((v): v is string => Boolean(v)).join(", "),
     price: apt.monthly_rent,
     rating: apt.average_rating ?? 0,
     isVerified: apt.is_verified ?? false,

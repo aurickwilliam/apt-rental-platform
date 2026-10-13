@@ -5,7 +5,7 @@ import { createClient } from "@repo/supabase/server";
 
 import BrowseFilters from "@/app/browse/components/BrowseFilters";
 import BrowseSectionsList from "@/app/browse/components/BrowseSectionsList";
-import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "@/app/browse/components/BrowsePageSkeleton";
+import BrowsePageSkeleton, { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "@/app/browse/components/BrowsePageSkeleton";
 import MobileFilterButton from "@/app/browse/components/MobileFilterButton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
@@ -20,7 +20,25 @@ type PageProps = {
 // See the note in app/browse/page.tsx.
 export const dynamic = "force-dynamic";
 
-export default async function TenantBrowsePage({ searchParams }: PageProps) {
+export default function TenantBrowsePage({ searchParams }: PageProps) {
+  return (
+    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
+    // control internals) from widening the page. Unlike hidden it does not
+    // create a scroll container, so the sticky filter sidebar keeps working.
+    // w-full is load-bearing: this root is a flex item of the tenant
+    // layout's flex-column main, where mx-auto alone disables stretch
+    // sizing and lets the root balloon to max-w-7xl on narrow screens.
+    // The list skeleton lives in-page (not in loading.tsx) so navigating to
+    // an apartment detail route only ever shows the detail skeleton.
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
+      <Suspense fallback={<BrowsePageSkeleton />}>
+        <TenantBrowseContent searchParams={searchParams} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function TenantBrowseContent({ searchParams }: PageProps) {
   const supabase = await createClient();
 
   const {
@@ -55,13 +73,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     : await fetchBrowseResults(supabase, params);
 
   return (
-    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
-    // control internals) from widening the page. Unlike hidden it does not
-    // create a scroll container, so the sticky filter sidebar keeps working.
-    // w-full is load-bearing: this root is a flex item of the tenant
-    // layout's flex-column main, where mx-auto alone disables stretch
-    // sizing and lets the root balloon to max-w-7xl on narrow screens.
-    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
+    <>
       <Suspense>
         <SearchContainer
           basePath="/tenant/browse"
@@ -104,6 +116,6 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
           </Suspense>
         </div>
       </div>
-    </div>
+    </>
   );
 }
