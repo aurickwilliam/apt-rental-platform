@@ -39,7 +39,7 @@ export default function ApplicationStatusCard({
   const router = useRouter();
   const { colors } = useColors();
   const { getStatusStyle } = useApplicationStatusStyles();
-  const { label, chipStyle } = getStatusStyle(status);
+  const { label, chipStyle, Icon: StatusIcon } = getStatusStyle(status);
 
   const handlePress = () => router.push({
     pathname: '/tenant/applications/[applicationId]',
@@ -89,6 +89,7 @@ export default function ApplicationStatusCard({
                 animation="disable-all"
                 style={statusChipSurface(chipStyle)}
               >
+                <StatusIcon size={14} color={chipStyle.textColor} />
                 <Chip.Label
                   className="font-nunitoSemiBold"
                   style={{ color: chipStyle.textColor }}

@@ -412,8 +412,9 @@ export default function Rentals() {
       onRefresh={onRefresh}
     >
       <View className="flex-row items-center justify-between mb-5">
+        {/* The error state can't say which page this is, so it keeps the tab name. */}
         <Text className="text-secondary text-2xl font-nunitoBold">
-          Rentals
+          {view === 'error' ? 'Rentals' : 'Applications'}
         </Text>
         <NotificationBellButton route="/tenant-notif" />
       </View>

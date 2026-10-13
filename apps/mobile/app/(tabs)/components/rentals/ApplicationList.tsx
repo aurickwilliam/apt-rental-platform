@@ -1,8 +1,5 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 
-import { IconClipboardList } from '@tabler/icons-react-native';
-
-import { useColors } from '@/hooks/useTheme';
 import { useTenantApplications } from '@/hooks/applications';
 
 import ApplicationStatusCard from './ApplicationStatusCard';
@@ -15,45 +12,38 @@ interface ApplicationsListProps {
   isLoading?: boolean;
 }
 
+// No section header: the Rentals page title already sits directly above.
 export default function ApplicationsList({ isLoading = false }: ApplicationsListProps) {
-  const { colors } = useColors();
   const { applications, loading } = useTenantApplications();
 
-  return (
-    <>
-      <View className="flex-row items-center justify-start gap-2 mb-5">
-        <IconClipboardList size={24} color={colors.textPrimary} />
-        <Text className="text-foreground text-lg font-nunitoSemiBold">
-          My Applications
-        </Text>
+  if (isLoading || loading) {
+    return (
+      <View className="flex gap-3">
+        <ApplicationStatusCardSkeleton />
+        <ApplicationStatusCardSkeleton />
+        <ApplicationStatusCardSkeleton />
       </View>
+    );
+  }
 
-      {isLoading || loading ? (
-        <View className="flex gap-3">
-          <ApplicationStatusCardSkeleton />
-          <ApplicationStatusCardSkeleton />
-          <ApplicationStatusCardSkeleton />
-        </View>
-      ) : applications.length === 0 ? (
-        <ApplicationsEmptyState />
-      ) : (
-        <View className="flex gap-3">
-          {applications.map((application) => (
-            <ApplicationStatusCard
-              key={application.id}
-              applicationId={application.id}
-              status={application.status}
-              apartmentName={application.apartments.name}
-              location={[application.apartments.barangay, application.apartments.city]
-                .filter(Boolean)
-                .join(', ')}
-              thumbnailUrl={application.apartments.thumbnail_url}
-              submittedAt={application.created_at}
-              apartmentId={application.apartment_id}
-            />
-          ))}
-        </View>
-      )}
-    </>
+  if (applications.length === 0) return <ApplicationsEmptyState />;
+
+  return (
+    <View className="flex gap-3">
+      {applications.map((application) => (
+        <ApplicationStatusCard
+          key={application.id}
+          applicationId={application.id}
+          status={application.status}
+          apartmentName={application.apartments.name}
+          location={[application.apartments.barangay, application.apartments.city]
+            .filter(Boolean)
+            .join(', ')}
+          thumbnailUrl={application.apartments.thumbnail_url}
+          submittedAt={application.created_at}
+          apartmentId={application.apartment_id}
+        />
+      ))}
+    </View>
   );
 }
