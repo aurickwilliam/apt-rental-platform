@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
-import FilterContainer from "./components/FilterContainer";
+import BrowseFilters from "./components/BrowseFilters";
+import BrowseSectionsList from "./components/BrowseSectionsList";
+import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
+import MobileFilterButton from "./components/MobileFilterButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
+import { fetchBrowseSections, isDefaultBrowseParams } from "./lib/fetch-browse-sections";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;
@@ -19,28 +23,57 @@ export default async function BrowsePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const supabase = await createClient();
 
-  const { apartments: mapped, page, totalCount, pageSize } =
-    await fetchBrowseResults(supabase, params);
+  // Default state (no search, filters, or paging) shows curated discovery
+  // sections. Anything filtered, searched, or paged shows the flat grid.
+  // An empty/failed sections RPC falls back to the grid.
+  const showSections = isDefaultBrowseParams(params);
+  const { sections, totalCount: sectionsTotal } = showSections
+    ? await fetchBrowseSections(supabase, "/browse")
+    : { sections: [], totalCount: 0 };
+  const useSections = showSections && sections.length > 0;
+
+  const { apartments: mapped, page, totalCount, pageSize } = useSections
+    ? { apartments: [], page: 1, totalCount: sectionsTotal, pageSize: 0 }
+    : await fetchBrowseResults(supabase, params);
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
+    // control internals) from widening the page. Unlike hidden it does not
+    // create a scroll container, so the sticky filter sidebar keeps working.
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
-        <SearchContainer />
+        <SearchContainer
+          filterButton={
+            !useSections ? (
+              <MobileFilterButton resultCount={totalCount} basePath="/browse" />
+            ) : undefined
+          }
+        />
       </Suspense>
-      <div className="mt-4 flex flex-col md:flex-row gap-3">
-        <Suspense>
-          <div className="md:w-1/4 self-start">
-            <FilterContainer resultCount={totalCount} />
-          </div>
-        </Suspense>
-        <div className="w-full md:w-3/4  rounded-lg p-0">
+      <div className="mt-4 flex flex-col md:flex-row gap-4">
+        {/* Filters only exist outside discovery mode: text search, See All,
+            or any filter switches to the grid, which brings this panel. */}
+        {!useSections && (
           <Suspense>
-            <RenderApartments
-              apartment={mapped}
-              page={page}
-              totalCount={totalCount}
-              pageSize={pageSize}
-            />
+            <BrowseFilters resultCount={totalCount} />
+          </Suspense>
+        )}
+        <div className="w-full min-w-0 flex-1 rounded-lg p-0">
+          <Suspense
+            fallback={
+              useSections ? <BrowseSectionsSkeleton /> : <BrowseCardsSkeleton />
+            }
+          >
+            {useSections ? (
+              <BrowseSectionsList sections={sections} />
+            ) : (
+              <RenderApartments
+                apartment={mapped}
+                page={page}
+                totalCount={totalCount}
+                pageSize={pageSize}
+              />
+            )}
           </Suspense>
         </div>
       </div>

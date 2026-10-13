@@ -9,3 +9,9 @@ jest.mock('uniwind', () => ({
   Uniwind: { setTheme: jest.fn(), currentTheme: 'light', hasAdaptiveThemes: true },
   useUniwind: jest.fn(() => ({ theme: 'light', hasAdaptiveThemes: true })),
 }));
+
+// Native keyboard module (ScreenWrapper's KeyboardAwareScrollView, root
+// KeyboardProvider): use the library's own Jest mock.
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);
