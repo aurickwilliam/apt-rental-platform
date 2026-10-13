@@ -1,12 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { Button, Drawer, useOverlayState } from "@heroui/react";
+import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
 import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-react";
 
-import FilterContainer from "./FilterContainer";
 import { FILTER_KEYS } from "./BrowseFilters";
+
+// Drawer-only code path: the panel chunk loads when the drawer first
+// opens, keeping it out of Browse's first download.
+const FilterContainer = dynamic(() => import("./FilterContainer"), {
+  ssr: true,
+  loading: () => (
+    <div aria-hidden="true" className="flex flex-col gap-2 p-1">
+      <Skeleton className="h-10 w-full rounded-full" />
+      <Skeleton className="h-5 w-28 rounded-md" />
+      <Skeleton className="h-4 w-full rounded-md" />
+      <Skeleton className="h-4 w-5/6 rounded-md" />
+      <Skeleton className="h-9 w-full rounded-lg" />
+    </div>
+  ),
+});
 
 type Props = {
   resultCount: number;
