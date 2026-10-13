@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { memo, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -17,9 +17,11 @@ import {
   Switch,
   ToggleButtonGroup,
   ToggleButton,
+  TextField,
+  InputGroup,
 } from "@heroui/react";
 
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 
 import {
   APARTMENT_TYPES,
@@ -30,7 +32,6 @@ import {
 
 import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../components/inputs/perks";
-import { useDebouncedCallback } from "./use-debounced-callback";
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
@@ -81,9 +82,8 @@ const INITIAL_FILTERS: Filters = {
 type Props = {
   resultCount: number;
   basePath?: string;
+  onApply?: () => void;
 };
-
-const FILTER_DEBOUNCE_MS = 300;
 
 function readFiltersFromParams(
   params: URLSearchParams,
@@ -171,7 +171,229 @@ function serializeFilters(f: Filters, search: string | null): string {
   return current.toString();
 }
 
-export default function FilterContainer({ resultCount, basePath = "/browse" }: Props)
+// Min/max keyboard inputs paired with a range slider. The slider UI is
+// untouched; both controls write through the same updateFilter path. Drafts
+// stay local while typing and commit (step-rounded + clamped) on blur or
+// Enter, so partial input is never clobbered. Out-of-range sides clamp
+// silently against the opposite side (min clamps to max and vice versa).
+function RangeInputs({
+  min,
+  max,
+  absoluteMin,
+  absoluteMax,
+  step,
+  prefix,
+  suffix,
+  minLabel,
+  maxLabel,
+  onCommit,
+}: {
+  min: number;
+  max: number;
+  absoluteMin: number;
+  absoluteMax: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+  minLabel: string;
+  maxLabel: string;
+  onCommit: (next: [number, number]) => void;
+}) {
+  const [draftMin, setDraftMin] = useState<string | null>(null);
+  const [draftMax, setDraftMax] = useState<string | null>(null);
+
+  // External changes (slider drag, Clear All, back/forward) reset drafts so
+  // the inputs always reflect the committed range when not being edited.
+  // Compared during render (not in an effect); our own commits land here
+  // too and simply clear already-applied drafts.
+  const [prevRange, setPrevRange] = useState<[number, number]>([min, max]);
+  if (prevRange[0] !== min || prevRange[1] !== max) {
+    setPrevRange([min, max]);
+    setDraftMin(null);
+    setDraftMax(null);
+  }
+
+  const parse = (raw: string, fallback: number) => {
+    const digits = raw.replace(/[^0-9]/g, "");
+    if (!digits) return fallback;
+    return Math.round(Number(digits) / step) * step;
+  };
+
+  const commitSide = (side: "min" | "max") => {
+    if (side === "min") {
+      if (draftMin === null) return;
+      const nextMin = Math.min(Math.max(parse(draftMin, min), absoluteMin), max);
+      setDraftMin(null);
+      if (nextMin !== min) onCommit([nextMin, max]);
+    } else {
+      if (draftMax === null) return;
+      const nextMax = Math.max(Math.min(parse(draftMax, max), absoluteMax), min);
+      setDraftMax(null);
+      if (nextMax !== max) onCommit([min, nextMax]);
+    }
+  };
+
+  // Plain render helper (not a component) so focus is never lost while typing.
+  const field = (
+    side: "min" | "max",
+    draft: string | null,
+    committed: number,
+    bound: number,
+    label: string,
+    affix: string | undefined,
+    affixSlot: "prefix" | "suffix",
+  ) => (
+    <TextField
+      value={draft ?? String(committed)}
+      onChange={(v) => (side === "min" ? setDraftMin(v) : setDraftMax(v))}
+      aria-label={label}
+      className="min-w-0 flex-1"
+    >
+      <Label className="mb-1 text-xs text-muted-foreground">
+        {side === "min" ? "Min" : "Max"}
+      </Label>
+      <InputGroup className="rounded-lg border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+        {affix && affixSlot === "prefix" ? (
+          <InputGroup.Prefix>
+            <span className="text-sm text-muted-foreground">{affix}</span>
+          </InputGroup.Prefix>
+        ) : null}
+        <InputGroup.Input
+          inputMode="numeric"
+          placeholder={String(bound)}
+          onBlur={() => commitSide(side)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitSide(side);
+          }}
+          className="w-full min-w-0 py-1.5 text-sm"
+        />
+        {affix && affixSlot === "suffix" ? (
+          <InputGroup.Suffix>
+            <span className="text-xs text-muted-foreground">{affix}</span>
+          </InputGroup.Suffix>
+        ) : null}
+      </InputGroup>
+    </TextField>
+  );
+
+  return (
+    <div className="flex gap-2">
+      {field("min", draftMin, min, absoluteMin, minLabel, prefix, "prefix")}
+      {field("max", draftMax, max, absoluteMax, maxLabel, suffix, "suffix")}
+    </div>
+  );
+}
+
+// Slider sections are memoized so high-frequency slider drags redraw only
+// the dragged section instead of the whole ~30-control panel. Inline
+// handlers live inside, where they can't break the memo; parents pass
+// stable range values plus a stable commit callback.
+const BudgetSection = memo(function BudgetSection({
+  priceRange,
+  onPriceChange,
+}: {
+  priceRange: [number, number];
+  onPriceChange: (next: [number, number]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 mt-6">
+      <Slider
+        minValue={MIN_BUDGET}
+        maxValue={MAX_BUDGET}
+        step={500}
+        value={priceRange}
+        onChange={(val) => onPriceChange(val as [number, number])}
+        className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
+      >
+        <Label>Budget</Label>
+
+        <Slider.Output>
+          {() => {
+            const maxDisplay =
+              priceRange[1] === MAX_BUDGET
+                ? `₱${MAX_BUDGET.toLocaleString()}+`
+                : `₱${priceRange[1].toLocaleString()}`;
+
+            return `₱${priceRange[0].toLocaleString()} – ${maxDisplay}`;
+          }}
+        </Slider.Output>
+
+        <Slider.Track>
+          {({ state }) => (
+            <>
+              <Slider.Fill className="bg-primary" />
+              {state.values.map((_, i) => (
+                <Slider.Thumb key={i} index={i} />
+              ))}
+            </>
+          )}
+        </Slider.Track>
+      </Slider>
+      <RangeInputs
+        min={priceRange[0]}
+        max={priceRange[1]}
+        absoluteMin={MIN_BUDGET}
+        absoluteMax={MAX_BUDGET}
+        step={500}
+        prefix="₱"
+        minLabel="Minimum budget"
+        maxLabel="Maximum budget"
+        onCommit={onPriceChange}
+      />
+    </div>
+  );
+});
+
+const SizeSection = memo(function SizeSection({
+  sizeRange,
+  onSizeChange,
+}: {
+  sizeRange: [number, number];
+  onSizeChange: (next: [number, number]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 mt-6">
+      <Slider
+        minValue={MIN_SIZE}
+        maxValue={MAX_SIZE}
+        step={5}
+        value={sizeRange}
+        onChange={(val) => onSizeChange(val as [number, number])}
+        className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
+      >
+        <Label>Size Range</Label>
+
+        <Slider.Output>
+          {() => `${sizeRange[0]} – ${sizeRange[1]} sqm`}
+        </Slider.Output>
+
+        <Slider.Track>
+          {({ state }) => (
+            <>
+              <Slider.Fill className="bg-primary" />
+              {state.values.map((_, i) => (
+                <Slider.Thumb key={i} index={i} />
+              ))}
+            </>
+          )}
+        </Slider.Track>
+      </Slider>
+      <RangeInputs
+        min={sizeRange[0]}
+        max={sizeRange[1]}
+        absoluteMin={MIN_SIZE}
+        absoluteMax={MAX_SIZE}
+        step={5}
+        suffix="sqm"
+        minLabel="Minimum size"
+        maxLabel="Maximum size"
+        onCommit={onSizeChange}
+      />
+    </div>
+  );
+});
+
+export default function FilterContainer({ resultCount, basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -195,54 +417,70 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
   }, [filters]);
 
   // Signature of the last URL this panel pushed. The URL→state sync below
-  // ignores echoes of our own pushes, so in-flight interaction (e.g. a
-  // slider drag with a pending debounced push) is never clobbered.
+  // ignores echoes of our own pushes, so local edits made after an apply
+  // are never clobbered by a stale URL.
   const lastPushedRef = useRef<string | null>(null);
 
-  const pushFilters = (next: Filters) => {
-    const query = serializeFilters(next, searchParamsRef.current.get("search"));
-    lastPushedRef.current = query;
-    startTransition(() => {
-      router.replace(query ? `${basePath}?${query}` : basePath);
-    });
-  };
+  const pushFilters = useCallback(
+    (next: Filters) => {
+      const query = serializeFilters(next, searchParamsRef.current.get("search"));
+      lastPushedRef.current = query;
+      startTransition(() => {
+        router.replace(query ? `${basePath}?${query}` : basePath);
+      });
+    },
+    [basePath, router],
+  );
 
-  const { debounced: debouncedPush, cancel: cancelPush } =
-    useDebouncedCallback(pushFilters, FILTER_DEBOUNCE_MS);
-
-  // Applies a new filter state instantly to the UI and schedules the
-  // debounced URL sync. Called only from event handlers (never render).
-  const applyNext = (next: Filters) => {
+  // Applies a new filter state instantly to the UI only — no fetching.
+  // The URL (and therefore results) updates solely via "Search Apartment"
+  // or "Clear All". Called only from event handlers (never render).
+  // Stable so memoized sections skip unrelated updates.
+  const applyNext = useCallback((next: Filters) => {
     filtersRef.current = next;
     setFilters(next);
-    debouncedPush(next);
-  };
+  }, []);
 
-  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
-    applyNext({ ...filtersRef.current, [key]: value });
-  };
+  const updateFilter = useCallback(
+    <K extends keyof Filters>(key: K, value: Filters[K]) => {
+      applyNext({ ...filtersRef.current, [key]: value });
+    },
+    [applyNext],
+  );
 
-  const toggleArray = (
-    key: "locations" | "aptTypes" | "furnishing" | "floorLevel" | "leaseDuration",
-    value: string,
-  ) => {
-    const current = filtersRef.current[key];
-    applyNext({
-      ...filtersRef.current,
-      [key]: current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value],
-    });
-  };
+  const toggleArray = useCallback(
+    (
+      key: "locations" | "aptTypes" | "furnishing" | "floorLevel" | "leaseDuration",
+      value: string,
+    ) => {
+      const current = filtersRef.current[key];
+      applyNext({
+        ...filtersRef.current,
+        [key]: current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value],
+      });
+    },
+    [applyNext],
+  );
 
-  // "Search Apartment" applies any pending change immediately.
-  const handleApply = () => {
-    cancelPush();
+  // Stable range commits for the memoized slider sections.
+  const handlePriceChange = useCallback(
+    (next: [number, number]) => updateFilter("priceRange", next),
+    [updateFilter],
+  );
+  const handleSizeChange = useCallback(
+    (next: [number, number]) => updateFilter("sizeRange", next),
+    [updateFilter],
+  );
+
+  // "Search Apartment" is the single fetch trigger for filter edits.
+  const handleApply = useCallback(() => {
     pushFilters(filtersRef.current);
-  };
+    onApply?.();
+  }, [onApply, pushFilters]);
 
-  const handleClear = () => {
-    cancelPush();
+  const handleClear = useCallback(() => {
     filtersRef.current = INITIAL_FILTERS;
     setFilters(INITIAL_FILTERS);
     // Clear All also drops the text search so results are fully unfiltered.
@@ -250,12 +488,11 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
     startTransition(() => {
       router.replace(basePath);
     });
-  };
+  }, [basePath, router]);
 
-  // Stay in sync when the URL changes elsewhere (browser back/forward).
-  // Echoes of this panel's own pushes are ignored so in-flight interaction
-  // (e.g. a slider drag with a pending debounced push) is never clobbered
-  // by a stale URL.
+  // Stay in sync when the URL changes elsewhere (browser back/forward,
+  // text search). Echoes of this panel's own pushes are ignored so local
+  // edits made after an apply are never clobbered by a stale URL.
   const paramsSignature = searchParams.toString();
   useEffect(() => {
     if (lastPushedRef.current === paramsSignature) return;
@@ -267,19 +504,20 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
   }, [paramsSignature]);
 
   return (
-    <div className="bg-surface rounded-xl p-4 border ">
-      <div className="flex gap-3 items-center justify-center mb-5">
+    <div className="bg-surface rounded-xl p-4 border w-full text-foreground">
+      <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 items-stretch xl:items-center justify-center mb-5">
         {/* Search Button */}
         <Button
           className="w-full"
           onPress={handleApply}
         >
-          <Search size={20} />
+          <IconSearch size={20} />
           Search Apartment
         </Button>
 
         <Button
           variant="tertiary"
+          className="w-full xl:w-auto shrink-0"
           onPress={handleClear}
         >
           Clear All
@@ -289,7 +527,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-medium">Filters</h3>
-        <p className="flex items-center gap-1.5 text-sm text-default-500">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           {isPending ? (
             <Spinner size="sm" color="current" aria-label="Updating results" />
           ) : null}
@@ -333,40 +571,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
       </CheckboxGroup>
 
       {/* Budget */}
-      <div className="flex flex-col gap-2 mt-6">
-        <Slider
-          minValue={MIN_BUDGET}
-          maxValue={MAX_BUDGET}
-          step={500}
-          value={filters.priceRange}
-          onChange={(val) => updateFilter("priceRange", val as [number, number])}
-          className="w-full"
-        >
-          <Label>Budget</Label>
-
-          <Slider.Output>
-            {() => {
-              const maxDisplay =
-                filters.priceRange[1] === MAX_BUDGET
-                  ? `₱${MAX_BUDGET.toLocaleString()}+`
-                  : `₱${filters.priceRange[1].toLocaleString()}`;
-
-              return `₱${filters.priceRange[0].toLocaleString()} – ${maxDisplay}`;
-            }}
-          </Slider.Output>
-
-          <Slider.Track>
-            {({ state }) => (
-              <>
-                <Slider.Fill />
-                {state.values.map((_, i) => (
-                  <Slider.Thumb key={i} index={i} />
-                ))}
-              </>
-            )}
-          </Slider.Track>
-        </Slider>
-      </div>
+      <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
 
       {/* Unit Type */}
       <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
@@ -457,33 +662,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse" }: P
       </ToggleButtonGroup>
 
       {/* Size Range */}
-      <div className="flex flex-col gap-2 mt-6">
-        <Slider
-          minValue={MIN_SIZE}
-          maxValue={MAX_SIZE}
-          step={5}
-          value={filters.sizeRange}
-          onChange={(val) => updateFilter("sizeRange", val as [number, number])}
-          className="w-full"
-        >
-          <Label>Size Range</Label>
-
-          <Slider.Output>
-            {() => `${filters.sizeRange[0]} – ${filters.sizeRange[1]} sqm`}
-          </Slider.Output>
-
-          <Slider.Track>
-            {({ state }) => (
-              <>
-                <Slider.Fill />
-                {state.values.map((_, i) => (
-                  <Slider.Thumb key={i} index={i} />
-                ))}
-              </>
-            )}
-          </Slider.Track>
-        </Slider>
-      </div>
+      <SizeSection sizeRange={filters.sizeRange} onSizeChange={handleSizeChange} />
 
       <Separator className="my-5" />
 

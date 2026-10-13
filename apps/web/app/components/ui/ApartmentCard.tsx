@@ -4,8 +4,7 @@ import Image from "next/image";
 
 import { Card, Button, Spinner } from "@heroui/react";
 
-import { Star, Heart } from "lucide-react";
-import { IconShieldCheckFilled } from "@tabler/icons-react";
+import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -20,6 +19,10 @@ interface ApartmentCardProps {
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
+  /** Above-the-fold cards only: disables lazy loading for faster LCP. */
+  priority?: boolean;
+  /** Rendered-width hint so the browser picks a fitting file. */
+  sizes?: string;
 }
 
 export default function ApartmentCard({
@@ -33,24 +36,28 @@ export default function ApartmentCard({
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
+  priority = false,
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: ApartmentCardProps) {
   const showFavoriteButton = Boolean(onFavoritePress);
 
   return (
     <div
-      className="cursor-pointer"
+      className="w-full min-w-0 cursor-pointer"
       onClick={onPress}
       role="button"
     >
-      <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-56 h-full relative p-0">
-        <div>
+      <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-full h-full relative p-0">
+        <div className="min-w-0">
           <Image
             src={thumbnailUrl}
             alt="Apartment Thumbnail"
-            width={300}
-            height={200}
+            width={600}
+            height={600}
             unoptimized
-            className="object-cover rounded-xl size-56"
+            priority={priority}
+            sizes={sizes}
+            className="object-cover rounded-xl w-full aspect-square h-auto"
           />
 
           <div className="p-2">
@@ -70,7 +77,7 @@ export default function ApartmentCard({
           </p>
 
           <div className="flex items-center gap-1">
-            <Star className="text-yellow-400" fill="currentColor" size={18} />
+            <IconStarFilled size={18} className="text-yellow-400" />
             <p className="text-sm">
               {rating === 0 ? "-" : rating}
             </p>
@@ -85,9 +92,13 @@ export default function ApartmentCard({
         ) : null}
 
         {showFavoriteButton ? (
+          <span
+            className="absolute top-2 right-2"
+            onClick={(e) => e.stopPropagation()}
+          >
           <Button
             variant="ghost"
-            className="absolute top-2 right-2 bg-white/75"
+            className="bg-white/75"
             isIconOnly
             aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             isPending={isFavoriteLoading}
@@ -102,16 +113,15 @@ export default function ApartmentCard({
                     color="current"
                     size="sm"
                   />
+                ) : isFavorite ? (
+                  <IconHeartFilled size={18} className="text-red-500" />
                 ) : (
-                  <Heart
-                    size={18}
-                    className={isFavorite ? "text-red-500" : "text-grey-500"}
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
+                  <IconHeart size={18} className="text-grey-500" />
                 )}
               </>
             )}
           </Button>
+          </span>
         ) : null}
       </Card>
     </div>

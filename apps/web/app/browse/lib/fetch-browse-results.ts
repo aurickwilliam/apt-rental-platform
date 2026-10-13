@@ -17,6 +17,9 @@ export interface BrowseApartment {
   rating: number;
   isVerified: boolean;
   image: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  areaSqm?: number;
 }
 
 export interface BrowseResults {
@@ -35,11 +38,18 @@ export async function fetchBrowseResults(
   let query = supabase.from("apartments").select(
     `id, name, barangay, city, monthly_rent, average_rating,
       no_bedrooms, no_bathrooms, area_sqm, is_verified,
-      apartment_images(url, is_cover, created_at)`,
+      apartment_images(url, url_thumb, is_cover, created_at)`,
     { count: "exact" },
   );
 
   query = query.is('deleted_at', null).eq('is_hidden_by_admin', false);
+
+  // Cards only ever read the cover image: order covers first and fetch one
+  // image row per apartment instead of the whole gallery.
+  query = query
+    .order("is_cover", { foreignTable: "apartment_images", ascending: false })
+    .order("created_at", { foreignTable: "apartment_images", ascending: true })
+    .limit(1, { foreignTable: "apartment_images" });
 
   // SearchContainer filters
 
@@ -143,9 +153,16 @@ export async function fetchBrowseResults(
     price: apt.monthly_rent,
     rating: apt.average_rating ?? 0,
     isVerified: apt.is_verified ?? false,
+    // Cards render small: prefer the thumbnail tier, fall back to full-size.
     image:
+      apt.apartment_images?.find((img) => img.is_cover)?.url_thumb ??
       apt.apartment_images?.find((img) => img.is_cover)?.url ??
+      apt.apartment_images?.[0]?.url_thumb ??
+      apt.apartment_images?.[0]?.url ??
       "/default/default-thumbnail.jpeg",
+    bedrooms: apt.no_bedrooms ?? undefined,
+    bathrooms: apt.no_bathrooms ?? undefined,
+    areaSqm: apt.area_sqm ?? undefined,
   }));
 
   return {

@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter, Nunito } from "next/font/google";
 import { Providers } from "./providers";
@@ -19,6 +19,11 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "APT - Apartment Rental Platform",
   description: "Apartment rental platform connecting renters and landlords for seamless housing solutions.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
