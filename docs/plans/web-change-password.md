@@ -157,6 +157,28 @@ Move the two forgot-password components that this flow also needs into shared fo
    - While saving, all fields and buttons are disabled, so a second press can't start a second change.
    - Passwords live only in component state, never in the URL, storage, context or logs.
 
+**Phase 4 status (2026-10-13): done; signed-in browser checks are in Phase 5.**
+- `SecurityTab.tsx`:
+  - The admin branch renders exactly as before.
+  - Tenants and landlords get an `AccountSecurity` section with `list` / `change-password` views:
+    - the Change Password row is enabled only for `has_password`;
+    - it shows a "Signed in with Google" chip for `no_password`;
+    - it's disabled while loading, signed out, or on error;
+    - Change Email is untouched.
+  - When the form closes, focus goes back to the row.
+- New `app/components/settings/StatusChip.tsx` (label prop); `ComingSoonChip` now renders `<StatusChip label="Coming soon" />`.
+- New `app/components/settings/ChangePasswordForm.tsx`:
+  - The layout, copy, validation messages and error placement follow the plan.
+  - On open, focus moves to the heading.
+  - On success it shows the toast and closes; unmounting discards all three passwords, so there's no separate clearing step.
+- `SettingsRow` buttons now show `cursor-pointer` (and `cursor-not-allowed` when disabled) plus a focus ring. The Help tab's FAQ row gets these too.
+- Found in the browser: signed out, `getUser()` returned `AuthSessionMissingError`, which the hook logged as a failure. The hook now checks `getSession()` first and returns `null` without an error when signed out.
+- Checks:
+  - Web typecheck and lint pass.
+  - In the browser, signed out on `/?settings=open`: the Security tab renders, Change Password is disabled (`cursor: not-allowed`), Change Email shows "Coming soon", and a fresh load logs no errors.
+  - The existing navbar `inert` hydration warning, when Settings opens on page load, is unrelated to this change.
+  - The dev server uses the hosted Supabase project and the repo has no test accounts. So the signed-in checks (opening the form, each error, a real change) wait for the Phase 5 manual run on your test account.
+
 ### Phase 5 — Verify and document
 
 1. Run:
