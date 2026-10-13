@@ -73,7 +73,7 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
    - **Never leave an unfinished recovery session behind:**
      - leaving the reset screen without completing it (back button, hardware back, swipe) signs the recovery session out and clears flow state;
      - mark "recovery in progress" in AsyncStorage when the code is verified and clear it on completion; on app start (`app/index.tsx` boot redirect), if the marker is present, sign out and route to sign-in instead of restoring the session into a portal.
-   - On success, clear sensitive local password state, clear the recovery-in-progress marker and flow store, sign out the recovery session, clear the mobile React Query cache, and use `router.dismissAll()`/`replace()` to show the existing success screen without leaving a navigable recovery stack.
+   - On success, clear sensitive local password state, clear the recovery-in-progress marker and flow store, sign out with `endPasswordRecovery("global")` (also ends the account's sessions on other devices, since a reset may follow a compromise; abandoning the flow uses the default `"local"`), clear the mobile React Query cache, and use `router.dismissAll()`/`replace()` to show the existing success screen without leaving a navigable recovery stack.
 
 ### Phase 5 — Retire prototype behavior and add regression coverage
 
