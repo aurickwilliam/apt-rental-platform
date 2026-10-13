@@ -262,6 +262,9 @@ export default async function ApartmentDetailView({
       <div className="w-full mt-10">
         <RelatedApartments apartments={relatedMapped} basePath={basePath} />
       </div>
+
+      {/* Clearance for the mobile fixed price bar */}
+      <div className="h-24 lg:hidden" aria-hidden="true" />
     </div>
   );
 }

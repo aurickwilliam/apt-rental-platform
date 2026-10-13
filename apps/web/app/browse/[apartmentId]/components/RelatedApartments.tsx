@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
@@ -27,8 +27,29 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
 
   const router = useRouter();
 
+  // Below lg (the same breakpoint the page stacks at) the strip
+  // free-scrolls like a native row; on PC it keeps snapping card to card.
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023.98px)");
+    const handleChange = () => setIsMobileLayout(media.matches);
+    handleChange();
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
   return (
-    <Carousel setApi={setApi} className="mt-10">
+    <Carousel
+      key={isMobileLayout ? "free" : "snap"}
+      setApi={setApi}
+      className="mt-10"
+      opts={
+        isMobileLayout
+          ? { align: "start", containScroll: "trimSnaps", dragFree: true, skipSnaps: true }
+          : undefined
+      }
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-noto-serif font-medium text-secondary dark:text-[#FFA500] md:text-3xl">
           Related Apartments
