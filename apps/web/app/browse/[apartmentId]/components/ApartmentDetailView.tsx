@@ -121,8 +121,8 @@ export default async function ApartmentDetailView({
   }));
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 w-full min-w-0 overflow-x-clip">
+      <div className="flex items-center justify-between gap-2">
         <BackBtn />
         <div className="flex items-center gap-2">
           <ShareBtn />
@@ -134,86 +134,86 @@ export default async function ApartmentDetailView({
         <ImageHeader imageUrl={images} name={apartment.name} />
       </div>
 
-      <div className="w-full flex gap-5">
-        <div className="w-2/3">
+      <div className="w-full flex flex-col lg:flex-row gap-8 lg:gap-5 min-w-0">
+        <div className="w-full lg:w-2/3 min-w-0">
           {/* Name and Address */}
-          <div>
-            <h1 className="text-3xl font-medium text-primary">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-medium text-primary break-words">
               {apartment.name}
             </h1>
-            <h3>
+            <h3 className="text-sm sm:text-base text-foreground/80 break-words">
               {apartment.street_address}, {apartment.barangay}, {apartment.city}, {apartment.province}, {apartment.zip_code}
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-            <div className="flex gap-2 items-center">
-              <IconHome size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 sm:gap-6 mt-6 min-w-0">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconHome size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.type}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconBed size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBed size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.no_bedrooms} Bedroom{apartment.no_bedrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconBath size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBath size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.no_bathrooms} Bathroom{apartment.no_bathrooms !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconArrowsMaximize size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconArrowsMaximize size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.area_sqm} sqm
               </h2>
             </div>
 
-            <div className="flex gap-2 items-center">
-              <IconBuilding size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconBuilding size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.floor_level}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconUsers size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconUsers size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.max_occupants} Occupant{apartment.max_occupants !== 1 ? 's' : ''}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconCalendar size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconCalendar size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.lease_duration}
               </h2>
             </div>
-            <div className="flex gap-2 items-center">
-              <IconArmchair size={22} className="text-grey-700" />
-              <h2 className="text-base font-medium text-grey-700">
+            <div className="flex gap-2 items-center min-w-0">
+              <IconArmchair size={22} className="text-grey-700 shrink-0" />
+              <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                 {apartment.furnished_type}
               </h2>
             </div>
           </div>
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <ExpandableDescription text={apartment.description || ""} />
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <Amenities apartmentPerks={apartment.amenities ?? []} />
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <div>
             <h3 className="text-lg font-medium mb-2">View on Map</h3>
             <MapLocation latitude={apartment.latitude} longitude={apartment.longitude} />
           </div>
 
-          <Separator className="my-8" />
+          <Separator className="my-6 sm:my-8" />
 
           <RatingSection apartmentId={apartment.id} basePath={basePath} />
 
@@ -222,7 +222,7 @@ export default async function ApartmentDetailView({
           </div>
         </div>
 
-        <div className="w-1/3 flex flex-col gap-5">
+        <div className="w-full lg:w-1/3 min-w-0 flex flex-col gap-4 sm:gap-5">
           <PriceCard
             price={apartment.monthly_rent}
             securityDeposit={apartment.security_deposit ?? undefined}

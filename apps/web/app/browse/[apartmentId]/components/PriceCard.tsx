@@ -56,10 +56,10 @@ export default function PriceCard({
   ]
 
   return (
-    <Card className="border border-grey-300 shadow-none">
+    <Card className="border border-grey-300 shadow-none w-full">
       <Card.Header>
-        <Card.Title className="text-3xl font-medium text-primary">
-          {formattedPrice}<span className="text-xl">/month</span>
+        <Card.Title className="text-2xl sm:text-3xl font-medium text-primary">
+          {formattedPrice}<span className="text-base sm:text-xl">/month</span>
         </Card.Title>
       </Card.Header>
 

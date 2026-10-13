@@ -84,7 +84,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   // Empty State of no coordinates of the apartment
   if (!hasCoordinates || !embedSrc || !mapCoordinates) {
     return (
-      <div className="w-full h-80 bg-grey-200 flex items-center justify-center rounded-lg border border-grey-300">
+      <div className="w-full h-64 sm:h-80 bg-grey-200 flex items-center justify-center rounded-lg border border-grey-300">
         <p className="text-default-400 text-sm">No location available</p>
       </div>
     );
@@ -93,7 +93,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   return (
     <>
       {/* Preview map */}
-      <div className="relative w-full h-80 overflow-hidden rounded-lg border border-grey-300">
+      <div className="relative w-full h-64 sm:h-80 overflow-hidden rounded-lg border border-grey-300">
         <iframe
           title={`Map of ${mapCoordinates}`}
           src={embedSrc}
@@ -101,7 +101,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
           referrerPolicy="strict-origin-when-cross-origin"
           className="w-full h-full rounded-lg border-0"
         />
-        <div className="absolute bottom-3 right-3 z-10 flex gap-2">
+        <div className="absolute bottom-3 right-3 z-10 flex flex-wrap justify-end gap-2">
           <Button
             className="shadow-sm"
             size="sm"
@@ -141,7 +141,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
               <Modal.CloseTrigger className="absolute top-4 right-4 z-10 text-black" />
 
               <Modal.Body className="p-0 h-full flex items-center justify-center">
-                <div className="w-2/3 bg-white p-4 rounded-3xl overflow-hidden shadow-xl">
+                <div className="w-[92vw] sm:w-2/3 bg-white p-4 rounded-3xl overflow-hidden shadow-xl">
                   <iframe
                     title={`Expanded map of ${mapCoordinates}`}
                     src={embedSrc}
