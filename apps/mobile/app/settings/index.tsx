@@ -13,6 +13,7 @@ import type { Icon } from '@tabler/icons-react-native';
 import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
+import { usePasswordSignInStatus } from '@/hooks/auth'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -30,12 +31,16 @@ type SettingSection = {
   items: SettingItem[]
 }
 
-function ComingSoonChip() {
+function StatusChip({ label }: { label: string }) {
   return (
     <Chip size="sm" variant="soft" color="default" animation="disable-all" className="px-2">
-      <Chip.Label className="text-[11px] font-nunitoSemiBold text-muted">Coming soon</Chip.Label>
+      <Chip.Label className="text-[11px] font-nunitoSemiBold text-muted">{label}</Chip.Label>
     </Chip>
   );
+}
+
+function ComingSoonChip() {
+  return <StatusChip label="Coming soon" />;
 }
 
 export default function Index() {
@@ -46,6 +51,7 @@ export default function Index() {
 
   const { preferences: notifPrefs } = useNotificationPreferences();
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
+  const { data: passwordSignInStatus } = usePasswordSignInStatus();
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
@@ -62,16 +68,28 @@ export default function Index() {
     return `${cityPart} · ₱${rentalPrefs.budgetMin.toLocaleString()}–${rentalPrefs.budgetMax.toLocaleString()}`;
   })();
 
+  // Opens only for accounts with a password; Google-only accounts have none to
+  // change. Stays disabled while the status loads or if it can't be read.
+  const changePasswordItem = (): SettingItem => {
+    const base = { icon: IconKey, title: 'Change Password' };
+    if (passwordSignInStatus === 'has_password') {
+      return {
+        ...base,
+        onPress: () => router.push('/settings/change-password'),
+        suffix: <IconChevronRight size={16} color={colors.gray500} />,
+      };
+    }
+    if (passwordSignInStatus === 'no_password') {
+      return { ...base, disabled: true, suffix: <StatusChip label="Signed in with Google" /> };
+    }
+    return { ...base, disabled: true };
+  };
+
   const sections: SettingSection[] = [
     {
       title: 'Security',
       items: [
-        {
-          icon: IconKey,
-          title: 'Change Password',
-          disabled: true,
-          suffix: <ComingSoonChip />,
-        },
+        changePasswordItem(),
         {
           icon: IconMail,
           title: 'Change Email',

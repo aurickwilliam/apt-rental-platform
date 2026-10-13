@@ -1,0 +1,147 @@
+# Mobile Change Password
+
+## Goal
+
+Turn the **Change Password** row in mobile Settings (currently disabled with a "Coming soon" chip) into a working flow that lets a signed-in user with an email/password credential change their password, reusing the building blocks shipped with forgot-password (`docs/plans/mobile-forgot-password.md`).
+
+## Scope and decisions
+
+- **Mobile only.** The web has no settings page for this yet; web parity is a follow-up.
+- **Who can use it:** accounts with an `email` identity (email/password, or linked Google-plus-password). Google-only accounts have no password to change: their row stays disabled with a "Signed in with Google" note instead of "Coming soon". **Change Email** stays "Coming soon".
+- **Current password is required by the app.** The screen asks for the current password and checks it with `signInWithPassword` before changing anything. Supabase's own "require current password" setting is project-wide and would also apply to the recovery session used by forgot-password (where the user doesn't know the old password), so it stays off. This is therefore an app-flow check, not a server-enforced one: a session that is already signed in could still change the password through a direct Auth call. Accepted for now; listed under follow-ups.
+- **After a successful change:** the user stays signed in on this device and every **other** session is ended (`signOut({ scope: "others" })`), so anyone else using the account is signed out. The hosted "password changed" security email (already enabled) is sent by Supabase automatically.
+- **Reuse, don't duplicate:**
+  - Password rules stay in `usePasswordValidation` (`@repo/hooks`).
+  - Supabase error mapping moves out of `passwordRecoveryService.ts` into a shared module both flows use.
+  - The password fields and requirements checklist move out of the reset screen into one shared component used by both screens.
+- No database changes: only Supabase Auth's password changes.
+
+## Implementation phases
+
+### Phase 1 — Share the password building blocks
+
+- Move `PasswordRecoveryError`, its reasons/messages and `toRecoveryErrorReason` from `service/auth/passwordRecoveryService.ts` into `service/auth/passwordErrors.ts` (named for both flows, e.g. `PasswordError` / `toPasswordErrorReason`). Add the reason `wrong_current_password` ("Your current password is incorrect."). Update the recovery service, its screens and tests to import from the new module; behaviour unchanged.
+- Extract the new-password + confirm fields and the "Your password must contain" checklist from `app/(auth)/forgot-password/reset-password.tsx` into a shared component (e.g. `components/inputs/NewPasswordFields.tsx`). Build it on the canonical HeroUI `TextField` + `InputGroup` with the eye-toggle suffix (DESIGN.md §10) and Tabler icons, replacing the transitional `AppInput` and the `@expo/vector-icons` Ionicons the reset screen uses today. The reset screen switches to the shared component; its behaviour and tests stay green.
+
+**Phase 1 status (2026-10-13): done.**
+- `service/auth/passwordErrors.ts` holds `PasswordError`, `toPasswordErrorReason`, `toPasswordError` and `describeAuthError`. New reasons: `wrong_current_password` (`invalid_credentials`) and `reauthentication_required` (`reauthentication_needed`, previously folded into `session_expired`).
+- `hasEmailPasswordIdentity` moved to `service/auth/authIdentity.ts`.
+- `components/inputs/PasswordField.tsx` (one field with an eye toggle) and `components/inputs/NewPasswordFields.tsx` (new + confirm + checklist) are shared; the reset screen uses them, and they're documented in DESIGN.md §10.
+- The `heroui-native` test stub moved to `tests/support/` (now with `InputGroup`).
+- Forgot-password tests are unchanged in behaviour and all pass.
+
+### Phase 2 — Change-password service
+
+- Create `service/auth/passwordChangeService.ts`:
+  - `getPasswordSignInStatus()` — reads the signed-in user (`supabase.auth.getUser()`) and reports whether they have an email/password identity, reusing `hasEmailPasswordIdentity`.
+  - `changePassword(currentPassword, newPassword)`:
+    1. Read the user's email from the session.
+    2. Verify the current password with `signInWithPassword({ email, password: currentPassword })`; `invalid_credentials` → `wrong_current_password`.
+    3. `updateUser({ password: newPassword })` (`same_password`, `weak_password` map as in recovery).
+    4. `signOut({ scope: "others" })`. A failure here is logged, not shown: the password has already changed.
+- Never log the current or new password (log only error name/code/status, as the recovery service does).
+- Note: if Supabase's "secure password change" (reauthentication) is ever enabled, `updateUser` returns `reauthentication_needed`; the error module maps it to a clear message rather than the recovery-specific "reset session has expired".
+
+**Phase 2 status (2026-10-13): done.** `service/auth/passwordChangeService.ts` exports `getPasswordSignInStatus()` (`"has_password" | "no_password"`, from the server-checked `getUser()`) and `changePassword()`. Beyond the steps above, it:
+- rejects a new password equal to the current one before any network call;
+- refuses accounts without an email/password identity before verifying;
+- stops if the verification sign-in returns a different account id.
+
+Covered by 16 tests in `passwordChangeService.test.ts`, including call order and no passwords in logs.
+
+### Phase 3 — Settings row and screen
+
+- `app/settings/index.tsx`: the Change Password row reads `getPasswordSignInStatus()` through a small React Query hook (`hooks/auth/`, stable key, cleared with the query client on sign-out):
+  - Email/password or linked account: the row is enabled and opens `/settings/change-password`.
+  - Google-only account: the row stays disabled with a "Signed in with Google" chip.
+  - While loading or on error: the row stays disabled, so it fails safe.
+- New `app/settings/change-password.tsx` (registered in `app/settings/_layout.tsx`), using `StandardHeader` like the other settings screens:
+  - **Current password** field (eye toggle) and the shared new-password fields.
+  - Submit stays disabled until the new password passes the rules; it shows a pending state and ignores repeat presses.
+  - `wrong_current_password` shows under the current-password field; `same_password` / `weak_password` show under the new-password field; other failures open `ErrorDialog`. The form keeps what was typed on any error.
+  - On success: clear all password fields, show a success toast ("Password updated. Other devices were signed out.") with `useToast`, and go back to Settings.
+
+**Phase 3 status (2026-10-13): done; device check pending.**
+- `hooks/auth/usePasswordSignInStatus.ts` reads the status with the session-scoped key `["password-sign-in-status"]`.
+- The Settings row opens `/settings/change-password` for password accounts, shows a "Signed in with Google" chip for Google-only accounts, and stays disabled while loading or on error.
+- `app/settings/change-password.tsx` uses `PasswordField` + `NewPasswordFields`. It shows server errors under the matching field, shows a success toast, then goes back to Settings.
+
+### Phase 4 — Tests
+
+- Service tests (`service/auth/passwordChangeService.test.ts`):
+  - Current-password check, then update, then `signOut({ scope: "others" })`, in that order.
+  - A wrong current password never calls `updateUser`.
+  - Error mapping, including `wrong_current_password`.
+  - A sign-out failure still resolves successfully.
+  - Google-only, email and linked accounts in `getPasswordSignInStatus`.
+  - No password in logs.
+- Screen tests (`tests/settings/change-password.test.tsx`, with the `heroui-native` stub):
+  - Validation and disabled submit.
+  - Each inline error, plus the error dialog.
+  - Pending state and repeat presses.
+  - Success: toast, fields cleared, back to Settings.
+  - Passwords never reach route params or console output.
+- Settings row test: the row is enabled for password accounts, disabled with the Google note for Google-only accounts, and disabled while loading.
+- Keep the forgot-password suites green after the Phase 1 refactor.
+
+**Phase 4 status (2026-10-13): done.**
+- The 16 service tests from Phase 2 cover the service list above.
+- `tests/settings/change-password.test.tsx` (9 tests) covers:
+  - submit disabled until the rules pass, and the missing-current-password message;
+  - success: toast, keyboard dismissed, fields cleared, back to Settings;
+  - each inline error and the error dialog;
+  - unexpected errors logged by type only;
+  - the pending state and repeat presses;
+  - no password in console output or router calls.
+- `tests/settings/settings-index.test.tsx` (4 tests) covers the row for password, Google-only and loading states, and Change Email staying "Coming soon".
+- The `heroui-native` stub in `tests/support/` gained `useToast`, `ListGroup`, `Separator` and `Chip`.
+- Forgot-password suites stay green. The full mobile suite is 691 tests.
+- The branch was synced with `main` after #173 (keyboard-controller) merged.
+
+### Phase 5 — Verify and document
+
+- Run `pnpm --filter mobile typecheck`, `pnpm --filter mobile lint` and `pnpm --filter mobile exec jest --runInBand`, then `graphify update .`.
+- Update ARCHITECTURE.md §4.4 (password change next to password recovery) and AGENTS.md (the shared password service/error module and the "current password is an app-flow check" rule).
+- **Manual device test** (email/password test account):
+  1. Settings → Change Password opens the screen; a Google-only account sees the disabled row instead.
+  2. Wrong current password → error under that field, nothing changes.
+  3. New password equal to the current one → "must be different", form kept.
+  4. Valid change → success toast, back in Settings, still signed in.
+  5. Sign out and back in: the old password is rejected, the new one works.
+  6. Another device or simulator signed into the same account is signed out.
+  7. The "Your APT password was changed" email arrives.
+  8. Forgot-password still works end to end (regression check after the Phase 1 refactor).
+
+**Phase 5 status (2026-10-13): done, including the device checklist.**
+- Mobile typecheck, lint and the full Jest suite pass; `graphify update .` run.
+- ARCHITECTURE.md §4.4 gained a "Password change" note (and the summary table mentions it).
+- AGENTS.md records the change-password rules: the service, the app-flow-only current-password check with Supabase's setting kept off, the shared error/identity modules and fields, and closing the keyboard on submit.
+
+Device checklist (iOS Simulator, email/password account on Yahoo; cross-checked against hosted Auth logs):
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Row opens the screen; Google-only account sees the disabled "Signed in with Google" row | ✅ |
+| 2 | Wrong current password → error under that field, nothing changes | ✅ (`invalid_credentials`, no update) |
+| 3 | New password equal to the current one → "must be different", form kept | ✅ |
+| 4 | Valid change → success toast, back in Settings, still signed in | ✅ (`user_modified` + `logout` scope others) |
+| 5 | New password signs in | ✅ (password sign-in after the change) |
+| 5 | Old password is rejected | ✅ (`invalid_credentials`) |
+| 6 | Another signed-in session is signed out | ✅ (the earlier session was ended; no second device tried) |
+| 7 | "Your APT password was changed" email arrives | ✅ (in Yahoo Spam, as expected until a custom sending domain) |
+| 8 | Forgot-password end to end after the shared-fields restyle | ✅ (code verified, password saved on the restyled reset screen, signed out everywhere, new password signs in) |
+
+## Out of scope / follow-ups
+
+- Server-enforced current-password check (needs a solution that keeps the forgot-password recovery session working, e.g. reauthentication by email code for changes outside recovery).
+- Change Email (stays "Coming soon").
+- Web change-password page.
+
+## Acceptance criteria
+
+- Email/password and linked accounts can change their password from Settings; Google-only accounts see a disabled row explaining they sign in with Google.
+- The password changes only after the current password is verified; a wrong current password changes nothing.
+- Same-as-current and too-weak passwords are rejected with inline messages, and the form is kept.
+- After a change, this device stays signed in and all other sessions are signed out; the password-changed email is sent.
+- Forgot-password behaviour is unchanged after the shared-component and error-module refactor.
+- No password is written to logs or route params; automated tests cover the service, the screen and the settings row.

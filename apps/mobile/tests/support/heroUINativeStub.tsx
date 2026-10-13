@@ -1,6 +1,6 @@
 // heroui-native ships untranspiled ESM that Jest cannot parse. Interactive
-// stand-ins for the components the forgot-password screens use:
-// jest.mock("heroui-native", () => require("./heroUINativeStub")).
+// stand-ins for the components the auth and settings screens use:
+// jest.mock("heroui-native", () => require("<relative path>/support/heroUINativeStub")).
 import type { ReactNode } from "react";
 import { Pressable, Text, TextInput, View, type TextInputProps } from "react-native";
 
@@ -39,6 +39,7 @@ export const TextField = Passthrough;
 export const Label = TextStub;
 export const FieldError = TextStub;
 export const Input = (props: TextInputProps) => <TextInput {...props} />;
+export const InputGroup = Object.assign(Passthrough, { Input, Prefix: Passthrough, Suffix: Passthrough });
 export const Spinner = () => null;
 
 export const Alert = Object.assign(Passthrough, {
@@ -77,3 +78,36 @@ export const InputOTP = Object.assign(InputOTPStub, {
 });
 export const REGEXP_ONLY_DIGITS = "^\\d+$";
 export type InputOTPRef = { clear: () => void };
+
+// Toasts: tests read calls through jest.requireMock("heroui-native").mockToastShow.
+export const mockToastShow = jest.fn();
+export const useToast = () => ({ toast: { show: mockToastShow } });
+
+// Settings list
+interface ListItemStubProps extends ChildrenProps {
+  onPress?: () => void;
+  disabled?: boolean;
+}
+
+function ListItemStub({ children, onPress, disabled }: ListItemStubProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled }}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+export const ListGroup = Object.assign(Passthrough, {
+  Item: ListItemStub,
+  ItemPrefix: Passthrough,
+  ItemContent: Passthrough,
+  ItemTitle: TextStub,
+  ItemSuffix: Passthrough,
+});
+export const Separator = () => null;
+export const Chip = Object.assign(Passthrough, { Label: TextStub });

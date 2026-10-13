@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import ResetPassword from "@/app/(auth)/forgot-password/reset-password";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import { PasswordRecoveryError } from "@/service/auth/passwordRecoveryService";
+import { PasswordError } from "@/service/auth/passwordErrors";
 
 const mockHasSession = jest.fn();
 const mockUpdatePassword = jest.fn();
@@ -26,7 +26,7 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-jest.mock("heroui-native", () => require("./heroUINativeStub"));
+jest.mock("heroui-native", () => require("../support/heroUINativeStub"));
 
 jest.mock("@repo/supabase", () => ({ supabase: {} }));
 
@@ -40,20 +40,13 @@ jest.mock("@/service/auth/passwordRecoveryService", () => ({
 jest.mock("@/utils/queryClient", () => ({ clearQueryClient: () => mockClearQueryClient() }));
 
 jest.mock("@/hooks/useTheme", () => ({
-  useColors: () => ({ colors: { textSecondary: "#666", success: "#22C55E", white: "#fff" } }),
+  useColors: () => ({ colors: { textSecondary: "#666", success: "#22C55E", white: "#fff", gray400: "#9CA3AF" } }),
 }));
 
 jest.mock("@/components/layout/ScreenWrapper", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
-
-jest.mock("@/components/inputs/AppInput", () => {
-  const { TextInput } = jest.requireActual<typeof import("react-native")>("react-native");
-  return { __esModule: true, default: TextInput };
-});
-
-jest.mock("@expo/vector-icons/build/Ionicons", () => ({ __esModule: true, default: () => null }));
 
 jest.mock("@/components/display/ErrorDialog", () => {
   const React = jest.requireActual<typeof import("react")>("react");
@@ -181,7 +174,7 @@ describe("Reset password screen", () => {
   });
 
   it("keeps the form and shows server password rules inline", async () => {
-    mockUpdatePassword.mockRejectedValueOnce(new PasswordRecoveryError("same_password"));
+    mockUpdatePassword.mockRejectedValueOnce(new PasswordError("same_password"));
     await renderWithSession();
 
     fillPasswords();
@@ -194,7 +187,7 @@ describe("Reset password screen", () => {
   });
 
   it("restarts the flow after an expired session once the message is closed", async () => {
-    mockUpdatePassword.mockRejectedValueOnce(new PasswordRecoveryError("session_expired"));
+    mockUpdatePassword.mockRejectedValueOnce(new PasswordError("session_expired"));
     await renderWithSession();
 
     fillPasswords();
