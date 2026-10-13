@@ -2730,8 +2730,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791883706.2868974,
-    "ast_hash": "7552fdaed75041dd71ccb0e15b852ec8",
+    "mtime": 1791902275.4874814,
+    "ast_hash": "1cbce183f8a81d1d24467e7cc0277807",
     "semantic_hash": ""
   },
   "README.md": {
@@ -2980,13 +2980,13 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791883697.2964303,
-    "ast_hash": "2a567cec97d6d761d72000a66af09f8a",
+    "mtime": 1791903391.0587883,
+    "ast_hash": "0732605d0d04f1ec1f0ce790fd7dca3b",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791883697.2971098,
-    "ast_hash": "93be977ac760a5a47c2181298b6a4be5",
+    "mtime": 1791902848.647785,
+    "ast_hash": "fcbe09db0998260e828d1ef8a67ec87d",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -5795,13 +5795,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SettingsModal.tsx": {
-    "mtime": 1791817391.5390544,
-    "ast_hash": "a6ec5779658424d9fd734e59f8441f51",
+    "mtime": 1791902230.5065422,
+    "ast_hash": "150a48fa3ab68568992dff8a19eb8b53",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SettingsOverlay.tsx": {
-    "mtime": 1791817391.5392427,
-    "ast_hash": "0e3ad648e4aa0eee6bb887a2ab8532a7",
+    "mtime": 1791902230.5068178,
+    "ast_hash": "a4f8e00ec00f5f3cd59105b98bbef385",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SettingsRow.tsx": {
@@ -5840,8 +5840,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/tabs/SecurityTab.tsx": {
-    "mtime": 1791883024.1495557,
-    "ast_hash": "8710c4838e60e824fb0978bdb04eed91",
+    "mtime": 1791902230.506293,
+    "ast_hash": "07ba4b7941a06bf9a76c3a3d7ec39541",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/profile/loading.tsx": {
@@ -7020,8 +7020,8 @@
     "semantic_hash": ""
   },
   "docs/plans/web-change-password.md": {
-    "mtime": 1791883714.5989585,
-    "ast_hash": "f15a2225b5affde2cbfce052f7028290",
+    "mtime": 1791903391.0590177,
+    "ast_hash": "3d7f8af9ad9cdbbe81b16bd3e68a343a",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordChange.test.ts": {
@@ -7057,11 +7057,6 @@
   "apps/web/hooks/use-password-sign-in-status.ts": {
     "mtime": 1791883075.952616,
     "ast_hash": "36e137c5fd3d292df499462a20fead35",
-    "semantic_hash": ""
-  },
-  "apps/web/app/components/settings/ChangePasswordForm.tsx": {
-    "mtime": 1791883005.656644,
-    "ast_hash": "43576bd25071c91302771004f0bbcd9b",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/StatusChip.tsx": {
@@ -7137,6 +7132,11 @@
   "apps/web/lib/verification-upload.ts": {
     "mtime": 1791901338.8264506,
     "ast_hash": "0ac23ffcf4f8c2c58d3938cac09e5ed4",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/settings/ChangePasswordModal.tsx": {
+    "mtime": 1791903381.2923973,
+    "ast_hash": "0e335deea4709cc27c691e563937e7a8",
     "semantic_hash": ""
   }
 }
