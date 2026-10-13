@@ -363,13 +363,14 @@ export default function ForgotPasswordClient() {
       {/* Pinned to the bottom of the panel, just above the footer. */}
       <div className="mt-auto pt-[clamp(1.5rem,4vh,2rem)]">
         <Alert status="accent" className="border border-primary/20 bg-accent!">
-          <Alert.Indicator>
+          {/* `!`: @heroui/styles pins the indicator to the top (unlayered CSS). */}
+          <Alert.Indicator className="self-center!">
             <Image
               src="/third-party/google-logo.svg"
               alt=""
               aria-hidden="true"
-              width={18}
-              height={18}
+              width={28}
+              height={28}
               className="shrink-0"
             />
           </Alert.Indicator>
