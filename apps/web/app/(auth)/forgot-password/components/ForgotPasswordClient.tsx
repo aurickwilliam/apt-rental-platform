@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -15,7 +16,6 @@ import {
   REGEXP_ONLY_DIGITS,
   TextField,
 } from "@heroui/react";
-import { IconBrandGoogle } from "@tabler/icons-react";
 import { ArrowLeft } from "lucide-react";
 
 import { RECOVERY_RESET_PATH } from "@repo/supabase/password-recovery";
@@ -205,7 +205,7 @@ export default function ForgotPasswordClient() {
 
         <div className="mt-[clamp(1.5rem,4vh,2rem)] flex justify-center">
           <div className="rounded-full bg-primary/10 p-4">
-            <IconBrandGoogle size={40} className="text-primary" aria-hidden="true" />
+            <Image src="/third-party/google-logo.svg" alt="" aria-hidden="true" width={40} height={40} />
           </div>
         </div>
 
@@ -363,8 +363,15 @@ export default function ForgotPasswordClient() {
       {/* Pinned to the bottom of the panel, just above the footer. */}
       <div className="mt-auto pt-[clamp(1.5rem,4vh,2rem)]">
         <Alert status="accent" className="border border-primary/20 bg-accent!">
-          <Alert.Indicator className="text-primary!">
-            <IconBrandGoogle size={18} className="shrink-0" aria-hidden="true" />
+          <Alert.Indicator>
+            <Image
+              src="/third-party/google-logo.svg"
+              alt=""
+              aria-hidden="true"
+              width={18}
+              height={18}
+              className="shrink-0"
+            />
           </Alert.Indicator>
           <Alert.Content className="gap-1">
             <Alert.Title className="text-foreground!">Signed up with Google?</Alert.Title>
