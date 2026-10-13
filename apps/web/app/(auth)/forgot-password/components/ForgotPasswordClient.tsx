@@ -349,6 +349,19 @@ export default function ForgotPasswordClient() {
           <FieldError>{emailError}</FieldError>
         </TextField>
 
+        <Button
+          className="mt-[clamp(0.75rem,2vh,1.25rem)] w-full cursor-pointer"
+          size="lg"
+          type="submit"
+          isPending={sending}
+          isDisabled={sending}
+        >
+          {sending ? "Sending Code..." : "Send Code"}
+        </Button>
+      </Form>
+
+      {/* Pinned to the bottom of the panel, just above the footer. */}
+      <div className="mt-auto pt-[clamp(1.5rem,4vh,2rem)]">
         <Alert status="accent" className="border border-primary/20 bg-accent!">
           <Alert.Indicator className="text-primary!">
             <IconBrandGoogle size={18} className="shrink-0" aria-hidden="true" />
@@ -361,17 +374,7 @@ export default function ForgotPasswordClient() {
             </Alert.Description>
           </Alert.Content>
         </Alert>
-
-        <Button
-          className="mt-[clamp(0.75rem,2vh,1.25rem)] w-full cursor-pointer"
-          size="lg"
-          type="submit"
-          isPending={sending}
-          isDisabled={sending}
-        >
-          {sending ? "Sending Code..." : "Send Code"}
-        </Button>
-      </Form>
+      </div>
     </div>
   );
 }
