@@ -1,3 +1,9 @@
+import type {
+  ChatMessage as Message,
+  MessageReaction,
+  ReplyPreview,
+} from "@/app/components/chat/types";
+
 export type TabKey = "current" | "inquiries";
 
 export interface Contact {
@@ -9,14 +15,6 @@ export interface Contact {
   apartmentId: string | null;
   unreadCount: number;
 }
-export interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  message: string;
-  is_read: boolean;
-  read_at: string | null;
-  apartment_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
+
+export type { MessageReaction, ReplyPreview };
+export type { Message };

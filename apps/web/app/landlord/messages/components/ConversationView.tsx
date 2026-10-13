@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollShadow, Spinner } from "@heroui/react";
+import { ChevronLeft, MessageSquare } from "lucide-react";
 
 import MessageInput from "./MessageInput";
-import { Contact, Message } from "./types";
+import { Contact } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
-
-import { createClient } from "@repo/supabase/browser";
-import { ChevronLeft, MessageSquare } from "lucide-react";
+import EmojiPicker from "@/app/components/chat/EmojiPicker";
+import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
+import MessageBubble from "@/app/components/chat/MessageBubble";
+import useConversation from "@/app/components/chat/useConversation";
+import type { ChatMessage } from "@/app/components/chat/types";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -35,10 +38,6 @@ function TypingIndicator() {
   );
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
 export default function ConversationView({
   activeContact,
   currentUserId,
@@ -47,52 +46,34 @@ export default function ConversationView({
   onBack,
   className = "",
 }: ConversationViewProps) {
-  const supabase = useMemo(() => createClient(), []);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isContactTyping, setIsContactTyping] = useState(false);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const channelRef = useRef<ReturnType<
+    ReturnType<typeof useConversation>["supabase"]["channel"]
+  > | null>(null);
+
+  const {
+    supabase,
+    conversationId,
+    messages,
+    setMessages,
+    isLoading,
+    replyTarget,
+    contextMenu,
+    sendMessage,
+    toggleReaction,
+    handleReply,
+    clearReply,
+    openContextMenu,
+    closeContextMenu,
+  } = useConversation({
+    currentUserId,
+    otherUserId: activeContact?.id ?? null,
+    apartmentId,
+    onConversationRead,
+  });
+
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  // Fetch existing messages
-  useEffect(() => {
-    if (!activeContact) {
-      return;
-    }
-
-    let isCancelled = false;
-
-    const fetchMessages = async () => {
-      setIsLoading(true);
-      setIsContactTyping(false);
-
-      let query = supabase
-        .from("chat")
-        .select("*")
-        .or(
-          `and(sender_id.eq.${currentUserId},receiver_id.eq.${activeContact.id}),` +
-          `and(sender_id.eq.${activeContact.id},receiver_id.eq.${currentUserId})`
-        )
-        .order("created_at", { ascending: true });
-
-      if (apartmentId) {
-        query = query.eq("apartment_id", apartmentId);
-      }
-
-      const { data, error } = await query;
-
-      if (!isCancelled) {
-        if (!error && data) setMessages(data as Message[]);
-        setIsLoading(false);
-      }
-    };
-
-    fetchMessages();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [activeContact, apartmentId, currentUserId, supabase]);
 
   // Mark incoming messages as read when this conversation is opened
   useEffect(() => {
@@ -101,10 +82,7 @@ export default function ConversationView({
     const markAsRead = async () => {
       let query = supabase
         .from("chat")
-        .update({
-          is_read: true,
-          read_at: new Date().toISOString(),
-        })
+        .update({ is_read: true, read_at: new Date().toISOString() })
         .select("id")
         .eq("sender_id", activeContact.id)
         .eq("receiver_id", currentUserId)
@@ -121,19 +99,17 @@ export default function ConversationView({
       }
     };
 
-    markAsRead();
+    void markAsRead();
   }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
   // Realtime: new messages + typing presence
   useEffect(() => {
-    if (!activeContact) return;
+    if (!activeContact || !conversationId) return;
 
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
-
-    const conversationId = [currentUserId, activeContact.id].sort().join("_");
 
     const channel = supabase
       .channel(`conversation:${conversationId}`, {
@@ -147,24 +123,25 @@ export default function ConversationView({
           table: "chat",
           filter: `sender_id=eq.${activeContact.id}`,
         },
-        (payload: { new: Message }) => {
-          const incoming = payload.new as Message;
-          if (apartmentId && incoming.apartment_id !== apartmentId) {
-            return;
-          }
-          if (incoming.receiver_id === currentUserId) {
-            setMessages((prev) => [...prev, incoming]);
-            void supabase
-              .from("chat")
-              .update({
-                is_read: true,
-                read_at: new Date().toISOString(),
-              })
-              .eq("id", incoming.id)
-              .eq("receiver_id", currentUserId)
-              .eq("is_read", false);
-            onConversationRead?.(activeContact.conversationKey);
-          }
+        (payload: { new: Record<string, unknown> }) => {
+          const incoming = payload.new as unknown as ChatMessage;
+          if (apartmentId && incoming.apartment_id !== apartmentId) return;
+          if (incoming.receiver_id !== currentUserId) return;
+
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id)
+              ? prev
+              : [...prev, { ...incoming, reactions: incoming.reactions ?? [] }]
+          );
+
+          void supabase
+            .from("chat")
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .eq("id", incoming.id)
+            .eq("receiver_id", currentUserId)
+            .eq("is_read", false);
+
+          onConversationRead?.(activeContact.conversationKey);
         }
       )
       .on("presence", { event: "sync" }, () => {
@@ -172,9 +149,9 @@ export default function ConversationView({
         const contactState = state[activeContact.id];
         setIsContactTyping(contactState?.[0]?.isTyping ?? false);
       })
-      .subscribe(async (status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR") => {
+      .subscribe((status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR") => {
         if (status === "SUBSCRIBED") {
-          await channel.track({ isTyping: false });
+          void channel.track({ isTyping: false });
         }
       });
 
@@ -182,62 +159,56 @@ export default function ConversationView({
 
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [activeContact, apartmentId, currentUserId, supabase, onConversationRead]);
+  }, [
+    activeContact,
+    apartmentId,
+    conversationId,
+    currentUserId,
+    supabase,
+    setMessages,
+    onConversationRead,
+  ]);
 
   // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isContactTyping]);
 
-  const handleSend = async (content: string) => {
-    if (!activeContact) return;
+  const handleSend = useCallback(
+    (content: string) => void sendMessage(content, replyTarget?.id ?? null),
+    [replyTarget, sendMessage]
+  );
 
-    const optimistic: Message = {
-      id: crypto.randomUUID(),
-      sender_id: currentUserId,
-      receiver_id: activeContact.id,
-      message: content,
-      is_read: false,
-      read_at: null,
-      apartment_id: apartmentId ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimistic]);
+  const handleTypingChange = useCallback(
+    async (isTyping: boolean) => {
+      if (channelRef.current) await channelRef.current.track({ isTyping });
+    },
+    []
+  );
 
-    const { error } = await supabase.from("chat").insert({
-      sender_id: currentUserId,
-      receiver_id: activeContact.id,
-      message: content,
-      apartment_id: apartmentId ?? null,
-      is_read: false,
-    });
-
-    if (error) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      console.error("Failed to send:", error.message);
+  const handleCopy = useCallback(async (text: string) => {
+    closeContextMenu();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error("Copy failed:", err);
     }
-  };
-
-  const handleTypingChange = async (isTyping: boolean) => {
-    if (channelRef.current) {
-      await channelRef.current.track({ isTyping });
-    }
-  };
+  }, [closeContextMenu]);
 
   // Empty State
   if (!activeContact) {
     return (
-      <div className={`min-w-0 flex-1 flex-col items-center justify-center text-center px-8 py-16 bg-card ${className}`}>
-        {/* Icon cluster */}
+      <div
+        className={`min-w-0 flex-1 flex-col items-center justify-center text-center px-8 py-16 bg-card ${className}`}
+      >
         <div className="relative mb-8">
           <div className="w-18 h-18 rounded-full bg-primary/10 border border-border flex items-center justify-center">
             <MessageSquare className="w-7 h-7 text-primary" />
           </div>
         </div>
 
-        {/* Copy */}
         <p className="text-sm font-medium text-foreground mb-1.5">
           No conversation selected
         </p>
@@ -249,10 +220,12 @@ export default function ConversationView({
   }
 
   return (
-    <div className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card ${className}`}>
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card ${className}`}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
-        {/* Mobile master-detail: return to the contact list. */}
+      <div className="p-3 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
         {onBack && (
           <button
             type="button"
@@ -276,17 +249,17 @@ export default function ConversationView({
         />
 
         <div>
-          <h2 className="text-lg font-bold text-foreground leading-tight">
+          <h2 className="text-base font-bold text-foreground leading-tight">
             {activeContact.name}
           </h2>
-          <p className="text-sm text-muted-foreground font-medium">
+          <p className="text-xs text-muted-foreground font-medium">
             {activeContact.apartment}
           </p>
         </div>
       </div>
 
       {/* Chat History */}
-      <ScrollShadow 
+      <ScrollShadow
         className="min-h-0 flex-1 overflow-y-auto bg-muted/20 dark:bg-background p-4"
         visibility="none"
       >
@@ -297,37 +270,32 @@ export default function ConversationView({
         ) : (
           <div className="flex flex-col gap-4">
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
+              <div className="flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
                 <p className="text-sm font-medium text-foreground">No messages yet</p>
-                <p className="text-xs text-default-500">Say hi to start the conversation.</p>
+                <p className="text-xs text-default-500">
+                  Say hi to start the conversation.
+                </p>
               </div>
             ) : (
-              messages.map((msg) => {
-                const isMine = msg.sender_id === currentUserId;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col max-w-[80%] ${
-                      isMine 
-                        ? "self-end items-end" 
-                        : "self-start items-start"
-                    }`}
-                  >
-                    <div
-                      className={`p-3 rounded-2xl shadow-sm ${
-                        isMine
-                          ? "bg-primary text-primary-foreground rounded-tr-none"
-                          : "bg-card text-foreground border border-border rounded-tl-none"
-                      }`}
-                    >
-                      <p className="text-sm">{msg.message}</p>
-                    </div>
-                    <span className="text-[10px] mt-1 text-muted-foreground">
-                      {formatTime(msg.created_at)}
-                    </span>
-                  </div>
-                );
-              })
+              messages.map((msg) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isMine={msg.sender_id === currentUserId}
+                  currentUserId={currentUserId}
+                  otherUserName={activeContact.name}
+                  onToggleReaction={toggleReaction}
+                  onReply={handleReply}
+                  onOpenContextMenu={(position) => openContextMenu(msg, position)}
+                  onOpenEmojiPicker={() => {
+                    openContextMenu(msg, {
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2,
+                    });
+                    setIsEmojiPickerOpen(true);
+                  }}
+                />
+              ))
             )}
 
             {isContactTyping && <TypingIndicator />}
@@ -337,9 +305,56 @@ export default function ConversationView({
         )}
       </ScrollShadow>
 
-      <MessageInput 
-        onSend={handleSend} 
-        onTypingChange={handleTypingChange} 
+      <MessageInput
+        onSend={handleSend}
+        onTypingChange={handleTypingChange}
+        replyTarget={replyTarget}
+        replyLabel={
+          replyTarget
+            ? replyTarget.sender_id === currentUserId
+              ? "your message"
+              : activeContact.name
+            : undefined
+        }
+        onClearReply={clearReply}
+      />
+
+      {contextMenu && (
+        <MessageContextMenu
+          data={{
+            myReaction: contextMenu.message.reactions.find((r) => r.is_mine)?.emoji,
+            dateLabel: new Date(contextMenu.message.created_at).toLocaleString([], {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }),
+            canReact: !contextMenu.message.isPending && !contextMenu.message.id.startsWith("temp-"),
+            canCopy: (contextMenu.message.message_type ?? "text") === "text" && !!contextMenu.message.message,
+          }}
+          position={contextMenu.position}
+          onSelectReaction={(emoji) => {
+            void toggleReaction(contextMenu.message.id, emoji);
+            closeContextMenu();
+          }}
+          onOpenFullPicker={() => setIsEmojiPickerOpen(true)}
+          onReply={() => {
+            handleReply(contextMenu.message);
+            closeContextMenu();
+          }}
+          onCopy={() => {
+            if (contextMenu.message.message) {
+              void handleCopy(contextMenu.message.message);
+            }
+          }}
+          onClose={closeContextMenu}
+        />
+      )}
+
+      <EmojiPicker
+        isOpen={isEmojiPickerOpen}
+        onClose={() => setIsEmojiPickerOpen(false)}
+        onEmojiSelected={(emoji) => {
+          if (contextMenu) void toggleReaction(contextMenu.message.id, emoji);
+        }}
       />
     </div>
   );
