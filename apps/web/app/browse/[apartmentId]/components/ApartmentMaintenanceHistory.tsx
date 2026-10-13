@@ -1,7 +1,7 @@
 "use client";
 
 import { Chip, Spinner } from "@heroui/react";
-import { Wrench } from "lucide-react";
+import { IconTools } from "@tabler/icons-react";
 
 import { CATEGORIES } from "@/app/tenant/maintenance/data/maintenance-data";
 import type { ApartmentMaintenanceHistoryItem } from "@/service/apartmentMaintenanceHistoryService";
@@ -37,7 +37,7 @@ export default function ApartmentMaintenanceHistory({
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <Wrench size={20} className="text-primary" />
+        <IconTools size={20} className="text-primary" />
         <h2 className="text-lg font-medium text-foreground">Maintenance history</h2>
       </div>
       <p className="text-sm text-foreground mb-4">

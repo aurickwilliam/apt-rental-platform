@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, toast } from "@heroui/react";
-import { Heart } from "lucide-react";
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 
@@ -58,11 +58,11 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
         isDisabled={loading}
         onPress={handleToggleFavorite}
       >
-        <Heart
-          size={20}
-          className={favorited ? "text-red-500" : "text-default-500"}
-          fill={favorited ? "currentColor" : "none"}
-        />
+        {favorited ? (
+          <IconHeartFilled size={20} className="text-red-500" />
+        ) : (
+          <IconHeart size={20} className="text-default-500" />
+        )}
       </Button>
 
       <AuthPromptModal

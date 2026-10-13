@@ -6,7 +6,16 @@ import MapLocation from "./MapLocation";
 
 import { Separator } from "@heroui/react";
 
-import { House, BedDouble, Bath, Expand, Users, Building2, Calendar, Armchair } from "lucide-react";
+import {
+  IconHome,
+  IconBed,
+  IconBath,
+  IconArrowsMaximize,
+  IconUsers,
+  IconBuilding,
+  IconCalendar,
+  IconArmchair,
+} from "@tabler/icons-react";
 
 import ApartmentReviewsPreview from "./ApartmentReviewsPreview";
 import RelatedApartments from "./RelatedApartments";
@@ -139,50 +148,50 @@ export default async function ApartmentDetailView({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
             <div className="flex gap-2 items-center">
-              <House size={22} className="text-grey-700" />
+              <IconHome size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.type}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <BedDouble size={22} className="text-grey-700" />
+              <IconBed size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.no_bedrooms} Bedroom{apartment.no_bedrooms !== 1 ? 's' : ''}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <Bath size={22} className="text-grey-700" />
+              <IconBath size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.no_bathrooms} Bathroom{apartment.no_bathrooms !== 1 ? 's' : ''}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <Expand size={22} className="text-grey-700" />
+              <IconArrowsMaximize size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.area_sqm} sqm
               </h2>
             </div>
 
             <div className="flex gap-2 items-center">
-              <Building2 size={22} className="text-grey-700" />
+              <IconBuilding size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.floor_level}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <Users size={22} className="text-grey-700" />
+              <IconUsers size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.max_occupants} Occupant{apartment.max_occupants !== 1 ? 's' : ''}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <Calendar size={22} className="text-grey-700" />
+              <IconCalendar size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.lease_duration}
               </h2>
             </div>
             <div className="flex gap-2 items-center">
-              <Armchair size={22} className="text-grey-700" />
+              <IconArmchair size={22} className="text-grey-700" />
               <h2 className="text-base font-medium text-grey-700">
                 {apartment.furnished_type}
               </h2>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Button } from "@heroui/react";
-import { Expand, Navigation } from "lucide-react";
+import { IconMaximize, IconNavigation } from "@tabler/icons-react";
 
 
 // Types and constants of the mode of transporatation for directions in Google Maps
@@ -108,7 +108,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
             onPress={handleOpenDirections}
             variant="tertiary"
           >
-            <Navigation size={16} />
+            <IconNavigation size={16} />
             <p>Get Directions</p>
           </Button>
           
@@ -119,7 +119,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
             onPress={() => setIsExpandOpen(true)}
             variant="tertiary"
           >
-            <Expand size={16} />
+            <IconMaximize size={16} />
           </Button>
         </div>
       </div>

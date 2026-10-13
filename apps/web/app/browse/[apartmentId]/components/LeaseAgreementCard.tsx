@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Button, Card } from "@heroui/react";
-import { FileText } from "lucide-react";
+import { IconFileText } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
 
@@ -61,7 +61,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCa
               isDisabled={viewingLease}
               onPress={handleViewLease}
             >
-              <FileText size={16} />
+              <IconFileText size={16} />
               {viewingLease ? "Opening..." : "View Lease Agreement"}
             </Button>
           </>

@@ -8,7 +8,7 @@ import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/componen
 
 import { Button } from "@heroui/react";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 type Props = {
   apartments: {
@@ -40,14 +40,14 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
             isIconOnly
             onPress={() => api?.scrollPrev()}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             isIconOnly
             onPress={() => api?.scrollNext()}
           >
-            <ChevronRight className="w-4 h-4" />
+            <IconChevronRight className="w-4 h-4" />
           </Button>
         </div>
 

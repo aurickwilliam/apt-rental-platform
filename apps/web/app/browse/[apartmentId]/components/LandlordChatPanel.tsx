@@ -10,7 +10,7 @@ import {
   Modal,
 } from "@heroui/react";
 
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 
 import LandlordCard from "./LandlordCard";
 import ConversationView from "../../../tenant/messages/components/ConversationView";
@@ -131,7 +131,7 @@ export default function LandlordChatPanel({
           <div className="flex flex-row items-center justify-between gap-3 p-4 shrink-0">
             <h3 className="text-base font-semibold text-foreground">Message</h3>
             <Button isIconOnly variant="tertiary" onPress={handleClosePanel} size="sm">
-              <X size={18} />
+              <IconX size={18} />
             </Button>
           </div>
 

@@ -7,8 +7,8 @@ import {
 } from "@heroui/react";
 
 import {
-  MessageSquare
-} from "lucide-react";
+  IconMessage
+} from "@tabler/icons-react";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
@@ -75,7 +75,7 @@ export default function LandlordCard({
                   isDisabled={isMessageDisabled}
                   onPress={onMessagePress}
                 >
-                  <MessageSquare size={20} className="text-secondary dark:text-[#FFA500]" />
+                  <IconMessage size={20} className="text-secondary dark:text-[#FFA500]" />
                 </Button>
               </span>
             </Tooltip.Trigger>

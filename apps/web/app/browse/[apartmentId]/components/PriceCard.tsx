@@ -6,7 +6,7 @@ import {
   Separator
 } from "@heroui/react";
 
-import { Flag } from "lucide-react";
+import { IconFlag } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -94,7 +94,7 @@ export default function PriceCard({
           className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
           fullWidth
         >
-          <Flag size={16} />
+          <IconFlag size={16} />
           Report
         </Button>
       </Card.Footer>

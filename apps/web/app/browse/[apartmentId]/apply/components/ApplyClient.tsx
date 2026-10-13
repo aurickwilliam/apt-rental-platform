@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, useOverlayState } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
@@ -107,7 +107,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
       <div className="mb-4 flex items-center gap-2">
         {step !== "submitted" ? (
           <Button variant="outline" size="sm" isDisabled={isSubmitting} onPress={goBack}>
-            <ArrowLeft size={16} />
+            <IconArrowLeft size={16} />
             Back
           </Button>
         ) : null}
