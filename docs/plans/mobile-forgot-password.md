@@ -80,7 +80,7 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
    - Remove hard-coded contact data, unconditional success navigation, and fake OTP verification from the recovery flow.
    - Do not reuse the signup OTP flow: it has signup-specific account-creation behavior and cannot safely verify password-recovery credentials.
    - Add service unit tests (co-located in `service/auth/`) covering reset requests, resend via `resetPasswordForEmail`, recovery-code verification, the Google-only identity check, password update, sign-out, and every error mapping listed in Phase 2.
-   - Add screen tests in `apps/mobile/tests/forgot-password/` (like `tests/verify-account/`: Jest cannot load `app/(auth)` test files, and `heroui-native` is stubbed via `heroUINativeStub.tsx`). The email and code screens are covered since Phase 3; add the reset-screen cases, for invalid email, pending/disabled controls, neutral success messaging, expired/invalid codes, the Google-only message, failed password update, abandoning the reset screen (sign-out), and successful sign-out/navigation.
+   - Add screen tests in `apps/mobile/tests/forgot-password/` (next to the other `(auth)` flow tests in `tests/verify-account/`; `heroui-native` ships untranspiled ESM that Jest can't parse, so it is stubbed via `heroUINativeStub.tsx`). The email and code screens are covered since Phase 3; add the reset-screen cases, for invalid email, pending/disabled controls, neutral success messaging, expired/invalid codes, the Google-only message, failed password update, abandoning the reset screen (sign-out), and successful sign-out/navigation.
    - Test email/password, Google-only, and linked Google-plus-password accounts against the post-verification rule.
    - Mock Expo Router and Supabase Auth; assert no email, password, token, or recovery code is written to logs or route parameters.
    - Add a device-level manual test using a non-production test account: request reset, enter the email code, set a new password, verify old-password sign-in fails and new-password sign-in succeeds. Also kill the app on the reset screen and confirm the next launch lands on sign-in, not a portal.
@@ -108,6 +108,10 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
    - Run the new focused recovery tests, then `pnpm --filter mobile exec jest --runInBand`; separately record and avoid changing unrelated existing failures if they remain.
    - Run `graphify update .` after code changes.
    - Update `ARCHITECTURE.md` only if the shipped authentication flow diagram or canonical mobile-auth description changes materially.
+
+**Phase 6 status (2026-10-13):** mobile typecheck, lint and the full Jest suite (`--runInBand`) pass; `graphify update .` run. The mobile-auth description did change materially (new flow, and the `app/index.tsx` bootstrap now signs out an unfinished reset), so `ARCHITECTURE.md` §4.4 gained the recovery sequence and a "Password recovery" note, and a new §4.5 documents the auth email templates and their rollout. `AGENTS.md` records the durable rules (recovery service usage, never leaving a recovery session behind, no account-type lookup before verification, template rollout and no embedded fonts).
+
+**Remaining:** only the manual device test in Phase 5.
 
 ## Out of scope / follow-ups
 
