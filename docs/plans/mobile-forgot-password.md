@@ -50,6 +50,7 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
    - Update `apps/mobile/app/(auth)/forgot-password/index.tsx` to collect and validate an email using the existing `isValidEmail` helper from `@repo/utils`.
    - Disable the submit action while the request is pending, surface inline validation/network errors, and show a neutral “check your email” confirmation after Supabase accepts the request.
    - Remove the non-functional SMS choice.
+   - Show a static note on the email screen, visible to everyone, e.g. "Signed up with Google? You don't have a password — use Continue with Google on the sign-in screen instead." It involves no account lookup, so it reveals nothing about whether an account exists; the post-verification Google-only check below remains the safety net.
    - Hold the submitted email in local in-memory state shared by the recovery screens (e.g. a small Zustand store in `stores/` with `reset()`, cleared when the flow ends) — not in route params.
    - Repurpose `forgot-password/otp-verification.tsx` as the email recovery-code screen: show the email the code was sent to, verify the code, then:
      - if the account has an email/password identity, navigate to reset password;
