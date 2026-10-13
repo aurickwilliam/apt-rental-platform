@@ -4,7 +4,7 @@
 
 Implemented on `feature/web-forgot-password`. The new recovery email wording was pushed to the hosted `APT` project on 2026-10-13 (only the recovery template differed; all templates verified to match the repo afterwards). Remaining:
 
-- End-to-end checks that need a real recovery code from an inbox (verify, Google-only, reset, global sign-out, 30-minute expiry).
+- Nothing. Real-inbox checks passed on 2026-10-13: normal reset, same-password error, Cancel and Back, Google-only account, 30-minute expiry (simulated by editing the marker), and global sign-out seen from a second browser. A linked Google + email account was not tested separately; it takes the same path as a password account.
 
 Deviations from the original plan, found during implementation:
 
