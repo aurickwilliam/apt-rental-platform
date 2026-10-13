@@ -5785,8 +5785,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/ComingSoonChip.tsx": {
-    "mtime": 1790931259.7214284,
-    "ast_hash": "755ba8481d1f801a739b794d356b9344",
+    "mtime": 1791883005.6255765,
+    "ast_hash": "3be0c92d0719734a49c0408d8a3e440c",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SectionTitle.tsx": {
@@ -5805,8 +5805,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SettingsRow.tsx": {
-    "mtime": 1791817391.53939,
-    "ast_hash": "babc1c8e4192cdd8831d723d83ad1d39",
+    "mtime": 1791883024.2067041,
+    "ast_hash": "ece5f0bcef7f9c94d4e8ebf72ff643ba",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/ToggleSwitch.tsx": {
@@ -5840,8 +5840,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/tabs/SecurityTab.tsx": {
-    "mtime": 1791817391.541383,
-    "ast_hash": "57a425368b666092f00043cf10c32a5c",
+    "mtime": 1791883024.1495557,
+    "ast_hash": "8710c4838e60e824fb0978bdb04eed91",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/profile/loading.tsx": {
@@ -7020,8 +7020,8 @@
     "semantic_hash": ""
   },
   "docs/plans/web-change-password.md": {
-    "mtime": 1791882889.3964784,
-    "ast_hash": "a3306e7abafb4d202a70a0faac67d6ab",
+    "mtime": 1791883129.0470526,
+    "ast_hash": "f13276b2dd0b36672cc3d163e79b54ef",
     "semantic_hash": ""
   },
   "packages/utils/src/passwordChange.test.ts": {
@@ -7055,8 +7055,18 @@
     "semantic_hash": ""
   },
   "apps/web/hooks/use-password-sign-in-status.ts": {
-    "mtime": 1791882849.7076871,
-    "ast_hash": "308c34693c175089eec0b7e34ea58299",
+    "mtime": 1791883075.952616,
+    "ast_hash": "36e137c5fd3d292df499462a20fead35",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/settings/ChangePasswordForm.tsx": {
+    "mtime": 1791883005.656644,
+    "ast_hash": "43576bd25071c91302771004f0bbcd9b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/settings/StatusChip.tsx": {
+    "mtime": 1791883005.5845094,
+    "ast_hash": "71f0d7494d545f2380cebab0b6a76915",
     "semantic_hash": ""
   }
 }
