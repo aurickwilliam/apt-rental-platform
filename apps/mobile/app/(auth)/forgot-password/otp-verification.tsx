@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { Keyboard, View, Text, Pressable } from "react-native";
 import { useRef, useState } from "react";
 import { Redirect, useRouter } from "expo-router";
 
@@ -72,6 +72,9 @@ export default function RecoveryCodeVerification() {
 
   const handleVerify = async (value: string = code) => {
     if (verifying || value.length < RECOVERY_CODE_LENGTH) return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
 
     setVerifying(true);
     setCodeError(null);

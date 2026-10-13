@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { Keyboard, View, Text } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -52,6 +52,9 @@ export default function ForgotPassword() {
 
   const handleSendCode = async () => {
     if (loading) return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {

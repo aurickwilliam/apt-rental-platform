@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { Keyboard, View, Text } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -72,6 +72,9 @@ export default function ChangePassword() {
 
   const handleSubmit = async () => {
     if (saving) return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
     setSubmitted(true);
     if (!currentPassword || !isPasswordValid) return;
 

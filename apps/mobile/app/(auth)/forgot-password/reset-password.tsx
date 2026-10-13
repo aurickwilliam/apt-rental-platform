@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { Keyboard, View, Text } from 'react-native'
 import { useEffect, useRef, useState } from 'react';
 import { Redirect, useNavigation, useRouter } from 'expo-router';
 
@@ -145,6 +145,9 @@ export default function ResetPassword() {
   // Handle form submission
   const handleSubmit = async () => {
     if (saving || sessionCheck !== 'valid') return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
     setSubmitted(true);
 
     if (!isPasswordValid) {
