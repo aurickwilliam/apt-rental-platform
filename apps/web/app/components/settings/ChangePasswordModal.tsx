@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
-import { Button, Form, toast } from "@heroui/react";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { Button, Form, Modal, toast } from "@heroui/react";
+import { IconKey, IconShieldCheck } from "@tabler/icons-react";
 
 import { usePasswordValidation } from "@repo/hooks";
 import { getPasswordChangeErrorField, PasswordError } from "@repo/utils";
@@ -13,16 +13,22 @@ import ErrorBanner from "@/app/components/display/ErrorBanner";
 import NewPasswordFields from "@/app/components/inputs/NewPasswordFields";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
+const FORM_ID = "change-password-form";
+
+type Step = "form" | "success";
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
-interface ChangePasswordFormProps {
-  onClose: () => void;
+interface ChangePasswordModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 // Settings → Security → Change Password, mirroring mobile
-// (app/settings/change-password.tsx). Passwords live only in this component's
-// state; closing it (back, Cancel or success) discards them.
-export default function ChangePasswordForm({ onClose }: ChangePasswordFormProps) {
+// (app/settings/change-password.tsx). Opened from the Security tab, which
+// closes the Settings modal first. On success the form is replaced by a
+// confirmation (like forgot-password's "Password Updated" page). Passwords
+// live only in this component's state and are cleared on success or close.
+export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePasswordModalProps) {
   const {
     password,
     setPassword,
@@ -38,12 +44,15 @@ export default function ChangePasswordForm({ onClose }: ChangePasswordFormProps)
   const [serverCurrentPasswordError, setServerCurrentPasswordError] = useState<string | null>(null);
   const [serverNewPasswordError, setServerNewPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>("form");
 
-  // Announce the sub-view to keyboard and screen-reader users.
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    headingRef.current?.focus();
-  }, []);
+  // Each opening starts at the form. Reset here rather than on close so the
+  // confirmation doesn't flash back to the form during the exit animation.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) setStep("form");
+  }
 
   const currentPasswordError = (() => {
     if (submitted && !currentPassword) return "Please enter your current password.";
@@ -63,6 +72,23 @@ export default function ChangePasswordForm({ onClose }: ChangePasswordFormProps)
     if (submitted && password !== confirmPassword) return "Passwords do not match";
     return null;
   })();
+
+  const reset = () => {
+    setCurrentPassword("");
+    setPassword("");
+    setConfirmPassword("");
+    setSubmitted(false);
+    setServerCurrentPasswordError(null);
+    setServerNewPasswordError(null);
+    setError(null);
+  };
+
+  // Stays open while a change is in flight, so the result is never lost.
+  const handleOpenChange = (open: boolean) => {
+    if (!open && saving) return;
+    if (!open) reset();
+    onOpenChange(open);
+  };
 
   const handleCurrentPasswordChange = (value: string) => {
     setCurrentPassword(value);
@@ -87,8 +113,12 @@ export default function ChangePasswordForm({ onClose }: ChangePasswordFormProps)
       try {
         const { error: reason } = await changePassword(currentPassword, password);
         if (!reason) {
-          toast.success("Password updated", { description: "Other devices were signed out." });
-          onClose();
+          toast.success("Password updated", {
+            description: "Other devices were signed out.",
+            indicator: <IconShieldCheck size={20} aria-hidden="true" />,
+          });
+          reset();
+          setStep("success");
           return;
         }
 
@@ -106,82 +136,115 @@ export default function ChangePasswordForm({ onClose }: ChangePasswordFormProps)
   };
 
   return (
-    <>
-      <div className="flex items-center gap-1">
-        <Button
-          isIconOnly
-          variant="ghost"
-          className="-ml-2 cursor-pointer"
-          aria-label="Back to Security"
-          isDisabled={saving}
-          onPress={onClose}
-        >
-          <IconArrowLeft size={20} />
-        </Button>
-        <h2
-          ref={headingRef}
-          tabIndex={-1}
-          className="font-nunito text-lg font-bold text-primary focus:outline-none"
-        >
-          Change Password
-        </h2>
-      </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Enter your current password, then choose a new one. You’ll stay signed
-        in here, and any other devices will be signed out.
-      </p>
+    <Modal isOpen={isOpen} onOpenChange={handleOpenChange}>
+      <Modal.Backdrop isDismissable={!saving}>
+        <Modal.Container placement="center" size="lg" scroll="inside">
+          {/* Wider than HeroUI's lg (32rem); a plain max-w-* loses the cascade (see SettingsModal). */}
+          <Modal.Dialog className="w-full max-w-xl!">
+            <Modal.CloseTrigger
+              aria-label="Close change password"
+              className="cursor-pointer text-foreground"
+            />
+            {step === "success" ? (
+              <>
+                <Modal.Body className="flex flex-col items-center pt-2 text-center">
+                  <div className="rounded-full bg-primary/10 p-4">
+                    <IconShieldCheck size={40} className="text-primary" aria-hidden="true" />
+                  </div>
+                  <Modal.Heading className="mt-5 font-nunito text-2xl font-bold text-foreground">
+                    Password Updated
+                  </Modal.Heading>
+                  <p className="mt-2 text-base text-muted-foreground">
+                    Great! Your new password is ready to use. You’re still signed
+                    in here, and any other devices were signed out. We’ve also
+                    emailed you a confirmation.
+                  </p>
+                </Modal.Body>
+                <Modal.Footer>
+                  {/* The focused submit button is gone; land focus here instead. */}
+                  <Button
+                    autoFocus
+                    className="w-full cursor-pointer"
+                    onPress={() => handleOpenChange(false)}
+                  >
+                    Done
+                  </Button>
+                </Modal.Footer>
+              </>
+            ) : (
+              <>
+                <Modal.Header>
+                  <Modal.Heading className="flex items-center font-nunito text-2xl font-bold text-primary">
+                    <IconKey size={24} className="mr-2" aria-hidden="true" />
+                    Change Password
+                  </Modal.Heading>
+                </Modal.Header>
 
-      {error && <ErrorBanner message={error} />}
+                <Modal.Body>
+                  <p className="text-sm text-muted-foreground">
+                    Enter your current password, then choose a new one. You’ll stay
+                    signed in here, and any other devices will be signed out.
+                  </p>
 
-      <Form
-        className="mt-4 flex max-w-md flex-col gap-4"
-        validationBehavior="aria"
-        onSubmit={handleSubmit}
-      >
-        <PasswordField
-          isRequired
-          label="Current Password"
-          name="currentPassword"
-          placeholder="Enter your current password"
-          autoComplete="current-password"
-          value={currentPassword}
-          onChange={handleCurrentPasswordChange}
-          isInvalid={!!currentPasswordError}
-          errorMessage={currentPasswordError ?? undefined}
-          isDisabled={saving}
-        />
+                  {error && <ErrorBanner message={error} />}
 
-        <NewPasswordFields
-          password={password}
-          confirmPassword={confirmPassword}
-          onPasswordChange={handlePasswordChange}
-          onConfirmPasswordChange={setConfirmPassword}
-          requirements={passwordRequirements}
-          passwordError={newPasswordError}
-          confirmPasswordError={confirmPasswordError}
-          isDisabled={saving}
-        />
+                  <Form
+                    id={FORM_ID}
+                    className="mt-4 flex flex-col gap-4"
+                    validationBehavior="aria"
+                    onSubmit={handleSubmit}
+                  >
+                    <PasswordField
+                      isRequired
+                      label="Current Password"
+                      name="currentPassword"
+                      placeholder="Enter your current password"
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={handleCurrentPasswordChange}
+                      isInvalid={!!currentPasswordError}
+                      errorMessage={currentPasswordError ?? undefined}
+                      isDisabled={saving}
+                    />
 
-        {/* Cancel + main action side by side; Cancel stays quiet (tertiary). */}
-        <div className="mt-2 flex gap-3">
-          <Button
-            variant="tertiary"
-            className="flex-1 cursor-pointer"
-            isDisabled={saving}
-            onPress={onClose}
-          >
-            Cancel
-          </Button>
-          <Button
-            className="flex-1 cursor-pointer"
-            type="submit"
-            isPending={saving}
-            isDisabled={saving}
-          >
-            {saving ? "Updating..." : "Update Password"}
-          </Button>
-        </div>
-      </Form>
-    </>
+                    <NewPasswordFields
+                      password={password}
+                      confirmPassword={confirmPassword}
+                      onPasswordChange={handlePasswordChange}
+                      onConfirmPasswordChange={setConfirmPassword}
+                      requirements={passwordRequirements}
+                      passwordError={newPasswordError}
+                      confirmPasswordError={confirmPasswordError}
+                      isDisabled={saving}
+                    />
+                  </Form>
+                </Modal.Body>
+
+                {/* Cancel + main action side by side; Cancel stays quiet (tertiary). */}
+                <Modal.Footer className="flex gap-3">
+                  <Button
+                    variant="tertiary"
+                    className="flex-1 cursor-pointer"
+                    isDisabled={saving}
+                    onPress={() => handleOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 cursor-pointer"
+                    type="submit"
+                    form={FORM_ID}
+                    isPending={saving}
+                    isDisabled={saving}
+                  >
+                    {saving ? "Updating..." : "Update Password"}
+                  </Button>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

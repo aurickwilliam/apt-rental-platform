@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   IconExternalLink,
@@ -12,16 +11,16 @@ import { usePasswordSignInStatus } from "@/hooks/use-password-sign-in-status";
 import SettingsRow from "../SettingsRow";
 import ComingSoonChip from "../ComingSoonChip";
 import StatusChip from "../StatusChip";
-import ChangePasswordForm from "../ChangePasswordForm";
-
-type SecurityView = "list" | "change-password";
 
 export default function SecurityTab({
   isAdmin = false,
+  onChangePassword,
 }: {
   isAdmin?: boolean;
+  // Closes Settings and opens the Change Password modal.
+  onChangePassword: () => void;
 }) {
-  if (!isAdmin) return <AccountSecurity />;
+  if (!isAdmin) return <AccountSecurity onChangePassword={onChangePassword} />;
 
   return (
     <>
@@ -54,31 +53,9 @@ export default function SecurityTab({
   );
 }
 
-// Tenant/landlord credentials. Change Password opens as a sub-view in this
-// tab (mobile opens a separate screen); Google-only accounts have no password.
-function AccountSecurity() {
+// Tenant/landlord credentials. Google-only accounts have no password.
+function AccountSecurity({ onChangePassword }: { onChangePassword: () => void }) {
   const { status, loading } = usePasswordSignInStatus();
-  const [view, setView] = useState<SecurityView>("list");
-
-  // Back on the list after the form closes, return focus to its row.
-  const rowsRef = useRef<HTMLDivElement>(null);
-  const restoreFocus = useRef(false);
-  useEffect(() => {
-    if (view !== "list" || !restoreFocus.current) return;
-    restoreFocus.current = false;
-    rowsRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
-  }, [view]);
-
-  if (view === "change-password") {
-    return (
-      <ChangePasswordForm
-        onClose={() => {
-          restoreFocus.current = true;
-          setView("list");
-        }}
-      />
-    );
-  }
 
   const canChangePassword = !loading && status === "has_password";
 
@@ -88,11 +65,11 @@ function AccountSecurity() {
       <p className="mt-1 text-sm text-muted-foreground">
         Manage your account credentials.
       </p>
-      <div ref={rowsRef} className="mt-3 divide-y divide-border">
+      <div className="mt-3 divide-y divide-border">
         <SettingsRow
           icon={<IconKey size={18} />}
           title="Change Password"
-          onClick={() => setView("change-password")}
+          onClick={onChangePassword}
           disabled={!canChangePassword}
           suffix={
             !loading && status === "no_password" ? (

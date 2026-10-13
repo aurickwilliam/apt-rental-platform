@@ -23,10 +23,10 @@ Turn the disabled **Change Password** row in the web Settings modal (Security ta
   - Google-only accounts see the row disabled with a "Signed in with Google" chip instead of "Coming soon".
 - **Current password is required by the app.** The server action checks it with `signInWithPassword` before `updateUser`. Supabase's project-wide "require current password" setting stays **off**: turning it on would also block the forgot-password recovery session. So this is an app-flow check, not a server-enforced one — same accepted trade-off as mobile.
 - **After a successful change:** this browser stays signed in (other tabs share the same cookies, so they stay signed in too), and every other session ends with `signOut({ scope: "others" })`. Supabase sends the "password changed" email automatically.
-- **Where the form lives: inside the Security tab, as a sub-view.**
-  - Clicking the row swaps the tab's content for the form, with a back button to return to the list.
-  - No second modal on top of the Settings modal, and no new route. This matches mobile's "Settings → separate screen" feel inside the one modal.
-  - The sub-view is local state in `SecurityTab`. It is not in the URL, so a refresh returns to the list and no password can end up in a URL.
+- **Where the form lives: its own modal.** (Changed after review. The first version was a sub-view inside the Security tab.)
+  - Clicking the row closes the Settings modal and opens a separate Change Password modal.
+  - The modal's open state is local state in `SettingsOverlay`. It is not in the URL, so no password can end up in a URL.
+  - The passwords are cleared whenever the modal closes. While a change is in flight, the modal can't be dismissed.
 - **Tenants and landlords only.** The admin branch of `SecurityTab` (the "Password and email: not available here yet" card and the privacy-policy link) is not touched.
 - **Server action, not the browser client.** This matches web sign-in and password recovery. The session cookies are rewritten on the server in one place, and passwords never go through browser-side Supabase calls.
   - Trade-off (same as sign-in): Supabase's per-IP sign-in limits count the web server's IP. That's fine at current traffic.
@@ -78,7 +78,7 @@ Add `apps/web/app/(auth)/actions/change-password.ts` (`"use server"`, `createCli
   1. Reject non-string or empty inputs: `wrong_current_password` for the current password, `weak_password` for the new one.
   2. **Recovery guard:** if the `apt-password-recovery` marker cookie is present (`readRecoveryMarker` is not `"none"`), return `session_expired`. Server actions skip the middleware, and a recovery session has its own reset page; this keeps the two flows apart.
   3. Call `changePasswordWith(supabase.auth, currentPassword, newPassword)` and map a thrown `PasswordError` to its reason. Anything else is logged by type only and returned as `unknown`.
-- `signInWithPassword` rewrites the session cookies for the same user. Next.js then re-renders the current page inside the action response. Client state (the open modal and the sub-view) survives that, but **check it in the browser** (Phase 5).
+- `signInWithPassword` rewrites the session cookies for the same user. Next.js then re-renders the current page inside the action response. Client state (the open Change Password modal) survives that, but **check it in the browser** (Phase 5).
 - No `redirect()`: the user stays where they are, so the client doesn't need `unstable_rethrow`.
 
 **Phase 2 status (2026-10-13): done.**
@@ -179,6 +179,35 @@ Move the two forgot-password components that this flow also needs into shared fo
   - The existing navbar `inert` hydration warning, when Settings opens on page load, is unrelated to this change.
   - The dev server uses the hosted Supabase project and the repo has no test accounts. So the signed-in checks (opening the form, each error, a real change) wait for the Phase 5 manual run on your test account.
 
+
+**Follow-up after review (2026-10-13): form moved to its own modal.**
+- `ChangePasswordForm.tsx` was renamed to `app/components/settings/ChangePasswordModal.tsx` (`git mv`), so its history is kept.
+- What the modal looks like:
+  - A HeroUI `Modal`: `placement="center" size="lg" scroll="inside"`, widened to `max-w-xl` (36rem) on the dialog, with a close button and a "Change Password" heading with a key icon.
+  - The body has the intro text, the error banner and the form. The footer has Cancel and Update Password; the submit button reaches the form through `form="change-password-form"`.
+- How it behaves:
+  - The back arrow and the heading-focus effect are gone; the modal handles focus itself.
+  - Every close (X, Escape, backdrop, Cancel, success) clears the passwords and errors.
+  - While saving, closing is blocked (`isDismissable={!saving}`, plus a check in `onOpenChange`).
+- The wiring: `SettingsOverlay` owns `changePasswordOpen`. `onChangePassword` passes down through `SettingsModal` → `SecurityTab` → the row, and runs `close()` (removes `?settings`) followed by `setChangePasswordOpen(true)`. `SecurityTab` no longer has view state.
+- Checks:
+  - Web typecheck and lint pass.
+  - Signed out in the browser: the Security tab renders, Change Password is disabled, and there are no console errors.
+  - Opening the modal needs a signed-in password account, so it's part of the Phase 5 browser checklist.
+
+
+**Follow-up after review (2026-10-13): success confirmation and email.**
+- After a successful change, the modal shows a "Password Updated" confirmation in place of the form, and the toast still shows too.
+  - It matches forgot-password's `/forgot-password/updated` page: a shield-check icon in a `bg-primary/10` circle, the heading, a short message and a full-width Done button (which gets focus).
+  - The passwords are cleared before the confirmation appears.
+  - Each opening starts at the form again. The step resets when the modal opens (checked against the previous `isOpen` value during render), so closing doesn't flash the form.
+- Toasts: HeroUI colors toast descriptions and the close icon with `text-muted`, which here is shadcn's light `--muted` background (#E5E7EB). A `globals.css` override switches them to `text-muted-foreground` (#6C757D) for every toast. The "Password updated" toast uses an `IconShieldCheck` indicator.
+- Email: nothing new to build.
+  - Supabase's `password_changed` notice ("Your APT password was changed", `supabase/templates/password-changed.html`, styled like the recovery email) is enabled on the hosted project and goes out on any password change.
+  - In the hosted Auth logs, both web changes on 2026-10-13 (14:45 and 14:51 UTC) show `user_modified` taking about 3.5 s, which is the SMTP send during the request, and no email errors.
+  - The test inbox is Yahoo, where this email previously landed in Spam.
+  - Adding an app-sent email would send users two.
+
 ### Phase 5 — Verify and document
 
 1. Run:
@@ -199,7 +228,7 @@ Move the two forgot-password components that this flow also needs into shared fo
 3. Docs:
    - ARCHITECTURE.md §4.3: a "Password change" note next to web password recovery (server action, recovery-marker guard, shared `changePasswordWith`).
    - §4.4: say the sequence is now shared through `@repo/utils`.
-   - AGENTS.md: web stack notes get the change-password action and the Security-tab sub-view; the `@repo/utils` package row gains `changePasswordWith` / `getPasswordChangeErrorField`.
+   - AGENTS.md: web stack notes get the change-password action and the Change Password modal; the `@repo/utils` package row gains `changePasswordWith` / `getPasswordChangeErrorField`.
    - DESIGN.md: document the shared web `NewPasswordFields`, `PasswordRequirementList` and `ErrorBanner` locations.
 
 **Phase 5 status (2026-10-13): checks and docs done; browser checklist waiting on a signed-in test account.**
