@@ -62,7 +62,7 @@ export default function PriceCard({
     <>
       {/* Desktop: full card with visible cost breakdown */}
       <div className="hidden lg:block">
-        <Card className="border border-grey-300 shadow-none w-full">
+        <Card className="border border-border shadow-none w-full">
           <Card.Header>
             <Card.Title className="text-2xl sm:text-3xl font-medium text-primary">
               {formattedPrice}<span className="text-base sm:text-xl">/month</span>
@@ -70,19 +70,19 @@ export default function PriceCard({
           </Card.Header>
 
           <Card.Content>
-            <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-lg">
+            <div className="flex flex-col gap-3 bg-muted p-4 rounded-lg">
               {costBreakdown.map(({ label, value }) => (
                 <div key={label} className="flex justify-between text-sm">
-                  <span className="text-grey-500">{label}</span>
-                  <span className="font-medium">{value}</span>
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="font-medium text-foreground">{value}</span>
                 </div>
               ))}
 
               <Separator />
 
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Total Move-in Cost:</span>
-                <span className="font-medium">{formatPesoDisplay(totalMoveInCost)}</span>
+                <span className="font-medium text-foreground">Total Move-in Cost:</span>
+                <span className="font-medium text-foreground">{formatPesoDisplay(totalMoveInCost)}</span>
               </div>
             </div>
           </Card.Content>
@@ -124,7 +124,7 @@ export default function PriceCard({
 
       {/* Mobile: fixed bottom bar, app-style price + apply */}
       <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 md:left-64">
-        <div className="border-t border-grey-300 bg-background/95 backdrop-blur px-4 pt-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+        <div className="border-t border-border bg-background/95 backdrop-blur px-4 pt-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
             <div className="shrink-0 min-w-0">
               <p className="text-xl font-medium text-primary">
@@ -133,7 +133,7 @@ export default function PriceCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="-ml-2 h-auto px-2 py-1 text-xs text-grey-500 underline"
+                className="-ml-2 h-auto px-2 py-1 text-xs text-muted-foreground underline"
                 onPress={breakdownModal.open}
               >
                 Move-in cost breakdown

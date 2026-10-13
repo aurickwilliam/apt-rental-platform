@@ -46,7 +46,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl }: LeaseAgreementCa
   };
 
   return (
-    <Card className="border border-grey-300 shadow-none">
+    <Card className="border border-border shadow-none">
       <Card.Content className="flex flex-col items-start gap-2">
         <h3 className="text-lg font-medium">Lease Agreement</h3>
 

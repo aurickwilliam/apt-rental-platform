@@ -138,10 +138,15 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
           >
             <Modal.Dialog className="bg-transparent h-full flex flex-col justify-center">
               {/* Close Button */}
-              <Modal.CloseTrigger className="absolute top-4 right-4 z-10 text-black" />
+              <Modal.CloseTrigger className="absolute top-4 right-4 z-10 text-white" />
 
-              <Modal.Body className="p-0 h-full flex items-center justify-center">
-                <div className="w-[92vw] sm:w-2/3 bg-white p-4 rounded-3xl overflow-hidden shadow-xl">
+              <Modal.Body
+                className="p-0 h-full flex items-center justify-center"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setIsExpandOpen(false);
+                }}
+              >
+                <div className="w-[92vw] sm:w-2/3 bg-card p-4 rounded-3xl overflow-hidden shadow-xl">
                   <iframe
                     title={`Expanded map of ${mapCoordinates}`}
                     src={embedSrc}
@@ -165,14 +170,14 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
         >
           <Modal.Container size="sm" className="z-2000">
             <Modal.Dialog>
-              <Modal.CloseTrigger className="text-black" />
+              <Modal.CloseTrigger className="text-foreground" />
               <Modal.Header>
-                <Modal.Heading className="text-lg font-semibold">
+                <Modal.Heading className="text-lg font-semibold text-foreground">
                   Get Directions
                 </Modal.Heading>
               </Modal.Header>
               <Modal.Body className="pb-2 flex flex-col gap-3">
-                <p className="text-sm text-grey-500">
+                <p className="text-sm text-muted-foreground">
                   Choose how you want to get there. Opens in Google Maps.
                 </p>
                 <div className="flex flex-col gap-2">
@@ -180,7 +185,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
                     <Button
                       key={mode.id}
                       variant="tertiary"
-                      className="justify-start gap-3 text-black"
+                      className="justify-start gap-3 text-foreground"
                       fullWidth
                       onPress={() => openInGoogleMaps(mode)}
                     >

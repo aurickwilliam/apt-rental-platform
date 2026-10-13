@@ -46,7 +46,7 @@ export default function LandlordCard({
   const avatarSrc = avatarUrl?.trim() || undefined;
 
   return (
-    <Card className="border border-grey-300 shadow-none">
+    <Card className="border border-border shadow-none">
       <Card.Content className="flex flex-row items-center justify-between gap-4">
         <UserAvatar
           src={avatarSrc}
