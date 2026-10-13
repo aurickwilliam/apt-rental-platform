@@ -78,9 +78,12 @@ function SectionRow({
   };
 
   // Tall edge strips (not floating circles) so aiming for an arrow never
-  // lands on a card. Base is hidden: revealed on row hover at md+ only.
+  // lands on a card. Base is hidden: revealed on row hover only on devices
+  // with a fine pointer + hover (mouse/trackpad) at any viewport width, so
+  // narrow PC windows get the same arrows as full-width. Touch phones stay
+  // swipe-only with no arrow clutter.
   const stripBase =
-    "absolute inset-y-0 z-10 hidden w-12 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-primary md:flex";
+    "absolute inset-y-0 z-10 hidden w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-primary md:w-12 [@media(hover:hover)_and_(pointer:fine)]:flex";
   const leftStripClass = `${stripBase} left-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-background dark:via-background/80 dark:to-transparent`;
   const rightStripClass = `${stripBase} right-0 bg-gradient-to-l from-white via-white/80 to-transparent dark:from-background dark:via-background/80 dark:to-transparent`;
 

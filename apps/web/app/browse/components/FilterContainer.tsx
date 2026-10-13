@@ -17,6 +17,8 @@ import {
   Switch,
   ToggleButtonGroup,
   ToggleButton,
+  TextField,
+  InputGroup,
 } from "@heroui/react";
 
 import { IconSearch } from "@tabler/icons-react";
@@ -172,6 +174,119 @@ function serializeFilters(f: Filters, search: string | null): string {
   return current.toString();
 }
 
+// Min/max keyboard inputs paired with a range slider. The slider UI is
+// untouched; both controls write through the same updateFilter path. Drafts
+// stay local while typing and commit (step-rounded + clamped) on blur or
+// Enter, so partial input is never clobbered. Out-of-range sides clamp
+// silently against the opposite side (min clamps to max and vice versa).
+function RangeInputs({
+  min,
+  max,
+  absoluteMin,
+  absoluteMax,
+  step,
+  prefix,
+  suffix,
+  minLabel,
+  maxLabel,
+  onCommit,
+}: {
+  min: number;
+  max: number;
+  absoluteMin: number;
+  absoluteMax: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+  minLabel: string;
+  maxLabel: string;
+  onCommit: (next: [number, number]) => void;
+}) {
+  const [draftMin, setDraftMin] = useState<string | null>(null);
+  const [draftMax, setDraftMax] = useState<string | null>(null);
+
+  // External changes (slider drag, Clear All, back/forward) reset drafts so
+  // the inputs always reflect the committed range when not being edited.
+  // Compared during render (not in an effect); our own commits land here
+  // too and simply clear already-applied drafts.
+  const [prevRange, setPrevRange] = useState<[number, number]>([min, max]);
+  if (prevRange[0] !== min || prevRange[1] !== max) {
+    setPrevRange([min, max]);
+    setDraftMin(null);
+    setDraftMax(null);
+  }
+
+  const parse = (raw: string, fallback: number) => {
+    const digits = raw.replace(/[^0-9]/g, "");
+    if (!digits) return fallback;
+    return Math.round(Number(digits) / step) * step;
+  };
+
+  const commitSide = (side: "min" | "max") => {
+    if (side === "min") {
+      if (draftMin === null) return;
+      const nextMin = Math.min(Math.max(parse(draftMin, min), absoluteMin), max);
+      setDraftMin(null);
+      if (nextMin !== min) onCommit([nextMin, max]);
+    } else {
+      if (draftMax === null) return;
+      const nextMax = Math.max(Math.min(parse(draftMax, max), absoluteMax), min);
+      setDraftMax(null);
+      if (nextMax !== max) onCommit([min, nextMax]);
+    }
+  };
+
+  // Plain render helper (not a component) so focus is never lost while typing.
+  const field = (
+    side: "min" | "max",
+    draft: string | null,
+    committed: number,
+    bound: number,
+    label: string,
+    affix: string | undefined,
+    affixSlot: "prefix" | "suffix",
+  ) => (
+    <TextField
+      value={draft ?? String(committed)}
+      onChange={(v) => (side === "min" ? setDraftMin(v) : setDraftMax(v))}
+      aria-label={label}
+      className="min-w-0 flex-1"
+    >
+      <Label className="mb-1 text-xs text-muted-foreground">
+        {side === "min" ? "Min" : "Max"}
+      </Label>
+      <InputGroup className="rounded-lg border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+        {affix && affixSlot === "prefix" ? (
+          <InputGroup.Prefix>
+            <span className="text-sm text-muted-foreground">{affix}</span>
+          </InputGroup.Prefix>
+        ) : null}
+        <InputGroup.Input
+          inputMode="numeric"
+          placeholder={String(bound)}
+          onBlur={() => commitSide(side)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitSide(side);
+          }}
+          className="w-full min-w-0 py-1.5 text-sm"
+        />
+        {affix && affixSlot === "suffix" ? (
+          <InputGroup.Suffix>
+            <span className="text-xs text-muted-foreground">{affix}</span>
+          </InputGroup.Suffix>
+        ) : null}
+      </InputGroup>
+    </TextField>
+  );
+
+  return (
+    <div className="flex gap-2">
+      {field("min", draftMin, min, absoluteMin, minLabel, prefix, "prefix")}
+      {field("max", draftMax, max, absoluteMax, maxLabel, suffix, "suffix")}
+    </div>
+  );
+}
+
 export default function FilterContainer({ resultCount, basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
@@ -269,7 +384,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
   }, [paramsSignature]);
 
   return (
-    <div className="bg-surface rounded-xl p-4 border w-full">
+    <div className="bg-surface rounded-xl p-4 border w-full text-foreground">
       <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 items-stretch xl:items-center justify-center mb-5">
         {/* Search Button */}
         <Button
@@ -292,7 +407,7 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-medium">Filters</h3>
-        <p className="flex items-center gap-1.5 text-sm text-default-500">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           {isPending ? (
             <Spinner size="sm" color="current" aria-label="Updating results" />
           ) : null}
@@ -369,6 +484,17 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
             )}
           </Slider.Track>
         </Slider>
+        <RangeInputs
+          min={filters.priceRange[0]}
+          max={filters.priceRange[1]}
+          absoluteMin={MIN_BUDGET}
+          absoluteMax={MAX_BUDGET}
+          step={500}
+          prefix="₱"
+          minLabel="Minimum budget"
+          maxLabel="Maximum budget"
+          onCommit={(next) => updateFilter("priceRange", next)}
+        />
       </div>
 
       {/* Unit Type */}
@@ -486,6 +612,17 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
             )}
           </Slider.Track>
         </Slider>
+        <RangeInputs
+          min={filters.sizeRange[0]}
+          max={filters.sizeRange[1]}
+          absoluteMin={MIN_SIZE}
+          absoluteMax={MAX_SIZE}
+          step={5}
+          suffix="sqm"
+          minLabel="Minimum size"
+          maxLabel="Maximum size"
+          onCommit={(next) => updateFilter("sizeRange", next)}
+        />
       </div>
 
       <Separator className="my-5" />

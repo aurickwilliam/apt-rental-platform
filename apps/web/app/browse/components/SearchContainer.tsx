@@ -70,26 +70,25 @@ export default function SearchContainer({
         Browse verified listings across Caloocan, Malabon, Navotas, and Valenzuela
       </p>
 
-      {/* Search bar: one row on all sizes — compact Search left, pill
-          center, filter entry right (mobile only). */}
-      <div className="flex flex-row items-center gap-2 w-full max-w-lg mt-2 mx-auto min-w-0">
-        <Button
-          variant="secondary"
-          size="lg"
-          className="order-last shrink-0 sm:w-auto"
-          onPress={handleSearch}
-          aria-label="Search"
-        >
-          <IconSearch size={18} />
-          <span className="hidden sm:inline">Search</span>
-        </Button>
-
+      {/* Search bar: pill + filter right on mobile (filter entry is
+          mobile-only, md:hidden); centered pill on desktop. The in-pill
+          magnifier is the search trigger (plus Enter); no separate button. */}
+      <div className="flex flex-row items-center gap-2 w-full max-w-xl mt-2 mx-auto min-w-0">
         <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
           <InputGroup.Prefix>
             {isPending ? (
               <Spinner size="sm" color="current" className="text-grey-500" />
             ) : (
-              <IconSearch size={20} className="text-grey-500" />
+              <Button
+                isIconOnly
+                variant="ghost"
+                size="sm"
+                onPress={handleSearch}
+                aria-label="Search"
+                className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
+              >
+                <IconSearch size={20} className="text-grey-500" />
+              </Button>
             )}
           </InputGroup.Prefix>
           <InputGroup.Input

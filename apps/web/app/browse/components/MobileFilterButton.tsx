@@ -37,8 +37,8 @@ export default function MobileFilterButton({ resultCount, basePath = "/browse" }
   return (
     <>
       <Button
-        variant="secondary"
-        size="md"
+        variant="tertiary"
+        size="lg"
         isIconOnly
         className="relative shrink-0 md:hidden"
         onPress={() => setIsOpen(true)}
@@ -46,7 +46,7 @@ export default function MobileFilterButton({ resultCount, basePath = "/browse" }
       >
         <IconAdjustmentsHorizontal size={18} />
         {activeCount > 0 && (
-          <span className="absolute -right-1 -top-1 min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
+          <span className="absolute -right-1 -top-1 min-h-5 min-w-5 rounded-full bg-danger px-1 text-[11px] font-bold text-white flex items-center justify-center">
             {activeCount}
           </span>
         )}
