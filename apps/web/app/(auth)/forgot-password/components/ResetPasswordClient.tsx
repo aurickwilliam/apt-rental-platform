@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { unstable_rethrow, useRouter } from "next/navigation";
 
 import { Button, Form } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { usePasswordValidation } from "@repo/hooks";
 import { RECOVERY_START_PATH } from "@repo/supabase/password-recovery";
@@ -140,7 +140,7 @@ export default function ResetPasswordClient() {
             isDisabled={busy}
             onPress={handleCancel}
           >
-            <ArrowLeft size={20} />
+            <IconArrowLeft size={20} />
           </Button>
         }
         title="Reset Password"
@@ -199,25 +199,28 @@ export default function ResetPasswordClient() {
           hasInput={password.length > 0 || confirmPassword.length > 0}
         />
 
-        <Button
-          className="mt-[clamp(0.75rem,2vh,1.25rem)] w-full cursor-pointer"
-          size="lg"
-          type="submit"
-          isPending={saving}
-          isDisabled={busy || sessionExpired}
-        >
-          {saving ? "Saving..." : "Reset Password"}
-        </Button>
+        {/* Cancel + main action side by side; Cancel stays quiet (tertiary). */}
+        <div className="mt-[clamp(0.75rem,2vh,1.25rem)] flex gap-3">
+          <Button
+            variant="tertiary"
+            size="lg"
+            className="flex-1 cursor-pointer"
+            isDisabled={busy}
+            onPress={handleCancel}
+          >
+            Cancel
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="lg"
-          className="w-full cursor-pointer"
-          isDisabled={busy}
-          onPress={handleCancel}
-        >
-          Cancel
-        </Button>
+          <Button
+            className="flex-1 cursor-pointer"
+            size="lg"
+            type="submit"
+            isPending={saving}
+            isDisabled={busy || sessionExpired}
+          >
+            {saving ? "Saving..." : "Reset Password"}
+          </Button>
+        </div>
       </Form>
     </div>
   );
