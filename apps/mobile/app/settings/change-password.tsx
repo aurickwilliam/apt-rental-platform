@@ -109,8 +109,19 @@ export default function ChangePassword() {
   return (
     <ScreenWrapper
       scrollable
-      bottomPadding={32}
       header={<StandardHeader title="Change Password" />}
+      footer={
+        <View className="p-5">
+          <Button
+            onPress={handleSubmit}
+            isDisabled={!isPasswordValid || saving}
+            className="w-full"
+          >
+            <Button.Label>{saving ? "Updating..." : "Update Password"}</Button.Label>
+            {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
+          </Button>
+        </View>
+      }
       className="p-5"
     >
       <Text className="text-base text-foreground font-inter">
@@ -140,17 +151,6 @@ export default function ChangePassword() {
           passwordLabel="New Password:"
         />
       </View>
-
-      <View className="flex-1" />
-
-      <Button
-        onPress={handleSubmit}
-        className="mt-8"
-        isDisabled={!isPasswordValid || saving}
-      >
-        <Button.Label>{saving ? "Updating..." : "Update Password"}</Button.Label>
-        {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
-      </Button>
 
       <ErrorDialog
         isOpen={!!error}

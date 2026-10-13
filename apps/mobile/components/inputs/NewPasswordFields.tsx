@@ -67,7 +67,7 @@ export default function NewPasswordFields({
       />
 
       <View className="flex-col gap-1 mt-5">
-        <Text className="text-foreground font-nunitoSemiBold mb-2">
+        <Text className="text-foreground font-interSemiBold mb-2">
           Your password must contain:
         </Text>
 
