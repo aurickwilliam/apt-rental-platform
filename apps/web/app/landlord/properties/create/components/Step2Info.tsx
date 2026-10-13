@@ -7,7 +7,7 @@ import { Input, Select, Checkbox, Label, ListBox, FieldError, NumberField, TextF
 
 import type { ApartmentFormData, FormErrors } from "../page";
 
-import { PROVINCES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
+import { CAMANAVA_CITIES, APARTMENT_TYPES, FLOOR_LEVELS, LEASE_DURATIONS, FURNISHED_TYPES } from "@repo/constants";
 
 const GoogleMapPicker = dynamic(() => import("../../components/GoogleMapPicker"), { ssr: false });
 
@@ -262,52 +262,36 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <FieldError>{errors.barangay}</FieldError>
           </TextField>
 
-          <TextField 
-            isRequired 
-            isInvalid={!!errors.city}
-          >
-            <Label>City</Label>
-            <Input
-              value={formData.city}
-              onChange={(e) => updateForm({ city: e.target.value })}
-            />
-            <FieldError>{errors.city}</FieldError>
-          </TextField>
-
           <Select
-            placeholder="Select province"
-            value={formData.province || null}
-            onChange={(key) => updateForm({ province: key as string })}
-            isInvalid={!!errors.province}
+            placeholder="Select CAMANAVA city"
+            value={formData.city || null}
+            onChange={(city) => updateForm({ city: city as string, province: "Metro Manila" })}
+            isInvalid={!!errors.city}
             isRequired
             className="w-full"
           >
-            <Label>Province</Label>
-            
-            <Select.Trigger 
-              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
-            >
+            <Label>City</Label>
+            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
-
-            <FieldError>{errors.province}</FieldError>
-
+            <FieldError>{errors.city}</FieldError>
             <Select.Popover>
               <ListBox>
-                {PROVINCES.map((t) => (
-                  <ListBox.Item 
-                    key={t} 
-                    id={t} 
-                    textValue={t}
-                    className="hover:bg-light-blue!"
-                  >
-                    {t}
+                {CAMANAVA_CITIES.map((city) => (
+                  <ListBox.Item key={city} id={city} textValue={city} className="hover:bg-light-blue!">
+                    {city}
                   </ListBox.Item>
                 ))}
               </ListBox>
             </Select.Popover>
           </Select>
+
+          <TextField isRequired isInvalid={!!errors.province} isDisabled>
+            <Label>Province</Label>
+            <Input value="Metro Manila" />
+            <FieldError>{errors.province}</FieldError>
+          </TextField>
 
           <TextField 
             isRequired 
@@ -335,6 +319,9 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <div>
           <p className="text-sm font-semibold text-grey-700">
             Map Coordinates{" "}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Your pin must be inside the selected CAMANAVA city.
           </p>
         </div>
 

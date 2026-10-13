@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
+import { isCamanavaCity } from "@repo/constants";
 import { useUser } from "@/hooks/use-user";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 
@@ -95,6 +96,7 @@ export default function CreateApartmentPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingLocation, setIsValidatingLocation] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const router = useRouter();
@@ -108,12 +110,44 @@ export default function CreateApartmentPage() {
     });
   }, []);
 
-  const handleNext = () => {
+  const validateLocationBeforeContinue = async (): Promise<FormErrors> => {
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("validate_camanava_location", {
+      p_city: formData.city,
+      p_latitude: formData.latitude!,
+      p_longitude: formData.longitude!,
+    });
+
+    if (error) {
+      console.error(error);
+      return { latitude: "We couldn't verify this pin. Please try again." };
+    }
+
+    return data
+      ? {}
+      : { latitude: `The map pin must be inside the selected CAMANAVA city (${formData.city}).` };
+  };
+
+  const handleNext = async () => {
     const stepErrors = validateStep(step, formData);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
+
+    if (step === 2) {
+      setIsValidatingLocation(true);
+      try {
+        const locationErrors = await validateLocationBeforeContinue();
+        if (Object.keys(locationErrors).length > 0) {
+          setErrors(locationErrors);
+          return;
+        }
+      } finally {
+        setIsValidatingLocation(false);
+      }
+    }
+
     setErrors({});
     setStep((s) => Math.min(s + 1, 5));
   };
@@ -122,7 +156,10 @@ export default function CreateApartmentPage() {
 
   const handleSubmit = async () => {
     // Check any errors before submitting
-    const stepErrors = validateStep(4, formData);
+    const stepErrors = {
+      ...validateStep(2, formData),
+      ...validateStep(4, formData),
+    };
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -241,7 +278,11 @@ export default function CreateApartmentPage() {
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -265,8 +306,8 @@ export default function CreateApartmentPage() {
       if (data.max_occupants <= 0) errors.max_occupants = "Must be greater than 0.";
       if (!data.street_address.trim()) errors.street_address = "Street address is required.";
       if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
-      if (!data.city.trim()) errors.city = "City is required.";
-      if (!data.province.trim()) errors.province = "Province is required.";
+      if (!isCamanavaCity(data.city)) errors.city = "Select a city within CAMANAVA.";
+      if (data.province !== "Metro Manila") errors.province = "Properties can only be listed in Metro Manila.";
       if (!data.zip_code.trim()) errors.zip_code = "Zip code is required.";
       
       if (!data.latitude || !data.longitude) {
@@ -376,6 +417,8 @@ export default function CreateApartmentPage() {
             {step < 5 ? (
               <Button
                 onPress={handleNext}
+                isPending={step === 2 && isValidatingLocation}
+                isDisabled={isValidatingLocation}
                 className="px-8"
               >
                 Continue
