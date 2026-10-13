@@ -55,7 +55,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
 
       <CarouselContent className="mt-4 pb-4">
         {apartments.map((apt) => (
-          <CarouselItem key={apt.id} className="basis-auto">
+          <CarouselItem key={apt.id} className="basis-44 sm:basis-56 shrink-0 grow-0">
             <ApartmentCard
               name={apt.name}
               location={apt.city}
@@ -63,6 +63,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
               rating={apt.average_rating ?? 0}
               thumbnailUrl={apt.image}
               onPress={() => router.push(`${basePath}/${apt.id}`)}
+              sizes="(max-width: 640px) 176px, 224px"
             />
           </CarouselItem>
         ))}
