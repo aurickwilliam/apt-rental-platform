@@ -87,7 +87,7 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
 
 **Phase 5 status (2026-10-13):** automated coverage done — 41 service tests (`service/auth/passwordRecoveryService.test.ts`, every Phase 2 error mapping, email / Google-only / linked accounts through verification, the in-progress marker) and 27 screen tests in `tests/forgot-password/` (email, code and reset screens plus the app-boot safety net). The code and reset screen tests fail if the email, code or password reaches route params or console output (error messages included). Already checked in the simulator against the hosted project: empty-email validation, sending a request, the neutral code screen, the 60 s countdown, and a wrong code being rejected.
 
-**Manual device test — pending** (run with an email/password test account; Gmail `+alias` addresses work):
+**Manual device test — passed 2026-10-13** (iOS Simulator, email/password account on Yahoo, Google-only account on Gmail; results cross-checked against hosted Auth logs):
 
 1. Sign in once with the current password to confirm the account works.
 2. Sign out → Forgot Password → enter the email → the code email arrives (in Gmail, the code is visible without "[Message clipped]").
@@ -111,12 +111,14 @@ Replace the current mobile-only prototype with a secure, working Supabase email-
 
 **Phase 6 status (2026-10-13):** mobile typecheck, lint and the full Jest suite (`--runInBand`) pass; `graphify update .` run. The mobile-auth description did change materially (new flow, and the `app/index.tsx` bootstrap now signs out an unfinished reset), so `ARCHITECTURE.md` §4.4 gained the recovery sequence and a "Password recovery" note, and a new §4.5 documents the auth email templates and their rollout. `AGENTS.md` records the durable rules (recovery service usage, never leaving a recovery session behind, no account-type lookup before verification, template rollout and no embedded fonts).
 
-**Remaining:** only the manual device test in Phase 5.
+**Remaining:** none — all phases and the manual device test are complete.
 
 ## Out of scope / follow-ups
 
 - **Web forgot-password page.** The web sign-in form (`apps/web/app/(auth)/components/AuthForm.tsx`) links to `/forgot-password`, but no such route exists, so it shows a "not found" page. Track a follow-up to build the web flow mirroring this one (AGENTS.md: keep web and mobile aligned), or hide the link until then.
 - Server-side enforcement of the Google-only exclusion (Send Email Auth Hook).
+- **Authenticate a custom sending domain in Brevo before launch.** Auth email currently sends from Brevo's shared domain (`…@brevosend.com`): Gmail delivers it, but Yahoo filed both the recovery code and the password-changed notice in Spam (with images blocked) during the device test. Fix: own a domain, add it under Brevo → Senders, Domains & IPs → Domains, publish the SPF/DKIM/DMARC records Brevo provides, then switch the Supabase SMTP sender to an address on that domain (e.g. `no-reply@<domain>`).
+- **Brevo adds an unsubscribe link/header that can't be removed on the free plan.** A user who clicks it may stop receiving all auth email, including recovery codes. If a user reports missing codes, check Brevo's blocked/unsubscribed contacts for their address and remove it.
 
 ## Acceptance criteria
 
