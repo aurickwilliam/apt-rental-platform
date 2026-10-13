@@ -58,16 +58,38 @@ Turn the disabled **Change Password** row in the web Settings modal (Security ta
    - Add cases for `getPasswordChangeErrorField`.
 4. Never log a password. Logs keep only the error name/code/status (`describeAuthError`), as now.
 
+**Phase 1 status (2026-10-13): done.**
+- `packages/utils/src/passwordChange.ts` exports `PasswordChangeAuth`, `changePasswordWith`, `PasswordChangeErrorField` and `getPasswordChangeErrorField`. The steps and log lines are unchanged from mobile. The mobile Supabase client fits `PasswordChangeAuth` with no casts.
+- `apps/mobile/service/auth/passwordChangeService.ts`: `changePassword` now calls `changePasswordWith(supabase.auth, …)`; `getPasswordSignInStatus` is unchanged.
+- `apps/mobile/app/settings/change-password.tsx` places errors with `getPasswordChangeErrorField` instead of its own two sets.
+- Tests:
+  - `packages/utils/src/passwordChange.test.ts` (21 tests) covers the steps with a fake auth object, plus every error-field mapping. It adds a "no signed-in user" case.
+  - The mobile service test (6 tests) keeps the sign-in-status cases and checks that `changePassword` uses the mobile client.
+- Checks run:
+  - Mobile typecheck, lint and full Jest suite pass (706 tests).
+  - The `@repo/utils` typecheck passes.
+  - Web typecheck and tests pass (47 tests).
+
 ### Phase 2 — Web server action
 
 Add `apps/web/app/(auth)/actions/change-password.ts` (`"use server"`, `createClient` from `@repo/supabase/server`):
 
 - `changePassword(currentPassword, newPassword)` → `{ error: PasswordErrorReason | null }`. It never throws for expected failures and never returns raw Auth messages; the client turns the reason into text with `new PasswordError(reason).message`, as the reset form does.
-  1. Reject non-string or empty inputs (`weak_password` for the new password; a "missing current password" result for the current one).
+  1. Reject non-string or empty inputs: `wrong_current_password` for the current password, `weak_password` for the new one.
   2. **Recovery guard:** if the `apt-password-recovery` marker cookie is present (`readRecoveryMarker` is not `"none"`), return `session_expired`. Server actions skip the middleware, and a recovery session has its own reset page; this keeps the two flows apart.
   3. Call `changePasswordWith(supabase.auth, currentPassword, newPassword)` and map a thrown `PasswordError` to its reason. Anything else is logged by type only and returned as `unknown`.
 - `signInWithPassword` rewrites the session cookies for the same user. Next.js then re-renders the current page inside the action response. Client state (the open modal and the sub-view) survives that, but **check it in the browser** (Phase 5).
 - No `redirect()`: the user stays where they are, so the client doesn't need `unstable_rethrow`.
+
+**Phase 2 status (2026-10-13): done.**
+- `apps/web/app/(auth)/actions/change-password.ts` exports `changePassword(currentPassword, newPassword)` → `ChangePasswordResult` (`{ error: PasswordErrorReason | null }`).
+- It does three things, in this order:
+  1. checks the inputs;
+  2. checks the recovery marker (`readRecoveryMarker(...) !== "none"` → `session_expired`);
+  3. runs `changePasswordWith(supabase.auth, …)`.
+- A `PasswordError` comes back as its reason. Anything else is logged by type only and returned as `unknown`.
+- The `@supabase/ssr` server client fits `PasswordChangeAuth` with no casts.
+- Web typecheck, lint and tests pass (47 tests). No UI calls this action until Phase 4, so the browser check is part of Phase 5.
 
 ### Phase 3 — Shared web password UI
 
