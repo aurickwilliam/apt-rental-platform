@@ -35,6 +35,13 @@ enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 
+# Mirrors hosted email OTP settings (confirmed 2026-10-13). The templates say the
+# code expires in 5 minutes and the mobile resend cooldown is 60s — keep them in sync.
+[auth.email]
+otp_length = 6
+otp_expiry = 300
+max_frequency = "60s"
+
 # Mirrors the hosted Email Templates config (Authentication > Emails > Magic link or OTP).
 # Local dev only — hosted projects apply via the Management API or the dashboard.
 [auth.email.template.magic_link]
@@ -45,6 +52,17 @@ content_path = "./supabase/templates/otp.html"
 [auth.email.template.confirmation]
 subject = "Your APT verification code"
 content_path = "./supabase/templates/otp.html"
+
+# Password recovery sends a 6-digit code (resetPasswordForEmail -> verifyOtp type "recovery"), not a link.
+[auth.email.template.recovery]
+subject = "Reset your APT password"
+content_path = "./supabase/templates/recovery.html"
+
+# Security notice sent after any password change (including recovery).
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your APT password was changed"
+content_path = "./supabase/templates/password-changed.html"
 
 # Edge function invoked by the mobile app with the anon key, so JWT
 # verification is enforced (default) — the key is checked, not a specific role.

@@ -2,72 +2,133 @@
 
 ## Goal
 
-Replace the current mobile-only prototype with a secure, working Supabase email password-recovery flow. The current UI claims both SMS and email recovery, but neither sends nor verifies a recovery credential, and submitting a new password does not update Supabase Auth.
+Replace the current mobile-only prototype with a secure, working Supabase email-code password-recovery flow for accounts that use email and password authentication. The current UI claims both SMS and email recovery, but neither sends nor verifies a recovery credential, and submitting a new password does not update Supabase Auth.
 
 ## Scope and decisions
 
-- Implement **email-link recovery only** in this change. Remove the SMS option rather than presenting an unavailable recovery method.
+- Implement **email-code recovery only** in this change. Remove the SMS option rather than presenting an unavailable recovery method.
+- Recovery is intended for accounts with an email/password credential. Google-only accounts are told to continue with Google instead.
+- **Google-only exclusion is an app-flow rule, checked after code verification.** The app cannot know an email's account type before sending a code without revealing that the account exists, so the request step treats every email the same. After `verifyOtp` succeeds, the recovery session exposes the user's identities; if there is no `email` identity, the app signs the recovery session out and shows a "continue with Google" message instead of the reset screen. This is not an enforceable security boundary — a direct Supabase Auth call could still set a password — and that is accepted: whoever can read the inbox already controls the account. A server-side block (Send Email Auth Hook) is out of scope.
 - Keep the existing password-strength rules from `@repo/hooks`.
-- Use the existing mobile Supabase client, which is configured for PKCE, and the existing `mobile://` Expo scheme.
+- Use the existing mobile Supabase client and Supabase Auth recovery OTP verification.
 - Do not create or update `public.users` records: password recovery changes only the Supabase Auth password.
 - Preserve account-enumeration resistance by showing the same post-submit confirmation for an existing or unknown email address.
+- **A verified recovery code creates a full, persisted Supabase session.** The flow must never leave that session behind unless the password was actually changed and the user then signed out (see Phase 4).
+- The recovery email address is passed between screens in local in-memory state only — never in route params or URLs (AGENTS.md: no PII in URLs).
 
-## Implementation plan
+## Implementation phases
 
-1. **Verify Supabase Auth configuration before client work.**
-   - Confirm the hosted APT project permits `mobile://` recovery redirect URLs, including the exact recovery callback path chosen below.
-   - Configure the hosted recovery email template to preserve the caller-provided redirect URL and work with PKCE.
-   - Enable the password-changed security notification if it is available for the project.
-   - Mirror the recovery template and redirect URL in `supabase/config.toml` for local development where feasible. Do not treat the local config as deployment of the hosted project configuration.
+### Phase 1 — Confirm account types and configure recovery email
 
-2. **Add a focused auth recovery service.**
+- Confirm how the hosted Supabase project represents email/password, Google-only, and linked Google-plus-password identities (`user.identities[].provider`), so the post-verification check in Phase 3 uses the right field.
+- Document the Google-only exclusion as an app-flow limitation (see Scope and decisions) in the service file and in the PR description.
+- Configure the hosted `recovery` email template to send the six-digit `{{ .Token }}`, not a link, with copy specific to password recovery (the existing `supabase/templates/otp.html` says "verification code"; add a recovery-specific template such as `supabase/templates/recovery.html`).
+- Confirm the hosted OTP length is six digits and note the OTP expiry and the email-send frequency limit (default ~60 seconds); the resend cooldown in Phase 3 must match that limit.
+- Enable the password-changed security notification if available.
+- Mirror the recovery template in `supabase/config.toml` by adding an `[auth.email.template.recovery]` section (subject + `content_path`), and the password-changed notification where the local config supports it. Local config must not be treated as deployment of hosted Auth configuration.
+
+**Phase 1 findings (2026-10-13):**
+- Hosted accounts come in three shapes, and an `email` identity always means the account has a password: Google-only (`identities` = `google`, no password), email/password (`email`), and linked (`email` + `google`, has a password). The Phase 3 check is therefore: the verified user's `identities` include provider `email` (mirrored in `app_metadata.providers`).
+- Templates: `supabase/templates/recovery.html` (6-digit `{{ .Token }}`, recovery wording) and `supabase/templates/password-changed.html` (security notice), both using the existing OTP email design; mirrored in `supabase/config.toml` under `[auth.email.template.recovery]` and `[auth.email.notification.password_changed]`.
+- Hosted Auth settings (confirmed via the Management API): `mailer_otp_length` 6, `mailer_otp_exp` 300 s (matches "expires in 5 minutes" in the emails), `smtp_max_frequency` 60 s (→ Phase 3 resend cooldown is 60 s), `security_update_password_require_reauthentication` false (so `updateUser({ password })` works on the recovery session without a reauth step), `password_min_length` 6 (the app's `@repo/hooks` rules are stricter and remain the user-facing rule). Mirrored in `supabase/config.toml` `[auth.email]`.
+- Hosted templates applied 2026-10-13 via the Management API; the recovery template and password-changed notification are live. When printing the API response, never print the full config: it contains SMTP credentials (use `-o /dev/null -w "%{http_code}"`).
+- Embedded base64 fonts made every email ~700 KB, so Gmail clipped it ("[Message clipped]") and hid the code — this also affected the live signup email. Fonts now load by `<link>` from Google Fonts (Apple/iOS Mail render Nunito; Gmail falls back to the system stack); each template is ~4 KB and also fits the dashboard editor's 50,000-character limit. `build-payload.py` asserts this — never embed fonts again. After a template upload, hosted Auth kept sending the previous template for several minutes even though the config already returned the new one (template cache) — wait ~15 minutes before judging a template change.
+- Hosted rollout: `python3 supabase/templates/build-payload.py <out.json>` builds the Management API payload for `PATCH /v1/projects/{ref}/config/auth`. Never use `supabase config push` for this — it would also push local-only auth settings such as `site_url`.
+
+### Phase 2 — Add the mobile recovery service
+
    - Create `apps/mobile/service/auth/passwordRecoveryService.ts` following the existing `service/auth/` conventions.
    - Expose typed helpers to:
-     - request a password reset via `supabase.auth.resetPasswordForEmail(email, { redirectTo })`;
-     - parse a returned recovery URL safely;
-     - exchange the PKCE `code` with `supabase.auth.exchangeCodeForSession` and confirm the recovery session;
-     - update the authenticated recovery user's password with `supabase.auth.updateUser({ password })`.
-   - Normalize expected Supabase errors into safe user-facing messages, log only unexpected errors, and never log the email, recovery code, or session tokens.
+     - request a password reset via `supabase.auth.resetPasswordForEmail(email)` — also used for **resend**, because `supabase.auth.resend()` does not support recovery codes (do not copy the signup screen's resend call);
+     - verify a supplied six-digit recovery code with `supabase.auth.verifyOtp({ email, token, type: "recovery" })`;
+     - report whether the verified user has an email/password identity (Google-only check);
+     - update the authenticated recovery user's password with `supabase.auth.updateUser({ password })`;
+     - end the recovery session (`supabase.auth.signOut()`).
+   - Normalize expected Supabase errors into safe user-facing messages, at minimum:
+     - invalid or expired code (`otp_expired`, invalid token);
+     - email send rate limit (`over_email_send_rate_limit` / HTTP 429);
+     - new password equal to the old one (`same_password`);
+     - password rejected by Supabase's own strength policy (`weak_password`);
+     - missing or expired session during the update;
+     - network failure.
+   - Log only unexpected errors, and never log the email, recovery code, password, or session tokens.
 
-3. **Replace the recovery-method picker with an email-request screen.**
-   - Update `apps/mobile/app/(auth)/forgot-password/index.tsx` to collect and validate an email using the project’s existing `isValidEmail` helper.
-   - Build the redirect URL with Expo Linking for a dedicated recovery callback route.
+### Phase 3 — Replace the prototype UI
+
+   - Update `apps/mobile/app/(auth)/forgot-password/index.tsx` to collect and validate an email using the existing `isValidEmail` helper from `@repo/utils`.
    - Disable the submit action while the request is pending, surface inline validation/network errors, and show a neutral “check your email” confirmation after Supabase accepts the request.
-   - Remove the non-functional SMS choice and the prototype OTP navigation.
+   - Remove the non-functional SMS choice.
+   - Show a static note on the email screen, visible to everyone, e.g. "Signed up with Google? You don't have a password — use Continue with Google on the sign-in screen instead." It involves no account lookup, so it reveals nothing about whether an account exists; the post-verification Google-only check below remains the safety net.
+   - Hold the submitted email in local in-memory state shared by the recovery screens (e.g. a small Zustand store in `stores/` with `reset()`, cleared when the flow ends) — not in route params.
+   - Repurpose `forgot-password/otp-verification.tsx` as the email recovery-code screen: show the email the code was sent to, verify the code, then:
+     - if the account has an email/password identity, navigate to reset password;
+     - if it is Google-only, sign the recovery session out, clear flow state, and show a "this account signs in with Google" message with a way back to sign-in.
+   - Resend: call the same `resetPasswordForEmail` helper. Keep a visible cooldown timer that matches the server's send-frequency limit (Phase 1), and also surface the server's rate-limit error clearly if it is hit anyway.
 
-4. **Handle recovery deep links across cold and warm app starts.**
-   - Add a recovery callback route under `apps/mobile/app/(auth)/forgot-password/` and register it in that folder’s layout.
-   - Ensure the handler processes both a newly opened deep link and a link delivered while the app is already running. Exchange the PKCE code exactly once, then replace the callback route with the reset-password screen.
-   - Reject malformed, expired, reused, or non-recovery links with a clear retry path back to the email-request screen.
-   - Avoid routing normal sign-in/OAuth callbacks into the recovery path; preserve the existing Google OAuth callback behavior.
+### Phase 4 — Perform and close the real password change
 
-5. **Make password submission perform the real password change.**
    - Update `apps/mobile/app/(auth)/forgot-password/reset-password.tsx` to call the recovery service only after local password validation succeeds.
    - Add pending state, prevent duplicate submissions, and retain the entered form when the server rejects the change.
-   - On success, clear sensitive local password state, sign out the recovery session, clear the mobile React Query cache, and use `router.dismissAll()`/`replace()` to show the existing success screen without leaving a navigable recovery stack.
+   - Guard the reset screen so it cannot be used without a valid recovery session.
+   - **Never leave an unfinished recovery session behind:**
+     - leaving the reset screen without completing it (back button, hardware back, swipe) signs the recovery session out and clears flow state;
+     - mark "recovery in progress" in AsyncStorage when the code is verified and clear it on completion; on app start (`app/index.tsx` boot redirect), if the marker is present, sign out and route to sign-in instead of restoring the session into a portal.
+   - On success, clear sensitive local password state, clear the recovery-in-progress marker and flow store, sign out with `endPasswordRecovery("global")` (also ends the account's sessions on other devices, since a reset may follow a compromise; abandoning the flow uses the default `"local"`), clear the mobile React Query cache, and use `router.dismissAll()`/`replace()` to show the existing success screen without leaving a navigable recovery stack.
 
-6. **Retire or repurpose the prototype OTP screen.**
-   - Remove `apps/mobile/app/(auth)/forgot-password/otp-verification.tsx` and its layout registration if the new email-link flow makes it unused.
+### Phase 5 — Retire prototype behavior and add regression coverage
+
+   - Remove hard-coded contact data, unconditional success navigation, and fake OTP verification from the recovery flow.
    - Do not reuse the signup OTP flow: it has signup-specific account-creation behavior and cannot safely verify password-recovery credentials.
+   - Add service unit tests (co-located in `service/auth/`) covering reset requests, resend via `resetPasswordForEmail`, recovery-code verification, the Google-only identity check, password update, sign-out, and every error mapping listed in Phase 2.
+   - Add screen tests in `apps/mobile/tests/forgot-password/` (next to the other `(auth)` flow tests in `tests/verify-account/`; `heroui-native` ships untranspiled ESM that Jest can't parse, so it is stubbed via `heroUINativeStub.tsx`). The email and code screens are covered since Phase 3; add the reset-screen cases, for invalid email, pending/disabled controls, neutral success messaging, expired/invalid codes, the Google-only message, failed password update, abandoning the reset screen (sign-out), and successful sign-out/navigation.
+   - Test email/password, Google-only, and linked Google-plus-password accounts against the post-verification rule.
+   - Mock Expo Router and Supabase Auth; assert no email, password, token, or recovery code is written to logs or route parameters.
+   - Add a device-level manual test using a non-production test account: request reset, enter the email code, set a new password, verify old-password sign-in fails and new-password sign-in succeeds. Also kill the app on the reset screen and confirm the next launch lands on sign-in, not a portal.
 
-7. **Add regression coverage.**
-   - Add service unit tests covering reset requests, recovery-code exchange, password update, and Supabase error mapping.
-   - Add screen tests for invalid email, pending/disabled controls, neutral success messaging, expired/invalid callback handling, failed password update, and successful sign-out/navigation.
-   - Mock Expo Linking, Expo Router, and Supabase Auth; assert no password or token is written to logs or route parameters.
-   - Add a device-level manual test using a non-production test account: request reset, open the email link from a cold app start, set a new password, verify old-password sign-in fails and new-password sign-in succeeds.
+**Phase 5 status (2026-10-13):** automated coverage done — 41 service tests (`service/auth/passwordRecoveryService.test.ts`, every Phase 2 error mapping, email / Google-only / linked accounts through verification, the in-progress marker) and 27 screen tests in `tests/forgot-password/` (email, code and reset screens plus the app-boot safety net). The code and reset screen tests fail if the email, code or password reaches route params or console output (error messages included). Already checked in the simulator against the hosted project: empty-email validation, sending a request, the neutral code screen, the 60 s countdown, and a wrong code being rejected.
 
-8. **Verify and document the completed flow.**
+**Manual device test — passed 2026-10-13** (iOS Simulator, email/password account on Yahoo, Google-only account on Gmail; results cross-checked against hosted Auth logs):
+
+1. Sign in once with the current password to confirm the account works.
+2. Sign out → Forgot Password → enter the email → the code email arrives (in Gmail, the code is visible without "[Message clipped]").
+3. Enter a wrong code → inline error; enter the real code → reset screen.
+4. Try the current password as the new one → "must be different" under the field, form kept.
+5. Set a new valid password → "Password Updated" screen; the back gesture does not return to the reset steps; "Back to Sign In" opens sign-in.
+6. Sign in with the old password → rejected; with the new password → signed in.
+7. The "Your APT password was changed" email arrives.
+8. Abandon by back: request a new code, verify it, press back on the reset screen → still signed out (reopening the app lands on sign-in).
+9. Abandon by closing: request a new code, verify it, force-quit the app on the reset screen, reopen → sign-in screen, not a portal.
+10. Resend: on the code screen, wait for the 60 s countdown, press Resend → a new code arrives; the old code no longer works.
+11. Google-only account: request and verify a code → "This account uses Google", back to sign-in, still signed out.
+
+### Phase 6 — Verify and document the completed flow
+
    - Run `pnpm --filter mobile typecheck`.
    - Run `pnpm --filter mobile lint`.
    - Run the new focused recovery tests, then `pnpm --filter mobile exec jest --runInBand`; separately record and avoid changing unrelated existing failures if they remain.
    - Run `graphify update .` after code changes.
    - Update `ARCHITECTURE.md` only if the shipped authentication flow diagram or canonical mobile-auth description changes materially.
 
+**Phase 6 status (2026-10-13):** mobile typecheck, lint and the full Jest suite (`--runInBand`) pass; `graphify update .` run. The mobile-auth description did change materially (new flow, and the `app/index.tsx` bootstrap now signs out an unfinished reset), so `ARCHITECTURE.md` §4.4 gained the recovery sequence and a "Password recovery" note, and a new §4.5 documents the auth email templates and their rollout. `AGENTS.md` records the durable rules (recovery service usage, never leaving a recovery session behind, no account-type lookup before verification, template rollout and no embedded fonts).
+
+**Remaining:** none — all phases and the manual device test are complete.
+
+## Out of scope / follow-ups
+
+- **Web forgot-password page.** The web sign-in form (`apps/web/app/(auth)/components/AuthForm.tsx`) links to `/forgot-password`, but no such route exists, so it shows a "not found" page. Track a follow-up to build the web flow mirroring this one (AGENTS.md: keep web and mobile aligned), or hide the link until then.
+- Server-side enforcement of the Google-only exclusion (Send Email Auth Hook).
+- **Authenticate a custom sending domain in Brevo before launch.** Auth email currently sends from Brevo's shared domain (`…@brevosend.com`): Gmail delivers it, but Yahoo filed both the recovery code and the password-changed notice in Spam (with images blocked) during the device test. Fix: own a domain, add it under Brevo → Senders, Domains & IPs → Domains, publish the SPF/DKIM/DMARC records Brevo provides, then switch the Supabase SMTP sender to an address on that domain (e.g. `no-reply@<domain>`).
+- **Brevo adds an unsubscribe link/header that can't be removed on the free plan.** A user who clicks it may stop receiving all auth email, including recovery codes. If a user reports missing codes, check Brevo's blocked/unsubscribed contacts for their address and remove it.
+
 ## Acceptance criteria
 
-- A user can request an email reset link from the mobile sign-in flow without revealing whether the account exists.
-- The link opens the installed app, establishes a valid recovery session, and leads only to password reset.
-- Password updates succeed only with a valid recovery session; invalid, expired, or reused links cannot reach the success state.
+- A user can request an email recovery code from the mobile sign-in flow without revealing whether the account exists.
+- A user with an eligible email/password account can enter the emailed recovery code to establish a valid recovery session and reach password reset.
+- A Google-only account that verifies a code is signed out and told to continue with Google; it never reaches the reset screen.
+- Password updates succeed only with a valid recovery session; invalid, expired, or reused codes cannot reach the success state.
+- Abandoning the flow after verifying a code — backing out, or closing the app — never leaves the user signed in.
+- Resend sends a real new code via `resetPasswordForEmail`, with a cooldown matching the server limit.
 - On success, the user is signed out and can sign in using the new password only.
+- The recovery email is never placed in route params or URLs.
 - The UI contains no available-but-nonfunctional SMS option, hard-coded contact data, fake OTP verification, or unconditional success navigation.
-- Automated tests cover the request, callback, update, and error paths.
+- Automated tests cover the request, resend, code-verification, Google-only, update, abandonment, and error paths.

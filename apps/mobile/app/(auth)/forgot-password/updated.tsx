@@ -34,7 +34,7 @@ export default function Updated() {
 
       {/* Back to Sign In */}
       <Button onPress={() => {
-        router.replace('/(auth)/sign-in');
+        router.dismissTo('/sign-in');
       }}>
         <Button.Label>
           Back to Sign In
